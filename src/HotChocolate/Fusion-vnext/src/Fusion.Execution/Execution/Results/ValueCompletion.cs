@@ -272,99 +272,20 @@ internal sealed class ValueCompletion
 
         target.SetArrayValue(source.GetArrayLength());
 
-        if (errorTrie is null)
-        {
-            var i = 0;
-            using var enumerator = target.EnumerateArray().GetEnumerator();
-            foreach (var element in source.EnumerateArray())
-            {
-                var success = enumerator.MoveNext();
-                Debug.Assert(success, "The lists must have the same size.");
-
-                var targetElement = enumerator.Current;
-
-                if (element.IsNullOrUndefined())
-                {
-                    if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
-                    {
-                        return false;
-                    }
-
-                    targetElement.SetNullValue();
-                    i++;
-                    continue;
-                }
-
-                bool completed;
-
-                if (isNested)
-                {
-                    completed = TryCompleteList(
-                        element,
-                        targetElement,
-                        errorTrie: null,
-                        selection,
-                        elementType,
-                        depth);
-                }
-                else if (isLeaf)
-                {
-                    targetElement.SetLeafValue(element);
-                    completed = true;
-                }
-                else if (isAbstract)
-                {
-                    completed = TryCompleteAbstractValue(
-                        element,
-                        targetElement,
-                        errorTrie: null,
-                        selection,
-                        elementType,
-                        depth);
-                }
-                else
-                {
-                    completed = TryCompleteObjectValue(
-                        selection,
-                        elementType,
-                        element,
-                        errorTrie: null,
-                        depth,
-                        targetElement);
-                }
-
-                if (!completed)
-                {
-                    if (!isNullable)
-                    {
-                        return false;
-                    }
-
-                    targetElement.SetNullValue();
-                }
-
-                i++;
-            }
-
-            return true;
-        }
-
-        var index = 0;
-        using var enumeratorWithErrors = target.EnumerateArray().GetEnumerator();
+        var i = 0;
+        using var enumerator = target.EnumerateArray().GetEnumerator();
         foreach (var element in source.EnumerateArray())
         {
-            var success = enumeratorWithErrors.MoveNext();
+            var success = enumerator.MoveNext();
             Debug.Assert(success, "The lists must have the same size.");
 
-            var targetElement = enumeratorWithErrors.Current;
-
             ErrorTrie? errorTrieForIndex = null;
-            errorTrie.TryGetValue(index, out errorTrieForIndex);
+            errorTrie?.TryGetValue(i, out errorTrieForIndex);
 
             if (errorTrieForIndex?.Error is { } error)
             {
                 var errorWithPath = ErrorBuilder.FromError(error)
-                    .SetPath(target.Path.Append(index))
+                    .SetPath(target.Path.Append(i))
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
@@ -384,11 +305,11 @@ internal sealed class ValueCompletion
                     return false;
                 }
 
-                targetElement.SetNullValue();
-                index++;
-                continue;
+                enumerator.Current.SetNullValue();
+                goto TryCompleteList_MoveNext;
             }
 
+            var targetElement = enumerator.Current;
             bool completed;
 
             if (isNested)
@@ -435,12 +356,15 @@ internal sealed class ValueCompletion
                 }
 
                 targetElement.SetNullValue();
+                goto TryCompleteList_MoveNext;
             }
 
-            index++;
+TryCompleteList_MoveNext:
+            i++;
         }
 
         return true;
+
     }
 
     private bool TryCompleteObjectValue(
