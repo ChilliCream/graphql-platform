@@ -150,6 +150,46 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Projection_Should_Project_ComputedExpression_Field_Dependencies()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithComputedExpressionProjection>()
+            .AddType<ExpressionPersonType>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                people {
+                    firstName
+                    fullName
+                }
+            }
+            """);
+
+        using var document = JsonDocument.Parse(result.ToJson());
+        var people = document.RootElement
+            .GetProperty("data")
+            .GetProperty("people");
+
+        // assert
+        Assert.Equal(2, people.GetArrayLength());
+
+        var enumerator = people.EnumerateArray();
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("Jane", enumerator.Current.GetProperty("firstName").GetString());
+        Assert.Equal("Jane Doe", enumerator.Current.GetProperty("fullName").GetString());
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("John", enumerator.Current.GetProperty("firstName").GetString());
+        Assert.Equal("John Smith", enumerator.Current.GetProperty("fullName").GetString());
+        Assert.False(enumerator.MoveNext());
+    }
+
+    [Fact]
     public async Task Node_Resolver_With_SingleOrDefault_Schema()
     {
         var schema = await new ServiceCollection()
@@ -519,6 +559,17 @@ public class QueryWithExpressionProjection
         }.AsQueryable();
 }
 
+public class QueryWithComputedExpressionProjection
+{
+    [UseProjection]
+    public IQueryable<ExpressionPerson> People
+        => new[]
+        {
+            new ExpressionPerson { FirstName = "Jane", LastName = "Doe" },
+            new ExpressionPerson { FirstName = "John", LastName = "Smith" }
+        }.AsQueryable();
+}
+
 public class CardReaderType : ObjectType<CardReader>
 {
     protected override void Configure(IObjectTypeDescriptor<CardReader> descriptor)
@@ -527,9 +578,24 @@ public class CardReaderType : ObjectType<CardReader>
     }
 }
 
+public class ExpressionPersonType : ObjectType<ExpressionPerson>
+{
+    protected override void Configure(IObjectTypeDescriptor<ExpressionPerson> descriptor)
+    {
+        descriptor.Field(x => x.FirstName + " " + x.LastName).Name("fullName");
+    }
+}
+
 public class CardReader
 {
     public byte[] CardReaderUid { get; set; } = [];
+}
+
+public class ExpressionPerson
+{
+    public string FirstName { get; set; } = null!;
+
+    public string LastName { get; set; } = null!;
 }
 
 public class Mutation
