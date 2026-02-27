@@ -64,6 +64,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
+    batchingGroupId: 1
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -86,6 +87,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
+    batchingGroupId: 1
     requirements:
       - name: __fusion_5_id
         selectionMap: >-

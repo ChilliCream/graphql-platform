@@ -95,7 +95,7 @@ public partial class DefaultTypeConverter
     private static void RegisterGuidConversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<Guid, string>(from => from.ToString("N"));
+        registry.Register<Guid, string>(from => from.ToString("D"));
     }
 
     private static void RegisterUriConversions(

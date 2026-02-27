@@ -490,4 +490,3 @@ namespace HotChocolate.Types.Pagination
   }
 ]
 ```
-

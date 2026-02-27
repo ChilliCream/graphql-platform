@@ -97,6 +97,7 @@ internal static class DataTypeExtensionHelper
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
 
+                typeField.Ignore |= extensionField.Ignore;
                 typeField.Description ??= extensionField.Description;
                 typeField.RuntimeDefaultValue ??= extensionField.RuntimeDefaultValue;
             });

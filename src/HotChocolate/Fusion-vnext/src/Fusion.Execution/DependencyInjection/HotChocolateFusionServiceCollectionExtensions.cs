@@ -23,13 +23,26 @@ public static class HotChocolateFusionServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        services.AddOptions();
-
+        AddCore(services);
         AddRequestExecutorManager(services);
         AddSourceSchemaScope(services);
         AddResultObjectPools(services, options.Clone());
 
         return CreateBuilder(services, name);
+    }
+
+    private static void AddCore(
+        IServiceCollection services)
+    {
+        services.AddOptions();
+
+        services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+        services.TryAddSingleton(sp =>
+        {
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var policy = new StringBuilderPooledObjectPolicy();
+            return provider.Create(policy);
+        });
     }
 
     private static void AddRequestExecutorManager(

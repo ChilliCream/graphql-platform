@@ -80,13 +80,8 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         return builder;
     }
 
-    private sealed class InternalActivityEnricher : ActivityEnricher
-    {
-        public InternalActivityEnricher(
-            ObjectPool<StringBuilder> stringBuilderPool,
-            InstrumentationOptions options)
-            : base(stringBuilderPool, options)
-        {
-        }
-    }
+    private sealed class InternalActivityEnricher(
+        ObjectPool<StringBuilder> stringBuilderPool,
+        InstrumentationOptions options)
+        : ActivityEnricher(stringBuilderPool, options);
 }

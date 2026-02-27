@@ -92,7 +92,7 @@ internal static class ApiClientCommandLineBuilderExtensions
                 client.DefaultRequestHeaders.Add(Headers.GraphQLPreflight, "1");
 
                 client.DefaultRequestVersion = new Version(2, 0);
-                client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
+                client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
 
                 clientConfig?.ConfigureClient?.Invoke(client);
             });

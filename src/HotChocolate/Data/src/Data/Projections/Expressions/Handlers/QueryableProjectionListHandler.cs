@@ -10,7 +10,7 @@ public class QueryableProjectionListHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(Selection selection) =>
-        selection.Field.Member is { }
+        CanProjectMember(selection)
         && (selection.IsList || selection.IsMemberIsList());
 
     public override QueryableProjectionContext OnBeforeEnter(

@@ -35,6 +35,9 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
     /// <inheritdoc />
     public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
 
+    /// <inheritdoc />
+    public override string? SchemaName => null;
+
     /// <summary>
     /// Gets the possible type branches for the node field.
     /// The key is the type name and the value the node to execute for that type.

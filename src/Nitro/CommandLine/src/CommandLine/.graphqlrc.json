@@ -7,7 +7,6 @@
       "name": "ApiClient",
       "namespace": "ChilliCream.Nitro.CommandLine.Client",
       "url": "https://api.chillicream.cloud/graphql/",
-      "dependencyInjection": true,
       "emitGeneratedCode": true,
       "noStore": true,
       "records": {
