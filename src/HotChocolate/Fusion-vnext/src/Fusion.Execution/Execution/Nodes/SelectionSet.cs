@@ -198,9 +198,35 @@ public sealed class SelectionSet : ISelectionSet
                 selection = default;
                 return false;
 
-            default:
-                return _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
         }
+
+        if (selections.Length <= 7)
+        {
+            return TryGetSelectionLinear(utf8ResponseName, selections, out selection);
+        }
+
+        return _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryGetSelectionLinear(
+        ReadOnlySpan<byte> utf8ResponseName,
+        Selection[] selections,
+        [NotNullWhen(true)] out Selection? selection)
+    {
+        for (var i = 0; i < selections.Length; i++)
+        {
+            var candidate = selections[i];
+
+            if (utf8ResponseName.SequenceEqual(candidate.Utf8ResponseName))
+            {
+                selection = candidate;
+                return true;
+            }
+        }
+
+        selection = default;
+        return false;
     }
 
     internal void Seal(Operation operation)
