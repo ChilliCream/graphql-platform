@@ -10,9 +10,16 @@ namespace HotChocolate.Internal;
 /// </summary>
 public abstract class CustomParameterExpressionBuilder : IParameterExpressionBuilder
 {
+    private readonly bool _isPure;
+
+    protected CustomParameterExpressionBuilder(bool isPure = true)
+    {
+        _isPure = isPure;
+    }
+
     ArgumentKind IParameterExpressionBuilder.Kind => ArgumentKind.Custom;
 
-    bool IParameterExpressionBuilder.IsPure => false;
+    bool IParameterExpressionBuilder.IsPure => _isPure;
 
     bool IParameterExpressionBuilder.IsDefaultHandler => false;
 
@@ -56,8 +63,13 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     /// <param name="expression">
     /// The expression that shall be used to resolve the parameter value.
     /// </param>
+    /// <param name="isPure">
+    /// Defines if the parameter expression can be used for pure resolvers.
+    /// </param>
     public CustomParameterExpressionBuilder(
-        Expression<Func<IResolverContext, TArg>> expression)
+        Expression<Func<IResolverContext, TArg>> expression,
+        bool isPure = true)
+        : base(isPure)
     {
         _canHandle = p => p.ParameterType == typeof(TArg);
         _expression = expression;
@@ -72,9 +84,14 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     /// <param name="expression">
     /// The expression that shall be used to resolve the parameter value.
     /// </param>
+    /// <param name="isPure">
+    /// Defines if the parameter expression can be used for pure resolvers.
+    /// </param>
     public CustomParameterExpressionBuilder(
         Expression<Func<IResolverContext, TArg>> expression,
-        Func<ParameterInfo, bool> canHandle)
+        Func<ParameterInfo, bool> canHandle,
+        bool isPure = true)
+        : base(isPure)
     {
         _expression = expression;
         _canHandle = canHandle;
