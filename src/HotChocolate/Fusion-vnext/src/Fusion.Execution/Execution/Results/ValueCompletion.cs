@@ -58,6 +58,36 @@ internal sealed class ValueCompletion
             return BuildErrorResult(target, responseNames, error, target.Path);
         }
 
+        if (target.TryGetSelectionSet(out var targetSelectionSet))
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection)
+                    || !target.TryGetProperty(selection, out var resultField))
+                {
+                    continue;
+                }
+
+                ErrorTrie? errorTrieForResponseName = null;
+                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+
+                if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
+                {
+                    switch (_errorHandlingMode)
+                    {
+                        case ErrorHandlingMode.Propagate:
+                            var didPropagateToRoot = PropagateNullValues(resultField);
+                            return !didPropagateToRoot;
+
+                        case ErrorHandlingMode.Halt:
+                            return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var resultField))
@@ -416,6 +446,7 @@ TryCompleteList_MoveNext:
         int depth)
     {
         AssertDepthAllowed(ref depth);
+        SelectionSet? selectionSet = null;
 
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.
@@ -427,7 +458,35 @@ TryCompleteList_MoveNext:
                 precomputedSelectionSet = operation.GetSelectionSet(parentSelection, objectType);
             }
 
-            target.SetObjectValue(precomputedSelectionSet);
+            selectionSet = precomputedSelectionSet;
+            target.SetObjectValue(selectionSet);
+        }
+        else if (target.TryGetSelectionSet(out var existingSelectionSet))
+        {
+            selectionSet = existingSelectionSet;
+        }
+
+        if (selectionSet is not null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!selectionSet.TryGetSelection(property.NameSpan, out var selection)
+                    || !target.TryGetProperty(selection, out var targetProperty))
+                {
+                    continue;
+                }
+
+                ErrorTrie? errorTrieForResponseName = null;
+                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+
+                if (!TryCompleteValue(property.Value,
+                    targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         foreach (var property in source.EnumerateObject())

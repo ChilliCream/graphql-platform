@@ -1,11 +1,66 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool TryGetSelectionSet(Cursor cursor, out SelectionSet? selectionSet)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        (cursor, var tokenType) = _metaDb.GetStartCursor(cursor);
+        if (tokenType is not ElementTokenType.StartObject)
+        {
+            selectionSet = null;
+            return false;
+        }
+
+        var row = _metaDb.Get(cursor);
+        if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
+        {
+            selectionSet = null;
+            return false;
+        }
+
+        selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool TryGetSelectionPropertyValue(
+        Cursor startCursor,
+        Selection selection,
+        out CompositeResultElement value)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, tokenType);
+
+        var row = _metaDb.Get(startCursor);
+        if (row.OperationReferenceType is not OperationReferenceType.SelectionSet
+            || row.OperationReferenceId != selection.DeclaringSelectionSet.Id)
+        {
+            value = default;
+            return false;
+        }
+
+        var propertyIndex = selection.Id - selection.DeclaringSelectionSet.Id - 1;
+        var propertyRowIndex = (propertyIndex * 2) + 1;
+        var propertyCursor = startCursor + propertyRowIndex;
+
+        Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+        Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
+
+        value = new CompositeResultElement(this, propertyCursor + 1);
+        return true;
+    }
+
     internal bool TryGetNamedPropertyValue(
         Cursor startCursor,
         string propertyName,

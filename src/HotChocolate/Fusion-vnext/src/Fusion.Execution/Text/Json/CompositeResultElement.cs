@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
@@ -410,6 +412,20 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
 
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool TryGetProperty(Selection selection, out CompositeResultElement value)
+    {
+        CheckValidInstance();
+        return _parent.TryGetSelectionPropertyValue(_cursor, selection, out value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool TryGetSelectionSet([NotNullWhen(true)] out SelectionSet? selectionSet)
+    {
+        CheckValidInstance();
+        return _parent.TryGetSelectionSet(_cursor, out selectionSet);
     }
 
     /// <summary>
