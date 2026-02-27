@@ -81,10 +81,9 @@ public class BatchingTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        for (var i = 0; i < messageCount; i++)
-        {
-            await bus.PublishAsync(new OrderCreated { OrderId = $"batch-{i}" }, CancellationToken.None);
-        }
+        var publishTasks = Enumerable.Range(0, messageCount)
+            .Select(i => bus.PublishAsync(new OrderCreated { OrderId = $"batch-{i}" }, CancellationToken.None).AsTask());
+        await Task.WhenAll(publishTasks);
 
         // assert — single batch containing all 5 messages
         Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
