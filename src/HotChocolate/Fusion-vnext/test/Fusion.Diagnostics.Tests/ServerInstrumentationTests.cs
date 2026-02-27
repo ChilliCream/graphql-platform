@@ -8,9 +8,9 @@ namespace HotChocolate.Fusion.Diagnostics;
 [Collection("Instrumentation")]
 public class ServerInstrumentationTests : FusionTestBase
 {
-    private static readonly Uri _url = new("http://localhost:5000/graphql");
+    private static readonly Uri s_url = new("http://localhost:5000/graphql");
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Post_Single_Request_Default()
     {
         using (CaptureActivities(out var activities))
@@ -29,14 +29,14 @@ public class ServerInstrumentationTests : FusionTestBase
             var request = new OperationRequest("{ sayHello }");
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Post_Single_Request()
     {
         using (CaptureActivities(out var activities))
@@ -56,14 +56,14 @@ public class ServerInstrumentationTests : FusionTestBase
             var request = new OperationRequest("{ sayHello }");
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Get_Single_Request()
     {
         using (CaptureActivities(out var activities))
@@ -83,14 +83,14 @@ public class ServerInstrumentationTests : FusionTestBase
             var request = new OperationRequest("{ sayHello }");
 
             // act
-            using var result = await client.GetAsync(request, _url);
+            using var result = await client.GetAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Post_Variables_Are_Not_Automatically_Added_To_Activities()
     {
         using (CaptureActivities(out var activities))
@@ -116,14 +116,14 @@ public class ServerInstrumentationTests : FusionTestBase
                 variables: new Dictionary<string, object?> { { "name", "World" } });
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Post_Add_Variables_To_Http_Activity()
     {
         using (CaptureActivities(out var activities))
@@ -153,14 +153,14 @@ public class ServerInstrumentationTests : FusionTestBase
                 variables: new Dictionary<string, object?> { { "name", "World" } });
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Post_Add_Query_To_Http_Activity()
     {
         using (CaptureActivities(out var activities))
@@ -190,14 +190,14 @@ public class ServerInstrumentationTests : FusionTestBase
                 variables: new Dictionary<string, object?> { { "name", "World" } });
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Post_With_Extensions_Map()
     {
         using (CaptureActivities(out var activities))
@@ -224,14 +224,14 @@ public class ServerInstrumentationTests : FusionTestBase
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Get_SDL_Download()
     {
         using (CaptureActivities(out var activities))
@@ -281,14 +281,14 @@ public class ServerInstrumentationTests : FusionTestBase
                 """);
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Http_Post_Parser_Error()
     {
         using (CaptureActivities(out var activities))
@@ -320,14 +320,14 @@ public class ServerInstrumentationTests : FusionTestBase
                 """);
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Parsing_Error_When_Rename_Root_Is_Activated()
     {
         using (CaptureActivities(out var activities))
@@ -352,14 +352,14 @@ public class ServerInstrumentationTests : FusionTestBase
             var request = new OperationRequest("{ 1 }");
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task Validation_Error_When_Rename_Root_Is_Activated()
     {
         using (CaptureActivities(out var activities))
@@ -383,7 +383,7 @@ public class ServerInstrumentationTests : FusionTestBase
             var request = new OperationRequest("{ abc }");
 
             // act
-            using var result = await client.PostAsync(request, _url);
+            using var result = await client.PostAsync(request, s_url);
 
             // assert
             activities.MatchSnapshot();

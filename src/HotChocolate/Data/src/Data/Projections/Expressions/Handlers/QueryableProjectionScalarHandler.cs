@@ -11,7 +11,7 @@ public class QueryableProjectionScalarHandler
 {
     public override bool CanHandle(Selection selection)
         => selection.IsLeaf
-            && (selection.Field.Member is not null
+            && (CanProjectMember(selection)
                 || selection.Field.ResolverExpression is LambdaExpression);
 
     public override bool TryHandleEnter(

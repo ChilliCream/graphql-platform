@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Execution.Clients;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -127,6 +128,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         var index = 0;
         var bufferLength = 0;
         SourceSchemaResult[]? buffer = null;
+        SourceSchemaResult? singleResult = null;
         var hasSomeErrors = false;
 
         try
@@ -145,14 +147,34 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 totalPathCount += variables[i].AdditionalPaths.Length;
             }
 
-            bufferLength = Math.Max(totalPathCount, 1);
-            buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+            var initialBufferLength = Math.Max(totalPathCount, 2);
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
-                buffer[index++] = result;
+                // Store the first result without renting a buffer,
+                // since it might be the only one (e.g. a request-level error).
+                if (index == 0)
+                {
+                    singleResult = result;
+                    index = 1;
+                }
+                else
+                {
+                    // Once we see a second result, we know there are multiple,
+                    // so we rent a buffer and move the first result into it.
+                    if (buffer is null)
+                    {
+                        bufferLength = initialBufferLength;
+                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+                        buffer[0] = singleResult!;
+                    }
 
-                if (result.HasErrors)
+                    buffer[index++] = result;
+                }
+
+                // Parsing errors here allows the result store to reuse the cached value
+                // and avoids a second document lookup per result.
+                if (result.Errors is not null)
                 {
                     hasSomeErrors = true;
                 }
@@ -182,6 +204,10 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 buffer.AsSpan(0, index).Clear();
                 ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
+            else if (singleResult is not null)
+            {
+                singleResult.Dispose();
+            }
 
             AddErrors(context, exception, variables, _responseNames);
             return ExecutionStatus.Failed;
@@ -189,7 +215,31 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         try
         {
-            context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
+            if (buffer is not null)
+            {
+                context.AddPartialResults(
+                    _source,
+                    buffer.AsSpan(0, index),
+                    _responseNames,
+                    hasSomeErrors);
+            }
+            else if (singleResult is not null)
+            {
+                var firstResult = singleResult;
+                context.AddPartialResults(
+                    _source,
+                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
+                    _responseNames,
+                    hasSomeErrors);
+            }
+            else
+            {
+                context.AddPartialResults(
+                    _source,
+                    [],
+                    _responseNames,
+                    hasSomeErrors);
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -206,8 +256,11 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         }
         finally
         {
-            buffer.AsSpan(0, index).Clear();
-            ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            if (buffer is not null)
+            {
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            }
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;

@@ -13,7 +13,7 @@ interface GeoJSONInterface {
 
 type GeoJSONMultiLineStringType implements GeoJSONInterface {
   "The \"coordinates\" field is an array of LineString coordinate arrays."
-  coordinates: [Position]
+  coordinates: [[Position]]
   "The geometry type of the GeoJson object"
   type: GeoJSONGeometryType!
   "The minimum bounding box around the geometry object"

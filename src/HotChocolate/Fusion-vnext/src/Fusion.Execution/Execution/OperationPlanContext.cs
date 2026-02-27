@@ -260,9 +260,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<string> responseNames)
+        ReadOnlySpan<string> responseNames,
+        bool containsErrors = true)
     {
-        var canExecutionContinue = _resultStore.AddPartialResults(sourcePath, results, responseNames);
+        var canExecutionContinue =
+            _resultStore.AddPartialResults(sourcePath, results, responseNames, containsErrors);
 
         if (!canExecutionContinue)
         {
@@ -369,15 +371,15 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return operationResult;
     }
 
-    private List<ObjectFieldNode> GetPathThroughVariables(
+    private IReadOnlyList<ObjectFieldNode> GetPathThroughVariables(
         ReadOnlySpan<string> forwardedVariables)
     {
         if (Variables.IsEmpty || forwardedVariables.Length == 0)
         {
-            return [];
+            return Array.Empty<ObjectFieldNode>();
         }
 
-        var variables = new List<ObjectFieldNode>();
+        var variables = new List<ObjectFieldNode>(forwardedVariables.Length);
 
         foreach (var variableName in forwardedVariables)
         {
@@ -400,7 +402,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
         }
 
-        return variables;
+        return variables.Count == 0
+            ? Array.Empty<ObjectFieldNode>()
+            : variables;
     }
 
     public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
