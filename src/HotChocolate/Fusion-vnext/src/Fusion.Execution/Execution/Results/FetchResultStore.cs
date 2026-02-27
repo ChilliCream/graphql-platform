@@ -513,14 +513,14 @@ AddErrors_Next:
                 {
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
-                        && value.TextEqualsHelper(segment.Name, isPropertyName: false))
+                        && value.ValueEquals(segment.Utf8Name))
                     {
                         next.Add(element);
                     }
                 }
                 else if (segment.Kind is SelectionPathSegmentKind.Field)
                 {
-                    if (!element.TryGetProperty(segment.Name, out var value))
+                    if (!element.TryGetProperty(segment.Utf8Name, out var value))
                     {
                         continue;
                     }
