@@ -10,9 +10,7 @@ response:
   body: |
     {
       "data": {
-        "productBySlug": {
-          "__typename": "Product"
-        }
+        "productBySlug": {}
       }
     }
 sourceSchemas:

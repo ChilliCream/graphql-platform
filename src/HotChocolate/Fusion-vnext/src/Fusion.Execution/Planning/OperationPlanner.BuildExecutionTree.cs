@@ -187,7 +187,20 @@ public sealed partial class OperationPlanner
 
         bool IsEmptyOperation(OperationPlanStep step)
         {
-            return step.Definition.SelectionSet.Selections.Count == 0;
+            if (step.Definition.SelectionSet.Selections.Count == 0)
+            {
+                return true;
+            }
+
+            return step.Definition.SelectionSet.Selections is
+            [
+                FieldNode
+            {
+                Alias: null,
+                Name.Value: IntrospectionFieldNames.TypeName,
+                Directives: [{ Name.Value: "fusion__empty" }]
+            }
+            ];
         }
 
         OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
@@ -1188,24 +1201,32 @@ file static class Extensions
 
     public static bool IsIntrospectionOnly(this Operation operation)
     {
+        var hasNonInternalIntrospectionSelection = false;
+
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
+            if (selection.IsInternal)
+            {
+                continue;
+            }
+
             if (selection.Field.IsIntrospectionField)
             {
+                hasNonInternalIntrospectionSelection = true;
                 continue;
             }
 
             return false;
         }
 
-        return true;
+        return hasNonInternalIntrospectionSelection;
     }
 
     public static bool HasIntrospectionFields(this Operation operation)
     {
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
-            if (selection.Field.IsIntrospectionField)
+            if (!selection.IsInternal && selection.Field.IsIntrospectionField)
             {
                 return true;
             }
@@ -1220,7 +1241,7 @@ file static class Extensions
 
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
-            if (selection.Field.IsIntrospectionField)
+            if (!selection.IsInternal && selection.Field.IsIntrospectionField)
             {
                 selections.Add(selection);
             }

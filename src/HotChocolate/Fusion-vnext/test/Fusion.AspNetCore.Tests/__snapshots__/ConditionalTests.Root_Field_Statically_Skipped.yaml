@@ -9,9 +9,7 @@ request:
 response:
   body: |
     {
-      "data": {
-        "__typename": "Query"
-      }
+      "data": {}
     }
 sourceSchemas:
   - name: A
@@ -39,9 +37,3 @@ operationPlan:
       searchSpace: 1
       expandedNodes: 1
   nodes:
-    - id: 1
-      type: Introspection
-      selections:
-        - id: 2
-          responseName: __typename
-          fieldName: __typename
