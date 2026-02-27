@@ -1,4 +1,5 @@
 using GreenDonut.Data;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,6 +79,46 @@ public class IntegrationTests
             schema.Types["EntityWithIgnoredUnsupportedFieldSortInput"]);
         Assert.Collection(sortType.Fields, field => Assert.Equal("name", field.Name));
     }
+
+    [Fact]
+    public async Task Sorting_Should_Auto_Ignore_ObjectType_Ignored_Field()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithIgnoredField>()
+            .AddType<EntityWithIgnoredFieldType>()
+            .AddSorting()
+            .BuildSchemaAsync();
+
+        // assert
+        Assert.NotNull(schema);
+        var sortType = Assert.IsAssignableFrom<InputObjectType>(
+            schema.Types["EntityWithIgnoredFieldSortInput"]);
+        Assert.Contains(sortType.Fields, field => field.Name == "id");
+        Assert.Contains(sortType.Fields, field => field.Name == "name");
+        Assert.DoesNotContain(sortType.Fields, field => field.Name == "internalData");
+    }
+
+    [Fact]
+    public async Task Sorting_Should_Not_Ignore_Explicitly_Bound_Ignored_ObjectType_Field()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithExplicitIgnoredFieldSort>()
+            .AddType<EntityWithIgnoredFieldType>()
+            .AddSorting()
+            .BuildSchemaAsync();
+
+        // assert
+        Assert.NotNull(schema);
+        var sortType = Assert.IsAssignableFrom<InputObjectType>(
+            schema.Types["EntityWithIgnoredFieldSortInput"]);
+        Assert.Contains(sortType.Fields, field => field.Name == "internalData");
+    }
 }
 
 public class Query
@@ -131,6 +172,28 @@ public class QueryWithIgnoredUnsupportedField
         => new[] { new EntityWithIgnoredUnsupportedField { Name = "A" } }.AsQueryable();
 }
 
+public class QueryWithIgnoredField
+{
+    [UseSorting]
+    public IQueryable<EntityWithIgnoredField> Entities() =>
+        new[]
+        {
+            new EntityWithIgnoredField { Id = 1, Name = "A", InternalData = "A1" },
+            new EntityWithIgnoredField { Id = 2, Name = "B", InternalData = "B1" }
+        }.AsQueryable();
+}
+
+public class QueryWithExplicitIgnoredFieldSort
+{
+    [UseSorting(typeof(EntityWithIgnoredFieldSortType))]
+    public IQueryable<EntityWithIgnoredField> Entities() =>
+        new[]
+        {
+            new EntityWithIgnoredField { Id = 1, Name = "A", InternalData = "A1" },
+            new EntityWithIgnoredField { Id = 2, Name = "B", InternalData = "B1" }
+        }.AsQueryable();
+}
+
 public class EntityWithIgnoredUnsupportedField
 {
     public string Name { get; set; } = string.Empty;
@@ -139,10 +202,35 @@ public class EntityWithIgnoredUnsupportedField
 
 public class UnsupportedSpatialData;
 
+public class EntityWithIgnoredField
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string? InternalData { get; set; }
+}
+
 public class EntityWithIgnoredUnsupportedFieldType : ObjectType<EntityWithIgnoredUnsupportedField>
 {
     protected override void Configure(IObjectTypeDescriptor<EntityWithIgnoredUnsupportedField> descriptor)
     {
         descriptor.Ignore(t => t.SpatialData);
+    }
+}
+
+public class EntityWithIgnoredFieldType : ObjectType<EntityWithIgnoredField>
+{
+    protected override void Configure(IObjectTypeDescriptor<EntityWithIgnoredField> descriptor)
+    {
+        descriptor.Ignore(t => t.InternalData);
+    }
+}
+
+public class EntityWithIgnoredFieldSortType : SortInputType<EntityWithIgnoredField>
+{
+    protected override void Configure(ISortInputTypeDescriptor<EntityWithIgnoredField> descriptor)
+    {
+        descriptor.Field(t => t.InternalData);
     }
 }
