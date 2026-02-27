@@ -33,6 +33,37 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             context.SelectionSetIndex);
     }
 
+    private static ExecutionNodeCondition[]? ExtractDirectiveConditions(
+        IReadOnlyList<DirectiveNode> directives)
+    {
+        List<ExecutionNodeCondition>? conditions = null;
+
+        foreach (var directive in directives)
+        {
+            var passingValue = directive.Name.Value switch
+            {
+                "skip" => false,
+                "include" => true,
+                _ => (bool?)null
+            };
+
+            if (passingValue.HasValue
+                && directive.Arguments.Count > 0
+                && directive.Arguments[0].Value is VariableNode variable)
+            {
+                conditions ??= [];
+                conditions.Add(new ExecutionNodeCondition
+                {
+                    VariableName = variable.Name.Value,
+                    PassingValue = passingValue.Value,
+                    Directive = directive
+                });
+            }
+        }
+
+        return conditions?.ToArray();
+    }
+
     private (SelectionSetNode?, SelectionSetNode?) RewriteSelectionSet(
         Context context,
         ITypeDefinition type,
@@ -72,12 +103,17 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                             }
                         }
 
+                        var fieldConditions = ExtractDirectiveConditions(fieldNode.Directives);
+                        var savedCount = context.PushConditions(fieldConditions);
+
                         var (resolvable, unresolvable) =
                             RewriteFieldNode(
                                 context,
                                 complexType!,
                                 fieldNode,
                                 GetProvidedField(fieldNode, providedSelectionSetNode));
+
+                        context.PopConditions(savedCount);
 
                         CompleteSelection(fieldNode, resolvable, unresolvable, i);
                     }
@@ -86,12 +122,17 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
                 case InlineFragmentNode inlineFragmentNode:
                 {
+                    var fragmentConditions = ExtractDirectiveConditions(inlineFragmentNode.Directives);
+                    var savedCount = context.PushConditions(fragmentConditions);
+
                     var (resolvable, unresolvable) =
                         RewriteFragmentNode(
                             context,
                             type,
                             inlineFragmentNode,
                             providedSelectionSetNode);
+
+                    context.PopConditions(savedCount);
 
                     CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     break;
@@ -118,27 +159,15 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
 
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
-
-            if (context.FragmentPath is { Count: > 0 })
-            {
-                foreach (var fragmentNode in context.FragmentPath)
-                {
-                    unresolvableSelectionSet = new SelectionSetNode(
-                    [
-                        fragmentNode.WithSelectionSet(unresolvableSelectionSet)
-                    ]);
-                }
-            }
-
             context.Register(selectionSetNode, unresolvableSelectionSet);
-            context.RegisterNested(unresolvableSelectionSet);
 
             var selectionSet = new SelectionSet(
                 context.GetId(selectionSetNode),
                 unresolvableSelectionSet,
                 type,
                 context.BuildPath());
-            context.Unresolvable = context.Unresolvable.Push(selectionSet);
+            context.Unresolvable = context.Unresolvable.Push(
+                new ConditionedSelectionSet(selectionSet, context.SnapshotConditions()));
             unresolvableSelections = null;
         }
 
@@ -249,11 +278,13 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             {
                 context.FieldsWithRequirements =
                     context.FieldsWithRequirements.Push(
-                        new FieldSelection(
-                            context.GetId((SelectionSetNode)context.Nodes.Peek()),
-                            fieldNode,
-                            field,
-                            context.BuildPath()));
+                        new ConditionedFieldSelection(
+                            new FieldSelection(
+                                context.GetId((SelectionSetNode)context.Nodes.Peek()),
+                                fieldNode,
+                                field,
+                                context.BuildPath()),
+                            context.SnapshotConditions()));
                 return (null, null);
             }
         }
@@ -304,13 +335,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (null, null);
         }
 
-        var trackFragmentPath = inlineFragmentNode.TypeCondition is null;
-        if (trackFragmentPath)
-        {
-            context.FragmentPath ??= [];
-            context.FragmentPath.Push(inlineFragmentNode);
-        }
-
         context.Nodes.Push(inlineFragmentNode);
 
         var (resolvable, unresolvable) =
@@ -321,11 +345,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 providedFieldNode);
 
         context.Nodes.Pop();
-
-        if (trackFragmentPath)
-        {
-            context.FragmentPath!.Pop();
-        }
 
         if (resolvable is null)
         {
@@ -362,13 +381,40 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
         }
 
-        public ImmutableStack<SelectionSet> Unresolvable { get; set; } = [];
+        public ImmutableStack<ConditionedSelectionSet> Unresolvable { get; set; } = [];
 
-        public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; } = [];
+        public ImmutableStack<ConditionedFieldSelection> FieldsWithRequirements { get; set; } = [];
 
         public List<ISyntaxNode> Nodes { get; } = [];
 
-        public Stack<InlineFragmentNode>? FragmentPath { get; set; }
+        private List<ExecutionNodeCondition> ActiveConditions { get; } = [];
+
+        public int PushConditions(ExecutionNodeCondition[]? conditions)
+        {
+            if (conditions is null || conditions.Length == 0)
+            {
+                return ActiveConditions.Count;
+            }
+
+            var savedCount = ActiveConditions.Count;
+            ActiveConditions.AddRange(conditions);
+            return savedCount;
+        }
+
+        public void PopConditions(int savedCount)
+        {
+            if (savedCount < ActiveConditions.Count)
+            {
+                ActiveConditions.RemoveRange(savedCount, ActiveConditions.Count - savedCount);
+            }
+        }
+
+        public ExecutionNodeCondition[] SnapshotConditions()
+        {
+            return ActiveConditions.Count == 0
+                ? []
+                : ActiveConditions.ToArray();
+        }
 
         public SelectionPath BuildPath()
         {
@@ -407,35 +453,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
 
             SelectionSetIndexBuilder.Register(original, branch);
-        }
-
-        public void RegisterNested(SelectionSetNode selectionSetNode)
-        {
-            foreach (var selection in selectionSetNode.Selections)
-            {
-                switch (selection)
-                {
-                    case FieldNode { SelectionSet: { } fieldSelectionSet }:
-                        RegisterSelectionSet(fieldSelectionSet);
-                        RegisterNested(fieldSelectionSet);
-                        break;
-
-                    case InlineFragmentNode inlineFragmentNode:
-                        RegisterSelectionSet(inlineFragmentNode.SelectionSet);
-                        RegisterNested(inlineFragmentNode.SelectionSet);
-                        break;
-                }
-            }
-        }
-
-        private void RegisterSelectionSet(SelectionSetNode selectionSetNode)
-        {
-            if (SelectionSetIndex.IsRegistered(selectionSetNode))
-            {
-                return;
-            }
-
-            SelectionSetIndexBuilder.Register(selectionSetNode);
         }
     }
 }

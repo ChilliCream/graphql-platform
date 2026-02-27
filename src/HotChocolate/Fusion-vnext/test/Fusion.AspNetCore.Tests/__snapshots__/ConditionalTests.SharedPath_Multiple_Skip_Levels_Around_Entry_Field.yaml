@@ -3,7 +3,7 @@ request:
   document: |
     query testQuery(
       $skip1: Boolean!
-      $skip2: Boolean!
+        $skip2: Boolean!
     ) {
       ... @skip(if: $skip1) {
         ... @skip(if: $skip2) {
@@ -22,11 +22,7 @@ request:
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "Unexpected Execution Error"
-        }
-      ]
+      "data": {}
     }
 sourceSchemas:
   - name: A
@@ -36,7 +32,7 @@ sourceSchemas:
       }
 
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
 
       type Viewer {
@@ -49,9 +45,62 @@ sourceSchemas:
       }
 
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
 
       type Viewer {
         fieldB: String!
       }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip1: Boolean!
+            $skip2: Boolean!
+        ) {
+          ... @skip(if: $skip1) {
+            viewer @skip(if: $skip2) {
+              fieldA
+              fieldB
+            }
+          }
+        }
+      name: testQuery
+      hash: 894a38a7caa6face77d599d86293ac6c
+      searchSpace: 2
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_894a38a7_1 {
+          viewer {
+            fieldA
+          }
+        }
+      conditions:
+        - variable: $skip2
+          passingValue: false
+        - variable: $skip1
+          passingValue: false
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_894a38a7_2(
+          $skip1: Boolean!
+        ) {
+          viewer {
+            ... @skip(if: $skip1) {
+              fieldB
+            }
+          }
+        }
+      conditions:
+        - variable: $skip2
+          passingValue: false
+        - variable: $skip1
+          passingValue: false
+      forwardedVariables:
+        - skip1

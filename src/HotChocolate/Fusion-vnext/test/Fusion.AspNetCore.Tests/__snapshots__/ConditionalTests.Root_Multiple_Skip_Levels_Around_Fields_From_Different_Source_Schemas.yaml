@@ -101,7 +101,7 @@ operationPlan:
           }
         }
       conditions:
-        - variable: $skip2
-          passingValue: false
         - variable: $skip1
+          passingValue: false
+        - variable: $skip2
           passingValue: false

@@ -1052,7 +1052,16 @@ public sealed partial class OperationPlanner
             newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
         }
 
-        return step with { Definition = newOperation, Conditions = context.Conditions.ToArray() };
+        // Merge extracted conditions with any conditions already propagated from work items,
+        // deduplicating by value equality.
+        var mergedConditions = context.Conditions;
+
+        foreach (var existing in step.Conditions)
+        {
+            mergedConditions.Add(existing);
+        }
+
+        return step with { Definition = newOperation, Conditions = mergedConditions.ToArray() };
     }
 
     private static SelectionSetNode RewriteConditionalSelectionSet(

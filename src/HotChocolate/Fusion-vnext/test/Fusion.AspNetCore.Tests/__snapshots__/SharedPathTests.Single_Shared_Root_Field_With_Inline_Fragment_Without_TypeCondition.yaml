@@ -154,18 +154,10 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_88b508ac_2(
-              $skip: Boolean!
-            ) {
+            query Op_88b508ac_2 {
               viewer {
-                ... @skip(if: $skip) {
-                  schema2
-                }
+                schema2
               }
-            }
-          variables: |
-            {
-              "skip": false
             }
         response:
           results:
@@ -213,14 +205,11 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_88b508ac_2(
-          $skip: Boolean!
-        ) {
+        query Op_88b508ac_2 {
           viewer {
-            ... @skip(if: $skip) {
-              schema2
-            }
+            schema2
           }
         }
-      forwardedVariables:
-        - skip
+      conditions:
+        - variable: $skip
+          passingValue: false

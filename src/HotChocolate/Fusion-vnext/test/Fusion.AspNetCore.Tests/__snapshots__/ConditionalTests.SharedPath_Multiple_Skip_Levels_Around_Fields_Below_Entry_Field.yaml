@@ -81,34 +81,6 @@ sourceSchemas:
       type Viewer {
         fieldB: String!
       }
-    interactions:
-      - request:
-          document: |
-            query testQuery_c099bff0_2(
-              $skip1: Boolean!
-                $skip2: Boolean!
-            ) {
-              viewer {
-                ... @skip(if: $skip1) {
-                  ... @skip(if: $skip2) {
-                    fieldB
-                  }
-                }
-              }
-            }
-          variables: |
-            {
-              "skip1": true,
-              "skip2": true
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "viewer": {}
-                }
-              }
 operationPlan:
   operation:
     - document: |
@@ -153,18 +125,13 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_c099bff0_2(
-          $skip1: Boolean!
-            $skip2: Boolean!
-        ) {
+        query testQuery_c099bff0_2 {
           viewer {
-            ... @skip(if: $skip1) {
-              ... @skip(if: $skip2) {
-                fieldB
-              }
-            }
+            fieldB
           }
         }
-      forwardedVariables:
-        - skip1
-        - skip2
+      conditions:
+        - variable: $skip1
+          passingValue: false
+        - variable: $skip2
+          passingValue: false

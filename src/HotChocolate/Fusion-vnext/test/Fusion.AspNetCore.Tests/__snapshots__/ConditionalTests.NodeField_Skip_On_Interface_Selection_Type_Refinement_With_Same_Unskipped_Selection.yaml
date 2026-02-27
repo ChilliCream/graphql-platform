@@ -108,48 +108,25 @@ sourceSchemas:
       }
     interactions:
       - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query testQuery_ff22954e_4(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "QXV0aG9yOjE="
-                }
-            - document: |
-                query testQuery_ff22954e_5(
-                  $__fusion_2_id: ID!
-                ) {
-                  authorById(id: $__fusion_2_id) {
-                    username
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_2_id": "QXV0aG9yOjE="
-                }
+          document: |
+            query testQuery_ff22954e_4(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                rating
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjE="
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "authorById": {
                     "rating": 123
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "username": "Author: QXV0aG9yOjE="
                   }
                 }
               }
@@ -259,5 +236,8 @@ operationPlan:
         - name: __fusion_2_id
           selectionMap: >-
             id
+      conditions:
+        - variable: $skip
+          passingValue: false
       dependencies:
         - id: 3
