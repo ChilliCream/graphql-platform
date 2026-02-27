@@ -60,7 +60,6 @@ internal sealed class ValueCompletion
 
         if (target.TryGetSelectionSet(out var targetSelectionSet))
         {
-            var selectionSetId = targetSelectionSet.Id;
             var startCursor = target.GetStartCursor();
 
             if (errorTrie is null)
@@ -72,7 +71,7 @@ internal sealed class ValueCompletion
                         continue;
                     }
 
-                    var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                    var resultField = target.GetSelectionProperty(selection, startCursor);
                     if (!TryCompleteValue(property.Value, resultField, null, selection, selection.Type, 0))
                     {
                         switch (_errorHandlingMode)
@@ -97,7 +96,7 @@ internal sealed class ValueCompletion
                     continue;
                 }
 
-                var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                var resultField = target.GetSelectionProperty(selection, startCursor);
                 errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
 
                 if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
@@ -524,7 +523,6 @@ TryCompleteList_MoveNext:
 
         if (selectionSet is not null)
         {
-            var selectionSetId = selectionSet.Id;
             var startCursor = target.GetStartCursor();
 
             if (errorTrie is null)
@@ -536,7 +534,7 @@ TryCompleteList_MoveNext:
                         continue;
                     }
 
-                    var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                    var targetProperty = target.GetSelectionProperty(selection, startCursor);
 
                     if (!TryCompleteValue(property.Value, targetProperty, null, selection, selection.Type, depth))
                     {
@@ -554,7 +552,7 @@ TryCompleteList_MoveNext:
                     continue;
                 }
 
-                var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                var targetProperty = target.GetSelectionProperty(selection, startCursor);
                 errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
 
                 if (!TryCompleteValue(property.Value,
