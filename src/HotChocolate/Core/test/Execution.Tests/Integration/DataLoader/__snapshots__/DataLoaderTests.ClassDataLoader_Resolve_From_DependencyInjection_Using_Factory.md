@@ -9,7 +9,12 @@
     "b": "b"
   },
   "extensions": {
-    "loads": [["a", "b"]]
+    "loads": [
+      [
+        "a",
+        "b"
+      ]
+    ]
   }
 }
 ```
@@ -22,7 +27,11 @@
     "a": "a"
   },
   "extensions": {
-    "loads": [["a"]]
+    "loads": [
+      [
+        "a"
+      ]
+    ]
   }
 }
 ```
@@ -35,7 +44,11 @@
     "c": "c"
   },
   "extensions": {
-    "loads": [["c"]]
+    "loads": [
+      [
+        "c"
+      ]
+    ]
   }
 }
 ```

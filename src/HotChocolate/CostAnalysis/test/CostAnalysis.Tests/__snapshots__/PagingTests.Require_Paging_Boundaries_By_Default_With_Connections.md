@@ -25,7 +25,9 @@
           "column": 5
         }
       ],
-      "path": ["books"],
+      "path": [
+        "books"
+      ],
       "extensions": {
         "code": "HC0082"
       }

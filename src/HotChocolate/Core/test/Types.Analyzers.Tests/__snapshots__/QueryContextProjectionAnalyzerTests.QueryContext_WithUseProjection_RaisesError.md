@@ -214,7 +214,11 @@ namespace TestNamespace
     "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
     "Message": "The type or namespace name 'IQueryable<>' could not be found (are you missing a using directive or an assembly reference?)",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   }
 ]
 ```
@@ -244,7 +248,11 @@ namespace TestNamespace
     "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
     "Message": "The type or namespace name 'IQueryable<>' could not be found (are you missing a using directive or an assembly reference?)",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   }
 ]
 ```
@@ -263,7 +271,11 @@ namespace TestNamespace
     "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
     "Message": "The type or namespace name 'IQueryable<>' could not be found (are you missing a using directive or an assembly reference?)",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   }
 ]
 ```

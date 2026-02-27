@@ -347,7 +347,10 @@ namespace TestNamespace
     "MessageFormat": "The event '{0}' is never used",
     "Message": "The event 'Foo.E' is never used",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry"
+    ]
   }
 ]
 ```
@@ -366,7 +369,10 @@ namespace TestNamespace
     "MessageFormat": "The event '{0}' is never used",
     "Message": "The event 'Foo.E' is never used",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry"
+    ]
   }
 ]
 ```

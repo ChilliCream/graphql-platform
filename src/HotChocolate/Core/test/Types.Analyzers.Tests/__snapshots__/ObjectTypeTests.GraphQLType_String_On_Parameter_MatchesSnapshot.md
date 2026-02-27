@@ -176,7 +176,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "'{0}' is inaccessible due to its protection level",
     "Message": "'__Resolvers' is inaccessible due to its protection level",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1513",
@@ -188,7 +192,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "} expected",
     "Message": "} expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1002",
@@ -200,7 +208,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "; expected",
     "Message": "; expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1513",
@@ -212,7 +224,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "} expected",
     "Message": "} expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1513",
@@ -224,7 +240,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "} expected",
     "Message": "} expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1002",
@@ -236,7 +256,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "; expected",
     "Message": "; expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1513",
@@ -248,7 +272,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "} expected",
     "Message": "} expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -260,7 +288,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'RuntimeType' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1002",
@@ -272,7 +304,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "; expected",
     "Message": "; expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1597",
@@ -284,7 +320,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Semicolon after method or accessor block is not valid",
     "Message": "Semicolon after method or accessor block is not valid",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1519",
@@ -296,7 +336,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Invalid token '{0}' in a member declaration",
     "Message": "Invalid token '(' in a member declaration",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS8124",
@@ -308,7 +352,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Tuple must contain at least two elements.",
     "Message": "Tuple must contain at least two elements.",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1519",
@@ -320,7 +368,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Invalid token '{0}' in a member declaration",
     "Message": "Invalid token ';' in a member declaration",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0116",
@@ -332,7 +384,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -344,7 +400,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0116",
@@ -356,7 +416,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1031",
@@ -368,7 +432,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type expected",
     "Message": "Type expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS8124",
@@ -380,7 +448,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Tuple must contain at least two elements.",
     "Message": "Tuple must contain at least two elements.",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1026",
@@ -392,7 +464,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": ") expected",
     "Message": ") expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -404,7 +480,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0116",
@@ -416,7 +496,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -428,7 +512,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0116",
@@ -440,7 +528,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -452,7 +544,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS8124",
@@ -464,7 +560,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Tuple must contain at least two elements.",
     "Message": "Tuple must contain at least two elements.",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -476,7 +576,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS8124",
@@ -488,7 +592,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Tuple must contain at least two elements.",
     "Message": "Tuple must contain at least two elements.",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -500,7 +608,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS8124",
@@ -512,7 +624,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Tuple must contain at least two elements.",
     "Message": "Tuple must contain at least two elements.",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -524,7 +640,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS8803",
@@ -536,7 +656,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Top-level statements must precede namespace and type declarations.",
     "Message": "Top-level statements must precede namespace and type declarations.",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1525",
@@ -548,7 +672,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Invalid expression term '{0}'",
     "Message": "Invalid expression term ';'",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -560,7 +688,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'field' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -572,7 +704,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'configuration' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -584,7 +720,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'field' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -596,7 +736,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'configuration' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -608,7 +752,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'configuration' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -620,7 +768,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'configuration' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -632,7 +784,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'context' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -644,7 +800,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -656,7 +816,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -668,7 +832,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'resolvers' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -680,7 +848,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'thisType' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1002",
@@ -692,7 +864,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "; expected",
     "Message": "; expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -704,7 +880,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -716,7 +896,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'Configure' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0103",
@@ -728,7 +912,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'descriptor' does not exist in the current context",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -740,7 +928,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0116",
@@ -752,7 +944,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS0751",
@@ -764,7 +960,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "A partial member must be declared within a partial type",
     "Message": "A partial member must be declared within a partial type",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1527",
@@ -776,7 +976,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected",
     "Message": "Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -788,7 +992,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   },
   {
     "Id": "CS1022",
@@ -800,7 +1008,11 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   }
 ]
 ```
