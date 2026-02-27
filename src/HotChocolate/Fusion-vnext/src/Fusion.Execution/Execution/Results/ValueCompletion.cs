@@ -58,34 +58,6 @@ internal sealed class ValueCompletion
             return BuildErrorResult(target, responseNames, error, target.Path);
         }
 
-        if (errorTrie is null)
-        {
-            foreach (var property in source.EnumerateObject())
-            {
-                if (!target.TryGetProperty(property.NameSpan, out var resultField))
-                {
-                    continue;
-                }
-
-                var selection = resultField.AssertSelection();
-
-                if (!TryCompleteValue(property.Value, resultField, errorTrie: null, selection, selection.Type, 0))
-                {
-                    switch (_errorHandlingMode)
-                    {
-                        case ErrorHandlingMode.Propagate:
-                            var didPropagateToRoot = PropagateNullValues(resultField);
-                            return !didPropagateToRoot;
-
-                        case ErrorHandlingMode.Halt:
-                            return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var resultField))
@@ -94,7 +66,8 @@ internal sealed class ValueCompletion
             }
 
             var selection = resultField.AssertSelection();
-            errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
             if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
             {
@@ -312,79 +285,6 @@ internal sealed class ValueCompletion
 
         target.SetArrayValue(source.GetArrayLength());
 
-        if (errorTrie is null)
-        {
-            using var noErrorEnumerator = target.EnumerateArray().GetEnumerator();
-            foreach (var element in source.EnumerateArray())
-            {
-                var movedNext = noErrorEnumerator.MoveNext();
-                Debug.Assert(movedNext, "The lists must have the same size.");
-                var current = noErrorEnumerator.Current;
-
-                if (element.IsNullOrUndefined())
-                {
-                    if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
-                    {
-                        return false;
-                    }
-
-                    current.SetNullValue();
-                    continue;
-                }
-
-                var success = true;
-
-                switch (elementKind)
-                {
-                    case 0:
-                        success = TryCompleteList(
-                            element,
-                            current,
-                            errorTrie: null,
-                            selection,
-                            elementType,
-                            depth);
-                        break;
-
-                    case 1:
-                        current.SetLeafValue(element);
-                        break;
-
-                    case 2:
-                        success = TryCompleteAbstractValue(
-                            element,
-                            current,
-                            errorTrie: null,
-                            selection,
-                            elementType,
-                            depth);
-                        break;
-
-                    default:
-                        success = TryCompleteObjectValue(
-                            element,
-                            current,
-                            errorTrie: null,
-                            selection,
-                            objectElementType!,
-                            depth);
-                        break;
-                }
-
-                if (!success)
-                {
-                    if (!isNullable)
-                    {
-                        return false;
-                    }
-
-                    current.SetNullValue();
-                }
-            }
-
-            return true;
-        }
-
         var i = 0;
         using var enumerator = target.EnumerateArray().GetEnumerator();
         foreach (var element in source.EnumerateArray())
@@ -392,7 +292,8 @@ internal sealed class ValueCompletion
             var movedNext = enumerator.MoveNext();
             Debug.Assert(movedNext, "The lists must have the same size.");
 
-            errorTrie.TryGetValue(i, out var errorTrieForIndex);
+            ErrorTrie? errorTrieForIndex = null;
+            errorTrie?.TryGetValue(i, out errorTrieForIndex);
 
             if (errorTrieForIndex?.Error is { } error)
             {
@@ -420,8 +321,7 @@ internal sealed class ValueCompletion
                 }
 
                 current.SetNullValue();
-                i++;
-                continue;
+                goto TryCompleteList_MoveNext;
             }
 
             var success = true;
@@ -471,8 +371,10 @@ internal sealed class ValueCompletion
                 }
 
                 current.SetNullValue();
+                goto TryCompleteList_MoveNext;
             }
 
+TryCompleteList_MoveNext:
             i++;
         }
 
@@ -512,26 +414,6 @@ internal sealed class ValueCompletion
             target.SetObjectValue(selectionSet);
         }
 
-        if (errorTrie is null)
-        {
-            foreach (var property in source.EnumerateObject())
-            {
-                if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
-                {
-                    continue;
-                }
-
-                var selection = targetProperty.AssertSelection();
-
-                if (!TryCompleteValue(property.Value, targetProperty, errorTrie: null, selection, selection.Type, depth))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
@@ -540,7 +422,9 @@ internal sealed class ValueCompletion
             }
 
             var selection = targetProperty.AssertSelection();
-            errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
             if (!TryCompleteValue(property.Value,
                 targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
