@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
@@ -39,6 +40,10 @@ public class SortField : InputField, ISortField
         if (Member?.DeclaringType is not null)
         {
             RuntimeType = context.TypeInspector.GetReturnType(Member, ignoreAttributes: true);
+        }
+        else if (definition is SortFieldConfiguration { Expression: LambdaExpression lambda })
+        {
+            RuntimeType = context.TypeInspector.GetType(lambda.ReturnType);
         }
         else if (base.RuntimeType is { } runtimeType)
         {
