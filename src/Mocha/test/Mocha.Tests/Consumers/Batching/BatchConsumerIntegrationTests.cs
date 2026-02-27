@@ -244,11 +244,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
             b =>
             {
                 b.Services.AddSingleton(recorder);
-                b.AddBatchHandler<TestBatchHandler>(opts =>
-                {
-                    opts.MaxBatchSize = messageCount;
-                    opts.BatchTimeout = TimeSpan.FromSeconds(60);
-                });
+                b.AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount);
             },
             t =>
                 t.Endpoint("batch-ep").Handler<TestBatchHandler>().MaxConcurrency(messageCount));
@@ -257,28 +253,17 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        var publishTasks = Enumerable.Range(0, messageCount)
-            .Select(i => bus.PublishAsync(new TestBatchEvent { Id = $"batch-{i}" }, CancellationToken.None).AsTask());
-        await Task.WhenAll(publishTasks);
-
-        // assert — wait until all messages are observed across batch deliveries
-        var deadline = DateTime.UtcNow + Timeout;
-        IMessageBatch<TestBatchEvent>[] batches = [];
-
-        while (DateTime.UtcNow < deadline)
+        for (var i = 0; i < messageCount; i++)
         {
-            batches = recorder.Batches.OfType<IMessageBatch<TestBatchEvent>>().ToArray();
-            if (batches.Sum(t => t.Count) >= messageCount)
-            {
-                break;
-            }
-
-            await Task.Delay(50);
+            await bus.PublishAsync(new TestBatchEvent { Id = $"batch-{i}" }, CancellationToken.None);
         }
 
-        Assert.Equal(messageCount, batches.Sum(t => t.Count));
-        Assert.Contains(batches, b => b.CompletionMode == BatchCompletionMode.Size);
-        Assert.Contains(batches, b => b.Count > 1);
+        // assert — single batch containing all 5 messages
+        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
+
+        var batch = Assert.IsAssignableFrom<IMessageBatch<TestBatchEvent>>(Assert.Single(recorder.Batches));
+        Assert.Equal(messageCount, batch.Count);
+        Assert.Equal(BatchCompletionMode.Size, batch.CompletionMode);
     }
 
     // --- Test types ---

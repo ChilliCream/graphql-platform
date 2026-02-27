@@ -87,11 +87,7 @@ public class BatchingTests
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddBatchHandler<TestBatchHandler>(opts =>
-            {
-                opts.MaxBatchSize = messageCount;
-                opts.BatchTimeout = TimeSpan.FromSeconds(60);
-            })
+            .AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount)
             .AddRabbitMQ(t =>
             {
                 t.Endpoint("batch-ep")
@@ -105,29 +101,17 @@ public class BatchingTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        var publishTasks = Enumerable.Range(0, messageCount)
-            .Select(i => messageBus.PublishAsync(new OrderCreated { OrderId = $"batch-{i}" }, CancellationToken.None)
-                .AsTask());
-        await Task.WhenAll(publishTasks);
-
-        // assert — wait until all messages are observed across batch deliveries
-        var deadline = DateTime.UtcNow + Timeout;
-        IMessageBatch<OrderCreated>[] batches = [];
-
-        while (DateTime.UtcNow < deadline)
+        for (var i = 0; i < messageCount; i++)
         {
-            batches = recorder.Batches.OfType<IMessageBatch<OrderCreated>>().ToArray();
-            if (batches.Sum(t => t.Count) >= messageCount)
-            {
-                break;
-            }
-
-            await Task.Delay(50);
+            await messageBus.PublishAsync(new OrderCreated { OrderId = $"batch-{i}" }, CancellationToken.None);
         }
 
-        Assert.Equal(messageCount, batches.Sum(t => t.Count));
-        Assert.Contains(batches, b => b.CompletionMode == BatchCompletionMode.Size);
-        Assert.Contains(batches, b => b.Count > 1);
+        // assert — single batch containing all 5 messages
+        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
+
+        var batch = Assert.IsAssignableFrom<IMessageBatch<OrderCreated>>(Assert.Single(recorder.Batches));
+        Assert.Equal(messageCount, batch.Count);
+        Assert.Equal(BatchCompletionMode.Size, batch.CompletionMode);
     }
 
     public sealed class TestBatchHandler(BatchMessageRecorder recorder) : IBatchEventHandler<OrderCreated>
