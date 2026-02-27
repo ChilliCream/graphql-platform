@@ -78,6 +78,10 @@ public sealed partial class OperationCompiler
             {
                 return new ArgumentValue(argument, ex.Errors[0]);
             }
+            catch (GraphQLException ex)
+            {
+                return new ArgumentValue(argument, ex.Errors[0]);
+            }
         }
 
         return new ArgumentValue(
