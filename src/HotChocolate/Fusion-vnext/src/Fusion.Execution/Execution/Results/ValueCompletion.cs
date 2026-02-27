@@ -63,6 +63,33 @@ internal sealed class ValueCompletion
             var selectionSetId = targetSelectionSet.Id;
             var startCursor = target.GetStartCursor();
 
+            if (errorTrie is null)
+            {
+                foreach (var property in source.EnumerateObject())
+                {
+                    if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
+                    {
+                        continue;
+                    }
+
+                    var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                    if (!TryCompleteValue(property.Value, resultField, null, selection, selection.Type, 0))
+                    {
+                        switch (_errorHandlingMode)
+                        {
+                            case ErrorHandlingMode.Propagate:
+                                var didPropagateToRoot = PropagateNullValues(resultField);
+                                return !didPropagateToRoot;
+
+                            case ErrorHandlingMode.Halt:
+                                return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
             foreach (var property in source.EnumerateObject())
             {
                 if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
@@ -71,10 +98,37 @@ internal sealed class ValueCompletion
                 }
 
                 var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+                errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
 
                 if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
+                {
+                    switch (_errorHandlingMode)
+                    {
+                        case ErrorHandlingMode.Propagate:
+                            var didPropagateToRoot = PropagateNullValues(resultField);
+                            return !didPropagateToRoot;
+
+                        case ErrorHandlingMode.Halt:
+                            return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        if (errorTrie is null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!target.TryGetProperty(property.NameSpan, out var resultField))
+                {
+                    continue;
+                }
+
+                var selection = resultField.AssertSelection();
+
+                if (!TryCompleteValue(property.Value, resultField, null, selection, selection.Type, 0))
                 {
                     switch (_errorHandlingMode)
                     {
@@ -99,8 +153,7 @@ internal sealed class ValueCompletion
             }
 
             var selection = resultField.AssertSelection();
-            ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+            errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
 
             if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
             {
@@ -474,6 +527,26 @@ TryCompleteList_MoveNext:
             var selectionSetId = selectionSet.Id;
             var startCursor = target.GetStartCursor();
 
+            if (errorTrie is null)
+            {
+                foreach (var property in source.EnumerateObject())
+                {
+                    if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
+                    {
+                        continue;
+                    }
+
+                    var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+
+                    if (!TryCompleteValue(property.Value, targetProperty, null, selection, selection.Type, depth))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
             foreach (var property in source.EnumerateObject())
             {
                 if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
@@ -482,11 +555,31 @@ TryCompleteList_MoveNext:
                 }
 
                 var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+                errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
 
                 if (!TryCompleteValue(property.Value,
                     targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (errorTrie is null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
+                {
+                    continue;
+                }
+
+                var selection = targetProperty.AssertSelection();
+
+                if (!TryCompleteValue(property.Value,
+                    targetProperty, null, selection, selection.Type, depth))
                 {
                     return false;
                 }
@@ -503,9 +596,7 @@ TryCompleteList_MoveNext:
             }
 
             var selection = targetProperty.AssertSelection();
-
-            ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+            errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
 
             if (!TryCompleteValue(property.Value,
                 targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
