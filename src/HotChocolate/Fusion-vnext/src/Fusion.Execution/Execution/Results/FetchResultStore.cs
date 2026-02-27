@@ -507,53 +507,46 @@ AddErrors_Next:
         {
             var segment = selectionSet.Segments[i];
 
-            switch (segment.Kind)
+            foreach (var element in current)
             {
-                case SelectionPathSegmentKind.InlineFragment:
-                    foreach (var element in current)
+                if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+                {
+                    if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                        && value.ValueKind is JsonValueKind.String
+                        && value.TextEqualsHelper(segment.Name, isPropertyName: false))
                     {
-                        if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
-                            && value.ValueKind is JsonValueKind.String
-                            && value.TextEqualsHelper(segment.Name, isPropertyName: false))
-                        {
-                            next.Add(element);
-                        }
+                        next.Add(element);
+                    }
+                }
+                else if (segment.Kind is SelectionPathSegmentKind.Field)
+                {
+                    if (!element.TryGetProperty(segment.Name, out var value))
+                    {
+                        continue;
                     }
 
-                    break;
+                    var valueKind = value.ValueKind;
 
-                case SelectionPathSegmentKind.Field:
-                    foreach (var element in current)
+                    if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                     {
-                        if (!element.TryGetProperty(segment.Name, out var value))
-                        {
-                            continue;
-                        }
-
-                        var valueKind = value.ValueKind;
-
-                        if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                        {
-                            continue;
-                        }
-
-                        if (valueKind is JsonValueKind.Array)
-                        {
-                            AppendUnrolledLists(value, next);
-                            continue;
-                        }
-
-                        if (valueKind is JsonValueKind.Object)
-                        {
-                            next.Add(value);
-                            continue;
-                        }
-
-                        // TODO : Better error
-                        throw new NotSupportedException("Must be list or object.");
+                        continue;
                     }
 
-                    break;
+                    if (valueKind is JsonValueKind.Array)
+                    {
+                        AppendUnrolledLists(value, next);
+                        continue;
+                    }
+
+                    if (valueKind is JsonValueKind.Object)
+                    {
+                        next.Add(value);
+                        continue;
+                    }
+
+                    // TODO : Better error
+                    throw new NotSupportedException("Must be list or object.");
+                }
             }
 
             var temp = current;
