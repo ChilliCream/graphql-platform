@@ -1,0 +1,72 @@
+title: All_Selections_On_A_Field_Statically_Skipped
+request:
+  document: |
+    query testQuery {
+      productBySlug(slug: "product") {
+        name @skip(if: true)
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productBySlug": {
+          "__typename": "Product"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        id: ID!
+        name: String!
+      }
+
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_0abed161_1 {
+              productBySlug(slug: "product") {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productBySlug": {
+                    "__typename": "Product"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          productBySlug(slug: "product") {
+            __typename @fusion__empty
+          }
+        }
+      name: testQuery
+      hash: 0abed161f38749c424e51d2e21da6f37
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_0abed161_1 {
+          productBySlug(slug: "product") {
+            __typename
+          }
+        }

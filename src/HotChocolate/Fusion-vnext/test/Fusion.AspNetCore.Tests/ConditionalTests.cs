@@ -329,6 +329,48 @@ public class ConditionalTests : FusionTestBase
     }
 
     [Fact]
+    public async Task All_Selections_On_A_Field_Statically_Skipped()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              productBySlug(slug: "product") {
+                name @skip(if: true)
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
     public async Task Root_Skip_Around_Fields_Of_Same_Source_Schema()
     {
         // arrange
