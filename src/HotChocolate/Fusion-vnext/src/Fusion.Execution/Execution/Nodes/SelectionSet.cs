@@ -213,9 +213,9 @@ public sealed class SelectionSet : ISelectionSet
         _isSealed = true;
         DeclaringOperation = operation;
 
-        for (var i = 0; i < _selections.Length; i++)
+        foreach (var selection in Selections)
         {
-            _selections[i].Seal(this, i);
+            selection.Seal(this);
         }
     }
 }
