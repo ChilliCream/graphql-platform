@@ -697,14 +697,9 @@ AddErrors_Next:
             if (value.ValueKind is JsonValueKind.String)
             {
                 var stringValue = value.AssertString();
-                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
-                ref var existingIndex =
-                    ref CollectionsMarshal.GetValueRefOrAddDefault(
-                        seenStrings,
-                        stringValue,
-                        out var exists);
 
-                if (exists)
+                if (seenStrings is not null
+                    && seenStrings.TryGetValue(stringValue, out var existingIndex))
                 {
                     additionalPaths ??= new List<Path>?[elements.Count];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
@@ -712,26 +707,23 @@ AddErrors_Next:
                 }
 
                 mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                existingIndex = nextIndex;
+                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
+                seenStrings[stringValue] = nextIndex;
             }
             else
             {
                 mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
-                ref var existingIndex =
-                    ref CollectionsMarshal.GetValueRefOrAddDefault(
-                        seen,
-                        mappedValue,
-                        out var exists);
 
-                if (exists)
+                if (seen is not null
+                    && seen.TryGetValue(mappedValue, out var existingIndex))
                 {
                     additionalPaths ??= new List<Path>?[elements.Count];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
 
-                existingIndex = nextIndex;
+                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
+                seen[mappedValue] = nextIndex;
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
