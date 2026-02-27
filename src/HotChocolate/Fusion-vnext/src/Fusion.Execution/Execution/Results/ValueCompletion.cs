@@ -273,9 +273,11 @@ internal sealed class ValueCompletion
         target.SetArrayValue(source.GetArrayLength());
 
         var i = 0;
+        using var enumerator = target.EnumerateArray().GetEnumerator();
         foreach (var element in source.EnumerateArray())
         {
-            var targetElement = target[i];
+            var success = enumerator.MoveNext();
+            Debug.Assert(success, "The lists must have the same size.");
 
             ErrorTrie? errorTrieForIndex = null;
             errorTrie?.TryGetValue(i, out errorTrieForIndex);
@@ -303,10 +305,11 @@ internal sealed class ValueCompletion
                     return false;
                 }
 
-                targetElement.SetNullValue();
+                enumerator.Current.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
+            var targetElement = enumerator.Current;
             bool completed;
 
             if (isNested)
