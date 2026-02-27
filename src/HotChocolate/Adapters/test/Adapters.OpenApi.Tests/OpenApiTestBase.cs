@@ -249,7 +249,9 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                                 IssuerSigningKey = s_tokenKey
                             });
 
-                services.AddGraphQLServer()
+                services
+                    .AddGraphQLServer()
+                    .AddSourceSchemaDefaults()
                     .AddBasicServer();
             },
             app =>
