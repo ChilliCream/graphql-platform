@@ -370,8 +370,7 @@ internal sealed class ValueCompletion
         {
             var namedType = elementType.NamedType();
             objectElementType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
-            var operation = selection.DeclaringSelectionSet.DeclaringOperation;
-            objectElementSelectionSet = operation.GetSelectionSet(selection, objectElementType);
+            objectElementSelectionSet = selection.GetSelectionSet(objectElementType);
         }
 
         target.SetArrayValue(source.GetArrayLength());
@@ -619,8 +618,7 @@ internal sealed class ValueCompletion
         {
             if (precomputedSelectionSet is null)
             {
-                var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
-                precomputedSelectionSet = operation.GetSelectionSet(parentSelection, objectType);
+                precomputedSelectionSet = parentSelection.GetSelectionSet(objectType);
             }
 
             selectionSet = precomputedSelectionSet;
