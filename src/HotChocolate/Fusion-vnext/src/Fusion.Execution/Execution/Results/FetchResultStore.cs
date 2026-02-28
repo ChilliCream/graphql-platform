@@ -510,8 +510,12 @@ AddErrors_Next:
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
-                foreach (var element in current)
+                var currentSpan = CollectionsMarshal.AsSpan(current);
+
+                for (var j = 0; j < currentSpan.Length; j++)
                 {
+                    var element = currentSpan[j];
+
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
                         && value.ValueEquals(segment.Utf8Name))
@@ -522,8 +526,12 @@ AddErrors_Next:
             }
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
-                foreach (var element in current)
+                var currentSpan = CollectionsMarshal.AsSpan(current);
+
+                for (var j = 0; j < currentSpan.Length; j++)
                 {
+                    var element = currentSpan[j];
+
                     if (!element.TryGetProperty(segment.Utf8Name, out var value))
                     {
                         continue;
@@ -1210,8 +1218,11 @@ AddErrors_Next:
         CompositeResultElement list,
         List<CompositeResultElement> destination)
     {
-        foreach (var element in list.EnumerateArray())
+        var length = list.GetArrayLength();
+
+        for (var i = 0; i < length; i++)
         {
+            var element = list[i];
             var elementValueKind = element.ValueKind;
 
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
