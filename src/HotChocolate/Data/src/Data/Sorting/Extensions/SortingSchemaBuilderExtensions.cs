@@ -47,7 +47,8 @@ public static class SortingSchemaBuilderExtensions
         string? name = null) =>
         builder
             .TryAddConvention<ISortConvention>(_ => new SortConvention(configure), name)
-            .TryAddTypeInterceptor<SortTypeInterceptor>();
+            .TryAddTypeInterceptor<SortTypeInterceptor>()
+            .TryAddTypeInterceptor<DataTypeInterceptor>();
 
     /// <summary>
     /// Adds Sorting support.
@@ -70,5 +71,6 @@ public static class SortingSchemaBuilderExtensions
         where TConvention : class, ISortConvention =>
         builder
             .TryAddConvention<ISortConvention, TConvention>(name)
-            .TryAddTypeInterceptor<SortTypeInterceptor>();
+            .TryAddTypeInterceptor<SortTypeInterceptor>()
+            .TryAddTypeInterceptor<DataTypeInterceptor>();
 }

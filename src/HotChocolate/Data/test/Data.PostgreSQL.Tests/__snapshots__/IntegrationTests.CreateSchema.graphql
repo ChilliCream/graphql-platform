@@ -7,6 +7,15 @@ interface Node {
   id: ID!
 }
 
+interface StatementTransaction {
+  id: Int!
+}
+
+type BillingStatementTransaction implements StatementTransaction {
+  feeAndChargeAmount: Int!
+  id: Int!
+}
+
 type Brand implements Node {
   products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): BrandProductsConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   id: ID!
@@ -44,6 +53,12 @@ type BrandProductsEdge @shareable {
   cursor: String!
 }
 
+type CardReader {
+  cardReaderUidLength: Int! @cost(weight: "10")
+  id: Int!
+  cardReaderUid: [UnsignedByte!]!
+}
+
 """
 Represents the connection page info.
 This class provides additional information about pagination in a connection.
@@ -63,6 +78,18 @@ type ConnectionPageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
+}
+
+type DepositStatementTransaction implements StatementTransaction {
+  collectionAmount: Int!
+  id: Int!
+}
+
+type ExpressionPerson {
+  fullName: String @cost(weight: "10")
+  id: Int!
+  firstName: String!
+  lastName: String!
 }
 
 "A cursor that points to a specific page."
@@ -135,6 +162,7 @@ type Query {
   productById(id: ID!): Product @lookup @internal @cost(weight: "10")
   productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   singleProperties: [SingleProperty!]! @cost(weight: "10")
+  statementTransaction: StatementTransaction!
 }
 
 type SingleProperty {
@@ -156,6 +184,12 @@ input BrandFilterInput {
 
 input BrandSortInput {
   name: SortEnumType @cost(weight: "10")
+}
+
+input CardReaderFilterInput {
+  and: [CardReaderFilterInput!]
+  or: [CardReaderFilterInput!]
+  cardReaderUidLength: IntOperationFilterInput
 }
 
 input DecimalOperationFilterInput {
@@ -321,3 +355,6 @@ directive @specifiedBy("The specifiedBy URL points to a human-readable specifica
 
 "The `Decimal` scalar type represents a decimal floating-point number with high precision."
 scalar Decimal @serializeAs(type: FLOAT) @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
+
+"The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
+scalar UnsignedByte @serializeAs(type: INT) @specifiedBy(url: "https://scalars.graphql.org/chillicream/unsigned-byte.html")
