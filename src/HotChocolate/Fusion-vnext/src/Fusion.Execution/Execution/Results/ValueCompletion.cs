@@ -387,9 +387,10 @@ TryCompleteList_MoveNext:
     {
         AssertDepthAllowed(ref depth);
 
-        // if the property value is yet undefined we need to initialize it
-        // with the current selection set.
-        if (target.ValueKind is JsonValueKind.Undefined)
+        // If the target is undefined we need to initialize it with the current
+        // selection set. We also rehydrate null values so shared field results
+        // from another subgraph can still populate the object.
+        if (target.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
         {
             var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
             var selectionSet = operation.GetSelectionSet(parentSelection, objectType);

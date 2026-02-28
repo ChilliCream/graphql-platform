@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
@@ -625,18 +626,31 @@ public sealed partial class OperationPlanner
         Backlog backlog,
         PlanQueue possiblePlans)
     {
-        current = InlineLookupRequirements(
-            workItem.SelectionSet,
-            current,
-            lookup,
-            workItem.EstimatedDepth,
-            backlog);
+        IReadOnlyDictionary<string, IValueNode>? lookupArguments = null;
+        var nextBacklog = backlog;
+
+        if (!TryGetRootLookupArguments(
+                current.InternalOperationDefinition,
+                workItem.SelectionSet.Path,
+                lookup,
+                out lookupArguments))
+        {
+            current = InlineLookupRequirements(
+                workItem.SelectionSet,
+                current,
+                lookup,
+                workItem.EstimatedDepth,
+                backlog);
+            nextBacklog = current.Backlog;
+        }
+
         PlanSelections(
             workItem,
             current,
             lookup,
-            current.Backlog,
-            possiblePlans);
+            nextBacklog,
+            possiblePlans,
+            lookupArguments);
     }
 
     private void PlanSelections(
@@ -644,7 +658,8 @@ public sealed partial class OperationPlanner
         PlanNode current,
         Lookup? lookup,
         Backlog backlog,
-        PlanQueue possiblePlans)
+        PlanQueue possiblePlans,
+        IReadOnlyDictionary<string, IValueNode>? lookupArgumentValues = null)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -687,28 +702,51 @@ public sealed partial class OperationPlanner
 
         if (lookup is not null)
         {
-            lastRequirementId++;
-            var requirementKey = $"__fusion_{lastRequirementId}";
+            string? requirementKey = null;
+            var arguments = new List<ArgumentNode>(lookup.Arguments.Length);
 
             for (var i = 0; i < lookup.Arguments.Length; i++)
             {
                 var argument = lookup.Arguments[i];
-                var fieldSelectionMap = lookup.Fields[i];
+
+                if (lookupArgumentValues?.TryGetValue(argument.Name, out var argumentValue) == true)
+                {
+                    arguments.Add(new ArgumentNode(new NameNode(argument.Name), argumentValue));
+                    continue;
+                }
+
+                if (requirementKey is null)
+                {
+                    lastRequirementId++;
+                    requirementKey = $"__fusion_{lastRequirementId}";
+                }
 
                 var argumentRequirementKey = $"{requirementKey}_{argument.Name}";
+                arguments.Add(
+                    new ArgumentNode(
+                        new NameNode(argument.Name),
+                        new VariableNode(new NameNode(argumentRequirementKey))));
+
                 var operationRequirement = new OperationRequirement(
                     argumentRequirementKey,
                     argument.Type,
                     workItem.SelectionSet.Path,
-                    fieldSelectionMap);
+                    lookup.Fields[i]);
 
                 requirements = requirements.Add(argumentRequirementKey, operationRequirement);
             }
 
-            operationBuilder.SetLookup(lookup, GetLookupArguments(lookup, requirementKey), workItem.SelectionSet.Type);
+            operationBuilder.SetLookup(lookup, arguments, workItem.SelectionSet.Type);
         }
 
         (var definition, index, var source) = operationBuilder.Build(index);
+
+        if (lookup is not null
+            && requirements.IsEmpty
+            && lookupArgumentValues is not null)
+        {
+            source = SelectionPath.Root;
+        }
 
         var step = new OperationPlanStep
         {
@@ -1517,6 +1555,52 @@ public sealed partial class OperationPlanner
         }
 
         return conditions;
+    }
+
+    private static bool TryGetRootLookupArguments(
+        OperationDefinitionNode operationDefinition,
+        SelectionPath targetPath,
+        Lookup lookup,
+        [NotNullWhen(true)] out IReadOnlyDictionary<string, IValueNode>? lookupArguments)
+    {
+        lookupArguments = null;
+
+        if (targetPath.Segments.Length != 1
+            || targetPath.Segments[0].Kind != SelectionPathSegmentKind.Field)
+        {
+            return false;
+        }
+
+        var rootResponseName = targetPath.Segments[0].Name;
+        var rootField = operationDefinition.SelectionSet.Selections
+            .OfType<FieldNode>()
+            .FirstOrDefault(
+                field =>
+                    field.Alias?.Value == rootResponseName
+                    || field.Name.Value == rootResponseName);
+
+        if (rootField is null)
+        {
+            return false;
+        }
+
+        var arguments = new Dictionary<string, IValueNode>(StringComparer.Ordinal);
+
+        foreach (var lookupArgument in lookup.Arguments)
+        {
+            var argument = rootField.Arguments
+                .FirstOrDefault(a => a.Name.Value == lookupArgument.Name);
+
+            if (argument is null)
+            {
+                return false;
+            }
+
+            arguments[lookupArgument.Name] = argument.Value;
+        }
+
+        lookupArguments = arguments;
+        return true;
     }
 
     private static List<ArgumentNode> GetLookupArguments(Lookup lookup, string requirementKey)
