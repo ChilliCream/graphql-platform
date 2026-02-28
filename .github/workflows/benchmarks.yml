@@ -6,9 +6,15 @@ on:
     branches:
       - main
       - main-version-*
+    paths:
+      - 'src/HotChocolate/Fusion-vnext/**'
+      - '.github/workflows/benchmarks.yml'
   push:
     branches:
       - main
+    paths:
+      - 'src/HotChocolate/Fusion-vnext/**'
+      - '.github/workflows/benchmarks.yml'
 
 concurrency:
   group: benchmarks-${{ github.event.pull_request.number || github.ref }}
