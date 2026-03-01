@@ -64,34 +64,9 @@ internal sealed class ValueCompletion
 
             if (errorTrie is null)
             {
-                var selections = targetSelectionSet.Selections;
-                var selectionCursor = 0;
-                var useOrderedLookup = true;
-
                 foreach (var property in source.EnumerateObject())
                 {
-                    Selection? selection = null;
-
-                    if (useOrderedLookup)
-                    {
-                        while (selectionCursor < selections.Length && selections[selectionCursor].IsInternal)
-                        {
-                            selectionCursor++;
-                        }
-
-                        if (selectionCursor < selections.Length
-                            && property.NameSpan.SequenceEqual(selections[selectionCursor].Utf8ResponseName))
-                        {
-                            selection = selections[selectionCursor++];
-                        }
-                        else
-                        {
-                            useOrderedLookup = false;
-                        }
-                    }
-
-                    if (selection is null
-                        && !targetSelectionSet.TryGetSelection(property.NameSpan, out selection))
+                    if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
                     {
                         continue;
                     }
@@ -682,34 +657,9 @@ internal sealed class ValueCompletion
 
             if (errorTrie is null)
             {
-                var selections = selectionSet.Selections;
-                var selectionCursor = 0;
-                var useOrderedLookup = true;
-
                 foreach (var property in source.EnumerateObject())
                 {
-                    Selection? selection = null;
-
-                    if (useOrderedLookup)
-                    {
-                        while (selectionCursor < selections.Length && selections[selectionCursor].IsInternal)
-                        {
-                            selectionCursor++;
-                        }
-
-                        if (selectionCursor < selections.Length
-                            && property.NameSpan.SequenceEqual(selections[selectionCursor].Utf8ResponseName))
-                        {
-                            selection = selections[selectionCursor++];
-                        }
-                        else
-                        {
-                            useOrderedLookup = false;
-                        }
-                    }
-
-                    if (selection is null
-                        && !selectionSet.TryGetSelection(property.NameSpan, out selection))
+                    if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
                     {
                         continue;
                     }
