@@ -66,7 +66,7 @@ internal sealed class ValueCompletion
             {
                 foreach (var property in source.EnumerateObject())
                 {
-                    if (!targetSelectionSet.TryGetSelection(property.NameSpanFast, out var selection))
+                    if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
                     {
                         continue;
                     }
@@ -94,7 +94,7 @@ internal sealed class ValueCompletion
 
             foreach (var property in source.EnumerateObject())
             {
-                if (!targetSelectionSet.TryGetSelection(property.NameSpanFast, out var selection))
+                if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
                 {
                     continue;
                 }
@@ -131,7 +131,7 @@ internal sealed class ValueCompletion
         {
             foreach (var property in source.EnumerateObject())
             {
-                if (!target.TryGetProperty(property.NameSpanFast, out var resultField))
+                if (!target.TryGetProperty(property.NameSpan, out var resultField))
                 {
                     continue;
                 }
@@ -159,7 +159,7 @@ internal sealed class ValueCompletion
 
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpanFast, out var resultField))
+            if (!target.TryGetProperty(property.NameSpan, out var resultField))
             {
                 continue;
             }
@@ -659,7 +659,7 @@ internal sealed class ValueCompletion
             {
                 foreach (var property in source.EnumerateObject())
                 {
-                    if (!selectionSet.TryGetSelection(property.NameSpanFast, out var selection))
+                    if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
                     {
                         continue;
                     }
@@ -685,7 +685,7 @@ internal sealed class ValueCompletion
 
             foreach (var property in source.EnumerateObject())
             {
-                if (!selectionSet.TryGetSelection(property.NameSpanFast, out var selection))
+                if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
                 {
                     continue;
                 }
@@ -714,7 +714,7 @@ internal sealed class ValueCompletion
         {
             foreach (var property in source.EnumerateObject())
             {
-                if (!target.TryGetProperty(property.NameSpanFast, out var targetProperty))
+                if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
                 {
                     continue;
                 }
@@ -740,7 +740,7 @@ internal sealed class ValueCompletion
 
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpanFast, out var targetProperty))
+            if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
             {
                 continue;
             }
