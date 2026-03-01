@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -82,6 +83,16 @@ public readonly struct SourceResultProperty
         => Value.TextEqualsHelper(utf8Text, isPropertyName: true, shouldUnescape: false);
 
     internal ReadOnlySpan<byte> NameSpan => Value.GetPropertyNameRaw();
+
+    internal ReadOnlySpan<byte> NameSpanFast
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            var value = Value;
+            return value._parent.GetPropertyNameRaw(value._cursor);
+        }
+    }
 
     /// <summary>
     ///   Provides a <see cref="string"/> representation of the property for
