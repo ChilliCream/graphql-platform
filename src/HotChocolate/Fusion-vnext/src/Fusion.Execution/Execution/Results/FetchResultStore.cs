@@ -498,81 +498,15 @@ AddErrors_Next:
     // Caller must hold _lock for reading.
     private List<CompositeResultElement>? CollectTargetElements(SelectionPath selectionSet)
     {
-        var segments = selectionSet.Segments;
         var current = _collectTargetCurrent;
         var next = _collectTargetNext;
         current.Clear();
         next.Clear();
         current.Add(_result.Data);
 
-        var fieldOnly = true;
-
-        for (var i = 0; i < segments.Length; i++)
+        for (var i = 0; i < selectionSet.Segments.Length; i++)
         {
-            if (segments[i].Kind is not SelectionPathSegmentKind.Field)
-            {
-                fieldOnly = false;
-                break;
-            }
-        }
-
-        if (fieldOnly)
-        {
-            for (var i = 0; i < segments.Length; i++)
-            {
-                var segment = segments[i];
-                var segmentUtf8Name = segment.Utf8Name;
-                var currentSpan = CollectionsMarshal.AsSpan(current);
-
-                for (var j = 0; j < currentSpan.Length; j++)
-                {
-                    var element = currentSpan[j];
-
-                    if (!element.TryGetProperty(segmentUtf8Name, out var value))
-                    {
-                        continue;
-                    }
-
-                    var valueKind = value.ValueKind;
-
-                    if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                    {
-                        continue;
-                    }
-
-                    if (valueKind is JsonValueKind.Array)
-                    {
-                        AppendUnrolledLists(value, next);
-                        continue;
-                    }
-
-                    if (valueKind is JsonValueKind.Object)
-                    {
-                        next.Add(value);
-                        continue;
-                    }
-
-                    // TODO : Better error
-                    throw new NotSupportedException("Must be list or object.");
-                }
-
-                var temp = current;
-                current = next;
-                next = temp;
-                next.Clear();
-
-                if (current.Count == 0)
-                {
-                    return null;
-                }
-            }
-
-            return current;
-        }
-
-        for (var i = 0; i < segments.Length; i++)
-        {
-            var segment = segments[i];
+            var segment = selectionSet.Segments[i];
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
@@ -593,13 +527,12 @@ AddErrors_Next:
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
                 var currentSpan = CollectionsMarshal.AsSpan(current);
-                var segmentUtf8Name = segment.Utf8Name;
 
                 for (var j = 0; j < currentSpan.Length; j++)
                 {
                     var element = currentSpan[j];
 
-                    if (!element.TryGetProperty(segmentUtf8Name, out var value))
+                    if (!element.TryGetProperty(segment.Utf8Name, out var value))
                     {
                         continue;
                     }
