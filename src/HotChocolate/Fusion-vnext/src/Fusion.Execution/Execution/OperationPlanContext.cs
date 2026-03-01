@@ -272,6 +272,21 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
+    internal void AddPartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames,
+        bool containsErrors = true)
+    {
+        var canExecutionContinue =
+            _resultStore.AddPartialResult(sourcePath, result, responseNames, containsErrors);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
+
     internal void AddPartialResults(SourceResultDocument result, ReadOnlySpan<string> responseNames)
     {
         var canExecutionContinue = _resultStore.AddPartialResults(result, responseNames);

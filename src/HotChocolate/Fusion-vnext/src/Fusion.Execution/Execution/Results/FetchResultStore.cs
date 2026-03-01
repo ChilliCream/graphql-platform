@@ -96,6 +96,20 @@ internal sealed class FetchResultStore : IDisposable
         ReadOnlySpan<string> responseNames)
         => AddPartialResults(sourcePath, results, responseNames, containsErrors: true);
 
+    public bool AddPartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames,
+        bool containsErrors)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(sourcePath);
+
+        return containsErrors
+            ? AddSinglePartialResult(sourcePath, result, responseNames)
+            : AddSinglePartialResultNoErrors(sourcePath, result, responseNames);
+    }
+
     public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
