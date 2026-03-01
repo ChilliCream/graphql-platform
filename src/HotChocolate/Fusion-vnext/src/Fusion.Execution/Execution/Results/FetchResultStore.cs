@@ -510,6 +510,7 @@ AddErrors_Next:
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
+                var typeName = segment.Utf8Name;
                 var currentSpan = CollectionsMarshal.AsSpan(current);
 
                 for (var j = 0; j < currentSpan.Length; j++)
@@ -518,7 +519,7 @@ AddErrors_Next:
 
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
-                        && value.ValueEquals(segment.Utf8Name))
+                        && value.ValueEquals(typeName))
                     {
                         next.Add(element);
                     }
@@ -526,38 +527,36 @@ AddErrors_Next:
             }
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
+                var fieldName = segment.Utf8Name;
                 var currentSpan = CollectionsMarshal.AsSpan(current);
 
                 for (var j = 0; j < currentSpan.Length; j++)
                 {
                     var element = currentSpan[j];
 
-                    if (!element.TryGetProperty(segment.Utf8Name, out var value))
+                    if (!element.TryGetProperty(fieldName, out var value))
                     {
                         continue;
                     }
 
-                    var valueKind = value.ValueKind;
-
-                    if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                    switch (value.ValueKind)
                     {
-                        continue;
-                    }
+                        case JsonValueKind.Array:
+                            AppendUnrolledLists(value, next);
+                            break;
 
-                    if (valueKind is JsonValueKind.Array)
-                    {
-                        AppendUnrolledLists(value, next);
-                        continue;
-                    }
+                        case JsonValueKind.Object:
+                            next.Add(value);
+                            break;
 
-                    if (valueKind is JsonValueKind.Object)
-                    {
-                        next.Add(value);
-                        continue;
-                    }
+                        case JsonValueKind.Null:
+                        case JsonValueKind.Undefined:
+                            break;
 
-                    // TODO : Better error
-                    throw new NotSupportedException("Must be list or object.");
+                        default:
+                            // TODO : Better error
+                            throw new NotSupportedException("Must be list or object.");
+                    }
                 }
             }
 
