@@ -1251,11 +1251,8 @@ AddErrors_Next:
         CompositeResultElement list,
         List<CompositeResultElement> destination)
     {
-        var length = list.GetArrayLength();
-
-        for (var i = 0; i < length; i++)
+        foreach (var element in list.EnumerateArray())
         {
-            var element = list[i];
             var elementValueKind = element.ValueKind;
 
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
