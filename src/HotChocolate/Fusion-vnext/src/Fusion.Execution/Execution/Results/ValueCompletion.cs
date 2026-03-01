@@ -349,6 +349,18 @@ internal sealed class ValueCompletion
                 return TryCompleteList(source, target, errorTrie, selection, type, depth);
 
             case TypeKind.Object:
+                if (selection.ObjectType is { } objectType)
+                {
+                    return TryCompleteObjectValue(
+                        source,
+                        target,
+                        errorTrie,
+                        selection,
+                        objectType,
+                        precomputedSelectionSet: null,
+                        depth);
+                }
+
                 return TryCompleteObjectValue(selection, type, source, errorTrie, depth, target);
 
             case TypeKind.Interface or TypeKind.Union:

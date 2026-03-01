@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text;
 using HotChocolate.Language;
@@ -13,6 +14,7 @@ public sealed class Selection : ISelection
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
+    private readonly IObjectTypeDefinition? _objectType;
     private SelectionSetCacheEntry? _selectionSetCache;
     private Flags _flags;
 
@@ -55,6 +57,11 @@ public sealed class Selection : ISelection
         {
             _flags |= Flags.LeafValue;
         }
+        else if (fieldType.Kind is TypeKind.Object)
+        {
+            var namedType = fieldType.NamedType();
+            _objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
+        }
 
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
     }
@@ -77,6 +84,8 @@ public sealed class Selection : ISelection
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 
     internal bool IsLeafValue => (_flags & Flags.LeafValue) == Flags.LeafValue;
+
+    internal IObjectTypeDefinition? ObjectType => _objectType;
 
     /// <inheritdoc />
     public IOutputFieldDefinition Field { get; }
