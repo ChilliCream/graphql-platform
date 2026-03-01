@@ -587,24 +587,17 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
                         var variable = variables[0];
-                        var additionalPaths = variable.AdditionalPaths;
-                        var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
-                            ? new SourceSchemaResult(variable.Path, result)
-                            : new SourceSchemaResult(variable.Path, result, additionalPaths: additionalPaths);
-                        var onSourceSchemaResult = configuration.OnSourceSchemaResult;
+                        var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
-                        onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                        configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                         yield return sourceSchemaResult;
 
-                        if (onSourceSchemaResult is null || additionalPaths.IsDefaultOrEmpty)
+                        foreach (var additionalPath in variable.AdditionalPaths)
                         {
-                            break;
-                        }
-
-                        foreach (var additionalPath in additionalPaths)
-                        {
-                            onSourceSchemaResult(context, node, sourceSchemaResult.WithPath(additionalPath));
+                            var alias = sourceSchemaResult.WithPath(additionalPath);
+                            configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                            yield return alias;
                         }
 
                         break;
