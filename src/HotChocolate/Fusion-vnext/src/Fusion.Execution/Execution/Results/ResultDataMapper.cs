@@ -95,7 +95,9 @@ internal static class ResultDataMapper
         CompositeResultElement value,
         ref PooledArrayWriter? writer)
     {
-        if (value.ValueKind is JsonValueKind.Array)
+        var valueKind = value.ValueKind;
+
+        if (valueKind is JsonValueKind.Array)
         {
             var items = new List<IValueNode>(value.GetArrayLength());
             var parser = default(JsonValueParser);
@@ -109,9 +111,37 @@ internal static class ResultDataMapper
             return new ListValueNode(items);
         }
 
-        var scalarParser = default(JsonValueParser);
-        var scalarParserInitialized = false;
-        return ParseLeafValue(value, ref writer, ref scalarParser, ref scalarParserInitialized);
+        switch (valueKind)
+        {
+            case JsonValueKind.Null:
+                return NullValueNode.Default;
+
+            case JsonValueKind.True:
+                return BooleanValueNode.True;
+
+            case JsonValueKind.False:
+                return BooleanValueNode.False;
+
+            case JsonValueKind.String:
+                return GetStringValueNode(value.AssertString());
+
+            case JsonValueKind.Number:
+                if (value.TryGetInt64(out var intValue))
+                {
+                    if ((ulong)intValue <= CachedNumericStringMax)
+                    {
+                        return s_cachedIntValues[(int)intValue];
+                    }
+
+                    return new IntValueNode(intValue);
+                }
+
+                break;
+        }
+
+        writer ??= new PooledArrayWriter();
+        var scalarParser = new JsonValueParser(buffer: writer);
+        return scalarParser.Parse(value.GetRawValue(includeQuotes: true));
     }
 
     private static IValueNode ParseLeafValue(
