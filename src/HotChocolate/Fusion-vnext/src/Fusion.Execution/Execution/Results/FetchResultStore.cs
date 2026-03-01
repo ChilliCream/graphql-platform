@@ -510,7 +510,6 @@ AddErrors_Next:
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
-                var typeName = segment.Utf8Name;
                 var currentSpan = CollectionsMarshal.AsSpan(current);
 
                 for (var j = 0; j < currentSpan.Length; j++)
@@ -519,7 +518,7 @@ AddErrors_Next:
 
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
-                        && value.ValueEquals(typeName))
+                        && value.ValueEquals(segment.Utf8Name))
                     {
                         next.Add(element);
                     }
@@ -527,14 +526,13 @@ AddErrors_Next:
             }
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
-                var fieldName = segment.Utf8Name;
                 var currentSpan = CollectionsMarshal.AsSpan(current);
 
                 for (var j = 0; j < currentSpan.Length; j++)
                 {
                     var element = currentSpan[j];
 
-                    if (!element.TryGetProperty(fieldName, out var value))
+                    if (!element.TryGetProperty(segment.Utf8Name, out var value))
                     {
                         continue;
                     }
