@@ -1398,13 +1398,15 @@ AddErrors_Next:
 
             if (elementKind is JsonValueKind.Array && segment is IndexerPathSegment indexSegment)
             {
-                if (element.GetArrayLength() <= indexSegment.Index)
+                try
+                {
+                    element = element[indexSegment.Index];
+                }
+                catch (IndexOutOfRangeException)
                 {
                     throw new InvalidOperationException(
                         $"The path segment '{indexSegment}' does not exist in the data.");
                 }
-
-                element = element[indexSegment.Index];
                 continue;
             }
 
