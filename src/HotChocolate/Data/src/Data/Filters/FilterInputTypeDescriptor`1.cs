@@ -46,9 +46,14 @@ public class FilterInputTypeDescriptor<T>
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
                 Configuration.EntityType!,
-                p => FilterFieldDescriptor
-                    .New(Context, Configuration.Scope, p)
-                    .CreateConfiguration(),
+                p =>
+                {
+                    var config = FilterFieldDescriptor
+                        .New(Context, Configuration.Scope, p)
+                        .CreateConfiguration();
+                    config.IsImplicit = true;
+                    return config;
+                },
                 fields,
                 handledProperties,
                 include: (_, member)
