@@ -11,7 +11,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Text;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -669,11 +668,10 @@ AddErrors_Next:
     {
         if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
         {
-            var fieldNameUtf8 = Utf8StringCache.GetUtf8String(fieldName);
             return BuildVariableValueSetsSingleRequirementFastPath(
                 elements,
                 requirement,
-                fieldNameUtf8,
+                fieldName,
                 ref buffer);
         }
 
@@ -683,7 +681,7 @@ AddErrors_Next:
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
         List<CompositeResultElement> elements,
         OperationRequirement requirement,
-        ReadOnlySpan<byte> fieldName,
+        string fieldName,
         ref PooledArrayWriter? buffer)
     {
         var requiresNonNull = requirement.Type.Kind == SyntaxKind.NonNullType;
@@ -815,14 +813,12 @@ AddErrors_Next:
         if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2))
         {
-            var fieldNameUtf81 = Utf8StringCache.GetUtf8String(fieldName1);
-            var fieldNameUtf82 = Utf8StringCache.GetUtf8String(fieldName2);
             return BuildVariableValueSetsTwoRequirementsFastPath(
                 elements,
                 requirement1,
-                fieldNameUtf81,
+                fieldName1,
                 requirement2,
-                fieldNameUtf82,
+                fieldName2,
                 ref buffer);
         }
 
@@ -836,9 +832,9 @@ AddErrors_Next:
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
         List<CompositeResultElement> elements,
         OperationRequirement requirement1,
-        ReadOnlySpan<byte> fieldName1,
+        string fieldName1,
         OperationRequirement requirement2,
-        ReadOnlySpan<byte> fieldName2,
+        string fieldName2,
         ref PooledArrayWriter? buffer)
     {
         var requiresNonNull1 = requirement1.Type.Kind == SyntaxKind.NonNullType;
@@ -986,17 +982,14 @@ AddErrors_Next:
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
             && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3))
         {
-            var fieldNameUtf81 = Utf8StringCache.GetUtf8String(fieldName1);
-            var fieldNameUtf82 = Utf8StringCache.GetUtf8String(fieldName2);
-            var fieldNameUtf83 = Utf8StringCache.GetUtf8String(fieldName3);
             return BuildVariableValueSetsThreeRequirementsFastPath(
                 elements,
                 requirement1,
-                fieldNameUtf81,
+                fieldName1,
                 requirement2,
-                fieldNameUtf82,
+                fieldName2,
                 requirement3,
-                fieldNameUtf83,
+                fieldName3,
                 ref buffer);
         }
 
@@ -1011,11 +1004,11 @@ AddErrors_Next:
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
         List<CompositeResultElement> elements,
         OperationRequirement requirement1,
-        ReadOnlySpan<byte> fieldName1,
+        string fieldName1,
         OperationRequirement requirement2,
-        ReadOnlySpan<byte> fieldName2,
+        string fieldName2,
         OperationRequirement requirement3,
-        ReadOnlySpan<byte> fieldName3,
+        string fieldName3,
         ref PooledArrayWriter? buffer)
     {
         var requiresNonNull1 = requirement1.Type.Kind == SyntaxKind.NonNullType;
