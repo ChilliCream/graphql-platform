@@ -13,8 +13,7 @@ public sealed class Selection : ISelection
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
-    private IObjectTypeDefinition? _selectionSetCacheTypeContext;
-    private SelectionSet? _selectionSetCacheSelectionSet;
+    private SelectionSetCacheEntry? _selectionSetCache;
     private Flags _flags;
 
     public Selection(
@@ -104,14 +103,15 @@ public sealed class Selection : ISelection
     {
         ArgumentNullException.ThrowIfNull(typeContext);
 
-        if (ReferenceEquals(_selectionSetCacheTypeContext, typeContext))
+        var cache = _selectionSetCache;
+
+        if (cache is not null && ReferenceEquals(cache.TypeContext, typeContext))
         {
-            return _selectionSetCacheSelectionSet!;
+            return cache.SelectionSet;
         }
 
         var selectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
-        _selectionSetCacheTypeContext = typeContext;
-        _selectionSetCacheSelectionSet = selectionSet;
+        _selectionSetCache = new SelectionSetCacheEntry(typeContext, selectionSet);
         return selectionSet;
     }
 
@@ -201,5 +201,14 @@ public sealed class Selection : ISelection
         Leaf = 2,
         Sealed = 4,
         LeafValue = 8
+    }
+
+    private sealed class SelectionSetCacheEntry(
+        IObjectTypeDefinition typeContext,
+        SelectionSet selectionSet)
+    {
+        public IObjectTypeDefinition TypeContext { get; } = typeContext;
+
+        public SelectionSet SelectionSet { get; } = selectionSet;
     }
 }
