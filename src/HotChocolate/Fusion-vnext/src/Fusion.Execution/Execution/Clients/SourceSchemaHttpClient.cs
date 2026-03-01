@@ -551,6 +551,56 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         public override bool IsSuccessful => response.IsSuccessStatusCode;
 
+        public override async ValueTask<SourceSchemaResult?> ReadAsSingleResultAsync(
+            CancellationToken cancellationToken = default)
+        {
+            if (operation == OperationType.Subscription)
+            {
+                return null;
+            }
+
+            var (context, node, configuration) =
+                ((OperationPlanContext, ExecutionNode, SourceSchemaHttpClientConfiguration))request.State!;
+            SourceSchemaResult? sourceSchemaResult;
+
+            switch (variables.Length)
+            {
+                case 0:
+                {
+                    var result = await response.ReadAsResultAsync(cancellationToken);
+                    sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
+                    break;
+                }
+
+                case 1:
+                {
+                    var result = await response.ReadAsResultAsync(cancellationToken);
+                    var variable = variables[0];
+                    var additionalPaths = variable.AdditionalPaths;
+                    sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
+                        ? new SourceSchemaResult(variable.Path, result)
+                        : new SourceSchemaResult(variable.Path, result, additionalPaths: additionalPaths);
+                    break;
+                }
+
+                default:
+                    return null;
+            }
+
+            var onSourceSchemaResult = configuration.OnSourceSchemaResult;
+            onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+
+            if (onSourceSchemaResult is not null && !sourceSchemaResult.AdditionalPaths.IsDefaultOrEmpty)
+            {
+                foreach (var additionalPath in sourceSchemaResult.AdditionalPaths)
+                {
+                    onSourceSchemaResult(context, node, sourceSchemaResult.WithPath(additionalPath));
+                }
+            }
+
+            return sourceSchemaResult;
+        }
+
         public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {

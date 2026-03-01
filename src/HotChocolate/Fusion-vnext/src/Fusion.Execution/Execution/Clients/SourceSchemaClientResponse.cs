@@ -36,6 +36,14 @@ public abstract class SourceSchemaClientResponse : IDisposable
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Tries to read the response as a single result without creating an async stream.
+    /// Returns <c>null</c> when the response must be read as a stream.
+    /// </summary>
+    public virtual ValueTask<SourceSchemaResult?> ReadAsSingleResultAsync(
+        CancellationToken cancellationToken = default)
+        => ValueTask.FromResult<SourceSchemaResult?>(null);
+
+    /// <summary>
     /// Releases transport resources held by this response.
     /// </summary>
     public abstract void Dispose();
