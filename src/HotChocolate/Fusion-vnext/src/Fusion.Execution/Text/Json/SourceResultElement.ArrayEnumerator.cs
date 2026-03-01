@@ -22,7 +22,7 @@ public readonly partial struct SourceResultElement
             Debug.Assert(target.TokenType == JsonTokenType.StartArray);
 
             _target = target;
-            _endCursor = target._parent.GetEndIndex(target._cursor, includeEndElement: false);
+            _endCursor = target._parent.GetEndIndexFast(target._cursor, includeEndElement: false);
 
             _current = default;
             _hasStarted = false;
@@ -101,7 +101,7 @@ public readonly partial struct SourceResultElement
 
             // Already on an element: jump to just after this element (exclusive),
             // which is the start of the next element if one exists.
-            var next = _target._parent.GetEndIndex(_current, includeEndElement: true);
+            var next = _target._parent.GetEndIndexFast(_current, includeEndElement: true);
 
             if (next < _endCursor)
             {
