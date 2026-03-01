@@ -22,7 +22,7 @@ public readonly partial struct SourceResultElement
             Debug.Assert(target.TokenType == JsonTokenType.StartObject);
 
             _target = target;
-            _endCursor = target._parent.GetEndIndexFast(target._cursor, includeEndElement: false);
+            _endCursor = target._parent.GetEndIndex(target._cursor, includeEndElement: false);
 
             _current = default;
             _hasStarted = false;
@@ -112,7 +112,7 @@ public readonly partial struct SourceResultElement
 
             // Advance past the current VALUE to the start of the next element.
             // GetEndIndex(current, includeEndElement: true) yields the row after the current value.
-            var afterCurrent = _target._parent.GetEndIndexFast(_current, includeEndElement: true);
+            var afterCurrent = _target._parent.GetEndIndex(_current, includeEndElement: true);
 
             // After a value, the next row (if any) is the next PropertyName; we need the VALUE,
             // so we skip one more row.

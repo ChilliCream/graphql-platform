@@ -270,26 +270,6 @@ public sealed partial class SourceResultDocument
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal Cursor GetEndIndexFast(Cursor cursor, bool includeEndElement)
-    {
-        var row = _parsedData.Get(cursor);
-
-        if (row.IsSimpleValue)
-        {
-            return cursor + 1;
-        }
-
-        var endId = cursor + (row.NumberOfRows - 1);
-
-        if (includeEndElement)
-        {
-            endId += 1;
-        }
-
-        return endId;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetEndRowLength(DbRow endRow)
         => endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.EndArray
             ? 1
