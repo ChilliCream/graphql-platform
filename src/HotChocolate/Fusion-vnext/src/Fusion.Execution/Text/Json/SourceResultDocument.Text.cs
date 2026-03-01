@@ -270,6 +270,21 @@ public sealed partial class SourceResultDocument
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal Cursor GetNextObjectValueCursor(Cursor valueCursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var row = _parsedData.Get(valueCursor);
+
+        if (row.IsSimpleValue)
+        {
+            return valueCursor + 2;
+        }
+
+        return valueCursor + row.NumberOfRows + 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetEndRowLength(DbRow endRow)
         => endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.EndArray
             ? 1
