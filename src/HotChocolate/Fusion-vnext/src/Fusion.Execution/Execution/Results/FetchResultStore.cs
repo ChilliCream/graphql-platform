@@ -709,36 +709,54 @@ AddErrors_Next:
             variableValueSets ??= new VariableValues[elements.Count];
             IValueNode mappedValue;
 
-            if (value.ValueKind is JsonValueKind.String)
+            if (valueKind is JsonValueKind.String)
             {
                 var stringValue = value.AssertString();
 
-                if (seenStrings is not null
-                    && seenStrings.TryGetValue(stringValue, out var existingIndex))
+                if (nextIndex > 0)
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
+                    if (seenStrings is null)
+                    {
+                        seenStrings = new Dictionary<string, int>(StringComparer.Ordinal);
+
+                        if (variableValueSets[0].Values.Fields[0].Value is StringValueNode firstString)
+                        {
+                            seenStrings[firstString.Value] = 0;
+                        }
+                    }
+
+                    if (seenStrings.TryGetValue(stringValue, out var existingIndex))
+                    {
+                        additionalPaths ??= new List<Path>?[elements.Count];
+                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                        continue;
+                    }
+
+                    seenStrings[stringValue] = nextIndex;
                 }
 
                 mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
-                seenStrings[stringValue] = nextIndex;
             }
             else
             {
                 mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
 
-                if (seen is not null
-                    && seen.TryGetValue(mappedValue, out var existingIndex))
+                if (nextIndex > 0)
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
+                    seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
+                    {
+                        [variableValueSets[0].Values.Fields[0].Value] = 0
+                    };
 
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
-                seen[mappedValue] = nextIndex;
+                    if (seen.TryGetValue(mappedValue, out var existingIndex))
+                    {
+                        additionalPaths ??= new List<Path>?[elements.Count];
+                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                        continue;
+                    }
+
+                    seen[mappedValue] = nextIndex;
+                }
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
