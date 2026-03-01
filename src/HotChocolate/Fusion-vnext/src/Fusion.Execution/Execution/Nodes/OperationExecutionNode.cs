@@ -145,15 +145,17 @@ public sealed class OperationExecutionNode : ExecutionNode
                 .ConfigureAwait(false);
             context.TrackSourceSchemaClientResponse(this, response);
 
-            // we read the responses from the response stream.
-            var totalPathCount = variables.Length;
-
-            for (var i = 0; i < variables.Length; i++)
+            static int ComputeResultBufferLength(ImmutableArray<VariableValues> variableValues)
             {
-                totalPathCount += variables[i].AdditionalPaths.Length;
-            }
+                var totalPathCount = variableValues.Length;
 
-            var initialBufferLength = Math.Max(totalPathCount, 2);
+                for (var i = 0; i < variableValues.Length; i++)
+                {
+                    totalPathCount += variableValues[i].AdditionalPaths.Length;
+                }
+
+                return Math.Max(totalPathCount, 2);
+            }
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
@@ -168,7 +170,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     // If we have more than one response, we rent a buffer and move the first result into it.
                     if (buffer is null)
                     {
-                        bufferLength = initialBufferLength;
+                        bufferLength = ComputeResultBufferLength(variables);
                         buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
                         buffer[0] = singleResult!;
                     }
