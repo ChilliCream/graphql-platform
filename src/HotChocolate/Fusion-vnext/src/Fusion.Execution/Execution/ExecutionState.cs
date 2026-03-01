@@ -162,21 +162,18 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
         {
-            var dependents = node.Dependents;
-            var dependentsToExecute = result.DependentsToExecute.AsSpan();
-
-            if (dependentsToExecute.Length > 0)
+            if (result.DependentsToExecute.Length > 0)
             {
-                foreach (var dependent in dependents)
+                foreach (var dependent in node.Dependents)
                 {
-                    if (!ContainsDependent(dependentsToExecute, dependent.Id))
+                    if (!result.DependentsToExecute.Contains(dependent))
                     {
                         SkipNode(context, dependent);
                     }
                 }
             }
 
-            foreach (var dependent in dependents)
+            foreach (var dependent in node.Dependents)
             {
                 if ((uint)dependent.Id >= (uint)_remainingDependencies.Length)
                 {
@@ -404,20 +401,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         }
 
         _trackedDependencySlots.Clear();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool ContainsDependent(ReadOnlySpan<ExecutionNode> dependentsToExecute, int dependentId)
-    {
-        for (var i = 0; i < dependentsToExecute.Length; i++)
-        {
-            if (dependentsToExecute[i].Id == dependentId)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void EnsureNodeStateCapacity(int minCapacity)
