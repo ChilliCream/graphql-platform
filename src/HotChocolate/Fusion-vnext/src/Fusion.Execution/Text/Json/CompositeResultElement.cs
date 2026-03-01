@@ -422,10 +422,6 @@ public readonly partial struct CompositeResultElement
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal CompositeResultDocument.Cursor GetStartCursorFast()
-        => _parent.GetStartCursor(_cursor);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal CompositeResultElement GetArrayElement(
         CompositeResultDocument.Cursor startCursor,
         int index)
@@ -451,10 +447,6 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
         return _parent.TryGetSelectionSet(_cursor, out selectionSet);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool TryGetSelectionSetFast([NotNullWhen(true)] out SelectionSet? selectionSet)
-        => _parent.TryGetSelectionSet(_cursor, out selectionSet);
 
     /// <summary>
     /// Gets the value as a <see cref="bool"/>.
@@ -969,26 +961,12 @@ public readonly partial struct CompositeResultElement
         _parent.AssignCompositeValue(this, obj);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void SetObjectValueFast(SelectionSet selectionSet)
-    {
-        var obj = _parent.CreateObject(_cursor, selectionSet: selectionSet);
-        _parent.AssignCompositeValue(this, obj);
-    }
-
     internal void SetArrayValue(int length)
     {
         CheckValidInstance();
 
         ArgumentOutOfRangeException.ThrowIfNegative(length);
 
-        var arr = _parent.CreateArray(_cursor, length);
-        _parent.AssignCompositeValue(this, arr);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void SetArrayValueFast(int length)
-    {
         var arr = _parent.CreateArray(_cursor, length);
         _parent.AssignCompositeValue(this, arr);
     }
@@ -1000,20 +978,12 @@ public readonly partial struct CompositeResultElement
         _parent.AssignSourceValue(this, source);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void SetLeafValueFast(SourceResultElement source)
-        => _parent.AssignSourceValue(this, source);
-
     internal void SetNullValue()
     {
         CheckValidInstance();
 
         _parent.AssignNullValue(this);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void SetNullValueFast()
-        => _parent.AssignNullValue(this);
 
     /// <inheritdoc />
     public override string ToString()
