@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -64,9 +65,17 @@ internal sealed class ValueCompletion
 
             if (errorTrie is null)
             {
+                var selections = targetSelectionSet.Selections;
+                var nextSelectionIndex = 0;
+
                 foreach (var property in source.EnumerateObject())
                 {
-                    if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
+                    if (!TryGetSelection(
+                            targetSelectionSet,
+                            selections,
+                            ref nextSelectionIndex,
+                            property.NameSpan,
+                            out var selection))
                     {
                         continue;
                     }
@@ -89,9 +98,17 @@ internal sealed class ValueCompletion
                 return true;
             }
 
+            var targetSelections = targetSelectionSet.Selections;
+            var nextTargetSelectionIndex = 0;
+
             foreach (var property in source.EnumerateObject())
             {
-                if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
+                if (!TryGetSelection(
+                        targetSelectionSet,
+                        targetSelections,
+                        ref nextTargetSelectionIndex,
+                        property.NameSpan,
+                        out var selection))
                 {
                     continue;
                 }
@@ -636,9 +653,17 @@ internal sealed class ValueCompletion
 
             if (errorTrie is null)
             {
+                var selections = selectionSet.Selections;
+                var nextSelectionIndex = 0;
+
                 foreach (var property in source.EnumerateObject())
                 {
-                    if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
+                    if (!TryGetSelection(
+                            selectionSet,
+                            selections,
+                            ref nextSelectionIndex,
+                            property.NameSpan,
+                            out var selection))
                     {
                         continue;
                     }
@@ -654,9 +679,17 @@ internal sealed class ValueCompletion
                 return true;
             }
 
+            var knownSelections = selectionSet.Selections;
+            var nextKnownSelectionIndex = 0;
+
             foreach (var property in source.EnumerateObject())
             {
-                if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
+                if (!TryGetSelection(
+                        selectionSet,
+                        knownSelections,
+                        ref nextKnownSelectionIndex,
+                        property.NameSpan,
+                        out var selection))
                 {
                     continue;
                 }
@@ -713,6 +746,29 @@ internal sealed class ValueCompletion
         }
 
         return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryGetSelection(
+        SelectionSet selectionSet,
+        ReadOnlySpan<Selection> selections,
+        ref int nextSelectionIndex,
+        ReadOnlySpan<byte> responseName,
+        [NotNullWhen(true)] out Selection? selection)
+    {
+        if ((uint)nextSelectionIndex < (uint)selections.Length)
+        {
+            var candidate = selections[nextSelectionIndex];
+
+            if (responseName.SequenceEqual(candidate.Utf8ResponseName))
+            {
+                selection = candidate;
+                nextSelectionIndex++;
+                return true;
+            }
+        }
+
+        return selectionSet.TryGetSelection(responseName, out selection);
     }
 
     private bool TryCompleteAbstractValue(
