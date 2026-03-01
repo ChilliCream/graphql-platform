@@ -72,7 +72,10 @@ internal sealed class ValueCompletion
                     }
 
                     var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
-                    if (!TryCompleteValue(property.Value, resultField, null, selection, selection.Type, 0))
+                    var propertyValue = property.Value;
+
+                    if (!TrySetLeafValueFast(propertyValue, resultField, selection)
+                        && !TryCompleteValue(propertyValue, resultField, null, selection, selection.Type, 0))
                     {
                         switch (_errorHandlingMode)
                         {
@@ -98,8 +101,16 @@ internal sealed class ValueCompletion
 
                 var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
                 errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+                var propertyValue = property.Value;
 
-                if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
+                if (!TrySetLeafValueFast(propertyValue, resultField, selection)
+                    && !TryCompleteValue(
+                        propertyValue,
+                        resultField,
+                        errorTrieForResponseName,
+                        selection,
+                        selection.Type,
+                        0))
                 {
                     switch (_errorHandlingMode)
                     {
@@ -126,8 +137,10 @@ internal sealed class ValueCompletion
                 }
 
                 var selection = resultField.AssertSelection();
+                var propertyValue = property.Value;
 
-                if (!TryCompleteValue(property.Value, resultField, null, selection, selection.Type, 0))
+                if (!TrySetLeafValueFast(propertyValue, resultField, selection)
+                    && !TryCompleteValue(propertyValue, resultField, null, selection, selection.Type, 0))
                 {
                     switch (_errorHandlingMode)
                     {
@@ -153,8 +166,16 @@ internal sealed class ValueCompletion
 
             var selection = resultField.AssertSelection();
             errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+            var propertyValue = property.Value;
 
-            if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
+            if (!TrySetLeafValueFast(propertyValue, resultField, selection)
+                && !TryCompleteValue(
+                    propertyValue,
+                    resultField,
+                    errorTrieForResponseName,
+                    selection,
+                    selection.Type,
+                    0))
             {
                 switch (_errorHandlingMode)
                 {
@@ -644,8 +665,16 @@ internal sealed class ValueCompletion
                     }
 
                     var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                    var propertyValue = property.Value;
 
-                    if (!TryCompleteValue(property.Value, targetProperty, null, selection, selection.Type, depth))
+                    if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
+                        && !TryCompleteValue(
+                            propertyValue,
+                            targetProperty,
+                            null,
+                            selection,
+                            selection.Type,
+                            depth))
                     {
                         return false;
                     }
@@ -663,9 +692,16 @@ internal sealed class ValueCompletion
 
                 var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
                 errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+                var propertyValue = property.Value;
 
-                if (!TryCompleteValue(property.Value,
-                    targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
+                if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
+                    && !TryCompleteValue(
+                        propertyValue,
+                        targetProperty,
+                        errorTrieForResponseName,
+                        selection,
+                        selection.Type,
+                        depth))
                 {
                     return false;
                 }
@@ -684,9 +720,16 @@ internal sealed class ValueCompletion
                 }
 
                 var selection = targetProperty.AssertSelection();
+                var propertyValue = property.Value;
 
-                if (!TryCompleteValue(property.Value,
-                    targetProperty, null, selection, selection.Type, depth))
+                if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
+                    && !TryCompleteValue(
+                        propertyValue,
+                        targetProperty,
+                        null,
+                        selection,
+                        selection.Type,
+                        depth))
                 {
                     return false;
                 }
@@ -704,9 +747,16 @@ internal sealed class ValueCompletion
 
             var selection = targetProperty.AssertSelection();
             errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+            var propertyValue = property.Value;
 
-            if (!TryCompleteValue(property.Value,
-                targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
+            if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
+                && !TryCompleteValue(
+                    propertyValue,
+                    targetProperty,
+                    errorTrieForResponseName,
+                    selection,
+                    selection.Type,
+                    depth))
             {
                 return false;
             }
@@ -743,6 +793,21 @@ internal sealed class ValueCompletion
 
         var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).AssertString();
         return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TrySetLeafValueFast(
+        SourceResultElement source,
+        CompositeResultElement target,
+        Selection selection)
+    {
+        if (selection.IsLeafValue && !source.IsNullOrUndefined())
+        {
+            target.SetLeafValue(source);
+            return true;
+        }
+
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

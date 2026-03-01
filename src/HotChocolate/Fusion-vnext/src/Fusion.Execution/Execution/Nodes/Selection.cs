@@ -45,6 +45,17 @@ public sealed class Selection : ISelection
             _flags |= Flags.Leaf;
         }
 
+        IType fieldType = field.Type;
+        while (fieldType.Kind is TypeKind.NonNull)
+        {
+            fieldType = fieldType.InnerType();
+        }
+
+        if (fieldType.Kind is TypeKind.Scalar or TypeKind.Enum)
+        {
+            _flags |= Flags.LeafValue;
+        }
+
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
     }
 
@@ -64,6 +75,8 @@ public sealed class Selection : ISelection
 
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
+
+    internal bool IsLeafValue => (_flags & Flags.LeafValue) == Flags.LeafValue;
 
     /// <inheritdoc />
     public IOutputFieldDefinition Field { get; }
@@ -186,7 +199,8 @@ public sealed class Selection : ISelection
         None = 0,
         Internal = 1,
         Leaf = 2,
-        Sealed = 4
+        Sealed = 4,
+        LeafValue = 8
     }
 
     private sealed class SelectionSetCacheEntry(
