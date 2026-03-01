@@ -1195,34 +1195,25 @@ AddErrors_Next:
             fields[index++] = forwardedVariables[i];
         }
 
-        foreach (var requirement in requirements)
+        for (var i = 0; i < requirements.Length; i++)
         {
-            var field = MapRequirement(result, requirement.Key, requirement.Map, ref buffer);
+            ref readonly var requirement = ref requirements[i];
+            var value = ResultDataMapper.Map(result, requirement.Map, _schema, ref buffer);
 
-            if (field is null)
+            if (value is null)
             {
                 return null;
             }
 
-            if (field.Value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
+            if (value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
             {
                 return null;
             }
 
-            fields[index++] = field;
+            fields[index++] = new ObjectFieldNode(requirement.Key, value);
         }
 
         return new ObjectValueNode(fields);
-    }
-
-    private ObjectFieldNode? MapRequirement(
-        CompositeResultElement result,
-        string key,
-        IValueSelectionNode path,
-        ref PooledArrayWriter? buffer)
-    {
-        var value = ResultDataMapper.Map(result, path, _schema, ref buffer);
-        return value is null ? null : new ObjectFieldNode(key, value);
     }
 
     private static bool TryGetSimpleRequirementFieldName(
