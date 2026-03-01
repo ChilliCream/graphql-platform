@@ -10,6 +10,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
@@ -668,10 +669,11 @@ AddErrors_Next:
     {
         if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
         {
+            var utf8FieldName = Utf8StringCache.GetUtf8String(fieldName);
             return BuildVariableValueSetsSingleRequirementFastPath(
                 elements,
                 requirement,
-                fieldName,
+                utf8FieldName,
                 ref buffer);
         }
 
@@ -681,7 +683,7 @@ AddErrors_Next:
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
         List<CompositeResultElement> elements,
         OperationRequirement requirement,
-        string fieldName,
+        byte[] utf8FieldName,
         ref PooledArrayWriter? buffer)
     {
         var requiresNonNull = requirement.Type.Kind == SyntaxKind.NonNullType;
@@ -693,7 +695,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName, out var value))
+            if (!result.TryGetProperty(utf8FieldName, out var value))
             {
                 continue;
             }
@@ -709,7 +711,7 @@ AddErrors_Next:
             variableValueSets ??= new VariableValues[elements.Count];
             IValueNode mappedValue;
 
-            if (value.ValueKind is JsonValueKind.String)
+            if (valueKind is JsonValueKind.String)
             {
                 var stringValue = value.AssertString();
 
@@ -813,12 +815,14 @@ AddErrors_Next:
         if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2))
         {
+            var utf8FieldName1 = Utf8StringCache.GetUtf8String(fieldName1);
+            var utf8FieldName2 = Utf8StringCache.GetUtf8String(fieldName2);
             return BuildVariableValueSetsTwoRequirementsFastPath(
                 elements,
                 requirement1,
-                fieldName1,
+                utf8FieldName1,
                 requirement2,
-                fieldName2,
+                utf8FieldName2,
                 ref buffer);
         }
 
@@ -832,9 +836,9 @@ AddErrors_Next:
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
         List<CompositeResultElement> elements,
         OperationRequirement requirement1,
-        string fieldName1,
+        byte[] utf8FieldName1,
         OperationRequirement requirement2,
-        string fieldName2,
+        byte[] utf8FieldName2,
         ref PooledArrayWriter? buffer)
     {
         var requiresNonNull1 = requirement1.Type.Kind == SyntaxKind.NonNullType;
@@ -846,7 +850,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1))
+            if (!result.TryGetProperty(utf8FieldName1, out var value1))
             {
                 continue;
             }
@@ -859,7 +863,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2))
+            if (!result.TryGetProperty(utf8FieldName2, out var value2))
             {
                 continue;
             }
@@ -982,14 +986,17 @@ AddErrors_Next:
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
             && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3))
         {
+            var utf8FieldName1 = Utf8StringCache.GetUtf8String(fieldName1);
+            var utf8FieldName2 = Utf8StringCache.GetUtf8String(fieldName2);
+            var utf8FieldName3 = Utf8StringCache.GetUtf8String(fieldName3);
             return BuildVariableValueSetsThreeRequirementsFastPath(
                 elements,
                 requirement1,
-                fieldName1,
+                utf8FieldName1,
                 requirement2,
-                fieldName2,
+                utf8FieldName2,
                 requirement3,
-                fieldName3,
+                utf8FieldName3,
                 ref buffer);
         }
 
@@ -1004,11 +1011,11 @@ AddErrors_Next:
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
         List<CompositeResultElement> elements,
         OperationRequirement requirement1,
-        string fieldName1,
+        byte[] utf8FieldName1,
         OperationRequirement requirement2,
-        string fieldName2,
+        byte[] utf8FieldName2,
         OperationRequirement requirement3,
-        string fieldName3,
+        byte[] utf8FieldName3,
         ref PooledArrayWriter? buffer)
     {
         var requiresNonNull1 = requirement1.Type.Kind == SyntaxKind.NonNullType;
@@ -1021,7 +1028,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1))
+            if (!result.TryGetProperty(utf8FieldName1, out var value1))
             {
                 continue;
             }
@@ -1034,7 +1041,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2))
+            if (!result.TryGetProperty(utf8FieldName2, out var value2))
             {
                 continue;
             }
@@ -1047,7 +1054,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName3, out var value3))
+            if (!result.TryGetProperty(utf8FieldName3, out var value3))
             {
                 continue;
             }
