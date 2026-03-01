@@ -122,6 +122,15 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {
         builder.ConfigureSchemaServices(s =>
         {
+            s.TryAddSingleton(sp =>
+            {
+                var options = new GraphQLServerOptions();
+                foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
+                {
+                    configure(options);
+                }
+                return options;
+            });
             s.TryAddSingleton<IHttpResponseFormatter>(
                 sp => DefaultHttpResponseFormatter.Create(
                     new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },

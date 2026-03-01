@@ -62,10 +62,7 @@ We can influence the behavior of the middleware registered by `MapGraphQL` using
 ### EnableSchemaRequests
 
 ```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    EnableSchemaRequests = false
-});
+endpoints.MapGraphQL().WithOptions(o => o.EnableSchemaRequests = false);
 ```
 
 This setting controls whether the schema of the GraphQL server can be downloaded by appending `?sdl` to the endpoint.
@@ -73,10 +70,7 @@ This setting controls whether the schema of the GraphQL server can be downloaded
 ### EnableGetRequests
 
 ```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    EnableGetRequests = false
-});
+endpoints.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
 ```
 
 This setting controls whether the GraphQL server is able to handle GraphQL operations sent via the query string in a HTTP GET request.
@@ -84,10 +78,7 @@ This setting controls whether the GraphQL server is able to handle GraphQL opera
 ### AllowedGetOperations
 
 ```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    AllowedGetOperations = AllowedGetOperations.Query
-});
+endpoints.MapGraphQL().WithOptions(o => o.AllowedGetOperations = AllowedGetOperations.Query);
 ```
 
 If [EnableGetRequests](#enablegetrequests) is `true` we can control the allowed operations for HTTP GET requests using the `AllowedGetOperations` setting.
@@ -97,10 +88,7 @@ Per default only queries are accepted via HTTP GET. We can also allow mutations 
 ### EnableMultipartRequests
 
 ```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    EnableMultipartRequests = false
-});
+endpoints.MapGraphQL().WithOptions(o => o.EnableMultipartRequests = false);
 ```
 
 This setting controls whether the GraphQL server is able to handle HTTP Multipart forms, i.e. file uploads.
@@ -109,7 +97,7 @@ This setting controls whether the GraphQL server is able to handle HTTP Multipar
 
 ### Tool
 
-We can specify options for the Nitro using the `Tool` property.
+We can specify options for Nitro using the `Tool` property.
 
 We could for example only enable Nitro during development.
 
@@ -118,16 +106,11 @@ app.UseRouting();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-    {
-        Tool = {
-            Enable = env.IsDevelopment()
-        }
-    });
+    endpoints.MapGraphQL().WithOptions(o => o.Tool.Enable = env.IsDevelopment());
 });
 ```
 
-[Learn more about possible GraphQLToolOptions](#graphqltooloptions)
+[Learn more about possible NitroAppOptions](#nitroapp-options)
 
 # MapNitroApp
 

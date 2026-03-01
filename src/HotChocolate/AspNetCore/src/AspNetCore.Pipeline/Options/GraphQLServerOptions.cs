@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.App;
+
 namespace HotChocolate.AspNetCore;
 
 /// <summary>
@@ -6,9 +8,9 @@ namespace HotChocolate.AspNetCore;
 public sealed class GraphQLServerOptions
 {
     /// <summary>
-    /// Gets the GraphQL tool options for Nitro.
+    /// Gets the Nitro tool options.
     /// </summary>
-    public GraphQLToolOptions Tool { get; internal set; } = new();
+    public NitroAppOptions Tool { get; internal set; } = new();
 
     /// <summary>
     /// Gets the GraphQL socket options.
@@ -52,7 +54,33 @@ public sealed class GraphQLServerOptions
     public bool EnableSchemaRequests { get; set; } = true;
 
     /// <summary>
-    /// Defines if request batching is enabled.
+    /// Gets or sets which types of batching are allowed.
     /// </summary>
-    public bool EnableBatching { get; set; } = true;
+    public AllowedBatching Batching { get; set; } = AllowedBatching.None;
+
+    /// <summary>
+    /// Gets or sets the maximum number of operations allowed in a single batch.
+    /// A value of 0 means unlimited.
+    /// </summary>
+    public int MaxBatchSize { get; set; }
+
+    internal GraphQLServerOptions Clone()
+        => new()
+        {
+            Tool = Tool.Clone(),
+            Sockets = new GraphQLSocketOptions
+            {
+                ConnectionInitializationTimeout = Sockets.ConnectionInitializationTimeout,
+                KeepAliveInterval = Sockets.KeepAliveInterval
+            },
+            AllowedGetOperations = AllowedGetOperations,
+            EnableSchemaFileSupport = EnableSchemaFileSupport,
+            EnableGetRequests = EnableGetRequests,
+            EnforceGetRequestsPreflightHeader = EnforceGetRequestsPreflightHeader,
+            EnableMultipartRequests = EnableMultipartRequests,
+            EnforceMultipartRequestsPreflightHeader = EnforceMultipartRequestsPreflightHeader,
+            EnableSchemaRequests = EnableSchemaRequests,
+            Batching = Batching,
+            MaxBatchSize = MaxBatchSize
+        };
 }

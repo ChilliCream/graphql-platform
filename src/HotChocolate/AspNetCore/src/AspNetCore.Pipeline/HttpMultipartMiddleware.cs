@@ -45,8 +45,9 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
         HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions,
         IOptions<FormOptions> formOptions)
-        : base(next, executor)
+        : base(next, executor, baseOptions)
     {
         ArgumentNullException.ThrowIfNull(formOptions);
         _formOptions = formOptions.Value;
@@ -55,13 +56,19 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     public override async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsPost(context.Request.Method)
-            && GetOptions(context).EnableMultipartRequests
             && context.ParseContentType() == RequestContentType.Form)
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+            var options = GetOptions(context);
+
+            if (!options.EnableMultipartRequests)
+            {
+                await NextAsync(context);
+                return;
+            }
 
             if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight)
-                && GetOptions(context).EnforceMultipartRequestsPreflightHeader)
+                && options.EnforceMultipartRequestsPreflightHeader)
             {
                 var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
                 await session.WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);
