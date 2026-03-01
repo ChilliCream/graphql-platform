@@ -113,12 +113,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// white space between property names and values.
     /// By default, the JSON is written without extra white spaces.
     /// </param>
+    /// <param name="incrementalDeliveryFormat">
+    /// The default incremental delivery format to use when the client does not specify one
+    /// via the <c>Accept</c> header. Defaults to <see cref="IncrementalDeliveryFormat.Version_0_2"/>.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddHttpResponseFormatter(
         this IRequestExecutorBuilder builder,
-        bool indented = false)
+        bool indented = false,
+        IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -133,7 +138,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                                 Indented = indented
                             }
                         },
-                        sp.GetRequiredService<ITimeProvider>())));
+                        sp.GetRequiredService<ITimeProvider>(),
+                        incrementalDeliveryFormat)));
         return builder;
     }
 
@@ -147,12 +153,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="options">
     /// The HTTP response formatter options
     /// </param>
+    /// <param name="incrementalDeliveryFormat">
+    /// The default incremental delivery format to use when the client does not specify one
+    /// via the <c>Accept</c> header. Defaults to <see cref="IncrementalDeliveryFormat.Version_0_2"/>.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddHttpResponseFormatter(
         this IRequestExecutorBuilder builder,
-        HttpResponseFormatterOptions options)
+        HttpResponseFormatterOptions options,
+        IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -161,7 +172,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 .AddSingleton<IHttpResponseFormatter>(
                     sp => DefaultHttpResponseFormatter.Create(
                     options,
-                    sp.GetRequiredService<ITimeProvider>())));
+                    sp.GetRequiredService<ITimeProvider>(),
+                    incrementalDeliveryFormat)));
         return builder;
     }
 
