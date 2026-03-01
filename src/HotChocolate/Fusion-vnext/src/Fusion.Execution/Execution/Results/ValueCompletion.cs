@@ -374,24 +374,22 @@ internal sealed class ValueCompletion
         AssertDepthAllowed(ref depth);
 
         var elementType = type.ElementType();
-        var elementTypeKind = elementType.Kind;
-        var isNullable = elementTypeKind is not TypeKind.NonNull;
-        var unwrappedElementType = elementTypeKind is TypeKind.NonNull
-            ? elementType.InnerType()
-            : elementType;
-        var elementKind = unwrappedElementType.Kind switch
-        {
-            TypeKind.List => 0,
-            TypeKind.Scalar or TypeKind.Enum => 1,
-            TypeKind.Interface or TypeKind.Union => 2,
-            _ => 3
-        };
+        var isNullable = elementType.IsNullableType();
+        var isLeaf = elementType.IsLeafType();
+        var isNested = elementType.IsListType();
+        var elementKind = isNested
+            ? 0
+            : isLeaf
+                ? 1
+                : elementType.IsAbstractType()
+                    ? 2
+                    : 3;
         IObjectTypeDefinition? objectElementType = null;
         SelectionSet? objectElementSelectionSet = null;
 
         if (elementKind is 3)
         {
-            var namedType = unwrappedElementType.NamedType();
+            var namedType = elementType.NamedType();
             objectElementType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
             objectElementSelectionSet = selection.GetSelectionSet(objectElementType);
         }
