@@ -526,14 +526,13 @@ AddErrors_Next:
             }
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
-                var fieldName = segment.Utf8Name;
                 var currentSpan = CollectionsMarshal.AsSpan(current);
 
                 for (var j = 0; j < currentSpan.Length; j++)
                 {
                     var element = currentSpan[j];
 
-                    if (!element.TryGetProperty(fieldName, out var value))
+                    if (!element.TryGetProperty(segment.Utf8Name, out var value))
                     {
                         continue;
                     }
