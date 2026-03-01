@@ -111,14 +111,8 @@ public readonly partial struct SourceResultElement
             }
 
             // Advance past the current VALUE to the start of the next element.
-            // For scalar values, the next row is directly adjacent.
-            // For objects/arrays, we need to jump to the row after the closing token.
-            var afterCurrent = _target._parent.GetElementTokenType(_current) switch
-            {
-                JsonTokenType.StartObject or JsonTokenType.StartArray
-                    => _target._parent.GetEndIndex(_current, includeEndElement: true),
-                _ => _current + 1
-            };
+            // GetEndIndex(current, includeEndElement: true) yields the row after the current value.
+            var afterCurrent = _target._parent.GetEndIndex(_current, includeEndElement: true);
 
             // After a value, the next row (if any) is the next PropertyName; we need the VALUE,
             // so we skip one more row.
