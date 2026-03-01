@@ -57,10 +57,10 @@ internal sealed class ValueCompletion
             return BuildErrorResult(target, responseNames, error, target.Path);
         }
 
-        if (target.TryGetSelectionSet(out var targetSelectionSet))
+        if (target.TryGetSelectionSetFast(out var targetSelectionSet))
         {
             var selectionSetId = targetSelectionSet.Id;
-            var startCursor = target.GetStartCursor();
+            var startCursor = target.GetStartCursorFast();
 
             if (errorTrie is null)
             {
@@ -252,7 +252,7 @@ internal sealed class ValueCompletion
         {
             if (current.IsNullable)
             {
-                current.SetNullValue();
+                current.SetNullValueFast();
                 return false;
             }
 
@@ -337,7 +337,7 @@ internal sealed class ValueCompletion
             }
             else
             {
-                target.SetNullValue();
+                target.SetNullValueFast();
             }
 
             return true;
@@ -355,7 +355,7 @@ internal sealed class ValueCompletion
                 return TryCompleteAbstractValue(source, target, errorTrie, selection, type, depth);
 
             case TypeKind.Scalar or TypeKind.Enum:
-                target.SetLeafValue(source);
+                target.SetLeafValueFast(source);
                 return true;
 
             default:
@@ -394,8 +394,8 @@ internal sealed class ValueCompletion
             objectElementSelectionSet = selection.GetSelectionSet(objectElementType);
         }
 
-        target.SetArrayValue(source.GetArrayLength());
-        var arrayStartCursor = target.GetStartCursor();
+        target.SetArrayValueFast(source.GetArrayLength());
+        var arrayStartCursor = target.GetStartCursorFast();
 
         if (errorTrie is null)
         {
@@ -414,7 +414,7 @@ internal sealed class ValueCompletion
                             return false;
                         }
 
-                        current.SetNullValue();
+                        current.SetNullValueFast();
                         continue;
                     }
 
@@ -432,7 +432,7 @@ internal sealed class ValueCompletion
                             return false;
                         }
 
-                        current.SetNullValue();
+                        current.SetNullValueFast();
                     }
                 }
 
@@ -451,7 +451,7 @@ internal sealed class ValueCompletion
                         return false;
                     }
 
-                    current.SetNullValue();
+                    current.SetNullValueFast();
                     continue;
                 }
 
@@ -470,7 +470,7 @@ internal sealed class ValueCompletion
                         break;
 
                     case 1:
-                        current.SetLeafValue(element);
+                        current.SetLeafValueFast(element);
                         break;
 
                     case 2:
@@ -502,7 +502,7 @@ internal sealed class ValueCompletion
                         return false;
                     }
 
-                    current.SetNullValue();
+                    current.SetNullValueFast();
                 }
             }
 
@@ -539,7 +539,7 @@ internal sealed class ValueCompletion
                     return false;
                 }
 
-                current.SetNullValue();
+                current.SetNullValueFast();
                 i++;
                 continue;
             }
@@ -559,7 +559,7 @@ internal sealed class ValueCompletion
                     break;
 
                 case 1:
-                    current.SetLeafValue(element);
+                    current.SetLeafValueFast(element);
                     break;
 
                 case 2:
@@ -591,7 +591,7 @@ internal sealed class ValueCompletion
                     return false;
                 }
 
-                current.SetNullValue();
+                current.SetNullValueFast();
             }
 
             i++;
@@ -643,9 +643,9 @@ internal sealed class ValueCompletion
             }
 
             selectionSet = precomputedSelectionSet;
-            target.SetObjectValue(selectionSet);
+            target.SetObjectValueFast(selectionSet);
         }
-        else if (target.TryGetSelectionSet(out var existingSelectionSet))
+        else if (target.TryGetSelectionSetFast(out var existingSelectionSet))
         {
             selectionSet = existingSelectionSet;
         }
@@ -653,7 +653,7 @@ internal sealed class ValueCompletion
         if (selectionSet is not null)
         {
             var selectionSetId = selectionSet.Id;
-            var startCursor = target.GetStartCursor();
+            var startCursor = target.GetStartCursorFast();
 
             if (errorTrie is null)
             {
@@ -803,7 +803,7 @@ internal sealed class ValueCompletion
     {
         if (selection.IsLeafValue && !source.IsNullOrUndefined())
         {
-            target.SetLeafValue(source);
+            target.SetLeafValueFast(source);
             return true;
         }
 
