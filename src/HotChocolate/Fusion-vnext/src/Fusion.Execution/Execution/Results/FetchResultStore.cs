@@ -841,6 +841,7 @@ AddErrors_Next:
         var requiresNonNull2 = requirement2.Type.Kind == SyntaxKind.NonNullType;
         VariableValues[]? variableValueSets = null;
         Dictionary<TwoValueNodeTuple, int>? seen = null;
+        Dictionary<TwoStringTuple, int>? seenStringPairs = null;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
 
@@ -872,28 +873,52 @@ AddErrors_Next:
                 continue;
             }
 
-            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
-            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
-            var key = new TwoValueNodeTuple(mappedValue1, mappedValue2);
+            IValueNode mappedValue1;
+            IValueNode mappedValue2;
 
-            if (nextIndex > 0)
+            if (valueKind1 is JsonValueKind.String && valueKind2 is JsonValueKind.String)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
-                {
-                    [new TwoValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value)] = 0
-                };
+                var key = new TwoStringTuple(value1.AssertString(), value2.AssertString());
 
-                if (seen.TryGetValue(key, out var existingIndex))
+                if (nextIndex > 0
+                    && seenStringPairs is not null
+                    && seenStringPairs.TryGetValue(key, out var existingIndex))
                 {
                     additionalPaths ??= new List<Path>?[elements.Count];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
 
-                seen[key] = nextIndex;
+                mappedValue1 = ResultDataMapper.GetStringValueNode(key.Value1);
+                mappedValue2 = ResultDataMapper.GetStringValueNode(key.Value2);
+                seenStringPairs ??= new Dictionary<TwoStringTuple, int>();
+                seenStringPairs[key] = nextIndex;
+            }
+            else
+            {
+                mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
+                mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
+                var key = new TwoValueNodeTuple(mappedValue1, mappedValue2);
+
+                if (nextIndex > 0)
+                {
+                    seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
+                    {
+                        [new TwoValueNodeTuple(
+                            variableValueSets[0].Values.Fields[0].Value,
+                            variableValueSets[0].Values.Fields[1].Value)] = 0
+                    };
+
+                    if (seen.TryGetValue(key, out var existingIndex))
+                    {
+                        additionalPaths ??= new List<Path>?[elements.Count];
+                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                        continue;
+                    }
+
+                    seen[key] = nextIndex;
+                }
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
@@ -1474,6 +1499,8 @@ AddErrors_Next:
     }
 
     private readonly record struct TwoValueNodeTuple(IValueNode Value1, IValueNode Value2);
+
+    private readonly record struct TwoStringTuple(string Value1, string Value2);
 
     private readonly record struct ThreeValueNodeTuple(
         IValueNode Value1,
