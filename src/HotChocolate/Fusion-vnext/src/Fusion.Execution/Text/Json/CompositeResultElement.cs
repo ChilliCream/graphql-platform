@@ -435,9 +435,10 @@ public readonly partial struct CompositeResultElement
         int selectionSetId,
         CompositeResultDocument.Cursor startCursor)
     {
-        // Selection values are laid out at even offsets from the object start.
-        var valueOffset = (selection.Id - selectionSetId) << 1;
-        return new CompositeResultElement(_parent, startCursor + valueOffset);
+        var propertyIndex = selection.Id - selectionSetId - 1;
+        var propertyRowIndex = (propertyIndex * 2) + 1;
+        var propertyCursor = startCursor + propertyRowIndex;
+        return new CompositeResultElement(_parent, propertyCursor + 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
