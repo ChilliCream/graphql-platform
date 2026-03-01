@@ -47,7 +47,7 @@ internal sealed class ValueCompletion
         ErrorTrie? errorTrie,
         ReadOnlySpan<string> responseNames)
     {
-        if (source is not { ValueKind: JsonValueKind.Object })
+        if (source.TokenType is not JsonTokenType.StartObject)
         {
             var error = errorTrie?.FindFirstError() ??
                 ErrorBuilder.New()
@@ -274,8 +274,8 @@ internal sealed class ValueCompletion
         IType type,
         int depth)
     {
-        var sourceValueKind = source.ValueKind;
-        var isNullOrUndefined = sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+        var sourceTokenType = source.TokenType;
+        var isNullOrUndefined = sourceTokenType is JsonTokenType.Null or JsonTokenType.None;
 
         if (type.Kind is TypeKind.NonNull)
         {
@@ -826,5 +826,5 @@ file static class ValueCompletionExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNullOrUndefined(this SourceResultElement element)
-        => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+        => element.TokenType is JsonTokenType.Null or JsonTokenType.None;
 }
