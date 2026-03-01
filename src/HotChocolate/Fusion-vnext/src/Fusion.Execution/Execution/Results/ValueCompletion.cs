@@ -74,8 +74,13 @@ internal sealed class ValueCompletion
                     var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
                     var propertyValue = property.Value;
 
-                    if (!TrySetLeafValueFast(propertyValue, resultField, selection)
-                        && !TryCompleteValue(propertyValue, resultField, null, selection, selection.Type, 0))
+                    if (selection.IsLeafValue && !propertyValue.IsNullOrUndefined())
+                    {
+                        resultField.SetLeafValue(propertyValue);
+                        continue;
+                    }
+
+                    if (!TryCompleteValue(propertyValue, resultField, null, selection, selection.Type, 0))
                     {
                         switch (_errorHandlingMode)
                         {
@@ -667,14 +672,19 @@ internal sealed class ValueCompletion
                     var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
                     var propertyValue = property.Value;
 
-                    if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
-                        && !TryCompleteValue(
-                            propertyValue,
-                            targetProperty,
-                            null,
-                            selection,
-                            selection.Type,
-                            depth))
+                    if (selection.IsLeafValue && !propertyValue.IsNullOrUndefined())
+                    {
+                        targetProperty.SetLeafValue(propertyValue);
+                        continue;
+                    }
+
+                    if (!TryCompleteValue(
+                        propertyValue,
+                        targetProperty,
+                        null,
+                        selection,
+                        selection.Type,
+                        depth))
                     {
                         return false;
                     }
