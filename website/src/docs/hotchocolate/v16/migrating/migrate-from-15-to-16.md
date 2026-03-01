@@ -439,6 +439,78 @@ The conversion from GUID to string in the default type converter has been update
 
 The `EnableOneOf` option has been removed, as the `@oneOf` directive is now built in.
 
+## GraphQLToolOptions replaced by NitroAppOptions
+
+The `GraphQLToolOptions` class has been removed. Nitro configuration is now done directly through `NitroAppOptions` from the `ChilliCream.Nitro.App` namespace.
+
+The `GraphQLServerOptions.Tool` property is now of type `NitroAppOptions` instead of `GraphQLToolOptions`.
+
+```diff
+-using HotChocolate.AspNetCore;
++using ChilliCream.Nitro.App;
+
+builder.Services.AddGraphQLServer()
+-   .ModifyServerOptions(o => o.Tool.ServeMode = GraphQLToolServeMode.Embedded);
++   .ModifyServerOptions(o => o.Tool.ServeMode = ServeMode.Embedded);
+```
+
+### WithOptions now uses a delegate pattern
+
+Per-endpoint `WithOptions` overrides now use a delegate pattern instead of object initializers:
+
+```diff
+endpoints.MapGraphQL()
+-   .WithOptions(o => o.Tool.Enable = false);
++   .WithOptions(o => o.Tool.Enable = false);
+// No change for GraphQLServerOptions — already used delegates
+
+endpoints.MapNitroApp()
+-   .WithOptions(new GraphQLToolOptions { Enable = false });
++   .WithOptions(o => o.Enable = false);
+```
+
+### GraphQLToolServeMode replaced by ServeMode
+
+Replace `GraphQLToolServeMode` with `ServeMode` from `ChilliCream.Nitro.App`:
+
+```diff
+-using HotChocolate.AspNetCore;
++using ChilliCream.Nitro.App;
+
+-GraphQLToolServeMode.Embedded   → ServeMode.Embedded
+-GraphQLToolServeMode.Latest     → ServeMode.Latest
+-GraphQLToolServeMode.Insider    → ServeMode.Insider
+-GraphQLToolServeMode.Version(v) → ServeMode.Version(v)
+```
+
+### DefaultHttpMethod replaced by UseGet
+
+The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property on `NitroAppOptions` instead:
+
+```diff
+-o.HttpMethod = DefaultHttpMethod.Get;
++o.UseGet = true;
+```
+
+## Server options now configured via ModifyServerOptions
+
+`GraphQLServerOptions` (GET requests, multipart, batching, schema requests, etc.) are now configured at the schema level using `ModifyServerOptions` instead of per-endpoint:
+
+```diff
+builder.Services.AddGraphQLServer()
++   .ModifyServerOptions(o =>
++   {
++       o.EnableGetRequests = false;
++       o.Batching = AllowedBatching.All;
++   });
+```
+
+Per-endpoint overrides are still supported via `WithOptions` on the endpoint builder:
+
+```csharp
+endpoints.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
