@@ -1363,6 +1363,35 @@ AddErrors_Next:
         }
 
         var segmentCount = path.Length;
+        var element = _result.Data;
+
+        if (segmentCount is 1)
+        {
+            if (element.ValueKind is JsonValueKind.Null)
+            {
+                return element;
+            }
+
+            return ResolvePathSegment(element, path);
+        }
+
+        if (segmentCount is 2)
+        {
+            if (element.ValueKind is JsonValueKind.Null)
+            {
+                return element;
+            }
+
+            element = ResolvePathSegment(element, path.Parent);
+
+            if (element.ValueKind is JsonValueKind.Null)
+            {
+                return element;
+            }
+
+            return ResolvePathSegment(element, path);
+        }
+
         var segments = _startPathSegments;
         if (segments.Length < segmentCount)
         {
@@ -1378,41 +1407,44 @@ AddErrors_Next:
             currentPath = currentPath.Parent;
         }
 
-        var element = _result.Data;
-
         for (var i = 0; i < segmentCount; i++)
         {
-            var segment = segments[i];
-            var elementKind = element.ValueKind;
-
-            if (elementKind is JsonValueKind.Null)
+            if (element.ValueKind is JsonValueKind.Null)
             {
                 return element;
             }
 
-            if (elementKind is JsonValueKind.Object && segment is NamePathSegment nameSegment)
-            {
-                element = element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
-                continue;
-            }
-
-            if (elementKind is JsonValueKind.Array && segment is IndexerPathSegment indexSegment)
-            {
-                if (element.GetArrayLength() <= indexSegment.Index)
-                {
-                    throw new InvalidOperationException(
-                        $"The path segment '{indexSegment}' does not exist in the data.");
-                }
-
-                element = element[indexSegment.Index];
-                continue;
-            }
-
-            throw new InvalidOperationException(
-                $"The path segment '{segment.Parent}' does not exist in the data.");
+            element = ResolvePathSegment(element, segments[i]);
         }
 
         return element;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static CompositeResultElement ResolvePathSegment(
+        CompositeResultElement element,
+        Path segment)
+    {
+        var elementKind = element.ValueKind;
+
+        if (elementKind is JsonValueKind.Object && segment is NamePathSegment nameSegment)
+        {
+            return element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
+        }
+
+        if (elementKind is JsonValueKind.Array && segment is IndexerPathSegment indexSegment)
+        {
+            if (element.GetArrayLength() <= indexSegment.Index)
+            {
+                throw new InvalidOperationException(
+                    $"The path segment '{indexSegment}' does not exist in the data.");
+            }
+
+            return element[indexSegment.Index];
+        }
+
+        throw new InvalidOperationException(
+            $"The path segment '{segment.Parent}' does not exist in the data.");
     }
 
     public void Dispose()
