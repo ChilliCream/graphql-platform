@@ -8,4 +8,5 @@ namespace ChilliCream.Nitro.CommandLine.Services.Configuration;
 [JsonSerializable(typeof(Session))]
 [JsonSerializable(typeof(PersistedQueryStreamResult))]
 [JsonSerializable(typeof(StageConfigurationParameter[]))]
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 internal partial class NitroCLIJsonContext : JsonSerializerContext;
