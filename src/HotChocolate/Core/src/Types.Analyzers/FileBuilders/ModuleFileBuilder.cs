@@ -112,10 +112,6 @@ public sealed class ModuleFileBuilder : IDisposable
     {
         _writer.WriteIndentedLine(
             "builder.AddSourceSchemaDefaults();");
-        _writer.WriteIndentedLine(
-            "builder.ModifyServerOptions(o => o.Batching = {0} | {1});",
-            "global::HotChocolate.AspNetCore.AllowedBatching.VariableBatching",
-            "global::HotChocolate.AspNetCore.AllowedBatching.RequestBatching");
     }
 
     public void WriteRegisterDataLoader(string typeName)

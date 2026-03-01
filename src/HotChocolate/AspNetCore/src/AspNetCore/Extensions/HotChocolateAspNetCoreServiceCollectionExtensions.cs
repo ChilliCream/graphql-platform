@@ -1,6 +1,7 @@
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.ParameterExpressionBuilders;
 using HotChocolate.AspNetCore.Parsers;
@@ -153,6 +154,11 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 };
             });
         });
+
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<
+                IPostConfigureOptions<GraphQLServerOptions>,
+                SourceSchemaServerOptionsPostConfigure>());
 
         if (!builder.Services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
         {

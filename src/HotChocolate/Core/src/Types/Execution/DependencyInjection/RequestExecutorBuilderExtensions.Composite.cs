@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -18,11 +19,15 @@ public static partial class RequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddSourceSchemaDefaults(
         this IRequestExecutorBuilder builder)
-        => builder.ModifyOptions(o =>
+    {
+        builder.Services.AddSingleton(new SourceSchemaRegistration(builder.Name));
+
+        return builder.ModifyOptions(o =>
         {
             o.ApplyShareableToConnections = true;
             o.ApplyShareableToPageInfo = true;
             o.ApplyShareableToNodeFields = true;
             o.ApplySerializeAsToScalars = true;
         });
+    }
 }
