@@ -39,21 +39,15 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
 
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated()"/>
     protected void Deprecated()
-    {
-        Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
-    }
+        => Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
 
-    /// <inheritdoc cref="IArgumentDescriptor.Description(string)"/>
-    protected void Description(string value)
-    {
-        Configuration.Description = value;
-    }
+    /// <inheritdoc cref="IArgumentDescriptor.Description(string?)"/>
+    protected void Description(string? value)
+        => Configuration.Description = value;
 
     /// <inheritdoc cref="IArgumentDescriptor.Type{TInputType}()"/>
     public void Type<TInputType>() where TInputType : IInputType
-    {
-        Type(typeof(TInputType));
-    }
+        => Type(typeof(TInputType));
 
     /// <summary>
     /// Sets the type of the argument
@@ -71,6 +65,8 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// </summary>
     public void Type(Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
+
         var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
         if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
@@ -133,7 +129,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
         Configuration.SetMoreSpecificType(typeNode, TypeContext.Input);
     }
 
-    /// <inheritdoc cref="IArgumentDescriptor.DefaultValue(IValueNode)"/>
+    /// <inheritdoc cref="IArgumentDescriptor.DefaultValue(IValueNode?)"/>
     public void DefaultValue(IValueNode? value)
     {
         Configuration.DefaultValue = value ?? NullValueNode.Default;
