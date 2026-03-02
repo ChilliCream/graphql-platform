@@ -173,9 +173,10 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
                 // Parsing errors here allows the result store to reuse the cached value
                 // and avoids a second document lookup per result.
-                if (result.Errors is not null)
+                if (result.HasErrors)
                 {
                     hasSomeErrors = true;
+                    _ = result.Errors;
                 }
             }
         }
