@@ -136,6 +136,34 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                     break;
                 }
 
+                // if the HTTP request body contains a single GraphQL request, and we do have
+                // the batch operations query parameter specified we need to execute an
+                // operation batch.
+                //
+                // An operation batch consists of a single GraphQL request document that
+                // contains multiple operations. The batch operation query parameter
+                // defines the order in which the operations shall be executed.
+                case 1 when context.Request.Query.ContainsKey(BatchOperations):
+                {
+                    string? operationNames = context.Request.Query[BatchOperations];
+
+                    if (!string.IsNullOrEmpty(operationNames)
+                        && TryParseOperations(operationNames, out var ops)
+                        && options.Batching.HasFlag(AllowedBatching.RequestBatching))
+                    {
+                        result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
+                    }
+                    else
+                    {
+                        var error = session.Handle(ErrorHelper.InvalidRequest());
+                        statusCode = HttpStatusCode.BadRequest;
+                        result = OperationResult.FromError(error);
+                        session.DiagnosticEvents.HttpRequestError(context, error);
+                    }
+
+                    break;
+                }
+
                 // if the HTTP request body contains a single GraphQL request and
                 // no batch query parameter is specified we need to execute a single
                 // GraphQL request.
@@ -143,36 +171,8 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // Most GraphQL requests will be of this type where we want to execute
                 // a single GraphQL query or mutation.
                 case 1:
-                {
-                    if (context.Request.QueryString.HasValue
-                        && context.Request.Query.TryGetValue(BatchOperations, out var operationNamesValue))
-                    {
-                        string? operationNames = operationNamesValue;
-
-                        // An operation batch consists of a single GraphQL request document that
-                        // contains multiple operations. The batch operation query parameter
-                        // defines the order in which the operations shall be executed.
-                        if (!string.IsNullOrEmpty(operationNames)
-                            && TryParseOperations(operationNames, out var ops)
-                            && options.Batching.HasFlag(AllowedBatching.RequestBatching))
-                        {
-                            result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
-                        }
-                        else
-                        {
-                            var error = session.Handle(ErrorHelper.InvalidRequest());
-                            statusCode = HttpStatusCode.BadRequest;
-                            result = OperationResult.FromError(error);
-                            session.DiagnosticEvents.HttpRequestError(context, error);
-                        }
-                    }
-                    else
-                    {
-                        result = await session.ExecuteSingleAsync(context, requests[0], requestFlags, options);
-                    }
-
+                    result = await session.ExecuteSingleAsync(context, requests[0], requestFlags, options);
                     break;
-                }
 
                 // if the HTTP request body contains more than one GraphQL request than
                 // we need to execute a request batch where we need to execute multiple
