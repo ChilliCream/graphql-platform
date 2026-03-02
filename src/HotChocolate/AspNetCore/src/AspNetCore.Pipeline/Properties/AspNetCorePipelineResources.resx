@@ -129,4 +129,7 @@
   <data name="ErrorHelper_MultiPartRequestPreflightRequired" xml:space="preserve">
     <value>Multi-part requests must include a GraphQL preflight header.</value>
   </data>
+  <data name="ErrorHelper_BatchSizeExceeded" xml:space="preserve">
+    <value>The batch size exceeds the maximum allowed batch size of {0}.</value>
+  </data>
 </root>

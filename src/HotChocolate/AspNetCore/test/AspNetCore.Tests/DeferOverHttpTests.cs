@@ -73,6 +73,112 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
     }
 
     [Theory]
+    [InlineData("multipart/mixed; incrementalSpec=v0.1; charset=utf-8")]
+    [InlineData("application/graphql-response+json, multipart/mixed; incrementalSpec=v0.1")]
+    public async Task Simple_Defer_Multipart_IncrementalSpec_V0_1(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
+                -----
+
+                """);
+    }
+
+    [Theory]
+    [InlineData("multipart/mixed; incrementalSpec=v0.2; charset=utf-8")]
+    [InlineData("multipart/mixed; incrementalSpec=\"v0.2\"; charset=utf-8")]
+    public async Task Simple_Defer_Multipart_IncrementalSpec_V0_2(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
+                -----
+
+                """);
+    }
+
+    [Theory]
     [InlineData("text/event-stream")]
     [InlineData("application/graphql-response+json, text/event-stream")]
     public async Task Simple_Defer_EventStream(string acceptHeader)
@@ -119,6 +225,313 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
 
                 event: complete
 
+
+                """);
+    }
+
+    [Theory]
+    [InlineData("multipart/mixed; incrementalSpec=v0.1")]
+    [InlineData("application/graphql-response+json, multipart/mixed; incrementalSpec=v0.1")]
+    [InlineData("text/event-stream, multipart/mixed; incrementalSpec=v0.1")]
+    public async Task Simple_Defer_Multipart_Legacy_Format(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
+                -----
+
+                """);
+    }
+
+    [Theory]
+    [InlineData("text/event-stream; incrementalSpec=v0.1")]
+    [InlineData("application/graphql-response+json, text/event-stream; incrementalSpec=v0.1")]
+    public async Task Simple_Defer_EventStream_Legacy_Format(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                event: next
+                data: {"data":{"product":{"name":"Abc"}},"hasNext":true}
+
+                event: next
+                data: {"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
+
+                event: complete
+
+
+                """);
+    }
+
+    [Fact]
+    public async Task Defer_With_Label_EventStream_Legacy_Format()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer(label: "productDescription") {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "text/event-stream; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                event: next
+                data: {"data":{"product":{"name":"Abc"}},"hasNext":true}
+
+                event: next
+                data: {"incremental":[{"data":{"description":"Abc desc"},"path":["product"],"label":"productDescription"}],"hasNext":false}
+
+                event: complete
+
+
+                """);
+    }
+
+    [Theory]
+    [InlineData("text/event-stream")]
+    [InlineData("application/graphql-response+json, text/event-stream")]
+    public async Task Defer_With_Label_EventStream(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer(label: "productDescription") {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                event: next
+                data: {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"],"label":"productDescription"}],"hasNext":true}
+
+                event: next
+                data: {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
+
+                event: complete
+
+
+                """);
+    }
+
+    [Theory]
+    [InlineData("text/event-stream")]
+    [InlineData("application/graphql-response+json, text/event-stream")]
+    public async Task Defer_TypeCondition_EventStream(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    hero {
+                        name
+                        ... on Droid @defer(label: "droid_details") {
+                            primaryFunction
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                event: next
+                data: {"data":{"hero":{"name":"R2-D2"}},"pending":[{"id":"2","path":["hero"],"label":"droid_details"}],"hasNext":true}
+
+                event: next
+                data: {"incremental":[{"id":"2","data":{"primaryFunction":"Astromech"}}],"completed":[{"id":"2"}],"hasNext":false}
+
+                event: complete
+
+
+                """);
+    }
+
+    [Fact]
+    public async Task Defer_With_Label_Multipart_Legacy_Format()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer(label: "productDescription") {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "multipart/mixed; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"incremental":[{"data":{"description":"Abc desc"},"path":["product"],"label":"productDescription"}],"hasNext":false}
+                -----
 
                 """);
     }
@@ -455,7 +868,433 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 """);
     }
 
-    private TestServer CreateDeferServer(HttpTransportVersion serverTransportVersion = HttpTransportVersion.Latest)
+    [Theory]
+    [InlineData("application/jsonl")]
+    [InlineData("application/graphql-response+json, application/jsonl")]
+    public async Task Simple_Defer_JsonLines(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
+                {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
+
+                """);
+    }
+
+    [Theory]
+    [InlineData("application/jsonl; incrementalSpec=v0.1")]
+    [InlineData("application/graphql-response+json, application/jsonl; incrementalSpec=v0.1")]
+    public async Task Simple_Defer_JsonLines_Legacy_Format(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
+                {"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
+
+                """);
+    }
+
+    [Fact]
+    public async Task Defer_With_Label_JsonLines_Legacy_Format()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer(label: "productDescription") {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "application/jsonl; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
+                {"incremental":[{"data":{"description":"Abc desc"},"path":["product"],"label":"productDescription"}],"hasNext":false}
+
+                """);
+    }
+
+    [Theory]
+    [InlineData("application/jsonl")]
+    [InlineData("application/graphql-response+json, application/jsonl")]
+    public async Task Defer_With_Label_JsonLines(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        ... @defer(label: "productDescription") {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"],"label":"productDescription"}],"hasNext":true}
+                {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
+
+                """);
+    }
+
+    [Theory]
+    [InlineData("application/jsonl")]
+    [InlineData("application/graphql-response+json, application/jsonl")]
+    public async Task Defer_TypeCondition_JsonLines(string acceptHeader)
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    hero {
+                        name
+                        ... on Droid @defer(label: "droid_details") {
+                            primaryFunction
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                {"data":{"hero":{"name":"R2-D2"}},"pending":[{"id":"2","path":["hero"],"label":"droid_details"}],"hasNext":true}
+                {"incremental":[{"id":"2","data":{"primaryFunction":"Astromech"}}],"completed":[{"id":"2"}],"hasNext":false}
+
+                """);
+    }
+
+    [Fact]
+    public async Task Defer_Overlap_Multipart_Legacy_Format()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        description
+                    }
+                    ... @defer(label: "foo") {
+                        product {
+                            name
+                            description
+                            reviews {
+                                rating
+                            }
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "multipart/mixed; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"incremental":[{"data":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]},"path":["product"],"label":"foo"}],"hasNext":false}
+                -----
+
+                """);
+    }
+
+    [Fact]
+    public async Task Defer_Overlap_EventStream_Legacy_Format()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        description
+                    }
+                    ... @defer(label: "foo") {
+                        product {
+                            name
+                            description
+                            reviews {
+                                rating
+                            }
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "text/event-stream; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains(
+            "\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}}",
+            content,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "\"incremental\":[{\"data\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]},\"path\":[\"product\"],\"label\":\"foo\"}]",
+            content,
+            StringComparison.Ordinal);
+        Assert.Contains("event: complete", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Defer_Overlap_JsonLines_Legacy_Format()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    product {
+                        name
+                        description
+                    }
+                    ... @defer(label: "foo") {
+                        product {
+                            name
+                            description
+                            reviews {
+                                rating
+                            }
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "application/jsonl; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
+                {"incremental":[{"data":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]},"path":["product"],"label":"foo"}],"hasNext":false}
+
+                """);
+    }
+
+    [Fact]
+    public async Task Defer_Two_Labels_Shared_Field_Multipart_Legacy_Format()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    ... @defer(label: "a") {
+                        product {
+                            name
+                        }
+                    }
+                    ... @defer(label: "b") {
+                        product {
+                            name
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "multipart/mixed; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("\"label\":\"a\"", content, StringComparison.Ordinal);
+        Assert.Contains("\"label\":\"b\"", content, StringComparison.Ordinal);
+        Assert.Contains("\"data\":{\"product\":{\"name\":\"Abc\"}}", content, StringComparison.Ordinal);
+        Assert.True(
+            content.Split("\"name\":\"Abc\"", StringSplitOptions.None).Length - 1 >= 2,
+            "Expected both labeled deferred payloads to include product.name.");
+    }
+
+    private TestServer CreateDeferServer(
+        HttpTransportVersion serverTransportVersion = HttpTransportVersion.Latest)
     {
         return ServerFactory.Create(
             services => services
@@ -512,5 +1351,13 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             await Task.Delay(1000);
             return Name + " desc";
         }
+
+        public async Task<IReadOnlyList<Review>> GetReviewsAsync()
+        {
+            await Task.Delay(1000);
+            return new[] { new Review(5) };
+        }
     }
+
+    public sealed record Review(int Rating);
 }
