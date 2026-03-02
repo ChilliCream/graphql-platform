@@ -439,6 +439,57 @@ The conversion from GUID to string in the default type converter has been update
 
 The `EnableOneOf` option has been removed, as the `@oneOf` directive is now built in.
 
+## New default incremental delivery format for `@defer` and `@stream`
+
+Hot Chocolate v16 changes the default wire format for incremental delivery (`@defer` / `@stream`) from the legacy path-based format (v0.1) to the newer id-based format (v0.2). This affects all streaming transports: multipart, SSE, and JSON Lines.
+
+**v0.1 (legacy)** used `path` and `label` to identify deferred fragments:
+
+```json
+{"data":{"product":{"name":"Abc"}},"hasNext":true}
+{"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
+```
+
+**v0.2 (new default)** uses `pending`, `incremental` with `id`, and `completed`:
+
+```json
+{"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
+{"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
+```
+
+If your clients depend on the legacy format, you have two options:
+
+**Option 1: Client sends `incrementalSpec=v0.1` in the `Accept` header**
+
+Clients can opt into the legacy format per-request by adding the `incrementalSpec` parameter to the `Accept` header:
+
+```text
+Accept: multipart/mixed; incrementalSpec=v0.1
+Accept: text/event-stream; incrementalSpec=v0.1
+Accept: application/jsonl; incrementalSpec=v0.1
+```
+
+**Option 2: Change the server default**
+
+To restore v0.1 as the server-wide default (used when the client doesn't specify `incrementalSpec`):
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpResponseFormatter(
+        incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
+```
+
+Or with the options overload:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpResponseFormatter(
+        new HttpResponseFormatterOptions { /* ... */ },
+        incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
