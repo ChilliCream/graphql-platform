@@ -11,7 +11,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     private readonly string[] _responseNames;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
-    private readonly bool _requiresInputValues;
     private readonly OperationSourceText _operation;
     private readonly int? _batchingGroupId;
     private readonly string? _schemaName;
@@ -42,7 +41,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         _responseNames = responseNames;
         _conditions = conditions;
         _requiresFileUpload = requiresFileUpload;
-        _requiresInputValues = requirements.Length > 0 || forwardedVariables.Length > 0;
     }
 
     /// <inheritdoc />
@@ -106,7 +104,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         var diagnosticEvents = context.DiagnosticEvents;
         var variables = context.CreateVariableValueSets(_targets, _forwardedVariables, _requirements);
 
-        if (variables.Length == 0 && _requiresInputValues)
+        if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {
             return ExecutionStatus.Skipped;
         }
