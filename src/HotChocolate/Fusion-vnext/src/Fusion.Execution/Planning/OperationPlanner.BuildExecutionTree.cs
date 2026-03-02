@@ -622,8 +622,7 @@ public sealed partial class OperationPlanner
                     primary.ForwardedVariables.ToArray(),
                     primary.ResponseNames.ToArray(),
                     primary.Conditions.ToArray(),
-                    primary.BatchingGroupId,
-                    primary.RequiresFileUpload);
+                    primary.BatchingGroupId);
 
                 completedNodes[primary.Id] = mergedNode;
 
