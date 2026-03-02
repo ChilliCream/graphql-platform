@@ -48,7 +48,7 @@ internal static class FusionPublishHelpers
             throw Exit("Failed to request deployment slot.");
         }
 
-        console.MarkupLine($"Your request id is [blue]{requestId}[/]");
+        console.MarkupLine($"Your request ID is [blue]{requestId}[/]");
 
         using var stopSignal = new Subject<Unit>();
         var subscription = client.OnFusionConfigurationPublishingTaskChanged
@@ -235,7 +235,7 @@ internal static class FusionPublishHelpers
             if (x.Errors is { Count: > 0 } errors)
             {
                 console.PrintErrorsAndExit(errors);
-                throw Exit("No request id returned");
+                throw Exit("No request ID returned");
             }
 
             switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)

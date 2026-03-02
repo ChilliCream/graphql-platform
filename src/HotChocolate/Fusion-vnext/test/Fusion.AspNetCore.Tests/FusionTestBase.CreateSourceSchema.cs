@@ -33,8 +33,7 @@ public abstract partial class FusionTestBase
                 app.UseWebSockets();
                 app.UseRouting();
                 app.UseEndpoints(endpoint =>
-                    endpoint.MapGraphQL(schemaName: schemaName)
-                        .WithOptions(new GraphQLServerOptions { EnableBatching = true }));
+                    endpoint.MapGraphQL(schemaName: schemaName));
             };
 
         return _testServerSession.CreateServer(
@@ -43,6 +42,7 @@ public abstract partial class FusionTestBase
                 services.AddRouting();
                 var builder = services.AddGraphQLServer(schemaName, disableDefaultSecurity: true);
                 builder.AddSourceSchemaDefaults();
+                builder.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
 
@@ -80,7 +80,8 @@ public abstract partial class FusionTestBase
                     .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
                     .AddDocumentFromString(schemaText)
                     .AddResolverMocking()
-                    .AddTestDirectives();
+                    .AddTestDirectives()
+                    .ModifyServerOptions(o => o.Batching = AllowedBatching.All);
 
                 services.Configure<SourceSchemaOptions>(opt =>
                 {
@@ -96,10 +97,7 @@ public abstract partial class FusionTestBase
             {
                 app.UseRouting();
                 app.UseEndpoints(endpoint =>
-                {
-                    endpoint.MapGraphQL(schemaName: schemaName)
-                        .WithOptions(new GraphQLServerOptions { EnableBatching = true });
-                });
+                    endpoint.MapGraphQL(schemaName: schemaName));
             });
     }
 
