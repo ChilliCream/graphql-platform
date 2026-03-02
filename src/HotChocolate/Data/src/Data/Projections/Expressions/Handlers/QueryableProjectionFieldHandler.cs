@@ -99,9 +99,10 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
+        var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
         var memberInit = queryableScope.CreateMemberInit();
 
-        if (context.InMemory && IsNullableProperty(context, propertyInfo))
+        if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
         {
             parentScope.Level
                 .Peek()
@@ -117,19 +118,6 @@ public class QueryableProjectionFieldHandler
         action = SelectionVisitor.Continue;
 
         return true;
-    }
-
-    private static bool IsNullableProperty(
-        QueryableProjectionContext context,
-        PropertyInfo propertyInfo)
-    {
-        if (propertyInfo.PropertyType.IsValueType)
-        {
-            return Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null;
-        }
-
-        var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
-        return nullabilityInfo.ReadState != NullabilityState.NotNull;
     }
 
     public static QueryableProjectionFieldHandler Create(ProjectionProviderContext context) => new();
