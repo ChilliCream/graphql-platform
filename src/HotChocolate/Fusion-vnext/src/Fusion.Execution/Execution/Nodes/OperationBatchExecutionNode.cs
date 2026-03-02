@@ -135,6 +135,18 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         SourceSchemaResult? singleResult = null;
         var hasSomeErrors = false;
 
+        static int ComputeResultBufferLength(ImmutableArray<VariableValues> variableValueSets)
+        {
+            var totalPathCount = variableValueSets.Length;
+
+            for (var i = 0; i < variableValueSets.Length; i++)
+            {
+                totalPathCount += variableValueSets[i].AdditionalPaths.Length;
+            }
+
+            return Math.Max(totalPathCount, 2);
+        }
+
         try
         {
             // we execute the GraphQL request against a source schema
@@ -145,16 +157,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             {
                 context.TrackSourceSchemaClientResponse(this, response);
             }
-
-            // we read the responses from the response stream.
-            var totalPathCount = variables.Length;
-
-            for (var i = 0; i < variables.Length; i++)
-            {
-                totalPathCount += variables[i].AdditionalPaths.Length;
-            }
-
-            var initialBufferLength = Math.Max(totalPathCount, 2);
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
@@ -171,7 +173,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                     // so we rent a buffer and move the first result into it.
                     if (buffer is null)
                     {
-                        bufferLength = initialBufferLength;
+                        bufferLength = ComputeResultBufferLength(variables);
                         buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
                         buffer[0] = singleResult!;
                     }
