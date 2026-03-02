@@ -101,7 +101,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var diagnosticEvents = context.DiagnosticEvents;
         var variables = context.CreateVariableValueSets(_targets, _forwardedVariables, _requirements);
 
         if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
@@ -196,7 +195,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
+            context.DiagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
 
             // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
             // are returned to the pool.
@@ -256,7 +255,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
+            context.DiagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
             AddErrors(context, exception, variables, _responseNames);
             return ExecutionStatus.Failed;
         }
