@@ -109,7 +109,6 @@ internal sealed class FetchResultStore : IDisposable
         bool containsErrors)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(sourcePath);
 
         return containsErrors
             ? AddSinglePartialResult(sourcePath, result, responseNames)
@@ -123,7 +122,6 @@ internal sealed class FetchResultStore : IDisposable
         bool containsErrors)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(sourcePath);
 
         if (results.Length == 0)
         {
