@@ -394,7 +394,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return Array.Empty<ObjectFieldNode>();
         }
 
-        var variables = new List<ObjectFieldNode>(forwardedVariables.Length);
+        ObjectFieldNode[]? variables = null;
+        var count = 0;
 
         foreach (var variableName in forwardedVariables)
         {
@@ -413,13 +414,24 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             // variable was missing.
             if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
             {
-                variables.Add(new ObjectFieldNode(variableName, variableValue));
+                variables ??= new ObjectFieldNode[forwardedVariables.Length];
+                variables[count++] = new ObjectFieldNode(variableName, variableValue);
             }
         }
 
-        return variables.Count == 0
-            ? Array.Empty<ObjectFieldNode>()
-            : variables;
+        if (count == 0)
+        {
+            return Array.Empty<ObjectFieldNode>();
+        }
+
+        if (count == variables!.Length)
+        {
+            return variables;
+        }
+
+        var trimmedVariables = new ObjectFieldNode[count];
+        Array.Copy(variables, trimmedVariables, count);
+        return trimmedVariables;
     }
 
     public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
