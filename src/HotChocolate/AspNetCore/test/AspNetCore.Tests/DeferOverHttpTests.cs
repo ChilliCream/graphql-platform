@@ -1130,12 +1130,23 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
 
         var content = await response.Content.ReadAsStringAsync();
 
-        Assert.Contains(
-            "{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}},\"hasNext\":true}",
-            content,
-            StringComparison.Ordinal);
-        AssertContainsOverlapIncrementalLegacyPayload(content);
-        Assert.Contains("-----", content, StringComparison.Ordinal);
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"incremental":[{"data":{"product":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]}},"path":[],"label":"foo"}],"hasNext":false}
+                -----
+
+                """);
     }
 
     [Fact]
@@ -1181,7 +1192,10 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             "\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}}",
             content,
             StringComparison.Ordinal);
-        AssertContainsOverlapIncrementalLegacyPayload(content);
+        Assert.Contains(
+            "\"incremental\":[{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]}},\"path\":[],\"label\":\"foo\"}]",
+            content,
+            StringComparison.Ordinal);
         Assert.Contains("event: complete", content, StringComparison.Ordinal);
     }
 
@@ -1224,11 +1238,15 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
 
         var content = await response.Content.ReadAsStringAsync();
 
-        Assert.Contains(
-            "{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}},\"hasNext\":true}",
-            content,
-            StringComparison.Ordinal);
-        AssertContainsOverlapIncrementalLegacyPayload(content);
+        Snapshot
+            .Create()
+            .Add(content, "Response")
+            .MatchInline(
+                """
+                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
+                {"incremental":[{"data":{"product":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]}},"path":[],"label":"foo"}],"hasNext":false}
+
+                """);
     }
 
     [Fact]
