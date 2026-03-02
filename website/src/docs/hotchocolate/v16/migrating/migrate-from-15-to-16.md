@@ -445,15 +445,6 @@ The `GraphQLToolOptions` class has been removed. Nitro configuration is now done
 
 The `GraphQLServerOptions.Tool` property is now of type `NitroAppOptions` instead of `GraphQLToolOptions`.
 
-```diff
--using HotChocolate.AspNetCore;
-+using ChilliCream.Nitro.App;
-
-builder.Services.AddGraphQLServer()
--   .ModifyServerOptions(o => o.Tool.ServeMode = GraphQLToolServeMode.Embedded);
-+   .ModifyServerOptions(o => o.Tool.ServeMode = ServeMode.Embedded);
-```
-
 ### WithOptions now uses a delegate pattern
 
 Per-endpoint `WithOptions` overrides now use a delegate pattern instead of object initializers:
@@ -510,6 +501,28 @@ Per-endpoint overrides are still supported via `WithOptions` on the endpoint bui
 ```csharp
 endpoints.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
 ```
+
+## Batching is now disabled by default
+
+In v15, request batching was enabled by default (`EnableBatching = true`). In v16, batching is **disabled by default** as a security measure. The `EnableBatching` property has been replaced by `Batching`, which uses the `AllowedBatching` flags enum for fine-grained control:
+
+```diff
+-o.EnableBatching = true;
++o.Batching = AllowedBatching.All;
+```
+
+If you were relying on the previous default, you need to explicitly enable batching:
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .ModifyServerOptions(o => o.Batching = AllowedBatching.All);
+```
+
+Additionally, a new `MaxBatchSize` property limits the number of operations in a single batch. The default is **1024**. Set it to `0` for unlimited.
+
+> Note: Fusion subgraphs automatically enable batching via `AddSourceSchemaDefaults()`. No action is needed for subgraphs.
+
+For more details, see [Batching](/docs/hotchocolate/v16/server/batching).
 
 ## New default incremental delivery format for `@defer` and `@stream`
 

@@ -60,9 +60,9 @@ public sealed class GraphQLServerOptions
 
     /// <summary>
     /// Gets or sets the maximum number of operations allowed in a single batch.
-    /// A value of 0 means unlimited.
+    /// A value of 0 means unlimited. Defaults to 1024.
     /// </summary>
-    public int MaxBatchSize { get; set; }
+    public int MaxBatchSize { get; set; } = 1024;
 
     internal GraphQLServerOptions Clone()
         => new()

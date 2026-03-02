@@ -27,13 +27,15 @@ services
 
 > Note: If your GraphQL server is a Fusion subgraph, both variable batching and request batching are enabled by default. You do not need to configure this explicitly.
 
-You can also limit the maximum number of operations in a single batch:
+The maximum number of operations in a single batch defaults to **1024**. You can adjust this limit:
 
 ```csharp
 services
     .AddGraphQLServer()
-    .ModifyServerOptions(o => o.MaxBatchSize = 1024);
+    .ModifyServerOptions(o => o.MaxBatchSize = 2048);
 ```
+
+A value of `0` means unlimited.
 
 # Variable batching
 
