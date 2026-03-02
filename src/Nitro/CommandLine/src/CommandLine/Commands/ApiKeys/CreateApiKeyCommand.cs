@@ -96,7 +96,7 @@ internal sealed class CreateApiKeyCommand : Command
                 ? new ApiKeyPermissionScopeInput { ApiId = apiId }
                 : new ApiKeyPermissionScopeInput { WorkspaceId = workspaceId },
             WorkspaceId = workspaceId,
-            RoleAssignmentCondition = condition
+            RoleAssigmentCondition = condition
         };
         var result = await client.CreateApiKeyCommandMutation
             .ExecuteAsync(input, cancellationToken);
