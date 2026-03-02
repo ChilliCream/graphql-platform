@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -119,7 +120,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         Signal.Set();
     }
 
-    public bool TryDequeueCompletedResult(out ExecutionNodeResult result)
+    public bool TryDequeueCompletedResult([NotNullWhen(true)] out ExecutionNodeResult? result)
         => _completedResults.TryDequeue(out result);
 
     public void CancelProcessing()

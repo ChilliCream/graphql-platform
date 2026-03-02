@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-internal readonly record struct ExecutionNodeResult(
+internal sealed record ExecutionNodeResult(
     int Id,
     Activity? Activity,
     ExecutionStatus Status,
