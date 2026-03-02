@@ -9,9 +9,6 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
-    private static readonly ThreadLocal<NullabilityInfoContext> s_nullabilityInfoContext =
-        new(() => new NullabilityInfoContext());
-
     public override bool CanHandle(Selection selection)
         => !selection.IsLeaf && CanProjectMember(selection);
 
@@ -103,7 +100,8 @@ public class QueryableProjectionFieldHandler
         }
 
         var memberInit = queryableScope.CreateMemberInit();
-        var nullabilityInfo = s_nullabilityInfoContext.Value!.Create(propertyInfo);
+        var nullabilityInfoContext = new NullabilityInfoContext();
+        var nullabilityInfo = nullabilityInfoContext.Create(propertyInfo);
 
         if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
         {
