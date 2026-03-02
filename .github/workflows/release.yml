@@ -57,7 +57,7 @@ jobs:
 
       - name: 🚀 Push Packages to NuGet
         run: |
-          ./build.cmd publish --skip
+          ./build.sh publish --skip
         env:
           NuGetApiKey: ${{ steps.login.outputs.NUGET_API_KEY }}
 
