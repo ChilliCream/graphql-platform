@@ -1143,7 +1143,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"incremental":[{"data":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]},"path":["product"],"label":"foo"}],"hasNext":false}
+                {"incremental":[{"data":{"product":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]}},"path":[],"label":"foo"}],"hasNext":false}
                 -----
 
                 """);
@@ -1193,7 +1193,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             content,
             StringComparison.Ordinal);
         Assert.Contains(
-            "\"incremental\":[{\"data\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]},\"path\":[\"product\"],\"label\":\"foo\"}]",
+            "\"incremental\":[{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]}},\"path\":[],\"label\":\"foo\"}]",
             content,
             StringComparison.Ordinal);
         Assert.Contains("event: complete", content, StringComparison.Ordinal);
@@ -1244,7 +1244,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             .MatchInline(
                 """
                 {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
-                {"incremental":[{"data":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]},"path":["product"],"label":"foo"}],"hasNext":false}
+                {"incremental":[{"data":{"product":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]}},"path":[],"label":"foo"}],"hasNext":false}
 
                 """);
     }
