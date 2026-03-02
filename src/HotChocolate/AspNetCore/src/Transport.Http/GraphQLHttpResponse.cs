@@ -174,7 +174,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         var currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
         var currentChunkPosition = 0;
         var chunkIndex = 0;
-        var chunks = ArrayPool<byte[]>.Shared.Rent(64);
+        var chunks = ArrayPool<byte[]>.Shared.Rent(8);
 
         try
         {
