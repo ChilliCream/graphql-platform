@@ -410,6 +410,73 @@ public sealed class DeferredResultFormatterTests
     }
 
     [Fact]
+    public async Task Legacy_Rebases_Deduplicated_SubPath_To_Defer_Path()
+    {
+        var document = ParseDocument(
+            """
+            {
+                stage {
+                    metrics {
+                        operations {
+                            __typename
+                        }
+                    }
+                    ... @defer(label: "foo") {
+                        metrics {
+                            operations {
+                                totalCount
+                            }
+                        }
+                        id
+                    }
+                }
+            }
+            """);
+
+        var initial = CreateInitialResult(
+            document,
+            new Dictionary<string, object?>
+            {
+                ["stage"] = new Dictionary<string, object?>
+                {
+                    ["metrics"] = new Dictionary<string, object?>
+                    {
+                        ["operations"] = new Dictionary<string, object?>()
+                    },
+                    ["id"] = "1"
+                }
+            },
+            hasNext: true,
+            new PendingResult(2, Path.Root.Append("stage"), "foo"));
+
+        var incremental = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                2,
+                subPath: Path.Root.Append("metrics"),
+                data: CreateData(
+                    new Dictionary<string, object?>
+                    {
+                        ["operations"] = new Dictionary<string, object?>
+                        {
+                            ["totalCount"] = 5
+                        }
+                    })),
+            hasNext: false,
+            completedId: 2);
+
+        var lines = await FormatLegacyJsonLinesAsync(initial, incremental);
+
+        Assert.Equal(
+            new[]
+            {
+                """{"data":{"stage":{"metrics":{"operations":{}},"id":"1"}},"hasNext":true}""",
+                """{"incremental":[{"data":{"metrics":{"operations":{"totalCount":5}},"id":"1"},"path":["stage"],"label":"foo"}],"hasNext":false}"""
+            },
+            lines);
+    }
+
+    [Fact]
     public async Task Legacy_Duplicates_Null_Values()
     {
         var document = ParseDocument(
