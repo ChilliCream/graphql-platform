@@ -9,18 +9,22 @@ namespace HotChocolate.AspNetCore;
 public abstract class MiddlewareBase : IDisposable
 {
     private readonly RequestDelegate _next;
+    private readonly GraphQLServerOptions _baseOptions;
     private GraphQLServerOptions? _options;
     private bool _disposed;
 
     protected MiddlewareBase(
         RequestDelegate next,
-        HttpRequestExecutorProxy executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions)
     {
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(executor);
+        ArgumentNullException.ThrowIfNull(baseOptions);
 
         _next = next;
         Executor = executor;
+        _baseOptions = baseOptions;
     }
 
     /// <summary>
@@ -43,7 +47,22 @@ public abstract class MiddlewareBase : IDisposable
             return _options;
         }
 
-        _options = context.GetGraphQLServerOptions() ?? new GraphQLServerOptions();
+        var optionOverrides = context.GetEndpoint()?.Metadata.GetOrderedMetadata<GraphQLServerOptionsOverride>();
+
+        if (optionOverrides is { Count: > 0 })
+        {
+            var options = _baseOptions.Clone();
+
+            foreach (var optionsOverride in optionOverrides)
+            {
+                optionsOverride.Apply(options);
+            }
+
+            _options = options;
+            return options;
+        }
+
+        _options = _baseOptions;
         return _options;
     }
 

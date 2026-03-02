@@ -84,18 +84,15 @@ public class FusionRunCommand : Command
                 services.AddRouting()
                     .AddGraphQLGatewayServer()
                     .AddFileSystemConfiguration(archiveFile.FullName)
-                    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
+                    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
+                    .ModifyServerOptions(o => o.Tool.ServeMode = ChilliCream.Nitro.App.ServeMode.Insider);
             })
             .Configure(app =>
             {
                 app.UseRouting();
                 app.UseHeaderPropagation();
                 app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-                app.UseEndpoints(e => e.MapGraphQL()
-                    .WithOptions(new HotChocolate.AspNetCore.GraphQLServerOptions
-                    {
-                        Tool = { ServeMode = HotChocolate.AspNetCore.GraphQLToolServeMode.Insider }
-                    }));
+                app.UseEndpoints(e => e.MapGraphQL());
             })
             .Build();
 #pragma warning restore ASPDEPR008
