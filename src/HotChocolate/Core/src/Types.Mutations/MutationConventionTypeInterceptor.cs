@@ -307,6 +307,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 _typeRegistry.TryRegister(
                     _context.TypeInspector.GetOutputTypeRef(errorDef.RuntimeType),
                     errorTypeRef);
+                if (!typeof(Exception).IsAssignableFrom(errorDef.RuntimeType))
+                {
+                    EnsureMemberTypesRegistered(errorDef.RuntimeType);
+                }
                 ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
             }
 
@@ -623,6 +627,19 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         _typeInitializer.CompleteTypeName(registeredType);
         _typeInitializer.CompileResolvers(registeredType);
 
+        // Late-registered types bypass the normal discovery pipeline; add a direct runtime
+        // binding so output field references (e.g. Int32! on error objects) can normalize.
+        _typeRegistry.TryRegister(
+            _context.TypeInspector.GetOutputTypeRef(type),
+            registeredType.TypeReference);
+
+        if (registeredType.RuntimeType != typeof(object))
+        {
+            _typeRegistry.TryRegister(
+                _context.TypeInspector.GetOutputTypeRef(registeredType.RuntimeType),
+                registeredType.TypeReference);
+        }
+
         if (registeredType.Type is ObjectType errorObject
             && errorObject.RuntimeType != typeof(object))
         {
@@ -663,6 +680,81 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
 
         return registeredType;
+    }
+
+    private void EnsureMemberTypesRegistered(Type runtimeType)
+    {
+        HashSet<Type> processed = [];
+        EnsureMemberTypesRegistered(runtimeType, processed);
+    }
+
+    private void EnsureMemberTypesRegistered(
+        Type runtimeType,
+        HashSet<Type> processed)
+    {
+        if (!processed.Add(runtimeType))
+        {
+            return;
+        }
+
+        foreach (var member in _context.TypeInspector.GetMembers(runtimeType))
+        {
+            var memberTypeReference = _context.TypeInspector.GetReturnTypeRef(member, TypeContext.Output);
+            EnsureTypeReferenceRegistered(memberTypeReference, processed);
+        }
+    }
+
+    private void EnsureTypeReferenceRegistered(
+        TypeReference typeReference,
+        HashSet<Type> processed)
+    {
+        if (typeReference is not ExtendedTypeReference runtimeTypeReference)
+        {
+            return;
+        }
+
+        if (_typeRegistry.TryGetTypeRef(runtimeTypeReference, out var existingTypeReference)
+            && _typeRegistry.IsRegistered(existingTypeReference))
+        {
+            return;
+        }
+
+        if (!_context.TryInferSchemaType(typeReference, out var schemaTypeReferences))
+        {
+            return;
+        }
+
+        foreach (var schemaTypeReference in schemaTypeReferences)
+        {
+            _typeRegistry.TryRegister(
+                runtimeTypeReference.WithContext(schemaTypeReference.Context),
+                schemaTypeReference);
+
+            var schemaClrType = schemaTypeReference switch
+            {
+                SchemaTypeReference { Type: TypeSystemObject schemaType } => schemaType.GetType(),
+                ExtendedTypeReference { Type: { IsSchemaType: true } schemaType } => schemaType.Type,
+                _ => null
+            };
+
+            if (schemaClrType is null)
+            {
+                continue;
+            }
+
+            var dependencyType = TryRegisterType(schemaClrType);
+            if (dependencyType is not { RuntimeType: { } dependencyRuntimeType })
+            {
+                continue;
+            }
+
+            if (dependencyRuntimeType != typeof(object)
+                && dependencyRuntimeType != typeof(string)
+                && !dependencyRuntimeType.IsPrimitive)
+            {
+                EnsureMemberTypesRegistered(dependencyRuntimeType, processed);
+            }
+        }
     }
 
     private void RegisterType(TypeSystemObject type)
