@@ -8,6 +8,8 @@ using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
+// TODO: We also need node field tests
+// TODO: test with interfaces and typeconditions (we can only eager propagate for interface fields)
 public class SourceSchemaErrorTests : FusionTestBase
 {
     #region Root
