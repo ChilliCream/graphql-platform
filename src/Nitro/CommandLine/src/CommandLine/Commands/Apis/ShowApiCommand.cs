@@ -44,7 +44,7 @@ internal sealed class ShowApiCommand : Command
         else
         {
             console.ErrorLine(
-                $"Could not find a api with id {id.EscapeMarkup().AsHighlight()}");
+                $"Could not find an API with ID {id.EscapeMarkup().AsHighlight()}");
         }
 
         return ExitCodes.Success;

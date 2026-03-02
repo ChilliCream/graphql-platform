@@ -51,7 +51,7 @@ public sealed class CreateMockCommand : Command
         var mockSchemaName =
             context.ParseResult.GetValueForOption(Opt<MockSchemaNameOption>.Instance)!;
 
-        const string apiMessage = "For which api do you want to create a mock schema?";
+        const string apiMessage = "For which API do you want to create a mock schema?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         if (console.IsHumanReadable())
