@@ -80,7 +80,11 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         }
 
         var duration = collectTelemetry ? Stopwatch.GetElapsedTime(start) : default;
-        var dependentsToExecute = context.GetDependentsToExecute(this);
+        var dependentsToExecute =
+            status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess
+                && Type is ExecutionNodeType.Node
+                    ? context.GetDependentsToExecute(this)
+                    : [];
         var variableValueSets = collectTelemetry ? context.GetVariableValueSets(this) : [];
         var transportDetails = collectTelemetry ? context.GetTransportDetails(this) : default;
 
