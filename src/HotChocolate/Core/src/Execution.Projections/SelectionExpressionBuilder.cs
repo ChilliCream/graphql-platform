@@ -168,10 +168,11 @@ internal sealed class SelectionExpressionBuilder
                 var typeCondition = Expression.TypeIs(context.Parent, typeNode.Type);
                 var selectionSet = BuildSelectionSetExpression(newContext, typeNode);
 
-                if (selectionSet is null)
-                {
-                    throw new InvalidOperationException();
-                }
+                // If a type condition only selects non-bindable fields like __typename,
+                // BuildSelectionSetExpression returns null. Reuse the source instance
+                // instead so the branch remains query-parameter dependent and does not
+                // get parameterized as a constant by EF.
+                selectionSet ??= newParent;
 
                 var castedSelectionSet = Expression.Convert(selectionSet, context.ParentType);
                 switchExpression = Expression.Condition(typeCondition, castedSelectionSet, switchExpression);
