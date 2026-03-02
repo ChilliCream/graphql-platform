@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,7 +65,7 @@ public sealed class Issue8252ProbeTests
                 """
                 {
                   contents {
-                    items {
+                    nodes {
                       ... on ImageContent {
                         imageUrl
                       }
@@ -80,7 +81,7 @@ public sealed class Issue8252ProbeTests
                 """
                 {
                   contents {
-                    items {
+                    nodes {
                       ... on TextContent {
                         text
                       }
@@ -93,7 +94,7 @@ public sealed class Issue8252ProbeTests
                 """
                 {
                   contents {
-                    items {
+                    nodes {
                       __typename
                       ... on TextContent {
                         text
@@ -120,9 +121,9 @@ public sealed class Issue8252ProbeTests
         }
         finally
         {
-            if (System.IO.File.Exists(dbFile))
+            if (File.Exists(dbFile))
             {
-                System.IO.File.Delete(dbFile);
+                File.Delete(dbFile);
             }
         }
     }
@@ -132,7 +133,7 @@ public sealed class Issue8252ProbeTests
         using var document = JsonDocument.Parse(resultJson);
         var items = document.RootElement.GetProperty("data")
             .GetProperty("contents")
-            .GetProperty("items");
+            .GetProperty("nodes");
 
         foreach (var item in items.EnumerateArray())
         {
@@ -148,13 +149,115 @@ public sealed class Issue8252ProbeTests
         return false;
     }
 
+    [Fact]
+    public async Task Union_Subset_With_AsSelector_Should_Project_Text_Items()
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"issue8252-selector-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            await using var services = new ServiceCollection()
+                .AddDbContext<Issue8252Context>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddQueryType<Issue8252AsSelectorQuery>()
+                .AddFiltering()
+                .AddUnionType<PostContent>()
+                .AddType<TextContent>()
+                .AddType<ImageContent>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<Issue8252Context>();
+                await context.Database.EnsureCreatedAsync();
+
+                context.Content.AddRange(
+                    new TextContent
+                    {
+                        Discriminator = "TEXT",
+                        Id = Guid.NewGuid(),
+                        Text = "Hello World"
+                    },
+                    new ImageContent
+                    {
+                        Discriminator = "IMAGE",
+                        Id = Guid.NewGuid(),
+                        ImageUrl = "http://someurl",
+                        Height = 10
+                    });
+
+                await context.SaveChangesAsync();
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
+
+            // act
+            var textOnlyWithTypeName = await executor.ExecuteAsync(
+                """
+                {
+                  contents {
+                    ... on TextContent {
+                      text
+                    }
+                  }
+                }
+                """);
+
+            // assert
+            var result = textOnlyWithTypeName.ExpectOperationResult();
+            Assert.Empty(result.Errors ?? []);
+
+            using var document = JsonDocument.Parse(result.ToJson());
+            var contents = document.RootElement
+                .GetProperty("data")
+                .GetProperty("contents");
+
+            var hasText = false;
+            foreach (var item in contents.EnumerateArray())
+            {
+                if (item.ValueKind is JsonValueKind.Object
+                    && item.TryGetProperty("text", out var text)
+                    && text.ValueKind is JsonValueKind.String
+                    && text.GetString() == "Hello World")
+                {
+                    hasText = true;
+                }
+            }
+
+            Assert.True(hasText, result.ToJson());
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
     public sealed class Issue8252Query
     {
-        [UseOffsetPaging]
+        [UsePaging]
         [UseProjection]
         [UseFiltering]
         public IQueryable<PostContent> GetContents(Issue8252Context database)
             => database.Content;
+    }
+
+    public sealed class Issue8252AsSelectorQuery
+    {
+        public IQueryable<PostContent> GetContents(
+            Issue8252Context database,
+            ISelection selection)
+            => database.Content.Select(selection.AsSelector<PostContent>());
     }
 
     public class PostContent
