@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 
 public sealed class SelectApiPrompt(IApiClient client, string workspaceId)
 {
-    private string _title = "Select the api you want to use.";
+    private string _title = "Select the API you want to use.";
 
     public SelectApiPrompt Title(string title)
     {

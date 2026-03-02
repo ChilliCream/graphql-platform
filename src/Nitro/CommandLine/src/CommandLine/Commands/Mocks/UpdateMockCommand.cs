@@ -54,7 +54,7 @@ public sealed class UpdateMockCommand : Command
         {
             if (!console.IsHumanReadable())
             {
-                throw Exit("The mock schema id is required in non-interactive mode.");
+                throw Exit("The mock schema ID is required in non-interactive mode.");
             }
 
             var workspaceId = context.RequireWorkspaceId();

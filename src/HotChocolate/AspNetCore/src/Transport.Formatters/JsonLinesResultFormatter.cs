@@ -67,6 +67,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         }
         finally
         {
+            formatContext?.Dispose();
             scope?.Dispose();
         }
     }
@@ -100,14 +101,21 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                         try
                         {
                             OperationResultFormatterContext? formatContext = null;
-                            MessageHelper.FormatNextMessage(
-                                _payloadFormatter,
-                                operationResult,
-                                writer,
-                                useIncrementalRfc1,
-                                ref formatContext);
-                            await writer.FlushAsync(ct).ConfigureAwait(false);
-                            keepAlive?.Reset();
+                            try
+                            {
+                                MessageHelper.FormatNextMessage(
+                                    _payloadFormatter,
+                                    operationResult,
+                                    writer,
+                                    useIncrementalRfc1,
+                                    ref formatContext);
+                                await writer.FlushAsync(ct).ConfigureAwait(false);
+                                keepAlive?.Reset();
+                            }
+                            finally
+                            {
+                                formatContext?.Dispose();
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -272,6 +280,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             }
             finally
             {
+                _formatContext?.Dispose();
                 await responseStream.DisposeAsync().ConfigureAwait(false);
             }
         }
