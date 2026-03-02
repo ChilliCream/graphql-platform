@@ -73,15 +73,13 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             {
                 // arrange
                 using var testServer = CreateStarWarsServer(
-                    configureConventions: mapping => mapping.WithOptions(
-                        new GraphQLServerOptions
+                    configureServices: s => s
+                        .AddGraphQL()
+                        .ModifyServerOptions(o =>
                         {
-                            Sockets =
-                            {
-                                ConnectionInitializationTimeout =
-                                    TimeSpan.FromMilliseconds(1000),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                            o.Sockets.ConnectionInitializationTimeout =
+                                TimeSpan.FromMilliseconds(1000);
+                            o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
                         }));
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
@@ -107,14 +105,13 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             {
                 // arrange
                 using var testServer = CreateStarWarsServer(
-                    configureConventions: mapping => mapping.WithOptions(
-                        new GraphQLServerOptions
+                    configureServices: s => s
+                        .AddGraphQL()
+                        .ModifyServerOptions(o =>
                         {
-                            Sockets =
-                            {
-                                ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                            o.Sockets.ConnectionInitializationTimeout =
+                                TimeSpan.FromMilliseconds(50);
+                            o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
                         }));
                 var client = CreateWebSocketClient(testServer);
 

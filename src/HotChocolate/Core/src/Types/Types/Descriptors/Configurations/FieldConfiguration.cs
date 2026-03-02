@@ -73,6 +73,25 @@ public abstract class FieldConfiguration
     }
 
     /// <summary>
+    /// Defines if this field was implicitly inferred rather than explicitly configured.
+    /// </summary>
+    internal bool IsImplicit
+    {
+        get => (Flags & CoreFieldFlags.ImplicitField) == CoreFieldFlags.ImplicitField;
+        set
+        {
+            if (value)
+            {
+                Flags |= CoreFieldFlags.ImplicitField;
+            }
+            else
+            {
+                Flags &= ~CoreFieldFlags.ImplicitField;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets the list of directives that are annotated to this field.
     /// </summary>
     public IList<DirectiveConfiguration> Directives
