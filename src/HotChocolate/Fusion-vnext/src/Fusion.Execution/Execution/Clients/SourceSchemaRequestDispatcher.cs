@@ -502,16 +502,16 @@ internal sealed class SourceSchemaRequestDispatcher
                     ? nodeStateSlots[nodeId]
                     : NodeStateUnregistered;
 
-            if (nodeState == NodeStateSubmitted)
-            {
-                throw new InvalidOperationException(
-                    string.Format(
-                        SourceSchemaRequestDispatcher_DuplicateNodeSubmission,
-                        nodeId));
-            }
-
             if (nodeState != NodeStatePending)
             {
+                if (nodeState == NodeStateSubmitted)
+                {
+                    throw new InvalidOperationException(
+                        string.Format(
+                            SourceSchemaRequestDispatcher_DuplicateNodeSubmission,
+                            nodeId));
+                }
+
                 pendingRequest = null;
                 return false;
             }
