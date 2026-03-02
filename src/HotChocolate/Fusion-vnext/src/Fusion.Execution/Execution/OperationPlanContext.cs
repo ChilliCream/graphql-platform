@@ -27,7 +27,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly Uri?[] _transportUris;
     private readonly string?[] _transportContentTypes;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly bool _hasDiagnosticListeners;
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
     private readonly SourceSchemaRequestDispatcher _sourceSchemaDispatcher;
@@ -65,8 +64,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _clientScope = requestContext.CreateClientScope();
         _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
         _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
-        _hasDiagnosticListeners =
-            !ReferenceEquals(_diagnosticEvents, NoopFusionExecutionDiagnosticEvents.Instance);
         var errorHandler = requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
 
         _resultStore = new FetchResultStore(
@@ -117,8 +114,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public ulong IncludeFlags { get; }
 
     public bool CollectTelemetry => _collectTelemetry;
-
-    internal bool HasDiagnosticListeners => _hasDiagnosticListeners;
 
     public IFeatureCollection Features => RequestContext.Features;
 
