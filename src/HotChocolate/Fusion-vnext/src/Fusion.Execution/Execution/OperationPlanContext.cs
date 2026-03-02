@@ -394,6 +394,18 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return Array.Empty<ObjectFieldNode>();
         }
 
+        if (forwardedVariables.Length == 1)
+        {
+            var variableName = forwardedVariables[0];
+
+            if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
+            {
+                return [new ObjectFieldNode(variableName, variableValue)];
+            }
+
+            return Array.Empty<ObjectFieldNode>();
+        }
+
         var variables = new List<ObjectFieldNode>(forwardedVariables.Length);
 
         foreach (var variableName in forwardedVariables)
