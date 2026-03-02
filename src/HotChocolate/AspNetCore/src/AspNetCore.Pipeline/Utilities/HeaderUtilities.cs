@@ -19,21 +19,9 @@ internal static class HeaderUtilities
     private const string IncrementalSpecV02 = "v0.2";
     private const string Charset = "charset";
     private const string Quality = "q";
-    private const string FusionDefaultAcceptHeader =
-        "application/graphql-response+json, application/json, application/jsonl, text/event-stream";
-    private const string FusionVariableBatchAcceptHeader =
-        "application/jsonl, text/event-stream, application/graphql-response+json, application/json";
-    private const string FusionSubscriptionAcceptHeader =
-        "application/jsonl, text/event-stream";
 
     private static readonly Cache<AcceptHeaderResult> s_headerCache = new(128);
     private static readonly Cache<AcceptMediaType> s_mediaTypeCache = new(128);
-    private static readonly AcceptHeaderResult s_fusionDefaultAcceptResult =
-        ParseHeaderValue(FusionDefaultAcceptHeader);
-    private static readonly AcceptHeaderResult s_fusionVariableBatchAcceptResult =
-        ParseHeaderValue(FusionVariableBatchAcceptHeader);
-    private static readonly AcceptHeaderResult s_fusionSubscriptionAcceptResult =
-        ParseHeaderValue(FusionSubscriptionAcceptHeader);
 
     public static readonly AcceptMediaType[] GraphQLResponseContentTypes =
     [
@@ -65,11 +53,6 @@ internal static class HeaderUtilities
             {
                 var headerValue = value[0]!;
 
-                if (TryGetKnownAcceptHeader(headerValue, out var known))
-                {
-                    return known;
-                }
-
                 if (s_headerCache.TryGet(headerValue, out var cached))
                 {
                     return cached;
@@ -89,36 +72,6 @@ internal static class HeaderUtilities
         }
 
         return new AcceptHeaderResult([]);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryGetKnownAcceptHeader(
-        string headerValue,
-        out AcceptHeaderResult result)
-    {
-        if (headerValue.Length == FusionDefaultAcceptHeader.Length
-            && headerValue.Equals(FusionDefaultAcceptHeader, StringComparison.Ordinal))
-        {
-            result = s_fusionDefaultAcceptResult;
-            return true;
-        }
-
-        if (headerValue.Length == FusionVariableBatchAcceptHeader.Length
-            && headerValue.Equals(FusionVariableBatchAcceptHeader, StringComparison.Ordinal))
-        {
-            result = s_fusionVariableBatchAcceptResult;
-            return true;
-        }
-
-        if (headerValue.Length == FusionSubscriptionAcceptHeader.Length
-            && headerValue.Equals(FusionSubscriptionAcceptHeader, StringComparison.Ordinal))
-        {
-            result = s_fusionSubscriptionAcceptResult;
-            return true;
-        }
-
-        result = default;
-        return false;
     }
 
     private static AcceptHeaderResult ParseHeaderValue(string headerValue)
