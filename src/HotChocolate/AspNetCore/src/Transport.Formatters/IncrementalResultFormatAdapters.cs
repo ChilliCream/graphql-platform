@@ -69,7 +69,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
                         // backing bytes stay stable for the lifetime of the parsed document.
                         // The same document is then used for both caching field values and
                         // building the merged payload, avoiding a second serialization pass.
-                        using var document = SerializeDataToCache(context, objectResult.Data.Value);
+                        using var document = SerializeDataToCache(objectResult.Data.Value);
 
                         // Next, we walk every field in the parsed JSON and store it by its path.
                         // Later, when we build the merged payload, we pull these cached values
@@ -84,11 +84,12 @@ internal static class IncrementalRfc1ResultFormatAdapter
                                 path,
                                 pendingResult.Label,
                                 document,
-                                out var mergedData))
+                                out var mergedData,
+                                out var mergedPath))
                         {
                             (entries ??= []).Add(
                                 LegacyIncrementalEntry.ForData(
-                                    path,
+                                    mergedPath,
                                     pendingResult.Label,
                                     data: null,
                                     objectResult.Errors,
@@ -178,14 +179,22 @@ internal static class IncrementalRfc1ResultFormatAdapter
         Path path,
         string? label,
         JsonDocument patchDocument,
-        out ReadOnlyMemorySegment mergedData)
+        out ReadOnlyMemorySegment mergedData,
+        out Path mergedPath)
     {
         mergedData = default;
+        mergedPath = path;
 
         var deferLookup = context.DeferSelectionLookup;
 
         if (deferLookup is null
-            || !TryResolveSelectionForPath(deferLookup, pendingPath, path, label, out var selection)
+            || !TryResolveSelectionRoot(
+                deferLookup,
+                pendingPath,
+                path,
+                label,
+                out var selectionPath,
+                out var selection)
             || !selection.HasFields)
         {
             return false;
@@ -196,70 +205,162 @@ internal static class IncrementalRfc1ResultFormatAdapter
             return false;
         }
 
+        if (!TryGetRelativePathSegments(selectionPath, path, selection, out var relativePath))
+        {
+            return false;
+        }
+
+        using var wrappedPatchDocument = relativePath.Count > 0
+            ? WrapPatchToSelectionPath(patchDocument.RootElement, relativePath)
+            : null;
+        var patchRoot = wrappedPatchDocument?.RootElement ?? patchDocument.RootElement;
+
         var cacheBuffer = context.CacheBuffer;
         var start = cacheBuffer.Length;
         var mergedWriter = new JsonWriter(cacheBuffer, s_jsonWriterOptions);
-        WriteMergedObject(mergedWriter, context, path, patchDocument.RootElement, selection);
+        WriteMergedObject(mergedWriter, context, selectionPath, patchRoot, selection);
         mergedData = cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start);
+        mergedPath = selectionPath;
         return true;
     }
 
-    /// <summary>
-    /// Finds the defer selection tree that corresponds to the given path.
-    /// First resolves the root selection by label or path, then walks any
-    /// remaining path segments to drill into child selections.
-    /// </summary>
-    private static bool TryResolveSelectionForPath(
+    private static bool TryResolveSelectionRoot(
         DeferSelectionLookup deferLookup,
         Path pendingPath,
         Path path,
         string? label,
+        out Path selectionPath,
         out DeferSelectionTree selection)
     {
-        if (!deferLookup.TryResolveRoot(pendingPath, label, out var selectionPath, out selection)
-            && !deferLookup.TryResolveRoot(path, label, out selectionPath, out selection))
-        {
-            return false;
-        }
-
-        if (selectionPath.Equals(path))
+        if (deferLookup.TryResolveRoot(pendingPath, label, out selectionPath, out selection))
         {
             return true;
         }
 
-        var pendingSegments = selectionPath.ToList();
+        if (deferLookup.TryResolveRoot(path, label, out selectionPath, out selection))
+        {
+            return true;
+        }
+
+        selectionPath = Path.Root;
+        selection = default!;
+        return false;
+    }
+
+    private static bool TryGetRelativePathSegments(
+        Path selectionPath,
+        Path path,
+        DeferSelectionTree selection,
+        out IReadOnlyList<object> relativePath)
+    {
+        if (selectionPath.Equals(path))
+        {
+            relativePath = [];
+            return true;
+        }
+
+        var selectionSegments = selectionPath.ToList();
         var pathSegments = path.ToList();
 
-        if (pathSegments.Count < pendingSegments.Count)
+        if (pathSegments.Count < selectionSegments.Count)
         {
+            relativePath = [];
             return false;
         }
 
-        for (var i = 0; i < pendingSegments.Count; i++)
+        for (var i = 0; i < selectionSegments.Count; i++)
         {
-            if (!Equals(pendingSegments[i], pathSegments[i]))
+            if (!Equals(selectionSegments[i], pathSegments[i]))
             {
+                relativePath = [];
                 return false;
             }
         }
 
-        for (var i = pendingSegments.Count; i < pathSegments.Count; i++)
+        var segments = new List<object>(pathSegments.Count - selectionSegments.Count);
+
+        for (var i = selectionSegments.Count; i < pathSegments.Count; i++)
         {
-            switch (pathSegments[i])
+            var segment = pathSegments[i];
+
+            switch (segment)
             {
                 case string fieldName when selection.TryGetField(fieldName, out var childSelection):
+                    segments.Add(fieldName);
                     selection = childSelection;
                     break;
 
-                case int:
+                case int index:
+                    segments.Add(index);
                     continue;
 
                 default:
+                    relativePath = [];
                     return false;
             }
         }
 
+        relativePath = segments;
         return true;
+    }
+
+    private static JsonDocument WrapPatchToSelectionPath(
+        JsonElement patchObject,
+        IReadOnlyList<object> relativePath)
+    {
+        // We write into a separate temporary buffer so the main cacheBuffer is not
+        // polluted with data we only need for a single read.
+        using var tempBuffer = new PooledArrayWriter();
+
+        using (var writer = new Utf8JsonWriter(tempBuffer))
+        {
+            WriteWrappedPatch(writer, patchObject, relativePath, 0);
+            writer.Flush();
+        }
+
+        // Next, we parse from the span so JsonDocument makes an internal copy,
+        // keeping it independent of tempBuffer's lifetime.
+        var reader = new Utf8JsonReader(tempBuffer.WrittenSpan);
+        return JsonDocument.ParseValue(ref reader);
+    }
+
+    private static void WriteWrappedPatch(
+        Utf8JsonWriter writer,
+        JsonElement patch,
+        IReadOnlyList<object> relativePath,
+        int index)
+    {
+        if (index >= relativePath.Count)
+        {
+            patch.WriteTo(writer);
+            return;
+        }
+
+        switch (relativePath[index])
+        {
+            case string fieldName:
+                writer.WriteStartObject();
+                writer.WritePropertyName(fieldName);
+                WriteWrappedPatch(writer, patch, relativePath, index + 1);
+                writer.WriteEndObject();
+                break;
+
+            case int listIndex when listIndex >= 0:
+                writer.WriteStartArray();
+
+                for (var i = 0; i < listIndex; i++)
+                {
+                    writer.WriteNullValue();
+                }
+
+                WriteWrappedPatch(writer, patch, relativePath, index + 1);
+                writer.WriteEndArray();
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    "Patch path contains an unsupported segment for legacy merge.");
+        }
     }
 
     /// <summary>
@@ -484,7 +585,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
             return;
         }
 
-        using var document = SerializeDataToCache(context, data.Value);
+        using var document = SerializeDataToCache(data.Value);
         CaptureElement(context, path, document.RootElement);
     }
 
@@ -513,14 +614,18 @@ internal static class IncrementalRfc1ResultFormatAdapter
         }
     }
 
-    private static JsonDocument SerializeDataToCache(OperationResultFormatterContext context, OperationResultData data)
+    private static JsonDocument SerializeDataToCache(OperationResultData data)
     {
-        var cacheBuffer = context.CacheBuffer;
-        var start = cacheBuffer.Length;
-        var writer = new JsonWriter(cacheBuffer, s_jsonWriterOptions);
+        // We write into a separate temporary buffer so the main cacheBuffer is not
+        // polluted with data we only need for a single read.
+        using var tempBuffer = new PooledArrayWriter();
+        var writer = new JsonWriter(tempBuffer, s_jsonWriterOptions);
         data.Formatter.WriteDataTo(writer);
-        var segment = cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start);
-        return JsonDocument.Parse(segment.Memory);
+
+        // Next, we parse from the span so JsonDocument makes an internal copy,
+        // keeping it independent of tempBuffer's lifetime.
+        var reader = new Utf8JsonReader(tempBuffer.WrittenSpan);
+        return JsonDocument.ParseValue(ref reader);
     }
 
     private static ReadOnlyMemorySegment WriteElementToCache(

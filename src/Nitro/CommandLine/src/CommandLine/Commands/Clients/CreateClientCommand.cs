@@ -38,7 +38,7 @@ internal sealed class CreateClientCommand : Command
         console.WriteLine("Creating a client");
         console.WriteLine();
 
-        const string apiMessage = "For which api do you want to create a client?";
+        const string apiMessage = "For which API do you want to create a client?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         var name = await context
@@ -55,7 +55,7 @@ internal sealed class CreateClientCommand : Command
         var createdClient = data.CreateClient.Client;
         if (createdClient is null)
         {
-            throw Exit("Could not create api.");
+            throw Exit("Could not create client.");
         }
 
         console.OkLine($"Client {createdClient.Name.AsHighlight()} created.");
