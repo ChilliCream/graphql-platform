@@ -98,6 +98,7 @@ internal static class OperationContextExtensions
             {
                 RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : null,
                 VariableIndex = resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : null,
+                Document = context.Operation.Document,
                 ContextData = resultBuilder.ContextData
             };
 

@@ -62,10 +62,7 @@ We can influence the behavior of the middleware registered by `MapGraphQL` using
 ### EnableSchemaRequests
 
 ```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    EnableSchemaRequests = false
-});
+endpoints.MapGraphQL().WithOptions(o => o.EnableSchemaRequests = false);
 ```
 
 This setting controls whether the schema of the GraphQL server can be downloaded by appending `?sdl` to the endpoint.
@@ -73,10 +70,7 @@ This setting controls whether the schema of the GraphQL server can be downloaded
 ### EnableGetRequests
 
 ```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    EnableGetRequests = false
-});
+endpoints.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
 ```
 
 This setting controls whether the GraphQL server is able to handle GraphQL operations sent via the query string in a HTTP GET request.
@@ -84,10 +78,7 @@ This setting controls whether the GraphQL server is able to handle GraphQL opera
 ### AllowedGetOperations
 
 ```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    AllowedGetOperations = AllowedGetOperations.Query
-});
+endpoints.MapGraphQL().WithOptions(o => o.AllowedGetOperations = AllowedGetOperations.Query);
 ```
 
 If [EnableGetRequests](#enablegetrequests) is `true` we can control the allowed operations for HTTP GET requests using the `AllowedGetOperations` setting.
@@ -97,10 +88,7 @@ Per default only queries are accepted via HTTP GET. We can also allow mutations 
 ### EnableMultipartRequests
 
 ```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    EnableMultipartRequests = false
-});
+endpoints.MapGraphQL().WithOptions(o => o.EnableMultipartRequests = false);
 ```
 
 This setting controls whether the GraphQL server is able to handle HTTP Multipart forms, i.e. file uploads.
@@ -109,7 +97,7 @@ This setting controls whether the GraphQL server is able to handle HTTP Multipar
 
 ### Tool
 
-We can specify options for the Nitro using the `Tool` property.
+We can specify options for Nitro using the `Tool` property.
 
 We could for example only enable Nitro during development.
 
@@ -118,16 +106,11 @@ app.UseRouting();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-    {
-        Tool = {
-            Enable = env.IsDevelopment()
-        }
-    });
+    endpoints.MapGraphQL().WithOptions(o => o.Tool.Enable = env.IsDevelopment());
 });
 ```
 
-[Learn more about possible GraphQLToolOptions](#graphqltooloptions)
+[Learn more about possible NitroAppOptions](#nitroappoptions)
 
 # MapNitroApp
 
@@ -144,17 +127,14 @@ app.UseEndpoints(endpoints =>
 
 This would make Nitro accessible via a Web Browser at the `/graphql/ui` endpoint.
 
-## GraphQLToolOptions
+## NitroAppOptions
 
-We can configure Nitro using `GraphQLToolOptions`.
+We can configure Nitro using `NitroAppOptions`.
 
 ### Enable
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    Enable = false
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.Enable = false);
 ```
 
 This setting controls whether Nitro should be served or not.
@@ -162,10 +142,7 @@ This setting controls whether Nitro should be served or not.
 ### GraphQLEndpoint
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    GraphQLEndpoint = "/my/graphql/endpoint"
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.GraphQLEndpoint = "/my/graphql/endpoint");
 ```
 
 This setting sets the GraphQL endpoint to use when creating new documents within Nitro.
@@ -173,10 +150,7 @@ This setting sets the GraphQL endpoint to use when creating new documents within
 ### UseBrowserUrlAsGraphQLEndpoint
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    UseBrowserUrlAsGraphQLEndpoint = true
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.UseBrowserUrlAsGraphQLEndpoint = true);
 ```
 
 If set to `true` the current Web Browser URL is treated as the GraphQL endpoint when creating new documents within Nitro.
@@ -186,34 +160,28 @@ If set to `true` the current Web Browser URL is treated as the GraphQL endpoint 
 ### Document
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    Document = "{ __typename }"
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.Document = "{ __typename }");
 ```
 
 This setting allows us to set a default GraphQL document that should be a placeholder for each new document created using Nitro.
 
-### HttpMethod
+### UseGet
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    HttpMethod = DefaultHttpMethod.Get
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.UseGet = true);
 ```
 
-This setting controls the default HTTP method used to execute GraphQL operations when creating new documents within Nitro.
+This setting controls the default HTTP method used to execute GraphQL operations when creating new documents within Nitro. When set to `true`, HTTP GET is used instead of the default HTTP POST.
 
 ### HttpHeaders
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(o =>
 {
-    HttpHeaders = new HeaderDictionary
+    o.HttpHeaders = new HeaderDictionary
     {
         { "Content-Type", "application/json" }
-    }
+    };
 });
 ```
 
@@ -222,10 +190,7 @@ This setting allows us to specify default HTTP Headers that will be added to eac
 ### IncludeCookies
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    IncludeCookies = true
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.IncludeCookies = true);
 ```
 
 This setting specifies the default for including cookies in cross-origin when creating new documents within Nitro.
@@ -233,10 +198,7 @@ This setting specifies the default for including cookies in cross-origin when cr
 ### Title
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    Title = "My GraphQL explorer"
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.Title = "My GraphQL explorer");
 ```
 
 This setting controls the tab name, when Nitro is opened inside of a Web Browser.
@@ -244,10 +206,7 @@ This setting controls the tab name, when Nitro is opened inside of a Web Browser
 ### DisableTelemetry
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    DisableTelemetry = true
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.DisableTelemetry = true);
 ```
 
 This setting allows us to disable telemetry events.
@@ -255,10 +214,7 @@ This setting allows us to disable telemetry events.
 ### GaTrackingId
 
 ```csharp
-endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
-{
-    GaTrackingId = "google-analytics-id"
-});
+endpoints.MapNitroApp("/ui").WithOptions(o => o.GaTrackingId = "google-analytics-id");
 ```
 
 This setting allows us to set a custom Google Analytics Id, which in turn allows us to gain insights into the usage of Nitro hosted as part of our GraphQL server.
@@ -288,18 +244,15 @@ app.UseEndpoints(endpoints =>
 
 With the above configuration we could now issue HTTP GET / POST requests against the `/graphql/http` endpoint.
 
-## GraphQLHttpOptions
+## GraphQLServerOptions
 
-The HTTP endpoint can be configured using `GraphQLHttpOptions`.
+The HTTP endpoint can also be configured with per-endpoint overrides using `WithOptions`.
 
 ```csharp
-endpoints.MapGraphQLHttp("/graphql/http").WithOptions(new GraphQLHttpOptions
-{
-    EnableGetRequests = false
-});
+endpoints.MapGraphQLHttp("/graphql/http").WithOptions(o => o.EnableGetRequests = false);
 ```
 
-The `GraphQLHttpOptions` are the same as the `GraphQLServerOptions` except that there are no `Tool` and `EnableSchemaRequests` properties.
+The same `GraphQLServerOptions` properties available on `MapGraphQL` can be overridden here, except for `Tool` and `EnableSchemaRequests` which are not applicable to standalone HTTP endpoints.
 
 [Learn more about GraphQLServerOptions](#graphqlserveroptions)
 
