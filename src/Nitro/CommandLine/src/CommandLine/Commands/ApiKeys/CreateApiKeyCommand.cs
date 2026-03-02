@@ -37,7 +37,7 @@ internal sealed class CreateApiKeyCommand : Command
         CancellationToken cancellationToken)
     {
         console.WriteLine();
-        console.WriteLine("Creating a api key...");
+        console.WriteLine("Creating an API key...");
         console.WriteLine();
 
         var workspaceId = context.ParseResult
@@ -48,18 +48,18 @@ internal sealed class CreateApiKeyCommand : Command
         {
             if (!console.IsHumanReadable())
             {
-                throw Exit("The workspace id or api id is required in non-interactive mode.");
+                throw Exit("The workspace ID or API ID is required in non-interactive mode.");
             }
 
             var choice = await new SelectionPrompt<string>()
-                .Title("Do you want to create the api key scoped to an api or the whole workspace?")
+                .Title("Do you want to create the API key scoped to an API or the whole workspace?")
                 .AddChoices("Api", "Workspace")
                 .ShowAsync(console, cancellationToken);
 
             if (choice == "Api")
             {
                 apiId = await context
-                    .GetOrSelectApiId("For which api do you want to create a api key?");
+                    .GetOrSelectApiId("For which API do you want to create an API key?");
             }
             else
             {
@@ -96,7 +96,7 @@ internal sealed class CreateApiKeyCommand : Command
                 ? new ApiKeyPermissionScopeInput { ApiId = apiId }
                 : new ApiKeyPermissionScopeInput { WorkspaceId = workspaceId },
             WorkspaceId = workspaceId,
-            RoleAssigmentCondition = condition
+            RoleAssignmentCondition = condition
         };
         var result = await client.CreateApiKeyCommandMutation
             .ExecuteAsync(input, cancellationToken);
@@ -110,7 +110,7 @@ internal sealed class CreateApiKeyCommand : Command
         var changeResult = data.CreateApiKey.Result;
         if (changeResult is null)
         {
-            throw Exit("Could not create api.");
+            throw Exit("Could not create API key.");
         }
 
         console.OkLine(

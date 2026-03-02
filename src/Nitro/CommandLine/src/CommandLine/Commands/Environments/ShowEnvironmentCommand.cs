@@ -44,7 +44,7 @@ internal sealed class ShowEnvironmentCommand : Command
         else
         {
             console.ErrorLine(
-                $"Could not find a environment with id {id.EscapeMarkup().AsHighlight()}");
+                $"Could not find an environment with ID {id.EscapeMarkup().AsHighlight()}");
         }
 
         return ExitCodes.Success;
