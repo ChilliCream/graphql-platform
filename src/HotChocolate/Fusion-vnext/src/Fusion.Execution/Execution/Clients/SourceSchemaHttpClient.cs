@@ -77,12 +77,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         Debug.WriteLine(request.SchemaName);
 
         var httpRequest = CreateHttpRequest(request);
-        httpRequest.State = (context, request.Node, _configuration);
-
-        if (_configuration.OnBeforeSend is not null || _configuration.OnAfterReceive is not null)
-        {
-            ConfigureCallbacks(httpRequest);
-        }
+        ConfigureCallbacks(httpRequest, context, request);
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
         return new Response(
@@ -114,11 +109,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         }
 
         var httpRequest = CreateHttpBatchRequest(requests);
-
-        if (_configuration.OnBeforeSend is not null || _configuration.OnAfterReceive is not null)
-        {
-            ConfigureBatchCallbacks(httpRequest, context, requests);
-        }
+        ConfigureBatchCallbacks(httpRequest, context, requests);
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
@@ -437,8 +428,13 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     /// <see cref="SourceSchemaHttpClientConfiguration.OnAfterReceive"/> callbacks to
     /// a single HTTP request.
     /// </summary>
-    private void ConfigureCallbacks(GraphQLHttpRequest request)
+    private void ConfigureCallbacks(
+        GraphQLHttpRequest request,
+        OperationPlanContext context,
+        SourceSchemaClientRequest sourceRequest)
     {
+        request.State = (context, sourceRequest.Node, _configuration);
+
         request.OnMessageCreated += static (_, requestMessage, state) =>
         {
             var (context, node, configuration) =
