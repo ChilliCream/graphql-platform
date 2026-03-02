@@ -175,26 +175,26 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
             foreach (var dependent in node.Dependents)
             {
-                var dependentId = dependent.Id;
-
-                if ((uint)dependentId >= (uint)_remainingDependencies.Length)
+                if ((uint)dependent.Id >= (uint)_remainingDependencies.Length)
                 {
                     continue;
                 }
 
-                var remainingDependencies = _remainingDependencies[dependentId];
+                var remainingDependencies = _remainingDependencies[dependent.Id];
 
                 if (remainingDependencies <= 0)
                 {
                     continue;
                 }
 
-                remainingDependencies--;
-                _remainingDependencies[dependentId] = remainingDependencies;
-
-                if (remainingDependencies == 0)
+                if (remainingDependencies == 1)
                 {
+                    _remainingDependencies[dependent.Id] = 0;
                     _ready.Add(dependent);
+                }
+                else if (remainingDependencies > 1)
+                {
+                    _remainingDependencies[dependent.Id] = remainingDependencies - 1;
                 }
             }
         }
