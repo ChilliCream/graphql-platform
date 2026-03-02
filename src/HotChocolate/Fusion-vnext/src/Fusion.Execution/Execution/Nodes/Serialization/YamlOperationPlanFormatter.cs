@@ -279,11 +279,6 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
-        if (node.RequiresFileUpload)
-        {
-            writer.WriteLine("requiresFileUpload: true");
-        }
-
         if (node.Dependencies.Length > 0)
         {
             writer.WriteLine("dependencies:");
