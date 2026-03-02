@@ -77,20 +77,14 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         Debug.WriteLine(request.SchemaName);
 
         var httpRequest = CreateHttpRequest(request);
-        if (_configuration.OnBeforeSend is not null || _configuration.OnAfterReceive is not null)
-        {
-            ConfigureCallbacks(httpRequest, context, request);
-        }
+        ConfigureCallbacks(httpRequest, context, request);
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
         return new Response(
             request.OperationType,
-            httpRequest.Uri,
-            request.Variables,
-            context,
-            request.Node,
-            _configuration,
-            httpResponse);
+            httpRequest,
+            httpResponse,
+            request.Variables);
     }
 
     /// <inheritdoc />
@@ -115,10 +109,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         }
 
         var httpRequest = CreateHttpBatchRequest(requests);
-        if (_configuration.OnBeforeSend is not null || _configuration.OnAfterReceive is not null)
-        {
-            ConfigureBatchCallbacks(httpRequest, context, requests);
-        }
+        ConfigureBatchCallbacks(httpRequest, context, requests);
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
@@ -549,15 +540,12 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     /// </summary>
     private sealed class Response(
         OperationType operation,
-        Uri? requestUri,
-        ImmutableArray<VariableValues> variables,
-        OperationPlanContext context,
-        ExecutionNode node,
-        SourceSchemaHttpClientConfiguration configuration,
-        GraphQLHttpResponse response)
+        GraphQLHttpRequest request,
+        GraphQLHttpResponse response,
+        ImmutableArray<VariableValues> variables)
         : SourceSchemaClientResponse
     {
-        public override Uri Uri => requestUri ?? new Uri("http://unknown");
+        public override Uri Uri => request.Uri ?? new Uri("http://unknown");
 
         public override string ContentType => response.ContentHeaders.ContentType?.ToString() ?? "unknown";
 
@@ -566,6 +554,9 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            var (context, node, configuration) =
+                ((OperationPlanContext, ExecutionNode, SourceSchemaHttpClientConfiguration))request.State!;
+
             if (operation == OperationType.Subscription)
             {
                 await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
