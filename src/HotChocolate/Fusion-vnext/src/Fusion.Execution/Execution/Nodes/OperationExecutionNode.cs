@@ -118,7 +118,12 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
-        context.TrackVariableValueSets(this, variables);
+        var collectTelemetry = context.CollectTelemetry;
+
+        if (collectTelemetry)
+        {
+            context.TrackVariableValueSets(this, variables);
+        }
 
         var request = new SourceSchemaClientRequest
         {
@@ -143,7 +148,10 @@ public sealed class OperationExecutionNode : ExecutionNode
             var response = await context.SourceSchemaScheduler
                 .ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
-            context.TrackSourceSchemaClientResponse(this, response);
+            if (collectTelemetry)
+            {
+                context.TrackSourceSchemaClientResponse(this, response);
+            }
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {

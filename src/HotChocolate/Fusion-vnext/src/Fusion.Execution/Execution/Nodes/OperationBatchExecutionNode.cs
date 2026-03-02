@@ -111,7 +111,12 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
-        context.TrackVariableValueSets(this, variables);
+        var collectTelemetry = context.CollectTelemetry;
+
+        if (collectTelemetry)
+        {
+            context.TrackVariableValueSets(this, variables);
+        }
 
         var request = new SourceSchemaClientRequest
         {
@@ -136,7 +141,10 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             var response = await context.SourceSchemaScheduler
                 .ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
-            context.TrackSourceSchemaClientResponse(this, response);
+            if (collectTelemetry)
+            {
+                context.TrackSourceSchemaClientResponse(this, response);
+            }
 
             // we read the responses from the response stream.
             var totalPathCount = variables.Length;
