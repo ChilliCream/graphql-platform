@@ -2,6 +2,11 @@ schema {
   query: Query
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
 interface Product {
   kind: String!
   id: String!
@@ -11,6 +16,10 @@ type Book implements Product {
   title: String!
   id: String!
   kind: String!
+}
+
+type Issue8057Entity implements Node {
+  id: ID!
 }
 
 "Information about pagination in a connection."
@@ -46,8 +55,8 @@ type ProductsEdge {
 type Query {
   """
   Gets the product.
-
-
+  
+  
   **Returns:**
   The only product.
   """
@@ -63,6 +72,7 @@ type Query {
   listArgumentRef(items: [String!]!): String!
   listNullableElementArgumentRef(items: [String]!): String!
   nullableListNullableElementArgumentRef(items: [String]): String!
+  issue8057Entity(id: ID!): Issue8057Entity @cost(weight: "10")
 }
 
 type Television implements Product {
