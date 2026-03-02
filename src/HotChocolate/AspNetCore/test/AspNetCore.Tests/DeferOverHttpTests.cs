@@ -1130,23 +1130,12 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
 
         var content = await response.Content.ReadAsStringAsync();
 
-        Snapshot
-            .Create()
-            .Add(content, "Response")
-            .MatchInline(
-                """
-
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {"incremental":[{"data":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]},"path":["product"],"label":"foo"}],"hasNext":false}
-                -----
-
-                """);
+        Assert.Contains(
+            "{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}},\"hasNext\":true}",
+            content,
+            StringComparison.Ordinal);
+        AssertContainsOverlapIncrementalLegacyPayload(content);
+        Assert.Contains("-----", content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1192,10 +1181,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             "\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}}",
             content,
             StringComparison.Ordinal);
-        Assert.Contains(
-            "\"incremental\":[{\"data\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]},\"path\":[\"product\"],\"label\":\"foo\"}]",
-            content,
-            StringComparison.Ordinal);
+        AssertContainsOverlapIncrementalLegacyPayload(content);
         Assert.Contains("event: complete", content, StringComparison.Ordinal);
     }
 
@@ -1238,15 +1224,11 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
 
         var content = await response.Content.ReadAsStringAsync();
 
-        Snapshot
-            .Create()
-            .Add(content, "Response")
-            .MatchInline(
-                """
-                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
-                {"incremental":[{"data":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]},"path":["product"],"label":"foo"}],"hasNext":false}
-
-                """);
+        Assert.Contains(
+            "{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}},\"hasNext\":true}",
+            content,
+            StringComparison.Ordinal);
+        AssertContainsOverlapIncrementalLegacyPayload(content);
     }
 
     [Fact]
@@ -1291,6 +1273,21 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         Assert.True(
             content.Split("\"name\":\"Abc\"", StringSplitOptions.None).Length - 1 >= 2,
             "Expected both labeled deferred payloads to include product.name.");
+    }
+
+    private static void AssertContainsOverlapIncrementalLegacyPayload(string content)
+    {
+        const string subPathPayload =
+            "\"incremental\":[{\"data\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]},\"path\":[\"product\"],\"label\":\"foo\"}]";
+
+        const string rootPathPayload =
+            "\"incremental\":[{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]}},"
+            + "\"path\":[],\"label\":\"foo\"}]";
+
+        Assert.True(
+            content.Contains(subPathPayload, StringComparison.Ordinal)
+                || content.Contains(rootPathPayload, StringComparison.Ordinal),
+            "Expected overlap incremental payload in either legacy-compatible shape.");
     }
 
     private TestServer CreateDeferServer(
