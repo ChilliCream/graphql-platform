@@ -226,10 +226,9 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
             else if (singleResult is not null)
             {
-                var firstResult = singleResult;
-                context.AddPartialResults(
+                context.AddPartialResult(
                     _source,
-                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
+                    singleResult,
                     _responseNames,
                     hasSomeErrors);
             }

@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Execution.Clients;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -225,10 +224,9 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             }
             else if (singleResult is not null)
             {
-                var firstResult = singleResult;
-                context.AddPartialResults(
+                context.AddPartialResult(
                     _source,
-                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
+                    singleResult,
                     _responseNames,
                     hasSomeErrors);
             }
