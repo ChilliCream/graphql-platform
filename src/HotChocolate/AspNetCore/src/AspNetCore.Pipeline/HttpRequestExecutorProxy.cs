@@ -11,22 +11,15 @@ public sealed class HttpRequestExecutorProxy(
 {
     private ExecutorSession? _session;
 
-    public ValueTask<ExecutorSession> GetOrCreateSessionAsync(CancellationToken cancellationToken)
+    public async ValueTask<ExecutorSession> GetOrCreateSessionAsync(CancellationToken cancellationToken)
     {
-        if (_session is { } session)
+        if (_session is not null)
         {
-            return new ValueTask<ExecutorSession>(session);
+            return _session;
         }
 
-        return GetOrCreateSessionSlowAsync(this, cancellationToken);
-
-        static async ValueTask<ExecutorSession> GetOrCreateSessionSlowAsync(
-            HttpRequestExecutorProxy proxy,
-            CancellationToken cancellationToken)
-        {
-            var executor = await proxy.GetExecutorAsync(cancellationToken);
-            return executor.Features.GetRequired<ExecutorSession>();
-        }
+        var executor = await GetExecutorAsync(cancellationToken);
+        return executor.Features.GetRequired<ExecutorSession>();
     }
 
     protected override void OnConfigureRequestExecutor(IRequestExecutor newExecutor, IRequestExecutor? oldExecutor)
