@@ -17,7 +17,7 @@ public class NullTests : FusionTestBase
                     WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     (_, _) => context =>
                     {
-                        // TODO: Re-add this
+                        // TODO: Re-add this!!!
                         // context.Result = new OperationResult(
                         //     new Dictionary<string, object?>
                         //     {
@@ -48,6 +48,12 @@ public class NullTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    // TODO: Add tests for shared fields
+    [Fact]
+    public async Task Test()
+    {
     }
 
     public static class SourceSchema1

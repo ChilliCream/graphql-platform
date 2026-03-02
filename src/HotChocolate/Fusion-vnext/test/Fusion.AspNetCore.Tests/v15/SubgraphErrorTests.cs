@@ -1,5 +1,6 @@
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
@@ -447,170 +448,203 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    //     [Fact]
-    //     public async Task
-    //         Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
-    //     {
-    //         // arrange
-    //         var subgraphA = await TestSubgraph.CreateAsync(
-    //             """
-    //             type Query {
-    //               viewer: Viewer
-    //             }
-    //
-    //             type Viewer {
-    //               name: String
-    //             }
-    //             """);
-    //
-    //         var subgraphB = await TestSubgraph.CreateAsync(builder => builder
-    //             .AddDocumentFromString(
-    //                 """
-    //                 type Query {
-    //                   viewer: Viewer
-    //                 }
-    //
-    //                 type Viewer {
-    //                   userId: ID
-    //                 }
-    //                 """)
-    //             .AddResolverMocking()
-    //             .UseDefaultPipeline()
-    //             .UseRequest(_ => context =>
-    //             {
-    //                 context.Result =
-    //                     OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
-    //                 return default;
-    //             })
-    //         );
-    //
-    //         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
-    //         var executor = await subgraphs.GetExecutorAsync();
-    //         var request = """
-    //                       query {
-    //                         viewer {
-    //                           userId
-    //                           name
-    //                         }
-    //                       }
-    //                       """;
-    //
-    //         // act
-    //         var result = await executor.ExecuteAsync(request);
-    //
-    //         // assert
-    //         MatchMarkdownSnapshot(request, result);
-    //     }
-    //
-    //     [Fact]
-    //     public async Task
-    //         Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
-    //     {
-    //         // arrange
-    //         var subgraphA = await TestSubgraph.CreateAsync(
-    //             """
-    //             type Query {
-    //               viewer: Viewer
-    //             }
-    //
-    //             type Viewer {
-    //               name: String!
-    //             }
-    //             """);
-    //
-    //         var subgraphB = await TestSubgraph.CreateAsync(builder => builder
-    //             .AddDocumentFromString(
-    //                 """
-    //                 type Query {
-    //                   viewer: Viewer
-    //                 }
-    //
-    //                 type Viewer {
-    //                   userId: ID!
-    //                 }
-    //                 """)
-    //             .AddResolverMocking()
-    //             .UseDefaultPipeline()
-    //             .UseRequest(_ => context =>
-    //             {
-    //                 context.Result =
-    //                     OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
-    //                 return default;
-    //             })
-    //         );
-    //
-    //         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
-    //         var executor = await subgraphs.GetExecutorAsync();
-    //         var request = """
-    //                       query {
-    //                         viewer {
-    //                           userId
-    //                           name
-    //                         }
-    //                       }
-    //                       """;
-    //
-    //         // act
-    //         var result = await executor.ExecuteAsync(request);
-    //
-    //         // assert
-    //         MatchMarkdownSnapshot(request, result);
-    //     }
-    //
-    //     [Fact]
-    //     public async Task
-    //         Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Returns_TopLevel_Error_Without_Data()
-    //     {
-    //         // arrange
-    //         var subgraphA = await TestSubgraph.CreateAsync(
-    //             """
-    //             type Query {
-    //               viewer: Viewer!
-    //             }
-    //
-    //             type Viewer {
-    //               name: String!
-    //             }
-    //             """);
-    //
-    //         var subgraphB = await TestSubgraph.CreateAsync(builder => builder
-    //             .AddDocumentFromString(
-    //                 """
-    //                 type Query {
-    //                   viewer: Viewer!
-    //                 }
-    //
-    //                 type Viewer {
-    //                   userId: ID!
-    //                 }
-    //                 """)
-    //             .AddResolverMocking()
-    //             .UseDefaultPipeline()
-    //             .UseRequest(_ => context =>
-    //             {
-    //                 context.Result =
-    //                     OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
-    //                 return default;
-    //             })
-    //         );
-    //
-    //         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
-    //         var executor = await subgraphs.GetExecutorAsync();
-    //         var request = """
-    //                       query {
-    //                         viewer {
-    //                           userId
-    //                           name
-    //                         }
-    //                       }
-    //                       """;
-    //
-    //         // act
-    //         var result = await executor.ExecuteAsync(request);
-    //
-    //         // assert
-    //         MatchMarkdownSnapshot(request, result);
-    //     }
+    [Fact]
+    public async Task Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                viewer: Viewer
+            }
+
+            type Viewer {
+                name: String
+            }
+            """);
+
+        var subgraphB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        viewer: Viewer
+                    }
+
+                    type Viewer {
+                        userId: ID
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    var error = ErrorBuilder.New().SetMessage("Top Level Error").Build();
+                    context.Result = new HotChocolate.Execution.OperationResult([error]);
+
+                    await next(context);
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", subgraphA),
+            ("B", subgraphB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                userId
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                viewer: Viewer
+            }
+
+            type Viewer {
+                name: String!
+            }
+            """);
+
+        var subgraphB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        viewer: Viewer
+                    }
+
+                    type Viewer {
+                        userId: ID!
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    var error = ErrorBuilder.New().SetMessage("Top Level Error").Build();
+                    context.Result = new HotChocolate.Execution.OperationResult([error]);
+
+                    await next(context);
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", subgraphA),
+            ("B", subgraphB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                userId
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                viewer: Viewer!
+            }
+
+            type Viewer {
+                name: String!
+            }
+            """);
+
+        var subgraphB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        viewer: Viewer!
+                    }
+
+                    type Viewer {
+                        userId: ID!
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    var error = ErrorBuilder.New().SetMessage("Top Level Error").Build();
+                    context.Result = new HotChocolate.Execution.OperationResult([error]);
+
+                    await next(context);
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", subgraphA),
+            ("B", subgraphB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                userId
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
 
     #endregion
 

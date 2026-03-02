@@ -8,6 +8,8 @@ using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
+// TODO: We also need node field tests
+// TODO: test with interfaces and typeconditions (we can only eager propagate for interface fields)
 public class SourceSchemaErrorTests : FusionTestBase
 {
     #region Root
@@ -1050,7 +1052,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                         .SetExtension("stringValue", "a-string")
                         .SetExtension("booleanValue", true)
                         .SetExtension("numberValue", 123)
-                        .SetExtension("arrayValue", new [] { 1, 2, 3})
+                        .SetExtension("arrayValue", new[] { 1, 2, 3 })
                         .SetExtension("emptyArrayValue", Array.Empty<string>())
                         .SetPath(context.Path)
                         .SetException(new Exception("Some exception"))
