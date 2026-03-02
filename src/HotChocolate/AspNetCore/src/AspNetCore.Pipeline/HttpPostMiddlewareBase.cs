@@ -259,11 +259,20 @@ HANDLE_RESULT:
 
         foreach (var request in requests)
         {
-            context.Response.RegisterForDispose(request);
+            if (RequiresRequestDisposal(request))
+            {
+                context.Response.RegisterForDispose(request);
+            }
         }
 
         return requests;
     }
+
+    private static bool RequiresRequestDisposal(GraphQLRequest request)
+        => request.Variables is not null
+            || request.Extensions is not null
+            || request.VariablesMemoryOwner is not null
+            || request.ExtensionsMemoryOwner is not null;
 
     private static bool TryParseOperations(
         string operationNameString,
