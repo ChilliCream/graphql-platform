@@ -82,23 +82,30 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         CancellationToken ct = default)
     {
         OperationResultFormatterContext? formatContext = null;
-        MessageHelper.WriteNext(writer);
+        try
+        {
+            MessageHelper.WriteNext(writer);
 
-        // First, we write the header of the part.
-        MessageHelper.WriteResultHeader(writer);
+            // First, we write the header of the part.
+            MessageHelper.WriteResultHeader(writer);
 
-        // Next, we write the payload of the part.
-        MessageHelper.WritePayload(
-            writer,
-            result,
-            _payloadFormatter,
-            useIncrementalRfc1,
-            ref formatContext);
+            // Next, we write the payload of the part.
+            MessageHelper.WritePayload(
+                writer,
+                result,
+                _payloadFormatter,
+                useIncrementalRfc1,
+                ref formatContext);
 
-        // Last we write the end of the part.
-        MessageHelper.WriteEnd(writer);
+            // Last we write the end of the part.
+            MessageHelper.WriteEnd(writer);
 
-        await writer.FlushAsync(ct).ConfigureAwait(false);
+            await writer.FlushAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            formatContext?.Dispose();
+        }
     }
 
     private async ValueTask FormatResultBatchAsync(
@@ -115,16 +122,23 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                     try
                     {
                         OperationResultFormatterContext? formatContext = null;
-                        MessageHelper.WriteNext(writer);
-                        MessageHelper.WriteResultHeader(writer);
-                        MessageHelper.WritePayload(
-                            writer,
-                            operationResult,
-                            _payloadFormatter,
-                            useIncrementalRfc1,
-                            ref formatContext);
-                        MessageHelper.WriteEnd(writer);
-                        await writer.FlushAsync(ct).ConfigureAwait(false);
+                        try
+                        {
+                            MessageHelper.WriteNext(writer);
+                            MessageHelper.WriteResultHeader(writer);
+                            MessageHelper.WritePayload(
+                                writer,
+                                operationResult,
+                                _payloadFormatter,
+                                useIncrementalRfc1,
+                                ref formatContext);
+                            MessageHelper.WriteEnd(writer);
+                            await writer.FlushAsync(ct).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            formatContext?.Dispose();
+                        }
                     }
                     finally
                     {
@@ -155,45 +169,52 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         OperationResultFormatterContext? formatContext = null;
         var first = true;
 
-        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        try
         {
-            var current = enumerator.Current;
-
-            try
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                if (first || responseStream.Kind is not DeferredResult)
+                var current = enumerator.Current;
+
+                try
                 {
-                    MessageHelper.WriteNext(writer);
-                    first = false;
+                    if (first || responseStream.Kind is not DeferredResult)
+                    {
+                        MessageHelper.WriteNext(writer);
+                        first = false;
+                    }
+
+                    // First, we write the header of the part.
+                    MessageHelper.WriteResultHeader(writer);
+
+                    // Next, we write the payload of the part.
+                    MessageHelper.WritePayload(
+                        writer,
+                        current,
+                        _payloadFormatter,
+                        useIncrementalRfc1,
+                        ref formatContext);
+
+                    if (responseStream.Kind is DeferredResult && (current.HasNext ?? false))
+                    {
+                        // If the result is a deferred result and has a next result, we need to
+                        // write a new part so that the client knows that there is more to come.
+                        MessageHelper.WriteNext(writer);
+                    }
+
+                    // Now we can write the part to the output stream and flush this chunk.
+                    await writer.FlushAsync(ct).ConfigureAwait(false);
                 }
-
-                // First, we write the header of the part.
-                MessageHelper.WriteResultHeader(writer);
-
-                // Next, we write the payload of the part.
-                MessageHelper.WritePayload(
-                    writer,
-                    current,
-                    _payloadFormatter,
-                    useIncrementalRfc1,
-                    ref formatContext);
-
-                if (responseStream.Kind is DeferredResult && (current.HasNext ?? false))
+                finally
                 {
-                    // If the result is a deferred result and has a next result, we need to
-                    // write a new part so that the client knows that there is more to come.
-                    MessageHelper.WriteNext(writer);
+                    // The result objects use pooled memory, so we need to ensure that they
+                    // return the memory by disposing them.
+                    await current.DisposeAsync().ConfigureAwait(false);
                 }
-
-                // Now we can write the part to the output stream and flush this chunk.
-                await writer.FlushAsync(ct).ConfigureAwait(false);
             }
-            finally
-            {
-                // The result objects use pooled memory, so we need to ensure that they
-                // return the memory by disposing them.
-                await current.DisposeAsync().ConfigureAwait(false);
-            }
+        }
+        finally
+        {
+            formatContext?.Dispose();
         }
 
         // After all parts have been written, we need to write the final boundary.
