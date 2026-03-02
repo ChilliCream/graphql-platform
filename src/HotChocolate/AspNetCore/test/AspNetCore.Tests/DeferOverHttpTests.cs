@@ -1293,6 +1293,21 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             "Expected both labeled deferred payloads to include product.name.");
     }
 
+    private static void AssertContainsOverlapIncrementalLegacyPayload(string content)
+    {
+        const string subPathPayload =
+            "\"incremental\":[{\"data\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]},\"path\":[\"product\"],\"label\":\"foo\"}]";
+
+        const string rootPathPayload =
+            "\"incremental\":[{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]}},"
+            + "\"path\":[],\"label\":\"foo\"}]";
+
+        Assert.True(
+            content.Contains(subPathPayload, StringComparison.Ordinal)
+                || content.Contains(rootPathPayload, StringComparison.Ordinal),
+            "Expected overlap incremental payload in either legacy-compatible shape.");
+    }
+
     private TestServer CreateDeferServer(
         HttpTransportVersion serverTransportVersion = HttpTransportVersion.Latest)
     {
