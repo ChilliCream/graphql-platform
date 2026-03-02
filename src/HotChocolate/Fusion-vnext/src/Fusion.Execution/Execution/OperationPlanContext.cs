@@ -394,10 +394,24 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return Array.Empty<ObjectFieldNode>();
         }
 
-        var variables = new List<ObjectFieldNode>(forwardedVariables.Length);
-
-        foreach (var variableName in forwardedVariables)
+        if (forwardedVariables.Length == 1)
         {
+            var variableName = forwardedVariables[0];
+
+            if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
+            {
+                return [new ObjectFieldNode(variableName, variableValue)];
+            }
+
+            return Array.Empty<ObjectFieldNode>();
+        }
+
+        List<ObjectFieldNode>? variables = null;
+
+        for (var i = 0; i < forwardedVariables.Length; i++)
+        {
+            var variableName = forwardedVariables[i];
+
             // we pass through the required pass through variables,
             // if they were not omitted.
             //
@@ -411,15 +425,18 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             // source schema which would in any case validate
             // any request and would reject it if a required
             // variable was missing.
-            if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
+            if (!Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
             {
-                variables.Add(new ObjectFieldNode(variableName, variableValue));
+                continue;
             }
+
+            (variables ??= new List<ObjectFieldNode>(forwardedVariables.Length))
+                .Add(new ObjectFieldNode(variableName, variableValue));
         }
 
-        return variables.Count == 0
-            ? Array.Empty<ObjectFieldNode>()
-            : variables;
+        return variables is not null
+            ? variables
+            : Array.Empty<ObjectFieldNode>();
     }
 
     public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
