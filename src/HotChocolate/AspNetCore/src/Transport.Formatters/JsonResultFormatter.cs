@@ -92,7 +92,14 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ArgumentNullException.ThrowIfNull(writer);
 
         OperationResultFormatterContext? context = null;
-        FormatInternal(result, writer, useIncrementalRfc1: false, ref context);
+        try
+        {
+            FormatInternal(result, writer, useIncrementalRfc1: false, ref context);
+        }
+        finally
+        {
+            context?.Dispose();
+        }
     }
 
     internal void Format(
@@ -100,9 +107,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         IBufferWriter<byte> writer,
         bool useIncrementalRfc1,
         ref OperationResultFormatterContext? context)
-    {
-        FormatInternal(result, writer, useIncrementalRfc1, ref context);
-    }
+        => FormatInternal(result, writer, useIncrementalRfc1, ref context);
 
     public ValueTask FormatAsync(
         OperationResult result,
@@ -112,8 +117,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
 
-        OperationResultFormatterContext? context = null;
-        return FormatInternalAsync(result, writer, useIncrementalRfc1: false, ref context, cancellationToken);
+        return FormatSingleResultAsync(result, writer, cancellationToken);
     }
 
     internal ValueTask FormatAsync(
@@ -200,14 +204,29 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         PipeWriter writer,
         bool useIncrementalRfc1,
         CancellationToken cancellationToken)
+        => FormatSingleResultAsync(result, writer, cancellationToken, useIncrementalRfc1);
+
+    private async ValueTask FormatSingleResultAsync(
+        OperationResult result,
+        PipeWriter writer,
+        CancellationToken cancellationToken,
+        bool useIncrementalRfc1 = false)
     {
         OperationResultFormatterContext? context = null;
-        return FormatInternalAsync(
-            result,
-            writer,
-            useIncrementalRfc1,
-            ref context,
-            cancellationToken);
+
+        try
+        {
+            await FormatInternalAsync(
+                result,
+                writer,
+                useIncrementalRfc1,
+                ref context,
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            context?.Dispose();
+        }
     }
 
     private ValueTask FormatInternalAsync(
@@ -236,25 +255,40 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             {
                 case OperationResult singleResult:
                     OperationResultFormatterContext? singleContext = null;
-                    FormatInternal(singleResult, writer, useIncrementalRfc1, ref singleContext);
+
+                    try
+                    {
+                        FormatInternal(singleResult, writer, useIncrementalRfc1, ref singleContext);
+                    }
+                    finally
+                    {
+                        singleContext?.Dispose();
+                    }
+
                     break;
 
                 case IResponseStream batchResult:
                     OperationResultFormatterContext? streamContext = null;
-
-                    await foreach (var partialResult in batchResult.ReadResultsAsync()
-                        .WithCancellation(cancellationToken)
-                        .ConfigureAwait(false))
+                    try
                     {
-                        try
+                        await foreach (var partialResult in batchResult.ReadResultsAsync()
+                            .WithCancellation(cancellationToken)
+                            .ConfigureAwait(false))
                         {
-                            FormatInternal(partialResult, writer, useIncrementalRfc1, ref streamContext);
-                            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                            try
+                            {
+                                FormatInternal(partialResult, writer, useIncrementalRfc1, ref streamContext);
+                                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                await partialResult.DisposeAsync().ConfigureAwait(false);
+                            }
                         }
-                        finally
-                        {
-                            await partialResult.DisposeAsync().ConfigureAwait(false);
-                        }
+                    }
+                    finally
+                    {
+                        streamContext?.Dispose();
                     }
 
                     break;
@@ -271,20 +305,26 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         CancellationToken cancellationToken = default)
     {
         OperationResultFormatterContext? context = null;
-
-        await foreach (var partialResult in responseStream.ReadResultsAsync()
-            .WithCancellation(cancellationToken)
-            .ConfigureAwait(false))
+        try
         {
-            try
+            await foreach (var partialResult in responseStream.ReadResultsAsync()
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(false))
             {
-                FormatInternal(partialResult, writer, useIncrementalRfc1, ref context);
-                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    FormatInternal(partialResult, writer, useIncrementalRfc1, ref context);
+                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await partialResult.DisposeAsync().ConfigureAwait(false);
+                }
             }
-            finally
-            {
-                await partialResult.DisposeAsync().ConfigureAwait(false);
-            }
+        }
+        finally
+        {
+            context?.Dispose();
         }
     }
 }
