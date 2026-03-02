@@ -51,8 +51,9 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         CancellationToken cancellationToken = default)
     {
         var collectTelemetry = context.CollectTelemetry;
+        var hasDiagnosticListeners = context.HasDiagnosticListeners;
         var start = collectTelemetry ? Stopwatch.GetTimestamp() : 0L;
-        var scope = CreateScope(context);
+        var scope = hasDiagnosticListeners ? CreateScope(context) : null;
         var activity = collectTelemetry ? Activity.Current : null;
         ExecutionStatus status;
         Exception? error = null;
@@ -70,7 +71,10 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         }
         catch (Exception ex)
         {
-            OnError(context, scope, ex);
+            if (hasDiagnosticListeners)
+            {
+                OnError(context, scope, ex);
+            }
             error = ex;
             status = ExecutionStatus.Failed;
         }
