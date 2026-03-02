@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,7 +5,7 @@ namespace HotChocolate.Data.Projections;
 
 public class QueryableProjectionComplexTypeTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = new Bar { Baz = "testatest" } },
         new() { Bar = new Bar { Baz = "testbtest" } }
@@ -18,20 +17,21 @@ public class QueryableProjectionComplexTypeTests
     public async Task Create_Complex_Type()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_fooEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"
-                        {
-                            root {
-                                bar {
-                                    baz
-                                }
+                    """
+                    {
+                        root {
+                            bar {
+                                baz
                             }
-                        }")
+                        }
+                    }
+                    """)
                 .Build());
 
         // assert
