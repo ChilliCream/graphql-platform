@@ -162,18 +162,22 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
         {
-            if (result.DependentsToExecute.Length > 0)
+            var dependents = node.Dependents;
+            var dependentsToExecute = result.DependentsToExecute;
+
+            if (dependentsToExecute.Length > 0
+                && dependentsToExecute.Length < dependents.Length)
             {
-                foreach (var dependent in node.Dependents)
+                foreach (var dependent in dependents)
                 {
-                    if (!result.DependentsToExecute.Contains(dependent))
+                    if (!dependentsToExecute.Contains(dependent))
                     {
                         SkipNode(context, dependent);
                     }
                 }
             }
 
-            foreach (var dependent in node.Dependents)
+            foreach (var dependent in dependents)
             {
                 if ((uint)dependent.Id >= (uint)_remainingDependencies.Length)
                 {
