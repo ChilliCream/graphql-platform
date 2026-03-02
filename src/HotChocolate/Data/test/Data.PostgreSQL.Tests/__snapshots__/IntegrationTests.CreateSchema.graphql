@@ -146,8 +146,19 @@ type ProductEdge @shareable {
 
 type ProductType {
   id: Int!
-  name: String!
   products: [Product!]!
+}
+
+type ProductTypeConnection @shareable {
+  edges: [ProductTypeEdge!]!
+  nodes: [ProductType!]!
+  pageInfo: ConnectionPageInfo!
+  totalCount: Int! @cost(weight: "10")
+}
+
+type ProductTypeEdge @shareable {
+  node: ProductType!
+  cursor: String!
 }
 
 type Query {
@@ -155,6 +166,7 @@ type Query {
   node("ID of the object." id: ID!): Node @lookup @shareable @cost(weight: "10")
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @cost(weight: "10")
+  hiddenNameProductTypes("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductTypeFilterInput @cost(weight: "10") order: [ProductTypeSortInput!] @cost(weight: "10")): ProductTypeConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   brandById(id: ID!): Brand @lookup @cost(weight: "10")
   brandByIdWithDL(id: ID!): Brand @lookup @cost(weight: "10")
@@ -237,9 +249,7 @@ input ProductFilterInput {
   description: StringOperationFilterInput
   price: DecimalOperationFilterInput
   imageFileName: StringOperationFilterInput
-  typeId: IntOperationFilterInput
   type: ProductTypeFilterInput
-  brandId: IntOperationFilterInput
   brand: BrandFilterInput
   availableStock: IntOperationFilterInput
   restockThreshold: IntOperationFilterInput
@@ -256,8 +266,11 @@ input ProductTypeFilterInput {
   and: [ProductTypeFilterInput!]
   or: [ProductTypeFilterInput!]
   id: IntOperationFilterInput
-  name: StringOperationFilterInput
   products: ListFilterInputTypeOfProductFilterInput
+}
+
+input ProductTypeSortInput {
+  id: SortEnumType @cost(weight: "10")
 }
 
 input StringOperationFilterInput {
