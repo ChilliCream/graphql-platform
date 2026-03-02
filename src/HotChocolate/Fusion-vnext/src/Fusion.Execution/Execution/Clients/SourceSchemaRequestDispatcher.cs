@@ -82,9 +82,9 @@ internal sealed class SourceSchemaRequestDispatcher
         // if it is a mutation or subscription,
         // or if the source schema does not support request batching,
         // we will dispatch it right away without waiting for other requests.
-        if ((client.Capabilities & RequestBatching) != RequestBatching
-            || request.BatchingGroupId is not { } groupId
-            || request.OperationType is OperationType.Mutation or OperationType.Subscription)
+        if (request.BatchingGroupId is not { } groupId
+            || request.OperationType is OperationType.Mutation or OperationType.Subscription
+            || (client.Capabilities & RequestBatching) != RequestBatching)
         {
             return client.ExecuteAsync(_context, request, cancellationToken);
         }
