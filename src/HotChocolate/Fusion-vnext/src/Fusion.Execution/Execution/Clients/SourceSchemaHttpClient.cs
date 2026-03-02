@@ -556,6 +556,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         {
             var (context, node, configuration) =
                 ((OperationPlanContext, ExecutionNode, SourceSchemaHttpClientConfiguration))request.State!;
+            var onSourceSchemaResult = configuration.OnSourceSchemaResult;
+            var variableCount = variables.Length;
 
             if (operation == OperationType.Subscription)
             {
@@ -563,21 +565,21 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 {
                     var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
 
-                    configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                    onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                     yield return sourceSchemaResult;
                 }
             }
             else
             {
-                switch (variables.Length)
+                switch (variableCount)
                 {
                     case 0:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
                         var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
 
-                        configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                        onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                         yield return sourceSchemaResult;
                         break;
@@ -589,14 +591,14 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                         var variable = variables[0];
                         var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
-                        configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                        onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                         yield return sourceSchemaResult;
 
                         foreach (var additionalPath in variable.AdditionalPaths)
                         {
                             var alias = sourceSchemaResult.WithPath(additionalPath);
-                            configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                            onSourceSchemaResult?.Invoke(context, node, alias);
                             yield return alias;
                         }
 
@@ -613,24 +615,24 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                             await foreach (var result in response.ReadAsResultStreamAsync()
                                 .WithCancellation(cancellationToken))
                             {
-                                if ((uint)requestIndex >= (uint)variables.Length)
+                                if ((uint)requestIndex >= (uint)variableCount)
                                 {
                                     errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                    configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
+                                    onSourceSchemaResult?.Invoke(context, node, errorResult);
                                     break;
                                 }
 
                                 var variable = variables[requestIndex];
                                 var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
-                                configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                                onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                                 yield return sourceSchemaResult;
 
                                 foreach (var additionalPath in variable.AdditionalPaths)
                                 {
                                     var alias = sourceSchemaResult.WithPath(additionalPath);
-                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    onSourceSchemaResult?.Invoke(context, node, alias);
                                     yield return alias;
                                 }
 
@@ -646,30 +648,30 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                     || variableIndex.ValueKind is not JsonValueKind.Number)
                                 {
                                     errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                    configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
+                                    onSourceSchemaResult?.Invoke(context, node, errorResult);
                                     break;
                                 }
 
                                 var index = variableIndex.GetInt32();
 
-                                if ((uint)index >= (uint)variables.Length)
+                                if ((uint)index >= (uint)variableCount)
                                 {
                                     errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                    configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
+                                    onSourceSchemaResult?.Invoke(context, node, errorResult);
                                     break;
                                 }
 
                                 var variable = variables[index];
                                 var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
-                                configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                                onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                                 yield return sourceSchemaResult;
 
                                 foreach (var additionalPath in variable.AdditionalPaths)
                                 {
                                     var alias = sourceSchemaResult.WithPath(additionalPath);
-                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    onSourceSchemaResult?.Invoke(context, node, alias);
                                     yield return alias;
                                 }
                             }
@@ -682,11 +684,11 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                             foreach (var additionalPath in variables[0].AdditionalPaths)
                             {
                                 var alias = errorResult.WithPath(additionalPath);
-                                configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                onSourceSchemaResult?.Invoke(context, node, alias);
                                 yield return alias;
                             }
 
-                            for (var i = 1; i < variables.Length; i++)
+                            for (var i = 1; i < variableCount; i++)
                             {
                                 var variable = variables[i];
                                 var sourceSchemaResult = new SourceSchemaResult(
@@ -697,7 +699,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 foreach (var additionalPath in variable.AdditionalPaths)
                                 {
                                     var alias = sourceSchemaResult.WithPath(additionalPath);
-                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    onSourceSchemaResult?.Invoke(context, node, alias);
                                     yield return alias;
                                 }
                             }
