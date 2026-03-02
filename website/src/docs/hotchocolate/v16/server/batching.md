@@ -123,39 +123,6 @@ Each result includes a `requestIndex` (0-based) that identifies which entry in t
 
 Like variable batching, results are delivered out of order. In the example above, the second request (index 1) returned its first variable result before the first request (index 0) completed. The `requestIndex` and `variableIndex` fields let the client reassemble the results correctly.
 
-Each result in the response stream includes a `requestIndex` field (0-based) that correlates the result back to its position in the request array.
-
-# Variable batching
-
-Variable batching allows you to execute a **single operation multiple times** with different sets of variables. Instead of sending `variables` as an object, you send it as an array of objects:
-
-```json
-{
-  "query": "query GetHero($episode: Episode!) { hero(episode: $episode) { name } }",
-  "variables": [
-    { "episode": "JEDI" },
-    { "episode": "EMPIRE" },
-    { "episode": "NEWHOPE" }
-  ]
-}
-```
-
-The operation executes once per variable set. Each result in the response stream includes both a `requestIndex` and a `variableIndex` (0-based) so the client can match results to their corresponding variable set.
-
-You can also combine variable batching with request batching. In this case, one or more entries in the request array can use an array of variables:
-
-```json
-[
-  {
-    "query": "query GetHero($episode: Episode!) { hero(episode: $episode) { name } }",
-    "variables": [{ "episode": "JEDI" }, { "episode": "EMPIRE" }]
-  },
-  {
-    "query": "{ __typename }"
-  }
-]
-```
-
 # Response formats
 
 Batch results are delivered as a result stream. This allows Hot Chocolate to stream result data back to your client as soon as each item in the batch has been executed.

@@ -88,6 +88,11 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaName);
             var serverOptions = sp.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
 
+            // We need to set the ServeMode to Embedded to ensure that the GraphQL IDE is
+            // working since the isolation mode does not allow us to take control over the response
+            // object.
+            serverOptions.Tool.ServeMode = ServeMode.Embedded;
+
             var pipeline = new PipelineBuilder()
                 .Use(MiddlewareFactory.CreateCancellationMiddleware())
                 .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
