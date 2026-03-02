@@ -166,9 +166,8 @@ internal sealed class SourceSchemaMerger
 
             // Ensure that all directive definitions match the canonical definition.
             if (!grouping.All(
-                d => d.DirectiveDefinition
-                    .ToSyntaxNode()
-                    .Equals(canonicalDirectiveNode, SyntaxComparison.SyntaxIgnoreDescriptions)))
+                d => DirectiveDefinitionNodeComparer.Instance
+                    .Equals(d.DirectiveDefinition.ToSyntaxNode(), canonicalDirectiveNode)))
             {
                 // Skip merging if there is a mismatch.
                 continue;

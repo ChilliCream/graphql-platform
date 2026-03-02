@@ -266,5 +266,11 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ErrorHelper_MultiPartRequestPreflightRequired", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_BatchSizeExceeded {
+            get {
+                return ResourceManager.GetString("ErrorHelper_BatchSizeExceeded", resourceCulture);
+            }
+        }
     }
 }

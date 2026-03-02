@@ -9,6 +9,9 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 rulers = 120
 
+[*.{bat,cmd,ps1}]
+end_of_line = crlf
+
 # ReSharper properties
 resharper_align_multiline_statement_conditions = false
 resharper_keep_existing_initializer_arrangement = false
