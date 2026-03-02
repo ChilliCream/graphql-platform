@@ -23,7 +23,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly NodeCompletionSet?[] _nodesToComplete;
     private readonly int _dependentBitsetWordCount;
     private readonly string?[] _schemaNames;
-    private readonly List<int> _trackedSchemaNameSlots = [];
     private readonly ImmutableArray<VariableValues>[] _variableValueSets;
     private readonly Uri?[] _transportUris;
     private readonly string?[] _transportContentTypes;
@@ -148,16 +147,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     }
 
     internal void SetDynamicSchemaName(ExecutionNode node, string schemaName)
-    {
-        var nodeId = node.Id;
-
-        if (_schemaNames[nodeId] is null)
-        {
-            _trackedSchemaNameSlots.Add(nodeId);
-        }
-
-        _schemaNames[nodeId] = schemaName;
-    }
+        => _schemaNames[node.Id] = schemaName;
 
     public string GetDynamicSchemaName(ExecutionNode node)
     {
@@ -456,15 +446,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     private void ResetNodeState()
     {
-        if (_trackedSchemaNameSlots.Count > 0)
-        {
-            foreach (var slot in _trackedSchemaNameSlots)
-            {
-                _schemaNames[slot] = null;
-            }
-
-            _trackedSchemaNameSlots.Clear();
-        }
+        Array.Clear(_schemaNames);
 
         if (_collectTelemetry)
         {
