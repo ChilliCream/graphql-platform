@@ -8,6 +8,11 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Applies recommended defaults for source schemas following the Composite Schema Specification.
     /// </summary>
+    /// <remarks>
+    /// This method registers the schema as a source schema, which automatically enables
+    /// both variable batching and request batching on the server options.
+    /// Batching is required for the gateway to efficiently fetch data from source schemas.
+    /// </remarks>
     /// <param name="builder">
     /// The request executor builder.
     /// </param>
