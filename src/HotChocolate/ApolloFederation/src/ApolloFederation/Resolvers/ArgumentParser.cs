@@ -132,7 +132,26 @@ internal static class ArgumentParser
             case SyntaxKind.IntValue:
             case SyntaxKind.FloatValue:
             case SyntaxKind.BooleanValue:
-                if (type.NamedType() is not ScalarType scalarType)
+                var namedType = type.NamedType();
+
+                if (namedType is EnumType stringEnumType
+                    && valueNode is StringValueNode stringValue
+                    && stringEnumType.TryGetRuntimeValue(stringValue.Value, out var enumValue))
+                {
+                    if (enumValue is T castedEnum)
+                    {
+                        value = castedEnum;
+                        return true;
+                    }
+
+                    if (DefaultTypeConverter.Default.TryConvert(typeof(T), enumValue, out var convertedEnum))
+                    {
+                        value = (T)convertedEnum;
+                        return true;
+                    }
+                }
+
+                if (namedType is not ScalarType scalarType)
                 {
                     break;
                 }

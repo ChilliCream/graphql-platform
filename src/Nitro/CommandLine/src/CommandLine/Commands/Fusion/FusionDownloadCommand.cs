@@ -50,7 +50,7 @@ internal sealed class FusionDownloadCommand : Command
             context.ParseResult.GetValueForOption(Opt<OptionalOutputFileOption>.Instance) ??
             new FileInfo(Path.Combine(Environment.CurrentDirectory, "gateway.fgp"));
 
-        console.Title($"Download the fusion configuration {apiId}/{stageName}");
+        console.Title($"Download the Fusion configuration {apiId}/{stageName}");
 
         await using var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
             apiId,
@@ -61,14 +61,14 @@ internal sealed class FusionDownloadCommand : Command
 
         if (stream is null)
         {
-            throw new ExitException("The api with the given id does not exist or does not have a download url.");
+            throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
         }
 
         await using var fileStream = outputFile.OpenWrite();
 
         await stream.CopyToAsync(fileStream, cancellationToken);
 
-        console.MarkupLine($"Downloaded fusion configuration to: {outputFile.FullName}");
+        console.MarkupLine($"Downloaded Fusion configuration to: {outputFile.FullName}");
 
         return ExitCodes.Success;
     }
