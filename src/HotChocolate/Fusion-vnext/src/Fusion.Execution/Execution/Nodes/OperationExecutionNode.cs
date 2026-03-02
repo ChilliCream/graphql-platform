@@ -145,55 +145,39 @@ public sealed class OperationExecutionNode : ExecutionNode
                 .ConfigureAwait(false);
             context.TrackSourceSchemaClientResponse(this, response);
 
-            var singleReadResult = await response.ReadAsSingleResultAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            if (singleReadResult is not null)
+            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
-                singleResult = singleReadResult;
-                index = 1;
-
-                if (singleResult.Errors is not null)
+                // If there is only one response, we skip the buffer rental.
+                if (index == 0)
                 {
-                    hasSomeErrors = true;
+                    singleResult = result;
+                    index = 1;
                 }
-            }
-            else
-            {
-                await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+                else
                 {
-                    // If there is only one response, we skip the buffer rental.
-                    if (index == 0)
+                    // If we have more than one response, we rent a buffer and move the first result into it.
+                    if (buffer is null)
                     {
-                        singleResult = result;
-                        index = 1;
-                    }
-                    else
-                    {
-                        // If we have more than one response, we rent a buffer and move the first result into it.
-                        if (buffer is null)
+                        var totalPathCount = variables.Length;
+
+                        for (var i = 0; i < variables.Length; i++)
                         {
-                            var totalPathCount = variables.Length;
-
-                            for (var i = 0; i < variables.Length; i++)
-                            {
-                                totalPathCount += variables[i].AdditionalPaths.Length;
-                            }
-
-                            bufferLength = Math.Max(totalPathCount, 2);
-                            buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
-                            buffer[0] = singleResult!;
+                            totalPathCount += variables[i].AdditionalPaths.Length;
                         }
 
-                        buffer[index++] = result;
+                        bufferLength = Math.Max(totalPathCount, 2);
+                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+                        buffer[0] = singleResult!;
                     }
 
-                    // Parsing errors here allows the result store to reuse the cached value
-                    // and avoids a second document lookup per result.
-                    if (result.Errors is not null)
-                    {
-                        hasSomeErrors = true;
-                    }
+                    buffer[index++] = result;
+                }
+
+                // Parsing errors here allows the result store to reuse the cached value
+                // and avoids a second document lookup per result.
+                if (result.Errors is not null)
+                {
+                    hasSomeErrors = true;
                 }
             }
         }
