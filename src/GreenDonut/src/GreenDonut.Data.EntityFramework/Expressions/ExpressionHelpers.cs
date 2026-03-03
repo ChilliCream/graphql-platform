@@ -348,7 +348,9 @@ internal static class ExpressionHelpers
                 case NullabilityState.NotNull:
                     return false;
                 case NullabilityState.Unknown:
-                    break;
+                    // The assembly was compiled without nullable reference type annotations.
+                    // Treat as non-nullable as this gives us a safe default.
+                    return false;
                 default:
                     throw new InvalidOperationException();
             }
