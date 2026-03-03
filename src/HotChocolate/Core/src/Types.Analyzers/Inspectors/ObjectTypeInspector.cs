@@ -123,25 +123,25 @@ public class ObjectTypeInspector : ISyntaxInspector
             return true;
         }
 
-        var rooType = new RootTypeInfo(
+        var rootType = new RootTypeInfo(
             classSymbol,
             operationType!.Value,
             possibleType,
             i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
             classSymbol.GetAttributes());
 
-        rooType.SourceSchemaDetected =
-            rooType.Shareable is not DirectiveScope.None
-                || rooType.Inaccessible is not DirectiveScope.None
-                || rooType.DescriptorAttributes.HasSourceSchemaAttribute()
-                || rooType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
+        rootType.SourceSchemaDetected =
+            rootType.Shareable is not DirectiveScope.None
+                || rootType.Inaccessible is not DirectiveScope.None
+                || rootType.DescriptorAttributes.HasSourceSchemaAttribute()
+                || rootType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
 
         if (diagnostics.Length > 0)
         {
-            rooType.AddDiagnosticRange(diagnostics);
+            rootType.AddDiagnosticRange(diagnostics);
         }
 
-        syntaxInfo = rooType;
+        syntaxInfo = rootType;
         return true;
     }
 
