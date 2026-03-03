@@ -325,35 +325,33 @@ internal static class ExpressionHelpers
             return Nullable.GetUnderlyingType(expression.ReturnType) is not null;
         }
 
-        var propertyInfo = expression.Body switch
+        var member = expression.Body switch
         {
-            MemberExpression
-            {
-                Member: PropertyInfo p
-            } => p,
+            MemberExpression { Member: PropertyInfo or FieldInfo } m => m.Member,
             BinaryExpression
             {
                 NodeType: ExpressionType.Coalesce,
-                Right: MemberExpression { Member: PropertyInfo p }
-            } => p,
+                Right: MemberExpression { Member: PropertyInfo or FieldInfo } m
+            } => m.Member,
             _ => null
         };
 
-        if (propertyInfo is not null)
+        if (member is not null)
         {
-            switch (GetNullabilityInfoState(propertyInfo))
+            var state = member switch
             {
-                case NullabilityState.Nullable:
-                    return true;
-                case NullabilityState.NotNull:
-                    return false;
-                case NullabilityState.Unknown:
-                    // The assembly was compiled without nullable reference type annotations.
-                    // Treat as non-nullable as this gives us a safe default.
-                    return false;
-                default:
-                    throw new InvalidOperationException();
-            }
+                PropertyInfo p => GetNullabilityInfoState(p),
+                FieldInfo f => GetNullabilityInfoState(f),
+                _ => throw new InvalidOperationException()
+            };
+
+            return state switch
+            {
+                NullabilityState.Nullable => true,
+                // Unknown means the assembly was compiled without NRT annotations;
+                // treat as non-nullable (safe default).
+                _ => false
+            };
         }
 
         throw new InvalidOperationException("The nullability of the cursor key could not be determined.");
@@ -364,6 +362,14 @@ internal static class ExpressionHelpers
         lock (s_nullabilityInfoContextLock)
         {
             return s_nullabilityInfoContext.Create(propertyInfo).ReadState;
+        }
+    }
+
+    private static NullabilityState GetNullabilityInfoState(FieldInfo fieldInfo)
+    {
+        lock (s_nullabilityInfoContextLock)
+        {
+            return s_nullabilityInfoContext.Create(fieldInfo).ReadState;
         }
     }
 
