@@ -104,7 +104,7 @@ internal static class ExpressionHelpers
 
             if (keyIsNullable && nullOrdering == NullOrdering.Unspecified)
             {
-                throw new Exception(
+                throw new InvalidOperationException(
                     "The NullOrdering option must be specified in the paging options or "
                     + "arguments when using nullable keys.");
             }
@@ -356,7 +356,7 @@ internal static class ExpressionHelpers
             }
         }
 
-        throw new Exception("The nullability of the cursor key could not be determined.");
+        throw new InvalidOperationException("The nullability of the cursor key could not be determined.");
     }
 
     private static NullabilityState GetNullabilityInfoState(PropertyInfo propertyInfo)
