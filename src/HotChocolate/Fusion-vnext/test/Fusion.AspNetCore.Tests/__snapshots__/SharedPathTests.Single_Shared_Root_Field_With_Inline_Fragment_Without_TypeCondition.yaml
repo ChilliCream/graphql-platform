@@ -1,13 +1,19 @@
-title: Single_Shared_Root_Field_With_Extra_Fields_On_Root
+title: Single_Shared_Root_Field_With_Inline_Fragment_Without_TypeCondition
 request:
   document: |
-    {
+    query(
+      $skip: Boolean!
+    ) {
       viewer {
-        schema1
-        schema2
+        ... @skip(if: $skip) {
+          schema1
+          schema2
+        }
       }
-      schema1
-      schema2
+    }
+  variables: |
+    {
+      "skip": false
     }
 response:
   body: |
@@ -16,9 +22,7 @@ response:
         "viewer": {
           "schema1": "schema1",
           "schema2": "schema2"
-        },
-        "schema1": "schema1",
-        "schema2": "schema2"
+        }
       }
     }
 sourceSchemas:
@@ -75,11 +79,18 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_4a75abf3_1 {
+            query Op_88b508ac_1(
+              $skip: Boolean!
+            ) {
               viewer {
-                schema1
+                ... @skip(if: $skip) {
+                  schema1
+                }
               }
-              schema1
+            }
+          variables: |
+            {
+              "skip": false
             }
         response:
           results:
@@ -88,8 +99,7 @@ sourceSchemas:
                 "data": {
                   "viewer": {
                     "schema1": "schema1"
-                  },
-                  "schema1": "schema1"
+                  }
                 }
               }
   - name: B
@@ -143,27 +153,14 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_4a75abf3_2 {
-                  schema2
-                }
-            - document: |
-                query Op_4a75abf3_3 {
-                  viewer {
-                    schema2
-                  }
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "schema2": "schema2"
-                }
+          document: |
+            query Op_88b508ac_2 {
+              viewer {
+                schema2
               }
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -175,15 +172,17 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        {
+        query(
+          $skip: Boolean!
+        ) {
           viewer {
-            schema1
-            schema2
+            ... @skip(if: $skip) {
+              schema1
+              schema2
+            }
           }
-          schema1
-          schema2
         }
-      hash: 4a75abf382d52f602e2150a996e24010
+      hash: 88b508acf393a30001c4910716aed6be
       searchSpace: 2
       expandedNodes: 2
   nodes:
@@ -191,27 +190,26 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_4a75abf3_1 {
+        query Op_88b508ac_1(
+          $skip: Boolean!
+        ) {
           viewer {
-            schema1
+            ... @skip(if: $skip) {
+              schema1
+            }
           }
-          schema1
         }
+      forwardedVariables:
+        - skip
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_4a75abf3_2 {
-          schema2
-        }
-      batchingGroupId: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query Op_4a75abf3_3 {
+        query Op_88b508ac_2 {
           viewer {
             schema2
           }
         }
-      batchingGroupId: 1
+      conditions:
+        - variable: $skip
+          passingValue: false

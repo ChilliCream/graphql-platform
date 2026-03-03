@@ -27,7 +27,7 @@ sourceSchemas:
       }
 
       type Product {
-        id: ID!
+        id: ID! @shareable
       }
 
       type Query {
@@ -63,32 +63,8 @@ sourceSchemas:
       }
 
       type Query {
-        productById(id: ID!): Product @lookup
+        productById(id: ID!): Product @lookup @shareable
       }
-    interactions:
-      - request:
-          document: |
-            query testQuery_1a5d8806_4(
-              $__fusion_4_id: ID!
-            ) {
-              productById(id: $__fusion_4_id) {
-                size
-              }
-            }
-          variables: |
-            {
-              "__fusion_4_id": "UHJvZHVjdDox"
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "size": 123
-                  }
-                }
-              }
   - name: C
     schema: |
       schema {
@@ -101,7 +77,7 @@ sourceSchemas:
       }
 
       type Query {
-        productById(id: ID!): Product @lookup
+        productById(id: ID!): Product @lookup @shareable
       }
 operationPlan:
   operation:
@@ -117,7 +93,8 @@ operationPlan:
         }
       name: testQuery
       hash: 1a5d88063784c543a6e4d3b0ad6634f3
-      searchSpace: 1
+      searchSpace: 2
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
@@ -134,7 +111,7 @@ operationPlan:
       operation: |
         query testQuery_1a5d8806_3(
           $__fusion_2_size: Int!
-          $__fusion_3_id: ID!
+            $__fusion_3_id: ID!
         ) {
           productById(id: $__fusion_3_id) {
             dimension(size: $__fusion_2_size)
@@ -172,5 +149,8 @@ operationPlan:
         - name: __fusion_4_id
           selectionMap: >-
             id
+      conditions:
+        - variable: $skip
+          passingValue: false
       dependencies:
         - id: 1
