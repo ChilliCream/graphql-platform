@@ -30,8 +30,6 @@ internal sealed class FusionDownloadCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<IHttpClientFactory>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -39,8 +37,6 @@ internal sealed class FusionDownloadCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
         IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
@@ -48,14 +44,16 @@ internal sealed class FusionDownloadCommand : Command
         var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
         var outputFile =
             context.ParseResult.GetValueForOption(Opt<OptionalOutputFileOption>.Instance) ??
-            new FileInfo(Path.Combine(Environment.CurrentDirectory, "gateway.fgp"));
+            new FileInfo(Path.Combine(Environment.CurrentDirectory, "gateway.far"));
+
+        var isFgp = outputFile.Extension.Equals(".fgp", StringComparison.OrdinalIgnoreCase);
 
         console.Title($"Download the Fusion configuration {apiId}/{stageName}");
 
         await using var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
             apiId,
             stageName,
-            client,
+            isFgp,
             httpClientFactory,
             cancellationToken);
 
