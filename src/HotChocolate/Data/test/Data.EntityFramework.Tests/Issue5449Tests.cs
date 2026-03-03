@@ -91,6 +91,14 @@ public class Issue5449Tests
             Name = name;
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
+        private Issue5449Blog(Issue5449Context context)
+#pragma warning restore IDE0051 // Remove unused private members
+        {
+            _context = context;
+            Name = string.Empty;
+        }
+
         public int Id { get; set; }
 
         public string Name { get; set; }
