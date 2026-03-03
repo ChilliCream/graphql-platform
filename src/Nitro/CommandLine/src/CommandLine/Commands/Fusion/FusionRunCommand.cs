@@ -85,7 +85,7 @@ public class FusionRunCommand : Command
                     .AddGraphQLGatewayServer()
                     .AddFileSystemConfiguration(archiveFile.FullName)
                     .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
-                    .ModifyServerOptions(o => o.Tool.ServeMode = ChilliCream.Nitro.App.ServeMode.Insider);
+                    .ModifyServerOptions(o => o.Tool.ServeMode = App.ServeMode.Insider);
             })
             .Configure(app =>
             {
