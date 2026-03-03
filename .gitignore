@@ -328,3 +328,6 @@ packages.lock.json
 Directory.Build.user.props
 .generated/
 .claude/
+
+refs/
+research/

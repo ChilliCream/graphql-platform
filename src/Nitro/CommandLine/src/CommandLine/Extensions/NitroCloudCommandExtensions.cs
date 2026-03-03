@@ -8,6 +8,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Environments;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion;
+using ChilliCream.Nitro.CommandLine.Commands.Init;
 using ChilliCream.Nitro.CommandLine.Commands.Launch;
 using ChilliCream.Nitro.CommandLine.Commands.Login;
 using ChilliCream.Nitro.CommandLine.Commands.Logout;
@@ -21,6 +22,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
+using ChilliCream.Nitro.CommandLine.Services.ProjectSettings;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -35,9 +37,11 @@ public static class NitroCloudCommandExtensions
     {
         builder.AddService<IConfigurationService, ConfigurationService>()
             .AddSession()
+            .AddProjectSettings()
             .AddResult()
             .AddApiClient()
             .AddSessionMiddleware()
+            .AddProjectSettingsMiddleware()
             .AddResultMiddleware();
 
         return builder;
@@ -50,6 +54,7 @@ public static class NitroCloudCommandExtensions
         command.AddCommand(new ClientCommand());
         command.AddCommand(new EnvironmentCommand());
         command.AddCommand(new FusionCommand());
+        command.AddCommand(new InitCommand());
         command.AddCommand(new LaunchCommand());
         command.AddCommand(new LoginCommand());
         command.AddCommand(new LogoutCommand());

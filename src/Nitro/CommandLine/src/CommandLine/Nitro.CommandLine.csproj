@@ -12,6 +12,10 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChilliCream.Nitro.CommandLine.Tests" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <GraphQLPersistedOperationOutput>persisted</GraphQLPersistedOperationOutput>
     <GraphQLPersistedOperationFormat>relay</GraphQLPersistedOperationFormat>
@@ -33,6 +37,8 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.SourceSchema.Packaging\HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
     <ProjectReference Include="..\CommandLine.FusionCompatibility\Nitro.CommandLine.FusionCompatibility.csproj" />
@@ -48,6 +54,11 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="System.Linq.Async" />
     <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Commands\Mcp\Serve\TeamMembers\Definitions\*.md"
+                      LogicalName="TeamMembers.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
