@@ -674,15 +674,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
     public class ConstructorInjectionBlog
     {
-        public ConstructorInjectionBlog()
-        {
-        }
-
-        private ConstructorInjectionBlog(ConstructorInjectionDbContext context)
-        {
-            Context = context;
-        }
-
         private ConstructorInjectionDbContext? Context { get; }
 
         public int Id { get; set; }

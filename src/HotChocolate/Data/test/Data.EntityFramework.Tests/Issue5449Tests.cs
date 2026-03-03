@@ -91,12 +91,6 @@ public class Issue5449Tests
             Name = name;
         }
 
-        private Issue5449Blog(Issue5449Context context)
-        {
-            _context = context;
-            Name = string.Empty;
-        }
-
         public int Id { get; set; }
 
         public string Name { get; set; }

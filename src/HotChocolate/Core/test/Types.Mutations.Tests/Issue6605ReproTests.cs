@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
