@@ -22,6 +22,7 @@ public class ObjectTypeInspector : ISyntaxInspector
     {
         var diagnostics = ImmutableArray<Diagnostic>.Empty;
         var isOperationType = false;
+        var includeInternalMembers = context.SemanticModel.Compilation.IncludeInternalMembers();
 
         OperationType? operationType = null;
         if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
@@ -58,44 +59,58 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is
-                Accessibility.Public or
-                Accessibility.Internal or
-                Accessibility.ProtectedAndInternal
-                && !member.IsIgnored())
+            if (member.IsIgnored())
             {
-                if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
-                {
-                    if (methodSymbol.Skip())
-                    {
-                        continue;
-                    }
+                continue;
+            }
 
-                    if (!isOperationType && methodSymbol.IsNodeResolver())
-                    {
-                        nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
-                    }
-                    else
-                    {
-                        resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol);
-                        continue;
-                    }
+            if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
+            {
+                var hasNodeResolverAttribute = methodSymbol.IsNodeResolver();
+                var includeInternalNodeResolver = hasNodeResolverAttribute
+                    && methodSymbol.DeclaredAccessibility is
+                        Accessibility.Internal
+                        or Accessibility.ProtectedOrInternal
+                        or Accessibility.ProtectedAndInternal;
+
+                if (!IsVisibleResolverMember(member, includeInternalMembers) && !includeInternalNodeResolver)
+                {
+                    continue;
                 }
 
-                if (member is IPropertySymbol)
+                if (methodSymbol.Skip())
                 {
-                    var compilation = context.SemanticModel.Compilation;
-
-                    resolvers[i++] = new Resolver(
-                        classSymbol.Name,
-                        member,
-                        compilation.GetDescription(member, []),
-                        compilation.GetDeprecationReason(member),
-                        ResolverResultKind.Pure,
-                        [],
-                        member.GetMemberBindings(),
-                        compilation.CreateTypeReference(member));
+                    continue;
                 }
+
+                if (!isOperationType && hasNodeResolverAttribute)
+                {
+                    nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
+                    continue;
+                }
+
+                resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol);
+                continue;
+            }
+
+            if (member is IPropertySymbol)
+            {
+                if (!IsVisibleResolverMember(member, includeInternalMembers))
+                {
+                    continue;
+                }
+
+                var compilation = context.SemanticModel.Compilation;
+
+                resolvers[i++] = new Resolver(
+                    classSymbol.Name,
+                    member,
+                    compilation.GetDescription(member, []),
+                    compilation.GetDeprecationReason(member),
+                    ResolverResultKind.Pure,
+                    [],
+                    member.GetMemberBindings(),
+                    compilation.CreateTypeReference(member));
             }
         }
 
@@ -188,6 +203,16 @@ public class ObjectTypeInspector : ISyntaxInspector
         runtimeType = null;
         return false;
     }
+
+    private static bool IsVisibleResolverMember(ISymbol member, bool includeInternalMembers)
+        => member.DeclaredAccessibility switch
+        {
+            Accessibility.Public => true,
+            Accessibility.Internal => includeInternalMembers,
+            Accessibility.ProtectedOrInternal => includeInternalMembers,
+            Accessibility.ProtectedAndInternal => includeInternalMembers,
+            _ => false
+        };
 
     private static bool IsOperationType(
         GeneratorSyntaxContext context,
