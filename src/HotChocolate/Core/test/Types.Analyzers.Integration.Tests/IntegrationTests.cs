@@ -18,8 +18,8 @@ public class IntegrationTests
             .MatchSnapshotAsync();
     }
 
-    [Fact(Skip = "FIXME")]
-    public async Task X()
+    [Fact]
+    public async Task Maps_NullOrdering_From_PagingOptions_To_PagingArguments()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -31,9 +31,10 @@ public class IntegrationTests
 
         // act
         var result = await executor.ExecuteAsync("{ ints { nodes } }");
+        var operationResult = result.ExpectOperationResult();
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(operationResult.Errors);
         Assert.Equal(NullOrdering.NativeNullsFirst, Query.PagingArguments.NullOrdering);
     }
 }

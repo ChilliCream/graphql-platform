@@ -16,6 +16,11 @@ internal static class ExpressionHelpers
 
     private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> s_cachedConverters = new();
     private static readonly NullabilityInfoContext s_nullabilityInfoContext = new();
+#if NET9_0_OR_GREATER
+    private static readonly Lock s_nullabilityInfoContextLock = new();
+#else
+    private static readonly object s_nullabilityInfoContextLock = new();
+#endif
     private static readonly Expression s_null = Expression.Constant(null);
     private static readonly Expression s_false = Expression.Constant(false);
     private static readonly Expression s_zero = Expression.Constant(0);
@@ -325,9 +330,7 @@ internal static class ExpressionHelpers
 
         if (propertyInfo is not null)
         {
-            var nullability = s_nullabilityInfoContext.Create(propertyInfo).ReadState;
-
-            switch (nullability)
+            switch (GetNullabilityInfoState(propertyInfo))
             {
                 case NullabilityState.Nullable:
                     return true;
@@ -341,6 +344,14 @@ internal static class ExpressionHelpers
         }
 
         throw new Exception("The nullability of the cursor key could not be determined.");
+    }
+
+    private static NullabilityState GetNullabilityInfoState(PropertyInfo propertyInfo)
+    {
+        lock (s_nullabilityInfoContextLock)
+        {
+            return s_nullabilityInfoContext.Create(propertyInfo).ReadState;
+        }
     }
 
     /// <summary>

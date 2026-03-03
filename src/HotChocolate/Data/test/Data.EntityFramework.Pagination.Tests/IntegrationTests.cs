@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using GreenDonut.Data;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.TestContext;
 using HotChocolate.Execution;
@@ -413,6 +415,64 @@ public class IntegrationTests(PostgreSqlResource resource)
                 : null);
     }
 
+    [Fact]
+    public async Task Paging_Next_2_With_Nullable_Key_And_Configured_NullOrdering()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
+            .BuildRequestExecutorAsync();
+
+        var firstResult = await executor.ExecuteAsync(
+            """
+            {
+                brandsNullable(first: 2) {
+                    pageInfo {
+                        endCursor
+                    }
+                }
+            }
+            """);
+
+        var firstOperationResult = firstResult.ExpectOperationResult();
+        Assert.True(firstOperationResult.Errors is null or { Count: 0 }, firstResult.ToJson());
+
+        using var firstDocument = JsonDocument.Parse(firstResult.ToJson());
+        var afterCursor = firstDocument.RootElement
+            .GetProperty("data")
+            .GetProperty("brandsNullable")
+            .GetProperty("pageInfo")
+            .GetProperty("endCursor")
+            .GetString();
+
+        Assert.False(string.IsNullOrEmpty(afterCursor));
+
+        var secondResult = await executor.ExecuteAsync(
+            $$"""
+            {
+                brandsNullable(first: 2, after: "{{afterCursor}}") {
+                    nodes {
+                        name
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }
+            """);
+
+        var secondOperationResult = secondResult.ExpectOperationResult();
+        Assert.True(secondOperationResult.Errors is null or { Count: 0 }, secondResult.ToJson());
+    }
+
     public class Query
     {
         [UsePaging]
@@ -453,6 +513,13 @@ public class IntegrationTests(PostgreSqlResource resource)
 
             return context.Products;
         }
+
+        [UsePaging]
+        public IQueryable<Brand> GetBrandsNullable(CatalogContext context)
+            => context.Brands
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.AlwaysNull)
+                .ThenBy(t => t.Id);
     }
 
     [ExtendObjectType("ProductConnection")]

@@ -15,6 +15,8 @@ namespace HotChocolate.Data.Pagination;
 internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions options)
     : CursorPagingHandler(options)
 {
+    private readonly NullOrdering _nullOrdering = options.NullOrdering;
+
     protected override ValueTask<Connection> SliceAsync(
         IResolverContext context,
         object source,
@@ -54,7 +56,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                     keys,
                     cursor,
                     true,
-                    NullOrdering.Unspecified);
+                    _nullOrdering);
             query = query.Where(whereExpr);
         }
 
@@ -66,7 +68,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                     keys,
                     cursor,
                     false,
-                    NullOrdering.Unspecified);
+                    _nullOrdering);
             query = query.Where(whereExpr);
         }
 

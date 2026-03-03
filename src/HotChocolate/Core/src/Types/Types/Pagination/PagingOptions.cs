@@ -107,6 +107,10 @@ public class PagingOptions
         ProviderName ??= other.ProviderName;
         IncludeNodesField ??= other.IncludeNodesField;
         EnableRelativeCursors ??= other.EnableRelativeCursors;
+        if (NullOrdering == NullOrdering.Unspecified)
+        {
+            NullOrdering = other.NullOrdering;
+        }
         RelativeCursorFields = RelativeCursorFields.Union(other.RelativeCursorFields);
         PageInfoFields = PageInfoFields.Union(other.PageInfoFields);
     }
@@ -127,6 +131,7 @@ public class PagingOptions
             ProviderName = ProviderName,
             IncludeNodesField = IncludeNodesField,
             EnableRelativeCursors = EnableRelativeCursors,
+            NullOrdering = NullOrdering,
             RelativeCursorFields = RelativeCursorFields,
             PageInfoFields = PageInfoFields
         };
