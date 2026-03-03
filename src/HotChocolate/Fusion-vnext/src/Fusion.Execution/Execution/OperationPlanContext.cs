@@ -260,11 +260,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<string> responseNames,
+        SelectionSetNode selectionSetNode,
         bool containsErrors = true)
     {
         var canExecutionContinue =
-            _resultStore.AddPartialResults(sourcePath, results, responseNames, containsErrors);
+            _resultStore.AddPartialResults(sourcePath, results, selectionSetNode, containsErrors);
 
         if (!canExecutionContinue)
         {
@@ -272,9 +272,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(SourceResultDocument result, ReadOnlySpan<string> responseNames)
+    internal void AddPartialResults(SourceResultDocument result)
     {
-        var canExecutionContinue = _resultStore.AddPartialResults(result, responseNames);
+        var canExecutionContinue = _resultStore.AddPartialResults(result);
 
         if (!canExecutionContinue)
         {
@@ -282,9 +282,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    internal void AddErrors(IError error, SelectionSetNode selectionSetNode, params ReadOnlySpan<Path> paths)
     {
-        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+        var canExecutionContinue = _resultStore.AddErrors(error, selectionSetNode, paths);
 
         if (!canExecutionContinue)
         {

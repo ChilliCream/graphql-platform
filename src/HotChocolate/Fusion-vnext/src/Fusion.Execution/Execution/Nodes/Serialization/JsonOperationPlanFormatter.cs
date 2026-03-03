@@ -155,15 +155,6 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteString("shortHash", node.Operation.Hash[..8]);
         jsonWriter.WriteEndObject();
 
-        jsonWriter.WriteStartArray("responseNames");
-
-        foreach (var responseName in node.ResponseNames)
-        {
-            jsonWriter.WriteStringValue(responseName);
-        }
-
-        jsonWriter.WriteEndArray();
-
         if (!node.Source.IsRoot)
         {
             jsonWriter.WriteString("source", node.Source.ToString());
@@ -255,15 +246,6 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteString("hash", node.Operation.Hash);
         jsonWriter.WriteString("shortHash", node.Operation.Hash[..8]);
         jsonWriter.WriteEndObject();
-
-        jsonWriter.WriteStartArray("responseNames");
-
-        foreach (var responseName in node.ResponseNames)
-        {
-            jsonWriter.WriteStringValue(responseName);
-        }
-
-        jsonWriter.WriteEndArray();
 
         if (!node.Source.IsRoot)
         {
@@ -370,7 +352,6 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteString("type", node.Type.ToString());
 
         jsonWriter.WriteString("idValue", node.IdValue.ToString());
-        jsonWriter.WriteString("responseName", node.ResponseName);
 
         jsonWriter.WriteStartObject("branches");
 

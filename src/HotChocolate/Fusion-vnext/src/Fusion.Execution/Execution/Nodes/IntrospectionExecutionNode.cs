@@ -70,7 +70,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         }
 
         ExecuteSelections(context, backlog);
-        context.AddPartialResults(resultBuilder.Build(), _responseNames);
+        context.AddPartialResults(resultBuilder.Build());
 
         return new ValueTask<ExecutionStatus>(ExecutionStatus.Success);
     }

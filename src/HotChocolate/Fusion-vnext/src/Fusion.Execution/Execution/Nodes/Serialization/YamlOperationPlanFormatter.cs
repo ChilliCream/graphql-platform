@@ -330,7 +330,6 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("type: {0}", node.Type.ToString());
 
         writer.WriteLine("idValue: {0}", node.IdValue.ToString());
-        writer.WriteLine("responseName: {0}", node.ResponseName);
 
         if (node.Branches.Count > 0)
         {

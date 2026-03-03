@@ -168,7 +168,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         SelectionPath? target = null;
         List<OperationRequirement>? requirements = null;
         string[]? forwardedVariables = null;
-        string[]? responseNames = null;
         int[]? dependencies = null;
         int? batchingGroupId = null;
 
@@ -209,14 +208,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
-        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
-        {
-            responseNames = responseNamesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
-        }
-
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
         {
             dependencies = dependenciesElement
@@ -232,6 +223,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var conditions = TryParseConditions(nodeElement);
 
+        var sourceSelectionPath = source ?? SelectionPath.Root;
+        var documentNode = Utf8GraphQLParser.Parse(document);
+        var operationDefinitionNode = documentNode.Definitions.OfType<OperationDefinitionNode>().Single();
+        var selectionSetNode = ExtractSelectionSetNode(operationDefinitionNode, sourceSelectionPath);
+
         var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
             && requiresFileUploadElement.ValueKind == JsonValueKind.True;
 
@@ -242,12 +238,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 operationType,
                 document,
                 hash),
+            selectionSetNode,
             schemaName,
             target ?? SelectionPath.Root,
-            source ?? SelectionPath.Root,
+            sourceSelectionPath,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            responseNames ?? [],
             conditions,
             batchingGroupId,
             requiresFileUpload);
@@ -273,7 +269,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         SelectionPath? source = null;
         List<OperationRequirement>? requirements = null;
         string[]? forwardedVariables = null;
-        string[]? responseNames = null;
         int[]? dependencies = null;
         int? batchingGroupId = null;
 
@@ -313,14 +308,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
-        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
-        {
-            responseNames = responseNamesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
-        }
-
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
         {
             dependencies = dependenciesElement
@@ -336,6 +323,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var conditions = TryParseConditions(nodeElement);
 
+        var sourceSelectionPath = source ?? SelectionPath.Root;
+        var documentNode = Utf8GraphQLParser.Parse(document);
+        var operationDefinitionNode = documentNode.Definitions.OfType<OperationDefinitionNode>().Single();
+        var selectionSetNode = ExtractSelectionSetNode(operationDefinitionNode, sourceSelectionPath);
+
         var node = new OperationBatchExecutionNode(
             id,
             new OperationSourceText(
@@ -343,16 +335,23 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 operationType,
                 document,
                 hash),
+            selectionSetNode,
             schemaName,
             targets,
-            source ?? SelectionPath.Root,
+            sourceSelectionPath,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            responseNames ?? [],
             conditions,
             batchingGroupId);
 
         return (node, dependencies, null, null);
+    }
+
+    private static SelectionSetNode ExtractSelectionSetNode(
+        OperationDefinitionNode operationDefinitionNode,
+        SelectionPath sourceSelectionPath)
+    {
+        throw new NotImplementedException();
     }
 
     private static (IntrospectionExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseIntrospectionNode(

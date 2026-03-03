@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -12,10 +13,10 @@ public sealed class OperationExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
-    private readonly string[] _responseNames;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
+    private readonly SelectionSetNode _selectionSetNode;
     private readonly int? _batchingGroupId;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
@@ -24,25 +25,25 @@ public sealed class OperationExecutionNode : ExecutionNode
     internal OperationExecutionNode(
         int id,
         OperationSourceText operation,
+        SelectionSetNode selectionSetNode,
         string? schemaName,
         SelectionPath target,
         SelectionPath source,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
-        string[] responseNames,
         ExecutionNodeCondition[] conditions,
         int? batchingGroupId,
         bool requiresFileUpload)
     {
         Id = id;
         _operation = operation;
+        _selectionSetNode = selectionSetNode;
         _batchingGroupId = batchingGroupId;
         _schemaName = schemaName;
         _target = target;
         _source = source;
         _requirements = requirements;
         _forwardedVariables = forwardedVariables;
-        _responseNames = responseNames;
         _conditions = conditions;
         _requiresFileUpload = requiresFileUpload;
     }
@@ -62,14 +63,14 @@ public sealed class OperationExecutionNode : ExecutionNode
     public OperationSourceText Operation => _operation;
 
     /// <summary>
+    /// Gets the <see cref="HotChocolate.Language.SelectionSetNode"/> at <see cref="Source"/> in the <see cref="Operation"/>.
+    /// </summary>
+    public SelectionSetNode SelectionSetNode => _selectionSetNode;
+
+    /// <summary>
     /// Gets the deterministic batching group identifier assigned at planning time.
     /// </summary>
     public int? BatchingGroupId => _batchingGroupId;
-
-    /// <summary>
-    /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.
-    /// </summary>
-    public ReadOnlySpan<string> ResponseNames => _responseNames;
 
     /// <inheritdoc />
     public override string? SchemaName => _schemaName;
@@ -213,7 +214,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 singleResult.Dispose();
             }
 
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables, _selectionSetNode);
             return ExecutionStatus.Failed;
         }
 
@@ -224,7 +225,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     buffer.AsSpan(0, index),
-                    _responseNames,
+                    _selectionSetNode,
                     hasSomeErrors);
             }
             else if (singleResult is not null)
@@ -233,7 +234,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
-                    _responseNames,
+                    _selectionSetNode,
                     hasSomeErrors);
             }
             else
@@ -241,7 +242,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     [],
-                    _responseNames,
+                    _selectionSetNode,
                     hasSomeErrors);
             }
         }
@@ -255,7 +256,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables, _selectionSetNode);
             return ExecutionStatus.Failed;
         }
         finally
@@ -315,7 +316,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception ex)
         {
-            AddErrors(context, ex, variables, _responseNames);
+            AddErrors(context, ex, variables, _selectionSetNode);
             context.DiagnosticEvents.SubscriptionTransportError(context, this, schemaName, subscriptionId, ex);
             return SubscriptionResult.Failed(subscriptionId, ex);
         }
@@ -325,13 +326,13 @@ public sealed class OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         Exception exception,
         ImmutableArray<VariableValues> variables,
-        ReadOnlySpan<string> responseNames)
+        SelectionSetNode selectionSetNode)
     {
         var error = ErrorBuilder.FromException(exception).Build();
 
         if (variables.Length == 0)
         {
-            context.AddErrors(error, responseNames, Path.Root);
+            context.AddErrors(error, selectionSetNode, Path.Root);
         }
         else
         {
@@ -358,7 +359,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     }
                 }
 
-                context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));
+                context.AddErrors(error, selectionSetNode, pathBuffer.AsSpan(0, pathBufferLength));
             }
             finally
             {
@@ -483,14 +484,14 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
                     _subscriptionId,
                     exception);
-                _context.AddErrors(error, _node._responseNames);
+                _context.AddErrors(error, _node._selectionSetNode);
                 return false;
             }
 
             if (hasResult)
             {
                 _resultBuffer[0] = _resultEnumerator.Current;
-                _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
+                _context.AddPartialResults(_node._source, _resultBuffer, _node._selectionSetNode);
 
                 Current = new EventMessageResult(
                     _node.Id,

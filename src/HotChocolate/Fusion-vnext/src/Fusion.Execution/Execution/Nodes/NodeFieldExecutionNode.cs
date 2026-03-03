@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -10,7 +11,7 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
 {
     private readonly Dictionary<string, ExecutionNode> _branches = [];
     private ExecutionNode _fallbackQuery = null!;
-    private readonly string _responseName;
+    private readonly SelectionSetNode _selectionSetNode;
     private readonly IValueNode _idValue;
     private readonly ExecutionNodeCondition[] _conditions;
 
@@ -20,10 +21,19 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
         IValueNode idValue,
         ExecutionNodeCondition[] conditions)
     {
-        _responseName = responseName;
-        _idValue = idValue;
         Id = id;
+        _idValue = idValue;
         _conditions = conditions;
+
+        const string nodeFieldName = "node";
+        _selectionSetNode = new SelectionSetNode([
+            new FieldNode(
+                name: new NameNode(nodeFieldName),
+                alias: responseName != nodeFieldName ? new NameNode(responseName) : null,
+                directives: [],
+                arguments: [],
+                selectionSet: null)
+        ]);
     }
 
     /// <inheritdoc />
@@ -49,11 +59,6 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
     /// This can be a <see cref="VariableNode" /> or a <see cref="StringValueNode" />.
     /// </summary>
     public IValueNode IdValue => _idValue;
-
-    /// <summary>
-    /// Gets the response name for the node field.
-    /// </summary>
-    public string ResponseName => _responseName;
 
     /// <summary>
     /// Gets the fallback query for the case that a valid type name was requested,
@@ -82,7 +87,7 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
                 .SetExtension("originalValue", id)
                 .Build();
 
-            context.AddErrors(error, [_responseName], Path.Root);
+            context.AddErrors(error, _selectionSetNode, Path.Root);
 
             return ValueTask.FromResult(ExecutionStatus.Failed);
         }

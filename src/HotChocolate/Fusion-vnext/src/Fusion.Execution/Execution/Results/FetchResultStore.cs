@@ -92,13 +92,14 @@ internal sealed class FetchResultStore : IDisposable
     public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<string> responseNames)
-        => AddPartialResults(sourcePath, results, responseNames, containsErrors: true);
+        SelectionSetNode selectionSetNode)
+        // TODO: Is this correct?
+        => AddPartialResults(sourcePath, results, selectionSetNode, containsErrors: true);
 
     public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<string> responseNames,
+        SelectionSetNode selectionSetNode,
         bool containsErrors)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -114,13 +115,13 @@ internal sealed class FetchResultStore : IDisposable
         if (!containsErrors)
         {
             return results.Length == 1
-                ? AddSinglePartialResultNoErrors(sourcePath, results[0], responseNames)
-                : AddPartialResultsNoErrors(sourcePath, results, responseNames);
+                ? AddSinglePartialResultNoErrors(sourcePath, results[0], selectionSetNode)
+                : AddPartialResultsNoErrors(sourcePath, results, selectionSetNode);
         }
 
         if (results.Length == 1)
         {
-            return AddSinglePartialResult(sourcePath, results[0], responseNames);
+            return AddSinglePartialResult(sourcePath, results[0], selectionSetNode);
         }
 
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
@@ -170,7 +171,7 @@ internal sealed class FetchResultStore : IDisposable
                             result.AdditionalPaths.AsSpan(),
                             dataElementsSpan[i],
                             errorTriesSpan[i],
-                            responseNames))
+                            selectionSetNode))
                     {
                         return false;
                     }
@@ -191,7 +192,7 @@ internal sealed class FetchResultStore : IDisposable
     private bool AddPartialResultsNoErrors(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<string> responseNames)
+        SelectionSetNode selectionSetNode)
     {
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
         var dataElementsSpan = dataElements.AsSpan(0, results.Length);
@@ -219,7 +220,7 @@ internal sealed class FetchResultStore : IDisposable
                             result.AdditionalPaths.AsSpan(),
                             dataElementsSpan[i],
                             errorTrie: null,
-                            responseNames))
+                            selectionSetNode))
                     {
                         return false;
                     }
@@ -238,7 +239,7 @@ internal sealed class FetchResultStore : IDisposable
     private bool AddSinglePartialResult(
         SelectionPath sourcePath,
         SourceSchemaResult result,
-        ReadOnlySpan<string> responseNames)
+        SelectionSetNode selectionSetNode)
     {
         _memory.Push(result);
 
@@ -260,14 +261,14 @@ internal sealed class FetchResultStore : IDisposable
                 result.AdditionalPaths.AsSpan(),
                 dataElement,
                 errorTrie,
-                responseNames);
+                selectionSetNode);
         }
     }
 
     private bool AddSinglePartialResultNoErrors(
         SelectionPath sourcePath,
         SourceSchemaResult result,
-        ReadOnlySpan<string> responseNames)
+        SelectionSetNode selectionSetNode)
     {
         _memory.Push(result);
         var dataElement = GetDataElement(sourcePath, result.Data);
@@ -280,26 +281,11 @@ internal sealed class FetchResultStore : IDisposable
                 result.AdditionalPaths.AsSpan(),
                 dataElement,
                 errorTrie: null,
-                responseNames);
+                selectionSetNode);
         }
     }
 
-    /// <summary>
-    /// Adds partial root data to the result document.
-    /// </summary>
-    /// <param name="document">
-    /// The document that contains partial results that need to be merged into the `Data` segment of the result.
-    /// </param>
-    /// <param name="responseNames">
-    /// The names of the root fields the document provides data for.
-    /// </param>
-    /// <returns>
-    /// true if the result was integrated.
-    /// </returns>
-    /// <exception cref="ArgumentException">
-    /// <paramref name="document"/> is null.
-    /// </exception>
-    public bool AddPartialResults(SourceResultDocument document, ReadOnlySpan<string> responseNames)
+    public bool AddPartialResults(SourceResultDocument document)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(document);
@@ -311,7 +297,9 @@ internal sealed class FetchResultStore : IDisposable
 
             return _valueCompletion.BuildResult(
                 partial,
-                data, errorTrie: null, responseNames: responseNames);
+                data,
+                errorTrie: null,
+                selectionSetNode: null);
         }
     }
 
@@ -321,7 +309,7 @@ internal sealed class FetchResultStore : IDisposable
         _errors.Add(error);
     }
 
-    public bool AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    public bool AddErrors(IError error, SelectionSetNode selectionSetNode, params ReadOnlySpan<Path> paths)
     {
         lock (_lock)
         {
@@ -345,7 +333,7 @@ internal sealed class FetchResultStore : IDisposable
                 var canExecutionContinue =
                     _valueCompletion.BuildErrorResult(
                         element,
-                        responseNames,
+                        selectionSetNode,
                         error,
                         path);
                 if (!canExecutionContinue)
@@ -368,16 +356,16 @@ AddErrors_Next:
         ReadOnlySpan<Path> additionalPaths,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
-        ReadOnlySpan<string> responseNames)
+        SelectionSetNode selectionSetNode)
     {
-        if (!SaveSafeResult(resultData, path, dataElement, errorTrie, responseNames))
+        if (!SaveSafeResult(resultData, path, dataElement, errorTrie, selectionSetNode))
         {
             return false;
         }
 
         for (var i = 0; i < additionalPaths.Length; i++)
         {
-            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, responseNames))
+            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, selectionSetNode))
             {
                 return false;
             }
@@ -391,7 +379,7 @@ AddErrors_Next:
         Path path,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
-        ReadOnlySpan<string> responseNames)
+        SelectionSetNode selectionSetNode)
     {
         if (resultData.IsNullOrInvalidated)
         {
@@ -409,7 +397,7 @@ AddErrors_Next:
                 dataElement,
                 element,
                 errorTrie,
-                responseNames);
+                selectionSetNode);
 
         if (canExecutionContinue)
         {

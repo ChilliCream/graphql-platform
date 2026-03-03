@@ -46,17 +46,17 @@ internal sealed class ValueCompletion
         SourceResultElement source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
-        ReadOnlySpan<string> responseNames)
+        SelectionSetNode? selectionSetNode)
     {
-        if (source is not { ValueKind: JsonValueKind.Object })
-        {
-            var error = errorTrie?.FindFirstError() ??
-                ErrorBuilder.New()
-                    .SetMessage("Unexpected Execution Error")
-                    .Build();
-
-            return BuildErrorResult(target, responseNames, error, target.Path);
-        }
+        // if (source is not { ValueKind: JsonValueKind.Object })
+        // {
+        //     var error = errorTrie?.FindFirstError() ??
+        //         ErrorBuilder.New()
+        //             .SetMessage("Unexpected Execution Error")
+        //             .Build();
+        //
+        //     return BuildErrorResult(target, selectionSetNode, error, target.Path);
+        // }
 
         foreach (var property in source.EnumerateObject())
         {
@@ -87,8 +87,7 @@ internal sealed class ValueCompletion
     }
 
     /// <summary>
-    /// Tries to <c>null</c> and assign the <paramref name="error"/> to the path
-    /// of each <paramref name="responseNames"/>.
+    /// TODO
     /// </summary>
     /// <returns>
     /// <c>true</c>, if the execution can continue.
@@ -96,37 +95,37 @@ internal sealed class ValueCompletion
     /// </returns>
     public bool BuildErrorResult(
         CompositeResultElement target,
-        ReadOnlySpan<string> responseNames,
+        SelectionSetNode selectionSetNode,
         IError error,
         Path path)
     {
-        foreach (var responseName in responseNames)
-        {
-            if (!target.TryGetProperty(responseName, out var fieldResult)
-                || fieldResult.IsInternal)
-            {
-                continue;
-            }
-
-            var selection = fieldResult.AssertSelection();
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(path.Append(responseName))
-                .AddLocation(selection.SyntaxNodes[0].Node)
-                .Build();
-            errorWithPath = _errorHandler.Handle(errorWithPath);
-
-            _store.AddError(errorWithPath);
-
-            switch (_errorHandlingMode)
-            {
-                case ErrorHandlingMode.Halt:
-                    return false;
-
-                case ErrorHandlingMode.Propagate when selection.Type.Kind is TypeKind.NonNull:
-                    var didPropagateToRoot = PropagateNullValues(fieldResult);
-                    return !didPropagateToRoot;
-            }
-        }
+        // foreach (var responseName in responseNames)
+        // {
+        //     if (!target.TryGetProperty(responseName, out var fieldResult)
+        //         || fieldResult.IsInternal)
+        //     {
+        //         continue;
+        //     }
+        //
+        //     var selection = fieldResult.AssertSelection();
+        //     var errorWithPath = ErrorBuilder.FromError(error)
+        //         .SetPath(path.Append(responseName))
+        //         .AddLocation(selection.SyntaxNodes[0].Node)
+        //         .Build();
+        //     errorWithPath = _errorHandler.Handle(errorWithPath);
+        //
+        //     _store.AddError(errorWithPath);
+        //
+        //     switch (_errorHandlingMode)
+        //     {
+        //         case ErrorHandlingMode.Halt:
+        //             return false;
+        //
+        //         case ErrorHandlingMode.Propagate when selection.Type.Kind is TypeKind.NonNull:
+        //             var didPropagateToRoot = PropagateNullValues(fieldResult);
+        //             return !didPropagateToRoot;
+        //     }
+        // }
 
         return true;
     }

@@ -304,17 +304,18 @@ public sealed partial class OperationPlanner
 
                     var operation = RemoveEmptyTypeNames(operationStep.Definition);
                     var operationSource = operation.ToSourceText();
+                    var selectionSetNode = ExtractSelectionSetNode(operation, operationStep.Source);
                     int? batchingGroupId = batchingGroupLookup.TryGetValue(step.Id, out var groupId) ? groupId : null;
 
                     var node = new OperationExecutionNode(
                         operationStep.Id,
                         operationSource,
+                        selectionSetNode,
                         operationStep.SchemaName,
                         operationStep.Target,
                         operationStep.Source,
                         requirements,
                         variables?.Count > 0 ? variables.ToArray() : [],
-                        GetResponseNamesFromPath(operationStep.Definition, operationStep.Source),
                         operationStep.Conditions,
                         batchingGroupId,
                         requiresFileUpload);
@@ -615,12 +616,12 @@ public sealed partial class OperationPlanner
                 var mergedNode = new OperationBatchExecutionNode(
                     primary.Id,
                     canonicalOp,
+                    primary.SelectionSetNode,
                     primary.SchemaName,
                     targets,
                     primary.Source,
                     canonicalRequirements,
                     primary.ForwardedVariables.ToArray(),
-                    primary.ResponseNames.ToArray(),
                     primary.Conditions.ToArray(),
                     primary.BatchingGroupId);
 
@@ -699,7 +700,7 @@ public sealed partial class OperationPlanner
         return $"{node.SchemaName}|{node.Source}|{conditions}|{bodyText}";
     }
 
-    private static (OperationSourceText operation, OperationRequirement[] requirements) CanonicalizeOperation(
+    private static (OperationSourceText Operation, OperationRequirement[] Requirements) CanonicalizeOperation(
         OperationExecutionNode node)
     {
         // Use the primary node's operation and requirements as-is.
@@ -770,93 +771,6 @@ public sealed partial class OperationPlanner
         return text;
     }
 
-    private static string[] GetResponseNamesFromPath(
-        OperationDefinitionNode operationDefinition,
-        SelectionPath path)
-    {
-        var selectionSet = GetSelectionSetNodeFromPath(operationDefinition, path);
-
-        if (selectionSet is null)
-        {
-            return [];
-        }
-
-        var responseNames = new List<string>();
-
-        var stack = new Stack<ISelectionNode>(selectionSet.Selections);
-
-        while (stack.TryPop(out var selection))
-        {
-            switch (selection)
-            {
-                case FieldNode fieldNode:
-                    responseNames.Add(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
-                    break;
-
-                case InlineFragmentNode inlineFragmentNode:
-                    foreach (var child in inlineFragmentNode.SelectionSet.Selections)
-                    {
-                        stack.Push(child);
-                    }
-
-                    break;
-            }
-        }
-
-        return [.. responseNames];
-    }
-
-    private static SelectionSetNode? GetSelectionSetNodeFromPath(
-        OperationDefinitionNode operationDefinition,
-        SelectionPath path)
-    {
-        var current = operationDefinition.SelectionSet;
-
-        if (path.IsRoot)
-        {
-            return current;
-        }
-
-        for (var i = 0; i < path.Segments.Length; i++)
-        {
-            var segment = path.Segments[i];
-
-            switch (segment.Kind)
-            {
-                case SelectionPathSegmentKind.InlineFragment:
-                {
-                    var selection = current.Selections
-                        .OfType<InlineFragmentNode>()
-                        .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name);
-
-                    if (selection is null)
-                    {
-                        return null;
-                    }
-
-                    current = selection.SelectionSet;
-                    break;
-                }
-                case SelectionPathSegmentKind.Field:
-                {
-                    var selection = current.Selections
-                        .OfType<FieldNode>()
-                        .FirstOrDefault(s => s.Alias?.Value == segment.Name || s.Name.Value == segment.Name);
-
-                    if (selection?.SelectionSet is null)
-                    {
-                        return null;
-                    }
-
-                    current = selection.SelectionSet;
-                    break;
-                }
-            }
-        }
-
-        return current;
-    }
-
     private static bool DoVariablesContainUploadScalar(
         IReadOnlyList<VariableDefinitionNode> variables,
         ISchemaDefinition schema)
@@ -899,6 +813,13 @@ public sealed partial class OperationPlanner
         }
 
         return false;
+    }
+
+    private static SelectionSetNode ExtractSelectionSetNode(
+        OperationDefinitionNode operationDefinitionNode,
+        SelectionPath sourceSelectionPath)
+    {
+        throw new NotImplementedException();
     }
 
     private static OperationDefinitionNode RemoveEmptySelections(OperationDefinitionNode operationDefinition)
