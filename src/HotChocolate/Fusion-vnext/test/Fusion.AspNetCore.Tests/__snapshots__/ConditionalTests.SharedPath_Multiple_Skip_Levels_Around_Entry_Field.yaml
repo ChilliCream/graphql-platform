@@ -80,9 +80,9 @@ operationPlan:
           }
         }
       conditions:
-        - variable: $skip2
-          passingValue: false
         - variable: $skip1
+          passingValue: false
+        - variable: $skip2
           passingValue: false
     - id: 2
       type: Operation
@@ -94,7 +94,7 @@ operationPlan:
           }
         }
       conditions:
-        - variable: $skip2
-          passingValue: false
         - variable: $skip1
+          passingValue: false
+        - variable: $skip2
           passingValue: false

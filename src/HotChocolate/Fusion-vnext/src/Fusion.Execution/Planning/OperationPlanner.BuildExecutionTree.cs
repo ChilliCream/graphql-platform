@@ -1061,7 +1061,14 @@ public sealed partial class OperationPlanner
             mergedConditions.Add(existing);
         }
 
-        return step with { Definition = newOperation, Conditions = mergedConditions.ToArray() };
+        return step with
+        {
+            Definition = newOperation,
+            Conditions = mergedConditions
+                .OrderBy(c => c.VariableName, StringComparer.Ordinal)
+                .ThenBy(c => c.PassingValue)
+                .ToArray(),
+        };
     }
 
     private static SelectionSetNode RewriteConditionalSelectionSet(
