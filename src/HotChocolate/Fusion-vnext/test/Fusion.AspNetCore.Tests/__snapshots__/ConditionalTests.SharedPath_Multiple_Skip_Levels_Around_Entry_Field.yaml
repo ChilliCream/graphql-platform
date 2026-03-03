@@ -88,13 +88,9 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_894a38a7_2(
-          $skip1: Boolean!
-        ) {
+        query testQuery_894a38a7_2 {
           viewer {
-            ... @skip(if: $skip1) {
-              fieldB
-            }
+            fieldB
           }
         }
       conditions:
@@ -102,5 +98,3 @@ operationPlan:
           passingValue: false
         - variable: $skip1
           passingValue: false
-      forwardedVariables:
-        - skip1
