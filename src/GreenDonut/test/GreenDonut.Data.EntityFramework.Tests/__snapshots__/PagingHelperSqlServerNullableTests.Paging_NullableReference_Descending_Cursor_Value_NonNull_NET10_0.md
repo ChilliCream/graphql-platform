@@ -64,7 +64,6 @@ DECLARE @value4 uniqueIdentifier = 'dd8f3a21-89ab-4cde-a203-7d3c45678901';
 
 SELECT TOP(@p) [r].[Id], [r].[Date], [r].[String], [r].[Time]
 FROM [Records] AS [r]
-WHERE [r].[Date] < @value OR [r].[Date] IS NULL OR ([r].[Date] = @value AND ([r].[String] < @value1 OR [r].[String] IS NULL)) OR ([r].[Date] = @value AND [r].[String] = @value1 AND [r].[Id] < @value4)
+WHERE [r].[Date] IS NULL OR [r].[Date] < @value OR ([r].[Date] = @value AND ([r].[String] IS NULL OR [r].[String] < @value1)) OR ([r].[Date] = @value AND [r].[String] IS NOT NULL AND [r].[String] = @value1 AND [r].[Id] < @value4)
 ORDER BY [r].[Date] DESC, [r].[String] DESC, [r].[Id] DESC
 ```
-

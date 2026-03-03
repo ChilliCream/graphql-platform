@@ -62,8 +62,7 @@ LIMIT @p
 -- @p='4'
 SELECT r."Id", r."Date", r."String", r."Time"
 FROM "Records" AS r
-WHERE r."Date" < @value OR (r."Date" = @value AND r."Time" IS NOT NULL) OR (r."Date" = @value AND r."Time" IS NULL AND r."Id" < @value2)
+WHERE r."Date" < @value OR (r."Date" IS NOT NULL AND r."Date" = @value AND r."Time" IS NOT NULL) OR (r."Date" IS NOT NULL AND r."Date" = @value AND r."Time" IS NULL AND r."Id" < @value2)
 ORDER BY r."Date" DESC, r."Time" DESC, r."Id" DESC
 LIMIT @p
 ```
-

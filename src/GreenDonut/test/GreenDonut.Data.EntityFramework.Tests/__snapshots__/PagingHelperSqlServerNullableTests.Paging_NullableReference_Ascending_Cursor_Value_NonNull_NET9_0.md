@@ -64,7 +64,6 @@ DECLARE @__value_2 uniqueIdentifier = 'dd8f3a21-89ab-4cde-a203-7d3c45678901';
 
 SELECT TOP(@__p_3) [r].[Id], [r].[Date], [r].[String], [r].[Time]
 FROM [Records] AS [r]
-WHERE [r].[Date] > @__value_0 OR ([r].[Date] = @__value_0 AND [r].[String] > @__value_1) OR ([r].[Date] = @__value_0 AND [r].[String] = @__value_1 AND [r].[Id] > @__value_2)
+WHERE [r].[Date] > @__value_0 OR ([r].[Date] IS NOT NULL AND [r].[Date] = @__value_0 AND [r].[String] > @__value_1) OR ([r].[Date] IS NOT NULL AND [r].[Date] = @__value_0 AND [r].[String] IS NOT NULL AND [r].[String] = @__value_1 AND [r].[Id] > @__value_2)
 ORDER BY [r].[Date], [r].[String], [r].[Id]
 ```
-

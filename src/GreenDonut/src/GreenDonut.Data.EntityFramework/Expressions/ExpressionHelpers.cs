@@ -163,10 +163,12 @@ internal static class ExpressionHelpers
             }
             else
             {
-                // SQL: WHERE key = cursorValue.
-                keyExpr = Expression.Equal(
-                    Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
-                    s_zero);
+                // SQL: WHERE key IS NOT NULL AND key = cursorValue.
+                keyExpr = Expression.AndAlso(
+                    Expression.NotEqual(keyExpr, s_null),
+                    Expression.Equal(
+                        Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                        s_zero));
             }
         }
         else
@@ -220,12 +222,12 @@ internal static class ExpressionHelpers
                 else
                 {
                     // When nulls are last, null is greater than any non-null value.
-                    // SQL: WHERE key > cursorValue OR key IS NULL.
-                    keyExpr = Expression.Or(
+                    // SQL: WHERE key IS NULL OR key > cursorValue.
+                    keyExpr = Expression.OrElse(
+                        Expression.Equal(keyExpr, s_null),
                         Expression.GreaterThan(
                             Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
-                            s_zero),
-                        Expression.Equal(keyExpr, s_null));
+                            s_zero));
                 }
             }
         }
@@ -273,12 +275,12 @@ internal static class ExpressionHelpers
                 if (nullOrdering == NullOrdering.NativeNullsFirst)
                 {
                     // With nulls first, null is less than any non-null value.
-                    // SQL: WHERE key < cursorValue OR key IS NULL.
-                    keyExpr = Expression.Or(
+                    // SQL: WHERE key IS NULL OR key < cursorValue.
+                    keyExpr = Expression.OrElse(
+                        Expression.Equal(keyExpr, s_null),
                         Expression.LessThan(
                             Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
-                            s_zero),
-                        Expression.Equal(keyExpr, s_null));
+                            s_zero));
                 }
                 else
                 {

@@ -62,8 +62,7 @@ LIMIT @__p_0
 -- @__p_2='4'
 SELECT r."Id", r."Date", r."String", r."Time"
 FROM "Records" AS r
-WHERE r."Date" < @__value_0 OR (r."Date" = @__value_0 AND r."Time" IS NOT NULL) OR (r."Date" = @__value_0 AND r."Time" IS NULL AND r."Id" < @__value_1)
+WHERE r."Date" < @__value_0 OR (r."Date" IS NOT NULL AND r."Date" = @__value_0 AND r."Time" IS NOT NULL) OR (r."Date" IS NOT NULL AND r."Date" = @__value_0 AND r."Time" IS NULL AND r."Id" < @__value_1)
 ORDER BY r."Date" DESC, r."Time" DESC, r."Id" DESC
 LIMIT @__p_2
 ```
-

@@ -64,19 +64,6 @@ DECLARE @__value_2 uniqueIdentifier = 'dd8f3a21-89ab-4cde-a203-7d3c45678901';
 
 SELECT TOP(@__p_3) [r].[Id], [r].[Date], [r].[String], [r].[Time]
 FROM [Records] AS [r]
-WHERE CASE
-    WHEN [r].[Date] < @__value_0 THEN CAST(1 AS bit)
-    ELSE CAST(0 AS bit)
-END | CASE
-    WHEN [r].[Date] IS NULL THEN CAST(1 AS bit)
-    ELSE CAST(0 AS bit)
-END = CAST(1 AS bit) OR ([r].[Date] = @__value_0 AND CASE
-    WHEN [r].[String] < @__value_1 THEN CAST(1 AS bit)
-    ELSE CAST(0 AS bit)
-END | CASE
-    WHEN [r].[String] IS NULL THEN CAST(1 AS bit)
-    ELSE CAST(0 AS bit)
-END = CAST(1 AS bit)) OR ([r].[Date] = @__value_0 AND [r].[String] = @__value_1 AND [r].[Id] < @__value_2)
+WHERE [r].[Date] IS NULL OR [r].[Date] < @__value_0 OR ([r].[Date] = @__value_0 AND ([r].[String] IS NULL OR [r].[String] < @__value_1)) OR ([r].[Date] = @__value_0 AND [r].[String] IS NOT NULL AND [r].[String] = @__value_1 AND [r].[Id] < @__value_2)
 ORDER BY [r].[Date] DESC, [r].[String] DESC, [r].[Id] DESC
 ```
-

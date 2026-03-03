@@ -57,8 +57,7 @@ LIMIT @__p_0
 -- @__p_3='3'
 SELECT r."Id", r."Date", r."String", r."Time"
 FROM "Records" AS r
-WHERE r."Date" > @__value_0 OR r."Date" IS NULL OR (r."Date" = @__value_0 AND (r."String" > @__value_1 OR r."String" IS NULL)) OR (r."Date" = @__value_0 AND r."String" = @__value_1 AND r."Id" > @__value_2)
+WHERE r."Date" IS NULL OR r."Date" > @__value_0 OR (r."Date" = @__value_0 AND (r."String" IS NULL OR r."String" > @__value_1)) OR (r."Date" = @__value_0 AND r."String" IS NOT NULL AND r."String" = @__value_1 AND r."Id" > @__value_2)
 ORDER BY r."Date", r."String", r."Id"
 LIMIT @__p_3
 ```
-
