@@ -88,38 +88,6 @@ public readonly record struct PagingArguments
     /// <param name="includeTotalCount">
     /// Defines if the total count of items in the dataset shall be included in the result.
     /// </param>
-    public void Deconstruct(
-        out int? first,
-        out string? after,
-        out int? last,
-        out string? before,
-        out bool includeTotalCount)
-    {
-        first = First;
-        after = After;
-        last = Last;
-        before = Before;
-        includeTotalCount = IncludeTotalCount;
-    }
-
-    /// <summary>
-    /// Deconstructs the paging arguments into its components.
-    /// </summary>
-    /// <param name="first">
-    /// The number of entities that shall be taken from the beginning of the list.
-    /// </param>
-    /// <param name="after">
-    /// The cursor after which entities shall be taken.
-    /// </param>
-    /// <param name="last">
-    /// The number of entities that shall be taken from the end of the list.
-    /// </param>
-    /// <param name="before">
-    /// The cursor before which entities shall be taken.
-    /// </param>
-    /// <param name="includeTotalCount">
-    /// Defines if the total count of items in the dataset shall be included in the result.
-    /// </param>
     /// <param name="nullOrdering">
     /// Defines the null ordering to be used.
     /// </param>
