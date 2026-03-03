@@ -21,7 +21,6 @@ internal static class ExpressionHelpers
 #else
     private static readonly object s_nullabilityInfoContextLock = new();
 #endif
-    private static readonly Expression s_null = Expression.Constant(null);
     private static readonly Expression s_false = Expression.Constant(false);
     private static readonly Expression s_zero = Expression.Constant(0);
 
@@ -161,16 +160,20 @@ internal static class ExpressionHelpers
 
         if (keyIsNullable)
         {
+            // Null constant must be typed to match keyExpr.Type so that expression
+            // construction works for both reference types and Nullable<T> value types.
+            var nullConst = Expression.Constant(null, keyExpr.Type);
+
             if (cursorValue is null)
             {
                 // SQL: WHERE key IS NULL.
-                keyExpr = Expression.Equal(keyExpr, s_null);
+                keyExpr = Expression.Equal(keyExpr, nullConst);
             }
             else
             {
                 // SQL: WHERE key IS NOT NULL AND key = cursorValue.
                 keyExpr = Expression.AndAlso(
-                    Expression.NotEqual(keyExpr, s_null),
+                    Expression.NotEqual(keyExpr, nullConst),
                     Expression.Equal(
                         Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
                         s_zero));
@@ -205,12 +208,16 @@ internal static class ExpressionHelpers
 
         if (keyIsNullable)
         {
+            // Null constant must be typed to match keyExpr.Type so that expression
+            // construction works for both reference types and Nullable<T> value types.
+            var nullConst = Expression.Constant(null, keyExpr.Type);
+
             if (cursorValue is null)
             {
                 keyExpr = nullOrdering == NullOrdering.NativeNullsFirst
                     // With nulls first, any non-null value is greater than null.
                     // SQL: WHERE key IS NOT NULL.
-                    ? Expression.NotEqual(keyExpr, s_null)
+                    ? Expression.NotEqual(keyExpr, nullConst)
                     // With nulls last, no value is greater than null.
                     // SQL: WHERE false.
                     : s_false;
@@ -229,7 +236,7 @@ internal static class ExpressionHelpers
                     // When nulls are last, null is greater than any non-null value.
                     // SQL: WHERE key IS NULL OR key > cursorValue.
                     keyExpr = Expression.OrElse(
-                        Expression.Equal(keyExpr, s_null),
+                        Expression.Equal(keyExpr, nullConst),
                         Expression.GreaterThan(
                             Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
                             s_zero));
@@ -265,6 +272,10 @@ internal static class ExpressionHelpers
 
         if (keyIsNullable)
         {
+            // Null constant must be typed to match keyExpr.Type so that expression
+            // construction works for both reference types and Nullable<T> value types.
+            var nullConst = Expression.Constant(null, keyExpr.Type);
+
             if (cursorValue is null)
             {
                 keyExpr = nullOrdering == NullOrdering.NativeNullsFirst
@@ -273,7 +284,7 @@ internal static class ExpressionHelpers
                     ? s_false
                     // With nulls last, any non-null value is less than null.
                     // SQL: WHERE key IS NOT NULL.
-                    : Expression.NotEqual(keyExpr, s_null);
+                    : Expression.NotEqual(keyExpr, nullConst);
             }
             else
             {
@@ -282,7 +293,7 @@ internal static class ExpressionHelpers
                     // With nulls first, null is less than any non-null value.
                     // SQL: WHERE key IS NULL OR key < cursorValue.
                     keyExpr = Expression.OrElse(
-                        Expression.Equal(keyExpr, s_null),
+                        Expression.Equal(keyExpr, nullConst),
                         Expression.LessThan(
                             Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
                             s_zero));
