@@ -53,7 +53,8 @@ internal sealed partial class OperationContext
         ResultElement resultValue,
         IImmutableDictionary<string, object?> scopedContextData,
         int? executionBranchId = null,
-        DeferUsage? deferUsage = null)
+        DeferUsage? deferUsage = null,
+        BatchSelectionPath? selectionPath = null)
     {
         AssertInitialized();
 
@@ -66,7 +67,8 @@ internal sealed partial class OperationContext
             this,
             scopedContextData,
             executionBranchId ?? _branchId,
-            deferUsage);
+            deferUsage,
+            selectionPath);
 
         return resolverTask;
     }

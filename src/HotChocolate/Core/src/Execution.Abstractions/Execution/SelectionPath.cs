@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Text;
 
-namespace HotChocolate.Fusion.Execution.Nodes;
+namespace HotChocolate.Execution;
 
 /// <summary>
 /// Represents a path to a selection set or a field selection within a GraphQL operation.

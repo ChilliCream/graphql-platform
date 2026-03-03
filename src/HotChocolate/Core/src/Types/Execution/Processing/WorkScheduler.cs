@@ -39,6 +39,11 @@ internal sealed partial class WorkScheduler
         {
             work.Push(task);
             RegisterBranchTaskUnsafe(task.BranchId);
+
+            if (task is Tasks.ResolverTask { SelectionPath: { } path })
+            {
+                IncrementPathCountUnsafe(path);
+            }
         }
 
         _signal.Set();
@@ -69,6 +74,11 @@ internal sealed partial class WorkScheduler
                 }
 
                 RegisterBranchTaskUnsafe(task.BranchId);
+
+                if (task is Tasks.ResolverTask { SelectionPath: { } path })
+                {
+                    IncrementPathCountUnsafe(path);
+                }
             }
         }
 
@@ -94,6 +104,11 @@ internal sealed partial class WorkScheduler
                 lock (_sync)
                 {
                     _completed.Add(task.Id);
+
+                    if (task is Tasks.ResolverTask { SelectionPath: { } path })
+                    {
+                        DecrementPathCountUnsafe(path);
+                    }
                 }
 
                 _signal.Set();

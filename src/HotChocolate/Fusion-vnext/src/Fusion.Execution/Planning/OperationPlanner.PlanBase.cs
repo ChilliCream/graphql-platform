@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Language;
 

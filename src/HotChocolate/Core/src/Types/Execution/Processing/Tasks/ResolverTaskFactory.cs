@@ -200,33 +200,18 @@ internal static class ResolverTaskFactory
                         field.Value,
                         parent);
                 }
-                else
+                else if (selection.Strategy is SelectionExecutionStrategy.Batch)
                 {
-                    context.Tasks.Add(
-                        operationContext.CreateResolverTask(
-                            parent,
-                            selection,
-                            field.Value,
-                            context.ResolverContext.ScopedContextData,
-                            context.ParentBranchId,
-                            parentDeferUsage));
-                }
-            }
-        }
-        else
-        {
-            foreach (var field in resultValue.EnumerateObject())
-            {
-                var selection = field.AssertSelection();
+                    var batchTask = operationContext.Scheduler.GetOrCreateBatchTask(
+                        selection.FieldSelectionPath,
+                        selection.BatchResolverPipeline!,
+                        context.ParentBranchId);
 
-                if (selection.Strategy is SelectionExecutionStrategy.Pure)
-                {
-                    ResolveAndCompleteInline(
-                        context,
+                    batchTask.AddEntry(
+                        parent,
                         selection,
-                        selectionSetType,
                         field.Value,
-                        parent);
+                        context.ResolverContext.ScopedContextData);
                 }
                 else
                 {
