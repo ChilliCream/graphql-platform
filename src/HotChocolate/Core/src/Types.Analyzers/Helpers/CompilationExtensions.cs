@@ -87,9 +87,31 @@ public static class CompilationExtensions
 
     public static IMemberDescription? GetDescription(
         this Compilation compilation,
-        ISymbol methodOrProperty,
-        ImmutableArray<ResolverParameter> parameters)
+        ISymbol methodOrProperty)
     {
+        if (compilation.DisableXmlDocumentation())
+        {
+            switch (methodOrProperty)
+            {
+                case IPropertySymbol property:
+                    return new PropertyDescription(property.GetDescriptionFromAttribute());
+
+                case IMethodSymbol method:
+                    var paramDescs = ImmutableArray.CreateBuilder<string?>(method.Parameters.Length);
+                    foreach (var p in method.Parameters)
+                    {
+                        paramDescs.Add(p.GetDescriptionFromAttribute());
+                    }
+
+                    return new MethodDescription(
+                        method.GetDescriptionFromAttribute(),
+                        paramDescs.ToImmutable());
+
+                default:
+                    return null;
+            }
+        }
+
         switch (methodOrProperty)
         {
             case IPropertySymbol property:
@@ -101,6 +123,18 @@ public static class CompilationExtensions
             default:
                 return null;
         }
+    }
+
+    public static string? GetDescription(
+        this Compilation compilation,
+        INamedTypeSymbol type)
+    {
+        if (compilation.DisableXmlDocumentation())
+        {
+            return type.GetDescriptionFromAttribute();
+        }
+
+        return type.GetDescription(compilation);
     }
 
     public static string? GetDeprecationReason(this Compilation compilation, ISymbol symbol)

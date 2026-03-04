@@ -7,5 +7,6 @@ public enum ModuleOptions
     RegisterTypes = 1,
     RegisterDataLoader = 2,
     IncludeInternalMembers = 4,
-    Disabled = 8
+    DisableXmlDocumentation = 8,
+    Disabled = 16
 }
