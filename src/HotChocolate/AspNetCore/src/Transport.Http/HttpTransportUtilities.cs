@@ -12,6 +12,12 @@ internal static class HttpTransportUtilities
 {
     private static readonly Encoding s_utf8 = Encoding.UTF8;
 
+    public static bool IsUtf8Charset(string charset)
+        => charset.Equals("utf-8", StringComparison.OrdinalIgnoreCase)
+            || charset.Equals("\"utf-8\"", StringComparison.OrdinalIgnoreCase)
+            || charset.Equals("utf8", StringComparison.OrdinalIgnoreCase)
+            || charset.Equals("\"utf8\"", StringComparison.OrdinalIgnoreCase);
+
     public static Encoding? GetEncoding(string? charset)
     {
         Encoding? encoding = null;
