@@ -16,6 +16,8 @@ internal sealed class ValueCompletion
     private readonly ISchemaDefinition _schema;
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
+    private readonly bool _haltOnError;
+    private readonly bool _haltOnNullViolation;
     private readonly int _maxDepth;
 
     public ValueCompletion(
@@ -31,6 +33,8 @@ internal sealed class ValueCompletion
         _schema = schema;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
+        _haltOnError = errorHandlingMode is ErrorHandlingMode.Halt;
+        _haltOnNullViolation = errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt;
         _maxDepth = maxDepth;
     }
 
@@ -194,7 +198,7 @@ internal sealed class ValueCompletion
 
                 _store.AddError(error);
 
-                if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (_haltOnNullViolation)
                 {
                     return false;
                 }
@@ -221,7 +225,7 @@ internal sealed class ValueCompletion
 
                 _store.AddError(errorWithPath);
 
-                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                if (_haltOnError)
                 {
                     return false;
                 }
@@ -300,7 +304,7 @@ internal sealed class ValueCompletion
 
             if (element.IsNullOrUndefined())
             {
-                if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (!isNullable && _haltOnNullViolation)
                 {
                     return false;
                 }
