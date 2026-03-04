@@ -308,6 +308,18 @@ public abstract class ActivityEnricherBase(
         activity.DisplayName = "Analyze Operation Complexity";
     }
 
+    public virtual void EnrichOperationCost(
+        RequestContext context,
+        Activity activity,
+        double fieldCost,
+        double typeCost)
+    {
+        var documentInfo = context.OperationDocumentInfo;
+        activity.SetTag(GraphQL.Document.Hash, FormatDocumentHash(documentInfo.Hash));
+        activity.SetTag(GraphQL.Operation.FieldCost, fieldCost);
+        activity.SetTag(GraphQL.Operation.TypeCost, typeCost);
+    }
+
     protected void EnrichExecuteRequestCore(
         RequestContext context,
         Activity activity,
@@ -316,13 +328,15 @@ public abstract class ActivityEnricherBase(
         OperationType? operationType,
         string? operationName)
     {
-        activity.DisplayName = operationDisplayName ?? "Execute Request";
+        activity.DisplayName = operationDisplayName ?? "GraphQL Operation";
 
         var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-        activity.SetTag(GraphQL.Document.Valid, documentInfo.IsValidated);
-        activity.SetTag(GraphQL.Operation.Id, operationId);
+        activity.SetTag(GraphQL.Document.Hash, FormatDocumentHash(documentInfo.Hash));
+
+        if (documentInfo.IsPersisted)
+        {
+            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
+        }
 
         if (operationType is not null)
         {
@@ -340,11 +354,6 @@ public abstract class ActivityEnricherBase(
         {
             activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
         }
-
-        if (context.Result is OperationResult { Errors: [_, ..] errors })
-        {
-            activity.SetTag(GraphQL.Errors.Count, errors.Count);
-        }
     }
 
     protected void EnrichParseDocumentCore(
@@ -352,7 +361,7 @@ public abstract class ActivityEnricherBase(
         OperationDefinitionNode? operationDefinition,
         OperationDocumentInfo documentInfo)
     {
-        activity.DisplayName = "Parse Document";
+        activity.DisplayName = "GraphQL Document Parsing";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
 
         EnrichWithTags(activity, operationDefinition, documentInfo);
@@ -363,7 +372,7 @@ public abstract class ActivityEnricherBase(
         OperationDefinitionNode? operationDefinition,
         OperationDocumentInfo documentInfo)
     {
-        activity.DisplayName = "Validate Document";
+        activity.DisplayName = "GraphQL Document Validation";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Validate);
 
         EnrichWithTags(activity, operationDefinition, documentInfo);
@@ -374,7 +383,7 @@ public abstract class ActivityEnricherBase(
         OperationDefinitionNode? operationDefinition,
         OperationDocumentInfo documentInfo)
     {
-        activity.DisplayName = "Coerce Variables";
+        activity.DisplayName = "GraphQL Variable Coercion";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.VariableCoercion);
 
         EnrichWithTags(activity, operationDefinition, documentInfo);
@@ -396,7 +405,7 @@ public abstract class ActivityEnricherBase(
             }
         }
 
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
+        activity.SetTag(GraphQL.Document.Hash, FormatDocumentHash(documentInfo.Hash));
 
         if (documentInfo.IsPersisted)
         {
@@ -406,60 +415,15 @@ public abstract class ActivityEnricherBase(
 
     protected string BuildOperationDisplayName(
         OperationType operationType,
-        string? operationName,
-        int selectionCount,
-        IEnumerable<string> selectionResponseNames)
+        string? operationName)
     {
-        var displayName = StringBuilderPool.Get();
-
-        try
+        var operationTypeName = GraphQL.Operation.TypeValues[operationType];
+        if (!string.IsNullOrEmpty(operationName))
         {
-            displayName.Append('{');
-            displayName.Append(' ');
-
-            var count = 0;
-            foreach (var name in selectionResponseNames)
-            {
-                if (count >= 3)
-                {
-                    break;
-                }
-
-                if (displayName.Length > 2)
-                {
-                    displayName.Append(' ');
-                }
-
-                displayName.Append(name);
-                count++;
-            }
-
-            if (selectionCount > 3)
-            {
-                displayName.Append(' ');
-                displayName.Append('.');
-                displayName.Append('.');
-                displayName.Append('.');
-            }
-
-            displayName.Append(' ');
-            displayName.Append('}');
-
-            if (operationName is not null)
-            {
-                displayName.Insert(0, ' ');
-                displayName.Insert(0, operationName);
-            }
-
-            displayName.Insert(0, ' ');
-            displayName.Insert(0, operationType.ToString().ToLowerInvariant());
-
-            return displayName.ToString();
+            return $"{operationTypeName} {operationName}";
         }
-        finally
-        {
-            StringBuilderPool.Return(displayName);
-        }
+
+        return operationTypeName;
     }
 
     protected virtual string CreateRootActivityName(
@@ -488,20 +452,142 @@ public abstract class ActivityEnricherBase(
         var tags = new ActivityTagsCollection
         {
             new(SemanticConventions.Exception.Message, error.Message),
-            new(SemanticConventions.Exception.Type, error.Code ?? "GRAPHQL_ERROR")
+            new(SemanticConventions.Exception.Type, error.Code ?? "GRAPHQL_ERROR"),
+            new(GraphQL.Errors.Message, error.Message)
         };
 
         if (error.Path is not null)
         {
-            tags[GraphQL.Errors.Path] = error.Path.ToString();
+            tags[GraphQL.Errors.Path] = FormatPath(error.Path);
         }
 
         if (error.Locations is { Count: > 0 })
         {
-            tags[GraphQL.Errors.Location.Column] = error.Locations[0].Column;
-            tags[GraphQL.Errors.Location.Line] = error.Locations[0].Line;
+            var locations = new object[error.Locations.Count];
+            for (var i = 0; i < error.Locations.Count; i++)
+            {
+                var location = error.Locations[i];
+                locations[i] = new Dictionary<string, object>
+                {
+                    ["line"] = location.Line,
+                    ["column"] = location.Column
+                };
+            }
+
+            tags[GraphQL.Errors.Locations] = locations;
         }
 
         activity.AddEvent(new ActivityEvent(SemanticConventions.Exception.EventName, default, tags));
+    }
+
+    protected static OperationDefinitionNode? ResolveOperationDefinition(
+        OperationDefinitionNode? operationDefinition,
+        OperationDocumentInfo documentInfo,
+        string? operationName)
+    {
+        if (operationDefinition is not null)
+        {
+            return operationDefinition;
+        }
+
+        if (documentInfo.Document is not { } document)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(operationName))
+        {
+            OperationDefinitionNode? singleOperation = null;
+
+            foreach (var definition in document.Definitions)
+            {
+                if (definition is not OperationDefinitionNode operation)
+                {
+                    continue;
+                }
+
+                if (singleOperation is not null)
+                {
+                    return null;
+                }
+
+                singleOperation = operation;
+            }
+
+            return singleOperation;
+        }
+
+        foreach (var definition in document.Definitions)
+        {
+            if (definition is OperationDefinitionNode operation
+                && string.Equals(operation.Name?.Value, operationName, StringComparison.Ordinal))
+            {
+                return operation;
+            }
+        }
+
+        return null;
+    }
+
+    protected internal static string FormatDocumentHash(OperationDocumentHash hash)
+    {
+        if (hash.IsEmpty || string.IsNullOrEmpty(hash.AlgorithmName))
+        {
+            return hash.Value;
+        }
+
+        var algorithm = hash.AlgorithmName;
+
+        if (algorithm.EndsWith("Hash", System.StringComparison.OrdinalIgnoreCase))
+        {
+            algorithm = algorithm[..^4];
+        }
+
+        algorithm = algorithm.ToLowerInvariant();
+
+        if (algorithm == "sha256")
+        {
+            algorithm = "sha25";
+        }
+
+        return $"{algorithm}:{hash.Value}";
+    }
+
+    protected static string? FormatPath(Path? path)
+    {
+        if (path is null || path.IsRoot)
+        {
+            return null;
+        }
+
+        var segments = path.ToList();
+        if (segments.Count == 0)
+        {
+            return null;
+        }
+
+        var result = new StringBuilder();
+        foreach (var segment in segments)
+        {
+            if (segment is string name)
+            {
+                if (result.Length > 0)
+                {
+                    result.Append('.');
+                }
+
+                result.Append(name);
+                continue;
+            }
+
+            if (segment is int index)
+            {
+                result.Append('[');
+                result.Append(index);
+                result.Append(']');
+            }
+        }
+
+        return result.ToString();
     }
 }

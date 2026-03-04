@@ -2,20 +2,12 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query GetA { a }",
+      "DisplayName": "query GetA",
       "Status": "Unset",
       "tags": [
         {
-          "Key": "graphql.document.id",
-          "Value": "cee0e2939ece72d650cb0331f4be4669"
-        },
-        {
           "Key": "graphql.document.hash",
-          "Value": "cee0e2939ece72d650cb0331f4be4669"
-        },
-        {
-          "Key": "graphql.operation.id",
-          "Value": "_Default-1-cee0e2939ece72d650cb0331f4be4669"
+          "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
         },
         {
           "Key": "graphql.operation.type",
@@ -30,7 +22,7 @@
       "activities": [
         {
           "OperationName": "ParseDocument",
-          "DisplayName": "Parse Document",
+          "DisplayName": "GraphQL Document Parsing",
           "Status": "Ok",
           "tags": [
             {
@@ -38,8 +30,16 @@
               "Value": "parse"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetA"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
             },
             {
               "Key": "otel.status_code",
@@ -50,7 +50,7 @@
         },
         {
           "OperationName": "ValidateDocument",
-          "DisplayName": "Validate Document",
+          "DisplayName": "GraphQL Document Validation",
           "Status": "Ok",
           "tags": [
             {
@@ -58,8 +58,16 @@
               "Value": "validate"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetA"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
             },
             {
               "Key": "otel.status_code",
@@ -70,7 +78,7 @@
         },
         {
           "OperationName": "CompileOperation",
-          "DisplayName": "Compile Operation",
+          "DisplayName": "GraphQL Operation Planning",
           "Status": "Ok",
           "tags": [
             {
@@ -87,7 +95,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
             },
             {
               "Key": "otel.status_code",
@@ -98,7 +106,7 @@
         },
         {
           "OperationName": "ExecuteOperation",
-          "DisplayName": "Execute Operation GetA",
+          "DisplayName": "GraphQL Operation Execution",
           "Status": "Ok",
           "tags": [
             {
@@ -115,7 +123,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
             },
             {
               "Key": "otel.status_code",
@@ -126,7 +134,7 @@
           "activities": [
             {
               "OperationName": "ResolveFieldValue",
-              "DisplayName": "/a",
+              "DisplayName": "SimpleQuery.sayHello",
               "Status": "Ok",
               "tags": [
                 {
@@ -138,16 +146,8 @@
                   "Value": "a"
                 },
                 {
-                  "Key": "graphql.selection.type",
-                  "Value": "String!"
-                },
-                {
                   "Key": "graphql.selection.path",
-                  "Value": "/a"
-                },
-                {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/a"
+                  "Value": "a"
                 },
                 {
                   "Key": "graphql.selection.field.name",

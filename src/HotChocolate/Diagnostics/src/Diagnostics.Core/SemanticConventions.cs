@@ -34,6 +34,12 @@ internal static class SemanticConventions
             public const string Name = "graphql.operation.name";
             public const string Type = "graphql.operation.type";
 
+            // Note: This is not part of the OTEL semantic conventions
+            public const string FieldCost = "graphql.operation.fieldCost";
+
+            // Note: This is not part of the OTEL semantic conventions
+            public const string TypeCost = "graphql.operation.typeCost";
+
             public static FrozenDictionary<OperationType, string> TypeValues { get; } =
                 new Dictionary<OperationType, string>
                 {
@@ -123,6 +129,7 @@ internal static class SemanticConventions
         public static class Source
         {
             public const string Name = "graphql.source.name";
+            public const string Id = "graphql.source.id";
 
             public static class Operation
             {
@@ -136,6 +143,8 @@ internal static class SemanticConventions
         public static class Errors
         {
             public const string Count = "graphql.errors.count";
+            public const string Message = "graphql.error.message";
+            public const string Locations = "graphql.error.locations";
             public const string Path = "graphql.error.path";
 
             public static class Location

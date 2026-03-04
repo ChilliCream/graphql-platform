@@ -2,16 +2,12 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "Execute Request",
+      "DisplayName": "GraphQL Operation",
       "Status": "Error",
       "tags": [
         {
-          "Key": "graphql.document.id",
-          "Value": "bb1d246465341a97bdc727d6cd8ead5c"
-        },
-        {
           "Key": "graphql.document.hash",
-          "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+          "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
         },
         {
           "Key": "graphql.document.body",
@@ -26,7 +22,7 @@
       "activities": [
         {
           "OperationName": "ParseDocument",
-          "DisplayName": "Parse Document",
+          "DisplayName": "GraphQL Document Parsing",
           "Status": "Ok",
           "tags": [
             {
@@ -34,8 +30,16 @@
               "Value": "parse"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloOperation"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+              "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
             },
             {
               "Key": "otel.status_code",
@@ -46,7 +50,7 @@
         },
         {
           "OperationName": "ValidateDocument",
-          "DisplayName": "Validate Document",
+          "DisplayName": "GraphQL Document Validation",
           "Status": "Error",
           "tags": [
             {
@@ -58,8 +62,16 @@
               "Value": "validate"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloOperation"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+              "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
             }
           ],
           "event": [
@@ -75,12 +87,17 @@
                   "Value": "GRAPHQL_ERROR"
                 },
                 {
-                  "Key": "graphql.error.location.column",
-                  "Value": 27
+                  "Key": "graphql.error.message",
+                  "Value": "The field `sayHello_` does not exist on the type `SimpleQuery`."
                 },
                 {
-                  "Key": "graphql.error.location.line",
-                  "Value": 1
+                  "Key": "graphql.error.locations",
+                  "Value": [
+                    {
+                      "line": 1,
+                      "column": 27
+                    }
+                  ]
                 }
               ]
             }

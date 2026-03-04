@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "query { hero }",
+      "DisplayName": "query",
       "Status": "Ok",
       "tags": [
         {
@@ -14,16 +14,8 @@
           "Value": "single"
         },
         {
-          "Key": "graphql.document.id",
-          "Value": "a570a6bff748b5916eadf153261d9c6d"
-        },
-        {
           "Key": "graphql.document.hash",
-          "Value": "acb8d5d513c260b3cef3e3a12b0e29af"
-        },
-        {
-          "Key": "graphql.operation.id",
-          "Value": "_Default-1-a570a6bff748b5916eadf153261d9c6d"
+          "Value": "md5:acb8d5d513c260b3cef3e3a12b0e29af"
         },
         {
           "Key": "graphql.operation.type",
@@ -55,7 +47,7 @@
         },
         {
           "OperationName": "ValidateDocument",
-          "DisplayName": "Validate Document",
+          "DisplayName": "GraphQL Document Validation",
           "Status": "Ok",
           "tags": [
             {
@@ -63,8 +55,12 @@
               "Value": "validate"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "acb8d5d513c260b3cef3e3a12b0e29af"
+              "Value": "md5:acb8d5d513c260b3cef3e3a12b0e29af"
             },
             {
               "Key": "otel.status_code",
@@ -75,7 +71,7 @@
         },
         {
           "OperationName": "CompileOperation",
-          "DisplayName": "Compile Operation",
+          "DisplayName": "GraphQL Operation Planning",
           "Status": "Ok",
           "tags": [
             {
@@ -88,7 +84,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "acb8d5d513c260b3cef3e3a12b0e29af"
+              "Value": "md5:acb8d5d513c260b3cef3e3a12b0e29af"
             },
             {
               "Key": "otel.status_code",
@@ -99,7 +95,7 @@
         },
         {
           "OperationName": "ResolveFieldValue",
-          "DisplayName": "/hero",
+          "DisplayName": "Query.hero",
           "Status": "Ok",
           "tags": [
             {
@@ -111,16 +107,8 @@
               "Value": "hero"
             },
             {
-              "Key": "graphql.selection.type",
-              "Value": "Character"
-            },
-            {
               "Key": "graphql.selection.path",
-              "Value": "/hero"
-            },
-            {
-              "Key": "graphql.selection.hierarchy",
-              "Value": "/hero"
+              "Value": "hero"
             },
             {
               "Key": "graphql.selection.field.name",

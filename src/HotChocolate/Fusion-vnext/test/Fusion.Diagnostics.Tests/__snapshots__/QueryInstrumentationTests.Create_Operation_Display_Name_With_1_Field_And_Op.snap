@@ -2,20 +2,12 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query GetA { a }",
+      "DisplayName": "query GetA",
       "Status": "Unset",
       "tags": [
         {
-          "Key": "graphql.document.id",
-          "Value": "cee0e2939ece72d650cb0331f4be4669"
-        },
-        {
           "Key": "graphql.document.hash",
-          "Value": "cee0e2939ece72d650cb0331f4be4669"
-        },
-        {
-          "Key": "graphql.operation.id",
-          "Value": "155189958e55686347a7f921c0f7a1ef143f829f5b116365a297651606d5703f"
+          "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
         },
         {
           "Key": "graphql.operation.type",
@@ -30,7 +22,7 @@
       "activities": [
         {
           "OperationName": "ParseDocument",
-          "DisplayName": "Parse Document",
+          "DisplayName": "GraphQL Document Parsing",
           "Status": "Ok",
           "tags": [
             {
@@ -38,8 +30,16 @@
               "Value": "parse"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetA"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
             },
             {
               "Key": "otel.status_code",
@@ -50,7 +50,7 @@
         },
         {
           "OperationName": "ValidateDocument",
-          "DisplayName": "Validate Document",
+          "DisplayName": "GraphQL Document Validation",
           "Status": "Ok",
           "tags": [
             {
@@ -58,8 +58,16 @@
               "Value": "validate"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetA"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
             },
             {
               "Key": "otel.status_code",
@@ -70,7 +78,7 @@
         },
         {
           "OperationName": "PlanOperation",
-          "DisplayName": "Plan Operation",
+          "DisplayName": "GraphQL Operation Planning",
           "Status": "Ok",
           "tags": [
             {
@@ -87,7 +95,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
             },
             {
               "Key": "otel.status_code",
@@ -98,7 +106,7 @@
         },
         {
           "OperationName": "ExecuteOperation",
-          "DisplayName": "Execute Operation GetA",
+          "DisplayName": "GraphQL Operation Execution",
           "Status": "Ok",
           "tags": [
             {
@@ -115,7 +123,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
             },
             {
               "Key": "otel.status_code",
@@ -126,12 +134,16 @@
           "activities": [
             {
               "OperationName": "ExecuteOperationNode",
-              "DisplayName": "Execute Operation Node (a)",
+              "DisplayName": "GraphQL Step Execution",
               "Status": "Ok",
               "tags": [
                 {
                   "Key": "graphql.processing.type",
                   "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.step.id",
+                  "Value": "1"
                 },
                 {
                   "Key": "graphql.operation.step.kind",
@@ -151,7 +163,7 @@
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "cee0e2939ece72d650cb0331f4be4669"
+                  "Value": "md5:cee0e2939ece72d650cb0331f4be4669"
                 },
                 {
                   "Key": "graphql.source.name",

@@ -35,12 +35,17 @@
                   "Value": "HC0011"
                 },
                 {
-                  "Key": "graphql.error.location.column",
-                  "Value": 3
+                  "Key": "graphql.error.message",
+                  "Value": "Expected a `Name`-token, but found a `Integer`-token."
                 },
                 {
-                  "Key": "graphql.error.location.line",
-                  "Value": 1
+                  "Key": "graphql.error.locations",
+                  "Value": [
+                    {
+                      "line": 1,
+                      "column": 3
+                    }
+                  ]
                 }
               ]
             }

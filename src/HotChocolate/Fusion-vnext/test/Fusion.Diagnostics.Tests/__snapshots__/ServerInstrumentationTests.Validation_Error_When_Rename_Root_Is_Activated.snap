@@ -30,16 +30,12 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "Execute Request",
+          "DisplayName": "GraphQL Operation",
           "Status": "Error",
           "tags": [
             {
-              "Key": "graphql.document.id",
-              "Value": "346f68539881f0624dca2927281d1a2f"
-            },
-            {
               "Key": "graphql.document.hash",
-              "Value": "346f68539881f0624dca2927281d1a2f"
+              "Value": "md5:346f68539881f0624dca2927281d1a2f"
             },
             {
               "Key": "otel.status_code",
@@ -50,7 +46,7 @@
           "activities": [
             {
               "OperationName": "ValidateDocument",
-              "DisplayName": "Validate Document",
+              "DisplayName": "GraphQL Document Validation",
               "Status": "Error",
               "tags": [
                 {
@@ -62,8 +58,12 @@
                   "Value": "validate"
                 },
                 {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "346f68539881f0624dca2927281d1a2f"
+                  "Value": "md5:346f68539881f0624dca2927281d1a2f"
                 }
               ],
               "event": [
@@ -79,12 +79,17 @@
                       "Value": "GRAPHQL_ERROR"
                     },
                     {
-                      "Key": "graphql.error.location.column",
-                      "Value": 3
+                      "Key": "graphql.error.message",
+                      "Value": "The field `abc` does not exist on the type `Query`."
                     },
                     {
-                      "Key": "graphql.error.location.line",
-                      "Value": 1
+                      "Key": "graphql.error.locations",
+                      "Value": [
+                        {
+                          "line": 1,
+                          "column": 3
+                        }
+                      ]
                     }
                   ]
                 }

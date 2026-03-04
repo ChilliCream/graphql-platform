@@ -5,7 +5,6 @@ using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
@@ -36,111 +35,78 @@ public class ActivityEnricher(
     public virtual void EnrichParseDocument(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
+        var operationDefinition = ResolveOperationDefinition(
+            operation?.Definition,
+            context.OperationDocumentInfo,
+            context.Request.OperationName);
 
-        EnrichParseDocumentCore(activity, operation?.Definition, context.OperationDocumentInfo);
+        EnrichParseDocumentCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichValidateDocument(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
+        var operationDefinition = ResolveOperationDefinition(
+            operation?.Definition,
+            context.OperationDocumentInfo,
+            context.Request.OperationName);
 
-        EnrichValidateDocumentCore(activity, operation?.Definition, context.OperationDocumentInfo);
+        EnrichValidateDocumentCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichCoerceVariables(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
+        var operationDefinition = ResolveOperationDefinition(
+            operation?.Definition,
+            context.OperationDocumentInfo,
+            context.Request.OperationName);
 
-        EnrichCoerceVariablesCore(activity, operation?.Definition, context.OperationDocumentInfo);
+        EnrichCoerceVariablesCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichCompileOperation(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
+        var operationDefinition = ResolveOperationDefinition(
+            operation?.Definition,
+            context.OperationDocumentInfo,
+            context.Request.OperationName);
 
-        activity.DisplayName = "Compile Operation";
-        // TODO: Not sure if plan is supposed to be used like this
+        activity.DisplayName = "GraphQL Operation Planning";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
 
-        EnrichWithTags(activity, operation?.Definition, context.OperationDocumentInfo);
+        EnrichWithTags(activity, operationDefinition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
-        activity.DisplayName =
-            operation?.Name is { } op
-                ? $"Execute Operation {op}"
-                : "Execute Operation";
+        var operationDefinition = ResolveOperationDefinition(
+            operation?.Definition,
+            context.OperationDocumentInfo,
+            context.Request.OperationName);
+
+        activity.DisplayName = "GraphQL Operation Execution";
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
 
-        EnrichWithTags(activity, operation?.Definition, context.OperationDocumentInfo);
+        EnrichWithTags(activity, operationDefinition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichResolveFieldValue(IMiddlewareContext context, Activity activity)
     {
-        string path;
-        string hierarchy;
-        BuildPath();
-
         var selection = context.Selection;
         var coordinate = selection.Field.Coordinate;
+        var path = FormatPath(context.Path);
 
-        activity.DisplayName = path;
+        activity.DisplayName = coordinate.ToString();
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Resolve);
         activity.SetTag(GraphQL.Selection.Name, selection.ResponseName);
-        activity.SetTag(GraphQL.Selection.Field.Type, selection.Field.Type.Print());
         activity.SetTag(GraphQL.Selection.Path, path);
-        activity.SetTag(GraphQL.Selection.Hierarchy, hierarchy);
         activity.SetTag(GraphQL.Selection.Field.Name, coordinate.MemberName);
-        activity.SetTag(GraphQL.Selection.Field.Coordinate, coordinate.ToString());
+        activity.SetTag(GraphQL.Selection.Field.Coordinate, activity.DisplayName);
         activity.SetTag(GraphQL.Selection.Field.ParentType, coordinate.Name);
-        activity.SetTag(GraphQL.Selection.Field.IsDeprecated, selection.Field.IsDeprecated);
-
-        void BuildPath()
-        {
-            var p = StringBuilderPool.Get();
-            var h = StringBuilderPool.Get();
-            var index = StringBuilderPool.Get();
-
-            var current = context.Path;
-
-            do
-            {
-                if (current is NamePathSegment n)
-                {
-                    p.Insert(0, '/');
-                    h.Insert(0, '/');
-                    p.Insert(1, n.Name);
-                    h.Insert(1, n.Name);
-
-                    if (index.Length > 0)
-                    {
-                        p.Insert(1 + n.Name.Length, index);
-                    }
-
-                    index.Clear();
-                }
-
-                if (current is IndexerPathSegment i)
-                {
-                    var number = i.Index.ToString();
-                    index.Insert(0, '[');
-                    index.Insert(1, number);
-                    index.Insert(1 + number.Length, ']');
-                }
-
-                current = current.Parent;
-            } while (!current.IsRoot);
-
-            path = p.ToString();
-            hierarchy = h.ToString();
-
-            StringBuilderPool.Return(p);
-            StringBuilderPool.Return(h);
-            StringBuilderPool.Return(index);
-        }
     }
 
     public virtual void EnrichResolverError(
@@ -180,23 +146,8 @@ public class ActivityEnricher(
 
     protected virtual string? CreateOperationDisplayName(RequestContext context, Operation? operation)
     {
-        if (operation is null)
-        {
-            return null;
-        }
-
-        var selections = operation.RootSelectionSet.Selections;
-        var names = new string[selections.Length];
-
-        for (var i = 0; i < selections.Length; i++)
-        {
-            names[i] = selections[i].ResponseName;
-        }
-
-        return BuildOperationDisplayName(
-            operation.Definition.Operation,
-            operation.Name,
-            names.Length,
-            names);
+        return operation is null
+            ? null
+            : BuildOperationDisplayName(operation.Definition.Operation, operation.Name);
     }
 }

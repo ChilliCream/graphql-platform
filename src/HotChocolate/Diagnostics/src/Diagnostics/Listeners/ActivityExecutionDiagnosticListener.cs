@@ -230,11 +230,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             Debug.Assert(value is not null, "The activity mustn't be null!");
 
             var activity = (Activity)value;
-
-            var documentInfo = context.OperationDocumentInfo;
-            activity.SetTag("graphql.operation.id", documentInfo.Id.Value);
-            activity.SetTag("graphql.operation.fieldCost", fieldCost);
-            activity.SetTag("graphql.operation.typeCost", typeCost);
+            _enricher.EnrichOperationCost(context, activity, fieldCost, typeCost);
         }
     }
 

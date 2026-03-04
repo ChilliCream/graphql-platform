@@ -2,20 +2,12 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query { a b c }",
+      "DisplayName": "query",
       "Status": "Unset",
       "tags": [
         {
-          "Key": "graphql.document.id",
-          "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
-        },
-        {
           "Key": "graphql.document.hash",
-          "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
-        },
-        {
-          "Key": "graphql.operation.id",
-          "Value": "_Default-1-2e55fbe10a9e3ddf26935a8f8d15ec89"
+          "Value": "md5:2e55fbe10a9e3ddf26935a8f8d15ec89"
         },
         {
           "Key": "graphql.operation.type",
@@ -26,7 +18,7 @@
       "activities": [
         {
           "OperationName": "ParseDocument",
-          "DisplayName": "Parse Document",
+          "DisplayName": "GraphQL Document Parsing",
           "Status": "Ok",
           "tags": [
             {
@@ -34,8 +26,12 @@
               "Value": "parse"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
+              "Value": "md5:2e55fbe10a9e3ddf26935a8f8d15ec89"
             },
             {
               "Key": "otel.status_code",
@@ -46,7 +42,7 @@
         },
         {
           "OperationName": "ValidateDocument",
-          "DisplayName": "Validate Document",
+          "DisplayName": "GraphQL Document Validation",
           "Status": "Ok",
           "tags": [
             {
@@ -54,8 +50,12 @@
               "Value": "validate"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
+              "Value": "md5:2e55fbe10a9e3ddf26935a8f8d15ec89"
             },
             {
               "Key": "otel.status_code",
@@ -66,7 +66,7 @@
         },
         {
           "OperationName": "CompileOperation",
-          "DisplayName": "Compile Operation",
+          "DisplayName": "GraphQL Operation Planning",
           "Status": "Ok",
           "tags": [
             {
@@ -79,7 +79,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
+              "Value": "md5:2e55fbe10a9e3ddf26935a8f8d15ec89"
             },
             {
               "Key": "otel.status_code",
@@ -90,7 +90,7 @@
         },
         {
           "OperationName": "ExecuteOperation",
-          "DisplayName": "Execute Operation",
+          "DisplayName": "GraphQL Operation Execution",
           "Status": "Ok",
           "tags": [
             {
@@ -103,7 +103,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
+              "Value": "md5:2e55fbe10a9e3ddf26935a8f8d15ec89"
             },
             {
               "Key": "otel.status_code",
@@ -114,7 +114,7 @@
           "activities": [
             {
               "OperationName": "ResolveFieldValue",
-              "DisplayName": "/a",
+              "DisplayName": "SimpleQuery.sayHello",
               "Status": "Ok",
               "tags": [
                 {
@@ -126,16 +126,8 @@
                   "Value": "a"
                 },
                 {
-                  "Key": "graphql.selection.type",
-                  "Value": "String!"
-                },
-                {
                   "Key": "graphql.selection.path",
-                  "Value": "/a"
-                },
-                {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/a"
+                  "Value": "a"
                 },
                 {
                   "Key": "graphql.selection.field.name",
@@ -158,7 +150,7 @@
             },
             {
               "OperationName": "ResolveFieldValue",
-              "DisplayName": "/b",
+              "DisplayName": "SimpleQuery.sayHello",
               "Status": "Ok",
               "tags": [
                 {
@@ -170,16 +162,8 @@
                   "Value": "b"
                 },
                 {
-                  "Key": "graphql.selection.type",
-                  "Value": "String!"
-                },
-                {
                   "Key": "graphql.selection.path",
-                  "Value": "/b"
-                },
-                {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/b"
+                  "Value": "b"
                 },
                 {
                   "Key": "graphql.selection.field.name",
@@ -202,7 +186,7 @@
             },
             {
               "OperationName": "ResolveFieldValue",
-              "DisplayName": "/c",
+              "DisplayName": "SimpleQuery.sayHello",
               "Status": "Ok",
               "tags": [
                 {
@@ -214,16 +198,8 @@
                   "Value": "c"
                 },
                 {
-                  "Key": "graphql.selection.type",
-                  "Value": "String!"
-                },
-                {
                   "Key": "graphql.selection.path",
-                  "Value": "/c"
-                },
-                {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/c"
+                  "Value": "c"
                 },
                 {
                   "Key": "graphql.selection.field.name",

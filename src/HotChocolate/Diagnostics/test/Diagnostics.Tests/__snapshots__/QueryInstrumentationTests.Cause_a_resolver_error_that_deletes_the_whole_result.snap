@@ -2,20 +2,12 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query SayHelloOperation { causeFatalError }",
+      "DisplayName": "query SayHelloOperation",
       "Status": "Error",
       "tags": [
         {
-          "Key": "graphql.document.id",
-          "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
-        },
-        {
           "Key": "graphql.document.hash",
-          "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
-        },
-        {
-          "Key": "graphql.operation.id",
-          "Value": "_Default-1-851fb754d9ba6b5cc5a55ebcbea2621d"
+          "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
         },
         {
           "Key": "graphql.operation.type",
@@ -38,7 +30,7 @@
       "activities": [
         {
           "OperationName": "ParseDocument",
-          "DisplayName": "Parse Document",
+          "DisplayName": "GraphQL Document Parsing",
           "Status": "Ok",
           "tags": [
             {
@@ -46,8 +38,16 @@
               "Value": "parse"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloOperation"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
+              "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
             },
             {
               "Key": "otel.status_code",
@@ -58,7 +58,7 @@
         },
         {
           "OperationName": "ValidateDocument",
-          "DisplayName": "Validate Document",
+          "DisplayName": "GraphQL Document Validation",
           "Status": "Ok",
           "tags": [
             {
@@ -66,8 +66,16 @@
               "Value": "validate"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloOperation"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
+              "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
             },
             {
               "Key": "otel.status_code",
@@ -78,7 +86,7 @@
         },
         {
           "OperationName": "CompileOperation",
-          "DisplayName": "Compile Operation",
+          "DisplayName": "GraphQL Operation Planning",
           "Status": "Ok",
           "tags": [
             {
@@ -95,7 +103,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
+              "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
             },
             {
               "Key": "otel.status_code",
@@ -106,7 +114,7 @@
         },
         {
           "OperationName": "ExecuteOperation",
-          "DisplayName": "Execute Operation SayHelloOperation",
+          "DisplayName": "GraphQL Operation Execution",
           "Status": "Error",
           "tags": [
             {
@@ -123,7 +131,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
+              "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
             },
             {
               "Key": "otel.status_code",
@@ -134,7 +142,7 @@
           "activities": [
             {
               "OperationName": "ResolveFieldValue",
-              "DisplayName": "/causeFatalError",
+              "DisplayName": "SimpleQuery.causeFatalError",
               "Status": "Error",
               "tags": [
                 {
@@ -146,16 +154,8 @@
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.type",
-                  "Value": "String!"
-                },
-                {
                   "Key": "graphql.selection.path",
-                  "Value": "/causeFatalError"
-                },
-                {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/causeFatalError"
+                  "Value": "causeFatalError"
                 },
                 {
                   "Key": "graphql.selection.field.name",
@@ -187,8 +187,12 @@
                       "Value": "GRAPHQL_ERROR"
                     },
                     {
+                      "Key": "graphql.error.message",
+                      "Value": "fail"
+                    },
+                    {
                       "Key": "graphql.error.path",
-                      "Value": "/causeFatalError"
+                      "Value": "causeFatalError"
                     }
                   ]
                 }

@@ -35,12 +35,17 @@
                   "Value": "HC0011"
                 },
                 {
-                  "Key": "graphql.error.location.column",
-                  "Value": 13
+                  "Key": "graphql.error.message",
+                  "Value": "Found a NameStart character `d` (100) following a number, which is disallowed."
                 },
                 {
-                  "Key": "graphql.error.location.line",
-                  "Value": 4
+                  "Key": "graphql.error.locations",
+                  "Value": [
+                    {
+                      "line": 4,
+                      "column": 13
+                    }
+                  ]
                 }
               ]
             }
