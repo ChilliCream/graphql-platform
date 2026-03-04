@@ -114,6 +114,10 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunClientTests(SourceDirectory / "StrawberryShake" / "Tooling" / "StrawberryShake.Tooling.sln"));
 
+    Target TestMocha => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "Mocha" / "Mocha.sln"));
+
     void RunClientTests(AbsolutePath solutionFile)
     {
         RunTests(solutionFile);
