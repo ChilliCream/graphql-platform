@@ -278,7 +278,7 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
         snapshot.MatchMarkdownSnapshot();
     }
 
-    [Fact]// move to separate test class?
+    [Fact]
     public async Task Paging_Nullable_Throws_When_NullOrdering_Not_Specified()
     {
         // Arrange
@@ -310,7 +310,7 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
         Assert.Equal(
             "The NullOrdering option must be specified in the paging options or arguments when "
             + "using nullable keys.",
-            (await Assert.ThrowsAsync<Exception>(Act)).Message);
+            (await Assert.ThrowsAsync<InvalidOperationException>(Act)).Message);
     }
 
     private static async Task SeedAsync(string connectionString)
