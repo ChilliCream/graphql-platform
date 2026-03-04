@@ -10,6 +10,7 @@ public sealed class ObjectTypeInfo
     , IOutputTypeInfo
 {
     public ObjectTypeInfo(
+        Compilation compilation,
         INamedTypeSymbol schemaType,
         INamedTypeSymbol runtimeType,
         Resolver? nodeResolver,
@@ -24,7 +25,7 @@ public sealed class ObjectTypeInfo
         NodeResolver = nodeResolver;
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
-        Description = schemaType.GetDescription();
+        Description = compilation.GetDescription(schemaType);
         Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();

@@ -87,10 +87,35 @@ public static class CompilationExtensions
 
     public static IMemberDescription? GetDescription(
         this Compilation compilation,
-        ISymbol methodOrProperty,
-        ImmutableArray<ResolverParameter> parameters)
+        ISymbol symbol)
     {
-        switch (methodOrProperty)
+        if (compilation.DisableXmlDocumentation())
+        {
+            switch (symbol)
+            {
+                case IPropertySymbol property:
+                    return new PropertyDescription(property.GetDescriptionFromAttribute());
+
+                case IMethodSymbol method:
+                    var paramDescs = ImmutableArray.CreateBuilder<string?>(method.Parameters.Length);
+                    foreach (var p in method.Parameters)
+                    {
+                        paramDescs.Add(p.GetDescriptionFromAttribute());
+                    }
+
+                    return new MethodDescription(
+                        method.GetDescriptionFromAttribute(),
+                        paramDescs.ToImmutable());
+
+                case IParameterSymbol parameter:
+                    return new ParameterDescription(parameter.GetDescriptionFromAttribute());
+
+                default:
+                    return null;
+            }
+        }
+
+        switch (symbol)
         {
             case IPropertySymbol property:
                 return property.GetDescription(compilation);
@@ -98,9 +123,24 @@ public static class CompilationExtensions
             case IMethodSymbol method:
                 return method.GetDescription(compilation);
 
+            case IParameterSymbol parameter:
+                return parameter.GetDescription(compilation);
+
             default:
                 return null;
         }
+    }
+
+    public static string? GetDescription(
+        this Compilation compilation,
+        INamedTypeSymbol type)
+    {
+        if (compilation.DisableXmlDocumentation())
+        {
+            return type.GetDescriptionFromAttribute();
+        }
+
+        return type.GetDescription(compilation);
     }
 
     public static string? GetDeprecationReason(this Compilation compilation, ISymbol symbol)

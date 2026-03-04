@@ -1,7 +1,11 @@
 import { execSync } from "child_process";
 import path from "path";
 
-import { getContentDir, getFilesRecursively, readMarkdownFile } from "./content";
+import {
+  getContentDir,
+  getFilesRecursively,
+  readMarkdownFile,
+} from "./content";
 import docsConfig from "../src/docs/docs.json";
 
 export interface DocPage {
@@ -45,10 +49,10 @@ function getGitMetadata(filePath: string): {
   lastAuthorName: string;
 } {
   try {
-    const result = execSync(
-      `git log -1 --format="%ai||%an" -- "${filePath}"`,
-      { encoding: "utf-8", timeout: 5000 }
-    ).trim();
+    const result = execSync(`git log -1 --format="%ai||%an" -- "${filePath}"`, {
+      encoding: "utf-8",
+      timeout: 5000,
+    }).trim();
 
     if (result) {
       const [dateStr, authorName] = result.split("||");
