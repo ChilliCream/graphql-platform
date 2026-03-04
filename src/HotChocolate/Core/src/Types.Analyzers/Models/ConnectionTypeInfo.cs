@@ -178,7 +178,7 @@ public sealed class ConnectionTypeInfo
                         new Resolver(
                             connectionName,
                             property,
-                            compilation.GetDescription(property, []),
+                            compilation.GetDescription(property),
                             compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],

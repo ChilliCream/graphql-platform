@@ -39,8 +39,8 @@ interface EcosystemPageProps {
 const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
   const products = docsConfig;
   const latestStableHotChocolateVersion =
-    products?.find((t: any) => t?.path === "hotchocolate")?.latestStableVersion ??
-    "";
+    products?.find((t: any) => t?.path === "hotchocolate")
+      ?.latestStableVersion ?? "";
 
   return (
     <SiteLayout>

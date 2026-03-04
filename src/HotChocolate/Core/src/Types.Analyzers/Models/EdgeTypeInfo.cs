@@ -171,7 +171,7 @@ public sealed class EdgeTypeInfo
                         new Resolver(
                             edgeName,
                             property,
-                            compilation.GetDescription(property, []),
+                            compilation.GetDescription(property),
                             compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],
