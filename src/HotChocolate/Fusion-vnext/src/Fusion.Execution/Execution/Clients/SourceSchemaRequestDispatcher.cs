@@ -414,8 +414,11 @@ internal sealed class SourceSchemaRequestDispatcher
     {
         _groups.Remove(group.Id);
 
-        foreach (var nodeId in group.NodeIds)
+        var nodeIds = group.NodeIds;
+        for (var i = 0; i < nodeIds.Count; i++)
         {
+            var nodeId = nodeIds[i];
+
             if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
             {
                 _groupByNodeIdSlots[nodeId] = -1;
@@ -481,7 +484,7 @@ internal sealed class SourceSchemaRequestDispatcher
 
         public int Id { get; } = id;
 
-        public IEnumerable<int> NodeIds => _nodeIds;
+        public List<int> NodeIds => _nodeIds;
 
         public IEnumerable<PendingRequest> PendingRequests => _pendingRequests;
 
