@@ -35,6 +35,17 @@ internal static class SemanticConventions
                     [OperationType.Mutation] = "mutation",
                     [OperationType.Subscription] = "subscription"
                 }.ToFrozenDictionary();
+
+            public static class Step
+            {
+                public const string Id = "graphql.operation.step.id";
+                public const string Kind = "graphql.operation.step.kind";
+
+                public static class Plan
+                {
+                    public const string Id = "graphql.operation.step.plan.id";
+                }
+            }
         }
 
         public static class Processing
@@ -46,7 +57,9 @@ internal static class SemanticConventions
                 public const string Parse = "parse";
                 public const string Validate = "validate";
                 public const string VariableCoercion = "variable_coercion";
+                public const string Plan = "plan";
                 public const string Execute = "execute";
+                public const string StepExecute = "step_execute";
                 public const string Resolve = "resolve";
                 public const string DataLoaderDispatch = "dataloader_dispatch";
                 public const string DataLoaderBatch = "dataloader_batch";
@@ -83,6 +96,19 @@ internal static class SemanticConventions
             {
                 public const string HitCount = "graphql.dataloader.cache.hit_count";
                 public const string MissCount = "graphql.dataloader.cache.miss_count";
+            }
+        }
+
+        public static class Source
+        {
+            public const string Name = "graphql.source.name";
+            public const string Id = "graphql.source.id";
+
+            public static class Operation
+            {
+                public const string Name = "graphql.source.operation.name";
+                public const string Kind = "graphql.source.operation.kind";
+                public const string Hash = "graphql.source.operation.hash";
             }
         }
 

@@ -58,8 +58,8 @@
                   "Value": "ERROR"
                 },
                 {
-                  "Key": "graphql.document.id",
-                  "Value": "346f68539881f0624dca2927281d1a2f"
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
                 },
                 {
                   "Key": "graphql.document.hash",

@@ -18,6 +18,10 @@
           "Value": "155189958e55686347a7f921c0f7a1ef143f829f5b116365a297651606d5703f"
         },
         {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
           "Key": "graphql.operation.name",
           "Value": "GetA"
         }
@@ -29,6 +33,14 @@
           "DisplayName": "Parse Document",
           "Status": "Ok",
           "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "parse"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "cee0e2939ece72d650cb0331f4be4669"
+            },
             {
               "Key": "otel.status_code",
               "Value": "OK"
@@ -42,8 +54,8 @@
           "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.document.id",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Key": "graphql.processing.type",
+              "Value": "validate"
             },
             {
               "Key": "graphql.document.hash",
@@ -62,6 +74,22 @@
           "Status": "Ok",
           "tags": [
             {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetA"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "cee0e2939ece72d650cb0331f4be4669"
+            },
+            {
               "Key": "otel.status_code",
               "Value": "OK"
             }
@@ -73,6 +101,22 @@
           "DisplayName": "Execute Operation GetA",
           "Status": "Ok",
           "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetA"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "cee0e2939ece72d650cb0331f4be4669"
+            },
             {
               "Key": "otel.status_code",
               "Value": "OK"
@@ -86,12 +130,44 @@
               "Status": "Ok",
               "tags": [
                 {
-                  "Key": "graphql.fusion.node.type",
+                  "Key": "graphql.processing.type",
+                  "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.step.kind",
                   "Value": "Operation"
                 },
                 {
-                  "Key": "graphql.fusion.node.schema",
+                  "Key": "graphql.operation.step.plan.id",
+                  "Value": "155189958e55686347a7f921c0f7a1ef143f829f5b116365a297651606d5703f"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetA"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "cee0e2939ece72d650cb0331f4be4669"
+                },
+                {
+                  "Key": "graphql.source.name",
                   "Value": "a"
+                },
+                {
+                  "Key": "graphql.source.operation.name",
+                  "Value": "GetA_cee0e293_1"
+                },
+                {
+                  "Key": "graphql.source.operation.kind",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.source.operation.hash",
+                  "Value": "dfd8c2288a98a5ade0836a3fb80cd00374fc36f2a66aaa71e170afca30b22517"
                 },
                 {
                   "Key": "otel.status_code",

@@ -1,3 +1,4 @@
+using HotChocolate.Diagnostics;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
@@ -10,7 +11,7 @@ public class ServerInstrumentationTests : FusionTestBase
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Post_Single_Request_Default()
     {
         using (CaptureActivities(out var activities))
@@ -36,7 +37,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Post_Single_Request()
     {
         using (CaptureActivities(out var activities))
@@ -63,7 +64,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Get_Single_Request()
     {
         using (CaptureActivities(out var activities))
@@ -90,7 +91,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Post_Variables_Are_Not_Automatically_Added_To_Activities()
     {
         using (CaptureActivities(out var activities))
@@ -123,7 +124,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Post_Add_Variables_To_Http_Activity()
     {
         using (CaptureActivities(out var activities))
@@ -160,7 +161,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Post_Add_Query_To_Http_Activity()
     {
         using (CaptureActivities(out var activities))
@@ -197,7 +198,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Post_With_Extensions_Map()
     {
         using (CaptureActivities(out var activities))
@@ -231,7 +232,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Get_SDL_Download()
     {
         using (CaptureActivities(out var activities))
@@ -288,7 +289,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Http_Post_Parser_Error()
     {
         using (CaptureActivities(out var activities))
@@ -327,7 +328,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Parsing_Error_When_Rename_Root_Is_Activated()
     {
         using (CaptureActivities(out var activities))
@@ -359,7 +360,7 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "This is flaky")]
+    [Fact]
     public async Task Validation_Error_When_Rename_Root_Is_Activated()
     {
         using (CaptureActivities(out var activities))

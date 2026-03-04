@@ -1,3 +1,4 @@
+using HotChocolate.Diagnostics;
 using static HotChocolate.Fusion.Diagnostics.FusionActivityScopes;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -5,47 +6,30 @@ namespace HotChocolate.Fusion.Diagnostics;
 /// <summary>
 /// The Hot Chocolate Fusion instrumentation options.
 /// </summary>
-public sealed class InstrumentationOptions
+public sealed class InstrumentationOptions : InstrumentationOptionsBase
 {
-    /// <summary>
-    /// Specifies the request detail that shall be included into the tracing activities.
-    /// </summary>
-    public RequestDetails RequestDetails { get; set; } = RequestDetails.Default;
-
     /// <summary>
     /// Specifies the activity scopes that shall be instrumented.
     /// </summary>
     public FusionActivityScopes Scopes { get; set; } = Default;
 
-    /// <summary>
-    /// Specifies if the parsed document shall be included into the tracing data.
-    /// </summary>
-    public bool IncludeDocument { get; set; }
+    internal override bool SkipExecuteHttpRequest => (Scopes & ExecuteHttpRequest) != ExecuteHttpRequest;
 
-    /// <summary>
-    /// Defines if the operation display name shall be included in the root activity.
-    /// </summary>
-    public bool RenameRootActivity { get; set; }
+    internal override bool SkipParseHttpRequest => (Scopes & ParseHttpRequest) != ParseHttpRequest;
 
-    internal bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
+    internal override bool SkipFormatHttpResponse => (Scopes & FormatHttpResponse) != FormatHttpResponse;
 
-    internal bool SkipExecuteHttpRequest => (Scopes & ExecuteHttpRequest) != ExecuteHttpRequest;
+    internal override bool SkipExecuteRequest => (Scopes & ExecuteRequest) != ExecuteRequest;
 
-    internal bool SkipParseHttpRequest => (Scopes & ParseHttpRequest) != ParseHttpRequest;
+    internal override bool SkipParseDocument => (Scopes & ParseDocument) != ParseDocument;
 
-    internal bool SkipFormatHttpResponse => (Scopes & FormatHttpResponse) != FormatHttpResponse;
+    internal override bool SkipValidateDocument => (Scopes & ValidateDocument) != ValidateDocument;
 
-    internal bool SkipExecuteRequest => (Scopes & ExecuteRequest) != ExecuteRequest;
-
-    internal bool SkipParseDocument => (Scopes & ParseDocument) != ParseDocument;
-
-    internal bool SkipValidateDocument => (Scopes & ValidateDocument) != ValidateDocument;
-
-    internal bool SkipCoerceVariables => (Scopes & CoerceVariables) != CoerceVariables;
+    internal override bool SkipCoerceVariables => (Scopes & CoerceVariables) != CoerceVariables;
 
     internal bool SkipPlanOperation => (Scopes & PlanOperation) != PlanOperation;
 
-    internal bool SkipExecuteOperation => (Scopes & ExecuteOperation) != ExecuteOperation;
+    internal override bool SkipExecuteOperation => (Scopes & ExecuteOperation) != ExecuteOperation;
 
     internal bool SkipExecuteNodes => (Scopes & ExecuteNodes) != ExecuteNodes;
 }
