@@ -48,7 +48,8 @@ public static class FilterSchemaBuilderExtensions
         string? name = null) =>
         builder
             .TryAddConvention<IFilterConvention>(sp => new FilterConvention(configure), name)
-            .TryAddTypeInterceptor<FilterTypeInterceptor>();
+            .TryAddTypeInterceptor<FilterTypeInterceptor>()
+            .TryAddTypeInterceptor<DataTypeInterceptor>();
 
     /// <summary>
     /// Adds filtering support.
@@ -71,5 +72,6 @@ public static class FilterSchemaBuilderExtensions
         where TConvention : class, IFilterConvention =>
         builder
             .TryAddConvention<IFilterConvention, TConvention>(name)
-            .TryAddTypeInterceptor<FilterTypeInterceptor>();
+            .TryAddTypeInterceptor<FilterTypeInterceptor>()
+            .TryAddTypeInterceptor<DataTypeInterceptor>();
 }

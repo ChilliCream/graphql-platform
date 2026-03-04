@@ -4,12 +4,6 @@ Result:
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 2,
-          "column": 25
-        }
-      ],
       "path": [
         "rootExecutable"
       ]

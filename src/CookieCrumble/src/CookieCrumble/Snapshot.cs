@@ -27,6 +27,7 @@ public class Snapshot
             new PlainTextSnapshotValueFormatter(),
             new ExceptionSnapshotValueFormatter(),
             new HttpResponseSnapshotValueFormatter(),
+            new JsonDocumentSnapshotValueFormatter(),
             new JsonElementSnapshotValueFormatter()
         });
     private static readonly JsonSnapshotValueFormatter s_defaultFormatter = new();
@@ -468,6 +469,12 @@ public class Snapshot
         foreach (var segment in _segments)
         {
             i++;
+
+            if (i > 1)
+            {
+                writer.AppendLine();
+            }
+
             writer.Append(
                 string.IsNullOrEmpty(segment.Name)
                     ? $"## Result {i}"
@@ -498,8 +505,6 @@ public class Snapshot
                 default:
                     throw new NotSupportedException();
             }
-
-            writer.AppendLine();
         }
     }
 

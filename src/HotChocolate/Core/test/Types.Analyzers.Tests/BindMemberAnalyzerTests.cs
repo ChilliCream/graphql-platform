@@ -256,6 +256,84 @@ public class BindMemberAnalyzerTests
     }
 
     [Fact]
+    public async Task BindMember_WithNameof_InheritedMember_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<DerivedProduct>]
+            public static partial class DerivedProductNode
+            {
+                [BindMember(nameof(DerivedProduct.BrandId))]
+                public static Task<Brand?> GetBrandAsync(DerivedProduct product)
+                    => Task.FromResult<Brand?>(null);
+            }
+
+            public class ProductBase
+            {
+                public int Id { get; set; }
+                public int BrandId { get; set; }
+            }
+
+            public class DerivedProduct : ProductBase
+            {
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task BindMember_WithString_InheritedMember_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<DerivedProduct>]
+            public static partial class DerivedProductNode
+            {
+                [BindMember("BrandId")]
+                public static Task<Brand?> GetBrandAsync(DerivedProduct product)
+                    => Task.FromResult<Brand?>(null);
+            }
+
+            public class ProductBase
+            {
+                public int Id { get; set; }
+                public int BrandId { get; set; }
+            }
+
+            public class DerivedProduct : ProductBase
+            {
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task BindMember_MultipleErrors_RaisesMultipleErrors()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

@@ -55,6 +55,8 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTyp
     /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets a value indicating whether this union type is marked as inaccessible.
     /// </summary>
@@ -135,7 +137,7 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTyp
         if (context.Directives is null || context.Types is null
             || context.Sources is null || context.Features is null)
         {
-            InvalidCompletionContext();
+            throw InvalidCompletionContext();
         }
 
         Directives = context.Directives;

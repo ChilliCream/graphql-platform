@@ -81,7 +81,7 @@ type Person {
   "Field id"
   id: ID!
   "Field imageUri"
-  imageUri: Url
+  imageUri: URL
   "Field isOnline"
   isOnline: Boolean!
   "Field lastSeen"
@@ -300,7 +300,7 @@ type CreateUserPayload {
 input CreateUserInput {
   clientMutationId: String
   email: String!
-  image: Url
+  image: URL
   name: String!
   password: String!
 }
@@ -346,10 +346,11 @@ enum Direction {
   OUTGOING
 }
 
-"The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
-scalar DateTime
+"The `DateTime` scalar type represents a date and time with time zone offset information."
+scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/date-time.html")
 
-scalar Url
+"The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986."
+scalar URL @specifiedBy(url: "https://scalars.graphql.org/chillicream/url.html")
 
 type User {
   email: String!
@@ -358,3 +359,6 @@ type User {
 }
 
 directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access to the annotated resource." roles: [String!]) repeatable on OBJECT | FIELD_DEFINITION
+
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR

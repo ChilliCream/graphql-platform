@@ -4,8 +4,8 @@
       "message": "The specified argument value does not match the argument type.",
       "locations": [
         {
-          "line": 1,
-          "column": 18
+          "line": 2,
+          "column": 20
         }
       ],
       "path": [

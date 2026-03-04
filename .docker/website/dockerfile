@@ -5,4 +5,4 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 COPY ./website/config/conf.d /etc/nginx/conf.d
 
-COPY ./website/public /usr/share/nginx/html
+COPY ./website/out /usr/share/nginx/html

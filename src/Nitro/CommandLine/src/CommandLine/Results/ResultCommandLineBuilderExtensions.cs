@@ -20,7 +20,8 @@ internal static class ResultCommandLineBuilderExtensions
     {
         var resultHolder = context.BindingContext.GetRequiredService<ResultHolder>();
         var formatters = context.BindingContext.GetServices<IResultFormatter>();
-        var format = context.ParseResult.GetValueForOption(Opt<OutputFormatOption>.Instance);
+        var format =
+            context.ParseResult.FindResultFor(Opt<OutputFormatOption>.Instance)?.GetValueOrDefault<OutputFormat>();
         var isInteractive = format is null;
         var extendedConsole =
             context.BindingContext.GetRequiredService<IAnsiConsole>() as IExtendedConsole ??

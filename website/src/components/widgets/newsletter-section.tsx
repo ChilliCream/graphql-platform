@@ -1,4 +1,3 @@
-import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
@@ -10,7 +9,7 @@ import {
   SrOnly,
 } from "@/components/misc";
 import { Icon } from "@/components/sprites";
-import { GetMediaLinksQuery } from "@/graphql-types";
+import { siteMetadata } from "@/lib/site-config";
 import { MAX_CONTENT_WIDTH, THEME_COLORS } from "@/style";
 
 // Icons
@@ -22,24 +21,7 @@ import XIconSvg from "@/images/icons/x.svg";
 import YouTubeIconSvg from "@/images/icons/youtube.svg";
 
 export const NewsletterSection: FC = () => {
-  const data = useStaticQuery<GetMediaLinksQuery>(graphql`
-    query getMediaLinks {
-      site {
-        siteMetadata {
-          tools {
-            blog
-            github
-            linkedIn
-            shop
-            slack
-            youtube
-            x
-          }
-        }
-      }
-    }
-  `);
-  const tools = data.site!.siteMetadata!.tools;
+  const tools = siteMetadata.tools;
 
   return (
     <ContentSection>
@@ -57,7 +39,7 @@ export const NewsletterSection: FC = () => {
           <MediaTitle>Social Media</MediaTitle>
           <MediaContainer>
             <MediaBox>
-              <MediaConnectLink to={tools!.blog!}>
+              <MediaConnectLink to={tools.blog}>
                 <IconContainer>
                   <BlogIcon />
                 </IconContainer>
@@ -65,7 +47,7 @@ export const NewsletterSection: FC = () => {
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.github!}>
+              <MediaConnectLink to={tools.github}>
                 <IconContainer>
                   <GithubIcon />
                 </IconContainer>
@@ -73,7 +55,7 @@ export const NewsletterSection: FC = () => {
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.slack!}>
+              <MediaConnectLink to={tools.slack}>
                 <IconContainer>
                   <SlackIcon />
                 </IconContainer>
@@ -81,7 +63,7 @@ export const NewsletterSection: FC = () => {
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.youtube!}>
+              <MediaConnectLink to={tools.youtube}>
                 <IconContainer>
                   <YouTubeIcon />
                 </IconContainer>
@@ -89,7 +71,7 @@ export const NewsletterSection: FC = () => {
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.x!}>
+              <MediaConnectLink to={tools.x}>
                 <IconContainer>
                   <XIcon />
                 </IconContainer>
@@ -97,7 +79,7 @@ export const NewsletterSection: FC = () => {
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.linkedIn!}>
+              <MediaConnectLink to={tools.linkedIn}>
                 <IconContainer>
                   <LinkedInIcon />
                 </IconContainer>

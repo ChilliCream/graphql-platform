@@ -224,7 +224,7 @@ public class DirectiveTypeTests : TypeTestBase
                 .Ignore<CustomDirective2>(null!, t => t.Argument2);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]

@@ -130,29 +130,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_ff22954e_5(
-              $__fusion_2_id: ID!
-            ) {
-              authorById(id: $__fusion_2_id) {
-                username
-              }
-            }
-          variables: |
-            {
-              "__fusion_2_id": "QXV0aG9yOjE="
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "username": "Author: QXV0aG9yOjE="
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |
@@ -178,6 +155,7 @@ operationPlan:
       name: testQuery
       hash: ff22954e3944e63f559392b468b03876
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Node
@@ -233,6 +211,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.node<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -252,9 +231,13 @@ operationPlan:
         }
       source: $.authorById
       target: $.node<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
             id
+      conditions:
+        - variable: $skip
+          passingValue: false
       dependencies:
         - id: 3

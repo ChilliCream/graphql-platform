@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -152,7 +153,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     /// <summary>
     /// Executes a batch of GraphQL operation requests and returns an
     /// <see cref="IResponseStream"/> that yields each individual
-    /// <see cref="IOperationResult"/> as it becomes available.
+    /// <see cref="OperationResult"/> as it becomes available.
     /// </summary>
     /// <param name="requestBatch">
     /// The batch of operation requests.
@@ -172,7 +173,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                 ExecutionResultKind.BatchResult));
     }
 
-    private async IAsyncEnumerable<IOperationResult> CreateResponseStream(
+    private async IAsyncEnumerable<OperationResult> CreateResponseStream(
         OperationRequestBatch requestBatch,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
@@ -207,7 +208,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
         }
     }
 
-    private async IAsyncEnumerable<IOperationResult> ExecuteBatchStream(
+    private async IAsyncEnumerable<OperationResult> ExecuteBatchStream(
         OperationRequestBatch requestBatch,
         IServiceProvider services,
         [EnumeratorCancellation] CancellationToken ct = default)
@@ -216,16 +217,16 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
         var requestCount = requests.Count;
         var tasks = Interlocked.Exchange(ref _taskList, null) ?? new List<Task>(requestCount);
 
-        var completed = new List<IOperationResult>();
+        var completed = new ConcurrentQueue<OperationResult>();
 
         for (var i = 0; i < requestCount; i++)
         {
             tasks.Add(ExecuteBatchItemAsync(WithServices(requests[i], services), i, completed, ct));
         }
 
-        var buffer = new IOperationResult[Math.Min(16, requestCount)];
+        var buffer = new OperationResult[Math.Min(16, requestCount)];
 
-        while (tasks.Count > 0 || completed.Count > 0)
+        while (tasks.Count > 0 || !completed.IsEmpty)
         {
             var count = completed.TryDequeueRange(buffer);
 
@@ -234,7 +235,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                 yield return buffer[i];
             }
 
-            if (completed.Count == 0 && tasks.Count > 0)
+            if (completed.IsEmpty && tasks.Count > 0)
             {
                 await Task.WhenAny(tasks).ConfigureAwait(false);
 
@@ -280,7 +281,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     private async Task ExecuteBatchItemAsync(
         IOperationRequest request,
         int requestIndex,
-        List<IOperationResult> completed,
+        ConcurrentQueue<OperationResult> completed,
         CancellationToken cancellationToken)
     {
         var result = await ExecuteAsync(request, requestIndex, cancellationToken).ConfigureAwait(false);
@@ -289,7 +290,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 
     private static async Task UnwrapBatchItemResultAsync(
         IExecutionResult result,
-        List<IOperationResult> completed,
+        ConcurrentQueue<OperationResult> completed,
         CancellationToken cancellationToken)
     {
         switch (result)
@@ -340,30 +341,17 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     public ValueTask DisposeAsync() => Schema.DisposeAsync();
 }
 
-file static class ListExtensions
+file static class ConcurrentQueueExtensions
 {
-    public static void Enqueue<T>(this List<T> queue, T item)
+    public static int TryDequeueRange<T>(this ConcurrentQueue<T> queue, T[] buffer)
     {
-        lock (queue)
+        var i = 0;
+
+        while (i < buffer.Length && queue.TryDequeue(out var value))
         {
-            queue.Insert(0, item);
+            buffer[i++] = value;
         }
-    }
 
-    public static int TryDequeueRange<T>(this List<T> queue, T[] buffer)
-    {
-        lock (queue)
-        {
-            var count = Math.Min(queue.Count, buffer.Length);
-            var j = 0;
-
-            for (var i = count - 1; i >= 0; i--)
-            {
-                buffer[j++] = queue[i];
-                queue.RemoveAt(i);
-            }
-
-            return count;
-        }
+        return i;
     }
 }

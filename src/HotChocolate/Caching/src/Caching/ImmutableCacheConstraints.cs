@@ -16,4 +16,16 @@ internal sealed class ImmutableCacheConstraints(
     public CacheControlScope Scope { get; } = scope;
 
     public ImmutableArray<string> Vary { get; } = vary;
+
+    public string VaryString
+    {
+        get
+        {
+            field ??= Vary.Length is 0
+                ? string.Empty
+                : string.Join(", ", Vary);
+
+            return field;
+        }
+    }
 }

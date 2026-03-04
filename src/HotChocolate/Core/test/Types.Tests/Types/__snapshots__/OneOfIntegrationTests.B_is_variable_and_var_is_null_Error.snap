@@ -4,8 +4,8 @@
       "message": "The variable `$b` assigned to the field `b` of the OneOf Input Object `ExampleInput` must be non-null.",
       "locations": [
         {
-          "line": 1,
-          "column": 33
+          "line": 2,
+          "column": 20
         }
       ],
       "path": [
@@ -20,8 +20,8 @@
       "message": "The variable `b` is not compatible with the type of the current one-of location.",
       "locations": [
         {
-          "line": 1,
-          "column": 38
+          "line": 2,
+          "column": 25
         }
       ],
       "path": [

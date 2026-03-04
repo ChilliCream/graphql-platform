@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "The maximum allowed items per page were exceeded.",
-      "locations": [
-        {
-          "line": 3,
-          "column": 21
-        }
-      ],
       "path": [
         "letters"
       ],

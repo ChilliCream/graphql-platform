@@ -154,6 +154,7 @@ operationPlan:
       name: testQuery
       hash: 8891193d6a2efd1415247828bc89c072
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -187,6 +188,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.post<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -206,6 +208,7 @@ operationPlan:
         }
       source: $.productById
       target: $.post<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

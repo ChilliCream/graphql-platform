@@ -86,7 +86,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
         expressionBuilders.Add(new SchemaParameterExpressionBuilder());
         expressionBuilders.Add(new SelectionParameterExpressionBuilder());
-        expressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());
         expressionBuilders.Add(new ObjectTypeParameterExpressionBuilder());
         expressionBuilders.Add(new OperationDefinitionParameterExpressionBuilder());
         expressionBuilders.Add(new OperationParameterExpressionBuilder());
@@ -438,6 +437,16 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
             if (!builder.IsPure)
             {
+                // We allow scoped state getters to be considered pure because
+                // PureResolverContext can read ScopedContextData (it delegates
+                // to its parent). Setters and local state remain not pure.
+                if (builder is ScopedStateParameterExpressionBuilder
+                    and not LocalStateParameterExpressionBuilder
+                    && !ParameterExpressionBuilderHelpers.IsStateSetter(parameter.ParameterType))
+                {
+                    continue;
+                }
+
                 return false;
             }
         }

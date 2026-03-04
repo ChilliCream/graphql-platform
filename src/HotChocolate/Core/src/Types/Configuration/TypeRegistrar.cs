@@ -58,15 +58,15 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
         RegisterTypeAndResolveReferences(registeredType);
 
-        if (obj is not IHasRuntimeType hasRuntimeType
-            || hasRuntimeType.RuntimeType == typeof(object))
+        if (obj is not IRuntimeTypeProvider runtimeTypeProvider
+            || runtimeTypeProvider.RuntimeType == typeof(object))
         {
             return;
         }
 
         var runtimeTypeRef =
             _context.TypeInspector.GetTypeRef(
-                hasRuntimeType.RuntimeType,
+                runtimeTypeProvider.RuntimeType,
                 SchemaTypeReference.InferTypeContext(obj),
                 scope);
 
@@ -220,5 +220,12 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                     .SetTypeSystemObject(typeSystemObject)
                     .Build());
         }
+    }
+
+    public bool HasRuntimeTypeBinding(ExtendedTypeReference typeReference)
+    {
+        ArgumentNullException.ThrowIfNull(typeReference);
+
+        return _typeRegistry.TryGetTypeRef(typeReference, out _);
     }
 }

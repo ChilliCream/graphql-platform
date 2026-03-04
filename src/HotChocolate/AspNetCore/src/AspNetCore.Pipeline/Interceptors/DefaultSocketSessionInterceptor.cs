@@ -43,10 +43,10 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         return default;
     }
 
-    public virtual ValueTask<IOperationResult> OnResultAsync(
+    public virtual ValueTask<OperationResult> OnResultAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationResult result,
+        OperationResult result,
         CancellationToken cancellationToken = default)
         => new(result);
 

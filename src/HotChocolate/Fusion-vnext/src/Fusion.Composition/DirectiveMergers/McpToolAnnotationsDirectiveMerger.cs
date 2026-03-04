@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -22,7 +23,7 @@ internal class McpToolAnnotationsDirectiveMerger(DirectiveMergeBehavior mergeBeh
 
     public override void MergeDirectives(
         IDirectivesProvider mergedMember,
-        ImmutableArray<IDirectivesProvider> memberDefinitions,
+        ImmutableArray<DirectivesProviderInfo> memberDefinitions,
         MutableSchemaDefinition mergedSchema)
     {
         if (MergeBehavior is DirectiveMergeBehavior.Ignore)
@@ -38,7 +39,7 @@ internal class McpToolAnnotationsDirectiveMerger(DirectiveMergeBehavior mergeBeh
 
         var mcpToolAnnotationsDirectives =
             memberDefinitions
-                .SelectMany(d => d.Directives.Where(dir => dir.Name == DirectiveNames.McpToolAnnotations))
+                .SelectMany(d => d.Member.Directives.Where(dir => dir.Name == DirectiveNames.McpToolAnnotations))
                 .Select(McpToolAnnotationsDirective.From)
                 .ToArray();
 
@@ -47,7 +48,7 @@ internal class McpToolAnnotationsDirectiveMerger(DirectiveMergeBehavior mergeBeh
             return;
         }
 
-        var isMutationField = ((IFieldDefinition)memberDefinitions[0]).DeclaringMember is IObjectTypeDefinition
+        var isMutationField = ((IFieldDefinition)memberDefinitions[0].Member).DeclaringMember is IObjectTypeDefinition
         {
             Name: WellKnownTypeNames.Mutation
         };

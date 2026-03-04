@@ -41,14 +41,14 @@ internal sealed class DeleteClientCommand : Command
         console.WriteLine("Delete a client");
         console.WriteLine();
 
-        const string apiMessage = "For which api do you want to delete a client?";
+        const string apiMessage = "For which API do you want to delete a client?";
         const string clientMessage = "Which client do you want to delete?";
 
         if (clientId is null)
         {
             if (!console.IsHumanReadable())
             {
-                throw Exit("The client id is required in non-interactive mode.");
+                throw Exit("The client ID is required in non-interactive mode.");
             }
 
             var workspaceId = context.RequireWorkspaceId();
@@ -76,7 +76,7 @@ internal sealed class DeleteClientCommand : Command
         }
 
         var shouldDelete = await context.ConfirmWhenNotForced(
-            $"Do you want to delete the client wih id {clientId}?"
+            $"Do you want to delete the client with ID {clientId}?"
                 .EscapeMarkup(),
             cancellationToken);
 

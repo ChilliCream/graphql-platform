@@ -100,7 +100,7 @@ internal sealed class PublishSchemaCommand : Command
                 if (x.Errors is { Count: > 0 } errors)
                 {
                     console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
+                    throw Exit("No request ID returned");
                 }
 
                 switch (x.Data?.OnSchemaVersionPublishingUpdate)
@@ -111,7 +111,7 @@ internal sealed class PublishSchemaCommand : Command
                         break;
 
                     case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
-                        console.Error.WriteLine("Schema publish failed");
+                        console.WriteLine("Schema publish failed");
                         console.PrintErrorsAndExit(schemaErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

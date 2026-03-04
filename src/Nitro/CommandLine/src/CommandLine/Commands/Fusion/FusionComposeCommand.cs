@@ -1,18 +1,11 @@
-using System.Collections.Immutable;
 using System.CommandLine.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
-using ChilliCream.Nitro.CommandLine.Settings;
-using HotChocolate.Buffers;
+using ChilliCream.Nitro.CommandLine.Options;
 using HotChocolate.Fusion;
-using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.Logging.Contracts;
-using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
-using HotChocolate.Fusion.Results;
-using HotChocolate.Types.Mutable;
 using static ChilliCream.Nitro.CommandLine.CommandLineResources;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -22,45 +15,6 @@ internal sealed class FusionComposeCommand : Command
     public FusionComposeCommand() : base("compose")
     {
         Description = ComposeCommand_Description;
-
-        var workingDirectoryOption = new Option<string>("--working-directory")
-        {
-            Description = ComposeCommand_WorkingDirectory_Description
-        };
-        workingDirectoryOption.AddAlias("-w");
-        workingDirectoryOption.AddValidator(result =>
-        {
-            var workingDirectory = result.GetValueForOption(workingDirectoryOption);
-
-            if (!Directory.Exists(workingDirectory))
-            {
-                result.ErrorMessage =
-                    string.Format(
-                        ComposeCommand_Error_WorkingDirectoryDoesNotExist,
-                        workingDirectory);
-            }
-        });
-        workingDirectoryOption.SetDefaultValueFactory(Directory.GetCurrentDirectory);
-        workingDirectoryOption.LegalFilePathsOnly();
-
-        var sourceSchemaFileOption = new Option<List<string>>("--source-schema-file")
-        {
-            Description = ComposeCommand_SourceSchemaFile_Description
-        };
-        sourceSchemaFileOption.AddAlias("-s");
-        sourceSchemaFileOption.LegalFilePathsOnly();
-
-        var archiveOption = new Option<string>("--fusion-archive")
-        {
-            Description = ComposeCommand_CompositeSchemaFile_Description
-        };
-        archiveOption.AddAlias("--far");
-        archiveOption.AddAlias("-f");
-        archiveOption.LegalFilePathsOnly();
-
-        var environmentOption = new Option<string?>("--environment");
-        environmentOption.AddAlias("--env");
-        environmentOption.AddAlias("-e");
 
         var enableGlobalIdsOption = new Option<bool?>("--enable-global-object-identification")
         {
@@ -76,25 +30,29 @@ internal sealed class FusionComposeCommand : Command
 
         var printSchemaOption = new Option<bool>("--print") { IsHidden = true };
 
-        AddOption(workingDirectoryOption);
-        AddOption(sourceSchemaFileOption);
+        var archiveOption = new FusionArchiveFileOption(isRequired: false);
+
+        AddOption(Opt<SourceSchemaFileListOption>.Instance);
         AddOption(archiveOption);
-        AddOption(environmentOption);
+        AddOption(Opt<FusionEnvironmentOption>.Instance);
         AddOption(enableGlobalIdsOption);
         AddOption(includeSatisfiabilityPathsOption);
         AddOption(watchModeOption);
         AddOption(printSchemaOption);
+        AddOption(Opt<WorkingDirectoryOption>.Instance);
+        AddOption(Opt<ExcludeTagListOption>.Instance);
 
         this.SetHandler(async context =>
         {
-            var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
-            var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
-            var archive = context.ParseResult.GetValueForOption(archiveOption);
-            var environment = context.ParseResult.GetValueForOption(environmentOption);
+            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
+            var sourceSchemaFiles = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileListOption>.Instance)!;
+            var archive = context.ParseResult.GetValueForOption(archiveOption)!;
+            var environment = context.ParseResult.GetValueForOption(Opt<FusionEnvironmentOption>.Instance);
             var enableGlobalIds = context.ParseResult.GetValueForOption(enableGlobalIdsOption);
             var includeSatisfiabilityPaths = context.ParseResult.GetValueForOption(includeSatisfiabilityPathsOption);
             var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
             var printSchema = context.ParseResult.GetValueForOption(printSchemaOption);
+            var tagsToExclude = context.ParseResult.GetValueForOption(Opt<ExcludeTagListOption>.Instance);
 
             context.ExitCode = await ExecuteAsync(
                 context.Console,
@@ -106,6 +64,7 @@ internal sealed class FusionComposeCommand : Command
                 includeSatisfiabilityPaths,
                 watchMode,
                 printSchema,
+                tagsToExclude,
                 context.GetCancellationToken());
         });
     }
@@ -120,6 +79,7 @@ internal sealed class FusionComposeCommand : Command
         bool? includeSatisfiabilityPaths,
         bool watchMode,
         bool printSchema,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         archiveFile ??= workingDirectory;
@@ -163,6 +123,7 @@ internal sealed class FusionComposeCommand : Command
                 environment,
                 enableGlobalObjectIdentification,
                 includeSatisfiabilityPaths,
+                tagsToExclude,
                 cancellationToken);
         }
 
@@ -180,6 +141,10 @@ internal sealed class FusionComposeCommand : Command
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
                     IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
+                },
+                Preprocessor = new CompositionSettings.PreprocessorSettings
+                {
+                    ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
             printSchema,
@@ -194,6 +159,7 @@ internal sealed class FusionComposeCommand : Command
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         console.Out.WriteLine("🔍 Starting watch mode...");
@@ -213,6 +179,10 @@ internal sealed class FusionComposeCommand : Command
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
                     IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
+                },
+                Preprocessor = new CompositionSettings.PreprocessorSettings
+                {
+                    ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
             false,
@@ -238,6 +208,7 @@ internal sealed class FusionComposeCommand : Command
             environment,
             enableGlobalObjectIdentification,
             includeSatisfiabilityPaths,
+            tagsToExclude,
             cancellationToken);
 
         var sourceSchemaFileWatchers = new List<FileSystemWatcher>();
@@ -255,7 +226,7 @@ internal sealed class FusionComposeCommand : Command
             }
             else
             {
-                console.Error.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
+                console.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
                 return 1;
             }
         }
@@ -355,6 +326,7 @@ internal sealed class FusionComposeCommand : Command
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         var lastComposition = DateTime.MinValue;
@@ -394,6 +366,10 @@ internal sealed class FusionComposeCommand : Command
                         Satisfiability = new CompositionSettings.SatisfiabilitySettings
                         {
                             IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
+                        },
+                        Preprocessor = new CompositionSettings.PreprocessorSettings
+                        {
+                            ExcludeByTag = tagsToExclude?.ToHashSet()
                         }
                     },
                     false,
@@ -401,7 +377,7 @@ internal sealed class FusionComposeCommand : Command
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                console.Error.WriteLine($"❌ Error during recomposition: {ex.Message}");
+                console.WriteLine($"❌ Error during recomposition: {ex.Message}");
             }
             finally
             {
@@ -434,19 +410,23 @@ internal sealed class FusionComposeCommand : Command
             ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
             : FusionArchive.Create(archiveFile);
 
+        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
         try
         {
+            var sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
+
             var compositionLog = new CompositionLog();
 
-            var result = await ComposeAsync(
+            var result = await CompositionHelper.ComposeAsync(
                 compositionLog,
-                sourceSchemaFiles,
+                sourceSchemas,
                 archive,
                 environment,
                 compositionSettings,
                 cancellationToken);
 
-            var writer = result.IsSuccess ? console.Out : console.Error;
+            var writer = console.Out;
 
             WriteCompositionLog(
                 compositionLog,
@@ -462,7 +442,7 @@ internal sealed class FusionComposeCommand : Command
             {
                 foreach (var error in result.Errors)
                 {
-                    console.Error.WriteLine(error.Message);
+                    console.WriteLine(error.Message);
                 }
 
                 return 1;
@@ -476,166 +456,9 @@ internal sealed class FusionComposeCommand : Command
         }
         catch (Exception e)
         {
-            console.Error.WriteLine(e.Message);
+            console.WriteLine(e.Message);
             return 1;
         }
-    }
-
-    public static async Task<CompositionResult<MutableSchemaDefinition>> ComposeAsync(
-        ICompositionLog compositionLog,
-        List<string> sourceSchemaFiles,
-        FusionArchive archive,
-        string? environment,
-        CompositionSettings? compositionSettings,
-        CancellationToken cancellationToken)
-    {
-        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-
-        var sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
-
-        var existingSourceSchemaNames = new SortedSet<string>(
-            await archive.GetSourceSchemaNamesAsync(cancellationToken),
-            StringComparer.Ordinal);
-
-        var normalizedToRealExistingSchemaNameLookup =
-            existingSourceSchemaNames.ToDictionary(StringUtilities.ToConstantCase, s => s);
-
-        // During the schema merging process, schema names are converted to upper-case,
-        // before being inserted into the fusion__Schema enum.
-        // This means two different schema names, like some-service and SomeService,
-        // could be uppercased to a conflicting SOME_SERVICE.
-        // To avoid weird errors for the user down the line,
-        // we already validate for collisions here.
-        foreach (var (newSourceSchemaName, _) in sourceSchemas)
-        {
-            var normalizedSchemaName = StringUtilities.ToConstantCase(newSourceSchemaName);
-
-            if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName)
-                && existingSchemaName != newSourceSchemaName)
-            {
-                compositionLog.Write(
-                    LogEntryBuilder.New()
-                        .SetMessage(
-                            ComposeCommand_Error_ConflictingSchemaName,
-                            newSourceSchemaName,
-                            existingSchemaName)
-                        .SetCode(LogEntryCodes.ConflictingSourceSchemaName)
-                        .SetSeverity(LogSeverity.Error)
-                        .Build());
-
-                ImmutableArray<CompositionError> errors = [new("❌ Composition failed")];
-                return errors;
-            }
-        }
-
-        foreach (var schemaName in existingSourceSchemaNames)
-        {
-            if (sourceSchemas.ContainsKey(schemaName))
-            {
-                // We have a new configuration for the schema, so we'll take that
-                // instead of the one in the gateway package.
-                continue;
-            }
-
-            var configuration = await archive.TryGetSourceSchemaConfigurationAsync(schemaName, cancellationToken);
-
-            if (configuration is null)
-            {
-                continue;
-            }
-
-            var sourceText = await ReadSchemaSourceTextAsync(configuration, cancellationToken);
-
-            sourceSchemas[schemaName] = (new SourceSchemaText(schemaName, sourceText), configuration.Settings);
-        }
-
-        var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
-        var mergedCompositionSettings =
-            compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
-
-        var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
-        var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
-        var satisfiabilityOptions = mergedCompositionSettings.Satisfiability.ToOptions();
-
-        foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
-        {
-            var schemaSettings =
-                sourceSchemaSettings.Deserialize(SettingsJsonSerializerContext.Default.SourceSchemaSettings)!;
-
-            var sourceSchemaOptions = schemaSettings.ToOptions();
-
-            mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
-            sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
-            schemaSettings.Satisfiability?.MergeInto(satisfiabilityOptions);
-        }
-
-        var schemaComposerOptions = new SchemaComposerOptions
-        {
-            SourceSchemas = sourceSchemaOptionsMap,
-            Merger = mergerOptions,
-            Satisfiability = satisfiabilityOptions
-        };
-
-        if (existingCompositionSettings.Merger.EnableGlobalObjectIdentification
-            != schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
-        {
-            compositionLog.Write(
-                LogEntryBuilder.New()
-                    .SetMessage(
-                        schemaComposerOptions.Merger.EnableGlobalObjectIdentification
-                            ? ComposeCommand_GlobalObjectIdentification_Enabled
-                            : ComposeCommand_GlobalObjectIdentification_Disabled)
-                    .SetCode(LogEntryCodes.ModifiedCompositionSetting)
-                    .SetSeverity(LogSeverity.Info)
-                    .Build());
-        }
-
-        var schemaComposer = new SchemaComposer(
-            sourceSchemas.Select(s => s.Value.Item1),
-            schemaComposerOptions,
-            compositionLog);
-
-        var result = schemaComposer.Compose();
-
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
-        using var bufferWriter = new PooledArrayWriter();
-        new SettingsComposer().Compose(
-            bufferWriter,
-            sourceSchemas.Select(s => s.Value.Item2.RootElement).ToArray(),
-            environment);
-
-        var metadata = new ArchiveMetadata
-        {
-            SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
-            SourceSchemas = [.. sourceSchemas.Keys]
-        };
-
-        await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
-
-        foreach (var (schemaName, (schema, settings)) in sourceSchemas)
-        {
-            await archive.SetSourceSchemaConfigurationAsync(
-                schemaName,
-                Encoding.UTF8.GetBytes(schema.SourceText),
-                settings,
-                cancellationToken);
-        }
-
-        await archive.SetGatewayConfigurationAsync(
-            result.Value + Environment.NewLine,
-            JsonDocument.Parse(bufferWriter.WrittenMemory),
-            WellKnownVersions.LatestGatewayFormatVersion,
-            cancellationToken);
-
-        await SaveCompositionSettingsAsync(archive, schemaComposerOptions, cancellationToken);
-
-        await archive.CommitAsync(cancellationToken);
-
-        return result;
     }
 
     public static void WriteCompositionLog(
@@ -682,7 +505,7 @@ internal sealed class FusionComposeCommand : Command
         }
     }
 
-    private static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
+    internal static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
         List<string> sourceSchemaFiles,
         CancellationToken cancellationToken)
     {
@@ -690,107 +513,61 @@ internal sealed class FusionComposeCommand : Command
 
         foreach (var sourceSchemaFile in sourceSchemaFiles)
         {
-            await ReadSourceSchemaAsync(sourceSchemaFile, sourceSchemas, cancellationToken);
+            var (schemaName, sourceText, settings) = await ReadSourceSchemaAsync(sourceSchemaFile, cancellationToken);
+
+            sourceSchemas.Add(schemaName, (sourceText, settings));
         }
 
         return sourceSchemas;
+    }
 
-        static async Task ReadSourceSchemaAsync(
-            string sourceSchemaPath,
-            Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas,
-            CancellationToken cancellationToken)
+    internal static async Task<(string SchemaName, SourceSchemaText SourceText, JsonDocument Settings)> ReadSourceSchemaAsync(
+        string sourceSchemaPath,
+        CancellationToken cancellationToken)
+    {
+        string? schemaFilePath = null;
+
+        if (Directory.Exists(sourceSchemaPath))
         {
-            string? schemaFilePath = null;
-
-            if (Directory.Exists(sourceSchemaPath))
-            {
-                schemaFilePath =
-                    new DirectoryInfo(sourceSchemaPath)
-                        .GetFiles("*.graphql*", SearchOption.AllDirectories)
-                        .Where(f => IsSchemaFile(f.Name))
-                        .Select(i => i.FullName)
-                        .FirstOrDefault();
-            }
-            else if (File.Exists(sourceSchemaPath))
-            {
-                schemaFilePath = sourceSchemaPath;
-            }
-
-            if (schemaFilePath is null)
-            {
-                throw new InvalidOperationException(
-                    $"❌ Source schema file '{sourceSchemaPath}' does not exist.");
-            }
-
-            var settingsFilePath = Path.Combine(
-                Path.GetDirectoryName(schemaFilePath)!,
-                Path.GetFileNameWithoutExtension(schemaFilePath) + "-settings.json");
-
-            if (!File.Exists(settingsFilePath))
-            {
-                throw new InvalidOperationException(
-                    $"Missing source schema settings file `{settingsFilePath}`.");
-            }
-
-            var settings = JsonDocument.Parse(await File.ReadAllBytesAsync(settingsFilePath, cancellationToken));
-            var schemaName = settings.RootElement.GetProperty("name").GetString();
-
-            if (schemaName is null)
-            {
-                throw new InvalidOperationException("Invalid source schema settings format.");
-            }
-
-            var sourceText = await File.ReadAllTextAsync(schemaFilePath, cancellationToken);
-            sourceSchemas.TryAdd(schemaName, (new SourceSchemaText(schemaName, sourceText), settings));
+            schemaFilePath =
+                new DirectoryInfo(sourceSchemaPath)
+                    .GetFiles("*.graphql*", SearchOption.AllDirectories)
+                    .Where(f => IsSchemaFile(f.Name))
+                    .Select(i => i.FullName)
+                    .FirstOrDefault();
         }
-    }
-
-    private static async Task<CompositionSettings> GetCompositionSettingsAsync(
-        FusionArchive archive,
-        CancellationToken cancellationToken)
-    {
-        var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
-
-        return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
-            ?? new CompositionSettings
-            {
-                Merger = new CompositionSettings.MergerSettings
-                {
-                    EnableGlobalObjectIdentification = false
-                }
-            };
-    }
-
-    private static async Task SaveCompositionSettingsAsync(
-        FusionArchive archive,
-        SchemaComposerOptions options,
-        CancellationToken cancellationToken)
-    {
-        var settings = new CompositionSettings
+        else if (File.Exists(sourceSchemaPath))
         {
-            Merger = new CompositionSettings.MergerSettings
-            {
-                EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
-            },
-            Satisfiability = new CompositionSettings.SatisfiabilitySettings
-            {
-                IncludeSatisfiabilityPaths = options.Satisfiability.IncludeSatisfiabilityPaths
-            }
-        };
-        var settingsJson = JsonSerializer.SerializeToDocument(
-            settings,
-            SettingsJsonSerializerContext.Default.CompositionSettings);
+            schemaFilePath = sourceSchemaPath;
+        }
 
-        await archive.SetCompositionSettingsAsync(settingsJson, cancellationToken);
-    }
+        if (schemaFilePath is null)
+        {
+            throw new InvalidOperationException(
+                $"❌ Source schema file '{sourceSchemaPath}' does not exist.");
+        }
 
-    private static async Task<string> ReadSchemaSourceTextAsync(
-        SourceSchemaConfiguration configuration,
-        CancellationToken cancellationToken)
-    {
-        await using var stream = await configuration.OpenReadSchemaAsync(cancellationToken);
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        return await reader.ReadToEndAsync(cancellationToken);
+        var settingsFilePath = Path.Combine(
+            Path.GetDirectoryName(schemaFilePath)!,
+            Path.GetFileNameWithoutExtension(schemaFilePath) + "-settings.json");
+
+        if (!File.Exists(settingsFilePath))
+        {
+            throw new InvalidOperationException(
+                $"Missing source schema settings file `{settingsFilePath}`.");
+        }
+
+        var settings = JsonDocument.Parse(await File.ReadAllBytesAsync(settingsFilePath, cancellationToken));
+        var schemaName = settings.RootElement.GetProperty("name").GetString();
+
+        if (schemaName is null)
+        {
+            throw new InvalidOperationException("Invalid source schema settings format.");
+        }
+
+        var sourceText = await File.ReadAllTextAsync(schemaFilePath, cancellationToken);
+
+        return (schemaName, new SourceSchemaText(schemaName, sourceText), settings);
     }
 
     /// <summary>

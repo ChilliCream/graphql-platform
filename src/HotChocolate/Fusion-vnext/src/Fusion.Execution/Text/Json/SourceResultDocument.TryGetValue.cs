@@ -13,7 +13,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out sbyte tmp, out var consumed)
             && consumed == segment.Length)
@@ -34,7 +34,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out byte tmp, out var consumed)
             && consumed == segment.Length)
@@ -55,7 +55,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out short tmp, out var consumed)
             && consumed == segment.Length)
@@ -76,7 +76,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out ushort tmp, out var consumed)
             && consumed == segment.Length)
@@ -97,7 +97,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out int tmp, out var consumed)
             && consumed == segment.Length)
@@ -118,7 +118,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out uint tmp, out var consumed)
             && consumed == segment.Length)
@@ -139,7 +139,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out long tmp, out var consumed)
             && consumed == segment.Length)
@@ -160,7 +160,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out ulong tmp, out var consumed)
             && consumed == segment.Length)
@@ -181,7 +181,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out double tmp, out var bytesConsumed)
             && segment.Length == bytesConsumed)
@@ -202,7 +202,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out float tmp, out var bytesConsumed)
             && segment.Length == bytesConsumed)
@@ -223,7 +223,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (Utf8Parser.TryParse(segment, out decimal tmp, out var bytesConsumed)
             && segment.Length == bytesConsumed)

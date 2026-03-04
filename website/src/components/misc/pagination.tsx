@@ -1,4 +1,4 @@
-import { Link } from "gatsby";
+import NextLink from "next/link";
 import React, { FC } from "react";
 import styled from "styled-components";
 
@@ -29,7 +29,7 @@ export const Pagination: FC<PaginationProps> = ({
       {items.map((item) => (
         <Page key={`page-${item.page}`}>
           <PageLink
-            to={item.link}
+            href={item.link}
             className={item.page === currentPage ? "active" : undefined}
           >
             {item.page}
@@ -54,7 +54,7 @@ const Page = styled.li`
   padding: 0;
 `;
 
-const PageLink = styled(Link)`
+const PageLink = styled(NextLink)`
   display: flex;
   align-items: center;
   justify-content: center;

@@ -92,11 +92,11 @@ internal class AggregateDataLoaderDiagnosticEventListener(
     }
 
     /// <inheritdoc />
-    public override void BatchDispatched(int dispatchedBatches, bool inParallel)
+    public override void BatchDispatched(int dispatchedBatches)
     {
         for (var i = 0; i < listeners.Length; i++)
         {
-            listeners[i].BatchDispatched(dispatchedBatches, inParallel);
+            listeners[i].BatchDispatched(dispatchedBatches);
         }
     }
 

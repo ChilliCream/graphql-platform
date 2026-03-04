@@ -22,7 +22,7 @@ response:
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo2"
+              "subgraph2": "Product: UHJvZHVjdDo0"
             }
           },
           {
@@ -32,7 +32,7 @@ response:
           },
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo0"
+              "subgraph2": "Product: UHJvZHVjdDo2"
             }
           }
         ]
@@ -95,7 +95,7 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo2"
+                        "id": "UHJvZHVjdDo0"
                       }
                     },
                     {
@@ -107,7 +107,7 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo0"
+                        "id": "UHJvZHVjdDo2"
                       }
                     }
                   ]
@@ -135,48 +135,48 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_5f4670e8_2(
-              $__fusion_1_id: ID!
-            ) {
-              authorById(id: $__fusion_1_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": "QXV0aG9yOjU="
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_5f4670e8_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    subgraph2
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "QXV0aG9yOjU="
+                }
+            - document: |
+                query testQuery_5f4670e8_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  productById(id: $__fusion_2_id) {
+                    subgraph2
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDo0"
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDo2"
+                  }
+                ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjU="
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo0"
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_5f4670e8_3(
-              $__fusion_2_id: ID!
-            ) {
-              productById(id: $__fusion_2_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "UHJvZHVjdDo2"
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDo0"
-              }
-            ]
-        response:
-          results:
             - |
               {
                 "data": {
@@ -188,8 +188,8 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo0"
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjU="
                   }
                 }
               }
@@ -216,6 +216,7 @@ operationPlan:
       name: testQuery
       hash: 5f4670e8910662aebec5f35dcb7ea523
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -249,6 +250,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.posts<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -268,6 +270,7 @@ operationPlan:
         }
       source: $.productById
       target: $.posts<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

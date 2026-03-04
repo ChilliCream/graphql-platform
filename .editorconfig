@@ -9,9 +9,11 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 rulers = 120
 
+[*.{bat,cmd,ps1}]
+end_of_line = crlf
+
 # ReSharper properties
 resharper_align_multiline_statement_conditions = false
-resharper_braces_for_ifelse = not_required
 resharper_keep_existing_initializer_arrangement = false
 resharper_trailing_comma_in_multiline_lists = false
 resharper_wrap_object_and_collection_initializer_style = wrap_if_long
@@ -185,6 +187,8 @@ dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.RCS1129.severity = none
 # Use StringBuilder.Append(char) for single character strings.
 dotnet_diagnostic.CA1834.severity = warning
+# Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char.
+dotnet_diagnostic.CA1866.severity = warning
 # Simplify name.
 dotnet_diagnostic.IDE0001.severity = warning
 # Simplify member access.
@@ -199,6 +203,8 @@ csharp_style_var_for_built_in_types = true
 csharp_style_var_when_type_is_apparent = true
 csharp_style_var_elsewhere = true
 dotnet_diagnostic.RCS1264.severity = none
+# Add braces.
+dotnet_diagnostic.IDE0011.severity = warning
 # Use collection initializers or expressions.
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.

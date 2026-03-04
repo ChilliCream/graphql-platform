@@ -1,6 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using static System.Text.Json.JsonSerializerDefaults;
 using static System.Text.Json.Serialization.JsonIgnoreCondition;
 
@@ -30,14 +30,14 @@ public struct JsonResultFormatterOptions
     /// </summary>
     public JavaScriptEncoder? Encoder { get; set; }
 
-    internal JsonWriterOptions CreateWriterOptions()
+    public JsonWriterOptions CreateWriterOptions()
         => new()
         {
             Indented = Indented,
             Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-    internal readonly JsonSerializerOptions CreateSerializerOptions()
+    public readonly JsonSerializerOptions CreateSerializerOptions()
         => new(Web)
         {
             WriteIndented = Indented,

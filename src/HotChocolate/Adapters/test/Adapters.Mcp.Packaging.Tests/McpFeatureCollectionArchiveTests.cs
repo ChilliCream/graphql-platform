@@ -85,14 +85,14 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         using var promptSettings = JsonDocument.Parse("""{ "title": "Test Prompt" }""");
         var operation = "query GetUsers { users { id name } }"u8.ToArray();
         using var toolSettings = JsonDocument.Parse("""{ "title": "TestTool" }""");
-        var openAiComponent = "<!-- OpenAI Component HTML -->"u8.ToArray();
+        var viewHtml = "<!-- View HTML -->"u8.ToArray();
 
         // act - Create and commit
         using (var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetArchiveMetadataAsync(metadata);
             await archive.AddPromptAsync("GetUsersPrompt", promptSettings);
-            await archive.AddToolAsync("GetUsers", operation, toolSettings, openAiComponent);
+            await archive.AddToolAsync("GetUsers", operation, toolSettings, viewHtml);
             await archive.CommitAsync();
         }
 
@@ -114,7 +114,7 @@ public class McpFeatureCollectionArchiveTests : IDisposable
             Assert.Equal(operation, tool.Document.ToArray());
             Assert.NotNull(tool.Settings);
             Assert.True(JsonElement.DeepEquals(toolSettings.RootElement, tool.Settings.RootElement));
-            Assert.Equal(openAiComponent, tool.OpenAiComponent?.ToArray());
+            Assert.Equal(viewHtml, tool.ViewHtml?.ToArray());
         }
     }
 
@@ -717,23 +717,29 @@ public class McpFeatureCollectionArchiveTests : IDisposable
                 IdempotentHint = true,
                 OpenWorldHint = false
             },
-            OpenAiComponent = new McpToolSettingsOpenAiComponentDto
+            View = new McpToolSettingsMcpAppViewDto
             {
                 Csp = new McpToolSettingsCspDto
                 {
-                    ConnectDomains = ["https://api.example.com"],
-                    ResourceDomains = ["https://resources.example.com"]
+                    BaseUriDomains = ["https://example.com"],
+                    ConnectDomains = ["https://example.com"],
+                    FrameDomains = ["https://example.com"],
+                    ResourceDomains = ["https://example.com"]
                 },
-                Description = "A component to display user information.",
                 Domain = "example.com",
-                PrefersBorder = true,
-                ToolInvokingStatusText = "Invoking GetUserById tool...",
-                ToolInvokedStatusText = "GetUserById tool invoked.",
-                AllowToolCalls = true
-            }
+                Permissions = new McpToolSettingsPermissionsDto
+                {
+                    Camera = true,
+                    ClipboardWrite = false,
+                    Geolocation = true,
+                    Microphone = false
+                },
+                PrefersBorder = true
+            },
+            Visibility = [McpAppViewVisibility.Model]
         };
-        const string openAiComponentHtml = "<!-- OpenAI Component HTML -->";
-        var toolDefinition = OperationToolDefinition.From(document, "TestTool", settingsDto, openAiComponentHtml);
+        const string viewHtml = "<!-- View HTML -->";
+        var toolDefinition = OperationToolDefinition.From(document, "TestTool", settingsDto, viewHtml);
 
         using var settings = McpToolSettingsSerializer.Format(settingsDto);
 
@@ -750,7 +756,7 @@ public class McpFeatureCollectionArchiveTests : IDisposable
                 toolDefinition.Name,
                 ms.ToArray(),
                 settings,
-                Encoding.UTF8.GetBytes(openAiComponentHtml));
+                Encoding.UTF8.GetBytes(viewHtml));
             await writeArchive.CommitAsync();
         }
 
@@ -766,12 +772,12 @@ public class McpFeatureCollectionArchiveTests : IDisposable
             var readDocument = Utf8GraphQLParser.Parse(tool!.Document.Span);
             var readSettings = tool.Settings is null ? null : McpToolSettingsSerializer.Parse(tool.Settings);
 
-            var openAiComponentHtmlString =
-                tool.OpenAiComponent is { } openAiComponentMemory
-                    ? Encoding.UTF8.GetString(openAiComponentMemory.Span)
+            var viewHtmlString =
+                tool.ViewHtml is { } viewHtmlMemory
+                    ? Encoding.UTF8.GetString(viewHtmlMemory.Span)
                     : null;
             parsedDefinition =
-                OperationToolDefinition.From(readDocument, toolName, readSettings, openAiComponentHtmlString);
+                OperationToolDefinition.From(readDocument, toolName, readSettings, viewHtmlString);
         }
 
         // assert
@@ -791,28 +797,41 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         Assert.Equal(toolDefinition.DestructiveHint, parsedDefinition.DestructiveHint);
         Assert.Equal(toolDefinition.IdempotentHint, parsedDefinition.IdempotentHint);
         Assert.Equal(toolDefinition.OpenWorldHint, parsedDefinition.OpenWorldHint);
+        Assert.Equal(toolDefinition.View?.Html, parsedDefinition.View?.Html);
         Assert.Equal(
-            toolDefinition.OpenAiComponent?.HtmlTemplateText,
-            parsedDefinition.OpenAiComponent?.HtmlTemplateText);
+            toolDefinition.View?.Csp?.BaseUriDomains,
+            parsedDefinition.View?.Csp?.BaseUriDomains);
         Assert.Equal(
-            toolDefinition.OpenAiComponent?.Csp?.ConnectDomains,
-            parsedDefinition.OpenAiComponent?.Csp?.ConnectDomains);
+            toolDefinition.View?.Csp?.ConnectDomains,
+            parsedDefinition.View?.Csp?.ConnectDomains);
         Assert.Equal(
-            toolDefinition.OpenAiComponent?.Csp?.ResourceDomains,
-            parsedDefinition.OpenAiComponent?.Csp?.ResourceDomains);
-        Assert.Equal(toolDefinition.OpenAiComponent?.Description, parsedDefinition.OpenAiComponent?.Description);
-        Assert.Equal(toolDefinition.OpenAiComponent?.Domain, parsedDefinition.OpenAiComponent?.Domain);
-        Assert.Equal(toolDefinition.OpenAiComponent?.PrefersBorder, parsedDefinition.OpenAiComponent?.PrefersBorder);
+            toolDefinition.View?.Csp?.FrameDomains,
+            parsedDefinition.View?.Csp?.FrameDomains);
         Assert.Equal(
-            toolDefinition.OpenAiComponent?.ToolInvokingStatusText,
-            parsedDefinition.OpenAiComponent?.ToolInvokingStatusText);
+            toolDefinition.View?.Csp?.ResourceDomains,
+            parsedDefinition.View?.Csp?.ResourceDomains);
+        Assert.Equal(toolDefinition.View?.Domain, parsedDefinition.View?.Domain);
         Assert.Equal(
-            toolDefinition.OpenAiComponent?.ToolInvokedStatusText,
-            parsedDefinition.OpenAiComponent?.ToolInvokedStatusText);
-        Assert.Equal(toolDefinition.OpenAiComponent?.AllowToolCalls, parsedDefinition.OpenAiComponent?.AllowToolCalls);
+            toolDefinition.View?.Permissions?.Camera,
+            parsedDefinition.View?.Permissions?.Camera);
+        Assert.Equal(
+            toolDefinition.View?.Permissions?.ClipboardWrite,
+            parsedDefinition.View?.Permissions?.ClipboardWrite);
+        Assert.Equal(
+            toolDefinition.View?.Permissions?.Geolocation,
+            parsedDefinition.View?.Permissions?.Geolocation);
+        Assert.Equal(
+            toolDefinition.View?.Permissions?.Microphone,
+            parsedDefinition.View?.Permissions?.Microphone);
+        Assert.Equal(
+            toolDefinition.View?.PrefersBorder,
+            parsedDefinition.View?.PrefersBorder);
+        Assert.Equal(
+            toolDefinition.Visibility,
+            parsedDefinition.Visibility);
     }
 
-    private Stream CreateStream()
+    private MemoryStream CreateStream()
     {
         var stream = new MemoryStream();
         _streamsToDispose.Add(stream);

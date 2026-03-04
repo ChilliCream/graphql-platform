@@ -1,9 +1,12 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Pagination.CursorPagingArgumentNames;
+using static HotChocolate.WellKnownMiddleware;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -125,6 +128,10 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         if (descriptor is IObjectFieldDescriptor fieldDesc)
         {
             var definition = fieldDesc.Extend().Configuration;
+            definition.MiddlewareConfigurations.Add(
+                new FieldMiddlewareConfiguration(
+                    CreatePagingValidationMiddleware(),
+                    key: Paging));
             definition.Tasks.Add(
                 new OnCreateTypeSystemConfigurationTask(
                     (_, d) => d.Features.Set(options), definition));
@@ -160,5 +167,113 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
                 definition.Arguments.Remove(lastArg);
             }
         }
+    }
+
+    private static FieldMiddleware CreatePagingValidationMiddleware()
+        => next => context =>
+        {
+            var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+            ValidateContext(context, options);
+            PublishPagingArguments(context, options);
+            return next(context);
+        };
+
+    private static void ValidateContext(
+        IMiddlewareContext context,
+        PagingOptions options)
+    {
+        var allowBackwardPagination =
+            options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
+        var requirePagingBoundaries =
+            options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries;
+        var maxPageSize =
+            options.MaxPageSize ?? PagingDefaults.MaxPageSize;
+
+        var first = context.ArgumentValue<int?>(First);
+        var last = allowBackwardPagination
+            ? context.ArgumentValue<int?>(Last)
+            : null;
+
+        if (requirePagingBoundaries && first is null && last is null)
+        {
+            if (allowBackwardPagination)
+            {
+                throw ThrowHelper.PagingHandler_NoBoundariesSet(
+                    context.Selection.Field,
+                    context.Path);
+            }
+
+            throw ThrowHelper.PagingHandler_FirstValueNotSet(
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (first < 0)
+        {
+            throw ThrowHelper.PagingHandler_MinPageSize(
+                (int)first,
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (first > maxPageSize)
+        {
+            throw ThrowHelper.PagingHandler_MaxPageSize(
+                (int)first,
+                maxPageSize,
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (last < 0)
+        {
+            throw ThrowHelper.PagingHandler_MinPageSize(
+                (int)last,
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (last > maxPageSize)
+        {
+            throw ThrowHelper.PagingHandler_MaxPageSize(
+                (int)last,
+                maxPageSize,
+                context.Selection.Field,
+                context.Path);
+        }
+    }
+
+    private static void PublishPagingArguments(
+        IMiddlewareContext context,
+        PagingOptions options)
+    {
+        var allowBackwardPagination = options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
+        var maxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
+        var defaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
+
+        if (maxPageSize < defaultPageSize)
+        {
+            defaultPageSize = maxPageSize;
+        }
+
+        var first = context.ArgumentValue<int?>(First);
+        var last = allowBackwardPagination
+            ? context.ArgumentValue<int?>(Last)
+            : null;
+
+        if (first is null && last is null)
+        {
+            first = defaultPageSize;
+        }
+
+        context.SetLocalState(
+            WellKnownContextData.PagingArguments,
+            new CursorPagingArguments(
+                first,
+                last,
+                context.ArgumentValue<string?>(After),
+                allowBackwardPagination
+                    ? context.ArgumentValue<string?>(Before)
+                    : null));
     }
 }

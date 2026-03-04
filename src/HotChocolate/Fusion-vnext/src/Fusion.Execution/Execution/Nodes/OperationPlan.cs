@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using HotChocolate.Buffers;
@@ -14,21 +13,25 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed record OperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
-    private readonly FrozenDictionary<int, ExecutionNode> _nodes = FrozenDictionary<int, ExecutionNode>.Empty;
+    private readonly ExecutionNode?[] _nodesById = [];
+    private readonly ImmutableArray<BatchingGroupRegistration> _batchingGroups;
 
     private OperationPlan(
         string id,
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace)
+        int searchSpace,
+        int expandedNodes)
     {
         Id = id;
         Operation = operation;
         RootNodes = rootNodes;
         AllNodes = allNodes;
         SearchSpace = searchSpace;
-        _nodes = allNodes.ToFrozenDictionary(t => t.Id);
+        ExpandedNodes = expandedNodes;
+        _nodesById = CreateNodeLookup(allNodes);
+        _batchingGroups = CreateBatchingGroups(allNodes);
     }
 
     /// <summary>
@@ -65,7 +68,19 @@ public sealed record OperationPlan
     /// <summary>
     /// Gets a number specifying how many possible plans were considered during planning.
     /// </summary>
-    public uint SearchSpace { get; }
+    public int SearchSpace { get; }
+
+    /// <summary>
+    /// Gets the number of nodes expanded (dequeued) during the A* search.
+    /// </summary>
+    public int ExpandedNodes { get; }
+
+    /// <summary>
+    /// The batching groups derived from the execution nodes in this plan. Each group contains
+    /// the IDs of nodes that belong to the same batch and should be executed together.
+    /// </summary>
+    internal ImmutableArray<BatchingGroupRegistration> BatchingGroups
+        => _batchingGroups;
 
     /// <summary>
     /// Retrieves an execution node by its unique identifier.
@@ -74,7 +89,15 @@ public sealed record OperationPlan
     /// <returns>The execution node with the specified identifier.</returns>
     /// <exception cref="KeyNotFoundException">Thrown when no node with the specified ID exists.</exception>
     public ExecutionNode GetNodeById(int id)
-        => _nodes[id];
+    {
+        if ((uint)id < (uint)_nodesById.Length
+            && _nodesById[id] is { } node)
+        {
+            return node;
+        }
+
+        throw new KeyNotFoundException();
+    }
 
     /// <summary>
     /// Creates a new operation plan with the specified identifier.
@@ -84,6 +107,7 @@ public sealed record OperationPlan
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
+    /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
@@ -93,14 +117,15 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace)
+        int searchSpace,
+        int expandedNodes)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
-        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace);
+        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
 
     /// <summary>
@@ -111,6 +136,7 @@ public sealed record OperationPlan
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
+    /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
@@ -118,7 +144,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace)
+        int searchSpace,
+        int expandedNodes)
     {
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
@@ -140,6 +167,79 @@ public sealed record OperationPlan
         var id = Convert.ToHexString(buffer.WrittenSpan[^32..]).ToLowerInvariant();
 #endif
 
-        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace);
+        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
+
+    private static ImmutableArray<BatchingGroupRegistration> CreateBatchingGroups(
+        ImmutableArray<ExecutionNode> allNodes)
+    {
+        Dictionary<int, List<int>>? groups = null;
+
+        foreach (var executionNode in allNodes)
+        {
+            var groupId = executionNode switch
+            {
+                OperationExecutionNode n => n.BatchingGroupId,
+                OperationBatchExecutionNode n => n.BatchingGroupId,
+                _ => null
+            };
+
+            if (groupId is null)
+            {
+                continue;
+            }
+
+            groups ??= [];
+
+            if (!groups.TryGetValue(groupId.Value, out var nodeIds))
+            {
+                nodeIds = [];
+                groups.Add(groupId.Value, nodeIds);
+            }
+
+            nodeIds.Add(executionNode.Id);
+        }
+
+        if (groups is null)
+        {
+            return [];
+        }
+
+        var registrations = ImmutableArray.CreateBuilder<BatchingGroupRegistration>(groups.Count);
+
+        foreach (var (groupId, nodeIds) in groups)
+        {
+            registrations.Add(new BatchingGroupRegistration(groupId, [.. nodeIds]));
+        }
+
+        return registrations.MoveToImmutable();
+    }
+
+    private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
+    {
+        if (allNodes.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        var maxId = 0;
+
+        foreach (var node in allNodes)
+        {
+            maxId = Math.Max(maxId, node.Id);
+        }
+
+        var nodesById = new ExecutionNode?[maxId + 1];
+
+        foreach (var node in allNodes)
+        {
+            nodesById[node.Id] = node;
+        }
+
+        return nodesById;
+    }
+
+    internal readonly record struct BatchingGroupRegistration(
+        int GroupId,
+        int[] NodeIds);
 }

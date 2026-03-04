@@ -27,7 +27,6 @@ public class GraphQLConfigTests
                     "strawberryShake": {
                         "name": "Client",
                         "accessModifier": "public",
-                        "dependencyInjection": true,
                         "strictSchemaValidation": true,
                         "hashAlgorithm": "md5",
                         "useSingleFile": true,
@@ -63,7 +62,6 @@ public class GraphQLConfigTests
                     "strawberryShake": {
                         "name": "Client",
                         "accessModifier": "public",
-                        "dependencyInjection": true,
                         "strictSchemaValidation": true,
                         "hashAlgorithm": "md5",
                         "useSingleFile": true,
@@ -101,7 +99,6 @@ public class GraphQLConfigTests
                     "strawberryShake": {
                         "name": "Client",
                         "accessModifier": "public",
-                        "dependencyInjection": true,
                         "strictSchemaValidation": true,
                         "hashAlgorithm": "md5",
                         "useSingleFile": true,
@@ -137,7 +134,6 @@ public class GraphQLConfigTests
                     "strawberryShake": {
                         "name": "Client",
                         "accessModifier": "public",
-                        "dependencyInjection": true,
                         "strictSchemaValidation": true,
                         "hashAlgorithm": "md5",
                         "useSingleFile": true,

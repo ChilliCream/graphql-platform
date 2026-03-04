@@ -4,8 +4,8 @@
       "message": "The specified value type of field `b` does not match the field type.",
       "locations": [
         {
-          "line": 1,
-          "column": 23
+          "line": 2,
+          "column": 25
         }
       ],
       "path": [

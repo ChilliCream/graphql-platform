@@ -8,20 +8,26 @@
           "column": 70
         }
       ],
+      "extensions": {
+        "code": "HC0001",
+        "coordinate": "boom.arg"
+      }
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
       "path": [
         "nestedObjectOutput",
         "nestedObject",
-        "inner",
-        "id"
+        "inner"
       ],
       "extensions": {
-        "code": "HC0001",
-        "coordinate": "boom.arg",
-        "exception": {
-          "message": "Boom",
-          "stackTrace": "Test"
-        }
+        "code": "HC0018"
       }
     }
-  ]
+  ],
+  "data": {
+    "nestedObjectOutput": {
+      "nestedObject": null
+    }
+  }
 }

@@ -106,7 +106,8 @@ operationPlan:
         }
       name: testQuery
       hash: c97c6b3fae77c6bc3656d8e0a796d9ac
-      searchSpace: 1
+      searchSpace: 2
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
@@ -140,6 +141,9 @@ operationPlan:
         - name: __fusion_1_id
           selectionMap: >-
             id
+      conditions:
+        - variable: $skip
+          passingValue: false
       dependencies:
         - id: 1
     - id: 3
@@ -148,7 +152,7 @@ operationPlan:
       operation: |
         query testQuery_c97c6b3f_3(
           $__fusion_2_size: Int!
-          $__fusion_3_id: ID!
+            $__fusion_3_id: ID!
         ) {
           productById(id: $__fusion_3_id) {
             dimension(size: $__fusion_2_size)

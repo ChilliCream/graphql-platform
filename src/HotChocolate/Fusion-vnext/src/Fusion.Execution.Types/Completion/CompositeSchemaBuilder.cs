@@ -116,6 +116,11 @@ internal static class CompositeSchemaBuilder
                     break;
 
                 case DirectiveDefinitionNode directiveType:
+                    if (IsSpecDirective(directiveType.Name.Value))
+                    {
+                        break;
+                    }
+
                     if (options.ApplySerializeAsToScalars || !directiveType.Name.Value.Equals(SerializeAs.Name))
                     {
                         directiveTypes.Add(CreateDirectiveType(directiveType));
@@ -493,6 +498,7 @@ internal static class CompositeSchemaBuilder
         context.Interceptor.OnAfterCompleteSchema(context, schema);
         schema.Seal();
         context.Complete(schema);
+        schema.InitializePlannerTopologyCache();
 
         return schema;
     }

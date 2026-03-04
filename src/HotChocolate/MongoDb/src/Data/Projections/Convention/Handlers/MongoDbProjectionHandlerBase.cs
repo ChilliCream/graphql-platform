@@ -6,7 +6,7 @@ using HotChocolate.Execution.Processing;
 namespace HotChocolate.Data.MongoDb.Projections;
 
 /// <summary>
-/// A handler that can intersect a <see cref="ISelection"/> and optimize the selection set for
+/// A handler that can intersect a <see cref="Selection"/> and optimize the selection set for
 /// mongodb projections.
 /// </summary>
 public abstract class MongoDbProjectionHandlerBase
@@ -15,7 +15,7 @@ public abstract class MongoDbProjectionHandlerBase
     /// <inheritdoc/>
     public override bool TryHandleEnter(
         MongoDbProjectionVisitorContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         action = SelectionVisitor.Continue;
@@ -25,7 +25,7 @@ public abstract class MongoDbProjectionHandlerBase
     /// <inheritdoc/>
     public override bool TryHandleLeave(
         MongoDbProjectionVisitorContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         action = SelectionVisitor.Continue;

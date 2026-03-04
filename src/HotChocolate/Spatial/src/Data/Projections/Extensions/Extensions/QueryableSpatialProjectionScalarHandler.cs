@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Projections.Spatial;
 public class QueryableSpatialProjectionScalarHandler
     : QueryableProjectionScalarHandler
 {
-    public override bool CanHandle(ISelection selection) =>
+    public override bool CanHandle(Selection selection) =>
         selection.Field.Member is not null
         && typeof(Geometry).IsAssignableFrom(selection.Field.Member.GetReturnType());
 

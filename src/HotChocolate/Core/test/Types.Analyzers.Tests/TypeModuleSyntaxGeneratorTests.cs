@@ -236,4 +236,40 @@ public class TypeModuleSyntaxGeneratorTests
             """
         ]).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task GenerateSource_Interface_Inheritance_Registers_Derived_Implementations()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [InterfaceType]
+            public abstract class StatementTransaction
+            {
+                public int Id { get; set; }
+            }
+
+            public sealed class DepositStatementTransaction : StatementTransaction
+            {
+                public decimal CollectionAmount { get; init; }
+            }
+
+            public sealed class BillingStatementTransaction : StatementTransaction
+            {
+                public decimal FeeAndChargeAmount { get; init; }
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static StatementTransaction GetStatementTransaction()
+                    => new DepositStatementTransaction { Id = 1, CollectionAmount = 42m };
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
 }

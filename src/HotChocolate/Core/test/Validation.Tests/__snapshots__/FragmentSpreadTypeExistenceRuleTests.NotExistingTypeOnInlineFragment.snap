@@ -1,27 +1,18 @@
-[
+"errors": [
   {
-    "Message": "Unknown type `NotInSchema`.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
+    "message": "Unknown type `NotInSchema`.",
+    "locations": [
       {
-        "Line": 8,
-        "Column": 5
+        "line": 8,
+        "column": 5
       }
     ],
-    "Extensions": {
+    "path": [
+      "dog"
+    ],
+    "extensions": {
       "typeCondition": "NotInSchema",
       "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Type-Existence"
-    },
-    "Exception": null
+    }
   }
 ]

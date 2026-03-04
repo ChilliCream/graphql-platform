@@ -43,23 +43,28 @@ internal static class ApiClientCommandLineBuilderExtensions
                 }
                 else if (!string.IsNullOrWhiteSpace(cloudUrl))
                 {
-                    if (Uri.TryCreate(cloudUrl, Absolute, out var uri))
-                    {
-                        client.BaseAddress = uri;
-                    }
-                    else if (Uri.TryCreate($"https://{cloudUrl}/graphql", Absolute, out uri))
-                    {
-                        client.BaseAddress = uri;
-                    }
-                    else
+                    if (!Uri.TryCreate(cloudUrl, Absolute, out var uri)
+                        && !Uri.TryCreate($"https://{cloudUrl}", Absolute, out uri))
                     {
                         throw new ExitException($"Could not parse cloud URL: {cloudUrl}");
                     }
+
+                    // Ensure that URI is always <host>/graphql
+                    var uriBuilder = new UriBuilder(uri)
+                    {
+                        Path = "/graphql",
+                        Query = string.Empty,
+                        Fragment = string.Empty,
+                        UserName = string.Empty,
+                        Password = string.Empty
+                    };
+
+                    client.BaseAddress = uriBuilder.Uri;
                 }
                 else
                 {
                     throw new ExitException(
-                        $"Could not find any api URL. Either specify --cloud-url or run {"nitro login".AsCommand()}");
+                        $"Could not find any API URL. Either specify --cloud-url or run {"nitro login".AsCommand()}");
                 }
 
                 if (sessionService.Session?.Tokens?.AccessToken is { } token
@@ -87,7 +92,7 @@ internal static class ApiClientCommandLineBuilderExtensions
                 client.DefaultRequestHeaders.Add(Headers.GraphQLPreflight, "1");
 
                 client.DefaultRequestVersion = new Version(2, 0);
-                client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
+                client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
 
                 clientConfig?.ConfigureClient?.Invoke(client);
             });

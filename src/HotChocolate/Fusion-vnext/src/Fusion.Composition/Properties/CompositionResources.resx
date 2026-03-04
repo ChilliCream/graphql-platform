@@ -21,6 +21,9 @@
   <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
     <value>{0} (Schema: '{1}')</value>
   </data>
+  <data name="CostDirective_WeightArgument_Invalid" xml:space="preserve">
+    <value>The @cost directive must have a 'weight' argument of type String.</value>
+  </data>
   <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
     <value>Post-merge validation failed.</value>
   </data>
@@ -41,6 +44,15 @@
   </data>
   <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>
+  </data>
+  <data name="FusionCostMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that defined the cost metadata.</value>
+  </data>
+  <data name="FusionCostMutableDirectiveDefinition_Argument_Weight_Description" xml:space="preserve">
+    <value>The weight defined in the source schema.</value>
+  </data>
+  <data name="FusionCostMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__cost directive specifies cost metadata for each source schema.</value>
   </data>
   <data name="FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that provides the specified enum value.</value>
@@ -95,6 +107,27 @@
   </data>
   <data name="FusionInputFieldMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__inputField directive specifies which source schema provides an input field in a composite input type.</value>
+  </data>
+  <data name="FusionListSizeMutableDirectiveDefinition_Argument_AssumedSize_Description" xml:space="preserve">
+    <value>The assumed size of the list as defined in the source schema.</value>
+  </data>
+  <data name="FusionListSizeMutableDirectiveDefinition_Argument_RequireOneSlicingArgument_Description" xml:space="preserve">
+    <value>The single slicing argument requirement of the list as defined in the source schema.</value>
+  </data>
+  <data name="FusionListSizeMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that defined the list size metadata.</value>
+  </data>
+  <data name="FusionListSizeMutableDirectiveDefinition_Argument_SizedFields_Description" xml:space="preserve">
+    <value>The sized fields of the list as defined in the source schema.</value>
+  </data>
+  <data name="FusionListSizeMutableDirectiveDefinition_Argument_SlicingArgumentDefaultValue_Description" xml:space="preserve">
+    <value>The slicing argument default value of the list as defined in the source schema.</value>
+  </data>
+  <data name="FusionListSizeMutableDirectiveDefinition_Argument_SlicingArguments_Description" xml:space="preserve">
+    <value>The slicing arguments of the list as defined in the source schema.</value>
+  </data>
+  <data name="FusionListSizeMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__listSize directive specifies list size metadata for each source schema.</value>
   </data>
   <data name="FusionLookupMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
     <value>The GraphQL field definition in the source schema that can be used to look up the entity.</value>
@@ -173,6 +206,21 @@
   </data>
   <data name="KeyMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @key directive is used to designate an entity’s unique key, which identifies how to uniquely reference an instance of an entity across different source schemas.</value>
+  </data>
+  <data name="ListSizeDirective_AssumedSizeArgument_Invalid" xml:space="preserve">
+    <value>The @listSize directive argument 'assumedSize' must be of type Int.</value>
+  </data>
+  <data name="ListSizeDirective_RequireOneSlicingArgumentArgument_Invalid" xml:space="preserve">
+    <value>The @listSize directive argument 'requireOneSlicingArgument' must be of type Boolean.</value>
+  </data>
+  <data name="ListSizeDirective_SizedFieldsArgument_Invalid" xml:space="preserve">
+    <value>The @listSize directive argument 'sizedFields' must be of type [String].</value>
+  </data>
+  <data name="ListSizeDirective_SlicingArgumentDefaultValueArgument_Invalid" xml:space="preserve">
+    <value>The @listSize directive argument 'slicingArgumentDefaultValue' must be of type Int.</value>
+  </data>
+  <data name="ListSizeDirective_SlicingArgumentsArgument_Invalid" xml:space="preserve">
+    <value>The @listSize directive argument 'slicingArguments' must be of type [String].</value>
   </data>
   <data name="LogEntryHelper_DisallowedInaccessibleBuiltInScalar" xml:space="preserve">
     <value>The built-in scalar type '{0}' in schema '{1}' is not accessible.</value>

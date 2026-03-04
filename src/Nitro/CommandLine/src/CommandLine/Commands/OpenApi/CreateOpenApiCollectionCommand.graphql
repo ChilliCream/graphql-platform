@@ -1,0 +1,18 @@
+mutation CreateOpenApiCollectionCommandMutation($input: CreateOpenApiCollectionInput!) {
+  createOpenApiCollection(input: $input) {
+    openApiCollection {
+      ...CreateOpenApiCollectionCommandMutation_OpenApiCollection
+    }
+    errors {
+      ...Error
+      ...ApiNotFoundError
+      ...UnauthorizedOperation
+    }
+  }
+}
+
+fragment CreateOpenApiCollectionCommandMutation_OpenApiCollection on OpenApiCollection {
+  name
+  id
+  ...OpenApiCollectionDetailPrompt_OpenApiCollection
+}

@@ -16,7 +16,7 @@ public struct McpFeatureCollectionArchiveOptions
     public int? MaxAllowedSettingsSize { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum allowed size of an OpenAI component in the archive.
+    /// Gets or sets the maximum allowed size of the view (HTML) in the archive.
     /// </summary>
-    public int? MaxAllowedOpenAiComponentSize { get; set; }
+    public int? MaxAllowedViewSize { get; set; }
 }

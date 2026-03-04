@@ -83,6 +83,7 @@ operationPlan:
         }
       hash: bcaa1f52d0d50c590e99abdf3c862694
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Node

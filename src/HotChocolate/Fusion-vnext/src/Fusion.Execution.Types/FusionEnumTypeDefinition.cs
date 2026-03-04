@@ -63,6 +63,8 @@ public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition, IFusionTypeD
     /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets a value indicating whether this enum type is marked as inaccessible.
     /// </summary>
@@ -110,7 +112,7 @@ public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition, IFusionTypeD
 
         if (context.Directives is null || context.Features is null)
         {
-            InvalidCompletionContext();
+            throw InvalidCompletionContext();
         }
 
         Directives = context.Directives;

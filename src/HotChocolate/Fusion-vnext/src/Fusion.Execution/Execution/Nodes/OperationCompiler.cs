@@ -254,7 +254,7 @@ public sealed class OperationCompiler
             compilationContext.Register(selection, selection.Id);
             selections[i++] = selection;
 
-            if (includeFlags.Count > 1)
+            if (includeFlags.Count > 0)
             {
                 isConditional = true;
             }
@@ -337,7 +337,8 @@ public sealed class OperationCompiler
 
     private static bool IsInternal(FieldNode fieldNode)
     {
-        const string isInternal = "fusion__requirement";
+        const string requirementDirective = "fusion__requirement";
+        const string emptyDirective = "fusion__empty";
         var directives = fieldNode.Directives;
 
         if (directives.Count == 0)
@@ -347,27 +348,41 @@ public sealed class OperationCompiler
 
         if (directives.Count == 1)
         {
-            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+            var name = directives[0].Name.Value;
+            return name.Equals(requirementDirective, StringComparison.Ordinal)
+                || name.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
         if (directives.Count == 2)
         {
-            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal)
-                || directives[1].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+            var name1 = directives[0].Name.Value;
+            var name2 = directives[1].Name.Value;
+            return name1.Equals(requirementDirective, StringComparison.Ordinal)
+                || name1.Equals(emptyDirective, StringComparison.Ordinal)
+                || name2.Equals(requirementDirective, StringComparison.Ordinal)
+                || name2.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
         if (directives.Count == 3)
         {
-            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal)
-                || directives[1].Name.Value.Equals(isInternal, StringComparison.Ordinal)
-                || directives[2].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+            var name1 = directives[0].Name.Value;
+            var name2 = directives[1].Name.Value;
+            var name3 = directives[2].Name.Value;
+            return name1.Equals(requirementDirective, StringComparison.Ordinal)
+                || name1.Equals(emptyDirective, StringComparison.Ordinal)
+                || name2.Equals(requirementDirective, StringComparison.Ordinal)
+                || name2.Equals(emptyDirective, StringComparison.Ordinal)
+                || name3.Equals(requirementDirective, StringComparison.Ordinal)
+                || name3.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
         for (var i = 0; i < directives.Count; i++)
         {
             var directive = directives[i];
+            var name = directive.Name.Value;
 
-            if (directive.Name.Value.Equals(isInternal, StringComparison.Ordinal))
+            if (name.Equals(requirementDirective, StringComparison.Ordinal)
+                || name.Equals(emptyDirective, StringComparison.Ordinal))
             {
                 return true;
             }

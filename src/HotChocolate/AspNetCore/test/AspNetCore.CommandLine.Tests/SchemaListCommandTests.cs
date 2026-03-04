@@ -1,5 +1,3 @@
-using System.CommandLine.IO;
-using System.CommandLine.Parsing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,14 +22,14 @@ public class SchemaListCommandTests
             .Returns(services.BuildServiceProvider());
 
         var host = hostMock.Object;
-        var console = new TestConsole();
-        var app = new App(host).Build();
+        var output = new StringWriter();
+        var app = new App(host);
 
         // act
-        await app.InvokeAsync("schema list", console);
+        await app.InvokeAsync("schema list", output);
 
         // assert
-        console.Out.ToString().MatchSnapshot();
+        output.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -52,13 +50,13 @@ public class SchemaListCommandTests
             .Returns(services.BuildServiceProvider());
 
         var host = hostMock.Object;
-        var console = new TestConsole();
-        var app = new App(host).Build();
+        var output = new StringWriter();
+        var app = new App(host);
 
         // act
-        await app.InvokeAsync("schema list", console);
+        await app.InvokeAsync("schema list", output);
 
         // assert
-        console.Out.ToString().MatchSnapshot();
+        output.ToString().MatchSnapshot();
     }
 }
