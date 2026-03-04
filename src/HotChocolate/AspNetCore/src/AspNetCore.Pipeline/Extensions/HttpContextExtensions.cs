@@ -8,15 +8,10 @@ internal static class HttpContextExtensions
     {
         var headers = context.Request.Headers;
 
-        if (headers.TryGetValue(HttpHeaderKeys.OperationPlan, out var values))
+        if (headers.TryGetValue(HttpHeaderKeys.OperationPlan, out var values)
+            && values.Any(v => v == HttpHeaderValues.IncludeOperationPlan))
         {
-            for (var i = 0; i < values.Count; i++)
-            {
-                if (values[i] == HttpHeaderValues.IncludeOperationPlan)
-                {
-                    return true;
-                }
-            }
+            return true;
         }
 
         return false;
@@ -28,12 +23,7 @@ internal static class HttpContextExtensions
 
         if (headers.TryGetValue(HttpHeaderKeys.Cost, out var values))
         {
-            if (values.Count == 0)
-            {
-                return null;
-            }
-
-            var value = values[0];
+            var value = values.FirstOrDefault();
 
             if (value is null)
             {
