@@ -49,8 +49,5 @@ public static class DiagnosticsFusionGatewayBuilderExtensions
         return builder;
     }
 
-    private sealed class InternalActivityEnricher(
-        ObjectPool<StringBuilder> stringBuilderPool,
-        InstrumentationOptions options)
-        : FusionActivityEnricher(stringBuilderPool, options);
+    private sealed class InternalActivityEnricher(InstrumentationOptions options) : FusionActivityEnricher(options);
 }

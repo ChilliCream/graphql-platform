@@ -1,10 +1,8 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using OpenTelemetry.Trace;
-using static HotChocolate.Diagnostics.ContextKeys;
+using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics.Listeners;
 
@@ -13,6 +11,8 @@ internal sealed class ActivityServerDiagnosticListener(
     InstrumentationOptions options)
     : ServerDiagnosticEventListener
 {
+    private readonly ActivityEnricher _enricher = enricher;
+
     public override IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind)
     {
         if (options.SkipExecuteHttpRequest)
@@ -20,35 +20,33 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var activity = HotChocolateActivitySource.Source.StartActivity();
+        var span = ExecuteHttpRequestSpan.Start(Source, context, kind, options);
 
-        if (activity is null)
+        if (span is null)
         {
             return EmptyScope;
         }
 
-        enricher.EnrichExecuteHttpRequest(context, kind, activity);
-        activity.SetStatus(ActivityStatusCode.Ok);
-        context.Items[HttpRequestActivity] = activity;
+        context.Features.Set(span);
 
-        return activity;
+        return span;
     }
 
     public override void StartSingleRequest(HttpContext context, GraphQLRequest request)
     {
         if (options.IncludeRequestDetails
-            && context.Items.TryGetValue(HttpRequestActivity, out var activity))
+            && context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
         {
-            enricher.EnrichSingleRequest(context, request, (Activity)activity!);
+            span.SetSingleRequestDetails(request);
         }
     }
 
     public override void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch)
     {
         if (options.IncludeRequestDetails
-            && context.Items.TryGetValue(HttpRequestActivity, out var activity))
+            && context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
         {
-            enricher.EnrichBatchRequest(context, batch, (Activity)activity!);
+            span.SetBatchRequestDetails(batch);
         }
     }
 
@@ -58,33 +56,25 @@ internal sealed class ActivityServerDiagnosticListener(
         IReadOnlyList<string> operations)
     {
         if (options.IncludeRequestDetails
-            && context.Items.TryGetValue(HttpRequestActivity, out var activity))
+            && context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
         {
-            enricher.EnrichOperationBatchRequest(
-                context,
-                request,
-                operations,
-                (Activity)activity!);
+            span.SetOperationBatchRequestDetails(request, operations);
         }
     }
 
     public override void HttpRequestError(HttpContext context, IError error)
     {
-        if (context.Items.TryGetValue(HttpRequestActivity, out var value))
+        if (context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
         {
-            var activity = (Activity)value!;
-            enricher.EnrichHttpRequestError(context, error, activity);
-            activity.SetStatus(Status.Error);
+            span.RecordError(error);
         }
     }
 
     public override void HttpRequestError(HttpContext context, Exception exception)
     {
-        if (context.Items.TryGetValue(HttpRequestActivity, out var value))
+        if (context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
         {
-            var activity = (Activity)value!;
-            enricher.EnrichHttpRequestError(context, exception, activity);
-            activity.SetStatus(Status.Error);
+            span.RecordError(exception);
         }
     }
 
@@ -95,34 +85,23 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var activity = HotChocolateActivitySource.Source.StartActivity();
+        var span = ParseHttpRequestSpan.Start(Source);
 
-        if (activity is null)
+        if (span is null)
         {
             return EmptyScope;
         }
 
-        enricher.EnrichParseHttpRequest(context, activity);
-        activity.SetStatus(Status.Ok);
-        activity.SetStatus(ActivityStatusCode.Ok);
-        context.Items[ParseHttpRequestActivity] = activity;
+        context.Features.Set(span);
 
-        return activity;
+        return span;
     }
 
     public override void ParserErrors(HttpContext context, IReadOnlyList<IError> errors)
     {
-        if (context.Items.TryGetValue(ParseHttpRequestActivity, out var value))
+        if (context.Features.Get<ParseHttpRequestSpan>() is { } span)
         {
-            var activity = (Activity)value!;
-
-            foreach (var error in errors)
-            {
-                enricher.EnrichParserErrors(context, error, activity);
-            }
-
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
+            span.RecordErrors(errors);
         }
     }
 
@@ -133,17 +112,8 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var activity = HotChocolateActivitySource.Source.StartActivity();
+        var span = FormatHttpResponseSpan.Start(Source);
 
-        if (activity is null)
-        {
-            return EmptyScope;
-        }
-
-        enricher.EnrichFormatHttpResponse(context, activity);
-        activity.SetStatus(ActivityStatusCode.Ok);
-        context.Items[FormatHttpResponseActivity] = activity;
-
-        return activity;
+        return span ?? EmptyScope;
     }
 }

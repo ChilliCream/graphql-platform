@@ -13,6 +13,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     FusionActivityEnricher enricher,
     InstrumentationOptions options) : FusionExecutionDiagnosticEventListener
 {
+    private readonly FusionActivityEnricher _enricher = enricher;
+
     public override IDisposable ExecuteRequest(RequestContext context)
     {
         Activity? httpContextActivity = null;

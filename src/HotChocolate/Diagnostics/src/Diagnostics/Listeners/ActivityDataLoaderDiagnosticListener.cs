@@ -9,6 +9,8 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
     InstrumentationOptions options)
     : DataLoaderDiagnosticEventListener
 {
+    private readonly ActivityEnricher _enricher = enricher;
+
     public override IDisposable ExecuteBatch<TKey>(
         IDataLoader dataLoader,
         IReadOnlyList<TKey> keys)

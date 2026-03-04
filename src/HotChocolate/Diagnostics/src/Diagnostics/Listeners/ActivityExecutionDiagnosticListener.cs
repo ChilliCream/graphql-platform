@@ -12,6 +12,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
     ActivityEnricher enricher,
     InstrumentationOptions options) : ExecutionDiagnosticEventListener
 {
+    private readonly ActivityEnricher _enricher = enricher;
+
     public override bool EnableResolveFieldValue => true;
 
     public override IDisposable ExecuteRequest(RequestContext context)
@@ -22,11 +24,9 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             if (!options.SkipExecuteHttpRequest
                 && context.Features.TryGet<HttpContext>(out var httpContext)
-                // TODO: Fix this
-                && httpContext.Items.TryGetValue("TODO context key", out var untypedActivity)
-                && untypedActivity is Activity activity)
+                && httpContext.Features.Get<ExecuteHttpRequestSpan>() is { } httpRequestSpan)
             {
-                httpContextActivity = activity;
+                httpContextActivity = httpRequestSpan.Activity;
             }
             else
             {
