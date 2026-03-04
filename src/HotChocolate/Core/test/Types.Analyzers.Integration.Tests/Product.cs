@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using GreenDonut.Data;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
@@ -43,12 +44,22 @@ public static partial class TelevisionType
 [QueryType]
 public static partial class Query
 {
+    [GraphQLIgnore]
+    public static PagingArguments PagingArguments { get; private set; }
+
     /// <summary>
     /// Gets the product.
     /// </summary>
     /// <returns>The only product.</returns>
     public static Product GetProduct()
         => new Book { Id = "1", Title = "GraphQL in Action" };
+
+    [UsePaging]
+    public static IEnumerable<int> GetInts(PagingArguments pagingArguments)
+    {
+        PagingArguments = pagingArguments;
+        return [];
+    }
 
     [UsePaging]
     [RewriteAfterToVersion]
