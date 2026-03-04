@@ -368,7 +368,6 @@ TryCompleteList_MoveNext:
         }
 
         return true;
-
     }
 
     private bool TryCompleteObjectValue(
