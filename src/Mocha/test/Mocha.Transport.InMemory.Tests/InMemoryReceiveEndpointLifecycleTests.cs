@@ -231,7 +231,7 @@ public class InMemoryReceiveEndpointLifecycleTests
     }
 
     [Fact]
-    public async Task Runtime_Should_ThrowInvalidOperationException_When_StartedTwice()
+    public async Task Runtime_Should_NotThrowInvalidOperationException_When_StartedTwice()
     {
         // arrange
         await using var provider = await new ServiceCollection()
@@ -245,12 +245,9 @@ public class InMemoryReceiveEndpointLifecycleTests
         // Verify runtime is already started
         Assert.True(runtime.IsStarted, "Runtime should be started after BuildServiceProvider");
 
-        // act & assert - starting a second time should throw
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            runtime.StartAsync(CancellationToken.None).AsTask()
-        );
+        await runtime.StartAsync(CancellationToken.None);
 
-        Assert.Contains("already started", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.True(runtime.IsStarted, "Runtime should still be started after calling StartAsync a second time");
     }
 
     [Fact]

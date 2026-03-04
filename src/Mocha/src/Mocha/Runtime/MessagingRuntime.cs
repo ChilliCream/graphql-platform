@@ -118,6 +118,11 @@ public sealed class MessagingRuntime(
     /// <param name="cancellationToken">A token to cancel the startup sequence.</param>
     public async ValueTask StartAsync(CancellationToken cancellationToken)
     {
+        if(IsStarted)
+        {
+            return;
+        }
+
         foreach (var transport in transports)
         {
             await transport.StartAsync(this, cancellationToken);

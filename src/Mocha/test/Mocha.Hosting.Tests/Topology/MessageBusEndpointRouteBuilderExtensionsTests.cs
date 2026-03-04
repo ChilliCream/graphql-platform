@@ -97,9 +97,6 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
             })
             .Build();
 
-        var runtime = (MessagingRuntime)host.Services.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(CancellationToken.None);
-
         await host.StartAsync();
 
         return host;
