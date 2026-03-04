@@ -7,7 +7,11 @@ export const AnalyticsOverviewImage: FC = () => {
     <img
       src="/images/analytics/overview.png"
       alt="Overview from Every Angle"
-      style={{ maxWidth: ANALYTICS_OVERVIEW_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      style={{
+        maxWidth: ANALYTICS_OVERVIEW_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };
