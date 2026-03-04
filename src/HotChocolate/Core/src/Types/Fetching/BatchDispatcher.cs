@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using GreenDonut;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fetching;
 

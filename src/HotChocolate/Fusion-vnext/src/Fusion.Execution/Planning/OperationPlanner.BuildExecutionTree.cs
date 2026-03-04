@@ -187,7 +187,20 @@ public sealed partial class OperationPlanner
 
         bool IsEmptyOperation(OperationPlanStep step)
         {
-            return step.Definition.SelectionSet.Selections.Count == 0;
+            if (step.Definition.SelectionSet.Selections.Count == 0)
+            {
+                return true;
+            }
+
+            return step.Definition.SelectionSet.Selections is
+            [
+                FieldNode
+                {
+                    Alias: null,
+                    Name.Value: IntrospectionFieldNames.TypeName,
+                    Directives: [{ Name.Value: "fusion__empty" }]
+                }
+            ];
         }
 
         OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
@@ -235,8 +248,8 @@ public sealed partial class OperationPlanner
         bool enableRequestGrouping,
         bool hasVariables)
     {
-        var hasUploadScalar = schema.Types.TryGetType(UploadScalarName, out var uploadType)
-            && uploadType.IsScalarType();
+        var hasUploadScalar =
+            schema.Types.TryGetType(UploadScalarName, out var uploadType) && uploadType.IsScalarType();
         var batchingGroupLookup = CreateBatchingGroupLookup(
             planSteps,
             dependencyLookup,
@@ -391,7 +404,7 @@ public sealed partial class OperationPlanner
         var lookup = new Dictionary<int, int>();
         var nextGroupId = 0;
 
-        foreach (var (schemaKey, serviceSteps) in queryStepsByService.OrderBy(t => t.Key, StringComparer.Ordinal))
+        foreach (var (_, serviceSteps) in queryStepsByService.OrderBy(t => t.Key, StringComparer.Ordinal))
         {
             var stepsByDepth = new Dictionary<int, List<int>>();
 
@@ -441,8 +454,7 @@ public sealed partial class OperationPlanner
             return depth;
         }
 
-        if (!dependencyLookup.TryGetValue(stepId, out var directDependencies)
-            || directDependencies.Count == 0)
+        if (!dependencyLookup.TryGetValue(stepId, out var directDependencies) || directDependencies.Count == 0)
         {
             dependencyDepthLookup[stepId] = 0;
             return 0;
@@ -895,106 +907,106 @@ public sealed partial class OperationPlanner
         // Remove fields/fragments whose selection sets collapsed to `{}` during rewriting.
         // This is local cleanup and intentionally does not remove the whole operation node.
         return SyntaxRewriter.Create(
-            rewrite: node =>
-            {
-                if (node is not SelectionSetNode selectionSet)
+                rewrite: node =>
                 {
-                    return node;
-                }
-
-                List<ISelectionNode>? rewritten = null;
-                var selections = selectionSet.Selections;
-
-                for (var i = 0; i < selections.Count; i++)
-                {
-                    var selection = selections[i];
-                    var removeSelection =
-                        selection is FieldNode { SelectionSet.Selections.Count: 0 }
-                        || selection is InlineFragmentNode { SelectionSet.Selections.Count: 0 };
-
-                    if (!removeSelection)
+                    if (node is not SelectionSetNode selectionSet)
                     {
-                        rewritten?.Add(selection);
-                        continue;
+                        return node;
                     }
 
-                    if (rewritten is null)
+                    List<ISelectionNode>? rewritten = null;
+                    var selections = selectionSet.Selections;
+
+                    for (var i = 0; i < selections.Count; i++)
                     {
-                        rewritten = new List<ISelectionNode>(selections.Count - 1);
-                        for (var j = 0; j < i; j++)
+                        var selection = selections[i];
+                        var removeSelection =
+                            selection is FieldNode { SelectionSet.Selections.Count: 0 }
+                                or InlineFragmentNode { SelectionSet.Selections.Count: 0 };
+
+                        if (!removeSelection)
                         {
-                            rewritten.Add(selections[j]);
+                            rewritten?.Add(selection);
+                            continue;
+                        }
+
+                        if (rewritten is null)
+                        {
+                            rewritten = new List<ISelectionNode>(selections.Count - 1);
+                            for (var j = 0; j < i; j++)
+                            {
+                                rewritten.Add(selections[j]);
+                            }
                         }
                     }
-                }
 
-                return rewritten is null
-                    ? node
-                    : new SelectionSetNode(rewritten);
-            })
+                    return rewritten is null
+                        ? node
+                        : new SelectionSetNode(rewritten);
+                })
             .Rewrite(operationDefinition)!;
     }
 
     private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
     {
         return (OperationDefinitionNode)SyntaxRewriter.Create<List<bool>>(
-            rewrite: (node, context) =>
-            {
-                if (node is SelectionSetNode selectionSet && context.Peek())
+                rewrite: (node, context) =>
                 {
-                    var items = selectionSet.Selections.ToList();
-                    for (var i = items.Count - 1; i >= 0; i--)
+                    if (node is SelectionSetNode selectionSet && context.Peek())
                     {
-                        if (items[i] is FieldNode
-                            {
-                                Alias: null,
-                                Name.Value: IntrospectionFieldNames.TypeName,
-                                Directives: [{ Name.Value: "fusion__empty" }]
-                            } field)
+                        var items = selectionSet.Selections.ToList();
+                        for (var i = items.Count - 1; i >= 0; i--)
                         {
-                            if (items.Count > 1)
+                            if (items[i] is FieldNode
+                                {
+                                    Alias: null,
+                                    Name.Value: IntrospectionFieldNames.TypeName,
+                                    Directives: [{ Name.Value: "fusion__empty" }]
+                                } field)
                             {
-                                items.RemoveAt(i);
-                            }
-                            else
-                            {
-                                items[i] = field.WithDirectives([]);
+                                if (items.Count > 1)
+                                {
+                                    items.RemoveAt(i);
+                                }
+                                else
+                                {
+                                    items[i] = field.WithDirectives([]);
+                                }
                             }
                         }
+
+                        return new SelectionSetNode(items);
                     }
 
-                    return new SelectionSetNode(items);
-                }
-
-                return node;
-            },
-            enter: (node, context) =>
-            {
-                switch (node)
+                    return node;
+                },
+                enter: (node, context) =>
                 {
-                    case SelectionSetNode:
-                        context.Push(false);
-                        break;
-
-                    case FieldNode
+                    switch (node)
                     {
-                        Alias: null,
-                        Name.Value: IntrospectionFieldNames.TypeName,
-                        Directives: [{ Name.Value: "fusion__empty" }]
-                    }:
-                        context[^1] = true;
-                        break;
-                }
+                        case SelectionSetNode:
+                            context.Push(false);
+                            break;
 
-                return context;
-            },
-            leave: (node, context) =>
-            {
-                if (node is SelectionSetNode)
+                        case FieldNode
+                        {
+                            Alias: null,
+                            Name.Value: IntrospectionFieldNames.TypeName,
+                            Directives: [{ Name.Value: "fusion__empty" }]
+                        }:
+                            context[^1] = true;
+                            break;
+                    }
+
+                    return context;
+                },
+                leave: (node, context) =>
                 {
-                    context.Pop();
-                }
-            })
+                    if (node is SelectionSetNode)
+                    {
+                        context.Pop();
+                    }
+                })
             .Rewrite(operationDefinition, [])!;
     }
 
@@ -1040,7 +1052,23 @@ public sealed partial class OperationPlanner
             newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
         }
 
-        return step with { Definition = newOperation, Conditions = context.Conditions.ToArray() };
+        // Merge extracted conditions with any conditions already propagated from work items,
+        // deduplicating by value equality.
+        var mergedConditions = context.Conditions;
+
+        foreach (var existing in step.Conditions)
+        {
+            mergedConditions.Add(existing);
+        }
+
+        return step with
+        {
+            Definition = newOperation,
+            Conditions = mergedConditions
+                .OrderBy(c => c.VariableName, StringComparer.Ordinal)
+                .ThenBy(c => c.PassingValue)
+                .ToArray(),
+        };
     }
 
     private static SelectionSetNode RewriteConditionalSelectionSet(
@@ -1077,7 +1105,8 @@ public sealed partial class OperationPlanner
                 {
                     if (inlineFragmentNode.TypeCondition is null)
                     {
-                        var fragmentSelectionSet = RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, context);
+                        var fragmentSelectionSet =
+                            RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, context);
 
                         if (fragmentSelectionSet.Selections.Count == 0)
                         {
@@ -1145,8 +1174,8 @@ file static class Extensions
             {
                 foreach (var fieldName in step.Lookup.Path)
                 {
-                    var fieldNode = selectionSetNode.Selections.FirstOrDefault(
-                        selection => selection is FieldNode fieldNode && fieldNode.Name.Value == fieldName);
+                    var fieldNode = selectionSetNode.Selections.FirstOrDefault(selection =>
+                        selection is FieldNode fieldNode && fieldNode.Name.Value == fieldName);
 
                     if (fieldNode is not FieldNode { SelectionSet: { } nextSelectionSetNode })
                     {
@@ -1166,8 +1195,9 @@ file static class Extensions
                 }
             }
 
-            selectionSetNode = lookupFieldNode?.SelectionSet ?? throw new InvalidOperationException(
-                "Expected to find the lookup field with a selection set in the operation definition");
+            selectionSetNode = lookupFieldNode?.SelectionSet ??
+                throw new InvalidOperationException(
+                    "Expected to find the lookup field with a selection set in the operation definition");
         }
 
         foreach (var selection in selectionSetNode.Selections)
@@ -1188,24 +1218,32 @@ file static class Extensions
 
     public static bool IsIntrospectionOnly(this Operation operation)
     {
+        var hasNonInternalIntrospectionSelection = false;
+
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
+            if (selection.IsInternal)
+            {
+                continue;
+            }
+
             if (selection.Field.IsIntrospectionField)
             {
+                hasNonInternalIntrospectionSelection = true;
                 continue;
             }
 
             return false;
         }
 
-        return true;
+        return hasNonInternalIntrospectionSelection;
     }
 
     public static bool HasIntrospectionFields(this Operation operation)
     {
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
-            if (selection.Field.IsIntrospectionField)
+            if (selection is { IsInternal: false, Field.IsIntrospectionField: true })
             {
                 return true;
             }
@@ -1220,7 +1258,7 @@ file static class Extensions
 
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
-            if (selection.Field.IsIntrospectionField)
+            if (selection is { IsInternal: false, Field.IsIntrospectionField: true })
             {
                 selections.Add(selection);
             }

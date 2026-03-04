@@ -337,5 +337,8 @@ operationPlan:
         - name: __fusion_2_id
           selectionMap: >-
             id
+      conditions:
+        - variable: $skip
+          passingValue: false
       dependencies:
         - id: 2

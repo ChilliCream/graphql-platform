@@ -5,6 +5,6 @@ namespace HotChocolate.Fusion.Planning.Partitioners;
 
 internal record SelectionSetPartitionerResult(
     SelectionSetNode? Resolvable,
-    ImmutableStack<SelectionSet> Unresolvable,
-    ImmutableStack<FieldSelection> FieldsWithRequirements,
+    ImmutableStack<ConditionedSelectionSet> Unresolvable,
+    ImmutableStack<ConditionedFieldSelection> FieldsWithRequirements,
     ISelectionSetIndex SelectionSetIndex);

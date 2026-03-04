@@ -46,7 +46,7 @@ public class SharedPathTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "SelectionSetPartitioner incorrectly does not include ... @skip")]
+    [Fact]
     public async Task Single_Shared_Root_Field_With_Inline_Fragment_Without_TypeCondition()
     {
         // arrange

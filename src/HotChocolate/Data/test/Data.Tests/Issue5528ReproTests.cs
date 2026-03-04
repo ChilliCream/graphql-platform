@@ -47,7 +47,7 @@ public class Issue5528ReproTests
     {
         [UseProjection]
         public IQueryable<Tenant> GetTenants()
-            => Data.AsQueryable();
+            => s_data.AsQueryable();
     }
 
     public class Tenant
@@ -94,7 +94,7 @@ public class Issue5528ReproTests
         }
     }
 
-    private static readonly Tenant[] Data =
+    private static readonly Tenant[] s_data =
     [
         new()
         {

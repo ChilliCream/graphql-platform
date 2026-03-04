@@ -87,6 +87,9 @@ internal sealed class DownloadClientCommand : Command
                 case ClientFormat.Relay:
                     await WriteToRelayJson(output, queries);
                     break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(format), format, null);
             }
         }
     }
@@ -101,7 +104,7 @@ internal sealed class DownloadClientCommand : Command
         }
 
         await using var fileStream = File.OpenWrite(output.FullName);
-        await using var utf8Writer = new Utf8JsonWriter(fileStream);
+        await using var utf8Writer = new Utf8JsonWriter(fileStream, new JsonWriterOptions { Indented = true });
         utf8Writer.WriteStartObject();
         await foreach (var query in queries)
         {

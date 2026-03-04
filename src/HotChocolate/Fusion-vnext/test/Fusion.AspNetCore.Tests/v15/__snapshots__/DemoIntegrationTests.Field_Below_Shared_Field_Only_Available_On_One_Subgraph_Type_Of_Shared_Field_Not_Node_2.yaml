@@ -166,41 +166,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_90079d4b_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  productAvailabilityById(id: $__fusion_1_id) {
-                    subgraph2Only
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
-                }
-            - document: |
-                query Op_90079d4b_3(
-                  $__fusion_2_id: ID!
-                ) {
-                  node(id: $__fusion_2_id) {
-                    __typename
-                    ... on ProductAvailability {
-                      sharedLinked {
-                        subgraph2Only
-                      }
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_2_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
