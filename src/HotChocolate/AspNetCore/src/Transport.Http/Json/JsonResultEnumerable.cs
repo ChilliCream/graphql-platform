@@ -40,7 +40,8 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
 #endif
         CancellationToken cancellationToken = default)
     {
-        await using var contentStream = await message.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        await using var contentStream = await message.Content.ReadAsStreamAsync(cts.Token).ConfigureAwait(false);
 
         var stream = contentStream;
         var sourceEncoding = HttpTransportUtilities.GetEncoding(charSet);
@@ -66,7 +67,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
             // Read the entire response into memory
             while (true)
             {
-                var result = await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+                var result = await reader.ReadAsync(cts.Token).ConfigureAwait(false);
                 if (result.IsCanceled)
                 {
                     yield break;
@@ -264,6 +265,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
             }
 #endif
 
+            await cts.CancelAsync().ConfigureAwait(false);
             await reader.CompleteAsync().ConfigureAwait(false);
         }
     }
