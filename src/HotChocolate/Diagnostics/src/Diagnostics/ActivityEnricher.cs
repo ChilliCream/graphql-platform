@@ -36,36 +36,15 @@ public class ActivityEnricher : ActivityEnricherBase
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
-        var documentInfo = context.OperationDocumentInfo;
         var operationDisplayName = CreateOperationDisplayName(context, operation);
 
-        if (_options.RenameRootActivity && operationDisplayName is not null)
-        {
-            UpdateRootActivityName(activity, operationDisplayName);
-        }
-
-        activity.DisplayName = operationDisplayName ?? "Execute Request";
-        activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-        activity.SetTag(GraphQL.Document.Valid, documentInfo.IsValidated);
-        activity.SetTag(GraphQL.Operation.Id, operation?.Id);
-
-        if (operation is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[operation.Kind]);
-
-            if (!string.IsNullOrEmpty(operation.Name))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operation.Name);
-            }
-        }
-
-        if (_options.IncludeDocument && documentInfo.Document is not null)
-        {
-            activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
-        }
+        EnrichExecuteRequestCore(
+            context,
+            activity,
+            operationDisplayName,
+            operation?.Id,
+            operation?.Kind,
+            operation?.Name);
 
         if (context.Result is OperationResult result)
         {
@@ -81,52 +60,19 @@ public class ActivityEnricher : ActivityEnricherBase
             return null;
         }
 
-        var displayName = StringBuilderPool.Get();
+        var selections = operation.RootSelectionSet.Selections;
+        var names = new string[selections.Length];
 
-        try
+        for (var i = 0; i < selections.Length; i++)
         {
-            var rootSelectionSet = operation.RootSelectionSet;
-            var selectionCount = rootSelectionSet.Selections.Length;
-
-            displayName.Append('{');
-            displayName.Append(' ');
-
-            foreach (var selection in rootSelectionSet.Selections[..Math.Min(3, selectionCount)])
-            {
-                if (displayName.Length > 2)
-                {
-                    displayName.Append(' ');
-                }
-
-                displayName.Append(selection.ResponseName);
-            }
-
-            if (rootSelectionSet.Selections.Length > 3)
-            {
-                displayName.Append(' ');
-                displayName.Append('.');
-                displayName.Append('.');
-                displayName.Append('.');
-            }
-
-            displayName.Append(' ');
-            displayName.Append('}');
-
-            if (operation.Name is { } name)
-            {
-                displayName.Insert(0, ' ');
-                displayName.Insert(0, name);
-            }
-
-            displayName.Insert(0, ' ');
-            displayName.Insert(0, operation.Definition.Operation.ToString().ToLowerInvariant());
-
-            return displayName.ToString();
+            names[i] = selections[i].ResponseName;
         }
-        finally
-        {
-            StringBuilderPool.Return(displayName);
-        }
+
+        return BuildOperationDisplayName(
+            operation.Definition.Operation,
+            operation.Name,
+            names.Length,
+            names);
     }
 
     public virtual void EnrichParseDocument(RequestContext context, Activity activity)

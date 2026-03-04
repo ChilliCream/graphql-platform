@@ -327,6 +327,103 @@ public abstract class ActivityEnricherBase
         activity.DisplayName = "Analyze Operation Complexity";
     }
 
+    protected void EnrichExecuteRequestCore(
+        RequestContext context,
+        Activity activity,
+        string? operationDisplayName,
+        object? operationId,
+        OperationType? operationType,
+        string? operationName)
+    {
+        if (_options.RenameRootActivity && operationDisplayName is not null)
+        {
+            UpdateRootActivityName(activity, operationDisplayName);
+        }
+
+        var documentInfo = context.OperationDocumentInfo;
+
+        activity.DisplayName = operationDisplayName ?? "Execute Request";
+        activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
+        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
+        activity.SetTag(GraphQL.Document.Valid, documentInfo.IsValidated);
+        activity.SetTag(GraphQL.Operation.Id, operationId);
+
+        if (operationType is not null)
+        {
+            activity.SetTag(
+                GraphQL.Operation.Type,
+                GraphQL.Operation.TypeValues[operationType.Value]);
+
+            if (!string.IsNullOrEmpty(operationName))
+            {
+                activity.SetTag(GraphQL.Operation.Name, operationName);
+            }
+        }
+
+        if (_options.IncludeDocument && documentInfo.Document is not null)
+        {
+            activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
+        }
+    }
+
+    protected string BuildOperationDisplayName(
+        OperationType operationType,
+        string? operationName,
+        int selectionCount,
+        IEnumerable<string> selectionResponseNames)
+    {
+        var displayName = StringBuilderPool.Get();
+
+        try
+        {
+            displayName.Append('{');
+            displayName.Append(' ');
+
+            var count = 0;
+            foreach (var name in selectionResponseNames)
+            {
+                if (count >= 3)
+                {
+                    break;
+                }
+
+                if (displayName.Length > 2)
+                {
+                    displayName.Append(' ');
+                }
+
+                displayName.Append(name);
+                count++;
+            }
+
+            if (selectionCount > 3)
+            {
+                displayName.Append(' ');
+                displayName.Append('.');
+                displayName.Append('.');
+                displayName.Append('.');
+            }
+
+            displayName.Append(' ');
+            displayName.Append('}');
+
+            if (operationName is not null)
+            {
+                displayName.Insert(0, ' ');
+                displayName.Insert(0, operationName);
+            }
+
+            displayName.Insert(0, ' ');
+            displayName.Insert(0, operationType.ToString().ToLowerInvariant());
+
+            return displayName.ToString();
+        }
+        finally
+        {
+            StringBuilderPool.Return(displayName);
+        }
+    }
+
     protected void UpdateRootActivityName(Activity activity, string displayName)
     {
         var current = activity;

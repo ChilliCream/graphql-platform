@@ -5,7 +5,6 @@ using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Language.Utilities;
 using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
@@ -36,36 +35,15 @@ public class FusionActivityEnricher : ActivityEnricherBase
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
         var plan = context.GetOperationPlan();
-        var documentInfo = context.OperationDocumentInfo;
         var operationDisplayName = CreateOperationDisplayName(context, plan);
 
-        if (_options.RenameRootActivity && operationDisplayName is not null)
-        {
-            UpdateRootActivityName(activity, operationDisplayName);
-        }
-
-        activity.DisplayName = operationDisplayName ?? "Execute Request";
-        activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-        activity.SetTag(GraphQL.Document.Valid, documentInfo.IsValidated);
-        activity.SetTag(GraphQL.Operation.Id, plan?.Id);
-
-        if (plan is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
-
-            if (!string.IsNullOrEmpty(plan.OperationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, plan.OperationName);
-            }
-        }
-
-        if (_options.IncludeDocument && documentInfo.Document is not null)
-        {
-            activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
-        }
+        EnrichExecuteRequestCore(
+            context,
+            activity,
+            operationDisplayName,
+            plan?.Id,
+            plan?.Operation.Definition.Operation,
+            plan?.OperationName);
 
         if (context.Result is OperationResult { Errors: [_, ..] errors })
         {
@@ -80,52 +58,19 @@ public class FusionActivityEnricher : ActivityEnricherBase
             return null;
         }
 
-        var displayName = StringBuilderPool.Get();
+        var selections = plan.Operation.RootSelectionSet.Selections;
+        var names = new string[selections.Length];
 
-        try
+        for (var i = 0; i < selections.Length; i++)
         {
-            var rootSelectionSet = plan.Operation.RootSelectionSet;
-            var selectionCount = rootSelectionSet.Selections.Length;
-
-            displayName.Append('{');
-            displayName.Append(' ');
-
-            foreach (var selection in rootSelectionSet.Selections[..Math.Min(3, selectionCount)])
-            {
-                if (displayName.Length > 2)
-                {
-                    displayName.Append(' ');
-                }
-
-                displayName.Append(selection.ResponseName);
-            }
-
-            if (rootSelectionSet.Selections.Length > 3)
-            {
-                displayName.Append(' ');
-                displayName.Append('.');
-                displayName.Append('.');
-                displayName.Append('.');
-            }
-
-            displayName.Append(' ');
-            displayName.Append('}');
-
-            if (plan.OperationName is { } name)
-            {
-                displayName.Insert(0, ' ');
-                displayName.Insert(0, name);
-            }
-
-            displayName.Insert(0, ' ');
-            displayName.Insert(0, plan.Operation.Definition.Operation.ToString().ToLowerInvariant());
-
-            return displayName.ToString();
+            names[i] = selections[i].ResponseName;
         }
-        finally
-        {
-            StringBuilderPool.Return(displayName);
-        }
+
+        return BuildOperationDisplayName(
+            plan.Operation.Definition.Operation,
+            plan.OperationName,
+            names.Length,
+            names);
     }
 
     public virtual void EnrichParseDocument(RequestContext context, Activity activity)
