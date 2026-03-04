@@ -596,6 +596,27 @@ builder.Services
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
 
+## OpenTelemetry span attribute changes
+
+The OpenTelemetry span attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec/spans.yml).
+
+If you have dashboards or alerts that filter on the old attribute names or values, update them accordingly.
+
+### Renamed attributes
+
+| Old Attribute                           | New Attribute                         |
+| --------------------------------------- | ------------------------------------- |
+| `graphql.operation.kind`                | `graphql.operation.type`              |
+| `graphql.selection.field.declaringType` | `graphql.selection.field.parent_type` |
+| `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`       |
+| `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`       |
+
+### Changed attribute values
+
+| Attribute                | Old Value                             | New Value                             |
+| ------------------------ | ------------------------------------- | ------------------------------------- |
+| `graphql.operation.type` | `Query` / `Mutation` / `Subscription` | `query` / `mutation` / `subscription` |
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

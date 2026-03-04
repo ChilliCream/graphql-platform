@@ -44,6 +44,10 @@
             {
               "Key": "graphql.operation.id",
               "Value": "_Default-1-c0513b4b6f0cf7430f64de4aa3dcd7c6"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
             }
           ],
           "event": [
@@ -63,8 +67,8 @@
               "Status": "Ok",
               "tags": [
                 {
-                  "Key": "graphql.document.id",
-                  "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
                 },
                 {
                   "Key": "graphql.document.hash",
@@ -107,6 +111,18 @@
               "Status": "Ok",
               "tags": [
                 {
+                  "Key": "graphql.processing.type",
+                  "Value": "execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "668e9631148921208d08dbb69513fa8e"
+                },
+                {
                   "Key": "otel.status_code",
                   "Value": "OK"
                 }
@@ -118,6 +134,10 @@
                   "DisplayName": "/hero",
                   "Status": "Ok",
                   "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
                     {
                       "Key": "graphql.selection.name",
                       "Value": "hero"
@@ -143,7 +163,7 @@
                       "Value": "Query.hero"
                     },
                     {
-                      "Key": "graphql.selection.field.declaringType",
+                      "Key": "graphql.selection.field.parent_type",
                       "Value": "Query"
                     },
                     {
@@ -158,6 +178,10 @@
                   "DisplayName": "/hero/friends",
                   "Status": "Ok",
                   "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
                     {
                       "Key": "graphql.selection.name",
                       "Value": "friends"
@@ -183,7 +207,7 @@
                       "Value": "Droid.friends"
                     },
                     {
-                      "Key": "graphql.selection.field.declaringType",
+                      "Key": "graphql.selection.field.parent_type",
                       "Value": "Droid"
                     },
                     {
@@ -198,6 +222,10 @@
                   "DisplayName": "/hero/friends/nodes[0]/friends",
                   "Status": "Ok",
                   "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
                     {
                       "Key": "graphql.selection.name",
                       "Value": "friends"
@@ -223,7 +251,7 @@
                       "Value": "Human.friends"
                     },
                     {
-                      "Key": "graphql.selection.field.declaringType",
+                      "Key": "graphql.selection.field.parent_type",
                       "Value": "Human"
                     },
                     {
@@ -238,6 +266,10 @@
                   "DisplayName": "/hero/friends/nodes[1]/friends",
                   "Status": "Ok",
                   "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
                     {
                       "Key": "graphql.selection.name",
                       "Value": "friends"
@@ -263,7 +295,7 @@
                       "Value": "Human.friends"
                     },
                     {
-                      "Key": "graphql.selection.field.declaringType",
+                      "Key": "graphql.selection.field.parent_type",
                       "Value": "Human"
                     },
                     {
@@ -278,6 +310,10 @@
                   "DisplayName": "/hero/friends/nodes[2]/friends",
                   "Status": "Ok",
                   "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
                     {
                       "Key": "graphql.selection.name",
                       "Value": "friends"
@@ -303,7 +339,7 @@
                       "Value": "Human.friends"
                     },
                     {
-                      "Key": "graphql.selection.field.declaringType",
+                      "Key": "graphql.selection.field.parent_type",
                       "Value": "Human"
                     },
                     {

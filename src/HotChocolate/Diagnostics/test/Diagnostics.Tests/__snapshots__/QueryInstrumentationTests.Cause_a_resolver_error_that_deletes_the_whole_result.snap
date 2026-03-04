@@ -18,6 +18,10 @@
           "Value": "_Default-1-851fb754d9ba6b5cc5a55ebcbea2621d"
         },
         {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
           "Key": "graphql.operation.name",
           "Value": "SayHelloOperation"
         },
@@ -38,6 +42,14 @@
           "Status": "Ok",
           "tags": [
             {
+              "Key": "graphql.processing.type",
+              "Value": "parse"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
+            },
+            {
               "Key": "otel.status_code",
               "Value": "OK"
             }
@@ -50,8 +62,8 @@
           "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.document.id",
-              "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
+              "Key": "graphql.processing.type",
+              "Value": "validate"
             },
             {
               "Key": "graphql.document.hash",
@@ -82,6 +94,22 @@
           "Status": "Error",
           "tags": [
             {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloOperation"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
+            },
+            {
               "Key": "otel.status_code",
               "Value": "ERROR"
             }
@@ -93,6 +121,10 @@
               "DisplayName": "/causeFatalError",
               "Status": "Error",
               "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
                 {
                   "Key": "graphql.selection.name",
                   "Value": "causeFatalError"
@@ -118,7 +150,7 @@
                   "Value": "SimpleQuery.causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.field.declaringType",
+                  "Key": "graphql.selection.field.parent_type",
                   "Value": "SimpleQuery"
                 },
                 {

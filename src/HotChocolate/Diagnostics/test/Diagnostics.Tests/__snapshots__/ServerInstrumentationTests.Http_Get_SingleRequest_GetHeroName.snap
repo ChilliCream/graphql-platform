@@ -44,6 +44,10 @@
             {
               "Key": "graphql.operation.id",
               "Value": "_Default-1-530cb46cabc38757c74c05cc7a96b636"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
             }
           ],
           "event": [
@@ -63,8 +67,8 @@
               "Status": "Ok",
               "tags": [
                 {
-                  "Key": "graphql.document.id",
-                  "Value": "530cb46cabc38757c74c05cc7a96b636"
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
                 },
                 {
                   "Key": "graphql.document.hash",
@@ -107,6 +111,18 @@
               "Status": "Ok",
               "tags": [
                 {
+                  "Key": "graphql.processing.type",
+                  "Value": "execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "acb8d5d513c260b3cef3e3a12b0e29af"
+                },
+                {
                   "Key": "otel.status_code",
                   "Value": "OK"
                 }
@@ -118,6 +134,10 @@
                   "DisplayName": "/hero",
                   "Status": "Ok",
                   "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
                     {
                       "Key": "graphql.selection.name",
                       "Value": "hero"
@@ -143,7 +163,7 @@
                       "Value": "Query.hero"
                     },
                     {
-                      "Key": "graphql.selection.field.declaringType",
+                      "Key": "graphql.selection.field.parent_type",
                       "Value": "Query"
                     },
                     {

@@ -18,6 +18,10 @@
           "Value": "_Default-1-6af18618ae20c266f6ffc352b78cb69b"
         },
         {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
           "Key": "graphql.operation.name",
           "Value": "SayHelloOperation"
         }
@@ -29,6 +33,14 @@
           "DisplayName": "Parse Document",
           "Status": "Ok",
           "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "parse"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "6af18618ae20c266f6ffc352b78cb69b"
+            },
             {
               "Key": "otel.status_code",
               "Value": "OK"
@@ -42,8 +54,8 @@
           "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.document.id",
-              "Value": "6af18618ae20c266f6ffc352b78cb69b"
+              "Key": "graphql.processing.type",
+              "Value": "validate"
             },
             {
               "Key": "graphql.document.hash",
@@ -74,6 +86,22 @@
           "Status": "Ok",
           "tags": [
             {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloOperation"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "6af18618ae20c266f6ffc352b78cb69b"
+            },
+            {
               "Key": "otel.status_code",
               "Value": "OK"
             }
@@ -85,6 +113,10 @@
               "DisplayName": "/sayHello",
               "Status": "Ok",
               "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
                 {
                   "Key": "graphql.selection.name",
                   "Value": "sayHello"
@@ -110,7 +142,7 @@
                   "Value": "SimpleQuery.sayHello"
                 },
                 {
-                  "Key": "graphql.selection.field.declaringType",
+                  "Key": "graphql.selection.field.parent_type",
                   "Value": "SimpleQuery"
                 },
                 {

@@ -30,6 +30,14 @@
           "Status": "Ok",
           "tags": [
             {
+              "Key": "graphql.processing.type",
+              "Value": "parse"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "803df9346db185e9dc0b22dd3909aa70"
+            },
+            {
               "Key": "otel.status_code",
               "Value": "OK"
             }
@@ -46,8 +54,8 @@
               "Value": "ERROR"
             },
             {
-              "Key": "graphql.document.id",
-              "Value": "803df9346db185e9dc0b22dd3909aa70"
+              "Key": "graphql.processing.type",
+              "Value": "validate"
             },
             {
               "Key": "graphql.document.hash",

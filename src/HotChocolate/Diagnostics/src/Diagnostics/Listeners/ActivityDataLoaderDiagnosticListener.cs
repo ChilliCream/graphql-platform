@@ -2,6 +2,7 @@ using System.Diagnostics;
 using GreenDonut;
 using HotChocolate.Diagnostics.Scopes;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
+using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics.Listeners;
 
@@ -41,10 +42,11 @@ internal sealed class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosti
     {
         var activity = Source.StartActivity("BatchCoordinator");
         activity?.DisplayName = "Coordinate DataLoader Batches";
+        activity?.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.DataLoaderDispatch);
         return activity ?? EmptyScope;
     }
 
-    public override void BatchDispatchError(Exception error)
+    public override void BatchDispatchError(System.Exception error)
     {
 #if NET9_0_OR_GREATER
         Activity.Current?.AddException(error);

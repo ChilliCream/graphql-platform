@@ -48,6 +48,10 @@
             {
               "Key": "graphql.operation.id",
               "Value": "_Default-1-1d4bca4d0dff630390ddf48e9085589d"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
             }
           ],
           "event": [
@@ -67,8 +71,8 @@
               "Status": "Ok",
               "tags": [
                 {
-                  "Key": "graphql.document.id",
-                  "Value": "1d4bca4d0dff630390ddf48e9085589d"
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
                 },
                 {
                   "Key": "graphql.document.hash",
@@ -111,6 +115,18 @@
               "Status": "Ok",
               "tags": [
                 {
+                  "Key": "graphql.processing.type",
+                  "Value": "variable_coercion"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "cc68dfd8c0c54a586a03c35296c5d1f9"
+                },
+                {
                   "Key": "otel.status_code",
                   "Value": "OK"
                 }
@@ -123,6 +139,18 @@
               "Status": "Ok",
               "tags": [
                 {
+                  "Key": "graphql.processing.type",
+                  "Value": "execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "cc68dfd8c0c54a586a03c35296c5d1f9"
+                },
+                {
                   "Key": "otel.status_code",
                   "Value": "OK"
                 }
@@ -134,6 +162,10 @@
                   "DisplayName": "/hero",
                   "Status": "Ok",
                   "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
                     {
                       "Key": "graphql.selection.name",
                       "Value": "hero"
@@ -159,7 +191,7 @@
                       "Value": "Query.hero"
                     },
                     {
-                      "Key": "graphql.selection.field.declaringType",
+                      "Key": "graphql.selection.field.parent_type",
                       "Value": "Query"
                     },
                     {

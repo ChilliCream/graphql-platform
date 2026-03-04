@@ -16,6 +16,10 @@
         {
           "Key": "graphql.operation.id",
           "Value": "_Default-1-a5f924bb2f5f8651014e92e1cc2428c7"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
         }
       ],
       "event": [],
@@ -25,6 +29,14 @@
           "DisplayName": "Parse Document",
           "Status": "Ok",
           "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "parse"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "a5f924bb2f5f8651014e92e1cc2428c7"
+            },
             {
               "Key": "otel.status_code",
               "Value": "OK"
@@ -38,8 +50,8 @@
           "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.document.id",
-              "Value": "a5f924bb2f5f8651014e92e1cc2428c7"
+              "Key": "graphql.processing.type",
+              "Value": "validate"
             },
             {
               "Key": "graphql.document.hash",
@@ -70,6 +82,18 @@
           "Status": "Ok",
           "tags": [
             {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "a5f924bb2f5f8651014e92e1cc2428c7"
+            },
+            {
               "Key": "otel.status_code",
               "Value": "OK"
             }
@@ -81,6 +105,10 @@
               "DisplayName": "/a",
               "Status": "Ok",
               "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
                 {
                   "Key": "graphql.selection.name",
                   "Value": "a"
@@ -106,7 +134,7 @@
                   "Value": "SimpleQuery.sayHello"
                 },
                 {
-                  "Key": "graphql.selection.field.declaringType",
+                  "Key": "graphql.selection.field.parent_type",
                   "Value": "SimpleQuery"
                 },
                 {
@@ -121,6 +149,10 @@
               "DisplayName": "/b",
               "Status": "Ok",
               "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
                 {
                   "Key": "graphql.selection.name",
                   "Value": "b"
@@ -146,7 +178,7 @@
                   "Value": "SimpleQuery.sayHello"
                 },
                 {
-                  "Key": "graphql.selection.field.declaringType",
+                  "Key": "graphql.selection.field.parent_type",
                   "Value": "SimpleQuery"
                 },
                 {
@@ -161,6 +193,10 @@
               "DisplayName": "/c",
               "Status": "Ok",
               "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
                 {
                   "Key": "graphql.selection.name",
                   "Value": "c"
@@ -186,7 +222,7 @@
                   "Value": "SimpleQuery.sayHello"
                 },
                 {
-                  "Key": "graphql.selection.field.declaringType",
+                  "Key": "graphql.selection.field.parent_type",
                   "Value": "SimpleQuery"
                 },
                 {
@@ -201,6 +237,10 @@
               "DisplayName": "/d",
               "Status": "Ok",
               "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
                 {
                   "Key": "graphql.selection.name",
                   "Value": "d"
@@ -226,7 +266,7 @@
                   "Value": "SimpleQuery.sayHello"
                 },
                 {
-                  "Key": "graphql.selection.field.declaringType",
+                  "Key": "graphql.selection.field.parent_type",
                   "Value": "SimpleQuery"
                 },
                 {
