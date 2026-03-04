@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -88,6 +89,32 @@ public static class CompilationExtensions
         this Compilation compilation,
         ISymbol symbol)
     {
+        if (compilation.DisableXmlDocumentation())
+        {
+            switch (symbol)
+            {
+                case IPropertySymbol property:
+                    return new PropertyDescription(property.GetDescriptionFromAttribute());
+
+                case IMethodSymbol method:
+                    var paramDescs = ImmutableArray.CreateBuilder<string?>(method.Parameters.Length);
+                    foreach (var p in method.Parameters)
+                    {
+                        paramDescs.Add(p.GetDescriptionFromAttribute());
+                    }
+
+                    return new MethodDescription(
+                        method.GetDescriptionFromAttribute(),
+                        paramDescs.ToImmutable());
+
+                case IParameterSymbol parameter:
+                    return new ParameterDescription(parameter.GetDescriptionFromAttribute());
+
+                default:
+                    return null;
+            }
+        }
+
         switch (symbol)
         {
             case IPropertySymbol property:
@@ -102,6 +129,18 @@ public static class CompilationExtensions
             default:
                 return null;
         }
+    }
+
+    public static string? GetDescription(
+        this Compilation compilation,
+        INamedTypeSymbol type)
+    {
+        if (compilation.DisableXmlDocumentation())
+        {
+            return type.GetDescriptionFromAttribute();
+        }
+
+        return type.GetDescription(compilation);
     }
 
     public static string? GetDeprecationReason(this Compilation compilation, ISymbol symbol)

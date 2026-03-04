@@ -122,6 +122,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         if (runtimeType is not null)
         {
             var objectTypeInfo = new ObjectTypeInfo(
+                context.SemanticModel.Compilation,
                 classSymbol,
                 runtimeType,
                 nodeResolver,
@@ -139,6 +140,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         }
 
         var rootType = new RootTypeInfo(
+            context.SemanticModel.Compilation,
             classSymbol,
             operationType!.Value,
             possibleType,

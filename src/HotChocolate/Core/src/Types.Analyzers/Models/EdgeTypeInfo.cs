@@ -186,7 +186,7 @@ public sealed class EdgeTypeInfo
             edgeName,
             nameFormat,
             @namespace,
-            runtimeType.GetDescription(),
+            compilation.GetDescription(runtimeType),
             runtimeType,
             classDeclaration,
             resolvers.ToImmutable(),

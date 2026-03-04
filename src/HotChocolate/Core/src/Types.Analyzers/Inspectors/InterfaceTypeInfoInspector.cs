@@ -80,6 +80,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
         }
 
         var interfaceTypeInfo = new InterfaceTypeInfo(
+            context.SemanticModel.Compilation,
             classSymbol,
             runtimeType,
             possibleType,
