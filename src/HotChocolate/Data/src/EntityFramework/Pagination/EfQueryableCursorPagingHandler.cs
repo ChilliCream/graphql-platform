@@ -1,10 +1,12 @@
 using System.Collections.Immutable;
+using System.Reflection;
 using GreenDonut.Data;
 using GreenDonut.Data.Cursors;
 using GreenDonut.Data.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 #if DEBUG
 using Microsoft.EntityFrameworkCore;
 #endif
@@ -15,6 +17,9 @@ namespace HotChocolate.Data.Pagination;
 internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions options)
     : CursorPagingHandler(options)
 {
+    private const BindingFlags BindingFlagsInstance =
+        BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+
     private readonly NullOrdering _nullOrdering = options.NullOrdering;
 
     protected override ValueTask<Connection> SliceAsync(
@@ -29,6 +34,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         CursorPagingArguments arguments)
     {
         var query = executable.Source;
+        var nullOrdering = ResolveNullOrdering(query, executable.IsInMemory, _nullOrdering);
         var keys = ParseDataSetKeys(query);
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
@@ -56,7 +62,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                     keys,
                     cursor,
                     true,
-                    _nullOrdering);
+                    nullOrdering);
             query = query.Where(whereExpr);
         }
 
@@ -68,7 +74,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                     keys,
                     cursor,
                     false,
-                    _nullOrdering);
+                    nullOrdering);
             query = query.Where(whereExpr);
         }
 
@@ -231,4 +237,117 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         parser.Visit(source.Expression);
         return parser.Keys.ToArray();
     }
+
+    private static NullOrdering ResolveNullOrdering(
+        IQueryable<TEntity> query,
+        bool isInMemory,
+        NullOrdering configured)
+    {
+        if (configured is not NullOrdering.Unspecified)
+        {
+            return configured;
+        }
+
+        // LINQ-to-Objects sorts null values first in ascending order.
+        if (isInMemory)
+        {
+            return NullOrdering.NativeNullsFirst;
+        }
+
+        var providerName = TryGetProviderName(query);
+
+        if (providerName is not null)
+        {
+            return providerName.Contains("Npgsql", StringComparison.OrdinalIgnoreCase)
+                ? NullOrdering.NativeNullsLast
+                : NullOrdering.NativeNullsFirst;
+        }
+
+        // EF query providers do not always expose IServiceProvider via IInfrastructure.
+        // In that case we inspect provider-specific services held by QueryCompiler.
+        if (IsNpgsqlProvider(query.Provider))
+        {
+            return NullOrdering.NativeNullsLast;
+        }
+
+        // Most other EF providers used by Hot Chocolate (for example SQL Server/SQLite)
+        // sort null values first in ascending order by default.
+        return NullOrdering.NativeNullsFirst;
+    }
+
+    private static string? TryGetProviderName(IQueryable<TEntity> query)
+    {
+        if (TryGetProviderName(query as IInfrastructure<IServiceProvider>) is { } providerName)
+        {
+            return providerName;
+        }
+
+        if (TryGetProviderName(query.Provider as IInfrastructure<IServiceProvider>) is { } providerNameFromProvider)
+        {
+            return providerNameFromProvider;
+        }
+
+        return null;
+    }
+
+    private static string? TryGetProviderName(IInfrastructure<IServiceProvider>? infrastructure)
+        => infrastructure?
+            .Instance
+            .GetService(typeof(ICurrentDbContext))
+                is ICurrentDbContext currentDbContext
+            ? currentDbContext.Context.Database.ProviderName
+            : null;
+
+    private static bool IsNpgsqlProvider(IQueryProvider provider)
+    {
+        if (IsNpgsqlType(provider.GetType()))
+        {
+            return true;
+        }
+
+        if (TryGetFieldValue(provider, "queryCompiler") is not { } queryCompiler)
+        {
+            return false;
+        }
+
+        if (IsNpgsqlType(queryCompiler.GetType()))
+        {
+            return true;
+        }
+
+        if (TryGetFieldValue(queryCompiler, "compiledQueryCacheKeyGenerator") is { } keyGenerator
+            && IsNpgsqlType(keyGenerator.GetType()))
+        {
+            return true;
+        }
+
+        // Fallback for provider-specific services exposed through other query compiler fields.
+        foreach (var field in queryCompiler.GetType().GetFields(BindingFlagsInstance))
+        {
+            if (field.GetValue(queryCompiler) is { } value
+                && IsNpgsqlType(value.GetType()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static object? TryGetFieldValue(object instance, string fieldNameContains)
+    {
+        foreach (var field in instance.GetType().GetFields(BindingFlagsInstance))
+        {
+            if (field.Name.Contains(fieldNameContains, StringComparison.OrdinalIgnoreCase))
+            {
+                return field.GetValue(instance);
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsNpgsqlType(Type type)
+        => (type.FullName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) ?? false)
+            || (type.Assembly.GetName().Name?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) ?? false);
 }

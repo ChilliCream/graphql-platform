@@ -90,11 +90,13 @@ internal static class ExpressionHelpers
             for (var j = 0; j < handled.Count; j++)
             {
                 var handledKey = handled[j];
+                var handledKeyIsNullable = IsNullable(handledKey.Expression);
 
                 keyExpr = BuildEqualToKeyExpr(
                     handledKey,
                     parameter,
                     cursor.Values[j],
+                    handledKeyIsNullable,
                     cursorExpr[j]);
 
                 current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
@@ -148,9 +150,9 @@ internal static class ExpressionHelpers
         CursorKey cursorKey,
         ParameterExpression parameter,
         object? cursorValue,
+        bool keyIsNullable,
         Expression cursorExpr)
     {
-        var keyIsNullable = IsNullable(cursorKey.Expression);
         var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
 
         // Access the value of the key if it is a nullable value type.

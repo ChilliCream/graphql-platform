@@ -442,6 +442,77 @@ public class IntegrationTests(PostgreSqlResource resource)
             """);
 
         var firstOperationResult = firstResult.ExpectOperationResult();
+        var firstGraphQLError = firstOperationResult.Errors?.FirstOrDefault();
+        var firstError = firstGraphQLError?.Exception?.ToString();
+        var firstExtensions = firstGraphQLError?.Extensions is null
+            ? null
+            : JsonSerializer.Serialize(firstGraphQLError.Extensions);
+        Assert.True(
+            firstOperationResult.Errors is null or { Count: 0 },
+            $"{firstError}\n{firstExtensions}\n{firstResult.ToJson()}");
+
+        using var firstDocument = JsonDocument.Parse(firstResult.ToJson());
+        var afterCursor = firstDocument.RootElement
+            .GetProperty("data")
+            .GetProperty("brandsNullable")
+            .GetProperty("pageInfo")
+            .GetProperty("endCursor")
+            .GetString();
+
+        Assert.False(string.IsNullOrEmpty(afterCursor));
+
+        var secondResult = await executor.ExecuteAsync(
+            $$"""
+            {
+                brandsNullable(first: 2, after: "{{afterCursor}}") {
+                    nodes {
+                        name
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }
+            """);
+
+        var secondOperationResult = secondResult.ExpectOperationResult();
+        var secondGraphQLError = secondOperationResult.Errors?.FirstOrDefault();
+        var secondError = secondGraphQLError?.Exception?.ToString();
+        var secondExtensions = secondGraphQLError?.Extensions is null
+            ? null
+            : JsonSerializer.Serialize(secondGraphQLError.Extensions);
+        Assert.True(
+            secondOperationResult.Errors is null or { Count: 0 },
+            $"{secondError}\n{secondExtensions}\n{secondResult.ToJson()}");
+    }
+
+    [Fact]
+    public async Task Paging_Next_2_With_Nullable_Key_And_Inferred_NullOrdering()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .BuildRequestExecutorAsync();
+
+        var firstResult = await executor.ExecuteAsync(
+            """
+            {
+                brandsNullable(first: 2) {
+                    pageInfo {
+                        endCursor
+                    }
+                }
+            }
+            """);
+
+        var firstOperationResult = firstResult.ExpectOperationResult();
         Assert.True(firstOperationResult.Errors is null or { Count: 0 }, firstResult.ToJson());
 
         using var firstDocument = JsonDocument.Parse(firstResult.ToJson());
