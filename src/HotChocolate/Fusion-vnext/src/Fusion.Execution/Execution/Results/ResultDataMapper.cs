@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Language;
@@ -13,6 +14,7 @@ internal static class ResultDataMapper
 {
     private const int CachedNumericStringMax = 4096;
     private static readonly StringValueNode[] s_cachedNumericStrings = CreateCachedNumericStrings();
+    private static readonly ReadOnlyMemorySegment[] s_cachedNumericInts = CreateCachedNumericInts();
 
     public static IValueNode? Map(
         CompositeResultElement result,
@@ -136,6 +138,11 @@ internal static class ResultDataMapper
             case JsonValueKind.Number:
                 if (value.TryGetInt64(out var intValue))
                 {
+                    if ((ulong)intValue <= CachedNumericStringMax)
+                    {
+                        return new IntValueNode(s_cachedNumericInts[(int)intValue]);
+                    }
+
                     return new IntValueNode(intValue);
                 }
 
@@ -219,6 +226,18 @@ internal static class ResultDataMapper
         for (var i = 0; i < values.Length; i++)
         {
             values[i] = new StringValueNode(i.ToString());
+        }
+
+        return values;
+    }
+
+    private static ReadOnlyMemorySegment[] CreateCachedNumericInts()
+    {
+        var values = new ReadOnlyMemorySegment[CachedNumericStringMax + 1];
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            values[i] = new ReadOnlyMemorySegment(Encoding.UTF8.GetBytes(i.ToString()));
         }
 
         return values;
