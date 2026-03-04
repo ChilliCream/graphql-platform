@@ -848,8 +848,8 @@ AddErrors_Next:
                 continue;
             }
 
-            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
-            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
+            var mappedValue1 = MapRequirementLeafValue(value1, ref buffer);
+            var mappedValue2 = MapRequirementLeafValue(value2, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
             var key = new TwoValueNodeTuple(mappedValue1, mappedValue2);
 
@@ -1018,9 +1018,9 @@ AddErrors_Next:
                 continue;
             }
 
-            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
-            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
-            var mappedValue3 = ResultDataMapper.MapLeafValue(value3, ref buffer);
+            var mappedValue1 = MapRequirementLeafValue(value1, ref buffer);
+            var mappedValue2 = MapRequirementLeafValue(value2, ref buffer);
+            var mappedValue3 = MapRequirementLeafValue(value3, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
             var key = new ThreeValueNodeTuple(mappedValue1, mappedValue2, mappedValue3);
 
@@ -1204,6 +1204,14 @@ AddErrors_Next:
         fieldName = null;
         return false;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static IValueNode MapRequirementLeafValue(
+        CompositeResultElement value,
+        ref PooledArrayWriter? buffer)
+        => value.ValueKind is JsonValueKind.String
+            ? ResultDataMapper.GetStringValueNode(value.AssertString())
+            : ResultDataMapper.MapLeafValue(value, ref buffer);
 
     private static void AppendUnrolledLists(
         CompositeResultElement list,
