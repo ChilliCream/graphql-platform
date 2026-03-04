@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
@@ -13,12 +12,16 @@ namespace HotChocolate.Diagnostics;
 
 internal sealed class ExecuteHttpRequestSpan(
     Activity activity,
+    HttpContext httpContext,
+    HttpRequestKind kind,
+    ActivityEnricherBase enricher,
     InstrumentationOptionsBase options) : SpanBase(activity)
 {
     public static ExecuteHttpRequestSpan? Start(
         ActivitySource source,
         HttpContext httpContext,
         HttpRequestKind kind,
+        ActivityEnricherBase enricher,
         InstrumentationOptionsBase options)
     {
         var activity = source.StartActivity();
@@ -55,7 +58,7 @@ internal sealed class ExecuteHttpRequestSpan(
         activity.SetTag(GraphQL.Schema.Name, schemaName);
         activity.MarkAsSuccess();
 
-        return new ExecuteHttpRequestSpan(activity, options);
+        return new ExecuteHttpRequestSpan(activity, httpContext, kind, enricher, options);
     }
 
     public void SetSingleRequestDetails(GraphQLRequest request)
@@ -104,6 +107,8 @@ internal sealed class ExecuteHttpRequestSpan(
                 // Ignore any errors
             }
         }
+
+        enricher.EnrichStartSingleRequest(Activity, httpContext, request);
     }
 
     public void SetBatchRequestDetails(IReadOnlyList<GraphQLRequest> batch)
@@ -161,6 +166,8 @@ internal sealed class ExecuteHttpRequestSpan(
                 }
             }
         }
+
+        enricher.EnrichStartBatchRequest(Activity, httpContext, batch);
     }
 
     public void SetOperationBatchRequestDetails(
@@ -211,17 +218,28 @@ internal sealed class ExecuteHttpRequestSpan(
                 // Ignore any errors
             }
         }
+
+        enricher.EnrichStartOperationBatchRequest(Activity, httpContext, request, operations);
+    }
+
+    protected override void OnComplete()
+    {
+        enricher.EnrichExecuteHttpRequest(Activity, httpContext, kind);
     }
 
     public void RecordError(IError error)
     {
         Activity.RecordError(error);
         Activity.MarkAsError();
+        enricher.EnrichHttpRequestError(Activity, httpContext, error);
+        enricher.EnrichError(Activity, error);
     }
 
     public void RecordError(Exception exception)
     {
         Activity.RecordException(exception);
         Activity.MarkAsError();
+        enricher.EnrichHttpRequestError(Activity, httpContext, exception);
+        enricher.EnrichException(Activity, exception);
     }
 }

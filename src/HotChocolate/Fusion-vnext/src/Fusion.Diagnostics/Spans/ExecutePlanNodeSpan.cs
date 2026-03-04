@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Globalization;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using OpenTelemetry.Trace;
@@ -8,7 +9,12 @@ using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class ExecutePlanNodeSpan(Activity activity) : SpanBase(activity)
+internal sealed class ExecutePlanNodeSpan(
+    Activity activity,
+    OperationPlanContext context,
+    ExecutionNode node,
+    string? schemaName,
+    FusionActivityEnricher enricher) : SpanBase(activity)
 {
     private static FrozenDictionary<ExecutionNodeType, string> KindValues { get; } =
         new Dictionary<ExecutionNodeType, string>
@@ -23,7 +29,8 @@ internal sealed class ExecutePlanNodeSpan(Activity activity) : SpanBase(activity
         ActivitySource source,
         OperationPlanContext context,
         ExecutionNode node,
-        string? schemaName)
+        string? schemaName,
+        FusionActivityEnricher enricher)
     {
         var activity = source.StartActivity("GraphQL Step Execution");
 
@@ -47,7 +54,12 @@ internal sealed class ExecutePlanNodeSpan(Activity activity) : SpanBase(activity
             SetSourceSchemaTags(activity, batchExecutionNode.Operation, schemaName);
         }
 
-        return new ExecutePlanNodeSpan(activity);
+        return new ExecutePlanNodeSpan(activity, context, node, schemaName, enricher);
+    }
+
+    protected override void OnComplete()
+    {
+        enricher.EnrichExecutePlanNode(Activity, context, node, schemaName);
     }
 
     private static void SetSourceSchemaTags(Activity activity, OperationSourceText operation, string? schemaName)

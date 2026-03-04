@@ -1,11 +1,18 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Trace;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class ParseHttpRequestSpan(Activity activity) : SpanBase(activity)
+internal sealed class ParseHttpRequestSpan(
+    Activity activity,
+    HttpContext httpContext,
+    ActivityEnricherBase enricher) : SpanBase(activity)
 {
-    public static ParseHttpRequestSpan? Start(ActivitySource source)
+    public static ParseHttpRequestSpan? Start(
+        ActivitySource source,
+        HttpContext httpContext,
+        ActivityEnricherBase enricher)
     {
         var activity = source.StartActivity("Parse HTTP Request");
 
@@ -16,7 +23,7 @@ internal sealed class ParseHttpRequestSpan(Activity activity) : SpanBase(activit
 
         activity.MarkAsSuccess();
 
-        return new ParseHttpRequestSpan(activity);
+        return new ParseHttpRequestSpan(activity, httpContext, enricher);
     }
 
     public void RecordErrors(IReadOnlyList<IError> errors)
@@ -24,8 +31,15 @@ internal sealed class ParseHttpRequestSpan(Activity activity) : SpanBase(activit
         foreach (var error in errors)
         {
             Activity.RecordError(error);
+            enricher.EnrichError(Activity, error);
         }
 
         Activity.MarkAsError();
+        enricher.EnrichParserErrors(Activity, httpContext, errors);
+    }
+
+    protected override void OnComplete()
+    {
+        enricher.EnrichParseHttpRequest(Activity, httpContext);
     }
 }

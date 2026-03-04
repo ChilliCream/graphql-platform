@@ -6,9 +6,15 @@ using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class ResolveFieldSpan(Activity activity) : SpanBase(activity)
+internal sealed class ResolveFieldSpan(
+    Activity activity,
+    IMiddlewareContext context,
+    ActivityEnricher enricher) : SpanBase(activity)
 {
-    public static ResolveFieldSpan? Start(ActivitySource source, IMiddlewareContext context)
+    public static ResolveFieldSpan? Start(
+        ActivitySource source,
+        IMiddlewareContext context,
+        ActivityEnricher enricher)
     {
         var selection = context.Selection;
         var coordinate = selection.Field.Coordinate;
@@ -31,11 +37,13 @@ internal sealed class ResolveFieldSpan(Activity activity) : SpanBase(activity)
         // TODO: Re-add this
         // context.SetLocalState(ResolverActivity, activity);
 
-        return new ResolveFieldSpan(activity);
+        return new ResolveFieldSpan(activity, context, enricher);
     }
 
     protected override void OnComplete()
     {
         Activity.MarkAsSuccess();
+
+        enricher.EnrichResolveFieldValue(Activity, context);
     }
 }

@@ -4,12 +4,17 @@ using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class DataLoaderBatchSpan<TKey>(Activity activity) : SpanBase(activity)
+internal sealed class DataLoaderBatchSpan<TKey>(
+    Activity activity,
+    IDataLoader dataLoader,
+    IReadOnlyList<TKey> keys,
+    ActivityEnricher enricher) : SpanBase(activity) where TKey : notnull
 {
     public static DataLoaderBatchSpan<TKey>? Start(
         ActivitySource source,
         IDataLoader dataLoader,
-        IReadOnlyList<TKey> keys)
+        IReadOnlyList<TKey> keys,
+        ActivityEnricher enricher)
     {
         var dataLoaderName = dataLoader.GetType().Name;
 
@@ -25,6 +30,11 @@ internal sealed class DataLoaderBatchSpan<TKey>(Activity activity) : SpanBase(ac
         activity.SetTag(GraphQL.DataLoader.Name, dataLoaderName);
         activity.SetTag(GraphQL.DataLoader.Batch.Size, keys.Count);
 
-        return new DataLoaderBatchSpan<TKey>(activity);
+        return new DataLoaderBatchSpan<TKey>(activity, dataLoader, keys, enricher);
+    }
+
+    protected override void OnComplete()
+    {
+        enricher.EnrichExecuteBatch(Activity, dataLoader, keys);
     }
 }

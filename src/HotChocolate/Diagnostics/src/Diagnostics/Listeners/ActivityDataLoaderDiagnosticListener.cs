@@ -20,7 +20,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = DataLoaderBatchSpan<TKey>.Start(Source, dataLoader, keys);
+        var span = DataLoaderBatchSpan<TKey>.Start(Source, dataLoader, keys, _enricher);
 
         if (span is null)
         {
@@ -38,7 +38,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
 
     public override IDisposable RunBatchDispatchCoordinator()
     {
-        var span = DataLoaderDispatchSpan.Start(Source);
+        var span = DataLoaderDispatchSpan.Start(Source, _enricher);
 
         return span ?? EmptyScope;
     }
@@ -50,6 +50,12 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
 #else
         Activity.Current?.SetStatus(ActivityStatusCode.Error, error.Message);
 #endif
+
+        if (Activity.Current is { } activity)
+        {
+            _enricher.EnrichBatchDispatchError(activity, error);
+            _enricher.EnrichException(activity, error);
+        }
     }
 
     public override void BatchEvaluated(int openBatches)

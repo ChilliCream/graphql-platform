@@ -5,9 +5,15 @@ using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class ExecuteOperationSpan(Activity activity, RequestContext context) : SpanBase(activity)
+internal sealed class ExecuteOperationSpan(
+    Activity activity,
+    RequestContext context,
+    ActivityEnricherBase enricher) : SpanBase(activity)
 {
-    public static ParsingSpan? Start(ActivitySource source, RequestContext context)
+    public static ExecuteOperationSpan? Start(
+        ActivitySource source,
+        RequestContext context,
+        ActivityEnricherBase enricher)
     {
         var activity = source.StartActivity("GraphQL Operation Execution");
 
@@ -46,7 +52,7 @@ internal sealed class ExecuteOperationSpan(Activity activity, RequestContext con
             activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
 
-        return new ParsingSpan(activity, context);
+        return new ExecuteOperationSpan(activity, context, enricher);
     }
 
     protected override void OnComplete()
@@ -59,5 +65,7 @@ internal sealed class ExecuteOperationSpan(Activity activity, RequestContext con
         {
             Activity.MarkAsSuccess();
         }
+
+        enricher.EnrichExecuteOperation(Activity, context);
     }
 }

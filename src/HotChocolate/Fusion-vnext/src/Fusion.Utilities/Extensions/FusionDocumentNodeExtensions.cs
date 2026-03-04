@@ -2,8 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-// TODO: Should be internal and match filename
-public static class FusionDocumentNodeExtensions
+internal static class FusionDocumentNodeExtensions
 {
     private const string NoOperationFoundMessage =
         "There are no operations in the GraphQL document.";

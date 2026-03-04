@@ -10,6 +10,7 @@ namespace HotChocolate.Diagnostics;
 internal sealed class ExecuteRequestSpan(
     Activity activity,
     RequestContext context,
+    ActivityEnricherBase? enricher,
     bool shouldDisposeActivity) : IDisposable
 {
     private bool _disposed;
@@ -19,6 +20,7 @@ internal sealed class ExecuteRequestSpan(
     public static ExecuteRequestSpan? Start(
         ActivitySource source,
         RequestContext context,
+        ActivityEnricherBase enricher,
         InstrumentationOptionsBase options)
     {
         var activity = source.StartActivity("GraphQL Operation", ActivityKind.Server);
@@ -37,7 +39,7 @@ internal sealed class ExecuteRequestSpan(
             activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
         }
 
-        return new ExecuteRequestSpan(activity, context, true);
+        return new ExecuteRequestSpan(activity, context, enricher, true);
     }
 
     public void Dispose()
@@ -65,5 +67,7 @@ internal sealed class ExecuteRequestSpan(
         {
             Activity.MarkAsSuccess();
         }
+
+        enricher?.EnrichExecuteRequest(Activity, context);
     }
 }

@@ -1,12 +1,21 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Diagnostics;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class PlanOperationSpan(Activity activity, RequestContext context) : SpanBase(activity)
+internal sealed class PlanOperationSpan(
+    Activity activity,
+    RequestContext context,
+    FusionActivityEnricher enricher,
+    string operationPlanId) : SpanBase(activity)
 {
-    public static ParsingSpan? Start(ActivitySource source, RequestContext context)
+    public static PlanOperationSpan? Start(
+        ActivitySource source,
+        RequestContext context,
+        FusionActivityEnricher enricher,
+        string operationPlanId)
     {
         var activity = source.StartActivity("GraphQL Operation Planning");
 
@@ -44,7 +53,7 @@ internal sealed class PlanOperationSpan(Activity activity, RequestContext contex
             activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
 
-        return new ParsingSpan(activity, context);
+        return new PlanOperationSpan(activity, context, enricher, operationPlanId);
     }
 
     protected override void OnComplete()
@@ -53,5 +62,7 @@ internal sealed class PlanOperationSpan(Activity activity, RequestContext contex
         {
             Activity.MarkAsSuccess();
         }
+
+        enricher.EnrichPlanOperation(Activity, context, operationPlanId);
     }
 }

@@ -5,9 +5,15 @@ using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class ValidationSpan(Activity activity, RequestContext context) : SpanBase(activity)
+internal sealed class ValidationSpan(
+    Activity activity,
+    RequestContext context,
+    ActivityEnricherBase enricher) : SpanBase(activity)
 {
-    public static ParsingSpan? Start(ActivitySource source, RequestContext context)
+    public static ValidationSpan? Start(
+        ActivitySource source,
+        RequestContext context,
+        ActivityEnricherBase enricher)
     {
         var activity = source.StartActivity( "GraphQL Document Validation");
 
@@ -45,7 +51,7 @@ internal sealed class ValidationSpan(Activity activity, RequestContext context) 
             activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
 
-        return new ParsingSpan(activity, context);
+        return new ValidationSpan(activity, context, enricher);
     }
 
     protected override void OnComplete()
@@ -54,5 +60,7 @@ internal sealed class ValidationSpan(Activity activity, RequestContext context) 
         {
             Activity.MarkAsSuccess();
         }
+
+        enricher.EnrichValidateDocument(Activity, context);
     }
 }

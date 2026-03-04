@@ -23,11 +23,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             if (!options.SkipExecuteHttpRequest
                 && context.Features.TryGet<HttpContext>(out var httpContext)
-                // TODO: Fix this
-                && httpContext.Items.TryGetValue("TODO context key", out var untypedActivity)
-                && untypedActivity is Activity activity)
+                && httpContext.Features.Get<ExecuteHttpRequestSpan>() is { } httpRequestSpan)
             {
-                httpContextActivity = activity;
+                httpContextActivity = httpRequestSpan.Activity;
             }
             else
             {
@@ -36,8 +34,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         }
 
         var span = httpContextActivity is not null
-            ? new ExecuteRequestSpan(httpContextActivity, context, false)
-            : ExecuteRequestSpan.Start(Source, context, options);
+            ? new ExecuteRequestSpan(httpContextActivity, context, null, false)
+            : ExecuteRequestSpan.Start(Source, context, _enricher, options);
 
         if (span is null)
         {
@@ -57,6 +55,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
             activity.RecordException(error);
             activity.MarkAsError();
+
+            _enricher.EnrichRequestError(activity, context, error);
+            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -68,6 +69,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
             activity.RecordError(error);
             activity.MarkAsError();
+
+            _enricher.EnrichRequestError(activity, context, error);
+            _enricher.EnrichError(activity, error);
         }
     }
 
@@ -78,7 +82,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        var span = ParsingSpan.Start(Source, context);
+        var span = ParsingSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
@@ -92,7 +96,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        var span = ValidationSpan.Start(Source, context);
+        var span = ValidationSpan.Start(Source, context, _enricher);
 
         if (span is null)
         {
@@ -116,9 +120,12 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         foreach (var error in errors)
         {
             activity.RecordError(error);
+            _enricher.EnrichError(activity, error);
         }
 
         activity.MarkAsError();
+
+        _enricher.EnrichValidationErrors(activity, context, errors);
     }
 
     public override IDisposable PlanOperation(RequestContext context, string operationPlanId)
@@ -128,7 +135,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        var span = PlanOperationSpan.Start(Source, context);
+        var span = PlanOperationSpan.Start(Source, context, _enricher, operationPlanId);
 
         return span ?? EmptyScope;
     }
@@ -140,7 +147,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        var span = VariableCoercionSpan.Start(Source, context);
+        var span = VariableCoercionSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
@@ -152,7 +159,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        var span = ExecuteOperationSpan.Start(Source, context);
+        var span = ExecuteOperationSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
@@ -188,6 +195,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.RecordException(error);
             activity.MarkAsError();
+
+            _enricher.EnrichExecutionNodeError(activity, context, node, error);
+            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -201,6 +211,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.RecordException(error);
             activity.MarkAsError();
+
+            _enricher.EnrichSourceSchemaTransportError(activity, context, node, schemaName, error);
+            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -214,6 +227,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.RecordException(error);
             activity.MarkAsError();
+
+            _enricher.EnrichSourceSchemaStoreError(activity, context, node, schemaName, error);
+            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -229,6 +245,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             return EmptyScope;
         }
+
+        _enricher.EnrichOnSubscriptionEvent(activity, context, node, schemaName, subscriptionId);
 
         return activity;
     }
@@ -272,7 +290,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        var span = ExecutePlanNodeSpan.Start(Source, context, node, schemaName);
+        var span = ExecutePlanNodeSpan.Start(Source, context, node, schemaName, _enricher);
 
         return span ?? EmptyScope;
     }

@@ -4,11 +4,17 @@ using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class AnalyzeOperationComplexitySpan(Activity activity) : SpanBase(activity)
+internal sealed class AnalyzeOperationComplexitySpan(
+    Activity activity,
+    RequestContext context,
+    ActivityEnricherBase enricher) : SpanBase(activity)
 {
     private bool _costSet;
 
-    public static AnalyzeOperationComplexitySpan? Start(ActivitySource source, RequestContext context)
+    public static AnalyzeOperationComplexitySpan? Start(
+        ActivitySource source,
+        RequestContext context,
+        ActivityEnricherBase enricher)
     {
         var activity = source.StartActivity("GraphQL Complexity Analyzation");
 
@@ -46,7 +52,7 @@ internal sealed class AnalyzeOperationComplexitySpan(Activity activity) : SpanBa
             activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
 
-        return new AnalyzeOperationComplexitySpan(activity);
+        return new AnalyzeOperationComplexitySpan(activity, context, enricher);
     }
 
     public void SetCost(double fieldCost, double typeCost)
@@ -55,6 +61,8 @@ internal sealed class AnalyzeOperationComplexitySpan(Activity activity) : SpanBa
         Activity.SetTag(GraphQL.Operation.TypeCost, typeCost);
 
         _costSet = true;
+
+        enricher.EnrichOperationCost(Activity, context, fieldCost, typeCost);
     }
 
     protected override void OnComplete()
@@ -63,5 +71,7 @@ internal sealed class AnalyzeOperationComplexitySpan(Activity activity) : SpanBa
         {
             Activity.MarkAsSuccess();
         }
+
+        enricher.EnrichAnalyzeOperationCost(Activity, context);
     }
 }

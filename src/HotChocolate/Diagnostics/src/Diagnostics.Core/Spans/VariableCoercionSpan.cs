@@ -5,9 +5,15 @@ using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class VariableCoercionSpan(Activity activity, RequestContext context) : SpanBase(activity)
+internal sealed class VariableCoercionSpan(
+    Activity activity,
+    RequestContext context,
+    ActivityEnricherBase enricher) : SpanBase(activity)
 {
-    public static ParsingSpan? Start(ActivitySource source, RequestContext context)
+    public static VariableCoercionSpan? Start(
+        ActivitySource source,
+        RequestContext context,
+        ActivityEnricherBase enricher)
     {
         var activity = source.StartActivity("GraphQL Variable Coercion");
 
@@ -46,7 +52,7 @@ internal sealed class VariableCoercionSpan(Activity activity, RequestContext con
             activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
 
-        return new ParsingSpan(activity, context);
+        return new VariableCoercionSpan(activity, context, enricher);
     }
 
     protected override void OnComplete()
@@ -55,5 +61,7 @@ internal sealed class VariableCoercionSpan(Activity activity, RequestContext con
         {
             Activity.MarkAsSuccess();
         }
+
+        enricher.EnrichCoerceVariables(Activity, context);
     }
 }

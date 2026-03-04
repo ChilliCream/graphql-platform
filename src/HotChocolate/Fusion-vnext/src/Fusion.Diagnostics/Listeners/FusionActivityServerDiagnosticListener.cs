@@ -21,7 +21,7 @@ internal sealed class FusionActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ExecuteHttpRequestSpan.Start(Source, context, kind, options);
+        var span = ExecuteHttpRequestSpan.Start(Source, context, kind, _enricher, options);
 
         if (span is null)
         {
@@ -86,7 +86,7 @@ internal sealed class FusionActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ParseHttpRequestSpan.Start(Source);
+        var span = ParseHttpRequestSpan.Start(Source, context, _enricher);
 
         if (span is null)
         {
@@ -113,7 +113,7 @@ internal sealed class FusionActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = FormatHttpResponseSpan.Start(Source);
+        var span = FormatHttpResponseSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }

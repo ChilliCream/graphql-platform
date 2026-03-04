@@ -35,8 +35,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
         }
 
         var span = httpContextActivity is not null
-            ? new ExecuteRequestSpan(httpContextActivity, context, false)
-            : ExecuteRequestSpan.Start(Source, context, options);
+            ? new ExecuteRequestSpan(httpContextActivity, context, null, false)
+            : ExecuteRequestSpan.Start(Source, context, _enricher, options);
 
         if (span is null)
         {
@@ -56,6 +56,9 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
             activity.RecordException(error);
             activity.MarkAsError();
+
+            _enricher.EnrichRequestError(activity, context, error);
+            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -67,6 +70,9 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
             activity.RecordError(error);
             activity.MarkAsError();
+
+            _enricher.EnrichRequestError(activity, context, error);
+            _enricher.EnrichError(activity, error);
         }
     }
 
@@ -77,7 +83,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ParsingSpan.Start(Source, context);
+        var span = ParsingSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
@@ -91,7 +97,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ValidationSpan.Start(Source, context);
+        var span = ValidationSpan.Start(Source, context, _enricher);
 
         if (span is null)
         {
@@ -115,9 +121,12 @@ internal sealed class ActivityExecutionDiagnosticListener(
         foreach (var error in errors)
         {
             activity.RecordError(error);
+            _enricher.EnrichError(activity, error);
         }
 
         activity.MarkAsError();
+
+        _enricher.EnrichValidationErrors(activity, context, errors);
     }
 
     public override IDisposable AnalyzeOperationCost(RequestContext context)
@@ -127,7 +136,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = AnalyzeOperationComplexitySpan.Start(Source, context);
+        var span = AnalyzeOperationComplexitySpan.Start(Source, context, _enricher);
 
         if (span is null)
         {
@@ -156,7 +165,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = CompileOperationSpan.Start(Source, context);
+        var span = CompileOperationSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
@@ -168,7 +177,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = VariableCoercionSpan.Start(Source, context);
+        var span = VariableCoercionSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
@@ -180,7 +189,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ExecuteOperationSpan.Start(Source, context);
+        var span = ExecuteOperationSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
@@ -192,7 +201,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ResolveFieldSpan.Start(Source, context);
+        var span = ResolveFieldSpan.Start(Source, context, _enricher);
 
         if (span is null)
         {
@@ -210,6 +219,9 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             span.Activity.RecordError(error);
             span.Activity.MarkAsError();
+
+            _enricher.EnrichResolverError(span.Activity, context, error);
+            _enricher.EnrichError(span.Activity, error);
         }
     }
 
@@ -221,6 +233,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             return EmptyScope;
         }
+
+        _enricher.EnrichOnSubscriptionEvent(activity, context, subscriptionId);
 
         return activity;
     }
