@@ -675,6 +675,7 @@ AddErrors_Next:
         string fieldName,
         ref PooledArrayWriter? buffer)
     {
+        var isNonNull = requirement.Type.Kind == SyntaxKind.NonNullType;
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
         Dictionary<string, int>? seenStrings = null;
@@ -689,7 +690,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (value.ValueKind is JsonValueKind.Null && requirement.Type.Kind == SyntaxKind.NonNullType)
+            if (value.ValueKind is JsonValueKind.Null && isNonNull)
             {
                 continue;
             }
@@ -825,6 +826,8 @@ AddErrors_Next:
         string fieldName2,
         ref PooledArrayWriter? buffer)
     {
+        var requirement1IsNonNull = requirement1.Type.Kind == SyntaxKind.NonNullType;
+        var requirement2IsNonNull = requirement2.Type.Kind == SyntaxKind.NonNullType;
         VariableValues[]? variableValueSets = null;
         Dictionary<TwoValueNodeTuple, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
@@ -835,7 +838,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+                    && requirement1IsNonNull)
             {
                 continue;
             }
@@ -843,7 +846,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+                    && requirement2IsNonNull)
             {
                 continue;
             }
@@ -987,6 +990,9 @@ AddErrors_Next:
         string fieldName3,
         ref PooledArrayWriter? buffer)
     {
+        var requirement1IsNonNull = requirement1.Type.Kind == SyntaxKind.NonNullType;
+        var requirement2IsNonNull = requirement2.Type.Kind == SyntaxKind.NonNullType;
+        var requirement3IsNonNull = requirement3.Type.Kind == SyntaxKind.NonNullType;
         VariableValues[]? variableValueSets = null;
         Dictionary<ThreeValueNodeTuple, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
@@ -997,7 +1003,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+                    && requirement1IsNonNull)
             {
                 continue;
             }
@@ -1005,7 +1011,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+                    && requirement2IsNonNull)
             {
                 continue;
             }
@@ -1013,7 +1019,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName3, out var value3)
                 || value3.ValueKind is JsonValueKind.Undefined
                 || value3.ValueKind is JsonValueKind.Null
-                    && requirement3.Type.Kind == SyntaxKind.NonNullType)
+                    && requirement3IsNonNull)
             {
                 continue;
             }
