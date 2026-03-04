@@ -292,32 +292,14 @@ internal sealed class SourceSchemaRequestDispatcher
             return;
         }
 
-        // in all other cases we dispatch the group asynchronously.
-        _ = DispatchGroupAsync(pendingRequests);
-    }
+        ISourceSchemaClient client;
+        var firstRequest = pendingRequests[0].Request;
 
-    private async Task DispatchGroupAsync(ImmutableArray<PendingRequest> pendingRequests)
-    {
         try
         {
-            if (pendingRequests.Length == 1)
-            {
-                var pendingRequest = pendingRequests[0];
-
-                var client = _clientScope.GetClient(
-                    pendingRequest.Request.SchemaName,
-                    pendingRequest.Request.OperationType);
-
-                await DispatchSingleAsync(client, pendingRequest).ConfigureAwait(false);
-            }
-            else
-            {
-                var client = _clientScope.GetClient(
-                    pendingRequests[0].Request.SchemaName,
-                    pendingRequests[0].Request.OperationType);
-
-                await DispatchBatchAsync(client, pendingRequests).ConfigureAwait(false);
-            }
+            client = _clientScope.GetClient(
+                firstRequest.SchemaName,
+                firstRequest.OperationType);
         }
         catch (Exception ex)
         {
@@ -325,6 +307,17 @@ internal sealed class SourceSchemaRequestDispatcher
             {
                 pendingRequest.Completion.TrySetException(ex);
             }
+
+            return;
+        }
+
+        if (pendingRequests.Length == 1)
+        {
+            _ = DispatchSingleAsync(client, pendingRequests[0]);
+        }
+        else
+        {
+            _ = DispatchBatchAsync(client, pendingRequests);
         }
     }
 
