@@ -150,6 +150,26 @@ public class SortInputTypeTests : SortTestBase
     }
 
     [Fact]
+    public void SortInputType_Field_ArrayLengthExpression_Infers_IntRuntimeType()
+    {
+        // arrange
+        var schema = CreateSchema(
+            s => s
+                .AddType<CardReaderSortInputType>());
+
+        // act
+        Assert.True(
+            schema.Types.TryGetType<CardReaderSortInputType>(
+                "CardReaderSortInput",
+                out var sortType));
+
+        // assert
+        Assert.NotNull(sortType);
+        var lengthField = Assert.IsType<SortField>(sortType.Fields["cardReaderUidLength"]);
+        Assert.Equal(typeof(int), lengthField.RuntimeType?.Source);
+    }
+
+    [Fact]
     public void SortInputType_Should_ThrowException_WhenNoConventionIsRegistered()
     {
         // arrange
@@ -164,7 +184,10 @@ public class SortInputTypeTests : SortTestBase
         // act
         // assert
         var exception = Assert.Throws<SchemaException>(builder.Create);
-        exception.Message.MatchSnapshot();
+        Assert.Contains(
+            "No sorting convention found for scope `Foo`. Register a convention with "
+            + "`AddConvention<ISortConvention, TYourConvention>(\"Foo\")` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -182,7 +205,9 @@ public class SortInputTypeTests : SortTestBase
         // act
         // assert
         var exception = Assert.Throws<SchemaException>(builder.Create);
-        exception.Message.MatchSnapshot();
+        Assert.Contains(
+            "No default sorting convention found. Call `AddSorting()` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -371,6 +396,21 @@ public class SortInputTypeTests : SortTestBase
         protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
         {
             descriptor.Ignore(x => x.Id);
+        }
+    }
+
+    public class CardReader
+    {
+        public byte[] CardReaderUid { get; set; } = [];
+    }
+
+    public class CardReaderSortInputType : SortInputType<CardReader>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<CardReader> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Name("CardReaderSortInput");
+            descriptor.Field(x => x.CardReaderUid.Length).Name("cardReaderUidLength");
         }
     }
 

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -24,6 +23,7 @@ public static class Scalars
         { typeof(int), typeof(IntType) },
         { typeof(JsonElement), typeof(AnyType) },
         { typeof(long), typeof(LongType) },
+        { typeof(object), typeof(AnyType) },
         { typeof(sbyte), typeof(ByteType) },
         { typeof(short), typeof(ShortType) },
         { typeof(string), typeof(StringType) },

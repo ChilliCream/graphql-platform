@@ -1,7 +1,11 @@
 import path from "path";
 import readingTime from "reading-time";
 
-import { getContentDir, getFilesRecursively, readMarkdownFile } from "./content";
+import {
+  getContentDir,
+  getFilesRecursively,
+  readMarkdownFile,
+} from "./content";
 
 export interface BlogPost {
   slug: string;
@@ -54,9 +58,7 @@ export function getAllBlogPosts(): BlogPost[] {
       author: frontmatter.author || "Unknown",
       authorUrl: frontmatter.authorUrl || "",
       authorImageUrl: frontmatter.authorImageUrl || "",
-      date: frontmatter.date
-        ? new Date(frontmatter.date).toISOString()
-        : "",
+      date: frontmatter.date ? new Date(frontmatter.date).toISOString() : "",
       tags: frontmatter.tags || [],
       featuredImage,
       featuredVideoId: frontmatter.featuredVideoId || undefined,

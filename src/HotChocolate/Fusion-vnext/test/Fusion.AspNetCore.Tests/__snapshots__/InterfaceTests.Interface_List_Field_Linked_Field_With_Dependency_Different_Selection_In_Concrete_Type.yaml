@@ -174,65 +174,6 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "email": "Author: QXV0aG9yOjY="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "email": "Author: QXV0aG9yOjQ="
-                  }
-                }
-              }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query testQuery_e4ba4706_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    email
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_1_id": "QXV0aG9yOjQ="
-                  },
-                  {
-                    "__fusion_1_id": "QXV0aG9yOjY="
-                  }
-                ]
-            - document: |
-                query testQuery_e4ba4706_3(
-                  $__fusion_2_id: ID!
-                ) {
-                  authorById(id: $__fusion_2_id) {
-                    displayName
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_2_id": "QXV0aG9yOjQ="
-                  },
-                  {
-                    "__fusion_2_id": "QXV0aG9yOjU="
-                  },
-                  {
-                    "__fusion_2_id": "QXV0aG9yOjY="
-                  }
-                ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "authorById": {
                     "displayName": "Author: QXV0aG9yOjU="
                   }
                 }
@@ -249,7 +190,23 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
+                    "email": "Author: QXV0aG9yOjY="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
                     "displayName": "Author: QXV0aG9yOjQ="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjQ="
                   }
                 }
               }

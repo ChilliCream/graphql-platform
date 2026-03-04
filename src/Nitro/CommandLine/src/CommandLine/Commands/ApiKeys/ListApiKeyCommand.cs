@@ -58,7 +58,7 @@ internal sealed class ListApiKeyCommand : Command
 
         var api = await PagedTable
             .From(container)
-            .Title("ApiKeys")
+            .Title("API Keys")
             .AddColumn("Id", x => x.Node.Id)
             .AddColumn("Name", x => x.Node.Name)
             .RenderAsync(console, ct);

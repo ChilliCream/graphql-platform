@@ -45,16 +45,16 @@ internal sealed class DeleteApiCommand : Command
                 }
             })
         {
-            throw Exit($"Api with id {apiId.AsHighlight()} was not found");
+            throw Exit($"API with ID {apiId.AsHighlight()} was not found");
         }
 
         var choice = await context.ConfirmWhenNotForced(
-            $"Do you really want to delete api {apiName.AsHighlight()}",
+            $"Do you really want to delete API {apiName.AsHighlight()}",
             cancellationToken);
 
         if (!choice)
         {
-            throw Exit("Api was not deleted");
+            throw Exit("API was not deleted");
         }
 
         var result = await client.DeleteApiCommandMutation
@@ -68,11 +68,11 @@ internal sealed class DeleteApiCommand : Command
 
         if (data.DeleteApiById.Api is not IApiDetailPrompt_Api changeResult)
         {
-            throw Exit("Could not delete api");
+            throw Exit("Could not delete API");
         }
 
         console.OkLine(
-            $"Api {changeResult.Name.AsHighlight()} [dim](ID:{changeResult.Id})[/] was deleted");
+            $"API {changeResult.Name.AsHighlight()} [dim](ID: {changeResult.Id})[/] was deleted");
 
         context.SetResult(ApiDetailPrompt.From(changeResult).ToObject());
 

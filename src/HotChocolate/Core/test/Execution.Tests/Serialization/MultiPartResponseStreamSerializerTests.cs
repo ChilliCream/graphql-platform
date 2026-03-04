@@ -48,7 +48,7 @@ public class MultiPartResponseStreamSerializerTests
         var writer = PipeWriter.Create(memoryStream, new StreamPipeWriterOptions(leaveOpen: true));
 
         // act
-        await serializer.FormatAsync(stream, writer, CancellationToken.None);
+        await serializer.FormatAsync(stream, writer, ExecutionResultFormatFlags.None, CancellationToken.None);
         await writer.CompleteAsync();
 
         // assert
@@ -64,7 +64,8 @@ public class MultiPartResponseStreamSerializerTests
         var stream = new Mock<PipeWriter>();
 
         // act
-        ValueTask Action() => serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
+        ValueTask Action() => serializer.FormatAsync(
+            null!, stream.Object, ExecutionResultFormatFlags.None, CancellationToken.None);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());
@@ -78,7 +79,8 @@ public class MultiPartResponseStreamSerializerTests
         var stream = new Mock<IResponseStream>();
 
         // act
-        ValueTask Action() => serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
+        ValueTask Action() => serializer.FormatAsync(
+            stream.Object, null!, ExecutionResultFormatFlags.None, CancellationToken.None);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());

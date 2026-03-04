@@ -1,0 +1,25 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": {
+          "baz": "testatest"
+        }
+      },
+      {
+        "bar": {
+          "baz": "testbtest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."Bar_Baz"
+FROM "Data" AS "d"
+---------------
