@@ -575,6 +575,107 @@ public class VariableCoercionHelperTests
     }
 
     [Fact]
+    public void Single_Value_Can_Be_Coerced_Into_List_Variable()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new(null,
+                new VariableNode("abc"),
+                description: null,
+                new ListTypeNode(new NamedTypeNode("String")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+
+        var runtimeValues = Assert.IsAssignableFrom<System.Collections.IList>(entry.Value.RuntimeValue);
+        var runtimeValue = Assert.Single(runtimeValues.Cast<object?>());
+        Assert.Equal("xyz", runtimeValue);
+
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
+            [
+              "xyz"
+            ]
+            """);
+    }
+
+    [Fact]
+    public void StringValue_Representing_EnumValue_In_Single_Object_For_List_ShouldBe_Rewritten()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"
+                    type Query {
+                        test(list: [FooInput]): String
+                    }
+
+                    input FooInput {
+                        enum: TestEnum
+                    }
+
+                    enum TestEnum {
+                        Foo
+                        Bar
+                    }")
+            .Use(_ => _ => default)
+            .Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new(null,
+                new VariableNode("abc"),
+                description: null,
+                new ListTypeNode(new NamedTypeNode("FooInput")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var variableValues = JsonDocument.Parse(
+            """
+            {
+              "abc": { "enum": "Foo" }
+            }
+            """);
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
+            [
+              {
+                enum: Foo
+              }
+            ]
+            """);
+    }
+
+    [Fact]
     public void StringValues_Representing_EnumValues_In_Lists_ShouldBe_Rewritten()
     {
         // arrange

@@ -63,7 +63,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Planning is just broken here")]
+    [Fact]
     public async Task SharedPath_Multiple_Skip_Levels_Around_Entry_Field()
     {
         // arrange
@@ -71,7 +71,7 @@ public class ConditionalTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -83,7 +83,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -179,7 +179,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Conditions are not properly forwarded to B")]
+    [Fact]
     public async Task SharedPath_Multiple_Skip_Levels_Around_Fields_Below_Entry_Field()
     {
         // arrange
@@ -187,7 +187,7 @@ public class ConditionalTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -199,7 +199,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -286,7 +286,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Does not yet work correctly")]
+    [Fact]
     public async Task Root_Field_Statically_Skipped()
     {
         // arrange
@@ -316,6 +316,48 @@ public class ConditionalTests : FusionTestBase
             query testQuery {
               productBySlug(slug: "product") @skip(if: true) {
                 name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task All_Selections_On_A_Field_Statically_Skipped()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              productBySlug(slug: "product") {
+                name @skip(if: true)
               }
             }
             """);
@@ -381,7 +423,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Conditionals not properly forwarded to B")]
+    [Fact]
     public async Task Root_Skip_Around_Fields_From_Different_Source_Schemas()
     {
         // arrange
@@ -552,7 +594,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Conditions not properly forwarded to B")]
+    [Fact]
     public async Task Root_Multiple_Skip_Levels_Around_Fields_From_Different_Source_Schemas()
     {
         // arrange
@@ -1034,7 +1076,7 @@ public class ConditionalTests : FusionTestBase
 
     #region Require
 
-    [Fact(Skip = "Requirement is still executed")]
+    [Fact]
     public async Task Lookup_Skip_On_Field_With_Requirement()
     {
         // arrange
@@ -1046,7 +1088,7 @@ public class ConditionalTests : FusionTestBase
             }
 
             type Product {
-              id: ID!
+              id: ID! @shareable
             }
             """);
 
@@ -1054,7 +1096,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1067,7 +1109,7 @@ public class ConditionalTests : FusionTestBase
             "C",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1178,7 +1220,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Requirement is still executed")]
+    [Fact]
     public async Task Lookup_Skip_Not_Only_On_Field_With_Requirement()
     {
         // arrange
@@ -1190,7 +1232,7 @@ public class ConditionalTests : FusionTestBase
             }
 
             type Product {
-              id: ID!
+              id: ID! @shareable
             }
             """);
 
@@ -1198,7 +1240,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1211,7 +1253,7 @@ public class ConditionalTests : FusionTestBase
             "C",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1931,7 +1973,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Step is still triggered since operation requirement is being fulfilled")]
+    [Fact]
     public async Task NodeField_Skip_On_Interface_Selection_Type_Refinement_With_Same_Unskipped_Selection()
     {
         // arrange

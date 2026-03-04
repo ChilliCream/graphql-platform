@@ -172,49 +172,6 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjU="
-                  }
-                }
-              }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query testQuery_5f4670e8_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    subgraph2
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "QXV0aG9yOjU="
-                }
-            - document: |
-                query testQuery_5f4670e8_3(
-                  $__fusion_2_id: ID!
-                ) {
-                  productById(id: $__fusion_2_id) {
-                    subgraph2
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDo0"
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDo2"
-                  }
-                ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
                   "productById": {
                     "subgraph2": "Product: UHJvZHVjdDo0"
                   }
@@ -225,6 +182,14 @@ sourceSchemas:
                 "data": {
                   "productById": {
                     "subgraph2": "Product: UHJvZHVjdDo2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjU="
                   }
                 }
               }

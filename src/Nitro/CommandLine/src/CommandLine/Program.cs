@@ -12,7 +12,7 @@ namespace ChilliCream.Nitro.CommandLine;
 #endif
 public static class Program
 {
-    public static async Task Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         var builder = new CommandLineBuilder(new NitroRootCommand())
             .AddNitroCloudConfiguration()
@@ -21,6 +21,6 @@ public static class Program
             .UseExtendedConsole();
 
         builder.Command.AddNitroCloudCommands();
-        await builder.Build().InvokeAsync(args);
+        return await builder.Build().InvokeAsync(args);
     }
 }

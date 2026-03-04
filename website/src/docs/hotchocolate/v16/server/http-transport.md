@@ -4,13 +4,6 @@ title: HTTP transport
 
 Hot Chocolate implements the latest (February 2023) version of the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md).
 
-<!--
-todo:
-- types of responses (application/graphql-response+json, application/json, text/event-stream, multipart/mixed)
-- HTTP status codes to expect
-- incremental deliver via @defer / @stream (might be its own document)
- -->
-
 <!-- todo: clean up the following section -->
 
 # Types of requests
@@ -203,6 +196,114 @@ var options = new HttpResponseFormatterOptions
 
 builder.Services.AddHttpResponseFormatter(options);
 ```
+
+# Incremental delivery (`@defer` / `@stream`)
+
+When using `@defer` or `@stream`, Hot Chocolate streams results to the client using one of three transport formats, selected via the `Accept` header:
+
+| Accept header       | Transport  | Content-Type      |
+| ------------------- | ---------- | ----------------- |
+| `multipart/mixed`   | Multipart  | multipart/mixed   |
+| `text/event-stream` | SSE        | text/event-stream |
+| `application/jsonl` | JSON Lines | application/jsonl |
+
+If no streaming `Accept` header is provided, the default is `multipart/mixed`.
+
+## Incremental delivery wire format
+
+There are two wire formats for how incremental results are represented in the response payload:
+
+**v0.2 (default)** — Uses `pending`, `incremental` with `id`, and `completed` to track deferred fragments:
+
+```json
+{"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
+{"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
+```
+
+**v0.1 (legacy)** — Uses `path` and `label` directly on incremental entries:
+
+```json
+{"data":{"product":{"name":"Abc"}},"hasNext":true}
+{"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
+```
+
+### Client-driven format selection
+
+Clients can choose which format they want by adding the `incrementalSpec` parameter to the `Accept` header:
+
+```text
+Accept: multipart/mixed; incrementalSpec=v0.1
+Accept: text/event-stream; incrementalSpec=v0.2
+Accept: application/jsonl; incrementalSpec=v0.1
+```
+
+When the client doesn't specify `incrementalSpec`, the server default is used.
+
+### Changing the server default
+
+The default incremental delivery format is v0.2. To change it server-wide:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpResponseFormatter(
+        incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
+```
+
+Or with the options overload:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpResponseFormatter(
+        new HttpResponseFormatterOptions { /* ... */ },
+        incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
+```
+
+The server default is only used as a fallback — a client that sends `incrementalSpec=v0.1` or `incrementalSpec=v0.2` in the `Accept` header always gets the format it asked for, regardless of the server default.
+
+# Streaming transports
+
+Hot Chocolate supports three streaming transport formats for delivering result streams (incremental delivery, batching, and subscriptions). The client selects the format via the `Accept` header.
+
+## Multipart (`multipart/mixed`)
+
+The default streaming transport. Each result is sent as a separate MIME part separated by a boundary string. This is the most widely supported format.
+
+```text
+Accept: multipart/mixed
+```
+
+## Server-Sent Events (`text/event-stream`)
+
+Results are delivered as SSE events. This transport works well with browser `EventSource` APIs and proxies that support SSE.
+
+```text
+Accept: text/event-stream
+```
+
+Each result is sent as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message signals the end of the stream.
+
+## JSON Lines (`application/jsonl`)
+
+Each result is written as a single line of JSON, separated by newlines. This format is compact and easy to parse incrementally, making it especially well-suited for batch responses.
+
+```text
+Accept: application/jsonl
+```
+
+```text
+{"data":{"hero":{"name":"R2-D2"}}}
+{"data":{"hero":{"name":"Luke Skywalker"}}}
+```
+
+The server sends periodic keep-alive messages (a space followed by a newline) to prevent connection timeouts.
+
+# Batching
+
+Hot Chocolate supports operation batching, request batching, and variable batching. These features allow you to send and execute multiple GraphQL operations in a single HTTP request, with results streamed back using one of the transport formats above.
+
+For full details on how to enable and use batching, see the [Batching](/docs/hotchocolate/v16/server/batching) page.
 
 # Supporting legacy clients
 

@@ -79,27 +79,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_a361113f_3 {
-                  b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
-                    __typename
-                    title
-                    id
-                  }
-                }
-            - document: |
-                query Op_a361113f_7 {
-                  a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-                    __typename
-                    title
-                  }
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {

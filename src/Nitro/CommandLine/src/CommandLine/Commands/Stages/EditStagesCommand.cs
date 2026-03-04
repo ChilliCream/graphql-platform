@@ -46,7 +46,7 @@ internal sealed class EditStagesCommand : Command
     {
         console.WriteOperationTitle();
 
-        const string apiMessage = "For which api do you want to edit the stages?";
+        const string apiMessage = "For which API do you want to edit the stages?";
 
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
@@ -221,7 +221,7 @@ file static class Extensions
 
         await SelectableTable
             .From(updatedStages)
-            .Title($"Edit the stages of api {apiId}")
+            .Title($"Edit the stages of API {apiId}")
             .AddColumn("Name", x => x.Name)
             .AddColumn("DisplayName", x => x.DisplayName)
             .AddColumn("After", x => x.Conditions!.Select(y => y.AfterStage).Join(","))

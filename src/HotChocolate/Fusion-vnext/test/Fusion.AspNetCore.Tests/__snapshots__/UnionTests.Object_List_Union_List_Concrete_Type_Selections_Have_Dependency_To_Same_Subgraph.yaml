@@ -290,85 +290,6 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjE3"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjE0"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjIw"
-                  }
-                }
-              }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query testQuery_42ede545_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    subgraph2
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_1_id": "QXV0aG9yOjIw"
-                  },
-                  {
-                    "__fusion_1_id": "QXV0aG9yOjE3"
-                  },
-                  {
-                    "__fusion_1_id": "QXV0aG9yOjE0"
-                  }
-                ]
-            - document: |
-                query testQuery_42ede545_3(
-                  $__fusion_2_id: ID!
-                ) {
-                  productById(id: $__fusion_2_id) {
-                    subgraph2
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoxOQ=="
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoyMQ=="
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoxNg=="
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoxOA=="
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoxMw=="
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoxNQ=="
-                  }
-                ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
                   "productById": {
                     "subgraph2": "Product: UHJvZHVjdDoxMw=="
                   }
@@ -411,6 +332,30 @@ sourceSchemas:
                 "data": {
                   "productById": {
                     "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjE3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjE0"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjIw"
                   }
                 }
               }

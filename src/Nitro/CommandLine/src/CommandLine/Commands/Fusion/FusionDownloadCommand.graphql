@@ -1,6 +1,0 @@
-query FetchConfiguration($id: ID!, $stage: String!) {
-  fusionConfigurationByApiId(id: $id, stage: $stage) {
-    downloadUrl
-    tag
-  }
-}

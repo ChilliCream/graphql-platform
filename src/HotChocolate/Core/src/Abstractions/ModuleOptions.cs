@@ -19,5 +19,10 @@ public enum ModuleOptions
     /// <summary>
     /// Register DataLoader with the source generated module.
     /// </summary>
-    RegisterDataLoader = 2
+    RegisterDataLoader = 2,
+
+    /// <summary>
+    /// Include internal resolver members when discovering source generated types.
+    /// </summary>
+    IncludeInternalMembers = 4
 }

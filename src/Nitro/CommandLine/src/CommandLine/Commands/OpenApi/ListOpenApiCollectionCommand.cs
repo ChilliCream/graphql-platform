@@ -59,7 +59,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
 
         var api = await PagedTable
             .From(container)
-            .Title("OpenAPI collections of api")
+            .Title("OpenAPI collections of API")
             .AddColumn("Id", x => x.Node.Id)
             .AddColumn("Name", x => x.Node.Name)
             .RenderAsync(console, ct);
@@ -81,7 +81,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
         var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
         if (apiId is null)
         {
-            throw Exit("The api id is required in non-interactive mode.");
+            throw Exit("The API ID is required in non-interactive mode.");
         }
 
         var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
