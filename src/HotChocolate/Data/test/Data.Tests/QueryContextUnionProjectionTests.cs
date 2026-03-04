@@ -159,21 +159,21 @@ public class QueryContextUnionProjectionTests
     public class Query
     {
         public IQueryable<InspectionDefinition> GetInspectionDefinitions(ISelection selection)
-            => SingleData.AsQueryable()
+            => s_singleData.AsQueryable()
                 .Select(selection.AsSelector<InspectionDefinition>());
 
         [UsePaging]
         public IQueryable<InspectionDefinition> GetPagedInspectionDefinitions(ISelection selection)
-            => SingleData.AsQueryable()
+            => s_singleData.AsQueryable()
                 .Select(selection.AsSelector<InspectionDefinition>());
 
         [UsePaging]
         public IQueryable<InspectionGroup> GetPagedInspectionGroups(ISelection selection)
-            => GroupData.AsQueryable()
+            => s_groupData.AsQueryable()
                 .Select(selection.AsSelector<InspectionGroup>());
 
         public IQueryable<InspectionTemplate> GetInspectionTemplates(ISelection selection)
-            => TemplateData.AsQueryable()
+            => s_templateData.AsQueryable()
                 .Select(selection.AsSelector<InspectionTemplate>());
     }
 
@@ -246,7 +246,7 @@ public class QueryContextUnionProjectionTests
             var query = context.GetQueryContext<Page<InspectionDefinition>, InspectionDefinition>();
             var pageSize = pagingArgs.First ?? pagingArgs.Last ?? int.MaxValue;
 
-            var grouped = GroupDefinitionData
+            var grouped = s_groupDefinitionData
                 .Where(x => keys.Contains(x.GroupId))
                 .GroupBy(x => x.GroupId)
                 .ToDictionary(x => x.Key, x => x.ToArray());
@@ -288,7 +288,7 @@ public class QueryContextUnionProjectionTests
         public required string FieldModelKey { get; set; }
     }
 
-    private static readonly InspectionDefinition[] SingleData =
+    private static readonly InspectionDefinition[] s_singleData =
     [
         new()
         {
@@ -301,7 +301,7 @@ public class QueryContextUnionProjectionTests
         }
     ];
 
-    private static readonly InspectionGroup[] GroupData =
+    private static readonly InspectionGroup[] s_groupData =
     [
         new()
         {
@@ -310,7 +310,7 @@ public class QueryContextUnionProjectionTests
         }
     ];
 
-    private static readonly InspectionDefinition[] GroupDefinitionData =
+    private static readonly InspectionDefinition[] s_groupDefinitionData =
     [
         new()
         {
@@ -332,7 +332,7 @@ public class QueryContextUnionProjectionTests
         }
     ];
 
-    private static readonly InspectionTemplate[] TemplateData =
+    private static readonly InspectionTemplate[] s_templateData =
     [
         new()
         {
@@ -358,7 +358,7 @@ public class QueryContextUnionProjectionTests
     public class TenantQuery
     {
         public IQueryable<Tenant> GetTenants(ISelection selection)
-            => TenantData.AsQueryable()
+            => s_tenantData.AsQueryable()
                 .Select(selection.AsSelector<Tenant>());
     }
 
@@ -389,7 +389,7 @@ public class QueryContextUnionProjectionTests
         public required string FolderName { get; set; }
     }
 
-    private static readonly Tenant[] TenantData =
+    private static readonly Tenant[] s_tenantData =
     [
         new()
         {

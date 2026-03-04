@@ -499,7 +499,7 @@ internal sealed class FusionPublishCommand : Command
             var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
                 apiId,
                 stageName,
-                client,
+                isFgp: false,
                 httpClientFactory,
                 cancellationToken);
 

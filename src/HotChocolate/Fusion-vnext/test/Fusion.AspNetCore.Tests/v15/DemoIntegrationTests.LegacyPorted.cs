@@ -26,7 +26,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -56,7 +56,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -86,7 +86,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -116,7 +116,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -148,7 +148,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -181,7 +181,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -205,7 +205,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -229,7 +229,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -256,7 +256,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -283,7 +283,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -310,7 +310,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -337,7 +337,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -365,7 +365,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -407,7 +407,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -433,7 +433,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -459,7 +459,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -486,7 +486,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -516,7 +516,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -547,7 +547,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -572,7 +572,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -606,7 +606,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -633,7 +633,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -660,7 +660,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -687,7 +687,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -714,7 +714,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -744,7 +744,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -769,7 +769,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -791,7 +791,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -824,7 +824,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -857,7 +857,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -894,7 +894,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -929,7 +929,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -966,7 +966,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -1001,7 +1001,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -1035,7 +1035,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -1075,7 +1075,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -1101,7 +1101,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -1132,7 +1132,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -1154,7 +1154,7 @@ public partial class DemoIntegrationTests
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, _graphQLEndpoint);
+        using var result = await client.PostAsync(request, s_graphQLEndpoint);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -1207,7 +1207,7 @@ public partial class DemoIntegrationTests
         Appointment = 16
     }
 
-    private static readonly Uri _graphQLEndpoint = new("http://localhost:5000/graphql");
+    private static readonly Uri s_graphQLEndpoint = new("http://localhost:5000/graphql");
 
     private const string AccountsSchema =
         """

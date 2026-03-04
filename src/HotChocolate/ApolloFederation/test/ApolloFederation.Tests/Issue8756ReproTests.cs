@@ -1,5 +1,4 @@
 using HotChocolate.ApolloFederation.Resolvers;
-using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;

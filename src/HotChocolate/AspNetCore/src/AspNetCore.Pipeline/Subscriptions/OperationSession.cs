@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 

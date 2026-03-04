@@ -280,6 +280,27 @@ Some GraphQL validation errors included an extension named `fieldCoordinate` tha
 }
 ```
 
+## `FileValueNode` renamed to `UploadValueNode`
+
+The upload literal node has been renamed from `FileValueNode` to `UploadValueNode`.
+If you are referencing this type directly in custom scalar logic or tests, update your code accordingly:
+
+```diff
+-if (valueLiteral is FileValueNode fileValue)
++if (valueLiteral is UploadValueNode uploadValue)
+ {
+    var file = uploadValue.File;
+    var key = uploadValue.Key;
+ }
+```
+
+If you are constructing upload value nodes manually, note that the constructor now also requires the multipart key:
+
+```diff
+-var valueNode = new FileValueNode(file);
++var valueNode = new UploadValueNode("0", file);
+```
+
 ## Errors from `TypeConverter`s are now accessible in the `ErrorFilter`
 
 Previously, exceptions thrown by a `TypeConverter` were not forwarded to the `ErrorFilter`. Such exceptions are now properly propagated and can therefore be intercepted.
