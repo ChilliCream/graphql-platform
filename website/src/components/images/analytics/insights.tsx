@@ -7,7 +7,11 @@ export const AnalyticsInsightsImage: FC = () => {
     <img
       src="/images/analytics/insights.png"
       alt="Trace, Detail, Insight."
-      style={{ maxWidth: ANALYTICS_INSIGHTS_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      style={{
+        maxWidth: ANALYTICS_INSIGHTS_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };

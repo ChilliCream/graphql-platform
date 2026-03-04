@@ -678,7 +678,9 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         {
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         private ConstructorInjectionBlog(ConstructorInjectionDbContext context)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             Context = context;
         }

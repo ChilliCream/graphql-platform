@@ -280,6 +280,27 @@ Some GraphQL validation errors included an extension named `fieldCoordinate` tha
 }
 ```
 
+## `FileValueNode` renamed to `UploadValueNode`
+
+The upload literal node has been renamed from `FileValueNode` to `UploadValueNode`.
+If you are referencing this type directly in custom scalar logic or tests, update your code accordingly:
+
+```diff
+-if (valueLiteral is FileValueNode fileValue)
++if (valueLiteral is UploadValueNode uploadValue)
+ {
+    var file = uploadValue.File;
+    var key = uploadValue.Key;
+ }
+```
+
+If you are constructing upload value nodes manually, note that the constructor now also requires the multipart key:
+
+```diff
+-var valueNode = new FileValueNode(file);
++var valueNode = new UploadValueNode("0", file);
+```
+
 ## Errors from `TypeConverter`s are now accessible in the `ErrorFilter`
 
 Previously, exceptions thrown by a `TypeConverter` were not forwarded to the `ErrorFilter`. Such exceptions are now properly propagated and can therefore be intercepted.
@@ -438,6 +459,91 @@ The conversion from GUID to string in the default type converter has been update
 ## EnableOneOf option removed
 
 The `EnableOneOf` option has been removed, as the `@oneOf` directive is now built in.
+
+## GraphQLToolOptions replaced by NitroAppOptions
+
+The `GraphQLToolOptions` class has been removed. Nitro configuration is now done directly through `NitroAppOptions` from the `ChilliCream.Nitro.App` namespace.
+
+The `GraphQLServerOptions.Tool` property is now of type `NitroAppOptions` instead of `GraphQLToolOptions`.
+
+### WithOptions now uses a delegate pattern
+
+Per-endpoint `WithOptions` overrides now use a delegate pattern instead of object initializers:
+
+```diff
+endpoints.MapGraphQL()
+-   .WithOptions(o => o.Tool.Enable = false);
++   .WithOptions(o => o.Tool.Enable = false);
+// No change for GraphQLServerOptions — already used delegates
+
+endpoints.MapNitroApp()
+-   .WithOptions(new GraphQLToolOptions { Enable = false });
++   .WithOptions(o => o.Enable = false);
+```
+
+### GraphQLToolServeMode replaced by ServeMode
+
+Replace `GraphQLToolServeMode` with `ServeMode` from `ChilliCream.Nitro.App`:
+
+```diff
+-using HotChocolate.AspNetCore;
++using ChilliCream.Nitro.App;
+
+-GraphQLToolServeMode.Embedded   → ServeMode.Embedded
+-GraphQLToolServeMode.Latest     → ServeMode.Latest
+-GraphQLToolServeMode.Insider    → ServeMode.Insider
+-GraphQLToolServeMode.Version(v) → ServeMode.Version(v)
+```
+
+### DefaultHttpMethod replaced by UseGet
+
+The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property on `NitroAppOptions` instead:
+
+```diff
+-o.HttpMethod = DefaultHttpMethod.Get;
++o.UseGet = true;
+```
+
+## Server options now configured via ModifyServerOptions
+
+`GraphQLServerOptions` (GET requests, multipart, batching, schema requests, etc.) are now configured at the schema level using `ModifyServerOptions` instead of per-endpoint:
+
+```diff
+builder.Services.AddGraphQLServer()
++   .ModifyServerOptions(o =>
++   {
++       o.EnableGetRequests = false;
++       o.Batching = AllowedBatching.All;
++   });
+```
+
+Per-endpoint overrides are still supported via `WithOptions` on the endpoint builder:
+
+```csharp
+endpoints.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
+```
+
+## Batching is now disabled by default
+
+In v15, request batching was enabled by default (`EnableBatching = true`). In v16, batching is **disabled by default** as a security measure. The `EnableBatching` property has been replaced by `Batching`, which uses the `AllowedBatching` flags enum for fine-grained control:
+
+```diff
+-o.EnableBatching = true;
++o.Batching = AllowedBatching.All;
+```
+
+If you were relying on the previous default, you need to explicitly enable batching:
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .ModifyServerOptions(o => o.Batching = AllowedBatching.All);
+```
+
+Additionally, a new `MaxBatchSize` property limits the number of operations in a single batch. The default is **1024**. Set it to `0` for unlimited.
+
+> Note: Fusion subgraphs automatically enable batching via `AddSourceSchemaDefaults()`. No action is needed for subgraphs.
+
+For more details, see [Batching](/docs/hotchocolate/v16/server/batching).
 
 ## New default incremental delivery format for `@defer` and `@stream`
 

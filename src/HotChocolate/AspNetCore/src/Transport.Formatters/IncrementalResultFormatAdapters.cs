@@ -1,5 +1,7 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using static HotChocolate.Execution.JsonValueFormatter;
 
@@ -7,13 +9,29 @@ namespace HotChocolate.Transport.Formatters;
 
 internal static class IncrementalRfc1ResultFormatAdapter
 {
+    private static readonly JsonWriterOptions s_jsonWriterOptions = new() { SkipValidation = true };
+
     public static void WriteIncremental(
         JsonWriter writer,
         OperationResult result,
         JsonSerializerOptions options,
         OperationResultFormatterContext context)
     {
+        // We capture the defragmentized document from the first result that carries it.
+        // In a stream of incremental results, the document is the same on every result.
+        context.InitializeDocument(result.Document);
+        var deferLookup = context.DeferSelectionLookup;
         var pending = context.PendingResults;
+
+        if (deferLookup is not null)
+        {
+            // Next, we cache the initial result's data for later merge with deferred payloads.
+            // The v0.1 format of the incremental delivery spec did not deduplicate data,
+            // so this adapter needs to reverse the deduplication by capturing individual field values
+            // from the initial payload and splicing them back into deferred payloads as needed
+            // to reconstruct the full selection for RFC-1 clients.
+            CaptureResultData(context, Path.Root, result.Data);
+        }
 
         if (result.Pending is { Count: > 0 } pendingResults)
         {
@@ -40,13 +58,62 @@ internal static class IncrementalRfc1ResultFormatAdapter
 
                 if (item is IncrementalObjectResult objectResult)
                 {
-                    var path = CombinePath(pendingResult.Path ?? Path.Root, objectResult.SubPath);
-                    (entries ??= []).Add(
-                        LegacyIncrementalEntry.ForData(
-                            path,
-                            pendingResult.Label,
-                            objectResult.Data,
-                            objectResult.Errors));
+                    var pendingPath = pendingResult.Path ?? Path.Root;
+                    var path = CombinePath(pendingPath, objectResult.SubPath);
+
+                    if (deferLookup is not null
+                        && objectResult.Data.HasValue
+                        && !objectResult.Data.Value.IsValueNull)
+                    {
+                        // We serialize the deferred patch data into the cache buffer so the
+                        // backing bytes stay stable for the lifetime of the parsed document.
+                        // The same document is then used for both caching field values and
+                        // building the merged payload, avoiding a second serialization pass.
+                        using var document = SerializeDataToCache(objectResult.Data.Value);
+
+                        // Next, we walk every field in the parsed JSON and store it by its path.
+                        // Later, when we build the merged payload, we pull these cached values
+                        // back in to fill fields that the server did not repeat in the patch.
+                        CaptureElement(context, path, document.RootElement);
+
+                        // Try to combine the patch with cached fields into a complete object
+                        // for RFC-1 clients; if there is no overlap, we emit the patch as-is.
+                        if (TryCreateMergedData(
+                                context,
+                                pendingPath,
+                                path,
+                                pendingResult.Label,
+                                document,
+                                out var mergedData,
+                                out var mergedPath))
+                        {
+                            (entries ??= []).Add(
+                                LegacyIncrementalEntry.ForData(
+                                    mergedPath,
+                                    pendingResult.Label,
+                                    data: null,
+                                    objectResult.Errors,
+                                    mergedData));
+                        }
+                        else
+                        {
+                            (entries ??= []).Add(
+                                LegacyIncrementalEntry.ForData(
+                                    path,
+                                    pendingResult.Label,
+                                    objectResult.Data,
+                                    objectResult.Errors));
+                        }
+                    }
+                    else
+                    {
+                        (entries ??= []).Add(
+                            LegacyIncrementalEntry.ForData(
+                                path,
+                                pendingResult.Label,
+                                objectResult.Data,
+                                objectResult.Errors));
+                    }
                 }
                 else if (item is IIncrementalListResult listResult)
                 {
@@ -106,6 +173,494 @@ internal static class IncrementalRfc1ResultFormatAdapter
         }
     }
 
+    private static bool TryCreateMergedData(
+        OperationResultFormatterContext context,
+        Path pendingPath,
+        Path path,
+        string? label,
+        JsonDocument patchDocument,
+        out ReadOnlyMemorySegment mergedData,
+        out Path mergedPath)
+    {
+        mergedData = default;
+        mergedPath = path;
+
+        var deferLookup = context.DeferSelectionLookup;
+
+        if (deferLookup is null
+            || !TryResolveSelectionRoot(
+                deferLookup,
+                pendingPath,
+                path,
+                label,
+                out var selectionPath,
+                out var selection)
+            || !selection.HasFields)
+        {
+            return false;
+        }
+
+        if (patchDocument.RootElement.ValueKind is not JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (!TryGetRelativePathSegments(selectionPath, path, selection, out var relativePath))
+        {
+            return false;
+        }
+
+        using var wrappedPatchDocument = relativePath.Count > 0
+            ? WrapPatchToSelectionPath(patchDocument.RootElement, relativePath)
+            : null;
+        var patchRoot = wrappedPatchDocument?.RootElement ?? patchDocument.RootElement;
+
+        var cacheBuffer = context.CacheBuffer;
+        var start = cacheBuffer.Length;
+        var mergedWriter = new JsonWriter(cacheBuffer, s_jsonWriterOptions);
+        WriteMergedObject(mergedWriter, context, selectionPath, patchRoot, selection);
+        mergedData = cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start);
+        mergedPath = selectionPath;
+        return true;
+    }
+
+    private static bool TryResolveSelectionRoot(
+        DeferSelectionLookup deferLookup,
+        Path pendingPath,
+        Path path,
+        string? label,
+        out Path selectionPath,
+        out DeferSelectionTree selection)
+    {
+        if (deferLookup.TryResolveRoot(pendingPath, label, out selectionPath, out selection))
+        {
+            return true;
+        }
+
+        if (deferLookup.TryResolveRoot(path, label, out selectionPath, out selection))
+        {
+            return true;
+        }
+
+        selectionPath = Path.Root;
+        selection = default!;
+        return false;
+    }
+
+    private static bool TryGetRelativePathSegments(
+        Path selectionPath,
+        Path path,
+        DeferSelectionTree selection,
+        out IReadOnlyList<object> relativePath)
+    {
+        if (selectionPath.Equals(path))
+        {
+            relativePath = [];
+            return true;
+        }
+
+        var selectionSegments = selectionPath.ToList();
+        var pathSegments = path.ToList();
+
+        if (pathSegments.Count < selectionSegments.Count)
+        {
+            relativePath = [];
+            return false;
+        }
+
+        for (var i = 0; i < selectionSegments.Count; i++)
+        {
+            if (!Equals(selectionSegments[i], pathSegments[i]))
+            {
+                relativePath = [];
+                return false;
+            }
+        }
+
+        var segments = new List<object>(pathSegments.Count - selectionSegments.Count);
+
+        for (var i = selectionSegments.Count; i < pathSegments.Count; i++)
+        {
+            var segment = pathSegments[i];
+
+            switch (segment)
+            {
+                case string fieldName when selection.TryGetField(fieldName, out var childSelection):
+                    segments.Add(fieldName);
+                    selection = childSelection;
+                    break;
+
+                case int index:
+                    segments.Add(index);
+                    continue;
+
+                default:
+                    relativePath = [];
+                    return false;
+            }
+        }
+
+        relativePath = segments;
+        return true;
+    }
+
+    private static JsonDocument WrapPatchToSelectionPath(
+        JsonElement patchObject,
+        IReadOnlyList<object> relativePath)
+    {
+        // We write into a separate temporary buffer so the main cacheBuffer is not
+        // polluted with data we only need for a single read.
+        using var tempBuffer = new PooledArrayWriter();
+
+        using (var writer = new Utf8JsonWriter(tempBuffer))
+        {
+            WriteWrappedPatch(writer, patchObject, relativePath, 0);
+            writer.Flush();
+        }
+
+        // Next, we parse from the span so JsonDocument makes an internal copy,
+        // keeping it independent of tempBuffer's lifetime.
+        var reader = new Utf8JsonReader(tempBuffer.WrittenSpan);
+        return JsonDocument.ParseValue(ref reader);
+    }
+
+    private static void WriteWrappedPatch(
+        Utf8JsonWriter writer,
+        JsonElement patch,
+        IReadOnlyList<object> relativePath,
+        int index)
+    {
+        if (index >= relativePath.Count)
+        {
+            patch.WriteTo(writer);
+            return;
+        }
+
+        switch (relativePath[index])
+        {
+            case string fieldName:
+                writer.WriteStartObject();
+                writer.WritePropertyName(fieldName);
+                WriteWrappedPatch(writer, patch, relativePath, index + 1);
+                writer.WriteEndObject();
+                break;
+
+            case int listIndex when listIndex >= 0:
+                writer.WriteStartArray();
+
+                for (var i = 0; i < listIndex; i++)
+                {
+                    writer.WriteNullValue();
+                }
+
+                WriteWrappedPatch(writer, patch, relativePath, index + 1);
+                writer.WriteEndArray();
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    "Patch path contains an unsupported segment for legacy merge.");
+        }
+    }
+
+    /// <summary>
+    /// Writes a JSON object that merges the deferred patch with previously cached fields.
+    /// For each field the defer selection expects, we check whether the patch contains it.
+    /// If yes, we write it (possibly merging recursively). If not, we try to fill it from the cache.
+    /// </summary>
+    private static void WriteMergedObject(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        Path path,
+        JsonElement patchObject,
+        DeferSelectionTree selection)
+    {
+        writer.WriteStartObject();
+
+        for (var i = 0; i < selection.Fields.Count; i++)
+        {
+            var field = selection.Fields[i];
+            var fieldPath = path.Append(field.Name);
+
+            // The patch contains this field, so we write it, merging with cached data if needed.
+            if (patchObject.TryGetProperty(field.Name, out var patchValue))
+            {
+                writer.WritePropertyName(field.Name);
+                WriteMergedFieldValue(writer, context, fieldPath, patchValue, field.Selection);
+            }
+            else
+            {
+                // The patch does not contain this field, so we try to fill it from the cache.
+                TryWriteMissingField(writer, context, field.Name, fieldPath, field.Selection);
+            }
+        }
+
+        writer.WriteEndObject();
+    }
+
+    /// <summary>
+    /// Writes a single field value during the merge.
+    /// For leaf fields (no sub-selections), we prefer the cached value from the initial result
+    /// because the server may have deduplicated it from the patch.
+    /// For composite fields (objects or arrays), we recurse to merge nested data.
+    /// </summary>
+    private static void WriteMergedFieldValue(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        Path path,
+        JsonElement patchValue,
+        DeferSelectionTree selection)
+    {
+        // Leaf field: prefer the cached value; fall back to the patch value.
+        if (!selection.HasFields)
+        {
+            if (!TryWriteCachedValue(writer, context, path))
+            {
+                WriteRawElement(writer, context, patchValue);
+            }
+
+            return;
+        }
+
+        switch (patchValue.ValueKind)
+        {
+            case JsonValueKind.Object:
+                WriteMergedObject(writer, context, path, patchValue, selection);
+                break;
+
+            case JsonValueKind.Array:
+                WriteMergedArray(writer, context, path, patchValue, selection);
+                break;
+
+            default:
+                if (!TryWriteCachedValue(writer, context, path))
+                {
+                    WriteRawElement(writer, context, patchValue);
+                }
+
+                break;
+        }
+    }
+
+    private static void WriteMergedArray(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        Path path,
+        JsonElement patchArray,
+        DeferSelectionTree selection)
+    {
+        writer.WriteStartArray();
+
+        var index = 0;
+        foreach (var item in patchArray.EnumerateArray())
+        {
+            var itemPath = path.Append(index++);
+
+            if (item.ValueKind is JsonValueKind.Object)
+            {
+                WriteMergedObject(writer, context, itemPath, item, selection);
+            }
+            else if (item.ValueKind is JsonValueKind.Array)
+            {
+                WriteMergedArray(writer, context, itemPath, item, selection);
+            }
+            else if (!TryWriteCachedValue(writer, context, itemPath))
+            {
+                WriteRawElement(writer, context, item);
+            }
+        }
+
+        writer.WriteEndArray();
+    }
+
+    /// <summary>
+    /// Tries to write a field that was not present in the patch by looking it up in the cache.
+    /// For leaf fields it writes the cached value directly. For arrays it writes the whole
+    /// cached array. For objects it recursively rebuilds from individually cached child fields.
+    /// </summary>
+    private static bool TryWriteMissingField(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        string fieldName,
+        Path fieldPath,
+        DeferSelectionTree fieldSelection)
+    {
+        // In the case of a leaf field we write the cached value directly.
+        if (!fieldSelection.HasFields)
+        {
+            if (!context.CachedDataByPath.TryGetValue(fieldPath, out var cachedValue))
+            {
+                return false;
+            }
+
+            writer.WritePropertyName(fieldName);
+            writer.WriteRawValue(cachedValue.Segment.Span);
+            return true;
+        }
+
+        // For Array field we write the whole cached array as raw bytes.
+        if (context.CachedDataByPath.TryGetValue(fieldPath, out var cached)
+            && cached.ValueKind is JsonValueKind.Array)
+        {
+            writer.WritePropertyName(fieldName);
+            writer.WriteRawValue(cached.Segment.Span);
+            return true;
+        }
+
+        // With object fields we recursively rebuild from individually cached child fields.
+        if (!HasAnyCachedFieldData(context, fieldPath, fieldSelection))
+        {
+            return false;
+        }
+
+        writer.WritePropertyName(fieldName);
+        WriteMergedObjectFromCache(writer, context, fieldPath, fieldSelection);
+        return true;
+    }
+
+    private static void WriteMergedObjectFromCache(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        Path path,
+        DeferSelectionTree selection)
+    {
+        writer.WriteStartObject();
+
+        for (var i = 0; i < selection.Fields.Count; i++)
+        {
+            var field = selection.Fields[i];
+            var fieldPath = path.Append(field.Name);
+            TryWriteMissingField(writer, context, field.Name, fieldPath, field.Selection);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static bool HasAnyCachedFieldData(
+        OperationResultFormatterContext context,
+        Path path,
+        DeferSelectionTree selection)
+    {
+        if (context.CachedDataByPath.ContainsKey(path))
+        {
+            return true;
+        }
+
+        for (var i = 0; i < selection.Fields.Count; i++)
+        {
+            var field = selection.Fields[i];
+            var fieldPath = path.Append(field.Name);
+
+            if (context.CachedDataByPath.ContainsKey(fieldPath)
+                || (field.Selection.HasFields && HasAnyCachedFieldData(context, fieldPath, field.Selection)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryWriteCachedValue(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        Path path)
+    {
+        if (context.CachedDataByPath.TryGetValue(path, out var cachedValue))
+        {
+            writer.WriteRawValue(cachedValue.Segment.Span);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void CaptureResultData(
+        OperationResultFormatterContext context,
+        Path path,
+        OperationResultData? data)
+    {
+        if (!data.HasValue || data.Value.IsValueNull)
+        {
+            return;
+        }
+
+        using var document = SerializeDataToCache(data.Value);
+        CaptureElement(context, path, document.RootElement);
+    }
+
+    private static void CaptureElement(
+        OperationResultFormatterContext context,
+        Path path,
+        JsonElement element)
+    {
+        var segment = WriteElementToCache(context.CacheBuffer, element);
+        context.CachedDataByPath[path] = new CachedJsonValue(segment, element.ValueKind);
+
+        if (element.ValueKind is JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                CaptureElement(context, path.Append(property.Name), property.Value);
+            }
+        }
+        else if (element.ValueKind is JsonValueKind.Array && !path.IsRoot)
+        {
+            var index = 0;
+            foreach (var item in element.EnumerateArray())
+            {
+                CaptureElement(context, path.Append(index++), item);
+            }
+        }
+    }
+
+    private static JsonDocument SerializeDataToCache(OperationResultData data)
+    {
+        // We write into a separate temporary buffer so the main cacheBuffer is not
+        // polluted with data we only need for a single read.
+        using var tempBuffer = new PooledArrayWriter();
+        var writer = new JsonWriter(tempBuffer, s_jsonWriterOptions);
+        data.Formatter.WriteDataTo(writer);
+
+        // Next, we parse from the span so JsonDocument makes an internal copy,
+        // keeping it independent of tempBuffer's lifetime.
+        var reader = new Utf8JsonReader(tempBuffer.WrittenSpan);
+        return JsonDocument.ParseValue(ref reader);
+    }
+
+    private static ReadOnlyMemorySegment WriteElementToCache(
+        PooledArrayWriter cacheBuffer,
+        JsonElement element)
+    {
+        var start = cacheBuffer.Length;
+
+        using var writer = new Utf8JsonWriter(cacheBuffer);
+        element.WriteTo(writer);
+        writer.Flush();
+
+        return cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start);
+    }
+
+    /// <summary>
+    /// Converts a <see cref="JsonElement"/> into raw bytes and writes them to the output.
+    /// Uses the scratch buffer as temporary space; it is reset before each use.
+    /// </summary>
+    private static void WriteRawElement(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        JsonElement element)
+    {
+        var buffer = context.ScratchBuffer;
+        buffer.Reset();
+
+        using (var utf8Writer = new Utf8JsonWriter(buffer))
+        {
+            element.WriteTo(utf8Writer);
+        }
+
+        writer.WriteRawValue(buffer.WrittenSpan);
+    }
+
     private static void WriteLegacyIncrementalEntry(
         JsonWriter writer,
         LegacyIncrementalEntry entry,
@@ -123,7 +678,11 @@ internal static class IncrementalRfc1ResultFormatAdapter
             case LegacyIncrementalEntryKind.Data:
                 writer.WritePropertyName(ResultFieldNames.Data);
 
-                if (entry.Data.HasValue)
+                if (entry.RawData.HasValue)
+                {
+                    writer.WriteRawValue(entry.RawData.Value.Span);
+                }
+                else if (entry.Data.HasValue)
                 {
                     entry.Data.Value.Formatter.WriteDataTo(writer);
                 }
@@ -194,6 +753,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
         Path Path,
         string? Label,
         OperationResultData? Data,
+        ReadOnlyMemorySegment? RawData,
         IReadOnlyList<object?>? Items,
         IReadOnlyList<IError>? Errors)
     {
@@ -201,14 +761,262 @@ internal static class IncrementalRfc1ResultFormatAdapter
             Path path,
             string? label,
             OperationResultData? data,
-            IReadOnlyList<IError>? errors)
-            => new(LegacyIncrementalEntryKind.Data, path, label, data, null, errors);
+            IReadOnlyList<IError>? errors,
+            ReadOnlyMemorySegment? rawData = null)
+            => new(LegacyIncrementalEntryKind.Data, path, label, data, rawData, null, errors);
 
         public static LegacyIncrementalEntry ForItems(
             Path path,
             string? label,
             IReadOnlyList<object?>? items,
             IReadOnlyList<IError>? errors)
-            => new(LegacyIncrementalEntryKind.Items, path, label, null, items, errors);
+            => new(LegacyIncrementalEntryKind.Items, path, label, null, null, items, errors);
     }
 }
+
+internal sealed class DeferSelectionLookup
+{
+    private readonly Dictionary<string, DeferredSelection> _selectionsByLabel;
+    private readonly Dictionary<Path, List<DeferredSelection>> _selectionsByPath;
+
+    private DeferSelectionLookup(
+        Dictionary<string, DeferredSelection> selectionsByLabel,
+        Dictionary<Path, List<DeferredSelection>> selectionsByPath)
+    {
+        _selectionsByLabel = selectionsByLabel;
+        _selectionsByPath = selectionsByPath;
+    }
+
+    /// <summary>
+    /// Walks the query document (after fragment inlining) and collects every @defer directive
+    /// together with its selected fields. The result is indexed by label and by path
+    /// so the format adapter can quickly look up which fields a deferred fragment expects.
+    /// </summary>
+    public static DeferSelectionLookup Create(DocumentNode document)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+
+        var selectionsByLabel = new Dictionary<string, DeferredSelection>(StringComparer.Ordinal);
+        var selectionsByPath = new Dictionary<Path, List<DeferredSelection>>();
+
+        for (var i = 0; i < document.Definitions.Count; i++)
+        {
+            if (document.Definitions[i] is not OperationDefinitionNode operation)
+            {
+                continue;
+            }
+
+            CollectDeferredSelections(operation.SelectionSet, Path.Root, selectionsByLabel, selectionsByPath);
+        }
+
+        return new DeferSelectionLookup(selectionsByLabel, selectionsByPath);
+    }
+
+    public bool TryResolveRoot(
+        Path path,
+        string? label,
+        out Path selectionPath,
+        out DeferSelectionTree selection)
+    {
+        if (!string.IsNullOrEmpty(label)
+            && _selectionsByLabel.TryGetValue(label!, out var labeledSelection))
+        {
+            selectionPath = labeledSelection.Path;
+            selection = labeledSelection.Selection;
+            return true;
+        }
+
+        if (_selectionsByPath.TryGetValue(path, out var selections))
+        {
+            if (!string.IsNullOrEmpty(label))
+            {
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    var candidate = selections[i];
+
+                    if (string.Equals(candidate.Label, label, StringComparison.Ordinal))
+                    {
+                        selectionPath = candidate.Path;
+                        selection = candidate.Selection;
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    var candidate = selections[i];
+
+                    if (candidate.Label is null)
+                    {
+                        selectionPath = candidate.Path;
+                        selection = candidate.Selection;
+                        return true;
+                    }
+                }
+
+                if (selections.Count == 1)
+                {
+                    selectionPath = selections[0].Path;
+                    selection = selections[0].Selection;
+                    return true;
+                }
+            }
+        }
+
+        selectionPath = Path.Root;
+        selection = default!;
+        return false;
+    }
+
+    private static void CollectDeferredSelections(
+        SelectionSetNode selectionSet,
+        Path currentPath,
+        Dictionary<string, DeferredSelection> selectionsByLabel,
+        Dictionary<Path, List<DeferredSelection>> selectionsByPath)
+    {
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            switch (selectionSet.Selections[i])
+            {
+                case FieldNode fieldNode when fieldNode.SelectionSet is not null:
+                    CollectDeferredSelections(
+                        fieldNode.SelectionSet,
+                        currentPath.Append(GetResponseName(fieldNode)),
+                        selectionsByLabel,
+                        selectionsByPath);
+                    break;
+
+                case InlineFragmentNode inlineFragmentNode:
+                    if (TryGetDeferLabel(inlineFragmentNode, out var label))
+                    {
+                        var selection = new DeferSelectionTree();
+                        CollectFields(inlineFragmentNode.SelectionSet, selection);
+
+                        if (selection.HasFields)
+                        {
+                            if (!string.IsNullOrEmpty(label))
+                            {
+                                selectionsByLabel[label] = new DeferredSelection(currentPath, label, selection);
+                            }
+
+                            if (!selectionsByPath.TryGetValue(currentPath, out var selections))
+                            {
+                                selections = [];
+                                selectionsByPath.Add(currentPath, selections);
+                            }
+
+                            selections.Add(new DeferredSelection(currentPath, label, selection));
+                        }
+                    }
+
+                    CollectDeferredSelections(
+                        inlineFragmentNode.SelectionSet,
+                        currentPath,
+                        selectionsByLabel,
+                        selectionsByPath);
+                    break;
+            }
+        }
+    }
+
+    private static void CollectFields(SelectionSetNode selectionSet, DeferSelectionTree selection)
+    {
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            switch (selectionSet.Selections[i])
+            {
+                case FieldNode fieldNode:
+                    var childSelection = selection.GetOrAddField(GetResponseName(fieldNode));
+
+                    if (fieldNode.SelectionSet is not null)
+                    {
+                        CollectFields(fieldNode.SelectionSet, childSelection);
+                    }
+
+                    break;
+
+                case InlineFragmentNode inlineFragmentNode when !HasDeferDirective(inlineFragmentNode.Directives):
+                    CollectFields(inlineFragmentNode.SelectionSet, selection);
+                    break;
+            }
+        }
+    }
+
+    private static string GetResponseName(FieldNode field)
+        => field.Alias?.Value ?? field.Name.Value;
+
+    private static bool TryGetDeferLabel(InlineFragmentNode node, out string? label)
+    {
+        label = null;
+
+        for (var i = 0; i < node.Directives.Count; i++)
+        {
+            var directive = node.Directives[i];
+
+            if (!directive.Name.Value.Equals("defer", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            for (var j = 0; j < directive.Arguments.Count; j++)
+            {
+                var argument = directive.Arguments[j];
+
+                if (argument.Name.Value.Equals("label", StringComparison.Ordinal)
+                    && argument.Value is StringValueNode stringValue)
+                {
+                    label = stringValue.Value;
+                    break;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool HasDeferDirective(IReadOnlyList<DirectiveNode> directives)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals("defer", StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private readonly record struct DeferredSelection(Path Path, string? Label, DeferSelectionTree Selection);
+}
+
+internal sealed class DeferSelectionTree
+{
+    private readonly Dictionary<string, DeferSelectionTree> _fieldsByName = new(StringComparer.Ordinal);
+    private readonly List<DeferSelectionField> _fields = [];
+
+    public IReadOnlyList<DeferSelectionField> Fields => _fields;
+
+    public bool HasFields => _fields.Count > 0;
+
+    public bool TryGetField(string responseName, out DeferSelectionTree selection)
+        => _fieldsByName.TryGetValue(responseName, out selection!);
+
+    public DeferSelectionTree GetOrAddField(string responseName)
+    {
+        if (!_fieldsByName.TryGetValue(responseName, out var selection))
+        {
+            selection = new DeferSelectionTree();
+            _fieldsByName[responseName] = selection;
+            _fields.Add(new DeferSelectionField(responseName, selection));
+        }
+
+        return selection;
+    }
+}
+
+internal readonly record struct DeferSelectionField(string Name, DeferSelectionTree Selection);

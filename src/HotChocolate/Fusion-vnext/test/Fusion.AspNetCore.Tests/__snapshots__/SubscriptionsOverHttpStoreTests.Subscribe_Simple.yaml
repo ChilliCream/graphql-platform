@@ -115,7 +115,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": 3
+              "__fusion_1_id": 1
             }
         response:
           results:

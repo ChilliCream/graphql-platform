@@ -1050,7 +1050,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                         .SetExtension("stringValue", "a-string")
                         .SetExtension("booleanValue", true)
                         .SetExtension("numberValue", 123)
-                        .SetExtension("arrayValue", new [] { 1, 2, 3})
+                        .SetExtension("arrayValue", new[] { 1, 2, 3 })
                         .SetExtension("emptyArrayValue", Array.Empty<string>())
                         .SetPath(context.Path)
                         .SetException(new Exception("Some exception"))

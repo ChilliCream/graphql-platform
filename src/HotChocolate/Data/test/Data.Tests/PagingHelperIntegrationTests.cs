@@ -233,6 +233,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -345,6 +346,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(

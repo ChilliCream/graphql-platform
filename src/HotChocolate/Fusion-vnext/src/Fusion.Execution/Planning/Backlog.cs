@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Planning.Partitioners;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -52,7 +53,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
     /// their own operation steps on other schemas.
     /// </summary>
     public Backlog PushUnresolvable(
-        ImmutableStack<SelectionSet> unresolvable,
+        ImmutableStack<ConditionedSelectionSet> unresolvable,
         string fromSchema,
         int parentDepth)
     {
@@ -63,8 +64,9 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
 
         var backlog = this;
 
-        foreach (var selectionSet in unresolvable.Reverse())
+        foreach (var entry in unresolvable.Reverse())
         {
+            var selectionSet = entry.SelectionSet;
             var workItem = new OperationWorkItem(
                 selectionSet.Path.IsRoot
                     ? OperationWorkItemKind.Root
@@ -72,7 +74,8 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
                 selectionSet,
                 FromSchema: fromSchema)
             {
-                ParentDepth = parentDepth
+                ParentDepth = parentDepth,
+                Conditions = entry.Conditions
             };
             backlog = backlog.Push(workItem);
         }
@@ -85,7 +88,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
     /// which may need lookup steps to satisfy.
     /// </summary>
     public Backlog PushRequirements(
-        ImmutableStack<FieldSelection> fieldsWithRequirements,
+        ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
         int stepId,
         int parentDepth)
     {
@@ -96,11 +99,12 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
 
         var backlog = this;
 
-        foreach (var selection in fieldsWithRequirements.Reverse())
+        foreach (var entry in fieldsWithRequirements.Reverse())
         {
-            var workItem = new FieldRequirementWorkItem(selection, stepId)
+            var workItem = new FieldRequirementWorkItem(entry.FieldSelection, stepId)
             {
-                ParentDepth = parentDepth
+                ParentDepth = parentDepth,
+                Conditions = entry.Conditions
             };
             backlog = backlog.Push(workItem);
         }

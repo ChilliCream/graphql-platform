@@ -9,5 +9,8 @@ namespace HotChocolate.AspNetCore;
 [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
 [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-public sealed class HttpPostMiddleware(HttpRequestDelegate next, HttpRequestExecutorProxy executor)
-    : HttpPostMiddlewareBase(next, executor);
+public sealed class HttpPostMiddleware(
+    HttpRequestDelegate next,
+    HttpRequestExecutorProxy executor,
+    GraphQLServerOptions baseOptions)
+    : HttpPostMiddlewareBase(next, executor, baseOptions);

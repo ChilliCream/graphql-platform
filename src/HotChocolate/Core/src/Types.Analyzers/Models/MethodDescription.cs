@@ -34,14 +34,14 @@ public readonly struct MethodDescription : IMemberDescription
     public ImmutableArray<string?> ParameterDescriptions { get; }
 }
 
-public readonly struct PropertyDescription : IMemberDescription
+public readonly record struct PropertyDescription(string? Description) : IMemberDescription
 {
-    public PropertyDescription(string? description)
-    {
-        Description = description;
-    }
+    public string? Description { get; } = Description;
+}
 
-    public string? Description { get; }
+public readonly record struct ParameterDescription(string? Description) : IMemberDescription
+{
+    public string? Description { get; } = Description;
 }
 
 public interface IMemberDescription

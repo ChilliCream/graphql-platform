@@ -38,7 +38,7 @@ internal sealed class SetApiSettingsApiCommand : Command
         CancellationToken ct)
     {
         console.WriteLine();
-        console.WriteLine($"Set settings for api {id.AsHighlight()}");
+        console.WriteLine($"Set settings for API {id.AsHighlight()}");
         console.WriteLine();
 
         var treatDangerousChangesAsBreaking = await context
