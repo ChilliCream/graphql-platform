@@ -835,13 +835,13 @@ The following options can be configured.
 
 When a cursor key field can be `null`, you must tell Hot Chocolate how the database orders `null` values so that cursor-based pagination produces correct results across pages.
 
-Set `NullOrdering` on `PagingOptions` to match your database's native behaviour:
+Set `NullOrdering` on `PagingOptions` to match your database's native behavior:
 
 | Value              | When to use                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------- |
 | `Unspecified`      | Default. The EF Core paging handler auto-detects the ordering for known providers (see note below). |
 | `NativeNullsFirst` | `null` is ordered **before** all non-null values (e.g. SQL Server, SQLite, in-memory LINQ).         |
-| `NativeNullsLast`  | `null` is ordered **after** all non-null values (e.g. PostgreSQL default behaviour).                |
+| `NativeNullsLast`  | `null` is ordered **after** all non-null values (e.g. PostgreSQL default behavior).                 |
 
 ```csharp
 builder.Services

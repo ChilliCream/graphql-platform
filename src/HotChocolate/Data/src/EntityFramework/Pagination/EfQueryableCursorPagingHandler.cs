@@ -299,5 +299,4 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                 is ICurrentDbContext currentDbContext
             ? currentDbContext.Context.Database.ProviderName
             : null;
-
 }
