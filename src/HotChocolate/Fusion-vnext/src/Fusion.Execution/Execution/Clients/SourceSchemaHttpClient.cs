@@ -191,7 +191,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private GraphQLHttpRequest CreateHttpBatchRequest(
         IReadOnlyList<SourceSchemaClientRequest> originalRequests)
     {
-        var batchRequests = new List<IOperationRequest>(originalRequests.Count);
+        var batchRequests = new IOperationRequest[originalRequests.Count];
         var enableFileUploads = false;
 
         for (var i = 0; i < originalRequests.Count; i++)
@@ -200,15 +200,13 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             enableFileUploads |= sourceRequest.RequiresFileUpload;
 
             var body = CreateRequestBody(sourceRequest);
-            if (body is IOperationRequest operationRequest)
-            {
-                batchRequests.Add(operationRequest);
-            }
-            else
+            if (body is not IOperationRequest operationRequest)
             {
                 throw new InvalidOperationException(
                     $"The request body type '{body.GetType().Name}' cannot be included in an operation batch.");
             }
+
+            batchRequests[i] = operationRequest;
         }
 
         return new GraphQLHttpRequest(new OperationBatchRequest(batchRequests))
