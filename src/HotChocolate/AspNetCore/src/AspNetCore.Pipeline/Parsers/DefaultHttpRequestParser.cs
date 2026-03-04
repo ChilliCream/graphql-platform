@@ -80,7 +80,9 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 _documentCache,
                 _documentHashProvider);
 
-            var requests = requestParser.Parse(result.Buffer);
+            var requests = result.Buffer.IsSingleSegment
+                ? requestParser.Parse(result.Buffer.FirstSpan)
+                : requestParser.Parse(result.Buffer);
 
             // Mark all data as consumed
             requestBody.AdvanceTo(result.Buffer.End);
@@ -145,7 +147,15 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 _documentCache,
                 _documentHashProvider);
 
-            var request = requestParser.ParsePersistedOperation(parsedDocumentId, operationName, result.Buffer);
+            var request = result.Buffer.IsSingleSegment
+                ? requestParser.ParsePersistedOperation(
+                    parsedDocumentId,
+                    operationName,
+                    result.Buffer.FirstSpan)
+                : requestParser.ParsePersistedOperation(
+                    parsedDocumentId,
+                    operationName,
+                    result.Buffer);
 
             // Mark all data as consumed
             requestBody.AdvanceTo(result.Buffer.End);
