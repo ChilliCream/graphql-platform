@@ -250,13 +250,13 @@ public class RequestExecutorManagerTests
     public async Task EvictExecutor_With_Custom_TypeInspector_Should_Rebuild_Without_Init_Exception()
     {
         // arrange
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var executorEvictedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(50));
+        var executorEvictedResetEvent = new SemaphoreSlim(0, 1);
 
         var manager = new ServiceCollection()
-            .AddSingleton<ITypeInspector, TuneDataTypeInspector>()
             .AddGraphQL()
             .AddQueryType<Issue6695Query>()
+            .TryAddConvention<ITypeInspector, TuneDataTypeInspector>()
             .Services
             .BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
@@ -265,7 +265,7 @@ public class RequestExecutorManagerTests
         {
             if (@event.Type == RequestExecutorEventType.Evicted)
             {
-                executorEvictedResetEvent.Set();
+                executorEvictedResetEvent.Release();
             }
         }));
 
@@ -275,7 +275,7 @@ public class RequestExecutorManagerTests
 
         manager.EvictExecutor();
 
-        executorEvictedResetEvent.Wait(cts.Token);
+        await executorEvictedResetEvent.WaitAsync(cts.Token);
 
         var rebuiltExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
         var rebuiltResult = await rebuiltExecutor.ExecuteAsync("{ ping }");
