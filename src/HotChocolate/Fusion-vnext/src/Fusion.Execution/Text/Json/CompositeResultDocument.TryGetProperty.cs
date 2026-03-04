@@ -1,11 +1,36 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool TryGetSelectionSet(Cursor cursor, out SelectionSet? selectionSet)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        (cursor, var tokenType) = _metaDb.GetStartCursor(cursor);
+        if (tokenType is not ElementTokenType.StartObject)
+        {
+            selectionSet = null;
+            return false;
+        }
+
+        var row = _metaDb.Get(cursor);
+        if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
+        {
+            selectionSet = null;
+            return false;
+        }
+
+        selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+        return true;
+    }
+
     internal bool TryGetNamedPropertyValue(
         Cursor startCursor,
         string propertyName,

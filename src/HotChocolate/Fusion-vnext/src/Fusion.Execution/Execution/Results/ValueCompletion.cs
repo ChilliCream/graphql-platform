@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -58,6 +57,106 @@ internal sealed class ValueCompletion
             return BuildErrorResult(target, responseNames, error, target.Path);
         }
 
+        if (target.TryGetSelectionSet(out var targetSelectionSet))
+        {
+            var selectionSetId = targetSelectionSet.Id;
+            var startCursor = target.GetStartCursor();
+
+            if (errorTrie is null)
+            {
+                foreach (var property in source.EnumerateObject())
+                {
+                    if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
+                    {
+                        continue;
+                    }
+
+                    var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                    var propertyValue = property.Value;
+
+                    if (!TrySetLeafValueFast(propertyValue, resultField, selection)
+                        && !TryCompleteValue(propertyValue, resultField, null, selection, selection.Type, 0))
+                    {
+                        switch (_errorHandlingMode)
+                        {
+                            case ErrorHandlingMode.Propagate:
+                                var didPropagateToRoot = PropagateNullValues(resultField);
+                                return !didPropagateToRoot;
+
+                            case ErrorHandlingMode.Halt:
+                                return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
+                {
+                    continue;
+                }
+
+                var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+                var propertyValue = property.Value;
+
+                if (!TrySetLeafValueFast(propertyValue, resultField, selection)
+                    && !TryCompleteValue(
+                        propertyValue,
+                        resultField,
+                        errorTrieForResponseName,
+                        selection,
+                        selection.Type,
+                        0))
+                {
+                    switch (_errorHandlingMode)
+                    {
+                        case ErrorHandlingMode.Propagate:
+                            var didPropagateToRoot = PropagateNullValues(resultField);
+                            return !didPropagateToRoot;
+
+                        case ErrorHandlingMode.Halt:
+                            return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        if (errorTrie is null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!target.TryGetProperty(property.NameSpan, out var resultField))
+                {
+                    continue;
+                }
+
+                var selection = resultField.AssertSelection();
+                var propertyValue = property.Value;
+
+                if (!TrySetLeafValueFast(propertyValue, resultField, selection)
+                    && !TryCompleteValue(propertyValue, resultField, null, selection, selection.Type, 0))
+                {
+                    switch (_errorHandlingMode)
+                    {
+                        case ErrorHandlingMode.Propagate:
+                            var didPropagateToRoot = PropagateNullValues(resultField);
+                            return !didPropagateToRoot;
+
+                        case ErrorHandlingMode.Halt:
+                            return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var resultField))
@@ -66,10 +165,17 @@ internal sealed class ValueCompletion
             }
 
             var selection = resultField.AssertSelection();
-            ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+            errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+            var propertyValue = property.Value;
 
-            if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
+            if (!TrySetLeafValueFast(propertyValue, resultField, selection)
+                && !TryCompleteValue(
+                    propertyValue,
+                    resultField,
+                    errorTrieForResponseName,
+                    selection,
+                    selection.Type,
+                    0))
             {
                 switch (_errorHandlingMode)
                 {
@@ -168,9 +274,12 @@ internal sealed class ValueCompletion
         IType type,
         int depth)
     {
+        var sourceValueKind = source.ValueKind;
+        var isNullOrUndefined = sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+
         if (type.Kind is TypeKind.NonNull)
         {
-            if (source.IsNullOrUndefined())
+            if (isNullOrUndefined)
             {
                 IError error;
                 if (errorTrie?.FindFirstError() is { } errorFromPath)
@@ -205,7 +314,7 @@ internal sealed class ValueCompletion
             type = type.InnerType();
         }
 
-        if (source.IsNullOrUndefined())
+        if (isNullOrUndefined)
         {
             // If the value is null, it might've been nulled due to a
             // down-stream null propagation.
@@ -268,18 +377,144 @@ internal sealed class ValueCompletion
         var isNullable = elementType.IsNullableType();
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
+        var elementKind = isNested
+            ? 0
+            : isLeaf
+                ? 1
+                : elementType.IsAbstractType()
+                    ? 2
+                    : 3;
+        IObjectTypeDefinition? objectElementType = null;
+        SelectionSet? objectElementSelectionSet = null;
+
+        if (elementKind is 3)
+        {
+            var namedType = elementType.NamedType();
+            objectElementType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
+            objectElementSelectionSet = selection.GetSelectionSet(objectElementType);
+        }
 
         target.SetArrayValue(source.GetArrayLength());
+        var arrayStartCursor = target.GetStartCursor();
+
+        if (errorTrie is null)
+        {
+            if (elementKind is 3)
+            {
+                var elementIndex = 0;
+                foreach (var element in source.EnumerateArray())
+                {
+                    var current = target.GetArrayElement(arrayStartCursor, elementIndex++);
+
+                    if (element.IsNullOrUndefined())
+                    {
+                        if (!isNullable
+                            && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                        {
+                            return false;
+                        }
+
+                        current.SetNullValue();
+                        continue;
+                    }
+
+                    if (!TryCompleteObjectValue(
+                            element,
+                            current,
+                            null,
+                            selection,
+                            objectElementType!,
+                            objectElementSelectionSet,
+                            depth))
+                    {
+                        if (!isNullable)
+                        {
+                            return false;
+                        }
+
+                        current.SetNullValue();
+                    }
+                }
+
+                return true;
+            }
+
+            var j = 0;
+            foreach (var element in source.EnumerateArray())
+            {
+                var current = target.GetArrayElement(arrayStartCursor, j++);
+
+                if (element.IsNullOrUndefined())
+                {
+                    if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                    {
+                        return false;
+                    }
+
+                    current.SetNullValue();
+                    continue;
+                }
+
+                var success = true;
+
+                switch (elementKind)
+                {
+                    case 0:
+                        success = TryCompleteList(
+                            element,
+                            current,
+                            null,
+                            selection,
+                            elementType,
+                            depth);
+                        break;
+
+                    case 1:
+                        current.SetLeafValue(element);
+                        break;
+
+                    case 2:
+                        success = TryCompleteAbstractValue(
+                            element,
+                            current,
+                            null,
+                            selection,
+                            elementType,
+                            depth);
+                        break;
+
+                    default:
+                        success = TryCompleteObjectValue(
+                            element,
+                            current,
+                            null,
+                            selection,
+                            objectElementType!,
+                            objectElementSelectionSet,
+                            depth);
+                        break;
+                }
+
+                if (!success)
+                {
+                    if (!isNullable)
+                    {
+                        return false;
+                    }
+
+                    current.SetNullValue();
+                }
+            }
+
+            return true;
+        }
 
         var i = 0;
-        using var enumerator = target.EnumerateArray().GetEnumerator();
         foreach (var element in source.EnumerateArray())
         {
-            var success = enumerator.MoveNext();
-            Debug.Assert(success, "The lists must have the same size.");
+            var current = target.GetArrayElement(arrayStartCursor, i);
 
-            ErrorTrie? errorTrieForIndex = null;
-            errorTrie?.TryGetValue(i, out errorTrieForIndex);
+            errorTrie.TryGetValue(i, out var errorTrieForIndex);
 
             if (errorTrieForIndex?.Error is { } error)
             {
@@ -304,63 +539,65 @@ internal sealed class ValueCompletion
                     return false;
                 }
 
-                enumerator.Current.SetNullValue();
-                goto TryCompleteList_MoveNext;
+                current.SetNullValue();
+                i++;
+                continue;
             }
 
-            if (!HandleElement(element, enumerator.Current, errorTrieForIndex))
+            var success = true;
+
+            switch (elementKind)
+            {
+                case 0:
+                    success = TryCompleteList(
+                        element,
+                        current,
+                        errorTrieForIndex,
+                        selection,
+                        elementType,
+                        depth);
+                    break;
+
+                case 1:
+                    current.SetLeafValue(element);
+                    break;
+
+                case 2:
+                    success = TryCompleteAbstractValue(
+                        element,
+                        current,
+                        errorTrieForIndex,
+                        selection,
+                        elementType,
+                        depth);
+                    break;
+
+                default:
+                    success = TryCompleteObjectValue(
+                        element,
+                        current,
+                        errorTrieForIndex,
+                        selection,
+                        objectElementType!,
+                        objectElementSelectionSet,
+                        depth);
+                    break;
+            }
+
+            if (!success)
             {
                 if (!isNullable)
                 {
                     return false;
                 }
 
-                enumerator.Current.SetNullValue();
-                goto TryCompleteList_MoveNext;
+                current.SetNullValue();
             }
 
-TryCompleteList_MoveNext:
             i++;
         }
 
         return true;
-
-        bool HandleElement(
-            SourceResultElement sourceElement,
-            CompositeResultElement targetElement,
-            ErrorTrie? errorTrieForIndex)
-        {
-            if (isNested)
-            {
-                return TryCompleteList(
-                    sourceElement,
-                    targetElement,
-                    errorTrieForIndex,
-                    selection,
-                    elementType,
-                    depth);
-            }
-
-            if (isLeaf)
-            {
-                targetElement.SetLeafValue(sourceElement);
-                return true;
-            }
-
-            if (elementType.IsAbstractType())
-            {
-                return TryCompleteAbstractValue(sourceElement,
-                    targetElement, errorTrieForIndex, selection, elementType, depth);
-            }
-
-            return TryCompleteObjectValue(
-                selection,
-                elementType,
-                sourceElement,
-                errorTrieForIndex,
-                depth,
-                targetElement);
-        }
     }
 
     private bool TryCompleteObjectValue(
@@ -374,7 +611,14 @@ TryCompleteList_MoveNext:
         var namedType = type.NamedType();
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
 
-        return TryCompleteObjectValue(source, target, errorTrie, parentSelection, objectType, depth);
+        return TryCompleteObjectValue(
+            source,
+            target,
+            errorTrie,
+            parentSelection,
+            objectType,
+            precomputedSelectionSet: null,
+            depth);
     }
 
     private bool TryCompleteObjectValue(
@@ -383,17 +627,115 @@ TryCompleteList_MoveNext:
         ErrorTrie? errorTrie,
         Selection parentSelection,
         IObjectTypeDefinition objectType,
+        SelectionSet? precomputedSelectionSet,
         int depth)
     {
         AssertDepthAllowed(ref depth);
+        SelectionSet? selectionSet = null;
 
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.
         if (target.ValueKind is JsonValueKind.Undefined)
         {
-            var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
-            var selectionSet = operation.GetSelectionSet(parentSelection, objectType);
+            if (precomputedSelectionSet is null)
+            {
+                precomputedSelectionSet = parentSelection.GetSelectionSet(objectType);
+            }
+
+            selectionSet = precomputedSelectionSet;
             target.SetObjectValue(selectionSet);
+        }
+        else if (target.TryGetSelectionSet(out var existingSelectionSet))
+        {
+            selectionSet = existingSelectionSet;
+        }
+
+        if (selectionSet is not null)
+        {
+            var selectionSetId = selectionSet.Id;
+            var startCursor = target.GetStartCursor();
+
+            if (errorTrie is null)
+            {
+                foreach (var property in source.EnumerateObject())
+                {
+                    if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
+                    {
+                        continue;
+                    }
+
+                    var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                    var propertyValue = property.Value;
+
+                    if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
+                        && !TryCompleteValue(
+                            propertyValue,
+                            targetProperty,
+                            null,
+                            selection,
+                            selection.Type,
+                            depth))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
+                {
+                    continue;
+                }
+
+                var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
+                errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+                var propertyValue = property.Value;
+
+                if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
+                    && !TryCompleteValue(
+                        propertyValue,
+                        targetProperty,
+                        errorTrieForResponseName,
+                        selection,
+                        selection.Type,
+                        depth))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (errorTrie is null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
+                {
+                    continue;
+                }
+
+                var selection = targetProperty.AssertSelection();
+                var propertyValue = property.Value;
+
+                if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
+                    && !TryCompleteValue(
+                        propertyValue,
+                        targetProperty,
+                        null,
+                        selection,
+                        selection.Type,
+                        depth))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         foreach (var property in source.EnumerateObject())
@@ -404,12 +746,17 @@ TryCompleteList_MoveNext:
             }
 
             var selection = targetProperty.AssertSelection();
+            errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
+            var propertyValue = property.Value;
 
-            ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
-
-            if (!TryCompleteValue(property.Value,
-                targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
+            if (!TrySetLeafValueFast(propertyValue, targetProperty, selection)
+                && !TryCompleteValue(
+                    propertyValue,
+                    targetProperty,
+                    errorTrieForResponseName,
+                    selection,
+                    selection.Type,
+                    depth))
             {
                 return false;
             }
@@ -425,7 +772,14 @@ TryCompleteList_MoveNext:
         Selection selection,
         IType type,
         int depth)
-        => TryCompleteObjectValue(source, target, errorTrie, selection, GetType(type, source), depth);
+        => TryCompleteObjectValue(
+            source,
+            target,
+            errorTrie,
+            selection,
+            GetType(type, source),
+            precomputedSelectionSet: null,
+            depth);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IObjectTypeDefinition GetType(IType type, SourceResultElement data)
@@ -439,6 +793,21 @@ TryCompleteList_MoveNext:
 
         var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).AssertString();
         return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TrySetLeafValueFast(
+        SourceResultElement source,
+        CompositeResultElement target,
+        Selection selection)
+    {
+        if (selection.IsLeafValue && !source.IsNullOrUndefined())
+        {
+            target.SetLeafValue(source);
+            return true;
+        }
+
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Execution.Clients;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -112,7 +111,12 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
-        context.TrackVariableValueSets(this, variables);
+        var collectTelemetry = context.CollectTelemetry;
+
+        if (collectTelemetry)
+        {
+            context.TrackVariableValueSets(this, variables);
+        }
 
         var request = new SourceSchemaClientRequest
         {
@@ -137,7 +141,10 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             var response = await context.SourceSchemaScheduler
                 .ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
-            context.TrackSourceSchemaClientResponse(this, response);
+            if (collectTelemetry)
+            {
+                context.TrackSourceSchemaClientResponse(this, response);
+            }
 
             // we read the responses from the response stream.
             var totalPathCount = variables.Length;
@@ -225,10 +232,9 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             }
             else if (singleResult is not null)
             {
-                var firstResult = singleResult;
-                context.AddPartialResults(
+                context.AddPartialResult(
                     _source,
-                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
+                    singleResult,
                     _responseNames,
                     hasSomeErrors);
             }

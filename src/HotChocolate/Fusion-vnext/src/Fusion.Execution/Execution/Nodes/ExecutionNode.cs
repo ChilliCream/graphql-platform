@@ -50,9 +50,10 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var start = Stopwatch.GetTimestamp();
+        var collectTelemetry = context.CollectTelemetry;
+        var start = collectTelemetry ? Stopwatch.GetTimestamp() : 0L;
         var scope = CreateScope(context);
-        var activity = Activity.Current;
+        var activity = collectTelemetry ? Activity.Current : null;
         ExecutionStatus status;
         Exception? error = null;
 
@@ -78,15 +79,20 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
             scope?.Dispose();
         }
 
+        var duration = collectTelemetry ? Stopwatch.GetElapsedTime(start) : default;
+        var dependentsToExecute = context.GetDependentsToExecute(this);
+        var variableValueSets = collectTelemetry ? context.GetVariableValueSets(this) : [];
+        var transportDetails = collectTelemetry ? context.GetTransportDetails(this) : default;
+
         var result = new ExecutionNodeResult(
             Id,
             activity,
             status,
-            Stopwatch.GetElapsedTime(start),
+            duration,
             error,
-            context.GetDependentsToExecute(this),
-            context.GetVariableValueSets(this),
-            context.GetTransportDetails(this));
+            dependentsToExecute,
+            variableValueSets,
+            transportDetails);
 
         context.CompleteNode(result);
     }

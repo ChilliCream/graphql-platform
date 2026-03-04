@@ -33,6 +33,7 @@ internal sealed class FetchResultStore : IDisposable
     private readonly List<CompositeResultElement> _collectTargetCurrent = [];
     private readonly List<CompositeResultElement> _collectTargetNext = [];
     private readonly List<CompositeResultElement> _collectTargetCombined = [];
+    private Path[] _startPathSegments = [];
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
     private List<IError>? _errors;
@@ -94,6 +95,26 @@ internal sealed class FetchResultStore : IDisposable
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<string> responseNames)
         => AddPartialResults(sourcePath, results, responseNames, containsErrors: true);
+
+    public bool AddPartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames)
+        => AddPartialResult(sourcePath, result, responseNames, containsErrors: true);
+
+    public bool AddPartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames,
+        bool containsErrors)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(sourcePath);
+
+        return containsErrors
+            ? AddSinglePartialResult(sourcePath, result, responseNames)
+            : AddSinglePartialResultNoErrors(sourcePath, result, responseNames);
+    }
 
     public bool AddPartialResults(
         SelectionPath sourcePath,
@@ -507,20 +528,31 @@ AddErrors_Next:
         {
             var segment = selectionSet.Segments[i];
 
-            foreach (var element in current)
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
-                if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+                var currentSpan = CollectionsMarshal.AsSpan(current);
+
+                for (var j = 0; j < currentSpan.Length; j++)
                 {
+                    var element = currentSpan[j];
+
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
-                        && value.TextEqualsHelper(segment.Name, isPropertyName: false))
+                        && value.ValueEquals(segment.Utf8Name))
                     {
                         next.Add(element);
                     }
                 }
-                else if (segment.Kind is SelectionPathSegmentKind.Field)
+            }
+            else if (segment.Kind is SelectionPathSegmentKind.Field)
+            {
+                var currentSpan = CollectionsMarshal.AsSpan(current);
+
+                for (var j = 0; j < currentSpan.Length; j++)
                 {
-                    if (!element.TryGetProperty(segment.Name, out var value))
+                    var element = currentSpan[j];
+
+                    if (!element.TryGetProperty(segment.Utf8Name, out var value))
                     {
                         continue;
                     }
@@ -672,6 +704,7 @@ AddErrors_Next:
         string fieldName,
         ref PooledArrayWriter? buffer)
     {
+        var requiresNonNull = requirement.Type.Kind == SyntaxKind.NonNullType;
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
         Dictionary<string, int>? seenStrings = null;
@@ -680,13 +713,15 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName, out var value)
-                || value.ValueKind is JsonValueKind.Undefined)
+            if (!result.TryGetProperty(fieldName, out var value))
             {
                 continue;
             }
 
-            if (value.ValueKind is JsonValueKind.Null && requirement.Type.Kind == SyntaxKind.NonNullType)
+            var valueKind = value.ValueKind;
+
+            if (valueKind is JsonValueKind.Undefined
+                || valueKind is JsonValueKind.Null && requiresNonNull)
             {
                 continue;
             }
@@ -822,6 +857,8 @@ AddErrors_Next:
         string fieldName2,
         ref PooledArrayWriter? buffer)
     {
+        var requiresNonNull1 = requirement1.Type.Kind == SyntaxKind.NonNullType;
+        var requiresNonNull2 = requirement2.Type.Kind == SyntaxKind.NonNullType;
         VariableValues[]? variableValueSets = null;
         Dictionary<TwoValueNodeTuple, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
@@ -829,18 +866,28 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1)
-                || value1.ValueKind is JsonValueKind.Undefined
-                || value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+            if (!result.TryGetProperty(fieldName1, out var value1))
             {
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2)
-                || value2.ValueKind is JsonValueKind.Undefined
-                || value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+            var valueKind1 = value1.ValueKind;
+
+            if (valueKind1 is JsonValueKind.Undefined
+                || valueKind1 is JsonValueKind.Null && requiresNonNull1)
+            {
+                continue;
+            }
+
+            if (!result.TryGetProperty(fieldName2, out var value2))
+            {
+                continue;
+            }
+
+            var valueKind2 = value2.ValueKind;
+
+            if (valueKind2 is JsonValueKind.Undefined
+                || valueKind2 is JsonValueKind.Null && requiresNonNull2)
             {
                 continue;
             }
@@ -984,6 +1031,9 @@ AddErrors_Next:
         string fieldName3,
         ref PooledArrayWriter? buffer)
     {
+        var requiresNonNull1 = requirement1.Type.Kind == SyntaxKind.NonNullType;
+        var requiresNonNull2 = requirement2.Type.Kind == SyntaxKind.NonNullType;
+        var requiresNonNull3 = requirement3.Type.Kind == SyntaxKind.NonNullType;
         VariableValues[]? variableValueSets = null;
         Dictionary<ThreeValueNodeTuple, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
@@ -991,26 +1041,41 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1)
-                || value1.ValueKind is JsonValueKind.Undefined
-                || value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+            if (!result.TryGetProperty(fieldName1, out var value1))
             {
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2)
-                || value2.ValueKind is JsonValueKind.Undefined
-                || value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+            var valueKind1 = value1.ValueKind;
+
+            if (valueKind1 is JsonValueKind.Undefined
+                || valueKind1 is JsonValueKind.Null && requiresNonNull1)
             {
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName3, out var value3)
-                || value3.ValueKind is JsonValueKind.Undefined
-                || value3.ValueKind is JsonValueKind.Null
-                    && requirement3.Type.Kind == SyntaxKind.NonNullType)
+            if (!result.TryGetProperty(fieldName2, out var value2))
+            {
+                continue;
+            }
+
+            var valueKind2 = value2.ValueKind;
+
+            if (valueKind2 is JsonValueKind.Undefined
+                || valueKind2 is JsonValueKind.Null && requiresNonNull2)
+            {
+                continue;
+            }
+
+            if (!result.TryGetProperty(fieldName3, out var value3))
+            {
+                continue;
+            }
+
+            var valueKind3 = value3.ValueKind;
+
+            if (valueKind3 is JsonValueKind.Undefined
+                || valueKind3 is JsonValueKind.Null && requiresNonNull3)
             {
                 continue;
             }
@@ -1256,7 +1321,7 @@ AddErrors_Next:
             switch (segment.Kind)
             {
                 case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:
-                    if (!current.TryGetProperty(segment.Name, out current))
+                    if (!current.TryGetProperty(segment.Utf8Name, out current))
                     {
                         return default;
                     }
@@ -1265,14 +1330,8 @@ AddErrors_Next:
 
                 case SelectionPathSegmentKind.InlineFragment:
                     if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String)
-                    {
-                        return default;
-                    }
-
-                    var typeName = typeNameProperty.GetString()!;
-
-                    if (typeName != segment.Name)
+                        || typeNameProperty.ValueKind != JsonValueKind.String
+                        || !typeNameProperty.ValueEquals(segment.Utf8Name))
                     {
                         return default;
                     }
@@ -1323,33 +1382,57 @@ AddErrors_Next:
             return _result.Data;
         }
 
-        var parent = path.Parent;
-        var element = GetStartResult(parent);
-        var elementKind = element.ValueKind;
-
-        if (elementKind is JsonValueKind.Null)
+        var segmentCount = path.Length;
+        var segments = _startPathSegments;
+        if (segments.Length < segmentCount)
         {
-            return element;
+            segments = new Path[segmentCount];
+            _startPathSegments = segments;
         }
 
-        if (elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
+        var currentPath = path;
+
+        for (var i = segmentCount - 1; i >= 0; i--)
         {
-            return element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
+            segments[i] = currentPath;
+            currentPath = currentPath.Parent;
         }
 
-        if (elementKind is JsonValueKind.Array && path is IndexerPathSegment indexSegment)
+        var element = _result.Data;
+
+        for (var i = 0; i < segmentCount; i++)
         {
-            if (element.GetArrayLength() <= indexSegment.Index)
+            var segment = segments[i];
+            var elementKind = element.ValueKind;
+
+            if (elementKind is JsonValueKind.Null)
             {
-                throw new InvalidOperationException(
-                    $"The path segment '{indexSegment}' does not exist in the data.");
+                return element;
             }
 
-            return element[indexSegment.Index];
+            if (elementKind is JsonValueKind.Object && segment is NamePathSegment nameSegment)
+            {
+                element = element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
+                continue;
+            }
+
+            if (elementKind is JsonValueKind.Array && segment is IndexerPathSegment indexSegment)
+            {
+                if (element.GetArrayLength() <= indexSegment.Index)
+                {
+                    throw new InvalidOperationException(
+                        $"The path segment '{indexSegment}' does not exist in the data.");
+                }
+
+                element = element[indexSegment.Index];
+                continue;
+            }
+
+            throw new InvalidOperationException(
+                $"The path segment '{segment.Parent}' does not exist in the data.");
         }
 
-        throw new InvalidOperationException(
-            $"The path segment '{parent}' does not exist in the data.");
+        return element;
     }
 
     public void Dispose()

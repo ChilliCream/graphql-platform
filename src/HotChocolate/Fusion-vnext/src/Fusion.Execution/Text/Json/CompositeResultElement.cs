@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
@@ -410,6 +412,40 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
 
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal CompositeResultDocument.Cursor GetStartCursor()
+    {
+        CheckValidInstance();
+        return _parent.GetStartCursor(_cursor);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal CompositeResultElement GetArrayElement(
+        CompositeResultDocument.Cursor startCursor,
+        int index)
+    {
+        return new CompositeResultElement(_parent, startCursor + index + 1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal CompositeResultElement GetSelectionProperty(
+        Selection selection,
+        int selectionSetId,
+        CompositeResultDocument.Cursor startCursor)
+    {
+        var propertyIndex = selection.Id - selectionSetId - 1;
+        var propertyRowIndex = (propertyIndex * 2) + 1;
+        var propertyCursor = startCursor + propertyRowIndex;
+        return new CompositeResultElement(_parent, propertyCursor + 1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool TryGetSelectionSet([NotNullWhen(true)] out SelectionSet? selectionSet)
+    {
+        CheckValidInstance();
+        return _parent.TryGetSelectionSet(_cursor, out selectionSet);
     }
 
     /// <summary>

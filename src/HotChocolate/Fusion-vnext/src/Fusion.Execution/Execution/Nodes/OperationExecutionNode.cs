@@ -118,7 +118,12 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
-        context.TrackVariableValueSets(this, variables);
+        var collectTelemetry = context.CollectTelemetry;
+
+        if (collectTelemetry)
+        {
+            context.TrackVariableValueSets(this, variables);
+        }
 
         var request = new SourceSchemaClientRequest
         {
@@ -143,17 +148,10 @@ public sealed class OperationExecutionNode : ExecutionNode
             var response = await context.SourceSchemaScheduler
                 .ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
-            context.TrackSourceSchemaClientResponse(this, response);
-
-            // we read the responses from the response stream.
-            var totalPathCount = variables.Length;
-
-            for (var i = 0; i < variables.Length; i++)
+            if (collectTelemetry)
             {
-                totalPathCount += variables[i].AdditionalPaths.Length;
+                context.TrackSourceSchemaClientResponse(this, response);
             }
-
-            var initialBufferLength = Math.Max(totalPathCount, 2);
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
@@ -168,7 +166,14 @@ public sealed class OperationExecutionNode : ExecutionNode
                     // If we have more than one response, we rent a buffer and move the first result into it.
                     if (buffer is null)
                     {
-                        bufferLength = initialBufferLength;
+                        var totalPathCount = variables.Length;
+
+                        for (var i = 0; i < variables.Length; i++)
+                        {
+                            totalPathCount += variables[i].AdditionalPaths.Length;
+                        }
+
+                        bufferLength = Math.Max(totalPathCount, 2);
                         buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
                         buffer[0] = singleResult!;
                     }
@@ -229,10 +234,9 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
             else if (singleResult is not null)
             {
-                var firstResult = singleResult;
-                context.AddPartialResults(
+                context.AddPartialResult(
                     _source,
-                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
+                    singleResult,
                     _responseNames,
                     hasSomeErrors);
             }

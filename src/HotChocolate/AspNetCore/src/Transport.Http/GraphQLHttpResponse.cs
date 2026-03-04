@@ -176,6 +176,15 @@ public sealed class GraphQLHttpResponse : IDisposable
         var chunkIndex = 0;
         var chunks = ArrayPool<byte[]>.Shared.Rent(64);
 
+        static byte[][] GrowChunkArray(byte[][] chunkArray)
+        {
+            var newChunks = ArrayPool<byte[]>.Shared.Rent(chunkArray.Length * 2);
+            Array.Copy(chunkArray, 0, newChunks, 0, chunkArray.Length);
+            chunkArray.AsSpan().Clear();
+            ArrayPool<byte[]>.Shared.Return(chunkArray);
+            return newChunks;
+        }
+
         try
         {
             while (true)
@@ -219,10 +228,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                             {
                                 if (chunkIndex >= chunks.Length)
                                 {
-                                    var newChunks = ArrayPool<byte[]>.Shared.Rent(chunks.Length * 2);
-                                    Array.Copy(chunks, 0, newChunks, 0, chunks.Length);
-                                    chunks.AsSpan().Clear();
-                                    chunks = newChunks;
+                                    chunks = GrowChunkArray(chunks);
                                 }
 
                                 chunks[chunkIndex++] = currentChunk;
@@ -257,10 +263,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                             {
                                 if (chunkIndex >= chunks.Length)
                                 {
-                                    var newChunks = ArrayPool<byte[]>.Shared.Rent(chunks.Length * 2);
-                                    Array.Copy(chunks, 0, newChunks, 0, chunks.Length);
-                                    chunks.AsSpan().Clear();
-                                    chunks = newChunks;
+                                    chunks = GrowChunkArray(chunks);
                                 }
 
                                 chunks[chunkIndex++] = currentChunk;
@@ -277,10 +280,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             // add the final partial chunk to the list
             if (chunkIndex >= chunks.Length)
             {
-                var newChunks = ArrayPool<byte[]>.Shared.Rent(chunks.Length * 2);
-                Array.Copy(chunks, 0, newChunks, 0, chunks.Length);
-                chunks.AsSpan().Clear();
-                chunks = newChunks;
+                chunks = GrowChunkArray(chunks);
             }
 
             chunks[chunkIndex++] = currentChunk;

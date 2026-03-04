@@ -218,29 +218,29 @@ public class SourceSchemaHttpClientConfiguration
     {
         public static ImmutableArray<MediaTypeWithQualityHeaderValue> Default { get; } =
         [
-            new("application/graphql-response+json") { CharSet = "utf-8" },
-            new("application/json") { CharSet = "utf-8" },
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
+            new("application/graphql-response+json"),
+            new("application/json"),
+            new("application/jsonl"),
+            new("text/event-stream")
         ];
 
         public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
         [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" },
-            new("application/graphql-response+json") { CharSet = "utf-8" },
-            new("application/json") { CharSet = "utf-8" }
+            new("application/jsonl"),
+            new("text/event-stream"),
+            new("application/graphql-response+json"),
+            new("application/json")
         ];
 
         public static ImmutableArray<MediaTypeWithQualityHeaderValue> ApolloRequestBatching { get; } =
         [
-            new("application/json") { CharSet = "utf-8" }
+            new("application/json")
         ];
 
         public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
         [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
+            new("application/jsonl"),
+            new("text/event-stream")
         ];
     }
 }

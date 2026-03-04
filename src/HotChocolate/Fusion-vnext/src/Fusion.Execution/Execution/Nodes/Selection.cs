@@ -13,6 +13,7 @@ public sealed class Selection : ISelection
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
+    private SelectionSetCacheEntry? _selectionSetCache;
     private Flags _flags;
 
     public Selection(
@@ -44,6 +45,17 @@ public sealed class Selection : ISelection
             _flags |= Flags.Leaf;
         }
 
+        IType fieldType = field.Type;
+        while (fieldType.Kind is TypeKind.NonNull)
+        {
+            fieldType = fieldType.InnerType();
+        }
+
+        if (fieldType.Kind is TypeKind.Scalar or TypeKind.Enum)
+        {
+            _flags |= Flags.LeafValue;
+        }
+
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
     }
 
@@ -63,6 +75,8 @@ public sealed class Selection : ISelection
 
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
+
+    internal bool IsLeafValue => (_flags & Flags.LeafValue) == Flags.LeafValue;
 
     /// <inheritdoc />
     public IOutputFieldDefinition Field { get; }
@@ -84,6 +98,22 @@ public sealed class Selection : ISelection
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
 
     internal ResolveFieldValue? Resolver => Field.Features.Get<ResolveFieldValue>();
+
+    internal SelectionSet GetSelectionSet(IObjectTypeDefinition typeContext)
+    {
+        ArgumentNullException.ThrowIfNull(typeContext);
+
+        var cache = _selectionSetCache;
+
+        if (cache is not null && ReferenceEquals(cache.TypeContext, typeContext))
+        {
+            return cache.SelectionSet;
+        }
+
+        var selectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+        _selectionSetCache = new SelectionSetCacheEntry(typeContext, selectionSet);
+        return selectionSet;
+    }
 
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
     {
@@ -169,6 +199,16 @@ public sealed class Selection : ISelection
         None = 0,
         Internal = 1,
         Leaf = 2,
-        Sealed = 4
+        Sealed = 4,
+        LeafValue = 8
+    }
+
+    private sealed class SelectionSetCacheEntry(
+        IObjectTypeDefinition typeContext,
+        SelectionSet selectionSet)
+    {
+        public IObjectTypeDefinition TypeContext { get; } = typeContext;
+
+        public SelectionSet SelectionSet { get; } = selectionSet;
     }
 }
