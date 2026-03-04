@@ -102,7 +102,7 @@ public abstract class ActivityEnricherBase(
         }
 
         if (request.OperationName is not null
-            && (options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
+            && (options.RequestDetails & RequestDetails.OperationName) == RequestDetails.OperationName)
         {
             activity.SetTag(GraphQL.Http.Request.OperationName, request.OperationName);
         }
@@ -150,7 +150,7 @@ public abstract class ActivityEnricherBase(
             }
 
             if (request.OperationName is not null
-                && (options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
+                && (options.RequestDetails & RequestDetails.OperationName) == RequestDetails.OperationName)
             {
                 activity.SetTag(GraphQL.Http.Request.BatchRequest.OperationName(i), request.OperationName);
             }
@@ -196,7 +196,7 @@ public abstract class ActivityEnricherBase(
         }
 
         if (request.OperationName is not null
-            && (options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
+            && (options.RequestDetails & RequestDetails.OperationName) == RequestDetails.OperationName)
         {
             activity.SetTag(GraphQL.Http.Request.Operations, string.Join(" -> ", operations));
         }

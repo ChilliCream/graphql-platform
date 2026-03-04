@@ -153,7 +153,7 @@ public class ServerInstrumentationTests : ServerTestBase
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
-                    o.RequestDetails = RequestDetails.Default | RequestDetails.Operation;
+                    o.RequestDetails = RequestDetails.Default | RequestDetails.OperationName;
                 });
 
             // act

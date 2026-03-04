@@ -177,7 +177,7 @@ public class ServerInstrumentationTests : FusionTestBase
                     o =>
                     {
                         o.Scopes = FusionActivityScopes.All;
-                        o.RequestDetails = RequestDetails.Default | RequestDetails.Operation;
+                        o.RequestDetails = RequestDetails.Default | RequestDetails.OperationName;
                     }));
 
             using var client = GraphQLHttpClient.Create(gateway.CreateClient());

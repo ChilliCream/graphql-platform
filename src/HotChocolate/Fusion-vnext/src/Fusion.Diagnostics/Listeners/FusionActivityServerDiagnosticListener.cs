@@ -8,17 +8,14 @@ using static HotChocolate.Fusion.Diagnostics.ContextKeys;
 
 namespace HotChocolate.Fusion.Diagnostics.Listeners;
 
-internal sealed class ActivityServerDiagnosticListener(
+internal sealed class FusionActivityServerDiagnosticListener(
     FusionActivityEnricher enricher,
     InstrumentationOptions options)
     : ServerDiagnosticEventListener
 {
-    private readonly InstrumentationOptions _options = options ?? throw new ArgumentNullException(nameof(options));
-    private readonly FusionActivityEnricher _enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
-
     public override IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind)
     {
-        if (_options.SkipExecuteHttpRequest)
+        if (options.SkipExecuteHttpRequest)
         {
             return EmptyScope;
         }
@@ -30,7 +27,7 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        _enricher.EnrichExecuteHttpRequest(context, kind, activity);
+        enricher.EnrichExecuteHttpRequest(context, kind, activity);
         activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[HttpRequestActivity] = activity;
 
@@ -39,19 +36,19 @@ internal sealed class ActivityServerDiagnosticListener(
 
     public override void StartSingleRequest(HttpContext context, GraphQLRequest request)
     {
-        if (_options.IncludeRequestDetails
+        if (options.IncludeRequestDetails
             && context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
-            _enricher.EnrichSingleRequest(context, request, (Activity)activity!);
+            enricher.EnrichSingleRequest(context, request, (Activity)activity!);
         }
     }
 
     public override void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch)
     {
-        if (_options.IncludeRequestDetails
+        if (options.IncludeRequestDetails
             && context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
-            _enricher.EnrichBatchRequest(context, batch, (Activity)activity!);
+            enricher.EnrichBatchRequest(context, batch, (Activity)activity!);
         }
     }
 
@@ -60,10 +57,10 @@ internal sealed class ActivityServerDiagnosticListener(
         GraphQLRequest request,
         IReadOnlyList<string> operations)
     {
-        if (_options.IncludeRequestDetails
+        if (options.IncludeRequestDetails
             && context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
-            _enricher.EnrichOperationBatchRequest(
+            enricher.EnrichOperationBatchRequest(
                 context,
                 request,
                 operations,
@@ -76,7 +73,7 @@ internal sealed class ActivityServerDiagnosticListener(
         if (context.Items.TryGetValue(HttpRequestActivity, out var value))
         {
             var activity = (Activity)value!;
-            _enricher.EnrichHttpRequestError(context, error, activity);
+            enricher.EnrichHttpRequestError(context, error, activity);
             activity.SetStatus(Status.Error);
         }
     }
@@ -86,14 +83,14 @@ internal sealed class ActivityServerDiagnosticListener(
         if (context.Items.TryGetValue(HttpRequestActivity, out var value))
         {
             var activity = (Activity)value!;
-            _enricher.EnrichHttpRequestError(context, exception, activity);
+            enricher.EnrichHttpRequestError(context, exception, activity);
             activity.SetStatus(Status.Error);
         }
     }
 
     public override IDisposable ParseHttpRequest(HttpContext context)
     {
-        if (_options.SkipParseHttpRequest)
+        if (options.SkipParseHttpRequest)
         {
             return EmptyScope;
         }
@@ -105,7 +102,7 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        _enricher.EnrichParseHttpRequest(context, activity);
+        enricher.EnrichParseHttpRequest(context, activity);
         activity.SetStatus(Status.Ok);
         activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[ParseHttpRequestActivity] = activity;
@@ -121,7 +118,7 @@ internal sealed class ActivityServerDiagnosticListener(
 
             foreach (var error in errors)
             {
-                _enricher.EnrichParserErrors(context, error, activity);
+                enricher.EnrichParserErrors(context, error, activity);
             }
 
             activity.SetStatus(Status.Error);
@@ -131,7 +128,7 @@ internal sealed class ActivityServerDiagnosticListener(
 
     public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {
-        if (_options.SkipFormatHttpResponse)
+        if (options.SkipFormatHttpResponse)
         {
             return EmptyScope;
         }
@@ -143,7 +140,7 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        _enricher.EnrichFormatHttpResponse(context, activity);
+        enricher.EnrichFormatHttpResponse(context, activity);
         activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[FormatHttpResponseActivity] = activity;
 

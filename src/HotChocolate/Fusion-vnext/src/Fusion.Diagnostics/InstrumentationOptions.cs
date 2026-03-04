@@ -13,23 +13,25 @@ public sealed class InstrumentationOptions : InstrumentationOptionsBase
     /// </summary>
     public FusionActivityScopes Scopes { get; set; } = Default;
 
-    internal override bool SkipExecuteHttpRequest => (Scopes & ExecuteHttpRequest) != ExecuteHttpRequest;
+    internal bool SkipExecuteHttpRequest => (Scopes & ExecuteHttpRequest) != ExecuteHttpRequest;
 
-    internal override bool SkipParseHttpRequest => (Scopes & ParseHttpRequest) != ParseHttpRequest;
+    internal bool SkipParseHttpRequest => (Scopes & ParseHttpRequest) != ParseHttpRequest;
 
-    internal override bool SkipFormatHttpResponse => (Scopes & FormatHttpResponse) != FormatHttpResponse;
+    internal bool SkipFormatHttpResponse => (Scopes & FormatHttpResponse) != FormatHttpResponse;
 
-    internal override bool SkipExecuteRequest => (Scopes & ExecuteRequest) != ExecuteRequest;
+    internal bool SkipExecuteRequest => (Scopes & ExecuteRequest) != ExecuteRequest;
 
-    internal override bool SkipParseDocument => (Scopes & ParseDocument) != ParseDocument;
+    internal bool SkipParseDocument => (Scopes & ParseDocument) != ParseDocument;
 
-    internal override bool SkipValidateDocument => (Scopes & ValidateDocument) != ValidateDocument;
+    internal bool SkipValidateDocument => (Scopes & ValidateDocument) != ValidateDocument;
 
-    internal override bool SkipCoerceVariables => (Scopes & CoerceVariables) != CoerceVariables;
+    internal bool SkipAnalyzeComplexity => (Scopes & AnalyzeComplexity) != AnalyzeComplexity;
+
+    internal bool SkipCoerceVariables => (Scopes & CoerceVariables) != CoerceVariables;
 
     internal bool SkipPlanOperation => (Scopes & PlanOperation) != PlanOperation;
 
-    internal override bool SkipExecuteOperation => (Scopes & ExecuteOperation) != ExecuteOperation;
+    internal bool SkipExecuteOperation => (Scopes & ExecuteOperation) != ExecuteOperation;
 
-    internal bool SkipExecuteNodes => (Scopes & ExecuteNodes) != ExecuteNodes;
+    internal bool SkipExecutePlanNodes => (Scopes & ExecutePlanNodes) != ExecutePlanNodes;
 }

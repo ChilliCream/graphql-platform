@@ -232,7 +232,7 @@ internal sealed class ActivityFusionExecutionDiagnosticEventListener : FusionExe
         OperationExecutionNode node,
         string schemaName)
     {
-        if (_options.SkipExecuteNodes)
+        if (_options.SkipExecutePlanNodes)
         {
             return EmptyScope;
         }
@@ -252,7 +252,7 @@ internal sealed class ActivityFusionExecutionDiagnosticEventListener : FusionExe
         OperationBatchExecutionNode node,
         string schemaName)
     {
-        if (_options.SkipExecuteNodes)
+        if (_options.SkipExecutePlanNodes)
         {
             return EmptyScope;
         }
@@ -271,7 +271,7 @@ internal sealed class ActivityFusionExecutionDiagnosticEventListener : FusionExe
         OperationPlanContext context,
         NodeFieldExecutionNode node)
     {
-        if (_options.SkipExecuteNodes)
+        if (_options.SkipExecutePlanNodes)
         {
             return EmptyScope;
         }
@@ -290,7 +290,7 @@ internal sealed class ActivityFusionExecutionDiagnosticEventListener : FusionExe
         OperationPlanContext context,
         IntrospectionExecutionNode node)
     {
-        if (_options.SkipExecuteNodes)
+        if (_options.SkipExecutePlanNodes)
         {
             return EmptyScope;
         }

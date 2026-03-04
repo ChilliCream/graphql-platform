@@ -99,6 +99,18 @@
               "Status": "Ok",
               "tags": [
                 {
+                  "Key": "graphql.processing.type",
+                  "Value": "plan"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "3beaca4ee1714ac9c9dfec8e445529df"
+                },
+                {
                   "Key": "otel.status_code",
                   "Value": "OK"
                 }
