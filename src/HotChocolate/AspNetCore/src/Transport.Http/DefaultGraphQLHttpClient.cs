@@ -148,6 +148,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             Method = method
         };
 
+        message.Headers.Accept.Clear();
         foreach (var contentType in request.Accept)
         {
             message.Headers.Accept.Add(contentType);
