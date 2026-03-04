@@ -164,22 +164,6 @@ sourceSchemas:
                   "schema2": "schema2"
                 }
               }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_4a75abf3_2 {
-                  schema2
-                }
-            - document: |
-                query Op_4a75abf3_3 {
-                  viewer {
-                    schema2
-                  }
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {

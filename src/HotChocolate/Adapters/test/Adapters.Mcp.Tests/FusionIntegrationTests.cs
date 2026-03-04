@@ -196,6 +196,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                     var builder =
                         services
                             .AddGraphQLServer()
+                            .AddSourceSchemaDefaults()
                             .AddAuthorization()
                             .AddQueryType<TestSchema.Query>()
                             .AddMutationType<TestSchema.Mutation>()

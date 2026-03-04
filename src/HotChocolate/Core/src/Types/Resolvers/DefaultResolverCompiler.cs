@@ -437,6 +437,16 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
             if (!builder.IsPure)
             {
+                // We allow scoped state getters to be considered pure because
+                // PureResolverContext can read ScopedContextData (it delegates
+                // to its parent). Setters and local state remain not pure.
+                if (builder is ScopedStateParameterExpressionBuilder
+                    and not LocalStateParameterExpressionBuilder
+                    && !ParameterExpressionBuilderHelpers.IsStateSetter(parameter.ParameterType))
+                {
+                    continue;
+                }
+
                 return false;
             }
         }

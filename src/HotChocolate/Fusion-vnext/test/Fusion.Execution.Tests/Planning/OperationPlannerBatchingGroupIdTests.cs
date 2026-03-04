@@ -134,7 +134,7 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
         // act
         var lookup = OperationPlanner.CreateBatchingGroupLookup(
             steps,
-            new Dictionary<int, HashSet<int>>(),
+            [],
             enableRequestGrouping: true);
 
         // assert
@@ -297,20 +297,6 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
             });
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
-    }
-
-    private static string CreateNodeSignature(OperationExecutionNode node)
-    {
-        return string.Concat(
-            node.SchemaName ?? "__dynamic__",
-            "|",
-            node.Operation.Type.ToString(),
-            "|",
-            node.Operation.Hash,
-            "|",
-            node.Source.ToString(),
-            "|",
-            node.Target.ToString());
     }
 
     private static OperationDefinitionNode ParseOperationDefinition(

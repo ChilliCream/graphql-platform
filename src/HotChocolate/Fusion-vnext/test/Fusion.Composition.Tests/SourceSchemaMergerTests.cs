@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 using static HotChocolate.Fusion.WellKnownTypeNames;
 
 namespace HotChocolate.Fusion;
@@ -264,5 +266,46 @@ public sealed class SourceSchemaMergerTests
         Assert.True(result.IsSuccess);
         Assert.True(result.Value.Types.ContainsName("ProductDimensionInput"));
         Assert.True(result.Value.Types.ContainsName("Position"));
+    }
+
+    [Fact]
+    public void Merge_DirectiveDefinitionWithDifferentArgumentOrder_MergesSuccessfully()
+    {
+        // arrange
+        // The canonical @cacheControl definition has arguments in this order:
+        // maxAge, sharedMaxAge, inheritMaxAge, scope, vary
+        // and locations: OBJECT | FIELD_DEFINITION | INTERFACE | UNION.
+        // This source schema defines both in a different order.
+        var schemas = CreateSchemaDefinitions(
+        [
+            """
+            enum CacheControlScope { PUBLIC PRIVATE }
+
+            directive @cacheControl(
+                vary: [String]
+                scope: CacheControlScope
+                inheritMaxAge: Boolean
+                sharedMaxAge: Int
+                maxAge: Int
+            ) on UNION | INTERFACE | FIELD_DEFINITION | OBJECT
+
+            type Foo {
+                field: Int @cacheControl(maxAge: 500)
+            }
+            """
+        ]);
+        var options = new SourceSchemaMergerOptions
+        {
+            CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
+            RemoveUnreferencedDefinitions = false
+        };
+        var merger = new SourceSchemaMerger(schemas, options);
+
+        // act
+        var result = merger.Merge();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value.DirectiveDefinitions.ContainsName("cacheControl"));
     }
 }

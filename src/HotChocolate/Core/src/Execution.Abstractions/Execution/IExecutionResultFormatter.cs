@@ -17,6 +17,9 @@ public interface IExecutionResultFormatter
     /// <param name="writer">
     /// The pipe writer.
     /// </param>
+    /// <param name="flags">
+    /// The flags that control the formatting behavior.
+    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -27,5 +30,23 @@ public interface IExecutionResultFormatter
     ValueTask FormatAsync(
         IExecutionResult result,
         PipeWriter writer,
+        ExecutionResultFormatFlags flags = ExecutionResultFormatFlags.None,
         CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Flags that control how an <see cref="IExecutionResult"/> is formatted.
+/// </summary>
+[Flags]
+public enum ExecutionResultFormatFlags
+{
+    /// <summary>
+    /// No special formatting behavior.
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// Formats incremental payloads using the RFC-1 compatibility shape.
+    /// </summary>
+    IncrementalRfc1 = 1 << 0
 }
