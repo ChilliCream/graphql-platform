@@ -356,7 +356,10 @@ internal static class ExpressionHelpers
             };
         }
 
-        throw new InvalidOperationException("The nullability of the cursor key could not be determined.");
+        // For computed key expressions (method calls, concatenation, etc.) we cannot inspect
+        // NRT annotations at runtime. Treat as non-nullable — the safe default that avoids
+        // injecting spurious null-handling into the generated WHERE clause.
+        return false;
     }
 
     private static NullabilityState GetNullabilityInfoState(PropertyInfo propertyInfo)
@@ -578,8 +581,8 @@ internal static class ExpressionHelpers
         var groupType = typeof(Group<TK, TV>);
         var bindings = new MemberBinding[]
         {
-            Expression.Bind(groupType.GetProperty(nameof(Group<TK, TV>.Key))!, groupKey),
-            Expression.Bind(groupType.GetProperty(nameof(Group<TK, TV>.Items))!, source)
+            Expression.Bind(groupType.GetProperty(nameof(Group<,>.Key))!, groupKey),
+            Expression.Bind(groupType.GetProperty(nameof(Group<,>.Items))!, source)
         };
 
         var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
@@ -608,9 +611,6 @@ internal static class ExpressionHelpers
     /// <summary>
     /// Extracts and removes the orderBy and thenBy expressions from the given expression tree.
     /// </summary>
-    /// <param name="expression"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
     public static OrderRewriterResult ExtractAndRemoveOrder(Expression expression)
     {
         ArgumentNullException.ThrowIfNull(expression);
@@ -712,15 +712,13 @@ internal static class ExpressionHelpers
                 && (node.Method.Name == nameof(Queryable.OrderBy)
                     || node.Method.Name == nameof(Queryable.OrderByDescending)
                     || node.Method.Name == nameof(Queryable.ThenBy)
-                    || node.Method.Name == nameof(Queryable.ThenByDescending)))
+                    || node.Method.Name == nameof(Queryable.ThenByDescending))
+                && !_insideSelectProjection)
             {
-                if (!_insideSelectProjection)
-                {
-                    var lambda = (LambdaExpression)StripQuotes(node.Arguments[1]);
-                    _orderExpressions.Add(lambda);
-                    _orderMethods.Add(node.Method.Name);
-                    return Visit(node.Arguments[0]);
-                }
+                var lambda = (LambdaExpression)StripQuotes(node.Arguments[1]);
+                _orderExpressions.Add(lambda);
+                _orderMethods.Add(node.Method.Name);
+                return Visit(node.Arguments[0]);
             }
 
             return base.VisitMethodCall(node);
