@@ -12,7 +12,20 @@ public abstract class CustomParameterExpressionBuilder : IParameterExpressionBui
 {
     private readonly bool _isPure;
 
-    protected CustomParameterExpressionBuilder(bool isPure = true)
+    /// <summary>
+    /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>
+    /// that is not considered pure.
+    /// </summary>
+    protected CustomParameterExpressionBuilder() { }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>
+    /// with an explicit purity setting.
+    /// </summary>
+    /// <param name="isPure">
+    /// Defines if the parameter expression can be used for pure resolvers.
+    /// </param>
+    internal CustomParameterExpressionBuilder(bool isPure)
     {
         _isPure = isPure;
     }
@@ -63,12 +76,26 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     /// <param name="expression">
     /// The expression that shall be used to resolve the parameter value.
     /// </param>
+    public CustomParameterExpressionBuilder(
+        Expression<Func<IResolverContext, TArg>> expression)
+        : base(isPure: false)
+    {
+        _canHandle = p => p.ParameterType == typeof(TArg);
+        _expression = expression;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>.
+    /// </summary>
+    /// <param name="expression">
+    /// The expression that shall be used to resolve the parameter value.
+    /// </param>
     /// <param name="isPure">
     /// Defines if the parameter expression can be used for pure resolvers.
     /// </param>
-    public CustomParameterExpressionBuilder(
+    internal CustomParameterExpressionBuilder(
         Expression<Func<IResolverContext, TArg>> expression,
-        bool isPure = true)
+        bool isPure)
         : base(isPure)
     {
         _canHandle = p => p.ParameterType == typeof(TArg);
@@ -84,13 +111,31 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     /// <param name="expression">
     /// The expression that shall be used to resolve the parameter value.
     /// </param>
+    public CustomParameterExpressionBuilder(
+        Expression<Func<IResolverContext, TArg>> expression,
+        Func<ParameterInfo, bool> canHandle)
+        : base(isPure: false)
+    {
+        _expression = expression;
+        _canHandle = canHandle;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>.
+    /// </summary>
+    /// <param name="canHandle">
+    /// A func that defines if a parameter can be handled by this expression builder.
+    /// </param>
+    /// <param name="expression">
+    /// The expression that shall be used to resolve the parameter value.
+    /// </param>
     /// <param name="isPure">
     /// Defines if the parameter expression can be used for pure resolvers.
     /// </param>
-    public CustomParameterExpressionBuilder(
+    internal CustomParameterExpressionBuilder(
         Expression<Func<IResolverContext, TArg>> expression,
         Func<ParameterInfo, bool> canHandle,
-        bool isPure = true)
+        bool isPure)
         : base(isPure)
     {
         _expression = expression;
