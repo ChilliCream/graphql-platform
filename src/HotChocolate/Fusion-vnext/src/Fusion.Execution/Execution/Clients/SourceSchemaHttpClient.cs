@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Properties;
@@ -118,13 +119,13 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         var isSuccessful = httpResponse.IsSuccessStatusCode;
 
         var nodeResponses = new NodeResponse[requests.Length];
-        var builder = ImmutableArray.CreateBuilder<SourceSchemaClientResponse>(requests.Length);
+        var responses = new SourceSchemaClientResponse[requests.Length];
 
         for (var i = 0; i < requests.Length; i++)
         {
             var nodeResponse = new NodeResponse(uri, contentType, isSuccessful);
             nodeResponses[i] = nodeResponse;
-            builder.Add(nodeResponse);
+            responses[i] = nodeResponse;
         }
 
         _ = ReadBatchStreamInBackgroundAsync(
@@ -134,7 +135,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 httpResponse,
                 cancellationToken);
 
-        return builder.MoveToImmutable();
+        return ImmutableCollectionsMarshal.AsImmutableArray(responses);
     }
 
     /// <summary>
