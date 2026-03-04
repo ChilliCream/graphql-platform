@@ -9,7 +9,7 @@ public enum RequestDetails
     OperationName = 4,
     Variables = 8,
     Extensions = 16,
-    Query = 32,
+    Document = 32,
     Default = Id | Hash | OperationName | Extensions,
-    All = Id | Hash | OperationName | Variables | Extensions | Query
+    All = Id | Hash | OperationName | Variables | Extensions | Document
 }

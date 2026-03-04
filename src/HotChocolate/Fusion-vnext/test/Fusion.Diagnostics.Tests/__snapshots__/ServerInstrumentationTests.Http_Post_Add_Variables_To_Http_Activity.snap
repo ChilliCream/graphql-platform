@@ -34,16 +34,12 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "query",
+          "DisplayName": "GraphQL Operation",
           "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.document.hash",
               "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
-            },
-            {
-              "Key": "graphql.operation.type",
-              "Value": "query"
             }
           ],
           "event": [
@@ -65,10 +61,6 @@
                 {
                   "Key": "graphql.processing.type",
                   "Value": "validate"
-                },
-                {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
                 },
                 {
                   "Key": "graphql.document.hash",
@@ -196,7 +188,7 @@
                     },
                     {
                       "Key": "graphql.source.operation.hash",
-                      "Value": "a6738007b3546a7458414ee647c93aa373bc22ca57256f4a4a5c8ef3aa886470"
+                      "Value": "sha256:a6738007b3546a7458414ee647c93aa373bc22ca57256f4a4a5c8ef3aa886470"
                     },
                     {
                       "Key": "otel.status_code",

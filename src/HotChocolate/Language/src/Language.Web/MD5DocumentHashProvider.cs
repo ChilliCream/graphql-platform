@@ -18,6 +18,8 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "md5Hash";
 
+    public override string AlgorithmName => "md5";
+
 #if NETSTANDARD2_0
     protected override byte[] ComputeHash(byte[] document, int length)
     {

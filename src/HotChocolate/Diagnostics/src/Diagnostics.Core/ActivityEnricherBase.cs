@@ -1,9 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.ObjectPool;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -18,16 +16,9 @@ namespace HotChocolate.Diagnostics;
 /// Base class for activity enrichers that provides shared enrichment logic
 /// for HTTP request handling, error handling, and common span enrichment.
 /// </summary>
-public abstract class ActivityEnricherBase(
-    ObjectPool<StringBuilder> stringBuilderPool,
-    InstrumentationOptionsBase options)
+public abstract class ActivityEnricherBase(InstrumentationOptionsBase options)
 {
     private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = [];
-
-    /// <summary>
-    /// Gets the <see cref="StringBuilder"/> pool used by this enricher.
-    /// </summary>
-    protected ObjectPool<StringBuilder> StringBuilderPool { get; } = stringBuilderPool;
 
     public virtual void EnrichExecuteHttpRequest(
         HttpContext context,
@@ -81,7 +72,7 @@ public abstract class ActivityEnricherBase(
         }
 
         if (request.Document is not null
-            && (options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
+            && (options.RequestDetails & RequestDetails.Document) == RequestDetails.Document)
         {
             if (!_queryCache.TryGetValue(request.Document, out var query))
             {
@@ -135,7 +126,7 @@ public abstract class ActivityEnricherBase(
             }
 
             if (request.Document is not null
-                && (options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
+                && (options.RequestDetails & RequestDetails.Document) == RequestDetails.Document)
             {
                 activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryBody(i), request.Document.Print());
             }
@@ -181,7 +172,7 @@ public abstract class ActivityEnricherBase(
         }
 
         if (request.Document is not null
-            && (options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
+            && (options.RequestDetails & RequestDetails.Document) == RequestDetails.Document)
         {
             activity.SetTag(GraphQL.Http.Request.QueryBody, request.Document.Print());
         }
@@ -263,164 +254,42 @@ public abstract class ActivityEnricherBase(
         HttpContext context,
         IError error,
         Activity activity)
-        => EnrichError(error, activity);
+        => EnrichError(activity, error);
 
     public virtual void EnrichHttpRequestError(
         HttpContext context,
-        System.Exception exception,
+        Exception exception,
         Activity activity)
-    {
-    }
+        => activity.RecordException(exception);
 
     public virtual void EnrichParseHttpRequest(HttpContext context, Activity activity)
     {
         activity.DisplayName = "Parse HTTP Request";
     }
 
-    public virtual void EnrichParserErrors(HttpContext context, IError error, Activity activity)
-        => EnrichError(error, activity);
-
     public virtual void EnrichFormatHttpResponse(HttpContext context, Activity activity)
     {
         activity.DisplayName = "Format HTTP Response";
     }
 
+    public virtual void EnrichParserErrors(HttpContext context, IError error, Activity activity)
+        => EnrichError(activity, error);
+
     public virtual void EnrichRequestError(
         RequestContext context,
         Activity activity,
-        System.Exception error)
-        => EnrichError(ErrorBuilder.FromException(error).Build(), activity);
+        Exception exception)
+    {
+        activity.RecordException(exception);
+    }
 
     public virtual void EnrichRequestError(
         RequestContext context,
         Activity activity,
         IError error)
-        => EnrichError(error, activity);
+        => EnrichError(activity, error);
 
-    public virtual void EnrichValidationError(
-        RequestContext context,
-        Activity activity,
-        IError error)
-        => EnrichError(error, activity);
-
-    public virtual void EnrichAnalyzeOperationComplexity(RequestContext context, Activity activity)
-    {
-        activity.DisplayName = "Analyze Operation Complexity";
-    }
-
-    public virtual void EnrichOperationCost(
-        RequestContext context,
-        Activity activity,
-        double fieldCost,
-        double typeCost)
-    {
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, FormatDocumentHash(documentInfo.Hash));
-        activity.SetTag(GraphQL.Operation.FieldCost, fieldCost);
-        activity.SetTag(GraphQL.Operation.TypeCost, typeCost);
-    }
-
-    protected void EnrichExecuteRequestCore(
-        RequestContext context,
-        Activity activity,
-        string operationDisplayName,
-        OperationType operationType,
-        string? operationName)
-    {
-        activity.DisplayName = operationDisplayName;
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, FormatDocumentHash(documentInfo.Hash));
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
-
-        activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operationType]);
-
-        if (!string.IsNullOrEmpty(operationName))
-        {
-            activity.SetTag(GraphQL.Operation.Name, operationName);
-        }
-
-        if (options.IncludeDocument && documentInfo.Document is not null)
-        {
-            activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
-        }
-    }
-
-    protected void EnrichParseDocumentCore(
-        Activity activity,
-        OperationDefinitionNode? operationDefinition,
-        OperationDocumentInfo documentInfo)
-    {
-        activity.DisplayName = "GraphQL Document Parsing";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
-
-        EnrichWithTags(activity, operationDefinition, documentInfo);
-    }
-
-    protected void EnrichValidateDocumentCore(
-        Activity activity,
-        OperationDefinitionNode? operationDefinition,
-        OperationDocumentInfo documentInfo)
-    {
-        activity.DisplayName = "GraphQL Document Validation";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Validate);
-
-        EnrichWithTags(activity, operationDefinition, documentInfo);
-    }
-
-    protected void EnrichCoerceVariablesCore(
-        Activity activity,
-        OperationDefinitionNode? operationDefinition,
-        OperationDocumentInfo documentInfo)
-    {
-        activity.DisplayName = "GraphQL Variable Coercion";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.VariableCoercion);
-
-        EnrichWithTags(activity, operationDefinition, documentInfo);
-    }
-
-    protected static void EnrichWithTags(
-        Activity activity,
-        OperationDefinitionNode? operationDefinition,
-        OperationDocumentInfo documentInfo)
-    {
-        if (operationDefinition is not null)
-        {
-            activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operationDefinition.Operation]);
-
-            var operationName = operationDefinition.Name?.Value;
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operationName);
-            }
-        }
-
-        activity.SetTag(GraphQL.Document.Hash, FormatDocumentHash(documentInfo.Hash));
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
-    }
-
-    protected string GetOperationDisplayName(
-        OperationType operationType,
-        string? operationName)
-    {
-        var operationTypeName = GraphQL.Operation.TypeValues[operationType];
-        if (!string.IsNullOrEmpty(operationName))
-        {
-            return $"{operationTypeName} {operationName}";
-        }
-
-        return operationTypeName;
-    }
-
-    protected virtual void EnrichError(IError error, Activity activity)
+    protected virtual void EnrichError(Activity activity, IError error)
     {
         if (error.Exception is { } exception)
         {
@@ -429,14 +298,17 @@ public abstract class ActivityEnricherBase(
 
         var tags = new ActivityTagsCollection
         {
-            new(SemanticConventions.Exception.Message, error.Message),
-            new(SemanticConventions.Exception.Type, error.Code ?? "GRAPHQL_ERROR"),
-            new(GraphQL.Errors.Message, error.Message)
+            [GraphQL.Error.Message] = error.Message
         };
 
         if (error.Path is not null)
         {
-            tags[GraphQL.Errors.Path] = FormatPath(error.Path);
+            tags[GraphQL.Error.Path] = error.Path.Print();
+        }
+
+        if (!string.IsNullOrEmpty(error.Code))
+        {
+            tags[GraphQL.Error.Code] = error.Code;
         }
 
         if (error.Locations is { Count: > 0 })
@@ -445,80 +317,17 @@ public abstract class ActivityEnricherBase(
             for (var i = 0; i < error.Locations.Count; i++)
             {
                 var location = error.Locations[i];
-                locations[i] = new Dictionary<string, object>
+                locations[i] = new Dictionary<string, int>
                 {
                     ["line"] = location.Line,
                     ["column"] = location.Column
                 };
             }
 
-            tags[GraphQL.Errors.Locations] = locations;
+            tags[GraphQL.Error.Locations] = locations;
         }
 
-        activity.AddEvent(new ActivityEvent(SemanticConventions.Exception.EventName, default, tags));
-    }
-
-    // TODO: Get rid of this
-    protected internal static string FormatDocumentHash(OperationDocumentHash hash)
-    {
-        if (hash.IsEmpty || string.IsNullOrEmpty(hash.AlgorithmName))
-        {
-            return hash.Value;
-        }
-
-        var algorithm = hash.AlgorithmName;
-
-        if (algorithm.EndsWith("Hash", System.StringComparison.OrdinalIgnoreCase))
-        {
-            algorithm = algorithm[..^4];
-        }
-
-        algorithm = algorithm.ToLowerInvariant();
-
-        if (algorithm == "sha256")
-        {
-            // TODO: wtf
-            algorithm = "sha25";
-        }
-
-        return $"{algorithm}:{hash.Value}";
-    }
-
-    protected static string? FormatPath(Path? path)
-    {
-        if (path is null || path.IsRoot)
-        {
-            return null;
-        }
-
-        var segments = path.ToList();
-        if (segments.Count == 0)
-        {
-            return null;
-        }
-
-        var result = new StringBuilder();
-        foreach (var segment in segments)
-        {
-            if (segment is string name)
-            {
-                if (result.Length > 0)
-                {
-                    result.Append('.');
-                }
-
-                result.Append(name);
-                continue;
-            }
-
-            if (segment is int index)
-            {
-                result.Append('[');
-                result.Append(index);
-                result.Append(']');
-            }
-        }
-
-        return result.ToString();
+        // TODO: Not sure if this is correct according to the spec
+        activity.AddEvent(new ActivityEvent("exception", default, tags));
     }
 }

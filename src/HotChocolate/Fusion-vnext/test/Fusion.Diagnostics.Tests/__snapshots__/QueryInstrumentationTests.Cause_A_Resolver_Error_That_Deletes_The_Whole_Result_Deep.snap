@@ -30,14 +30,6 @@
               "Value": "parse"
             },
             {
-              "Key": "graphql.operation.type",
-              "Value": "query"
-            },
-            {
-              "Key": "graphql.operation.name",
-              "Value": "SayHelloOperation"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:803df9346db185e9dc0b22dd3909aa70"
             },
@@ -62,14 +54,6 @@
               "Value": "validate"
             },
             {
-              "Key": "graphql.operation.type",
-              "Value": "query"
-            },
-            {
-              "Key": "graphql.operation.name",
-              "Value": "SayHelloOperation"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:803df9346db185e9dc0b22dd3909aa70"
             }
@@ -78,14 +62,6 @@
             {
               "Name": "exception",
               "Tags": [
-                {
-                  "Key": "exception.message",
-                  "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
-                },
-                {
-                  "Key": "exception.type",
-                  "Value": "GRAPHQL_ERROR"
-                },
                 {
                   "Key": "graphql.error.message",
                   "Value": "The field `causeFatalError` does not exist on the type `Deeper`."

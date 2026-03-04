@@ -2,16 +2,12 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query",
+      "DisplayName": "GraphQL Operation",
       "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.hash",
           "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-        },
-        {
-          "Key": "graphql.operation.type",
-          "Value": "query"
         }
       ],
       "event": [],
@@ -24,10 +20,6 @@
             {
               "Key": "graphql.processing.type",
               "Value": "parse"
-            },
-            {
-              "Key": "graphql.operation.type",
-              "Value": "query"
             },
             {
               "Key": "graphql.document.hash",
@@ -48,10 +40,6 @@
             {
               "Key": "graphql.processing.type",
               "Value": "validate"
-            },
-            {
-              "Key": "graphql.operation.type",
-              "Value": "query"
             },
             {
               "Key": "graphql.document.hash",

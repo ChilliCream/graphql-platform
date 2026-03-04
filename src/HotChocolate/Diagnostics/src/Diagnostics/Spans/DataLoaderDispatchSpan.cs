@@ -1,0 +1,23 @@
+using System.Diagnostics;
+using HotChocolate.Execution;
+using OpenTelemetry.Trace;
+using static HotChocolate.Diagnostics.SemanticConventions;
+
+namespace HotChocolate.Diagnostics;
+
+internal sealed class DataLoaderDispatchSpan(Activity activity) : SpanBase(activity)
+{
+    public static DataLoaderDispatchSpan? Start(ActivitySource source)
+    {
+        var activity = source.StartActivity("GraphQL DataLoader Dispatch");
+
+        if (activity is null)
+        {
+            return null;
+        }
+
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.DataLoaderDispatch);
+
+        return new DataLoaderDispatchSpan(activity);
+    }
+}

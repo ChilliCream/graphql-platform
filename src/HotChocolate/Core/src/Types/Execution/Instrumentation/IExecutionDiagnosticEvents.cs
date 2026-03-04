@@ -80,29 +80,6 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     IDisposable CompileOperation(RequestContext context);
 
     /// <summary>
-    /// Called within the execute operation scope when the result is a streamed result.
-    /// The ExecuteStream scope will run longer than the ExecuteOperation scope.
-    /// The ExecuteOperation scope completes once the initial operation is executed,
-    /// while all deferred elements are executed and delivered within the ExecuteStream scope.
-    /// </summary>
-    /// <param name="operation">
-    /// The compiled operation that is being streamed.
-    /// </param>
-    /// <returns>
-    /// A scope that will be disposed when the streaming execution has finished.
-    /// </returns>
-    IDisposable ExecuteStream(IOperation operation);
-
-    /// <summary>
-    /// Called when starting to execute a deferred part of an operation
-    /// within the ExecuteStream scope or ExecuteSubscription scope.
-    /// </summary>
-    /// <returns>
-    /// A scope that will be disposed when the deferred task execution has finished.
-    /// </returns>
-    IDisposable ExecuteDeferredTask();
-
-    /// <summary>
     /// Called when starting to resolve a field value.
     /// </summary>
     /// <remarks>
@@ -130,26 +107,6 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     /// The error that occurred during field resolution.
     /// </param>
     void ResolverError(IMiddlewareContext context, IError error);
-
-    /// <summary>
-    /// Called for field errors that occur outside the resolver task execution,
-    /// typically during result processing or validation.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <param name="selection">
-    /// The field selection that is affected by the error.
-    /// </param>
-    /// <param name="error">
-    /// The error that occurred during field processing.
-    /// </param>
-    /// <remarks>
-    /// Some field-level errors are handled after the resolver completes and these
-    /// are processed in the request scope rather than the resolver scope.
-    /// </remarks>
-    void ResolverError(RequestContext context, ISelection selection, IError error);
 
     /// <summary>
     /// Called when starting to execute an execution engine task.
@@ -215,19 +172,4 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     /// individual GraphQL request.
     /// </param>
     void RetrievedOperationFromCache(RequestContext context);
-
-    /// <summary>
-    /// Called when the execution engine dispatches deferred execution batches.
-    /// During execution, components like DataLoader defer data resolver execution
-    /// to be processed in batches. When the execution engine has no immediate work,
-    /// these batches are dispatched for execution.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <returns>
-    /// A scope that will be disposed when the batch dispatch has finished.
-    /// </returns>
-    IDisposable DispatchBatch(RequestContext context);
 }

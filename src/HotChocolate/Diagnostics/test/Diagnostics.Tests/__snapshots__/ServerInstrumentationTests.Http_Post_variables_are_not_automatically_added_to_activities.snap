@@ -30,16 +30,12 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "query",
+          "DisplayName": "GraphQL Operation",
           "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.document.hash",
               "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
-            },
-            {
-              "Key": "graphql.operation.type",
-              "Value": "query"
             }
           ],
           "event": [
@@ -63,10 +59,6 @@
                   "Value": "validate"
                 },
                 {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
                   "Key": "graphql.document.hash",
                   "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
                 },
@@ -79,14 +71,9 @@
             },
             {
               "OperationName": "AnalyzeOperationCost",
-              "DisplayName": "Analyze Operation Complexity",
+              "DisplayName": "GraphQL Complexity Analyzation",
               "Status": "Unset",
-              "tags": [
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
-                }
-              ],
+              "tags": [],
               "event": []
             },
             {

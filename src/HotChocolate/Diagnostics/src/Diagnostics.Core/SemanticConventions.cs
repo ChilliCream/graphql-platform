@@ -5,13 +5,6 @@ namespace HotChocolate.Diagnostics;
 
 internal static class SemanticConventions
 {
-    public static class Exception
-    {
-        public const string EventName = "exception";
-        public const string Type = "exception.type";
-        public const string Message = "exception.message";
-    }
-
     public static class GraphQL
     {
         public static class Document
@@ -140,12 +133,12 @@ internal static class SemanticConventions
         }
 
         // Note: This is not part of the OTEL semantic conventions
-        public static class Errors
+        public static class Error
         {
-            public const string Count = "graphql.errors.count";
             public const string Message = "graphql.error.message";
             public const string Locations = "graphql.error.locations";
             public const string Path = "graphql.error.path";
+            public const string Code = "graphql.error.code";
 
             public static class Location
             {

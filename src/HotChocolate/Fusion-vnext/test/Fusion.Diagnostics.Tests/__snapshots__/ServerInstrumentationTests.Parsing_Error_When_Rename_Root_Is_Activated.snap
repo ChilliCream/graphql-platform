@@ -27,16 +27,12 @@
               "Name": "exception",
               "Tags": [
                 {
-                  "Key": "exception.message",
-                  "Value": "Expected a `Name`-token, but found a `Integer`-token."
-                },
-                {
-                  "Key": "exception.type",
-                  "Value": "HC0011"
-                },
-                {
                   "Key": "graphql.error.message",
                   "Value": "Expected a `Name`-token, but found a `Integer`-token."
+                },
+                {
+                  "Key": "graphql.error.code",
+                  "Value": "HC0011"
                 },
                 {
                   "Key": "graphql.error.locations",

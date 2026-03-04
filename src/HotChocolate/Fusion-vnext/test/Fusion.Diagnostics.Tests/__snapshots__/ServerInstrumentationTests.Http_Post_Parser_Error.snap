@@ -27,16 +27,12 @@
               "Name": "exception",
               "Tags": [
                 {
-                  "Key": "exception.message",
-                  "Value": "Found a NameStart character `d` (100) following a number, which is disallowed."
-                },
-                {
-                  "Key": "exception.type",
-                  "Value": "HC0011"
-                },
-                {
                   "Key": "graphql.error.message",
                   "Value": "Found a NameStart character `d` (100) following a number, which is disallowed."
+                },
+                {
+                  "Key": "graphql.error.code",
+                  "Value": "HC0011"
                 },
                 {
                   "Key": "graphql.error.locations",

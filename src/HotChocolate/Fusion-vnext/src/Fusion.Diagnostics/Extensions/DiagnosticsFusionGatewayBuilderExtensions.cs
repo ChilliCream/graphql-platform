@@ -35,7 +35,7 @@ public static class DiagnosticsFusionGatewayBuilderExtensions
         builder.AddApplicationService<InternalActivityEnricher>();
 
         builder.AddDiagnosticEventListener(
-            sp => new ActivityFusionExecutionDiagnosticEventListener(
+            sp => new FusionActivityExecutionDiagnosticEventListener(
                 sp.GetService<FusionActivityEnricher>() ??
                     sp.GetRequiredService<InternalActivityEnricher>(),
                 sp.GetRequiredService<InstrumentationOptions>()));

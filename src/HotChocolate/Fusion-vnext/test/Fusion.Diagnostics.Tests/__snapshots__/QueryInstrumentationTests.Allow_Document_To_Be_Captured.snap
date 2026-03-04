@@ -2,20 +2,12 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query SayHelloOperation",
+      "DisplayName": "GraphQL Operation",
       "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.hash",
           "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
-        },
-        {
-          "Key": "graphql.operation.type",
-          "Value": "query"
-        },
-        {
-          "Key": "graphql.operation.name",
-          "Value": "SayHelloOperation"
         },
         {
           "Key": "graphql.document.body",
@@ -32,14 +24,6 @@
             {
               "Key": "graphql.processing.type",
               "Value": "parse"
-            },
-            {
-              "Key": "graphql.operation.type",
-              "Value": "query"
-            },
-            {
-              "Key": "graphql.operation.name",
-              "Value": "SayHelloOperation"
             },
             {
               "Key": "graphql.document.hash",
@@ -60,14 +44,6 @@
             {
               "Key": "graphql.processing.type",
               "Value": "validate"
-            },
-            {
-              "Key": "graphql.operation.type",
-              "Value": "query"
-            },
-            {
-              "Key": "graphql.operation.name",
-              "Value": "SayHelloOperation"
             },
             {
               "Key": "graphql.document.hash",
@@ -183,7 +159,7 @@
                 },
                 {
                   "Key": "graphql.source.operation.hash",
-                  "Value": "80b0d05aefd2459dcda18d0e26977b91c512e4ef58ab3e4e8a82c1ec98249b58"
+                  "Value": "sha256:80b0d05aefd2459dcda18d0e26977b91c512e4ef58ab3e4e8a82c1ec98249b58"
                 },
                 {
                   "Key": "otel.status_code",

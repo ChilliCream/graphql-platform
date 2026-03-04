@@ -4,7 +4,6 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using OpenTelemetry.Trace;
-using static HotChocolate.Fusion.Diagnostics.ContextKeys;
 
 namespace HotChocolate.Fusion.Diagnostics.Listeners;
 

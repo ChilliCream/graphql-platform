@@ -30,14 +30,6 @@
               "Value": "parse"
             },
             {
-              "Key": "graphql.operation.type",
-              "Value": "query"
-            },
-            {
-              "Key": "graphql.operation.name",
-              "Value": "SayHelloOperation"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
             },
@@ -62,14 +54,6 @@
               "Value": "validate"
             },
             {
-              "Key": "graphql.operation.type",
-              "Value": "query"
-            },
-            {
-              "Key": "graphql.operation.name",
-              "Value": "SayHelloOperation"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
             }
@@ -78,14 +62,6 @@
             {
               "Name": "exception",
               "Tags": [
-                {
-                  "Key": "exception.message",
-                  "Value": "The field `sayHello_` does not exist on the type `Query`."
-                },
-                {
-                  "Key": "exception.type",
-                  "Value": "GRAPHQL_ERROR"
-                },
                 {
                   "Key": "graphql.error.message",
                   "Value": "The field `sayHello_` does not exist on the type `Query`."

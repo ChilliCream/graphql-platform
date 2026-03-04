@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using GreenDonut;
-using HotChocolate.Diagnostics.Scopes;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics.Listeners;
@@ -19,29 +18,30 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             return EmptyScope;
         }
 
-        var activity = Source.StartActivity();
+        var span = DataLoaderBatchSpan<TKey>.Start(Source, dataLoader, keys);
 
-        if (activity is null)
+        if (span is null)
         {
             return EmptyScope;
         }
 
-        return new DataLoaderBatchScope<TKey>(enricher, dataLoader, keys, activity);
+        if (options.IncludeDataLoaderKeys)
+        {
+            var temp = keys.Select(t => t.ToString()).ToArray();
+            span.Activity.SetTag(SemanticConventions.GraphQL.DataLoader.Batch.Keys, temp);
+        }
+
+        return span;
     }
 
     public override IDisposable RunBatchDispatchCoordinator()
     {
-        var activity = Source.StartActivity("BatchCoordinator");
+        var span = DataLoaderDispatchSpan.Start(Source);
 
-        if (activity is null)
-        {
-            return EmptyScope;
-        }
-
-        return new DataLoaderBatchDispatchCoordinatorScope(enricher, activity);
+        return span ?? EmptyScope;
     }
 
-    public override void BatchDispatchError(System.Exception error)
+    public override void BatchDispatchError(Exception error)
     {
 #if NET9_0_OR_GREATER
         Activity.Current?.AddException(error);

@@ -598,9 +598,15 @@ builder.Services
 
 ## OpenTelemetry span attribute changes
 
-The OpenTelemetry span attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec/spans.yml).
+The OpenTelemetry span attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec).
 
 If you have dashboards or alerts that filter on the old attribute names or values, update them accordingly.
+
+## Removed attributes
+
+| Attribute |
+| --------- |
+| TODO      |
 
 ### Renamed attributes
 

@@ -1,46 +1,32 @@
 using System.Diagnostics;
-using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Trace;
-using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics.Listeners;
 
-internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListener
+internal sealed class ActivityExecutionDiagnosticListener(
+    ActivityEnricher enricher,
+    InstrumentationOptions options) : ExecutionDiagnosticEventListener
 {
-    private readonly InstrumentationOptions _options;
-    private readonly ActivityEnricher _enricher;
-
-    public ActivityExecutionDiagnosticListener(
-        ActivityEnricher enricher,
-        InstrumentationOptions options)
-    {
-        ArgumentNullException.ThrowIfNull(enricher);
-        ArgumentNullException.ThrowIfNull(options);
-
-        _enricher = enricher;
-        _options = options;
-    }
-
     public override bool EnableResolveFieldValue => true;
 
     public override IDisposable ExecuteRequest(RequestContext context)
     {
-        Activity? activity = null;
+        Activity? httpContextActivity = null;
 
-        if (_options.SkipExecuteRequest)
+        if (options.SkipExecuteRequest)
         {
-            if (!_options.SkipExecuteHttpRequest
-                && context.ContextData.TryGetValue(nameof(HttpContext), out var value)
-                && value is HttpContext httpContext
-                && httpContext.Items.TryGetValue(HttpRequestActivity, out value)
-                && value is not null)
+            if (!options.SkipExecuteHttpRequest
+                && context.Features.TryGet<HttpContext>(out var httpContext)
+                // TODO: Fix this
+                && httpContext.Items.TryGetValue("TODO context key", out var untypedActivity)
+                && untypedActivity is Activity activity)
             {
-                activity = (Activity)value;
+                httpContextActivity = activity;
             }
             else
             {
@@ -48,253 +34,183 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             }
         }
 
-        activity ??= Source.StartActivity();
+        var span = httpContextActivity is not null
+            ? new ExecuteRequestSpan(httpContextActivity, context, false)
+            : ExecuteRequestSpan.Start(Source, context, options);
 
-        if (activity is null)
+        if (span is null)
         {
             return EmptyScope;
         }
 
-        context.ContextData[RequestActivity] = activity;
+        context.Features.Set(span);
 
-        return new ExecuteRequestScope(_enricher, context, activity);
-    }
-
-    public override void RetrievedDocumentFromCache(RequestContext context)
-    {
-        if (context.ContextData.TryGetValue(RequestActivity, out var activity))
-        {
-            Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity).AddEvent(new(nameof(RetrievedDocumentFromCache)));
-        }
-    }
-
-    public override void RetrievedDocumentFromStorage(RequestContext context)
-    {
-        if (context.ContextData.TryGetValue(RequestActivity, out var activity))
-        {
-            Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity).AddEvent(new(nameof(RetrievedDocumentFromStorage)));
-        }
-    }
-
-    public override void AddedDocumentToCache(RequestContext context)
-    {
-        if (context.ContextData.TryGetValue(RequestActivity, out var activity))
-        {
-            Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity).AddEvent(new(nameof(AddedDocumentToCache)));
-        }
-    }
-
-    public override void AddedOperationToCache(RequestContext context)
-    {
-        if (context.ContextData.TryGetValue(RequestActivity, out var activity))
-        {
-            Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity).AddEvent(new(nameof(AddedOperationToCache)));
-        }
-    }
-
-    public override IDisposable ParseDocument(RequestContext context)
-    {
-        if (_options.SkipParseDocument)
-        {
-            return EmptyScope;
-        }
-
-        var activity = Source.StartActivity();
-
-        if (activity is null)
-        {
-            return EmptyScope;
-        }
-
-        context.ContextData[RequestActivity] = activity;
-
-        return new ParseDocumentScope(_enricher, context, activity);
+        return span;
     }
 
     public override void RequestError(RequestContext context, Exception error)
     {
-        if (context.ContextData.TryGetValue(RequestActivity, out var value))
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
+            var activity = span.Activity;
 
-            var activity = (Activity)value;
-            _enricher.EnrichRequestError(context, activity, error);
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
+            activity.RecordException(error);
+            activity.MarkAsError();
         }
     }
 
     public override void RequestError(RequestContext context, IError error)
     {
-        if (context.ContextData.TryGetValue(RequestActivity, out var value))
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
+            var activity = span.Activity;
 
-            var activity = (Activity)value;
-            _enricher.EnrichRequestError(context, activity, error);
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
+            activity.RecordError(error);
+            activity.MarkAsError();
         }
+    }
+
+    public override IDisposable ParseDocument(RequestContext context)
+    {
+        if (options.SkipParseDocument)
+        {
+            return EmptyScope;
+        }
+
+        var span = ParsingSpan.Start(Source, context);
+
+        return span ?? EmptyScope;
+    }
+
+    // TODO: A dedicated event for parsing errors would be nice
+
+    public override IDisposable ValidateDocument(RequestContext context)
+    {
+        if (options.SkipValidateDocument)
+        {
+            return EmptyScope;
+        }
+
+        var span = ValidationSpan.Start(Source, context);
+
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        context.Features.Set(span);
+
+        return span;
     }
 
     public override void ValidationErrors(RequestContext context, IReadOnlyList<IError> errors)
     {
-        if (context.ContextData.TryGetValue(ValidateActivity, out var value))
+        if (!context.Features.TryGet<ValidationSpan>(out var span))
         {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-            var activity = (Activity)value;
-
-            foreach (var error in errors)
-            {
-                _enricher.EnrichValidationError(context, activity, error);
-            }
-
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
-    }
-
-    public override void ResolverError(IMiddlewareContext context, IError error)
-    {
-        if (context.LocalContextData.TryGetValue(ResolverActivity, out var localValue)
-            && localValue is Activity activity)
-        {
-            _enricher.EnrichResolverError(context, error, activity);
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
-    }
-
-    public override void ResolverError(RequestContext context, ISelection selection, IError error)
-    {
-        if (context.ContextData.TryGetValue(RequestActivity, out var value))
-        {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-            var activity = (Activity)value;
-
-            _enricher.EnrichResolverError(context, error, activity);
-
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
-    }
-
-    public override IDisposable ValidateDocument(RequestContext context)
-    {
-        if (_options.SkipValidateDocument)
-        {
-            return EmptyScope;
+            return;
         }
 
-        var activity = Source.StartActivity();
+        var activity = span.Activity;
 
-        if (activity is null)
+        foreach (var error in errors)
         {
-            return EmptyScope;
+            activity.RecordError(error);
         }
 
-        context.ContextData[ValidateActivity] = activity;
-
-        return new ValidateDocumentScope(_enricher, context, activity);
+        activity.MarkAsError();
     }
 
     public override IDisposable AnalyzeOperationCost(RequestContext context)
     {
-        if (_options.SkipAnalyzeComplexity)
+        if (options.SkipAnalyzeComplexity)
         {
             return EmptyScope;
         }
 
-        var activity = Source.StartActivity();
+        var span = AnalyzeOperationComplexitySpan.Start(Source, context);
 
-        if (activity is null)
+        if (span is null)
         {
             return EmptyScope;
         }
 
-        context.ContextData[ComplexityActivity] = activity;
+        context.Features.Set(span);
 
-        return new AnalyzeOperationComplexityScope(_enricher, context, activity);
+        return span;
     }
 
     public override void OperationCost(RequestContext context, double fieldCost, double typeCost)
     {
-        if (context.ContextData.TryGetValue(ComplexityActivity, out var value))
+        if (!context.Features.TryGet<AnalyzeOperationComplexitySpan>(out var span))
         {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-            var activity = (Activity)value;
-            _enricher.EnrichOperationCost(context, activity, fieldCost, typeCost);
-        }
-    }
-
-    public override IDisposable CoerceVariables(RequestContext context)
-    {
-        if (_options.SkipCoerceVariables)
-        {
-            return EmptyScope;
+            return;
         }
 
-        var activity = Source.StartActivity();
-
-        if (activity is null)
-        {
-            return EmptyScope;
-        }
-
-        return new CoerceVariablesScope(_enricher, context, activity);
+        span.SetCost(fieldCost, typeCost);
     }
 
     public override IDisposable CompileOperation(RequestContext context)
     {
-        if (_options.SkipCompileOperation)
+        if (options.SkipCompileOperation)
         {
             return EmptyScope;
         }
 
-        var activity = Source.StartActivity();
+        var span = CompileOperationSpan.Start(Source, context);
 
-        if (activity is null)
+        return span ?? EmptyScope;
+    }
+
+    public override IDisposable CoerceVariables(RequestContext context)
+    {
+        if (options.SkipCoerceVariables)
         {
             return EmptyScope;
         }
 
-        return new CompileOperationScope(_enricher, context, activity);
+        var span = VariableCoercionSpan.Start(Source, context);
+
+        return span ?? EmptyScope;
     }
 
     public override IDisposable ExecuteOperation(RequestContext context)
     {
-        if (_options.SkipExecuteOperation)
+        if (options.SkipExecuteOperation)
         {
             return EmptyScope;
         }
 
-        var activity = Source.StartActivity();
+        var span = ExecuteOperationSpan.Start(Source, context);
 
-        if (activity is null)
-        {
-            return EmptyScope;
-        }
-
-        return new ExecuteOperationScope(_enricher, context, activity);
+        return span ?? EmptyScope;
     }
 
-    public override IDisposable ExecuteStream(IOperation operation)
+    public override IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
-        var activity = Source.StartActivity();
-
-        if (activity is null)
+        if (options.SkipResolveFieldValue)
         {
             return EmptyScope;
         }
 
-        return activity;
+        var span = ResolveFieldSpan.Start(Source, context);
+
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        context.Features.Set(span);
+
+        return span;
+    }
+
+    public override void ResolverError(IMiddlewareContext context, IError error)
+    {
+        if (context.Features.TryGet<ResolveFieldSpan>(out var span))
+        {
+            span.Activity.RecordError(error);
+            span.Activity.MarkAsError();
+        }
     }
 
     public override IDisposable OnSubscriptionEvent(RequestContext context, ulong subscriptionId)
@@ -309,26 +225,35 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return activity;
     }
 
-    public override IDisposable ResolveFieldValue(IMiddlewareContext context)
+    public override void RetrievedDocumentFromCache(RequestContext context)
     {
-        if (_options.SkipResolveFieldValue)
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
-            return EmptyScope;
+            span.Activity.AddEvent(new(nameof(RetrievedDocumentFromCache)));
         }
+    }
 
-        var activity = Source.StartActivity();
-
-        if (activity is null)
+    public override void RetrievedDocumentFromStorage(RequestContext context)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
-            return EmptyScope;
+            span.Activity.AddEvent(new(nameof(RetrievedDocumentFromStorage)));
         }
+    }
 
-        _enricher.EnrichResolveFieldValue(context, activity);
-        activity.SetStatus(Status.Ok);
-        activity.SetStatus(ActivityStatusCode.Ok);
+    public override void AddedDocumentToCache(RequestContext context)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
+        {
+            span.Activity.AddEvent(new(nameof(AddedDocumentToCache)));
+        }
+    }
 
-        context.SetLocalState(ResolverActivity, activity);
-
-        return activity;
+    public override void AddedOperationToCache(RequestContext context)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
+        {
+            span.Activity.AddEvent(new(nameof(AddedOperationToCache)));
+        }
     }
 }
