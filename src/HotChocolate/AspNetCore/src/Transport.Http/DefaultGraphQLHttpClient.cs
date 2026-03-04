@@ -24,8 +24,6 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 {
-    private const string JsonContentTypeWithCharsetUtf8 = ContentType.Json + "; charset=utf-8";
-
     private readonly HttpClient _http;
     private readonly bool _disposeInnerClient;
 
@@ -194,7 +192,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         var internalBuffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
         var content = new ByteArrayContent(internalBuffer, 0, arrayWriter.Length);
-        content.Headers.TryAddWithoutValidation("Content-Type", JsonContentTypeWithCharsetUtf8);
+        content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
         return content;
     }
 
@@ -217,11 +215,11 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         var form = new MultipartFormDataContent();
 
         var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
-        operation.Headers.TryAddWithoutValidation("Content-Type", JsonContentTypeWithCharsetUtf8);
+        operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
         form.Add(operation, "operations");
 
         var fileMap = new ByteArrayContent(buffer, 0, start);
-        fileMap.Headers.TryAddWithoutValidation("Content-Type", JsonContentTypeWithCharsetUtf8);
+        fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
         form.Add(fileMap, "map");
 
         foreach (var fileInfo in fileInfos)
