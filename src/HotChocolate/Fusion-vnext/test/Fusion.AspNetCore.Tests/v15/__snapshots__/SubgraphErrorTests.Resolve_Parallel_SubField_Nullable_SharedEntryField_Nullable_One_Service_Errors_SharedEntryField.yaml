@@ -21,7 +21,7 @@ response:
           "message": "Unexpected Execution Error",
           "path": [
             "viewer",
-            "null"
+            "name"
           ]
         }
       ]

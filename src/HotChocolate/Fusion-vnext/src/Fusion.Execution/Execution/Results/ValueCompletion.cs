@@ -48,15 +48,25 @@ internal sealed class ValueCompletion
         ErrorTrie? errorTrie,
         SelectionSetNode? selectionSetNode)
     {
-        // if (source is not { ValueKind: JsonValueKind.Object })
-        // {
-        //     var error = errorTrie?.FindFirstError() ??
-        //         ErrorBuilder.New()
-        //             .SetMessage("Unexpected Execution Error")
-        //             .Build();
-        //
-        //     return BuildErrorResult(target, selectionSetNode, error, target.Path);
-        // }
+        // If we do not have an object at this point, it means the field we're trying to extract
+        // did not exist in the source schema response or it was null.
+        if (source is not { ValueKind: JsonValueKind.Object })
+        {
+            if (selectionSetNode is null)
+            {
+                // The only way that selectionSetNode could be null is in the case of the introspection node.
+                // There we don't have any errors to handle, so we should never get here in practice.
+                throw new InvalidOperationException($"Expected to have a {nameof(SelectionSetNode)}.");
+            }
+
+            // TODO: Maybe we should also attempt to see if we can get an error by going up the path here.
+            var error = errorTrie?.FindFirstError() ??
+                ErrorBuilder.New()
+                    .SetMessage("Unexpected Execution Error")
+                    .Build();
+
+            return BuildErrorResult(target, selectionSetNode, error, target.Path);
+        }
 
         foreach (var property in source.EnumerateObject())
         {
@@ -69,7 +79,19 @@ internal sealed class ValueCompletion
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
-            if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
+            // TODO: Eww
+            var matchingFieldSelection = selectionSetNode?.Selections
+                .OfType<FieldNode>()
+                .First(x => x.Alias?.Value == selection.ResponseName || x.Name.Value == selection.ResponseName);
+
+            if (!TryCompleteValue(
+                    property.Value,
+                    resultField,
+                    errorTrieForResponseName,
+                    selection,
+                    matchingFieldSelection!.SelectionSet!,
+                    selection.Type,
+                    0))
             {
                 switch (_errorHandlingMode)
                 {
@@ -99,6 +121,34 @@ internal sealed class ValueCompletion
         IError error,
         Path path)
     {
+        var parentSelection = target.AssertSelection();
+        var parentType = parentSelection.Type.NamedType();
+
+        var selectionsNodes = new Queue<ISelectionNode>(selectionSetNode.Selections);
+
+        while (selectionsNodes.TryDequeue(out var selectionNode))
+        {
+            if (selectionNode is FieldNode field)
+            {
+                var responseName = field.Alias?.Value ?? field.Name.Value;
+
+                if (!target.TryGetProperty(responseName, out var fieldResult)
+                    || fieldResult.IsInternal)
+                {
+                    continue;
+                }
+
+                var selection = fieldResult.AssertSelection();
+            }
+            else if (selectionNode is InlineFragmentNode { TypeCondition: null } inlineFragment)
+            {
+                foreach (var inlineFragmentSelectionNode in inlineFragment.SelectionSet.Selections)
+                {
+                    selectionsNodes.Enqueue(inlineFragmentSelectionNode);
+                }
+            }
+        }
+
         // foreach (var responseName in responseNames)
         // {
         //     if (!target.TryGetProperty(responseName, out var fieldResult)
@@ -110,7 +160,6 @@ internal sealed class ValueCompletion
         //     var selection = fieldResult.AssertSelection();
         //     var errorWithPath = ErrorBuilder.FromError(error)
         //         .SetPath(path.Append(responseName))
-        //         .AddLocation(selection.SyntaxNodes[0].Node)
         //         .Build();
         //     errorWithPath = _errorHandler.Handle(errorWithPath);
         //
@@ -156,14 +205,12 @@ internal sealed class ValueCompletion
         return true;
     }
 
-    // TODO: When extracting an error from a path below the current field,
-    //       we should try to use the path of the original error if it's
-    //       part of what was selected.
     private bool TryCompleteValue(
         SourceResultElement source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
+        SelectionSetNode selectionSetNode,
         IType type,
         int depth)
     {
@@ -176,7 +223,6 @@ internal sealed class ValueCompletion
                 {
                     error = ErrorBuilder.FromError(errorFromPath)
                         .SetPath(target.Path)
-                        .AddLocation(selection.SyntaxNodes[0].Node)
                         .Build();
                 }
                 else
@@ -185,7 +231,6 @@ internal sealed class ValueCompletion
                         .SetMessage("Cannot return null for non-nullable field.")
                         .SetCode(ErrorCodes.Execution.NonNullViolation)
                         .SetPath(target.Path)
-                        .AddLocation(selection.SyntaxNodes[0].Node)
                         .Build();
                 }
 
@@ -206,29 +251,39 @@ internal sealed class ValueCompletion
 
         if (source.IsNullOrUndefined())
         {
-            // If the value is null, it might've been nulled due to a
-            // down-stream null propagation.
-            // So we try to get an error that is associated with this field
-            // or with a path below it.
+            // If the value is null, it might've been nulled due to a down-stream null propagation.
+            // So we try to get an error that is associated with this field or with a path below it.
             if (errorTrie?.FindFirstError() is { } error)
             {
-                var errorWithPath = ErrorBuilder.FromError(error)
-                    .SetPath(target.Path)
-                    .AddLocation(selection.SyntaxNodes[0].Node)
-                    .Build();
-                errorWithPath = _errorHandler.Handle(errorWithPath);
-
-                _store.AddError(errorWithPath);
-
-                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                // If the field has an error, we need to check if this field is a "shared" field like `viewer`.
+                if (CouldFieldHaveOutstandingPartialPatches(type))
                 {
-                    return false;
+                    // TODO: If the field is a "shared" field, we need to check if producing errors for the child selections
+                    //       contributed by the current execution node would cause a null propagation that erases the field.
+                    _store.AddPendingError(target.Path, error, selectionSetNode);
+
+                    return true;
+                }
+                else
+                {
+                    // If the field isn't a "shared" field, we can just produce an error for it.
+                    var errorWithPath = ErrorBuilder.FromError(error)
+                        .SetPath(target.Path)
+                        .Build();
+                    errorWithPath = _errorHandler.Handle(errorWithPath);
+
+                    _store.AddError(errorWithPath);
+
+                    if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                    {
+                        return false;
+                    }
+
+                    return true;
                 }
             }
-            else
-            {
-                target.SetNullValue();
-            }
+
+            target.SetNullValue();
 
             return true;
         }
@@ -236,13 +291,13 @@ internal sealed class ValueCompletion
         switch (type.Kind)
         {
             case TypeKind.List:
-                return TryCompleteList(source, target, errorTrie, selection, type, depth);
+                return TryCompleteList(source, target, errorTrie, selection, selectionSetNode, type, depth);
 
             case TypeKind.Object:
-                return TryCompleteObjectValue(selection, type, source, errorTrie, depth, target);
+                return TryCompleteObjectValue(selection, selectionSetNode, type, source, errorTrie, depth, target);
 
             case TypeKind.Interface or TypeKind.Union:
-                return TryCompleteAbstractValue(source, target, errorTrie, selection, type, depth);
+                return TryCompleteAbstractValue(source, target, errorTrie, selection, selectionSetNode, type, depth);
 
             case TypeKind.Scalar or TypeKind.Enum:
                 target.SetLeafValue(source);
@@ -253,11 +308,17 @@ internal sealed class ValueCompletion
         }
     }
 
+    private static bool CouldFieldHaveOutstandingPartialPatches(IType type)
+    {
+        return true;
+    }
+
     private bool TryCompleteList(
         SourceResultElement source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
+        SelectionSetNode selectionSetNode,
         IType type,
         int depth)
     {
@@ -284,7 +345,6 @@ internal sealed class ValueCompletion
             {
                 var errorWithPath = ErrorBuilder.FromError(error)
                     .SetPath(target.Path.Append(i))
-                    .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
@@ -336,6 +396,7 @@ TryCompleteList_MoveNext:
                     targetElement,
                     errorTrieForIndex,
                     selection,
+                    selectionSetNode,
                     elementType,
                     depth);
             }
@@ -348,12 +409,19 @@ TryCompleteList_MoveNext:
 
             if (elementType.IsAbstractType())
             {
-                return TryCompleteAbstractValue(sourceElement,
-                    targetElement, errorTrieForIndex, selection, elementType, depth);
+                return TryCompleteAbstractValue(
+                    sourceElement,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    selectionSetNode,
+                    elementType,
+                    depth);
             }
 
             return TryCompleteObjectValue(
                 selection,
+                selectionSetNode,
                 elementType,
                 sourceElement,
                 errorTrieForIndex,
@@ -364,6 +432,7 @@ TryCompleteList_MoveNext:
 
     private bool TryCompleteObjectValue(
         Selection parentSelection,
+        SelectionSetNode selectionSetNode,
         IType type,
         SourceResultElement source,
         ErrorTrie? errorTrie,
@@ -373,7 +442,7 @@ TryCompleteList_MoveNext:
         var namedType = type.NamedType();
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
 
-        return TryCompleteObjectValue(source, target, errorTrie, parentSelection, objectType, depth);
+        return TryCompleteObjectValue(source, target, errorTrie, parentSelection, selectionSetNode, objectType, depth);
     }
 
     private bool TryCompleteObjectValue(
@@ -381,6 +450,7 @@ TryCompleteList_MoveNext:
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection parentSelection,
+        SelectionSetNode selectionSetNode,
         IObjectTypeDefinition objectType,
         int depth)
     {
@@ -407,8 +477,14 @@ TryCompleteList_MoveNext:
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
-            if (!TryCompleteValue(property.Value,
-                targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
+            if (!TryCompleteValue(
+                    property.Value,
+                    targetProperty,
+                    errorTrieForResponseName,
+                    selection,
+                    selectionSetNode,
+                    selection.Type,
+                    depth))
             {
                 return false;
             }
@@ -422,9 +498,10 @@ TryCompleteList_MoveNext:
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
+        SelectionSetNode selectionSetNode,
         IType type,
         int depth)
-        => TryCompleteObjectValue(source, target, errorTrie, selection, GetType(type, source), depth);
+        => TryCompleteObjectValue(source, target, errorTrie, selection, selectionSetNode, GetType(type, source), depth);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IObjectTypeDefinition GetType(IType type, SourceResultElement data)

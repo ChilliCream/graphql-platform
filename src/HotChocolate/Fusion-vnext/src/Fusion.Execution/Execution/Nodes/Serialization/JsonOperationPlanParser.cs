@@ -351,7 +351,105 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         OperationDefinitionNode operationDefinitionNode,
         SelectionPath sourceSelectionPath)
     {
-        throw new NotImplementedException();
+        var current = operationDefinitionNode.SelectionSet;
+
+        foreach (var segment in sourceSelectionPath.Segments)
+        {
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Root:
+                    break;
+
+                case SelectionPathSegmentKind.Field:
+                    var fieldNode = FindFieldThroughAnonymousFragments(current, segment.Name);
+
+                    if (fieldNode?.SelectionSet is null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Field '{segment.Name}' not found or has no selection set.");
+                    }
+
+                    current = fieldNode.SelectionSet;
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment:
+                    var fragmentNode = FindInlineFragmentThroughAnonymousFragments(current, segment.Name);
+
+                    if (fragmentNode is null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Inline fragment on type '{segment.Name}' not found.");
+                    }
+
+                    current = fragmentNode.SelectionSet;
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        $"Selection path segment kind '{segment.Kind}' is not supported.");
+            }
+        }
+
+        return current;
+
+        static FieldNode? FindFieldThroughAnonymousFragments(
+            SelectionSetNode selectionSet,
+            string fieldName)
+        {
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection is FieldNode field
+                    && (field.Name.Value == fieldName || field.Alias?.Value == fieldName))
+                {
+                    return field;
+                }
+            }
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection is InlineFragmentNode { TypeCondition: null } anonymous)
+                {
+                    var found = FindFieldThroughAnonymousFragments(anonymous.SelectionSet, fieldName);
+
+                    if (found is not null)
+                    {
+                        return found;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        static InlineFragmentNode? FindInlineFragmentThroughAnonymousFragments(
+            SelectionSetNode selectionSet,
+            string typeName)
+        {
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection is InlineFragmentNode fragment
+                    && fragment.TypeCondition?.Name.Value == typeName)
+                {
+                    return fragment;
+                }
+            }
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection is InlineFragmentNode { TypeCondition: null } anonymous)
+                {
+                    var found = FindInlineFragmentThroughAnonymousFragments(
+                        anonymous.SelectionSet, typeName);
+
+                    if (found is not null)
+                    {
+                        return found;
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 
     private static (IntrospectionExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseIntrospectionNode(

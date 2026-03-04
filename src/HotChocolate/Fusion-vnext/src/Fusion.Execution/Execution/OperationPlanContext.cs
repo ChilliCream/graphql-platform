@@ -308,6 +308,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal OperationResult Complete(bool reusable = false)
     {
+        _resultStore.ApplyPendingErrors();
+
         var environment = Schema.TryGetEnvironment();
 
         var trace = _collectTelemetry

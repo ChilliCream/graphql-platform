@@ -36,7 +36,11 @@ internal sealed class FetchResultStore : IDisposable
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
     private List<IError>? _errors;
+    private Dictionary<Path, List<PendingError>>? _pendingErrorsByPath;
     private bool _disposed;
+
+    // TODO: Move
+    private sealed record PendingError(IError Error, SelectionSetNode SelectionSetNode);
 
     public FetchResultStore(
         ISchemaDefinition schema,
@@ -88,13 +92,6 @@ internal sealed class FetchResultStore : IDisposable
     public IReadOnlyList<IError>? Errors => _errors;
 
     public ConcurrentStack<IDisposable> MemoryOwners => _memory;
-
-    public bool AddPartialResults(
-        SelectionPath sourcePath,
-        ReadOnlySpan<SourceSchemaResult> results,
-        SelectionSetNode selectionSetNode)
-        // TODO: Is this correct?
-        => AddPartialResults(sourcePath, results, selectionSetNode, containsErrors: true);
 
     public bool AddPartialResults(
         SelectionPath sourcePath,
@@ -186,6 +183,232 @@ internal sealed class FetchResultStore : IDisposable
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+        }
+    }
+
+    public bool AddPartialResults(SourceResultDocument document)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(document);
+
+        lock (_lock)
+        {
+            var partial = document.Root;
+            var data = _result.Data;
+
+            return _valueCompletion.BuildResult(
+                partial,
+                data,
+                errorTrie: null,
+                selectionSetNode: null);
+        }
+    }
+
+    public void AddError(IError error)
+    {
+        _errors ??= [];
+        _errors.Add(error);
+    }
+
+    public void AddPendingError(Path path, IError error, SelectionSetNode selectionSetNode)
+    {
+        _pendingErrorsByPath ??= [];
+
+        if (!_pendingErrorsByPath.TryGetValue(path, out var pendingErrors))
+        {
+            pendingErrors = [];
+            _pendingErrorsByPath.Add(path, pendingErrors);
+        }
+
+        pendingErrors.Add(new PendingError(error, selectionSetNode));
+    }
+
+    public void ApplyPendingErrors()
+    {
+        if (_pendingErrorsByPath is null)
+        {
+            return;
+        }
+
+        var resultData = _result.Data;
+        if (resultData.IsInvalidated)
+        {
+            return;
+        }
+
+        // TODO: Maybe this should also be a trie
+        foreach (var (path, pendingErrors) in _pendingErrorsByPath)
+        {
+            var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+            if (element.IsNullOrInvalidated)
+            {
+                continue;
+            }
+
+            foreach (var pendingError in pendingErrors)
+            {
+                // TODO: here we would have to handle intermediary interfaces and type conditions again...
+                foreach (var selection in pendingError.SelectionSetNode.Selections.OfType<FieldNode>())
+                {
+                    var responseName = selection.Alias?.Value ?? selection.Name.Value;
+
+                    // TODO: This should also handle skipped properties...
+                    if (!element.TryGetProperty(responseName, out var property)
+                        || property.IsInternal
+                        || property.IsNullOrInvalidated)
+                    {
+                        continue;
+                    }
+
+                    var errorWithPath = ErrorBuilder.FromError(pendingError.Error)
+                        .SetPath(property.Path)
+                        .Build();
+
+                    errorWithPath = _errorHandler.Handle(errorWithPath);
+
+                    // TODO: This could emit duplicate errors...
+                    AddError(errorWithPath);
+                }
+            }
+        }
+    }
+
+    public bool AddErrors(IError error, SelectionSetNode selectionSetNode, params ReadOnlySpan<Path> paths)
+    {
+        lock (_lock)
+        {
+            ref var path = ref MemoryMarshal.GetReference(paths);
+            ref var end = ref Unsafe.Add(ref path, paths.Length);
+            var resultData = _result.Data;
+
+            while (Unsafe.IsAddressLessThan(ref path, ref end))
+            {
+                if (resultData.IsInvalidated)
+                {
+                    return false;
+                }
+
+                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+                if (element.IsNullOrInvalidated)
+                {
+                    goto AddErrors_Next;
+                }
+
+                var canExecutionContinue =
+                    _valueCompletion.BuildErrorResult(
+                        element,
+                        selectionSetNode,
+                        error,
+                        path);
+                if (!canExecutionContinue)
+                {
+                    resultData.Invalidate();
+                    return false;
+                }
+
+AddErrors_Next:
+                path = ref Unsafe.Add(ref path, 1)!;
+            }
+        }
+
+        return true;
+    }
+
+    public ImmutableArray<VariableValues> CreateVariableValueSets(
+        SelectionPath selectionSet,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
+        lock (_lock)
+        {
+            var elements = CollectTargetElements(selectionSet);
+
+            if (elements is null)
+            {
+                return [];
+            }
+
+            return BuildVariableValueSets(elements, requestVariables, requiredData);
+        }
+    }
+
+    /// <summary>
+    /// Creates a deduplicated set of variable values across multiple target selection paths.
+    /// Elements from all targets are combined and deduplication is applied globally, so that
+    /// entities at different target locations that produce identical variable values are merged
+    /// into a single <see cref="VariableValues"/> entry via <see cref="VariableValues.AdditionalPaths"/>.
+    /// </summary>
+    public ImmutableArray<VariableValues> CreateVariableValueSets(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
+        lock (_lock)
+        {
+            var combined = _collectTargetCombined;
+            combined.Clear();
+
+            foreach (var selectionSet in selectionSets)
+            {
+                var elements = CollectTargetElements(selectionSet);
+
+                if (elements is not null)
+                {
+                    combined.AddRange(elements);
+                }
+            }
+
+            if (combined.Count == 0)
+            {
+                return [];
+            }
+
+            return BuildVariableValueSets(combined, requestVariables, requiredData);
+        }
+    }
+
+    public PooledArrayWriter CreateRentedBuffer()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var buffer = new PooledArrayWriter();
+        _memory.Push(buffer);
+        return buffer;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        while (_memory.TryPop(out var memory))
+        {
+            memory.Dispose();
         }
     }
 
@@ -285,71 +508,6 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    public bool AddPartialResults(SourceResultDocument document)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(document);
-
-        lock (_lock)
-        {
-            var partial = document.Root;
-            var data = _result.Data;
-
-            return _valueCompletion.BuildResult(
-                partial,
-                data,
-                errorTrie: null,
-                selectionSetNode: null);
-        }
-    }
-
-    public void AddError(IError error)
-    {
-        _errors ??= [];
-        _errors.Add(error);
-    }
-
-    public bool AddErrors(IError error, SelectionSetNode selectionSetNode, params ReadOnlySpan<Path> paths)
-    {
-        lock (_lock)
-        {
-            ref var path = ref MemoryMarshal.GetReference(paths);
-            ref var end = ref Unsafe.Add(ref path, paths.Length);
-            var resultData = _result.Data;
-
-            while (Unsafe.IsAddressLessThan(ref path, ref end))
-            {
-                if (resultData.IsInvalidated)
-                {
-                    return false;
-                }
-
-                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
-                if (element.IsNullOrInvalidated)
-                {
-                    goto AddErrors_Next;
-                }
-
-                var canExecutionContinue =
-                    _valueCompletion.BuildErrorResult(
-                        element,
-                        selectionSetNode,
-                        error,
-                        path);
-                if (!canExecutionContinue)
-                {
-                    resultData.Invalidate();
-                    return false;
-                }
-
-AddErrors_Next:
-                path = ref Unsafe.Add(ref path, 1)!;
-            }
-        }
-
-        return true;
-    }
-
     private bool SaveSafeResult(
         CompositeResultElement resultData,
         Path path,
@@ -408,80 +566,6 @@ AddErrors_Next:
         return false;
     }
 
-    public ImmutableArray<VariableValues> CreateVariableValueSets(
-        SelectionPath selectionSet,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(selectionSet);
-        ArgumentNullException.ThrowIfNull(requestVariables);
-
-        if (requiredData.Length == 0)
-        {
-            throw new ArgumentException(
-                "The required data span must contain at least one requirement.",
-                nameof(requiredData));
-        }
-
-        lock (_lock)
-        {
-            var elements = CollectTargetElements(selectionSet);
-
-            if (elements is null)
-            {
-                return [];
-            }
-
-            return BuildVariableValueSets(elements, requestVariables, requiredData);
-        }
-    }
-
-    /// <summary>
-    /// Creates a deduplicated set of variable values across multiple target selection paths.
-    /// Elements from all targets are combined and deduplication is applied globally, so that
-    /// entities at different target locations that produce identical variable values are merged
-    /// into a single <see cref="VariableValues"/> entry via <see cref="VariableValues.AdditionalPaths"/>.
-    /// </summary>
-    public ImmutableArray<VariableValues> CreateVariableValueSets(
-        ReadOnlySpan<SelectionPath> selectionSets,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(requestVariables);
-
-        if (requiredData.Length == 0)
-        {
-            throw new ArgumentException(
-                "The required data span must contain at least one requirement.",
-                nameof(requiredData));
-        }
-
-        lock (_lock)
-        {
-            var combined = _collectTargetCombined;
-            combined.Clear();
-
-            foreach (var selectionSet in selectionSets)
-            {
-                var elements = CollectTargetElements(selectionSet);
-
-                if (elements is not null)
-                {
-                    combined.AddRange(elements);
-                }
-            }
-
-            if (combined.Count == 0)
-            {
-                return [];
-            }
-
-            return BuildVariableValueSets(combined, requestVariables, requiredData);
-        }
-    }
-
     // Caller must hold _lock for reading.
     private List<CompositeResultElement>? CollectTargetElements(SelectionPath selectionSet)
     {
@@ -537,9 +621,7 @@ AddErrors_Next:
                 }
             }
 
-            var temp = current;
-            current = next;
-            next = temp;
+            (current, next) = (next, current);
             next.Clear();
 
             if (current.Count == 0)
@@ -1214,15 +1296,6 @@ AddErrors_Next:
         }
     }
 
-    public PooledArrayWriter CreateRentedBuffer()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var buffer = new PooledArrayWriter();
-        _memory.Push(buffer);
-        return buffer;
-    }
-
     private static SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
     {
         if (sourcePath.IsRoot)
@@ -1338,21 +1411,6 @@ AddErrors_Next:
 
         throw new InvalidOperationException(
             $"The path segment '{parent}' does not exist in the data.");
-    }
-
-    public void Dispose()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        _disposed = true;
-
-        while (_memory.TryPop(out var memory))
-        {
-            memory.Dispose();
-        }
     }
 
     private sealed class SingleValueNodeComparer : IEqualityComparer<IValueNode>
