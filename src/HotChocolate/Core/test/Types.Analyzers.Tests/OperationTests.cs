@@ -66,6 +66,80 @@ public class OperationTests
     }
 
     [Fact]
+    public async Task Internal_Resolvers_Are_Ignored_By_Default()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static int GetPublic()
+                    => 1;
+
+                internal static int GetInternal()
+                    => 2;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Internal_Resolvers_Can_Be_Included_With_ModuleOptions()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Test", ModuleOptions.Default | ModuleOptions.IncludeInternalMembers)]
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static int GetPublic()
+                    => 1;
+
+                internal static int GetInternal()
+                    => 2;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Internal_NodeResolver_Is_Added_Without_InternalMember_Option()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Threading.Tasks;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+                [NodeResolver]
+                internal static Task<Foo?> GetFooById(int id)
+                    => Task.FromResult<Foo?>(null);
+
+                internal static int GetHiddenValue()
+                    => 123;
+            }
+
+            public class Foo
+            {
+                public string Id { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Root_Projection_Single_Entity()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

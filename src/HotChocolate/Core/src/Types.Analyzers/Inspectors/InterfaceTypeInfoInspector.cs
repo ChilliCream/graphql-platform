@@ -19,6 +19,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         var diagnostics = ImmutableArray<Diagnostic>.Empty;
+        var includeInternalMembers = context.SemanticModel.Compilation.IncludeInternalMembers();
 
         if (!IsInterfaceType(context, out var possibleType, out var classSymbol, out var runtimeType))
         {
@@ -48,10 +49,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is
-                Accessibility.Public or
-                Accessibility.Internal or
-                Accessibility.ProtectedAndInternal)
+            if (IsVisibleResolverMember(member, includeInternalMembers))
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {
@@ -98,6 +96,16 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
         syntaxInfo = interfaceTypeInfo;
         return true;
     }
+
+    private static bool IsVisibleResolverMember(ISymbol member, bool includeInternalMembers)
+        => member.DeclaredAccessibility switch
+        {
+            Accessibility.Public => true,
+            Accessibility.Internal => includeInternalMembers,
+            Accessibility.ProtectedOrInternal => includeInternalMembers,
+            Accessibility.ProtectedAndInternal => includeInternalMembers,
+            _ => false
+        };
 
     private static bool IsInterfaceType(
         GeneratorSyntaxContext context,
