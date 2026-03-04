@@ -131,6 +131,9 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
             configure(context, state);
 
+            var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
+            accessor.Context = context;
+
             await _pipeline(context);
         }
         catch (Exception ex)
