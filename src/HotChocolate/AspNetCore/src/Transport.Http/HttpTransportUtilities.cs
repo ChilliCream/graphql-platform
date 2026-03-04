@@ -11,6 +11,7 @@ namespace HotChocolate.Transport.Http;
 internal static class HttpTransportUtilities
 {
     private static readonly Encoding s_utf8 = Encoding.UTF8;
+    private static readonly int s_utf8CodePage = s_utf8.CodePage;
 
     public static Encoding? GetEncoding(string? charset)
     {
@@ -43,7 +44,7 @@ internal static class HttpTransportUtilities
 
     public static bool NeedsTranscoding([NotNullWhen(true)] Encoding? sourceEncoding)
         => sourceEncoding is not null
-            && !Equals(sourceEncoding.EncodingName, s_utf8.EncodingName);
+            && sourceEncoding.CodePage != s_utf8CodePage;
 
     public static Stream GetTranscodingStream(Stream contentStream, Encoding sourceEncoding)
         => Encoding.CreateTranscodingStream(
