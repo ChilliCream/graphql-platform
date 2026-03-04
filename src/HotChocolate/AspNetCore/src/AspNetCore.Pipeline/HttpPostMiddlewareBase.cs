@@ -259,7 +259,13 @@ HANDLE_RESULT:
 
         foreach (var request in requests)
         {
-            context.Response.RegisterForDispose(request);
+            if (request.Variables is not null
+                || request.Extensions is not null
+                || request.VariablesMemoryOwner is not null
+                || request.ExtensionsMemoryOwner is not null)
+            {
+                context.Response.RegisterForDispose(request);
+            }
         }
 
         return requests;
