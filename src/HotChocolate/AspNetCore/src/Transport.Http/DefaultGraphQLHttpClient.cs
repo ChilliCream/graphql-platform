@@ -1,5 +1,6 @@
 // ReSharper disable IntroduceOptionalParameters.Global
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
@@ -24,6 +25,10 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 {
+    private const string DefaultAcceptHeader = ContentType.GraphQL + ", " + ContentType.Json + ", " + ContentType.EventStream + ", " + ContentType.GraphQLJsonLine;
+    private const string GraphQLOverHttpAcceptHeader = ContentType.GraphQL + ", " + ContentType.GraphQLJsonLine;
+    private const string GraphQLOverSseAcceptHeader = ContentType.EventStream;
+
     private readonly HttpClient _http;
     private readonly bool _disposeInnerClient;
 
@@ -149,10 +154,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         };
 
         message.Headers.Accept.Clear();
-        foreach (var contentType in request.Accept)
-        {
-            message.Headers.Accept.Add(contentType);
-        }
+        AddAcceptHeaders(message, request.Accept);
 
         if (method == GraphQLHttpMethod.Post)
         {
@@ -178,6 +180,34 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         }
 
         return message;
+    }
+
+    private static void AddAcceptHeaders(
+        HttpRequestMessage message,
+        ImmutableArray<MediaTypeWithQualityHeaderValue> accept)
+    {
+        if (accept == GraphQLHttpRequest.DefaultAcceptContentTypes)
+        {
+            message.Headers.TryAddWithoutValidation("Accept", DefaultAcceptHeader);
+            return;
+        }
+
+        if (accept == GraphQLHttpRequest.GraphQLOverHttp)
+        {
+            message.Headers.TryAddWithoutValidation("Accept", GraphQLOverHttpAcceptHeader);
+            return;
+        }
+
+        if (accept == GraphQLHttpRequest.GraphQLOverSse)
+        {
+            message.Headers.TryAddWithoutValidation("Accept", GraphQLOverSseAcceptHeader);
+            return;
+        }
+
+        foreach (var contentType in accept)
+        {
+            message.Headers.Accept.Add(contentType);
+        }
     }
 
     private static ByteArrayContent CreatePostContent(
