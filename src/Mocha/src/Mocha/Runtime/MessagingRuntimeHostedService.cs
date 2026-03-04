@@ -8,7 +8,7 @@ namespace Mocha;
 /// </summary>
 internal sealed class MessagingRuntimeHostedService(IMessagingRuntime runtime) : IHostedService
 {
-    private readonly MessagingRuntime? _runtime = (MessagingRuntime)runtime;
+    private readonly MessagingRuntime _runtime = (MessagingRuntime)runtime;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
