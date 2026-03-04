@@ -143,6 +143,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         }
         finally
         {
+            var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
+            accessor.Context = null;
             pools.ReceiveContext.Return(context);
         }
     }
