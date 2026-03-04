@@ -1,0 +1,16 @@
+{
+  "activities": [
+    {
+      "OperationName": "BatchCoordinator",
+      "DisplayName": "Coordinate DataLoader Batches",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "dataloader_dispatch"
+        }
+      ],
+      "event": []
+    }
+  ]
+}

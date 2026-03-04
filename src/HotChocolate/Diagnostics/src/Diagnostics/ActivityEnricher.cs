@@ -172,6 +172,12 @@ public class ActivityEnricher(
         }
     }
 
+    public virtual void EnrichDataLoaderBatchDispatchCoordinator(Activity activity)
+    {
+        activity.DisplayName = "Coordinate DataLoader Batches";
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.DataLoaderDispatch);
+    }
+
     protected virtual string? CreateOperationDisplayName(RequestContext context, Operation? operation)
     {
         if (operation is null)

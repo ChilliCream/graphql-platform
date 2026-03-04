@@ -23,10 +23,10 @@ public class FusionActivityEnricher(
     private static FrozenDictionary<ExecutionNodeType, string> KindValues { get; } =
         new Dictionary<ExecutionNodeType, string>
         {
-            [ExecutionNodeType.Operation] = "operation",
-            [ExecutionNodeType.OperationBatch] = "operation-batch",
-            [ExecutionNodeType.Introspection] = "introspection",
-            [ExecutionNodeType.Node] = "node"
+            [ExecutionNodeType.Operation] = GraphQL.Operation.Step.KindValues.Operation,
+            [ExecutionNodeType.OperationBatch] = GraphQL.Operation.Step.KindValues.OperationBatch,
+            [ExecutionNodeType.Introspection] = GraphQL.Operation.Step.KindValues.Introspection,
+            [ExecutionNodeType.Node] = GraphQL.Operation.Step.KindValues.Node
         }.ToFrozenDictionary();
 
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)

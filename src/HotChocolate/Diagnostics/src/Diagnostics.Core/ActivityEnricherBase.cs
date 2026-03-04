@@ -403,7 +403,7 @@ public abstract class ActivityEnricherBase(
         OperationDefinitionNode? operationDefinition,
         OperationDocumentInfo documentInfo)
     {
-        activity.DisplayName = "Coerce Variable";
+        activity.DisplayName = "Coerce Variables";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.VariableCoercion);
 
         // TODO: This is new here. Why do we do this in other places?

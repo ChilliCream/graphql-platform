@@ -41,6 +41,14 @@ internal static class SemanticConventions
                 public const string Id = "graphql.operation.step.id";
                 public const string Kind = "graphql.operation.step.kind";
 
+                public static class KindValues
+                {
+                    public const string Operation = "operation";
+                    public const string OperationBatch = "operation-batch";
+                    public const string Introspection = "introspection";
+                    public const string Node = "node";
+                }
+
                 public static class Plan
                 {
                     public const string Id = "graphql.operation.step.plan.id";
@@ -92,6 +100,7 @@ internal static class SemanticConventions
                 public const string Keys = "graphql.dataloader.batch.keys";
             }
 
+            // TODO: This is unused
             public static class Cache
             {
                 public const string HitCount = "graphql.dataloader.cache.hit_count";
@@ -102,6 +111,7 @@ internal static class SemanticConventions
         public static class Source
         {
             public const string Name = "graphql.source.name";
+            // TODO: This is unused
             public const string Id = "graphql.source.id";
 
             public static class Operation
