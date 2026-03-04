@@ -10,16 +10,16 @@ public class Issue6605ReproTests
     [Fact]
     public async Task Mutation_Error_Type_With_Int_Field_Should_Not_Fail_Schema_Build()
     {
-        var exception = await Record.ExceptionAsync(async () =>
+        var schema =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddMutationConventions()
                 .AddMutationErrorConfiguration<CustomErrorConfig>()
-                .BuildSchemaAsync());
+                .BuildSchemaAsync();
 
-        Assert.Null(exception);
+        schema.MatchSnapshot();
     }
 
     public class CustomErrorConfig : MutationErrorConfiguration
