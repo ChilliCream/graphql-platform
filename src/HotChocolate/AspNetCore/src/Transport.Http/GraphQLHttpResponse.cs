@@ -162,13 +162,10 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         var stream = contentStream;
 
-        if (charSet is not null && !HttpTransportUtilities.IsUtf8Charset(charSet))
+        var sourceEncoding = HttpTransportUtilities.GetEncoding(charSet);
+        if (HttpTransportUtilities.NeedsTranscoding(sourceEncoding))
         {
-            var sourceEncoding = HttpTransportUtilities.GetEncoding(charSet);
-            if (HttpTransportUtilities.NeedsTranscoding(sourceEncoding))
-            {
-                stream = HttpTransportUtilities.GetTranscodingStream(contentStream, sourceEncoding);
-            }
+            stream = HttpTransportUtilities.GetTranscodingStream(contentStream, sourceEncoding);
         }
 
 #if FUSION
