@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.ObjectPool;
@@ -15,22 +16,18 @@ namespace HotChocolate.Fusion.Diagnostics;
 /// You can inherit from this class and override the enricher methods to provide more or
 /// less information.
 /// </summary>
-public class FusionActivityEnricher : ActivityEnricherBase
+public class FusionActivityEnricher(
+    ObjectPool<StringBuilder> stringBuilderPool,
+    InstrumentationOptions options) : ActivityEnricherBase(stringBuilderPool, options)
 {
-    private readonly InstrumentationOptions _options;
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="FusionActivityEnricher"/>.
-    /// </summary>
-    /// <param name="stringBuilderPool"></param>
-    /// <param name="options"></param>
-    protected FusionActivityEnricher(
-        ObjectPool<StringBuilder> stringBuilderPool,
-        InstrumentationOptions options)
-        : base(stringBuilderPool, options)
-    {
-        _options = options;
-    }
+    private static FrozenDictionary<ExecutionNodeType, string> KindValues { get; } =
+        new Dictionary<ExecutionNodeType, string>
+        {
+            [ExecutionNodeType.Operation] = "operation",
+            [ExecutionNodeType.OperationBatch] = "operation-batch",
+            [ExecutionNodeType.Introspection] = "introspection",
+            [ExecutionNodeType.Node] = "node"
+        }.ToFrozenDictionary();
 
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
@@ -44,12 +41,124 @@ public class FusionActivityEnricher : ActivityEnricherBase
             plan?.Id,
             plan?.Operation.Definition.Operation,
             plan?.OperationName);
-
-        if (context.Result is OperationResult { Errors: [_, ..] errors })
-        {
-            activity.SetTag(GraphQL.Errors.Count, errors.Count);
-        }
     }
+
+    public virtual void EnrichParseDocument(RequestContext context, Activity activity)
+    {
+        var plan = context.GetOperationPlan();
+
+        EnrichParseDocumentCore(activity, plan?.Operation.Definition, context.OperationDocumentInfo);
+    }
+
+    public virtual void EnrichValidateDocument(RequestContext context, Activity activity)
+    {
+        var plan = context.GetOperationPlan();
+
+        EnrichValidateDocumentCore(activity, plan?.Operation.Definition, context.OperationDocumentInfo);
+    }
+
+    public virtual void EnrichCoerceVariables(RequestContext context, Activity activity)
+    {
+        var plan = context.GetOperationPlan();
+
+        EnrichCoerceVariablesCore(activity, plan?.Operation.Definition, context.OperationDocumentInfo);
+    }
+
+    public virtual void EnrichPlanOperationScope(RequestContext context, Activity activity)
+    {
+        var plan = context.GetOperationPlan();
+
+        activity.DisplayName = "Plan Operation";
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
+
+        EnrichWithTags(activity, plan?.Operation.Definition, context.OperationDocumentInfo);
+    }
+
+    public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
+    {
+        var plan = context.GetOperationPlan();
+        activity.DisplayName =
+            plan?.OperationName is { } op
+                ? $"Execute Operation {op}"
+                : "Execute Operation";
+
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
+
+        EnrichWithTags(activity, plan?.Operation.Definition, context.OperationDocumentInfo);
+    }
+
+    public virtual void EnrichExecuteOperationNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName,
+        Activity activity)
+    {
+        activity.DisplayName = $"Execute Operation Node ({schemaName})";
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
+
+        EnrichOperationWithTags(
+            activity,
+            context.OperationPlan,
+            node,
+            node.Operation,
+            context.RequestContext.OperationDocumentInfo,
+            schemaName);
+    }
+
+    public virtual void EnrichExecuteOperationBatchNode(
+        OperationPlanContext context,
+        OperationBatchExecutionNode node,
+        string schemaName,
+        Activity activity)
+    {
+        activity.DisplayName = $"Execute Operation Batch Node ({schemaName})";
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
+
+        EnrichOperationWithTags(
+            activity,
+            context.OperationPlan,
+            node,
+            node.Operation,
+            context.RequestContext.OperationDocumentInfo,
+            schemaName);
+    }
+
+    public virtual void EnrichExecuteNodeFieldNode(
+        OperationPlanContext context,
+        NodeFieldExecutionNode node,
+        Activity activity)
+    {
+        activity.DisplayName = "Execute Node Field Node";
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
+
+        EnrichNodeWithTags(activity, node, context.OperationPlan);
+    }
+
+    public virtual void EnrichExecuteIntrospectionNode(
+        OperationPlanContext context,
+        IntrospectionExecutionNode node,
+        Activity activity)
+    {
+        activity.DisplayName = "Execute Introspection Node";
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
+
+        EnrichNodeWithTags(activity, node, context.OperationPlan);
+    }
+
+    public virtual void EnrichExecutionNodeError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        System.Exception error,
+        Activity activity)
+        => activity.RecordException(error);
+
+    public virtual void EnrichSourceSchemaError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        System.Exception error,
+        Activity activity)
+        => activity.RecordException(error);
 
     protected virtual string? CreateOperationDisplayName(RequestContext context, OperationPlan? plan)
     {
@@ -73,277 +182,35 @@ public class FusionActivityEnricher : ActivityEnricherBase
             names);
     }
 
-    public virtual void EnrichParseDocument(RequestContext context, Activity activity)
+    private static void EnrichOperationWithTags(
+        Activity activity,
+        OperationPlan plan,
+        ExecutionNode node,
+        OperationSourceText operation,
+        OperationDocumentInfo operationDocumentInfo,
+        string schemaName)
     {
-        activity.DisplayName = "Parse Document";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
+        EnrichNodeWithTags(activity, node, plan);
 
-        if (_options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
-
-        var plan = context.GetOperationPlan();
-
-        if (plan is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
-
-            if (!string.IsNullOrEmpty(plan.OperationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, plan.OperationName);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
-    }
-
-    public virtual void EnrichValidateDocument(RequestContext context, Activity activity)
-    {
-        activity.DisplayName = "Validate Document";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Validate);
-
-        if (_options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
-
-        var plan = context.GetOperationPlan();
-
-        if (plan is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
-
-            if (!string.IsNullOrEmpty(plan.OperationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, plan.OperationName);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
-    }
-
-    public virtual void EnrichCoerceVariables(RequestContext context, Activity activity)
-    {
-        activity.DisplayName = "Coerce Variable";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.VariableCoercion);
-
-        var plan = context.GetOperationPlan();
-
-        if (plan is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
-
-            if (!string.IsNullOrEmpty(plan.OperationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, plan.OperationName);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
-    }
-
-    public virtual void EnrichPlanOperationScope(RequestContext context, Activity activity)
-    {
-        activity.DisplayName = "Plan Operation";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
-
-        var plan = context.GetOperationPlan();
-
-        if (plan is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
-
-            if (!string.IsNullOrEmpty(plan.OperationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, plan.OperationName);
-            }
-
-            var documentInfo = context.OperationDocumentInfo;
-            activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-        }
-    }
-
-    public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
-    {
-        var plan = context.GetOperationPlan();
-        activity.DisplayName =
-            plan?.OperationName is { } op
-                ? $"Execute Operation {op}"
-                : "Execute Operation";
-
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
-
-        if (plan is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
-
-            if (!string.IsNullOrEmpty(plan.OperationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, plan.OperationName);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
-    }
-
-    public virtual void EnrichExecuteOperationNode(
-        OperationPlanContext context,
-        OperationExecutionNode node,
-        string schemaName,
-        Activity activity)
-    {
-        activity.DisplayName = $"Execute Operation Node ({schemaName})";
-
-        // Required
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
-        activity.SetTag(GraphQL.Operation.Step.Id, node.Id);
-
-        // Recommended
-        activity.SetTag(GraphQL.Operation.Step.Kind, node.Type.ToString());
-        activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
-
-        var plan = context.OperationPlan;
-        activity.SetTag(
-            GraphQL.Operation.Type,
-            GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
+        activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
 
         if (!string.IsNullOrEmpty(plan.OperationName))
         {
             activity.SetTag(GraphQL.Operation.Name, plan.OperationName);
         }
 
-        activity.SetTag(GraphQL.Document.Hash, context.RequestContext.OperationDocumentInfo.Hash.Value);
+        activity.SetTag(GraphQL.Document.Hash, operationDocumentInfo.Hash.Value);
 
-        // Opt-in - source schema info
         activity.SetTag(GraphQL.Source.Name, schemaName);
-
-        // Opt-in - source operation info
-        var operation = node.Operation;
         activity.SetTag(GraphQL.Source.Operation.Name, operation.Name);
-        activity.SetTag(GraphQL.Source.Operation.Kind, operation.Type.ToString().ToLowerInvariant());
+        activity.SetTag(GraphQL.Source.Operation.Kind, GraphQL.Operation.TypeValues[operation.Type]);
         activity.SetTag(GraphQL.Source.Operation.Hash, operation.Hash);
     }
 
-    public virtual void EnrichExecuteOperationBatchNode(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        Activity activity)
+    private static void EnrichNodeWithTags(Activity activity, ExecutionNode node, OperationPlan plan)
     {
-        activity.DisplayName = $"Execute Operation Batch Node ({schemaName})";
-
-        // Required
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
         activity.SetTag(GraphQL.Operation.Step.Id, node.Id);
-
-        // Recommended
-        activity.SetTag(GraphQL.Operation.Step.Kind, node.Type.ToString());
-        activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
-
-        var plan = context.OperationPlan;
-        activity.SetTag(
-            GraphQL.Operation.Type,
-            GraphQL.Operation.TypeValues[plan.Operation.Definition.Operation]);
-
-        if (!string.IsNullOrEmpty(plan.OperationName))
-        {
-            activity.SetTag(GraphQL.Operation.Name, plan.OperationName);
-        }
-
-        activity.SetTag(GraphQL.Document.Hash, context.RequestContext.OperationDocumentInfo.Hash.Value);
-
-        // Opt-in - source schema info
-        activity.SetTag(GraphQL.Source.Name, schemaName);
-
-        // Opt-in - source operation info (if available)
-        if (node is OperationBatchExecutionNode batchNode)
-        {
-            var operation = batchNode.Operation;
-            activity.SetTag(GraphQL.Source.Operation.Name, operation.Name);
-            activity.SetTag(GraphQL.Source.Operation.Kind, operation.Type.ToString().ToLowerInvariant());
-            activity.SetTag(GraphQL.Source.Operation.Hash, operation.Hash);
-        }
+        activity.SetTag(GraphQL.Operation.Step.Kind, KindValues[node.Type]);
+        activity.SetTag(GraphQL.Operation.Step.Plan.Id, plan.Id);
     }
-
-    public virtual void EnrichExecuteNodeFieldNode(
-        OperationPlanContext context,
-        NodeFieldExecutionNode node,
-        Activity activity)
-    {
-        activity.DisplayName = "Execute Node Field Node";
-
-        // Required
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
-        activity.SetTag(GraphQL.Operation.Step.Id, node.Id);
-
-        // Recommended
-        activity.SetTag(GraphQL.Operation.Step.Kind, node.Type.ToString());
-        activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
-    }
-
-    public virtual void EnrichExecuteIntrospectionNode(
-        OperationPlanContext context,
-        IntrospectionExecutionNode node,
-        Activity activity)
-    {
-        activity.DisplayName = "Execute Introspection Node";
-
-        // Required
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
-        activity.SetTag(GraphQL.Operation.Step.Id, node.Id);
-
-        // Recommended
-        activity.SetTag(GraphQL.Operation.Step.Kind, node.Type.ToString());
-        activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
-    }
-
-    public virtual void EnrichExecutionNodeError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        System.Exception error,
-        Activity activity)
-        => activity.RecordException(error);
-
-    public virtual void EnrichSourceSchemaError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        System.Exception error,
-        Activity activity)
-        => activity.RecordException(error);
 }

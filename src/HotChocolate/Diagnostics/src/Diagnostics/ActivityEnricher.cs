@@ -4,7 +4,6 @@ using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.Diagnostics.SemanticConventions;
@@ -16,23 +15,10 @@ namespace HotChocolate.Diagnostics;
 /// You can inherit from this class and override the enricher methods to provide more or
 /// less information.
 /// </summary>
-public class ActivityEnricher : ActivityEnricherBase
+public class ActivityEnricher(
+    ObjectPool<StringBuilder> stringBuilderPool,
+    InstrumentationOptions options) : ActivityEnricherBase(stringBuilderPool, options)
 {
-    private readonly InstrumentationOptions _options;
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="ActivityEnricher"/>.
-    /// </summary>
-    /// <param name="stringBuilderPool"></param>
-    /// <param name="options"></param>
-    protected ActivityEnricher(
-        ObjectPool<StringBuilder> stringBuilderPool,
-        InstrumentationOptions options)
-        : base(stringBuilderPool, options)
-    {
-        _options = options;
-    }
-
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
@@ -45,133 +31,38 @@ public class ActivityEnricher : ActivityEnricherBase
             operation?.Id,
             operation?.Kind,
             operation?.Name);
-
-        if (context.Result is OperationResult result)
-        {
-            var errorCount = result.Errors.Count;
-            activity.SetTag(GraphQL.Errors.Count, errorCount);
-        }
-    }
-
-    protected virtual string? CreateOperationDisplayName(RequestContext context, Operation? operation)
-    {
-        if (operation is null)
-        {
-            return null;
-        }
-
-        var selections = operation.RootSelectionSet.Selections;
-        var names = new string[selections.Length];
-
-        for (var i = 0; i < selections.Length; i++)
-        {
-            names[i] = selections[i].ResponseName;
-        }
-
-        return BuildOperationDisplayName(
-            operation.Definition.Operation,
-            operation.Name,
-            names.Length,
-            names);
     }
 
     public virtual void EnrichParseDocument(RequestContext context, Activity activity)
     {
-        activity.DisplayName = "Parse Document";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
-
-        if (_options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
-
         context.TryGetOperation(out var operation);
 
-        if (operation is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[operation.Kind]);
-
-            if (!string.IsNullOrEmpty(operation.Name))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operation.Name);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        EnrichParseDocumentCore(activity, operation?.Definition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichValidateDocument(RequestContext context, Activity activity)
     {
-        activity.DisplayName = "Validate Document";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Validate);
-
-        if (_options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
-
         context.TryGetOperation(out var operation);
 
-        if (operation is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[operation.Kind]);
-
-            if (!string.IsNullOrEmpty(operation.Name))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operation.Name);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        EnrichValidateDocumentCore(activity, operation?.Definition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichCoerceVariables(RequestContext context, Activity activity)
     {
-        activity.DisplayName = "Coerce Variable";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.VariableCoercion);
-
         context.TryGetOperation(out var operation);
 
-        if (operation is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[operation.Kind]);
-
-            if (!string.IsNullOrEmpty(operation.Name))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operation.Name);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        EnrichCoerceVariablesCore(activity, operation?.Definition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichCompileOperation(RequestContext context, Activity activity)
     {
+        context.TryGetOperation(out var operation);
+
         activity.DisplayName = "Compile Operation";
+        // TODO: Not sure if plan is supposed to be used like this
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
+
+        EnrichWithTags(activity, operation?.Definition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
@@ -184,25 +75,7 @@ public class ActivityEnricher : ActivityEnricherBase
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
 
-        if (operation is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[operation.Kind]);
-
-            if (!string.IsNullOrEmpty(operation.Name))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operation.Name);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
-
-        if (documentInfo.IsPersisted)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        EnrichWithTags(activity, operation?.Definition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichResolveFieldValue(IMiddlewareContext context, Activity activity)
@@ -292,10 +165,32 @@ public class ActivityEnricher : ActivityEnricherBase
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.DataLoaderBatch);
         activity.SetTag(GraphQL.DataLoader.Batch.Size, keys.Count);
 
-        if (_options.IncludeDataLoaderKeys)
+        if (options.IncludeDataLoaderKeys)
         {
             var temp = keys.Select(t => t.ToString()).ToArray();
             activity.SetTag(GraphQL.DataLoader.Batch.Keys, temp);
         }
+    }
+
+    protected virtual string? CreateOperationDisplayName(RequestContext context, Operation? operation)
+    {
+        if (operation is null)
+        {
+            return null;
+        }
+
+        var selections = operation.RootSelectionSet.Selections;
+        var names = new string[selections.Length];
+
+        for (var i = 0; i < selections.Length; i++)
+        {
+            names[i] = selections[i].ResponseName;
+        }
+
+        return BuildOperationDisplayName(
+            operation.Definition.Operation,
+            operation.Name,
+            names.Length,
+            names);
     }
 }

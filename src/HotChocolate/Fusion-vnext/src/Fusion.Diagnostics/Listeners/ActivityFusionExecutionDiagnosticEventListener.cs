@@ -249,7 +249,7 @@ internal sealed class ActivityFusionExecutionDiagnosticEventListener : FusionExe
 
     public override IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
-        ExecutionNode node,
+        OperationBatchExecutionNode node,
         string schemaName)
     {
         if (_options.SkipExecuteNodes)

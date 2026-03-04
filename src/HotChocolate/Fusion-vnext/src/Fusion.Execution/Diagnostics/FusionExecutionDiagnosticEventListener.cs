@@ -96,7 +96,7 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     /// <inheritdoc />
     public virtual IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
-        ExecutionNode node,
+        OperationBatchExecutionNode node,
         string schemaName)
         => EmptyScope;
 

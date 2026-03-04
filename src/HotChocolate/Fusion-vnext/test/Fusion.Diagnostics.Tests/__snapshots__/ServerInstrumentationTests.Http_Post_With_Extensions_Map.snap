@@ -168,7 +168,7 @@
                     },
                     {
                       "Key": "graphql.operation.step.kind",
-                      "Value": "Operation"
+                      "Value": "operation"
                     },
                     {
                       "Key": "graphql.operation.step.plan.id",

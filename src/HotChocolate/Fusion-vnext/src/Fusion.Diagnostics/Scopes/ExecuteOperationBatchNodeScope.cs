@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Diagnostics.Scopes;
 internal sealed class ExecuteOperationBatchNodeScope(
     FusionActivityEnricher enricher,
     OperationPlanContext context,
-    ExecutionNode node,
+    OperationBatchExecutionNode node,
     string schemaName,
     Activity activity)
     : NodeScopeBase(enricher, context, activity)

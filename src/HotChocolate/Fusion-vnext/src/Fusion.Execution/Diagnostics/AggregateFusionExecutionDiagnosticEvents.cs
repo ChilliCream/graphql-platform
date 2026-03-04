@@ -186,7 +186,7 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
 
     public IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
-        ExecutionNode node,
+        OperationBatchExecutionNode node,
         string schemaName)
     {
         var scopes = new IDisposable[listeners.Length];

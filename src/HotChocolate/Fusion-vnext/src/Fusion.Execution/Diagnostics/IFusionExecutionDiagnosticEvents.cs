@@ -130,7 +130,7 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     /// </returns>
     IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
-        ExecutionNode node,
+        OperationBatchExecutionNode node,
         string schemaName);
 
     /// <summary>

@@ -138,6 +138,28 @@ internal static class SemanticConventions
                 public const string Operations = "graphql.http.request.operations";
                 public const string Variables = "graphql.http.request.variables";
                 public const string Extensions = "graphql.http.request.extensions";
+
+                public static class Types
+                {
+                    public const string Single = "single";
+                    public const string Batch = "batch";
+                    public const string OperationBatch = "operation-batch";
+                }
+
+                public static class BatchRequest
+                {
+                    public static string QueryId(int index) => $"graphql.http.request[{index}].query.id";
+
+                    public static string QueryHash(int index) => $"graphql.http.request[{index}].query.hash";
+
+                    public static string QueryBody(int index) => $"graphql.http.request[{index}].query.body";
+
+                    public static string OperationName(int index) => $"graphql.http.request[{index}].operation";
+
+                    public static string Variables(int index) => $"graphql.http.request[{index}].variables";
+
+                    public static string Extensions(int index) => $"graphql.http.request[{index}].extensions";
+                }
             }
         }
 
