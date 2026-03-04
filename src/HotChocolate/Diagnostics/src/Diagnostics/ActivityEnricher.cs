@@ -3,7 +3,6 @@ using System.Text;
 using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
@@ -20,25 +19,25 @@ public class ActivityEnricher(
 {
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
-        context.TryGetOperation(out var operation);
-        var operationDisplayName = CreateOperationDisplayName(context, operation);
+        // TODO: We won't ever have this here...
+        if (context.TryGetOperation(out var operation))
+        {
+            var operationDisplayName = GetOperationDisplayName(operation.Kind, operation.Name);
 
-        EnrichExecuteRequestCore(
-            context,
-            activity,
-            operationDisplayName,
-            operation?.Id,
-            operation?.Kind,
-            operation?.Name);
+            EnrichExecuteRequestCore(
+                context,
+                activity,
+                operationDisplayName,
+                operation.Kind,
+                operation.Name);
+        }
     }
 
     public virtual void EnrichParseDocument(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
-        var operationDefinition = ResolveOperationDefinition(
-            operation?.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        // TODO: We won't ever have this here...
+        var operationDefinition = operation?.Definition;
 
         EnrichParseDocumentCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
@@ -46,10 +45,8 @@ public class ActivityEnricher(
     public virtual void EnrichValidateDocument(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
-        var operationDefinition = ResolveOperationDefinition(
-            operation?.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        // TODO: We won't ever have this here...
+        var operationDefinition = operation?.Definition;
 
         EnrichValidateDocumentCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
@@ -57,10 +54,8 @@ public class ActivityEnricher(
     public virtual void EnrichCoerceVariables(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
-        var operationDefinition = ResolveOperationDefinition(
-            operation?.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        // TODO: We won't ever have this here...
+        var operationDefinition = operation?.Definition;
 
         EnrichCoerceVariablesCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
@@ -68,10 +63,8 @@ public class ActivityEnricher(
     public virtual void EnrichCompileOperation(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
-        var operationDefinition = ResolveOperationDefinition(
-            operation?.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        // TODO: We won't ever have this here...
+        var operationDefinition = operation?.Definition;
 
         activity.DisplayName = "GraphQL Operation Planning";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
@@ -81,17 +74,14 @@ public class ActivityEnricher(
 
     public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
     {
-        context.TryGetOperation(out var operation);
-        var operationDefinition = ResolveOperationDefinition(
-            operation?.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        if (context.TryGetOperation(out var operation))
+        {
+            activity.DisplayName = "GraphQL Operation Execution";
 
-        activity.DisplayName = "GraphQL Operation Execution";
+            activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
 
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
-
-        EnrichWithTags(activity, operationDefinition, context.OperationDocumentInfo);
+            EnrichWithTags(activity, operation.Definition, context.OperationDocumentInfo);
+        }
     }
 
     public virtual void EnrichResolveFieldValue(IMiddlewareContext context, Activity activity)
@@ -142,12 +132,5 @@ public class ActivityEnricher(
     {
         activity.DisplayName = "Coordinate DataLoader Batches";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.DataLoaderDispatch);
-    }
-
-    protected virtual string? CreateOperationDisplayName(RequestContext context, Operation? operation)
-    {
-        return operation is null
-            ? null
-            : BuildOperationDisplayName(operation.Definition.Operation, operation.Name);
     }
 }

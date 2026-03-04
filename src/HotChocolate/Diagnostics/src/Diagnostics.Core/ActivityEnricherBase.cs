@@ -323,12 +323,11 @@ public abstract class ActivityEnricherBase(
     protected void EnrichExecuteRequestCore(
         RequestContext context,
         Activity activity,
-        string? operationDisplayName,
-        object? operationId,
-        OperationType? operationType,
+        string operationDisplayName,
+        OperationType operationType,
         string? operationName)
     {
-        activity.DisplayName = operationDisplayName ?? "GraphQL Operation";
+        activity.DisplayName = operationDisplayName;
 
         var documentInfo = context.OperationDocumentInfo;
         activity.SetTag(GraphQL.Document.Hash, FormatDocumentHash(documentInfo.Hash));
@@ -338,16 +337,11 @@ public abstract class ActivityEnricherBase(
             activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
 
-        if (operationType is not null)
-        {
-            activity.SetTag(
-                GraphQL.Operation.Type,
-                GraphQL.Operation.TypeValues[operationType.Value]);
+        activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operationType]);
 
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operationName);
-            }
+        if (!string.IsNullOrEmpty(operationName))
+        {
+            activity.SetTag(GraphQL.Operation.Name, operationName);
         }
 
         if (options.IncludeDocument && documentInfo.Document is not null)
@@ -413,7 +407,7 @@ public abstract class ActivityEnricherBase(
         }
     }
 
-    protected string BuildOperationDisplayName(
+    protected string GetOperationDisplayName(
         OperationType operationType,
         string? operationName)
     {
@@ -424,22 +418,6 @@ public abstract class ActivityEnricherBase(
         }
 
         return operationTypeName;
-    }
-
-    protected virtual string CreateRootActivityName(
-        Activity activity,
-        Activity root,
-        string displayName)
-    {
-        const string key = "originalDisplayName";
-
-        if (root.GetCustomProperty(key) is not string rootDisplayName)
-        {
-            rootDisplayName = root.DisplayName;
-            root.SetCustomProperty(key, rootDisplayName);
-        }
-
-        return $"{rootDisplayName}: {displayName}";
     }
 
     protected virtual void EnrichError(IError error, Activity activity)
@@ -480,55 +458,7 @@ public abstract class ActivityEnricherBase(
         activity.AddEvent(new ActivityEvent(SemanticConventions.Exception.EventName, default, tags));
     }
 
-    protected static OperationDefinitionNode? ResolveOperationDefinition(
-        OperationDefinitionNode? operationDefinition,
-        OperationDocumentInfo documentInfo,
-        string? operationName)
-    {
-        if (operationDefinition is not null)
-        {
-            return operationDefinition;
-        }
-
-        if (documentInfo.Document is not { } document)
-        {
-            return null;
-        }
-
-        if (string.IsNullOrEmpty(operationName))
-        {
-            OperationDefinitionNode? singleOperation = null;
-
-            foreach (var definition in document.Definitions)
-            {
-                if (definition is not OperationDefinitionNode operation)
-                {
-                    continue;
-                }
-
-                if (singleOperation is not null)
-                {
-                    return null;
-                }
-
-                singleOperation = operation;
-            }
-
-            return singleOperation;
-        }
-
-        foreach (var definition in document.Definitions)
-        {
-            if (definition is OperationDefinitionNode operation
-                && string.Equals(operation.Name?.Value, operationName, StringComparison.Ordinal))
-            {
-                return operation;
-            }
-        }
-
-        return null;
-    }
-
+    // TODO: Get rid of this
     protected internal static string FormatDocumentHash(OperationDocumentHash hash)
     {
         if (hash.IsEmpty || string.IsNullOrEmpty(hash.AlgorithmName))
@@ -547,6 +477,7 @@ public abstract class ActivityEnricherBase(
 
         if (algorithm == "sha256")
         {
+            // TODO: wtf
             algorithm = "sha25";
         }
 

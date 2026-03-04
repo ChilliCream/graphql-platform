@@ -32,58 +32,54 @@ public class FusionActivityEnricher(
 
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
-        var plan = context.GetOperationPlan();
-        var operationDisplayName = CreateOperationDisplayName(context, plan);
+        // TODO: We won't ever have this here...
+        if (context.GetOperationPlan() is { } plan)
+        {
+            var operationType = plan.Operation.Definition.Operation;
+            var operationName = plan.OperationName;
+            var operationDisplayName = GetOperationDisplayName(operationType, operationName);
 
-        EnrichExecuteRequestCore(
-            context,
-            activity,
-            operationDisplayName,
-            plan?.Id,
-            plan?.Operation.Definition.Operation,
-            plan?.OperationName);
+            EnrichExecuteRequestCore(
+                context,
+                activity,
+                operationDisplayName,
+                operationType,
+                operationName);
+        }
     }
 
     public virtual void EnrichParseDocument(RequestContext context, Activity activity)
     {
+        // TODO: We won't ever have this here...
         var plan = context.GetOperationPlan();
-        var operationDefinition = ResolveOperationDefinition(
-            plan?.Operation.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        var operationDefinition = plan?.Operation.Definition;
 
         EnrichParseDocumentCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichValidateDocument(RequestContext context, Activity activity)
     {
+        // TODO: We won't ever have this here...
         var plan = context.GetOperationPlan();
-        var operationDefinition = ResolveOperationDefinition(
-            plan?.Operation.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        var operationDefinition = plan?.Operation.Definition;
 
         EnrichValidateDocumentCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichCoerceVariables(RequestContext context, Activity activity)
     {
+        // TODO: We won't ever have this here...
         var plan = context.GetOperationPlan();
-        var operationDefinition = ResolveOperationDefinition(
-            plan?.Operation.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        var operationDefinition = plan?.Operation.Definition;
 
         EnrichCoerceVariablesCore(activity, operationDefinition, context.OperationDocumentInfo);
     }
 
     public virtual void EnrichPlanOperationScope(RequestContext context, Activity activity)
     {
+        // TODO: We won't ever have this here...
         var plan = context.GetOperationPlan();
-        var operationDefinition = ResolveOperationDefinition(
-            plan?.Operation.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        var operationDefinition = plan?.Operation.Definition;
 
         activity.DisplayName = "GraphQL Operation Planning";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
@@ -93,17 +89,13 @@ public class FusionActivityEnricher(
 
     public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
     {
-        var plan = context.GetOperationPlan();
-        var operationDefinition = ResolveOperationDefinition(
-            plan?.Operation.Definition,
-            context.OperationDocumentInfo,
-            context.Request.OperationName);
+        if (context.GetOperationPlan() is { } plan)
+        {
+            activity.DisplayName = "GraphQL Operation Execution";
+            activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
 
-        activity.DisplayName = "GraphQL Operation Execution";
-
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
-
-        EnrichWithTags(activity, operationDefinition, context.OperationDocumentInfo);
+            EnrichWithTags(activity, plan.Operation.Definition, context.OperationDocumentInfo);
+        }
     }
 
     public virtual void EnrichExecuteOperationNode(
@@ -111,58 +103,38 @@ public class FusionActivityEnricher(
         OperationExecutionNode node,
         string schemaName,
         Activity activity)
-    {
-        activity.DisplayName = "GraphQL Step Execution";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
-
-        EnrichOperationWithTags(
+        => EnrichOperationWithTags(
             activity,
             context.OperationPlan,
             node,
             node.Operation,
             context.RequestContext.OperationDocumentInfo,
             schemaName);
-    }
 
     public virtual void EnrichExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,
         string schemaName,
         Activity activity)
-    {
-        activity.DisplayName = "GraphQL Step Execution";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
-
-        EnrichOperationWithTags(
+        => EnrichOperationWithTags(
             activity,
             context.OperationPlan,
             node,
             node.Operation,
             context.RequestContext.OperationDocumentInfo,
             schemaName);
-    }
 
     public virtual void EnrichExecuteNodeFieldNode(
         OperationPlanContext context,
         NodeFieldExecutionNode node,
         Activity activity)
-    {
-        activity.DisplayName = "GraphQL Step Execution";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
-
-        EnrichNodeWithTags(activity, node, context.OperationPlan);
-    }
+        => EnrichNodeWithTags(activity, node, context.OperationPlan);
 
     public virtual void EnrichExecuteIntrospectionNode(
         OperationPlanContext context,
         IntrospectionExecutionNode node,
         Activity activity)
-    {
-        activity.DisplayName = "GraphQL Step Execution";
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
-
-        EnrichNodeWithTags(activity, node, context.OperationPlan);
-    }
+        => EnrichNodeWithTags(activity, node, context.OperationPlan);
 
     public virtual void EnrichExecutionNodeError(
         OperationPlanContext context,
@@ -178,13 +150,6 @@ public class FusionActivityEnricher(
         System.Exception error,
         Activity activity)
         => activity.RecordException(error);
-
-    protected virtual string? CreateOperationDisplayName(RequestContext context, OperationPlan? plan)
-    {
-        return plan is null
-            ? null
-            : BuildOperationDisplayName(plan.Operation.Definition.Operation, plan.OperationName);
-    }
 
     private static void EnrichOperationWithTags(
         Activity activity,
@@ -213,6 +178,9 @@ public class FusionActivityEnricher(
 
     private static void EnrichNodeWithTags(Activity activity, ExecutionNode node, OperationPlan plan)
     {
+        activity.DisplayName = "GraphQL Step Execution";
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
+
         activity.SetTag(GraphQL.Operation.Step.Id, node.Id.ToString(CultureInfo.InvariantCulture));
         activity.SetTag(GraphQL.Operation.Step.Kind, KindValues[node.Type]);
         activity.SetTag(GraphQL.Operation.Step.Plan.Id, plan.Id);
