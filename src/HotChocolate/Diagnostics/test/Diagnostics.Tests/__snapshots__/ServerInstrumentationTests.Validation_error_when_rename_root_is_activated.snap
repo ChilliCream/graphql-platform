@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GraphQL HTTP POST: Begin Validate Document",
+      "DisplayName": "GraphQL HTTP POST",
       "Status": "Ok",
       "tags": [
         {

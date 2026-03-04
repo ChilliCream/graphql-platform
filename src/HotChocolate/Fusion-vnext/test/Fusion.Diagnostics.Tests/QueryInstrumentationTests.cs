@@ -53,11 +53,8 @@ public class QueryInstrumentationTests : FusionTestBase
             [
                 ("a", server1)
             ],
-            configureGatewayBuilder: b => b.AddInstrumentation(o =>
-            {
-                o.RenameRootActivity = true;
-                o.Scopes = FusionActivityScopes.All;
-            }));
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
@@ -69,7 +66,7 @@ public class QueryInstrumentationTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Equal("CaptureActivities: query { sayHello }", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
         }
     }
 
@@ -87,11 +84,8 @@ public class QueryInstrumentationTests : FusionTestBase
             [
                 ("a", server1)
             ],
-            configureGatewayBuilder: b => b.AddInstrumentation(o =>
-            {
-                o.RenameRootActivity = true;
-                o.Scopes = FusionActivityScopes.All;
-            }));
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
@@ -103,7 +97,7 @@ public class QueryInstrumentationTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Equal("CaptureActivities: Begin Parse Document", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
         }
     }
 
@@ -121,11 +115,8 @@ public class QueryInstrumentationTests : FusionTestBase
             [
                 ("a", server1)
             ],
-            configureGatewayBuilder: b => b.AddInstrumentation(o =>
-            {
-                o.RenameRootActivity = true;
-                o.Scopes = FusionActivityScopes.All;
-            }));
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
@@ -137,8 +128,7 @@ public class QueryInstrumentationTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Equal("CaptureActivities: Begin Validate Document",
-                Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
         }
     }
 
@@ -156,11 +146,8 @@ public class QueryInstrumentationTests : FusionTestBase
             [
                 ("a", server1)
             ],
-            configureGatewayBuilder: b => b.AddInstrumentation(o =>
-            {
-                o.RenameRootActivity = true;
-                o.Scopes = FusionActivityScopes.All;
-            }));
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
@@ -190,11 +177,8 @@ public class QueryInstrumentationTests : FusionTestBase
             [
                 ("a", server1)
             ],
-            configureGatewayBuilder: b => b.AddInstrumentation(o =>
-            {
-                o.RenameRootActivity = true;
-                o.Scopes = FusionActivityScopes.All;
-            }));
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
@@ -224,11 +208,8 @@ public class QueryInstrumentationTests : FusionTestBase
             [
                 ("a", server1)
             ],
-            configureGatewayBuilder: b => b.AddInstrumentation(o =>
-            {
-                o.RenameRootActivity = true;
-                o.Scopes = FusionActivityScopes.All;
-            }));
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
@@ -258,11 +239,8 @@ public class QueryInstrumentationTests : FusionTestBase
             [
                 ("a", server1)
             ],
-            configureGatewayBuilder: b => b.AddInstrumentation(o =>
-            {
-                o.RenameRootActivity = true;
-                o.Scopes = FusionActivityScopes.All;
-            }));
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             var executor = await gateway.Services.GetRequestExecutorAsync();
 

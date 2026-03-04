@@ -18,13 +18,19 @@ internal static class SemanticConventions
         {
             public const string Id = "graphql.document.id";
             public const string Hash = "graphql.document.hash";
+
+            // Note: This is not part of the OTEL semantic conventions
             public const string Body = "graphql.document.body";
+
+            // Note: This is not part of the OTEL semantic conventions
             public const string Valid = "graphql.document.valid";
         }
 
         public static class Operation
         {
+            // Note: This is not part of the OTEL semantic conventions
             public const string Id = "graphql.operation.id";
+
             public const string Name = "graphql.operation.name";
             public const string Type = "graphql.operation.type";
 
@@ -41,10 +47,11 @@ internal static class SemanticConventions
                 public const string Id = "graphql.operation.step.id";
                 public const string Kind = "graphql.operation.step.kind";
 
+                // Note: This is not part of the OTEL semantic conventions
                 public static class KindValues
                 {
                     public const string Operation = "operation";
-                    public const string OperationBatch = "operation-batch";
+                    public const string OperationBatch = "operation_batch";
                     public const string Introspection = "introspection";
                     public const string Node = "node";
                 }
@@ -78,6 +85,8 @@ internal static class SemanticConventions
         {
             public const string Name = "graphql.selection.name";
             public const string Path = "graphql.selection.path";
+
+            // Note: This is not part of the OTEL semantic conventions
             public const string Hierarchy = "graphql.selection.hierarchy";
 
             public static class Field
@@ -85,7 +94,11 @@ internal static class SemanticConventions
                 public const string Name = "graphql.selection.field.name";
                 public const string ParentType = "graphql.selection.field.parent_type";
                 public const string Coordinate = "graphql.selection.field.coordinate";
+
+                // Note: This is not part of the OTEL semantic conventions
                 public const string IsDeprecated = "graphql.selection.field.isDeprecated";
+
+                // Note: This is not part of the OTEL semantic conventions
                 public const string Type = "graphql.selection.type";
             }
         }
@@ -100,7 +113,6 @@ internal static class SemanticConventions
                 public const string Keys = "graphql.dataloader.batch.keys";
             }
 
-            // TODO: This is unused
             public static class Cache
             {
                 public const string HitCount = "graphql.dataloader.cache.hit_count";
@@ -111,8 +123,6 @@ internal static class SemanticConventions
         public static class Source
         {
             public const string Name = "graphql.source.name";
-            // TODO: This is unused
-            public const string Id = "graphql.source.id";
 
             public static class Operation
             {
@@ -122,6 +132,7 @@ internal static class SemanticConventions
             }
         }
 
+        // Note: This is not part of the OTEL semantic conventions
         public static class Errors
         {
             public const string Count = "graphql.errors.count";
@@ -134,6 +145,7 @@ internal static class SemanticConventions
             }
         }
 
+        // Note: This is not part of the OTEL semantic conventions
         public static class Http
         {
             public const string Kind = "graphql.http.kind";
@@ -149,13 +161,15 @@ internal static class SemanticConventions
                 public const string Variables = "graphql.http.request.variables";
                 public const string Extensions = "graphql.http.request.extensions";
 
+                // Note: This is not part of the OTEL semantic conventions
                 public static class Types
                 {
                     public const string Single = "single";
                     public const string Batch = "batch";
-                    public const string OperationBatch = "operation-batch";
+                    public const string OperationBatch = "operation_batch";
                 }
 
+                // Note: This is not part of the OTEL semantic conventions
                 public static class BatchRequest
                 {
                     public static string QueryId(int index) => $"graphql.http.request[{index}].query.id";
@@ -173,10 +187,10 @@ internal static class SemanticConventions
             }
         }
 
+        // Note: This is not part of the OTEL semantic conventions
         public static class Schema
         {
             public const string Name = "graphql.schema.name";
-            public const string IsDefault = "graphql.schema.isDefault";
         }
     }
 }

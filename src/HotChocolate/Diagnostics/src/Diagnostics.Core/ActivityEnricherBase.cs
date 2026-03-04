@@ -50,24 +50,15 @@ public abstract class ActivityEnricherBase(
                 break;
         }
 
-        if (options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
-
         activity.SetTag(GraphQL.Http.Kind, kind);
 
-        var isDefault = false;
         if (!(context.Items.TryGetValue(SchemaName, out var value)
             && value is string schemaName))
         {
             schemaName = ISchemaDefinition.DefaultName;
-            isDefault = true;
         }
 
-        // TODO: Is this needed?
         activity.SetTag(GraphQL.Schema.Name, schemaName);
-        activity.SetTag(GraphQL.Schema.IsDefault, isDefault);
     }
 
     public virtual void EnrichSingleRequest(
@@ -284,11 +275,6 @@ public abstract class ActivityEnricherBase(
     public virtual void EnrichParseHttpRequest(HttpContext context, Activity activity)
     {
         activity.DisplayName = "Parse HTTP Request";
-
-        if (options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
     }
 
     public virtual void EnrichParserErrors(HttpContext context, IError error, Activity activity)
@@ -332,11 +318,6 @@ public abstract class ActivityEnricherBase(
     {
         activity.DisplayName = operationDisplayName ?? "Execute Request";
 
-        if (options.RenameRootActivity && operationDisplayName is not null)
-        {
-            UpdateRootActivityName(activity, operationDisplayName);
-        }
-
         var documentInfo = context.OperationDocumentInfo;
         activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         activity.SetTag(GraphQL.Document.Hash, documentInfo.Hash.Value);
@@ -374,11 +355,6 @@ public abstract class ActivityEnricherBase(
         activity.DisplayName = "Parse Document";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
 
-        if (options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
-
         EnrichWithTags(activity, operationDefinition, documentInfo);
     }
 
@@ -390,11 +366,6 @@ public abstract class ActivityEnricherBase(
         activity.DisplayName = "Validate Document";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Validate);
 
-        if (options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
-
         EnrichWithTags(activity, operationDefinition, documentInfo);
     }
 
@@ -405,12 +376,6 @@ public abstract class ActivityEnricherBase(
     {
         activity.DisplayName = "Coerce Variables";
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.VariableCoercion);
-
-        // TODO: This is new here. Why do we do this in other places?
-        if (options.RenameRootActivity)
-        {
-            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
-        }
 
         EnrichWithTags(activity, operationDefinition, documentInfo);
     }
@@ -538,20 +503,5 @@ public abstract class ActivityEnricherBase(
         }
 
         activity.AddEvent(new ActivityEvent(SemanticConventions.Exception.EventName, default, tags));
-    }
-
-    private void UpdateRootActivityName(Activity activity, string displayName)
-    {
-        var current = activity;
-
-        while (current.Parent is not null)
-        {
-            current = current.Parent;
-        }
-
-        if (current != activity)
-        {
-            current.DisplayName = CreateRootActivityName(activity, current, displayName);
-        }
     }
 }

@@ -123,7 +123,7 @@
             },
             {
               "OperationName": "CoerceVariables",
-              "DisplayName": "Coerce Variable",
+              "DisplayName": "Coerce Variables",
               "Status": "Ok",
               "tags": [
                 {

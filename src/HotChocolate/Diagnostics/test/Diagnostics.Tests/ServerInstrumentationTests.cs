@@ -328,11 +328,7 @@ public class ServerInstrumentationTests : ServerTestBase
         {
             // arrange
             using var server = CreateInstrumentedServer(
-                o =>
-                {
-                    o.Scopes = ActivityScopes.All;
-                    o.RenameRootActivity = true;
-                });
+                o => o.Scopes = ActivityScopes.All);
 
             // act
             await server.PostRawAsync(new ClientQueryRequest
@@ -356,11 +352,7 @@ public class ServerInstrumentationTests : ServerTestBase
         {
             // arrange
             using var server = CreateInstrumentedServer(
-                o =>
-                {
-                    o.Scopes = ActivityScopes.All;
-                    o.RenameRootActivity = true;
-                });
+                o => o.Scopes = ActivityScopes.All);
 
             // act
             await server.PostRawAsync(new ClientQueryRequest

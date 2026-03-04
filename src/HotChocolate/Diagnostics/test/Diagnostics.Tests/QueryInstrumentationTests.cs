@@ -67,16 +67,12 @@ public partial class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.RenameRootActivity = true;
-                    o.Scopes = ActivityScopes.All;
-                })
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ sayHello }");
 
             // assert
-            Assert.Equal("CaptureActivities: query { sayHello }", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
         }
     }
 
@@ -88,16 +84,12 @@ public partial class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.RenameRootActivity = true;
-                    o.Scopes = ActivityScopes.All;
-                })
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ sayHello");
 
             // assert
-            Assert.Equal("CaptureActivities: Begin Parse Document", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
         }
     }
 
@@ -109,17 +101,12 @@ public partial class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.RenameRootActivity = true;
-                    o.Scopes = ActivityScopes.All;
-                })
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ abc123 }");
 
             // assert
-            Assert.Equal("CaptureActivities: Begin Validate Document",
-                Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
         }
     }
 
@@ -131,11 +118,7 @@ public partial class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.RenameRootActivity = true;
-                    o.Scopes = ActivityScopes.All;
-                })
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ a: sayHello }");
 
@@ -152,11 +135,7 @@ public partial class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.RenameRootActivity = true;
-                    o.Scopes = ActivityScopes.All;
-                })
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("query GetA { a: sayHello }");
 
@@ -173,11 +152,7 @@ public partial class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.RenameRootActivity = true;
-                    o.Scopes = ActivityScopes.All;
-                })
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello }");
 
@@ -194,11 +169,7 @@ public partial class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.RenameRootActivity = true;
-                    o.Scopes = ActivityScopes.All;
-                })
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello d: sayHello }");
 

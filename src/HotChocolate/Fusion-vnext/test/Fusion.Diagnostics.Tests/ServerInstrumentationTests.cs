@@ -340,12 +340,8 @@ public class ServerInstrumentationTests : FusionTestBase
 
             using var gateway = await CreateCompositeSchemaAsync(
                 [("a", server)],
-                configureGatewayBuilder: b => b.AddInstrumentation(
-                    o =>
-                    {
-                        o.Scopes = FusionActivityScopes.All;
-                        o.RenameRootActivity = true;
-                    }));
+                configureGatewayBuilder: b => b
+                    .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
@@ -372,12 +368,8 @@ public class ServerInstrumentationTests : FusionTestBase
 
             using var gateway = await CreateCompositeSchemaAsync(
                 [("a", server)],
-                configureGatewayBuilder: b => b.AddInstrumentation(
-                    o =>
-                    {
-                        o.Scopes = FusionActivityScopes.All;
-                        o.RenameRootActivity = true;
-                    }));
+                configureGatewayBuilder: b => b
+                    .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
 
             using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 

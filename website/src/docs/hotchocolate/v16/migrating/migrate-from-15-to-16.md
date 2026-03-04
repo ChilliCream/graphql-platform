@@ -616,6 +616,7 @@ If you have dashboards or alerts that filter on the old attribute names or value
 | Attribute                | Old Value                             | New Value                             |
 | ------------------------ | ------------------------------------- | ------------------------------------- |
 | `graphql.operation.type` | `Query` / `Mutation` / `Subscription` | `query` / `mutation` / `subscription` |
+| `graphql.http.kind`      | `operation-batch`                     | `operation_batch`                     |
 
 # Deprecations
 
