@@ -1,14 +1,13 @@
 using System.Collections.Immutable;
+using System.Reflection;
 using GreenDonut.Data;
 using GreenDonut.Data.Cursors;
 using GreenDonut.Data.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-#if DEBUG
 using Microsoft.EntityFrameworkCore;
-#endif
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using static HotChocolate.Data.Properties.EntityFrameworkResources;
 
 namespace HotChocolate.Data.Pagination;
@@ -30,7 +29,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         CursorPagingArguments arguments)
     {
         var query = executable.Source;
-        var nullOrdering = ResolveNullOrdering(query, executable.IsInMemory, _nullOrdering);
+        var nullOrdering = ResolveNullOrdering(context, query, executable.IsInMemory, _nullOrdering);
         var keys = ParseDataSetKeys(query);
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
@@ -235,6 +234,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
     }
 
     private static NullOrdering ResolveNullOrdering(
+        IResolverContext context,
         IQueryable<TEntity> query,
         bool isInMemory,
         NullOrdering configured)
@@ -250,7 +250,8 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
             return NullOrdering.NativeNullsFirst;
         }
 
-        var providerName = TryGetProviderName(query);
+        var providerName = TryGetProviderName(query)
+            ?? TryGetProviderName(context, query.Provider);
 
         if (providerName is not null)
         {
@@ -299,4 +300,30 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                 is ICurrentDbContext currentDbContext
             ? currentDbContext.Context.Database.ProviderName
             : null;
+
+    private static string? TryGetProviderName(IResolverContext context, IQueryProvider provider)
+    {
+        if (TryGetDbContextType(provider) is { } dbContextType
+            && context.Services.GetService(dbContextType) is DbContext dbContext)
+        {
+            return dbContext.Database.ProviderName;
+        }
+
+        return null;
+    }
+
+    private static Type? TryGetDbContextType(IQueryProvider provider)
+    {
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+
+        if (TryGetFieldValue(provider, "_queryCompiler", flags) is not object queryCompiler)
+        {
+            return null;
+        }
+
+        return TryGetFieldValue(queryCompiler, "_contextType", flags) as Type;
+    }
+
+    private static object? TryGetFieldValue(object instance, string fieldName, BindingFlags flags)
+        => instance.GetType().GetField(fieldName, flags)?.GetValue(instance);
 }
