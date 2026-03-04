@@ -87,11 +87,11 @@ public static class CompilationExtensions
 
     public static IMemberDescription? GetDescription(
         this Compilation compilation,
-        ISymbol methodOrProperty)
+        ISymbol symbol)
     {
         if (compilation.DisableXmlDocumentation())
         {
-            switch (methodOrProperty)
+            switch (symbol)
             {
                 case IPropertySymbol property:
                     return new PropertyDescription(property.GetDescriptionFromAttribute());
@@ -107,18 +107,24 @@ public static class CompilationExtensions
                         method.GetDescriptionFromAttribute(),
                         paramDescs.ToImmutable());
 
+                case IParameterSymbol parameter:
+                    return new ParameterDescription(parameter.GetDescriptionFromAttribute());
+
                 default:
                     return null;
             }
         }
 
-        switch (methodOrProperty)
+        switch (symbol)
         {
             case IPropertySymbol property:
                 return property.GetDescription(compilation);
 
             case IMethodSymbol method:
                 return method.GetDescription(compilation);
+
+            case IParameterSymbol parameter:
+                return parameter.GetDescription(compilation);
 
             default:
                 return null;

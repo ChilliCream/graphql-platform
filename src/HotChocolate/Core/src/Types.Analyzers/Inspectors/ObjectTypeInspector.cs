@@ -299,7 +299,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDescription(parameter)?.Description,
                 compilation.GetDeprecationReason(parameter),
                 key);
         }
@@ -341,7 +341,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDescription(parameter)?.Description,
                 compilation.GetDeprecationReason(parameter),
                 key);
 
@@ -365,7 +365,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                     parameter,
                     ResolverParameterKind.Argument,
                     compilation.CreateTypeReference(parameter),
-                    parameter.GetDescriptionFromAttribute(),
+                    compilation.GetDescription(parameter)?.Description,
                     compilation.GetDeprecationReason(parameter),
                     key);
             }
