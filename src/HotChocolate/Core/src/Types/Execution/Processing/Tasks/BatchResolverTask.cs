@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Resolvers;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.Processing.ValueCompletion;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -11,14 +13,18 @@ namespace HotChocolate.Execution.Processing.Tasks;
 /// An execution task that collects multiple parent contexts for a batch resolver
 /// and executes them in a single invocation.
 /// </summary>
-internal sealed class BatchResolverTask : ExecutionTask
+internal sealed class BatchResolverTask(
+    ObjectPool<BatchResolverTask> objectPool,
+    ObjectPool<ResolverTask> resolverTaskPool) : ExecutionTask
 {
+    private readonly List<ResolverTask> _resolverTasks = [];
     private readonly List<BatchEntry> _entries = [];
     private readonly List<IExecutionTask> _taskBuffer = [];
     private OperationContext _operationContext = null!;
-    private BatchFieldDelegate _pipeline = null!;
-    private Selection _selection = null!;
+    private ObjectField _field = null!;
+    private SelectionPath _selectionPath = null!;
     private int _branchId;
+    private DeferUsage? _deferUsage;
 
     /// <inheritdoc />
     public override int BranchId => _branchId;
@@ -30,31 +36,15 @@ internal sealed class BatchResolverTask : ExecutionTask
     protected override IExecutionTaskContext Context => _operationContext;
 
     /// <summary>
-    /// Gets the batch selection path that identifies this batch in the scheduler.
-    /// </summary>
-    internal BatchSelectionPath SelectionPath { get; private set; } = null!;
-
-    /// <summary>
     /// Gets the number of entries currently collected in this batch.
     /// </summary>
     internal int EntryCount => _entries.Count;
 
     /// <summary>
-    /// Initializes this batch task.
+    /// Gets the selection path this batch task is associated with.
+    /// Used by the work scheduler to track active paths.
     /// </summary>
-    public void Initialize(
-        OperationContext operationContext,
-        Selection selection,
-        BatchFieldDelegate pipeline,
-        BatchSelectionPath selectionPath,
-        int branchId)
-    {
-        _operationContext = operationContext;
-        _selection = selection;
-        _pipeline = pipeline;
-        _branchId = branchId;
-        SelectionPath = selectionPath;
-    }
+    internal SelectionPath SelectionPath => _selectionPath;
 
     /// <summary>
     /// Adds a parent context entry to this batch.
@@ -65,31 +55,22 @@ internal sealed class BatchResolverTask : ExecutionTask
         Selection selection,
         ResultElement resultValue,
         IImmutableDictionary<string, object?> scopedContextData)
-    {
-        _entries.Add(new BatchEntry(parent, selection, resultValue, scopedContextData));
-    }
+        => _entries.Add(new BatchEntry(parent, selection, resultValue, scopedContextData));
 
     /// <inheritdoc />
     protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
     {
+        var contexts = CreateContexts();
+
         try
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                Faulted();
-                return;
-            }
+            // Execute the batch pipeline once with all contexts.
+            await _field.BatchResolverPipeline!(contexts).ConfigureAwait(false);
 
-            // 1. Create middleware contexts for each entry.
-            var contexts = CreateContexts();
-
-            // 2. Execute the batch pipeline once with all contexts.
-            await _pipeline(contexts).ConfigureAwait(false);
-
-            // 3. Complete values synchronously for each context, collecting child tasks.
+            // Complete values synchronously for each context, collecting child tasks.
             CompleteValues(contexts, cancellationToken);
 
-            // 4. Register all child tasks at once.
+            // Register all child tasks at once.
             if (_taskBuffer.Count > 0)
             {
                 _operationContext.Scheduler.Register(
@@ -100,6 +81,17 @@ internal sealed class BatchResolverTask : ExecutionTask
         {
             Faulted();
         }
+        finally
+        {
+            ReturnResolverTasks();
+        }
+    }
+
+    /// <inheritdoc />
+    protected override ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken)
+    {
+        objectPool.Return(this);
+        return ValueTask.CompletedTask;
     }
 
     private ImmutableArray<IMiddlewareContext> CreateContexts()
@@ -109,17 +101,17 @@ internal sealed class BatchResolverTask : ExecutionTask
         for (var i = 0; i < _entries.Count; i++)
         {
             var entry = _entries[i];
-            var context = new MiddlewareContext();
+            var resolverTask =
+                _operationContext.CreateResolverTask(
+                    entry.Parent,
+                    entry.Selection,
+                    entry.ResultValue,
+                    entry.ScopedContextData,
+                    _branchId,
+                    _deferUsage);
 
-            context.Initialize(
-                entry.Parent,
-                entry.Selection,
-                entry.ResultValue,
-                _operationContext,
-                deferUsage: null,
-                entry.ScopedContextData);
-
-            builder.Add(context);
+            _resolverTasks.Add(resolverTask);
+            builder.Add(resolverTask.MiddlewareContext);
         }
 
         return builder.MoveToImmutable();
@@ -131,7 +123,7 @@ internal sealed class BatchResolverTask : ExecutionTask
     {
         for (var i = 0; i < contexts.Length; i++)
         {
-            var middlewareContext = (MiddlewareContext)contexts[i];
+            var middlewareContext = Unsafe.As<MiddlewareContext>(contexts[i]);
             var entry = _entries[i];
             var result = middlewareContext.Result;
 
@@ -165,19 +157,48 @@ internal sealed class BatchResolverTask : ExecutionTask
         }
     }
 
+    private void ReturnResolverTasks()
+    {
+        foreach (var task in _resolverTasks)
+        {
+            resolverTaskPool.Return(task);
+        }
+
+        _resolverTasks.Clear();
+    }
+
+    /// <summary>
+    /// Initializes this batch task.
+    /// </summary>
+    public void Initialize(
+        OperationContext operationContext,
+        ObjectField field,
+        SelectionPath selectionPath,
+        int branchId,
+        DeferUsage? deferUsage)
+    {
+        _operationContext = operationContext;
+        _field = field;
+        _selectionPath = selectionPath;
+        _branchId = branchId;
+        _deferUsage = deferUsage;
+    }
+
     /// <summary>
     /// Resets the batch task for reuse.
     /// </summary>
     internal new void Reset()
     {
         base.Reset();
+
+        _resolverTasks.Clear();
         _entries.Clear();
         _taskBuffer.Clear();
         _operationContext = null!;
-        _pipeline = null!;
-        _selection = null!;
-        SelectionPath = null!;
+        _field = null!;
+        _selectionPath = null!;
         _branchId = 0;
+        _deferUsage = null;
     }
 
     /// <summary>

@@ -426,6 +426,24 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveBatch(BatchFieldDelegate batchResolver)
+    {
+        ArgumentNullException.ThrowIfNull(batchResolver);
+
+        Configuration.BatchResolver = batchResolver;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor UseBatch(BatchFieldMiddleware middleware)
+    {
+        ArgumentNullException.ThrowIfNull(middleware);
+
+        Configuration.BatchMiddlewareConfigurations.Add(new BatchFieldMiddlewareConfiguration(middleware));
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IObjectFieldDescriptor Directive<T>(T directiveInstance)
         where T : class
     {

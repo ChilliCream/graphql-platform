@@ -8,34 +8,67 @@ namespace HotChocolate.Execution;
 /// </summary>
 public sealed class SelectionPath : IEquatable<SelectionPath>
 {
-    private readonly ImmutableArray<Segment> _segments;
+    private readonly Segment[] _segments;
+    private readonly int _length;
 
-    private SelectionPath(ImmutableArray<Segment> segments)
+    private SelectionPath(Segment[] segments, int length)
     {
         _segments = segments;
+        _length = length;
     }
 
     /// <summary>
     /// Gets a value indicating whether this path represents the root of an operation.
     /// The root of an operation is the root selection set.
     /// </summary>
-    public bool IsRoot => _segments.IsEmpty;
+    public bool IsRoot => _length == 0;
 
     /// <summary>
     /// Gets the parent path.
     /// </summary>
     public SelectionPath? Parent
-        => _segments.Length > 0
-            ? new SelectionPath(_segments.RemoveAt(_segments.Length - 1))
+        => _length > 0
+            ? new SelectionPath(_segments, _length - 1)
             : null;
 
     /// <summary>
-    /// Gets the segments that make up this path.
+    /// Gets the number of segments in this path.
     /// </summary>
-    /// <value>
-    /// An immutable array of segments representing the path from the root path segment to the current path segment.
-    /// </value>
-    public ImmutableArray<Segment> Segments => _segments;
+    public int Length => _length;
+
+    /// <summary>
+    /// Gets the segment at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the segment to get.</param>
+    /// <returns>The segment at the specified index.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="index"/> is less than 0 or greater than or equal to <see cref="Length"/>.
+    /// </exception>
+    public Segment this[int index] => _segments[index];
+
+    /// <summary>
+    /// Returns a new <see cref="SelectionPath"/> sharing the same backing array
+    /// but with the specified number of segments.
+    /// </summary>
+    /// <param name="length">The number of segments to include.</param>
+    /// <returns>A new <see cref="SelectionPath"/> with the specified length.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="length"/> is less than 0 or greater than <see cref="Length"/>.
+    /// </exception>
+    public SelectionPath Slice(int length)
+    {
+        if ((uint)length > (uint)_length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(length));
+        }
+
+        if (length == 0)
+        {
+            return Root;
+        }
+
+        return new SelectionPath(_segments, length);
+    }
 
     /// <summary>
     /// Creates a new selection path by appending a field segment to the current path.
@@ -46,7 +79,12 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// Thrown when <paramref name="fieldName"/> is <c>null</c>.
     /// </exception>
     public SelectionPath AppendField(string fieldName)
-        => new(_segments.Add(new Segment(fieldName, SelectionPathSegmentKind.Field)));
+    {
+        var newSegments = new Segment[_length + 1];
+        Array.Copy(_segments, newSegments, _length);
+        newSegments[_length] = new Segment(fieldName, SelectionPathSegmentKind.Field);
+        return new SelectionPath(newSegments, newSegments.Length);
+    }
 
     /// <summary>
     /// Creates a new selection path by appending an inline fragment segment to the current path.
@@ -57,12 +95,17 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// Thrown when <paramref name="typeName"/> is <c>null</c>.
     /// </exception>
     public SelectionPath AppendFragment(string typeName)
-        => new(_segments.Add(new Segment(typeName, SelectionPathSegmentKind.InlineFragment)));
+    {
+        var newSegments = new Segment[_length + 1];
+        Array.Copy(_segments, newSegments, _length);
+        newSegments[_length] = new Segment(typeName, SelectionPathSegmentKind.InlineFragment);
+        return new SelectionPath(newSegments, newSegments.Length);
+    }
 
     /// <summary>
     /// Gets the root selection path (empty path).
     /// </summary>
-    public static SelectionPath Root { get; } = new([]);
+    public static SelectionPath Root { get; } = new([], 0);
 
     /// <summary>
     /// Parses a string representation of a selection path into a <see cref="SelectionPath"/> instance.
@@ -104,7 +147,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
             return Root;
         }
 
-        var builder = ImmutableArray.CreateBuilder<Segment>();
+        var builder = new List<Segment>();
         var i = 0;
 
         while (i < s.Length)
@@ -163,7 +206,8 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
             }
         }
 
-        return new SelectionPath(builder.ToImmutable());
+        var segments = builder.ToArray();
+        return new SelectionPath(segments, segments.Length);
     }
 
     /// <summary>
@@ -177,7 +221,8 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// </returns>
     public static SelectionPath From(ImmutableArray<Segment> segments)
     {
-        return new SelectionPath(segments);
+        var array = segments.AsSpan().ToArray();
+        return new SelectionPath(array, array.Length);
     }
 
     /// <summary>
@@ -211,9 +256,15 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
             return Root;
         }
 
-        return !basePath.IsParentOfOrSame(this)
-            ? throw new ArgumentException(null, nameof(basePath))
-            : new SelectionPath(_segments.RemoveRange(0, basePath._segments.Length));
+        if (!basePath.IsParentOfOrSame(this))
+        {
+            throw new ArgumentException(null, nameof(basePath));
+        }
+
+        var newLength = _length - basePath._length;
+        var newSegments = new Segment[newLength];
+        Array.Copy(_segments, basePath._length, newSegments, 0, newLength);
+        return new SelectionPath(newSegments, newLength);
     }
 
     /// <summary>
@@ -233,12 +284,12 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// </example>
     public bool IsParentOfOrSame(SelectionPath other)
     {
-        if (other._segments.Length < _segments.Length)
+        if (other._length < _length)
         {
             return false;
         }
 
-        for (var i = 0; i < _segments.Length; i++)
+        for (var i = 0; i < _length; i++)
         {
             if (_segments[i].Kind != other._segments[i].Kind
                 || !string.Equals(_segments[i].Name, other._segments[i].Name, StringComparison.Ordinal))
@@ -259,7 +310,19 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// otherwise, <c>false</c>.
     /// </returns>
     public bool Equals(SelectionPath? other)
-        => other is not null && _segments.SequenceEqual(other._segments);
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (_length != other._length)
+        {
+            return false;
+        }
+
+        return _segments.AsSpan(0, _length).SequenceEqual(other._segments.AsSpan(0, other._length));
+    }
 
     /// <summary>
     /// Determines whether this <see cref="SelectionPath"/> is equal to the specified object.
@@ -270,7 +333,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// otherwise, <c>false</c>.
     /// </returns>
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) || obj is SelectionPath p && Equals(p);
+        => ReferenceEquals(this, obj) || (obj is SelectionPath p && Equals(p));
 
     /// <summary>
     /// Returns a hash code for this <see cref="SelectionPath"/>.
@@ -279,10 +342,10 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     public override int GetHashCode()
     {
         var hash = new HashCode();
-        foreach (var s in _segments)
+        for (var i = 0; i < _length; i++)
         {
-            hash.Add(s.Name);
-            hash.Add((int)s.Kind);
+            hash.Add(_segments[i].Name);
+            hash.Add((int)_segments[i].Kind);
         }
         return hash.ToHashCode();
     }
@@ -304,7 +367,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// </example>
     public override string ToString()
     {
-        if (_segments.IsEmpty)
+        if (_length == 0)
         {
             return "$";
         }
@@ -312,8 +375,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
         var sb = new StringBuilder();
         sb.Append('$');
 
-        // Iterate forward through segments, not backward
-        for (var i = 0; i < _segments.Length; i++)
+        for (var i = 0; i < _length; i++)
         {
             var seg = _segments[i];
 
@@ -363,14 +425,14 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// <returns>A new <see cref="Builder"/> instance.</returns>
     public static Builder CreateBuilder() => new();
 
-    public static Builder CreateBuilder(SelectionPath path) => new(path.Segments);
+    public static Builder CreateBuilder(SelectionPath path) => new(path);
 
     /// <summary>
     /// A builder for creating <see cref="SelectionPath"/> instances.
     /// </summary>
     public readonly struct Builder
     {
-        private readonly ImmutableArray<Segment>.Builder _segments = ImmutableArray.CreateBuilder<Segment>();
+        private readonly List<Segment> _segments = [];
 
         /// <summary>
         /// Initializes new instance of <see cref="Builder"/>.
@@ -382,9 +444,9 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
         /// <summary>
         /// Initializes new instance of <see cref="Builder"/>.
         /// </summary>
-        public Builder(ImmutableArray<Segment> segments)
+        public Builder(SelectionPath path)
         {
-            _segments.AddRange(segments);
+            _segments.AddRange(path._segments.AsSpan(0, path._length));
         }
 
         /// <summary>
@@ -419,6 +481,10 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
         /// Builds a <see cref="SelectionPath"/> from the segments in the builder.
         /// </summary>
         /// <returns>A new <see cref="SelectionPath"/> with the segments in the builder.</returns>
-        public SelectionPath Build() => new(_segments.ToImmutable());
+        public SelectionPath Build()
+        {
+            var segments = _segments.ToArray();
+            return new SelectionPath(segments, segments.Length);
+        }
     }
 }

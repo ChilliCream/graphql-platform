@@ -503,9 +503,9 @@ AddErrors_Next:
         next.Clear();
         current.Add(_result.Data);
 
-        for (var i = 0; i < selectionSet.Segments.Length; i++)
+        for (var i = 0; i < selectionSet.Length; i++)
         {
-            var segment = selectionSet.Segments[i];
+            var segment = selectionSet[i];
 
             foreach (var element in current)
             {
@@ -1244,14 +1244,14 @@ AddErrors_Next:
 
         var current = data;
 
-        for (var i = 0; i < sourcePath.Segments.Length; i++)
+        for (var i = 0; i < sourcePath.Length; i++)
         {
             if (current.ValueKind != JsonValueKind.Object)
             {
                 return default;
             }
 
-            var segment = sourcePath.Segments[i];
+            var segment = sourcePath[i];
 
             switch (segment.Kind)
             {
@@ -1296,9 +1296,9 @@ AddErrors_Next:
 
         var current = errors;
 
-        for (var i = 0; i < sourcePath.Segments.Length; i++)
+        for (var i = 0; i < sourcePath.Length; i++)
         {
-            var segment = sourcePath.Segments[i];
+            var segment = sourcePath[i];
 
             if (!current.TryGetValue(segment.Name, out current))
             {

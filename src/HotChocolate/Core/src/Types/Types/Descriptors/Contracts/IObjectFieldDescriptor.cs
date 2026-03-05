@@ -261,6 +261,20 @@ public interface IObjectFieldDescriptor
     IObjectFieldDescriptor Use(FieldMiddleware middleware);
 
     /// <summary>
+    /// Adds a batch resolver to the field. A batch resolver receives multiple
+    /// parent contexts and resolves them in a single invocation.
+    /// </summary>
+    /// <param name="batchResolver">The batch resolver delegate.</param>
+    IObjectFieldDescriptor ResolveBatch(BatchFieldDelegate batchResolver);
+
+    /// <summary>
+    /// Registers a batch middleware on the field. The middleware wraps the
+    /// batch resolver pipeline and is executed before the batch resolver itself.
+    /// </summary>
+    /// <param name="middleware">The batch middleware.</param>
+    IObjectFieldDescriptor UseBatch(BatchFieldMiddleware middleware);
+
+    /// <summary>
     /// Registers a directive on the field
     /// <example>
     /// <code lang="csharp">

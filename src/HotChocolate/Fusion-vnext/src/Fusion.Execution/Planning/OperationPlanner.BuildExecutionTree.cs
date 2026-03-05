@@ -807,9 +807,9 @@ public sealed partial class OperationPlanner
             return current;
         }
 
-        for (var i = 0; i < path.Segments.Length; i++)
+        for (var i = 0; i < path.Length; i++)
         {
-            var segment = path.Segments[i];
+            var segment = path[i];
 
             switch (segment.Kind)
             {

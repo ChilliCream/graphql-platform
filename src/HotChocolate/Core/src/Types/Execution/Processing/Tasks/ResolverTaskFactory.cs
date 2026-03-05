@@ -202,10 +202,12 @@ internal static class ResolverTaskFactory
                 }
                 else if (selection.Strategy is SelectionExecutionStrategy.Batch)
                 {
-                    var batchTask = operationContext.Scheduler.GetOrCreateBatchTask(
-                        selection.FieldSelectionPath,
-                        selection.BatchResolverPipeline!,
-                        context.ParentBranchId);
+                    var batchTask =
+                        operationContext.Scheduler.GetOrCreateBatchTask(
+                            selection.FieldSelectionPath,
+                            selection.Field,
+                            context.ParentBranchId,
+                            parentDeferUsage);
 
                     batchTask.AddEntry(
                         parent,

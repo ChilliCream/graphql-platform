@@ -23,6 +23,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     internal Selection(
         int id,
         string responseName,
+        SelectionPath fieldSelectionPath,
         ObjectField field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
@@ -31,7 +32,8 @@ public sealed class Selection : ISelection, IFeatureProvider
         bool isInternal = false,
         ArgumentMap? arguments = null,
         FieldDelegate? resolverPipeline = null,
-        PureFieldDelegate? pureResolver = null)
+        PureFieldDelegate? pureResolver = null,
+        BatchFieldDelegate? batchResolverPipeline = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -44,14 +46,17 @@ public sealed class Selection : ISelection, IFeatureProvider
 
         Id = id;
         ResponseName = responseName;
+        FieldSelectionPath = fieldSelectionPath;
         Field = field;
         Type = field.Type;
         Arguments = arguments ?? s_emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
+        BatchResolverPipeline = batchResolverPipeline;
         Strategy = InferStrategy(
             isSerial: !field.IsParallelExecutable,
-            hasPureResolver: pureResolver is not null);
+            hasPureResolver: pureResolver is not null,
+            hasBatchResolver: batchResolverPipeline is not null);
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _deferUsage = deferUsage ?? [];
@@ -75,6 +80,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         int id,
         string responseName,
         byte[] utf8ResponseName,
+        SelectionPath fieldSelectionPath,
         ObjectField field,
         IType type,
         FieldSelectionNode[] syntaxNodes,
@@ -90,6 +96,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     {
         Id = id;
         ResponseName = responseName;
+        FieldSelectionPath = fieldSelectionPath;
         Field = field;
         Type = type;
         Arguments = arguments ?? s_emptyArguments;
@@ -112,6 +119,8 @@ public sealed class Selection : ISelection, IFeatureProvider
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
+
+    public SelectionPath FieldSelectionPath { get; }
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
@@ -621,6 +630,7 @@ nextItem:
             Id,
             ResponseName,
             _utf8ResponseName,
+            FieldSelectionPath,
             field,
             field.Type,
             _syntaxNodes,
@@ -647,6 +657,7 @@ nextItem:
             Id,
             ResponseName,
             _utf8ResponseName,
+            FieldSelectionPath,
             Field,
             type,
             _syntaxNodes,

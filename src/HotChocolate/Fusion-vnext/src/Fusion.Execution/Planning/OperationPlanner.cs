@@ -2317,7 +2317,8 @@ internal static class PlannerExtensions
         }
 
         var selectionSetIndexBuilder = planNodeTemplate.SelectionSetIndex.ToBuilder();
-        var segments = selectionSet.Path.Segments;
+        var path = selectionSet.Path;
+        var segmentLength = path.Length;
         var finalSelectionSet = selectionSet.Node;
         var fieldsMovedUp = 0;
 
@@ -2351,7 +2352,7 @@ internal static class PlannerExtensions
                     [inlineFragmentPathItem.Node.WithSelectionSet(finalSelectionSet)]);
             }
 
-            segments = segments.RemoveAt(segments.Length - 1);
+            segmentLength--;
 
             if (pathItems.TryPeek(out var parentPathItem))
             {
@@ -2381,7 +2382,7 @@ internal static class PlannerExtensions
                             selectionSetIndexBuilder.GetId(finalSelectionSet),
                             finalSelectionSet,
                             parentType,
-                            SelectionPath.From(segments));
+                            path.Slice(segmentLength));
 
                         var newWorkItem = workItem with { SelectionSet = newSelectionSet, Lookup = lookup };
 
@@ -2425,8 +2426,10 @@ internal static class PlannerExtensions
 
         var items = new Stack<IPathItem>();
 
-        foreach (var segment in path.Segments)
+        for (var i = 0; i < path.Length; i++)
         {
+            var segment = path[i];
+
             switch (segment.Kind)
             {
                 case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:

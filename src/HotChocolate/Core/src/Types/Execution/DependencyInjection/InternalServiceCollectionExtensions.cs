@@ -37,6 +37,21 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
+    internal static IServiceCollection TryAddBatchResolverTaskPool(
+        this IServiceCollection services,
+        int maximumRetained = 64)
+    {
+        services.TryAddSingleton<ObjectPool<BatchResolverTask>>(
+            sp => new ExecutionTaskPool<BatchResolverTask, BatchResolverTaskPoolPolicy>(
+                new BatchResolverTaskPoolPolicy(
+                    sp.GetRequiredService<ObjectPool<ResolverTask>>()),
+                maximumRetained));
+        services.TryAddSingleton<IFactory<BatchResolverTask>>(
+            sp => new PooledServiceFactory<BatchResolverTask>(
+                sp.GetRequiredService<ObjectPool<BatchResolverTask>>()));
+        return services;
+    }
+
     internal static IServiceCollection TryAddOperationContextPool(
         this IServiceCollection services)
     {

@@ -41,6 +41,7 @@ public sealed class ObjectField : OutputField
         SubscribeResolver = original.SubscribeResolver;
         ResultPostProcessor = original.ResultPostProcessor;
         PureResolver = original.PureResolver;
+        BatchResolverPipeline = original.BatchResolverPipeline;
         DependencyInjectionScope = original.DependencyInjectionScope;
         Middleware = original.Middleware;
         Flags = original.Flags;
@@ -97,6 +98,11 @@ public sealed class ObjectField : OutputField
     /// Gets the subscription resolver.
     /// </summary>
     public SubscribeResolverDelegate? SubscribeResolver { get; private set; }
+
+    /// <summary>
+    /// Gets the compiled batch resolver pipeline.
+    /// </summary>
+    public BatchFieldDelegate? BatchResolverPipeline { get; private set; }
 
     /// <summary>
     /// Gets the result post-processor.
@@ -220,6 +226,14 @@ public sealed class ObjectField : OutputField
 
         ResultPostProcessor = definition.ResultPostProcessor;
 
+        // Compile the batch resolver pipeline if a batch resolver is configured.
+        if (definition.BatchResolver is not null)
+        {
+            BatchResolverPipeline = CompileBatchPipeline(
+                definition.GetBatchMiddlewareDefinitions(),
+                definition.BatchResolver);
+        }
+
         // if the source generator has configured this field, we will not try to infer a post-processor with
         // reflection.
         if ((Flags & CoreFieldFlags.SourceGenerator) != CoreFieldFlags.SourceGenerator
@@ -251,6 +265,25 @@ public sealed class ObjectField : OutputField
 
             return definition.ResultType;
         }
+    }
+
+    private static BatchFieldDelegate CompileBatchPipeline(
+        IReadOnlyList<BatchFieldMiddlewareConfiguration> middlewareComponents,
+        BatchFieldDelegate batchResolver)
+    {
+        if (middlewareComponents is not { Count: > 0 })
+        {
+            return batchResolver;
+        }
+
+        var next = batchResolver;
+
+        for (var i = middlewareComponents.Count - 1; i >= 0; i--)
+        {
+            next = middlewareComponents[i].Middleware(next);
+        }
+
+        return next;
     }
 }
 

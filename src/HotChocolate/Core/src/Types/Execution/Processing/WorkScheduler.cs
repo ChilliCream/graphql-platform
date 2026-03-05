@@ -40,9 +40,9 @@ internal sealed partial class WorkScheduler
             work.Push(task);
             RegisterBranchTaskUnsafe(task.BranchId);
 
-            if (task is Tasks.ResolverTask { SelectionPath: { } path })
+            if (task is Tasks.ResolverTask rt)
             {
-                IncrementPathCountUnsafe(path);
+                IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
             }
         }
 
@@ -75,9 +75,9 @@ internal sealed partial class WorkScheduler
 
                 RegisterBranchTaskUnsafe(task.BranchId);
 
-                if (task is Tasks.ResolverTask { SelectionPath: { } path })
+                if (task is Tasks.ResolverTask rt)
                 {
-                    IncrementPathCountUnsafe(path);
+                    IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
                 }
             }
         }
@@ -105,9 +105,13 @@ internal sealed partial class WorkScheduler
                 {
                     _completed.Add(task.Id);
 
-                    if (task is Tasks.ResolverTask { SelectionPath: { } path })
+                    if (task is Tasks.ResolverTask rt)
                     {
-                        DecrementPathCountUnsafe(path);
+                        DecrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
+                    }
+                    else if (task is Tasks.BatchResolverTask bt)
+                    {
+                        DecrementPathCountUnsafe(bt.SelectionPath);
                     }
                 }
 

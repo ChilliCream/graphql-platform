@@ -1,115 +1,72 @@
-using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution.Processing.Tasks;
-using HotChocolate.Resolvers;
-using HotChocolate.Text.Json;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class WorkScheduler
 {
-    // Tracks running + queued task count per batch selection path.
-    private readonly Dictionary<BatchSelectionPath, int> _activeCountByPath = new();
-
-    // Batch resolver tasks waiting to dispatch, keyed by their selection path.
-    private readonly Dictionary<BatchSelectionPath, BatchResolverTask> _pendingBatches = new();
+    private readonly Dictionary<SelectionPath, int> _activePaths = [];
+    private readonly Dictionary<(SelectionPath Path, DeferUsage? Defer), BatchResolverTask> _pendingBatches = [];
 
     /// <summary>
-    /// Gets or creates a <see cref="BatchResolverTask"/> for the given selection path.
+    /// Gets or creates a <see cref="BatchResolverTask"/> for the given selection path
+    /// and defer usage combination. Entries with different defer usages are kept in
+    /// separate batches so that each batch can be delivered under the correct
+    /// <c>@defer</c> boundary.
     /// Called during value completion when a batch field is encountered.
     /// The task is held in the pending batches registry until all ancestor
     /// paths have completed, at which point it is moved to the work queue.
     /// </summary>
     public BatchResolverTask GetOrCreateBatchTask(
-        BatchSelectionPath selectionPath,
-        Selection selection,
-        BatchFieldDelegate pipeline,
-        int branchId)
+        SelectionPath selectionPath,
+        ObjectField field,
+        int branchId,
+        DeferUsage? deferUsage = null)
     {
         AssertNotPooled();
 
+        var key = (selectionPath, deferUsage);
+
         lock (_sync)
         {
-            if (!_pendingBatches.TryGetValue(selectionPath, out var batchTask))
+            if (!_pendingBatches.TryGetValue(key, out var batchTask))
             {
-                batchTask = new BatchResolverTask();
-                batchTask.Initialize(operationContext, selection, pipeline, selectionPath, branchId);
-                _pendingBatches[selectionPath] = batchTask;
+                batchTask = operationContext.CreateBatchResolverTask(field, selectionPath, branchId, deferUsage);
+                _pendingBatches[key] = batchTask;
+                IncrementPathCountUnsafe(selectionPath);
             }
 
             return batchTask;
         }
     }
 
-    /// <summary>
-    /// Increments the active task count for the given path.
-    /// Must be called under <c>_sync</c> lock.
-    /// </summary>
-    private void IncrementPathCountUnsafe(BatchSelectionPath? path)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void IncrementPathCountUnsafe(SelectionPath path)
     {
-        if (path is null)
-        {
-            return;
-        }
-
-        // Increment for this path and all its ancestors
-        var current = path;
-
-        while (current is not null)
-        {
-            if (_activeCountByPath.TryGetValue(current, out var count))
-            {
-                _activeCountByPath[current] = count + 1;
-            }
-            else
-            {
-                _activeCountByPath[current] = 1;
-            }
-
-            current = current.Parent;
-        }
+        ref var count = ref CollectionsMarshal.GetValueRefOrAddDefault(_activePaths, path, out _);
+        count++;
     }
 
     /// <summary>
     /// Decrements the active task count for the given path and checks if any
     /// pending batch tasks can now be dispatched.
-    /// Must be called under <c>_sync</c> lock.
     /// </summary>
-    private void DecrementPathCountUnsafe(BatchSelectionPath? path)
+    private void DecrementPathCountUnsafe(SelectionPath path)
     {
-        if (path is null)
+        ref var count = ref CollectionsMarshal.GetValueRefOrNullRef(_activePaths, path);
+
+        if (!Unsafe.IsNullRef(ref count) && --count <= 0)
         {
-            return;
+            _activePaths.Remove(path);
+            TryDispatchPendingBatchesUnsafe();
         }
-
-        // Decrement for this path and all its ancestors
-        var current = path;
-
-        while (current is not null)
-        {
-            if (_activeCountByPath.TryGetValue(current, out var count))
-            {
-                if (count <= 1)
-                {
-                    _activeCountByPath.Remove(current);
-                }
-                else
-                {
-                    _activeCountByPath[current] = count - 1;
-                }
-            }
-
-            current = current.Parent;
-        }
-
-        // Check if any pending batches can now be dispatched.
-        TryDispatchPendingBatchesUnsafe();
     }
 
     /// <summary>
     /// Checks all pending batch tasks and dispatches any whose ancestor paths
     /// all have zero active tasks.
-    /// Must be called under <c>_sync</c> lock.
     /// </summary>
     private void TryDispatchPendingBatchesUnsafe()
     {
@@ -118,45 +75,43 @@ internal sealed partial class WorkScheduler
             return;
         }
 
-        // Collect dispatchable batches (can't modify dictionary during iteration)
-        List<BatchSelectionPath>? toDispatch = null;
+        List<(SelectionPath Path, DeferUsage? Defer)>? toRemove = null;
 
-        foreach (var (batchPath, batchTask) in _pendingBatches)
+        foreach (var (key, batchTask) in _pendingBatches)
         {
-            if (CanDispatchBatchUnsafe(batchPath))
+            if (!CanDispatchBatchUnsafe(key.Path))
             {
-                toDispatch ??= [];
-                toDispatch.Add(batchPath);
+                continue;
             }
-        }
 
-        if (toDispatch is null)
-        {
-            return;
-        }
+            toRemove ??= [];
+            toRemove.Add(key);
 
-        foreach (var path in toDispatch)
-        {
-            var batchTask = _pendingBatches[path];
-            _pendingBatches.Remove(path);
-
-            // Move the batch task to the work queue
             batchTask.Id = Interlocked.Increment(ref _nextId);
             batchTask.IsRegistered = true;
             _work.Push(batchTask);
             RegisterBranchTaskUnsafe(batchTask.BranchId);
         }
 
-        // Signal the execution loop that new work is available.
+        if (toRemove is null)
+        {
+            return;
+        }
+
+        foreach (var key in toRemove)
+        {
+            _pendingBatches.Remove(key);
+        }
+
         _signal.Set();
     }
 
     /// <summary>
     /// Determines whether a batch task at the given path can be dispatched.
     /// A batch is dispatchable when all strict ancestor paths have zero active tasks.
-    /// Must be called under <c>_sync</c> lock.
+    /// Walks the cached parent chain on <see cref="SelectionPath"/> — no allocation.
     /// </summary>
-    private bool CanDispatchBatchUnsafe(BatchSelectionPath batchPath)
+    private bool CanDispatchBatchUnsafe(SelectionPath batchPath)
     {
         // Walk up ancestor paths. If any ancestor still has active tasks,
         // more entries could still be added to this batch.
@@ -164,7 +119,7 @@ internal sealed partial class WorkScheduler
 
         while (ancestor is not null)
         {
-            if (_activeCountByPath.TryGetValue(ancestor, out var count) && count > 0)
+            if (_activePaths.TryGetValue(ancestor, out var count) && count > 0)
             {
                 return false;
             }
