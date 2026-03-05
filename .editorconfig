@@ -9,6 +9,9 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 rulers = 120
 
+[*.{bat,cmd,ps1}]
+end_of_line = crlf
+
 # ReSharper properties
 resharper_align_multiline_statement_conditions = false
 resharper_keep_existing_initializer_arrangement = false
@@ -184,6 +187,8 @@ dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.RCS1129.severity = none
 # Use StringBuilder.Append(char) for single character strings.
 dotnet_diagnostic.CA1834.severity = warning
+# Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char.
+dotnet_diagnostic.CA1866.severity = warning
 # Simplify name.
 dotnet_diagnostic.IDE0001.severity = warning
 # Simplify member access.

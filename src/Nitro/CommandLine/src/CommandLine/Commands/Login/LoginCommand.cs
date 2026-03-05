@@ -45,7 +45,7 @@ internal sealed class LoginCommand : Command
 
         if (session is null)
         {
-            throw new ExitException("There was a failure and nitro could not log you in.");
+            throw new ExitException("There was a failure and Nitro could not log you in.");
         }
 
         console.OkLine(

@@ -807,7 +807,7 @@ internal static class CompositeSchemaBuilder
 
         if (specifiedByDirective is not null)
         {
-            if (specifiedByDirective.Arguments["url"].Value is not StringValueNode url)
+            if (specifiedByDirective.Arguments["url"] is not StringValueNode url)
             {
                 throw new InvalidOperationException("The specified type does not have a url.");
             }

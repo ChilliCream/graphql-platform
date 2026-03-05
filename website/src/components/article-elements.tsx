@@ -107,7 +107,7 @@ export const ArticleContent = styled.div`
   > p,
   > ol > li,
   > ul > li {
-    text-align: justify;
+    text-align: left;
   }
 
   > p,

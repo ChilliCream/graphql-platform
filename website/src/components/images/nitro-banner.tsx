@@ -7,7 +7,11 @@ export const NitroBannerImage: FC = () => {
     <img
       src="/images/nitro/nitro-banner.png"
       alt="Nitro"
-      style={{ maxWidth: NITRO_BANNER_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      style={{
+        maxWidth: NITRO_BANNER_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };

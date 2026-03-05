@@ -33,11 +33,7 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
         <HeroTitleSecond>For any Scale</HeroTitleSecond>
         <HeroTeaser>Choose the right plan for your Team.</HeroTeaser>
       </Hero>
-      <ContentSection
-        title="Nitro Platform"
-        noBackground
-        titleSpace="large"
-      >
+      <ContentSection title="Nitro Platform" noBackground titleSpace="large">
         <Plans
           plans={[
             {
@@ -53,7 +49,7 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Document Sharing",
                 "OpenTelemetry",
                 "Github or Google Login",
-                "Usage-based pricing"
+                "Usage-based pricing",
               ],
               ctaText: "Start for Free",
               ctaLink: "https://nitro.chillicream.com",
@@ -87,23 +83,27 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "On-Premise Option",
                 "Source Code Access",
                 "Dedicated Account Manager",
-                "24/7 Support"
+                "24/7 Support",
               ],
               ctaText: "Contact Sales",
-              ctaLink: "mailto:contact@chillicream.com?subject=Enterprise%20Plan",
+              ctaLink:
+                "mailto:contact@chillicream.com?subject=Enterprise%20Plan",
             },
           ]}
         />
-        <p style={{ marginTop: "2rem", fontSize: "0.9rem", color: "#666", textAlign: "center" }}>
+        <p
+          style={{
+            marginTop: "2rem",
+            fontSize: "0.9rem",
+            color: "#666",
+            textAlign: "center",
+          }}
+        >
           *Available in Platinum and Enterprise plans
         </p>
       </ContentSection>
 
-      <ContentSection
-        title="Support Plans"
-        noBackground
-        titleSpace="large"
-      >
+      <ContentSection title="Support Plans" noBackground titleSpace="large">
         <Plans
           plans={[
             {
@@ -115,16 +115,18 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "2 Critical Incidents",
                 "24h Business Hour SLA",
                 "Private Slack Channel",
-                "Access to expert engineers"
+                "Access to expert engineers",
               ],
               ctaText: "Contact Sales",
-              ctaLink: "mailto:contact@chillicream.com?subject=Professional%20Support",
+              ctaLink:
+                "mailto:contact@chillicream.com?subject=Professional%20Support",
             },
             {
               title: "Business",
               price: 1300,
               period: "month",
-              description: "Comprehensive support for business teams ($15,000/year)",
+              description:
+                "Comprehensive support for business teams ($15,000/year)",
               features: [
                 "Unlimited Critical Incidents",
                 "24h Business Hour SLA",
@@ -135,7 +137,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Email Support",
               ],
               ctaText: "Contact Sales",
-              ctaLink: "mailto:contact@chillicream.com?subject=Business%20Support",
+              ctaLink:
+                "mailto:contact@chillicream.com?subject=Business%20Support",
             },
             {
               title: "Enterprise",
@@ -153,20 +156,17 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Dedicated Account Manager",
                 "Quarterly Status Reviews",
                 "Source Code Access",
-                "Nitro License included"
+                "Nitro License included",
               ],
               ctaText: "Contact Sales",
-              ctaLink: "mailto:contact@chillicream.com?subject=Enterprise%20Support",
+              ctaLink:
+                "mailto:contact@chillicream.com?subject=Enterprise%20Support",
             },
           ]}
         />
       </ContentSection>
 
-      <ContentSection
-        title="Add-On Services"
-        noBackground
-        titleSpace="large"
-      >
+      <ContentSection title="Add-On Services" noBackground titleSpace="large">
         <Plans
           plans={[
             {
@@ -174,16 +174,18 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
               price: 300,
               period: "hour",
               fromPrice: true,
-              description: "Expert guidance and consulting for your GraphQL implementation",
+              description:
+                "Expert guidance and consulting for your GraphQL implementation",
               features: [
                 "GraphQL expertise",
                 "Architecture reviews",
                 "Performance optimization",
                 "Best practices guidance",
-                "Custom solution design"
+                "Custom solution design",
               ],
               ctaText: "Contact Sales",
-              ctaLink: "mailto:contact@chillicream.com?subject=Advisory%20Services",
+              ctaLink:
+                "mailto:contact@chillicream.com?subject=Advisory%20Services",
             },
             {
               title: "Private Workshops",
@@ -196,38 +198,44 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Hands-on exercises",
                 "Expert instructors",
                 "Post-workshop support",
-                "Materials included"
+                "Materials included",
               ],
               ctaText: "Contact Sales",
-              ctaLink: "mailto:contact@chillicream.com?subject=Private%20Workshops",
+              ctaLink:
+                "mailto:contact@chillicream.com?subject=Private%20Workshops",
             },
             {
               title: "Monthly Sessions",
               price: 15000,
               period: "year",
-              description: "Regular collaboration sessions with our expert team",
+              description:
+                "Regular collaboration sessions with our expert team",
               features: [
                 "Monthly 2-hour sessions",
                 "Direct access to experts",
                 "Progress tracking",
                 "Strategic planning",
                 "Problem-solving support",
-                "Knowledge transfer"
+                "Knowledge transfer",
               ],
               ctaText: "Contact Sales",
-              ctaLink: "mailto:contact@chillicream.com?subject=Monthly%20Collaboration%20Sessions",
+              ctaLink:
+                "mailto:contact@chillicream.com?subject=Monthly%20Collaboration%20Sessions",
             },
           ]}
         />
 
-        <p style={{
-          textAlign: "center",
-          fontSize: "0.9rem",
-          color: "#666",
-          fontStyle: "italic",
-          marginTop: "2rem"
-        }}>
-          Add-on services are optional for all plans and can be combined with any Nitro or Support plan.
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: "0.9rem",
+            color: "#666",
+            fontStyle: "italic",
+            marginTop: "2rem",
+          }}
+        >
+          Add-on services are optional for all plans and can be combined with
+          any Nitro or Support plan.
         </p>
       </ContentSection>
 
@@ -241,7 +249,9 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
             All Our Core Libraries Are Free & Open Source
           </OpenSourceTitle>
           <OpenSourceDescription>
-            <strong>HotChocolate</strong>, <strong>StrawberryShake</strong>, and <strong>GreenDonut</strong> are MIT licensed and completely free to use in any project, commercial or otherwise.
+            <strong>HotChocolate</strong>, <strong>StrawberryShake</strong>, and{" "}
+            <strong>GreenDonut</strong> are MIT licensed and completely free to
+            use in any project, commercial or otherwise.
           </OpenSourceDescription>
           <OpenSourceButtons>
             <OpenSourceButton
@@ -261,7 +271,6 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
           </OpenSourceButtons>
         </OpenSourceContainer>
       </ContentSection>
-
 
       <NewsletterSection />
       <MostRecentBlogPostsSection posts={recentPosts} />

@@ -180,6 +180,7 @@ public sealed class SchemaComposer
         new InputWithMissingOneOfRule(),
         new InvalidFieldSharingRule(),
         new OutputFieldTypesMergeableRule(),
+        new SpecifiedByUrlMismatchRule(),
         new TypeKindMismatchRule()
     ];
 

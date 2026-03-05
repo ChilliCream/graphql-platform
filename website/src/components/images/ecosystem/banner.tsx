@@ -7,7 +7,11 @@ export const EcosystemBannerImage: FC = () => {
     <img
       src="/images/ecosystem/banner.png"
       alt="An Ecosystem You Love"
-      style={{ maxWidth: ECOSYSTEM_BANNER_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      style={{
+        maxWidth: ECOSYSTEM_BANNER_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };

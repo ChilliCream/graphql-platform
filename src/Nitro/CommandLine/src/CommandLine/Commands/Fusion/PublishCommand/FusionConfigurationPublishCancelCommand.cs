@@ -34,13 +34,13 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
             context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(cancellationToken) ??
             throw new ExitException(
-                "No request id was provided and no request id was found in the cache. Please provide a request id.");
+                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
-        console.Title("Cancel the composition of a fusion configuration");
+        console.Title("Cancel the composition of a Fusion configuration");
 
         await FusionPublishHelpers.ReleaseDeploymentSlot(requestId, console, client, cancellationToken);
 
-        console.MarkupLine("Cancelled the composition of fusion configuration.");
+        console.MarkupLine("Cancelled the composition of Fusion configuration.");
 
         return ExitCodes.Success;
     }

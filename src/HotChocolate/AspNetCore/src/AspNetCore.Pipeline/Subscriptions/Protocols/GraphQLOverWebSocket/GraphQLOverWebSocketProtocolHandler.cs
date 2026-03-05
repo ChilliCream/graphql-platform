@@ -15,7 +15,9 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
 internal sealed class GraphQLOverWebSocketProtocolHandler(
     ISocketSessionInterceptor interceptor,
-    IWebSocketPayloadFormatter formatter)
+    IWebSocketPayloadFormatter formatter,
+    IDocumentCache documentCache,
+    IDocumentHashProvider documentHashProvider)
     : IGraphQLOverWebSocketProtocolHandler
 {
     public string Name => GraphQL_Transport_WS;
@@ -296,7 +298,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
         CancellationToken cancellationToken)
         => session.Connection.CloseConnectionInitTimeoutAsync(cancellationToken);
 
-    private static bool TryParseSubscribeMessage(
+    private bool TryParseSubscribeMessage(
         JsonElement messageElement,
         [NotNullWhen(true)] out SubscribeMessage? message)
     {
@@ -317,7 +319,10 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
 
         var id = idProp.GetString()!;
         var requestData = JsonMarshal.GetRawUtf8Value(payloadProp);
-        var request = Parse(requestData);
+        var request = Parse(
+            requestData,
+            cache: documentCache,
+            hashProvider: documentHashProvider);
 
         if (request.Length == 0)
         {

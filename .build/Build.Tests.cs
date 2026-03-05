@@ -70,7 +70,8 @@ partial class Build
             TestHotChocolateUtilities,
             TestStrawberryShakeClient,
             TestStrawberryShakeCodeGeneration,
-            TestStrawberryShakeTooling);
+            TestStrawberryShakeTooling,
+            TestMocha);
 
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
