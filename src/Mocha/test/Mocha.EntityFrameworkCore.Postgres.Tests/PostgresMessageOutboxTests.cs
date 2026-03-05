@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Mocha.EntityFrameworkCore.Postgres;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Outbox;
@@ -121,7 +120,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope);
 
         // Act & Assert
-        var ex = Record.Exception(() => outbox.Dispose());
+        var ex = Record.Exception(outbox.Dispose);
         Assert.Null(ex);
     }
 

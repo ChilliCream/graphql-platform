@@ -1,12 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests;
 
 public class HandlerResolutionTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task AddEventHandler_Should_ResolveDependency_When_HandlerHasDIConstructor()
@@ -29,7 +28,7 @@ public class HandlerResolutionTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the event");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event");
 
         Assert.Equal(1, counter.Count);
     }
@@ -51,7 +50,7 @@ public class HandlerResolutionTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout),
+            await recorder.WaitAsync(s_timeout),
             "Handler was not called - AddHandler did not create SubscribeConsumer");
 
         var message = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
@@ -75,7 +74,7 @@ public class HandlerResolutionTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout),
+            await recorder.WaitAsync(s_timeout),
             "Handler was not called - AddHandler did not create SendConsumer");
     }
 

@@ -330,7 +330,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
 
         // assert - all 5 requests should have failed
         Assert.Equal(5, exceptions.Length);
-        Assert.All(exceptions, ex => Assert.NotNull(ex));
+        Assert.All(exceptions, Assert.NotNull);
     }
 
     [Fact]

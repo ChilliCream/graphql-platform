@@ -5,7 +5,7 @@ namespace Mocha.Tests.Threading;
 
 public sealed class ChannelProcessorTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task Handler_Should_ReceiveAllItems_When_ItemsWrittenToChannel()
@@ -29,7 +29,7 @@ public sealed class ChannelProcessorTests
         channel.Writer.TryWrite(3);
 
         // assert
-        await received.WaitAsync(Timeout, expectedCount: 3);
+        await received.WaitAsync(s_timeout, expectedCount: 3);
         Assert.Equal([1, 2, 3], received.Items.OrderBy(x => x));
     }
 
@@ -59,7 +59,7 @@ public sealed class ChannelProcessorTests
         channel.Writer.TryWrite(2);
 
         // assert — if both workers entered, the barrier completes within timeout
-        var completed = await Task.WhenAny(barrier.Task, Task.Delay(Timeout));
+        var completed = await Task.WhenAny(barrier.Task, Task.Delay(s_timeout));
         Assert.Same(barrier.Task, completed);
     }
 
@@ -80,7 +80,7 @@ public sealed class ChannelProcessorTests
             concurrency: 1);
 
         channel.Writer.TryWrite(1);
-        await received.WaitAsync(Timeout, expectedCount: 1);
+        await received.WaitAsync(s_timeout, expectedCount: 1);
 
         // act
         channel.Writer.Complete();
@@ -121,7 +121,7 @@ public sealed class ChannelProcessorTests
         channel.Writer.TryWrite(2);
 
         // assert — item 2 is eventually processed after ContinuousTask restarts the loop
-        await received.WaitAsync(Timeout, expectedCount: 1);
+        await received.WaitAsync(s_timeout, expectedCount: 1);
         Assert.Contains(2, received.Items);
     }
 
@@ -138,7 +138,7 @@ public sealed class ChannelProcessorTests
             {
                 try
                 {
-                    await Task.Delay(System.Threading.Timeout.InfiniteTimeSpan, ct);
+                    await Task.Delay(Timeout.InfiniteTimeSpan, ct);
                 }
                 catch (OperationCanceledException)
                 {
@@ -153,7 +153,7 @@ public sealed class ChannelProcessorTests
         await processor.DisposeAsync();
 
         // assert — the handler's cancellation token was triggered
-        var completed = await Task.WhenAny(tokenCancelled.Task, Task.Delay(Timeout));
+        var completed = await Task.WhenAny(tokenCancelled.Task, Task.Delay(s_timeout));
         Assert.Same(tokenCancelled.Task, completed);
     }
 
@@ -174,7 +174,7 @@ public sealed class ChannelProcessorTests
             concurrency: 1);
 
         // assert
-        await received.WaitAsync(Timeout, expectedCount: 3);
+        await received.WaitAsync(s_timeout, expectedCount: 3);
         Assert.Equal([10, 20, 30], received.Items.OrderBy(x => x));
     }
 
@@ -190,7 +190,7 @@ public sealed class ChannelProcessorTests
         }
 
         // Block until cancelled so ContinuousTask doesn't spin-restart
-        await Task.Delay(System.Threading.Timeout.InfiniteTimeSpan, ct);
+        await Task.Delay(Timeout.InfiniteTimeSpan, ct);
     }
 
     /// <summary>

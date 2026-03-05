@@ -1,8 +1,6 @@
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
@@ -50,7 +48,7 @@ public class RabbitMQConsumerManagerTests
 
         // assert
         Assert.Equal(10, results.Length);
-        Assert.All(results, r => Assert.NotNull(r));
+        Assert.All(results, Assert.NotNull);
     }
 
     [Fact]

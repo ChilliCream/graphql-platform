@@ -1,7 +1,5 @@
 using System.Collections.Immutable;
-using System.Text;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -257,7 +255,8 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             BasicDeliverEventArgs,
             CancellationToken,
             ValueTask
-        > MessageHandler { get; init; }
+        > MessageHandler
+        { get; init; }
 
         /// <summary>
         /// Gets the maximum number of unacknowledged messages the broker delivers to this consumer.

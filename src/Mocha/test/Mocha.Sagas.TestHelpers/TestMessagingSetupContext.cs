@@ -1,8 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Mocha;
 using Mocha.Features;
 using Mocha.Middlewares;
 
@@ -13,9 +11,9 @@ namespace Mocha.Sagas.Tests;
 /// </summary>
 public sealed class TestMessagingSetupContext : IMessagingSetupContext
 {
-    private static readonly Lazy<TestMessagingSetupContext> _instance = new(() => new());
+    private static readonly Lazy<TestMessagingSetupContext> s_instance = new(() => new());
 
-    public static TestMessagingSetupContext Instance => _instance.Value;
+    public static TestMessagingSetupContext Instance => s_instance.Value;
 
     public IServiceProvider Services { get; }
     public IBusNamingConventions Naming { get; } = new TestNamingConventions();
@@ -25,7 +23,7 @@ public sealed class TestMessagingSetupContext : IMessagingSetupContext
     public IEndpointRouter Endpoints => throw new NotSupportedException("Not available in test context");
     public IHostInfo Host => throw new NotSupportedException("Not available in test context");
     public IConventionRegistry Conventions => throw new NotSupportedException("Not available in test context");
-    public ImmutableHashSet<Consumer> Consumers => ImmutableHashSet<Consumer>.Empty;
+    public ImmutableHashSet<Consumer> Consumers => [];
     public ImmutableArray<MessagingTransport> Transports => [];
     public MessagingTransport? Transport => null;
 

@@ -102,13 +102,17 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         foreach (var endpoint in ReceiveEndpoints)
         {
             if (endpoint.Source is not null)
+            {
                 outboundResources.Add(endpoint.Source);
+            }
         }
 
         foreach (var endpoint in DispatchEndpoints)
         {
             if (endpoint.Destination is not null)
+            {
                 inboundResources.Add(endpoint.Destination);
+            }
         }
 
         foreach (var resource in outboundResources)
@@ -125,7 +129,9 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         foreach (var resource in inboundResources)
         {
             if (outboundResources.Contains(resource))
+            {
                 continue;
+            }
 
             entities.Add(
                 new TopologyEntityDescription(

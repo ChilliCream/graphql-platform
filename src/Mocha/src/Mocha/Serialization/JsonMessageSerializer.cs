@@ -11,7 +11,7 @@ internal sealed class JsonMessageSerializer(JsonTypeInfo typeInfo) : IMessageSer
     public object? Deserialize(ReadOnlyMemory<byte> body) => JsonSerializer.Deserialize(body.Span, typeInfo);
 
     public T? Deserialize<T>(ReadOnlyMemory<byte> body)
-        => JsonSerializer.Deserialize(body.Span, typeInfo) is T result ? result : default(T);
+        => JsonSerializer.Deserialize(body.Span, typeInfo) is T result ? result : default;
 
     public void Serialize<T>(T message, IBufferWriter<byte> writer)
     {

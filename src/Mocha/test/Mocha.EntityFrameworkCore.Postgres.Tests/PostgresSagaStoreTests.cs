@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Mocha.EntityFrameworkCore.Postgres;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
-using Mocha.Sagas;
 using Mocha.Sagas.EfCore;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests;

@@ -1,4 +1,3 @@
-using Mocha;
 using Npgsql;
 
 namespace Mocha.Sagas.Tests;

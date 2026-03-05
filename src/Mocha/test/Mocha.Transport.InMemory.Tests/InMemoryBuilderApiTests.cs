@@ -6,7 +6,7 @@ namespace Mocha.Transport.InMemory.Tests;
 
 public class InMemoryBuilderApiTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task DeclareBinding_Should_DeliverMessage_When_TopicBoundToQueue()
@@ -36,7 +36,7 @@ public class InMemoryBuilderApiTests
 
         // assert — queue receives the message via the binding
         Assert.True(
-            await recorder.WaitAsync(Timeout),
+            await recorder.WaitAsync(s_timeout),
             "Handler should receive message routed via ToQueue on dispatch endpoint");
     }
 
@@ -80,9 +80,9 @@ public class InMemoryBuilderApiTests
         await bus.PublishAsync(new OrderCreated { OrderId = "fan-msg" }, CancellationToken.None);
 
         // assert — all 3 handlers receive the message
-        Assert.True(await recorder1.WaitAsync(Timeout), "First fan-out handler did not receive the event");
-        Assert.True(await recorder2.WaitAsync(Timeout), "Second fan-out handler did not receive the event");
-        Assert.True(await recorder3.WaitAsync(Timeout), "Third fan-out handler did not receive the event");
+        Assert.True(await recorder1.WaitAsync(s_timeout), "First fan-out handler did not receive the event");
+        Assert.True(await recorder2.WaitAsync(s_timeout), "Second fan-out handler did not receive the event");
+        Assert.True(await recorder3.WaitAsync(s_timeout), "Third fan-out handler did not receive the event");
 
         var msg1 = Assert.IsType<OrderCreated>(Assert.Single(recorder1.Messages));
         var msg2 = Assert.IsType<OrderCreated>(Assert.Single(recorder2.Messages));
@@ -122,7 +122,7 @@ public class InMemoryBuilderApiTests
         await bus.PublishAsync(new OrderCreated { OrderId = "chain-msg" }, CancellationToken.None);
 
         // assert — message traverses topic chain and lands at the handler
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the chained event");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the chained event");
 
         var msg = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
         Assert.Equal("chain-msg", msg.OrderId);
@@ -150,10 +150,10 @@ public class InMemoryBuilderApiTests
         await bus.PublishAsync(new OrderCreated { OrderId = "coexist-test" }, CancellationToken.None);
 
         // assert — convention handler receives the message
-        Assert.True(await recorder.WaitAsync(Timeout), "Convention handler should receive the event");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Convention handler should receive the event");
 
         // assert — consumer also receives the message via fan-out
-        Assert.True(await extraRecorder.WaitAsync(Timeout), "Consumer should receive the event via fan-out");
+        Assert.True(await extraRecorder.WaitAsync(s_timeout), "Consumer should receive the event via fan-out");
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public class InMemoryBuilderApiTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout),
+            await recorder.WaitAsync(s_timeout),
             "Handler should receive message routed via ToQueue on dispatch endpoint");
 
         var msg = Assert.IsType<ProcessPayment>(Assert.Single(recorder.Messages));
@@ -203,7 +203,7 @@ public class InMemoryBuilderApiTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-TOPIC" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler should receive message routed via topic");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler should receive message routed via topic");
 
         var msg = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
         Assert.Equal("ORD-TOPIC", msg.OrderId);
@@ -231,7 +231,7 @@ public class InMemoryBuilderApiTests
         await bus.SendAsync(new ProcessPayment { OrderId = "ORD-EP", Amount = 25m }, CancellationToken.None);
 
         // assert — handler receives
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler on configured endpoint should receive message");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler on configured endpoint should receive message");
 
         var msg = Assert.IsType<ProcessPayment>(Assert.Single(recorder.Messages));
         Assert.Equal("ORD-EP", msg.OrderId);

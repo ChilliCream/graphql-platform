@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Events;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
@@ -7,7 +6,7 @@ namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class RequestReplyTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task RequestAsync_Should_ReturnTypedResponse_When_HandlerRegistered()
@@ -50,7 +49,7 @@ public class RequestReplyTests
 
         // act & assert — null response triggers an internal exception caught by the fault
         // middleware, which sends NotAcknowledgedEvent back as RemoteErrorException
-        using var cts = new CancellationTokenSource(Timeout);
+        using var cts = new CancellationTokenSource(s_timeout);
         await Assert.ThrowsAsync<RemoteErrorException>(async () =>
             await bus.RequestAsync(new GetOrderStatus { OrderId = "ORD-1" }, cts.Token)
         );
@@ -106,7 +105,7 @@ public class RequestReplyTests
         await bus.RequestAsync(new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m }, CancellationToken.None);
 
         // assert - if we got here without exception, the acknowledgement round-trip succeeded
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the request within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the request within timeout");
     }
 
     [Fact]

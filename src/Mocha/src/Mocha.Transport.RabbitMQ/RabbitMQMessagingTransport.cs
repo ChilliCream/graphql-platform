@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Sagas;
 using RabbitMQ.Client;
 using static System.StringSplitOptions;
 
@@ -98,14 +97,14 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>();
 
-        return new RabbitMQConsumerManager(logger, ct => Connection.CreateAsync(ct));
+        return new RabbitMQConsumerManager(logger, Connection.CreateAsync);
     }
 
     private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
 
-        return new RabbitMQDispatcher(logger, ct => Connection.CreateAsync(ct), ProvisionTopologyAsync);
+        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync);
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
         {

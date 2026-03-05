@@ -1,7 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
 using Mocha.Events;
-using Mocha.Features;
-using Mocha.Middlewares;
 
 namespace Mocha;
 

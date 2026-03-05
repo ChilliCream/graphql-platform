@@ -75,10 +75,14 @@ app.MapPost(
     {
         var invoice = await db.Invoices.FirstOrDefaultAsync(i => i.Id == invoiceId);
         if (invoice is null)
+        {
             return Results.NotFound("Invoice not found");
+        }
 
         if (invoice.Status == InvoiceStatus.Paid)
+        {
             return Results.BadRequest("Invoice already paid");
+        }
 
         var payment = new Payment
         {

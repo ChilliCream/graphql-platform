@@ -27,12 +27,12 @@ internal sealed class RabbitMQParsingMiddleware
         await next(context);
     }
 
-    private static readonly RabbitMQParsingMiddleware _instance = new();
+    private static readonly RabbitMQParsingMiddleware s_instance = new();
 
     /// <summary>
     /// Creates a <see cref="ReceiveMiddlewareConfiguration"/> that wraps the parsing middleware singleton.
     /// </summary>
     /// <returns>A middleware configuration keyed as "RabbitMQParsing".</returns>
     public static ReceiveMiddlewareConfiguration Create()
-        => new(static (_, next) => ctx => _instance.InvokeAsync(ctx, next), "RabbitMQParsing");
+        => new(static (_, next) => ctx => s_instance.InvokeAsync(ctx, next), "RabbitMQParsing");
 }

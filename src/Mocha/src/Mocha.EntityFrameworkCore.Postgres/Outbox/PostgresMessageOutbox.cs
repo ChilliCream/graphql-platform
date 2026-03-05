@@ -25,7 +25,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     private readonly IOutboxSignal _signal;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private PooledArrayWriter? _arrayWriter;
-    private string? _insertSql;
+    private readonly string? _insertSql;
 
     /// <summary>
     /// Creates a new <see cref="PostgresMessageOutbox"/> using the provided DbContext connection,

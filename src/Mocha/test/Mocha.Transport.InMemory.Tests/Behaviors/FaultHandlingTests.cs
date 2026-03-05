@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Events;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
@@ -7,7 +6,7 @@ namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class FaultHandlingTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task PublishAsync_Should_NotAffectOtherHandlers_When_OneHandlerThrows()
@@ -38,7 +37,7 @@ public class FaultHandlingTests
 
         // assert - the second handler still works
         Assert.True(
-            await normalRecorder.WaitAsync(Timeout),
+            await normalRecorder.WaitAsync(s_timeout),
             "Normal handler did not receive event after a previous handler threw");
     }
 

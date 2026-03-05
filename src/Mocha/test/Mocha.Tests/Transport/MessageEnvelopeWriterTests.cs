@@ -28,7 +28,7 @@ public class MessageEnvelopeWriterTests
             DeliverBy = new DateTimeOffset(2026, 6, 1, 23, 59, 59, TimeSpan.Zero),
             DeliveryCount = 1,
             Headers = new Headers(),
-            Body = Encoding.UTF8.GetBytes("""{"orderId":"1"}""")
+            Body = """{"orderId":"1"}"""u8.ToArray()
         };
         envelope.Headers!.Set("x-trace", "abc123");
 
@@ -442,7 +442,7 @@ public class MessageEnvelopeWriterTests
             DeliveryCount = 3,
             EnclosedMessageTypes = ImmutableArray.Create("urn:message:TestEvent", "urn:message:IEvent"),
             Headers = new Headers(),
-            Body = Encoding.UTF8.GetBytes("""{"orderId":"1"}""")
+            Body = """{"orderId":"1"}"""u8.ToArray()
         };
         original.Headers!.Set("x-trace", "abc123");
 

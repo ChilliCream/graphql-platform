@@ -1,4 +1,3 @@
-using Mocha;
 using Mocha.Sagas;
 
 namespace Mocha.Tests;
