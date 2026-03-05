@@ -26,8 +26,6 @@ internal sealed class ExecuteRequestSpan(
             return null;
         }
 
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
-
         return new ExecuteRequestSpan(
             activity,
             context,
@@ -43,7 +41,10 @@ internal sealed class ExecuteRequestSpan(
         {
             if (document.GetOperation(context.Request.OperationName) is { } operation)
             {
-                Activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operation.Operation]);
+                var operationType = GraphQL.Operation.TypeValues[operation.Operation];
+
+                Activity.DisplayName = operationType;
+                Activity.SetTag(GraphQL.Operation.Type, operationType);
 
                 var operationName = operation.Name?.Value;
                 if (!string.IsNullOrEmpty(operationName))
@@ -64,7 +65,7 @@ internal sealed class ExecuteRequestSpan(
             Activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
         }
 
-        if (documentInfo.IsPersisted && documentInfo.Id.HasValue)
+        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
         {
             Activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }

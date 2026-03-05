@@ -2,13 +2,9 @@
   "activities": [
     {
       "OperationName": "GraphQL Operation",
-      "DisplayName": "GraphQL Operation",
+      "DisplayName": "query",
       "Status": "Error",
       "tags": [
-        {
-          "Key": "graphql.processing.type",
-          "Value": "execute"
-        },
         {
           "Key": "graphql.operation.type",
           "Value": "query"
@@ -61,6 +57,10 @@
             {
               "Key": "otel.status_code",
               "Value": "OK"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
             }
           ],
           "event": []

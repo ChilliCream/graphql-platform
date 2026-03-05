@@ -27,7 +27,7 @@ internal sealed class CompileOperationSpan(
             && document.GetOperation(context.Request.OperationName) is { } operation)
         {
             activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operation.Operation]);
-            
+
             var operationName = operation.Name?.Value;
             if (!string.IsNullOrEmpty(operationName))
             {
@@ -43,7 +43,7 @@ internal sealed class CompileOperationSpan(
             activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
         }
 
-        if (documentInfo.IsPersisted && documentInfo.Id.HasValue)
+        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
         {
             activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }

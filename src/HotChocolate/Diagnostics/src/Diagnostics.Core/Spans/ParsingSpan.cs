@@ -24,19 +24,6 @@ internal sealed class ParsingSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
 
-        var documentInfo = context.OperationDocumentInfo;
-        var hash = documentInfo.Hash;
-
-        if (!hash.IsEmpty)
-        {
-            activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
-        }
-
-        if (documentInfo.IsPersisted && documentInfo.Id.HasValue)
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
-
         return new ParsingSpan(activity, context, enricher);
     }
 
@@ -56,6 +43,19 @@ internal sealed class ParsingSpan(
             }
 
             Activity.MarkAsSuccess();
+        }
+
+        var documentInfo = context.OperationDocumentInfo;
+        var hash = documentInfo.Hash;
+
+        if (!hash.IsEmpty)
+        {
+            Activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
+        }
+
+        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
+        {
+            Activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
 
         enricher.EnrichParseDocument(Activity, context);

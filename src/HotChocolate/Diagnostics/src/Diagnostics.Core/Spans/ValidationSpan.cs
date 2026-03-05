@@ -44,7 +44,7 @@ internal sealed class ValidationSpan(
             activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
         }
 
-        if (documentInfo.IsPersisted && documentInfo.Id.HasValue)
+        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
         {
             activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
