@@ -54,8 +54,7 @@ function Plan({
           <PlanPrice>
             {typeof price === "number" ? (
               <>
-                {fromPrice && <PlanFromText>from </PlanFromText>}
-                ${price}
+                {fromPrice && <PlanFromText>from </PlanFromText>}${price}
                 {period && <PlanPeriod>/{period}</PlanPeriod>}
               </>
             ) : (
@@ -87,14 +86,11 @@ const PlansContainer = styled.div<{
   readonly $maxColumns: number;
 }>`
   display: grid;
-  grid-template-columns: repeat(
-    ${({ $maxColumns }) => $maxColumns},
-    minmax(200px, 300px)
-  );
-  grid-template-rows: min-content 1px auto min-content;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
   border: 1px solid #37353f;
   border-radius: var(--box-border-radius);
-  width: ${MAX_CONTENT_WIDTH};
+  width: 100%;
   backdrop-filter: blur(2px);
   background-image: radial-gradient(
     ellipse at bottom,
@@ -103,6 +99,15 @@ const PlansContainer = styled.div<{
   );
   box-shadow: 0 0 120px 60px #fdfdfd12;
   overflow: visible;
+
+  @media only screen and (min-width: 768px) {
+    grid-template-columns: repeat(
+      ${({ $maxColumns }) => $maxColumns},
+      minmax(200px, 1fr)
+    );
+    grid-template-rows: min-content 1px auto min-content;
+    max-width: ${MAX_CONTENT_WIDTH}px;
+  }
 `;
 
 const PlanHeader = styled.div`
@@ -110,12 +115,21 @@ const PlanHeader = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  grid-row: 1;
   gap: 48px;
   box-sizing: border-box;
-  border-left: 1px solid #211f31;
+  border-top: 1px solid #211f31;
   padding: 82px 32px 60px;
   overflow: visible;
+
+  &:first-child {
+    border-top: none;
+  }
+
+  @media only screen and (min-width: 768px) {
+    grid-row: 1;
+    border-top: none;
+    border-left: 1px solid #211f31;
+  }
 `;
 
 const PlanTitleContainer = styled.div.attrs({
@@ -170,11 +184,9 @@ const PlanPeriod = styled.span`
 `;
 
 const PlanSeparator = styled.div`
-  grid-row: 2;
   margin-right: auto;
   margin-left: auto;
   box-sizing: border-box;
-  border-left: 1px solid #211f31;
   width: 50%;
   height: 1px;
   background-image: linear-gradient(
@@ -185,6 +197,10 @@ const PlanSeparator = styled.div`
     #ffffff4d 78%,
     #ffffff00 100%
   );
+
+  @media only screen and (min-width: 768px) {
+    grid-row: 2;
+  }
 `;
 
 const PlanFeatures = styled.ul.attrs({
@@ -194,12 +210,15 @@ const PlanFeatures = styled.ul.attrs({
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  grid-row: 3;
   box-sizing: border-box;
   margin: 0;
-  border-left: 1px solid #211f31;
   padding: 64px 32px 32px;
   list-style-type: none;
+
+  @media only screen and (min-width: 768px) {
+    grid-row: 3;
+    border-left: 1px solid #211f31;
+  }
 `;
 
 const PlanFeature = styled.li`
@@ -217,9 +236,12 @@ const PlanFooter = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  grid-row: 4;
   box-sizing: border-box;
   margin: 0;
-  border-left: 1px solid #211f31;
   padding: 32px;
+
+  @media only screen and (min-width: 768px) {
+    grid-row: 4;
+    border-left: 1px solid #211f31;
+  }
 `;
