@@ -42,7 +42,8 @@ public static class FusionServerServiceCollectionExtensions
             sc.TryAddSingleton<IHttpResponseFormatter>(
                 sp => DefaultHttpResponseFormatter.Create(
                     new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
-                    sp.GetRequiredService<ITimeProvider>()));
+                    sp.GetRequiredService<ITimeProvider>(),
+                    IncrementalDeliveryFormat.Version_0_2));
 
             sc.TryAddSingleton<IHttpRequestParser>(
                 sp => new DefaultHttpRequestParser(
@@ -104,5 +105,7 @@ public static class FusionServerServiceCollectionExtensions
             (_, s) => s.AddSingleton<IProtocolHandler>(
                 sp => new GraphQLOverWebSocketProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
-                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>(),
+                    sp.GetRequiredService<IDocumentCache>(),
+                    sp.GetRequiredService<IDocumentHashProvider>())));
 }

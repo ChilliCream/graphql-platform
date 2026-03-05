@@ -1,0 +1,108 @@
+{
+  "activities": [
+    {
+      "OperationName": "ExecuteRequest",
+      "DisplayName": "query GetA { a }",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "graphql.document.id",
+          "Value": "cee0e2939ece72d650cb0331f4be4669"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "cee0e2939ece72d650cb0331f4be4669"
+        },
+        {
+          "Key": "graphql.operation.id",
+          "Value": "155189958e55686347a7f921c0f7a1ef143f829f5b116365a297651606d5703f"
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "GetA"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseDocument",
+          "DisplayName": "Parse Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "ValidateDocument",
+          "DisplayName": "Validate Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "cee0e2939ece72d650cb0331f4be4669"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "cee0e2939ece72d650cb0331f4be4669"
+            },
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "PlanOperation",
+          "DisplayName": "Plan Operation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "ExecuteOperation",
+          "DisplayName": "Execute Operation GetA",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "ExecuteOperationNode",
+              "DisplayName": "Execute Operation Node (a)",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.fusion.node.type",
+                  "Value": "Operation"
+                },
+                {
+                  "Key": "graphql.fusion.node.schema",
+                  "Value": "a"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

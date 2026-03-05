@@ -25,4 +25,3 @@ WHERE b."Id" = ANY (@__keys_0)
   }
 }
 ```
-

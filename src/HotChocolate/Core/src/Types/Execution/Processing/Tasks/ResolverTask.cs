@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks;

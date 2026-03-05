@@ -1,0 +1,28 @@
+schema {
+  query: UglyLegacyQuery
+}
+
+"Information about the offset pagination."
+type CollectionSegmentInfo {
+  "Indicates whether more items exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more items exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+}
+
+type KeyValuePairOfStringAndString {
+  key: String!
+  value: String!
+}
+
+type UglyLegacyQuery {
+  uglyLegacyResolver(skip: Int take: Int): UglyLegacyResolverCollectionSegment
+}
+
+"A segment of a collection."
+type UglyLegacyResolverCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [KeyValuePairOfStringAndString!]
+}

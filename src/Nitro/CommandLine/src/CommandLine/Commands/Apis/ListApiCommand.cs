@@ -58,7 +58,7 @@ internal sealed class ListApiCommand : Command
 
         var api = await PagedTable
             .From(container)
-            .Title("Apis")
+            .Title("APIs")
             .AddColumn("Id", x => x.Node.Id)
             .AddColumn("Name", x => x.Node.Name)
             .AddColumn("Path", x => string.Join("/", x.Node.Path))

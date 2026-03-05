@@ -93,4 +93,10 @@ internal static class ErrorHelper
             ErrorBuilder.New()
                 .SetMessage("The operation name is required.")
                 .Build());
+
+    public static IError BatchSizeExceeded(int maxBatchSize)
+        => ErrorBuilder.New()
+            .SetMessage(string.Format(ErrorHelper_BatchSizeExceeded, maxBatchSize))
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
 }

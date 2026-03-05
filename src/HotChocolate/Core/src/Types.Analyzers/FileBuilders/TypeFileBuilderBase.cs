@@ -998,7 +998,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             if (resolver.Kind is ResolverKind.NodeResolver
                 && parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
-                && (parameter.Name == "id" || parameter.Key == "id"))
+                && IsNodeResolverIdParameter(resolver, parameter, i))
             {
                 Writer.WriteIndentedLine(
                     "var args{0} = context.GetLocalState<{1}>("
@@ -1321,9 +1321,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor)",
+                                "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor),",
                                 i,
                                 WellKnownTypes.ConnectionFlags);
+                            Writer.WriteIndentedLine(
+                                "NullOrdering = args{0}_options.NullOrdering",
+                                i);
                         }
 
                         Writer.WriteIndentedLine("};");
@@ -1351,6 +1354,30 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     throw new ArgumentOutOfRangeException();
             }
         }
+    }
+
+    private static bool IsNodeResolverIdParameter(
+        Resolver resolver,
+        ResolverParameter parameter,
+        int parameterIndex)
+    {
+        if (parameter.Name == "id" || parameter.Key == "id")
+        {
+            return true;
+        }
+
+        if (parameterIndex != 0)
+        {
+            return false;
+        }
+
+        if (resolver.Parameters.Any(p => p.Name == "id" || p.Key == "id"))
+        {
+            return false;
+        }
+
+        return parameter.Name.EndsWith("Id", StringComparison.Ordinal)
+            || (parameter.Key?.EndsWith("Id", StringComparison.Ordinal) ?? false);
     }
 
     private void WriteAssignTypeRef(

@@ -1,0 +1,18 @@
+﻿{
+  "Queues": [
+    {
+      "Name": "postgres://queue/TopologyIntegrationTests.TestRequest",
+      "HasConsumer": false
+    },
+    {
+      "Name": "postgres://queue/TopologyIntegrationTests.TestRequest/faults",
+      "HasConsumer": false
+    },
+    {
+      "Name": "postgres://queue/Saga.FluentSaga<TopologyIntegrationTests.TestState>",
+      "HasConsumer": false
+    }
+  ],
+  "Topics": [],
+  "Subscriptions": []
+}

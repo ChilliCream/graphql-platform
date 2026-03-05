@@ -1178,6 +1178,28 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry SpecifiedByUrlMismatch(
+        IScalarTypeDefinition scalarType,
+        MutableSchemaDefinition schemaA,
+        string? specifiedByUrlA,
+        MutableSchemaDefinition schemaB,
+        string? specifiedByUrlB)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_SpecifiedByUrlMismatch,
+                scalarType.Name,
+                schemaA.Name,
+                specifiedByUrlA ?? "null",
+                schemaB.Name,
+                specifiedByUrlB ?? "null")
+            .SetCode(LogEntryCodes.SpecifiedByUrlMismatch)
+            .SetSeverity(LogSeverity.Warning)
+            .SetTypeSystemMember(scalarType)
+            .SetSchema(schemaA)
+            .Build();
+    }
+
     public static LogEntry TypeKindMismatch(
         ITypeDefinition type,
         MutableSchemaDefinition schemaA,

@@ -36,12 +36,12 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(ct) ??
             throw new ExitException(
-                "No request id was provided and no request id was found in the cache. Please provide a request id.");
+                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
         var archiveFile =
             context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
 
-        console.Title("Commit the composition of a fusion configuration");
+        console.Title("Commit the composition of a Fusion configuration");
 
         var committed = false;
 

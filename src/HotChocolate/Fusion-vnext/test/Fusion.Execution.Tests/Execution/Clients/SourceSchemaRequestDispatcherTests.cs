@@ -314,7 +314,8 @@ public sealed class SourceSchemaRequestDispatcherTests : FusionTestBase
         public int ExecuteBatchCount { get; private set; }
 
         public Func<ImmutableArray<SourceSchemaClientRequest>,
-            ImmutableArray<SourceSchemaClientResponse>>? OnBatch { get; set; }
+            ImmutableArray<SourceSchemaClientResponse>>? OnBatch
+        { get; set; }
 
         public SourceSchemaClientCapabilities Capabilities
             => SourceSchemaClientCapabilities.RequestBatching

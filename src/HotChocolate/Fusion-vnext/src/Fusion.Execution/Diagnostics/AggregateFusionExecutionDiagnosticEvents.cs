@@ -223,18 +223,6 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
-    public void SourceSchemaResultError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        IReadOnlyList<IError> errors)
-    {
-        for (var i = 0; i < listeners.Length; i++)
-        {
-            listeners[i].SourceSchemaResultError(context, node, schemaName, errors);
-        }
-    }
-
     public void ExecutionNodeError(OperationPlanContext context, ExecutionNode node, Exception error)
     {
         for (var i = 0; i < listeners.Length; i++)
