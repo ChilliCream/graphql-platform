@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -42,6 +43,10 @@ public abstract partial class FusionTestBase : IDisposable
         var gatewayServices = new ServiceCollection();
         var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
         var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
+        var nodeToInteractionId =
+            new ConcurrentDictionary<string, ConcurrentDictionary<int, int>>(StringComparer.Ordinal);
+        var requestToInteractionId =
+            new ConcurrentDictionary<string, ConcurrentDictionary<HttpRequestMessage, int>>(StringComparer.Ordinal);
 
         foreach (var (name, server) in sourceSchemaServers)
         {
@@ -61,6 +66,13 @@ public abstract partial class FusionTestBase : IDisposable
                     batchingAcceptHeaderValues: sourceSchemaOptions.BatchingAcceptHeaderValues,
                     onBeforeSend: (context, node, request) =>
                     {
+                        var interaction = GetOrCreateInteractionForRequest(context, node, request);
+
+                        if (interaction.Request is not null)
+                        {
+                            return;
+                        }
+
                         if (request.Content is not { } content)
                         {
                             throw new InvalidOperationException("Expected content to not be null.");
@@ -82,12 +94,11 @@ public abstract partial class FusionTestBase : IDisposable
                             originalStream.Position = 0;
                         }
 
-                        GetSourceSchemaInteraction(context, node).Request
-                            = new SourceSchemaInteraction.RawSourceSchemaRequest
-                            {
-                                Body = bodyStream,
-                                ContentType = contentType
-                            };
+                        interaction.Request = new SourceSchemaInteraction.RawSourceSchemaRequest
+                        {
+                            Body = bodyStream,
+                            ContentType = contentType
+                        };
                     },
                     onAfterReceive: (context, node, response) =>
                     {
@@ -170,13 +181,35 @@ public abstract partial class FusionTestBase : IDisposable
 
         return new Gateway(gatewayTestServer, sourceSchemas, interactions);
 
+        SourceSchemaInteraction GetOrCreateInteractionForRequest(
+            OperationPlanContext context,
+            ExecutionNode node,
+            HttpRequestMessage requestMessage)
+        {
+            var schemaName = node.SchemaName ?? context.GetDynamicSchemaName(node);
+            var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+            var schemaNodeToInteractionId = nodeToInteractionId.GetOrAdd(schemaName, _ => []);
+            var schemaRequestToInteractionId = requestToInteractionId.GetOrAdd(
+                schemaName,
+                _ => new ConcurrentDictionary<HttpRequestMessage, int>(ReferenceEqualityComparer.Instance));
+
+            var interactionId = schemaRequestToInteractionId.GetOrAdd(requestMessage, _ => node.Id);
+            schemaNodeToInteractionId[node.Id] = interactionId;
+
+            return schemaInteractions.GetOrAdd(interactionId, _ => new SourceSchemaInteraction());
+        }
+
         SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
         {
-            var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
-                ? staticSchemaName
-                : context.GetDynamicSchemaName(node);
-
+            var schemaName = node.SchemaName ?? context.GetDynamicSchemaName(node);
             var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+            var schemaNodeToInteractionId = nodeToInteractionId.GetOrAdd(schemaName, _ => []);
+
+            if (schemaNodeToInteractionId.TryGetValue(node.Id, out var interactionId))
+            {
+                return schemaInteractions.GetOrAdd(interactionId, _ => new SourceSchemaInteraction());
+            }
+
             return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
         }
     }

@@ -37,7 +37,9 @@ interface ContinuousIntegrationPageProps {
   recentPosts?: RecentBlogPost[];
 }
 
-const ContinuousIntegrationPage: FC<ContinuousIntegrationPageProps> = ({ recentPosts }) => {
+const ContinuousIntegrationPage: FC<ContinuousIntegrationPageProps> = ({
+  recentPosts,
+}) => {
   return (
     <SiteLayout>
       <SEO title="Continuous Integration" />

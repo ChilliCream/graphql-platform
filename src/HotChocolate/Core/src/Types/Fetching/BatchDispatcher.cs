@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using GreenDonut;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fetching;
 
@@ -92,7 +91,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
         if (Interlocked.CompareExchange(ref _isCoordinatorRunning, 1, 0) == 0)
         {
-            CoordinatorAsync(_coordinatorCts.Token).FireAndForget();
+            _ = CoordinatorAsync(_coordinatorCts.Token);
         }
     }
 

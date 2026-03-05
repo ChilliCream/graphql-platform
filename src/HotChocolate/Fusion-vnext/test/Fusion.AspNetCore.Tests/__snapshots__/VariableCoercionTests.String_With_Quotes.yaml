@@ -1,0 +1,73 @@
+title: String_With_Quotes
+request:
+  document: |
+    query testQuery(
+      $input: String!
+    ) {
+      field(input: $input)
+    }
+  variables: |
+    {
+      "input": "tag:\u0022type_portable-lamp\u0022"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "field": "tag:\u0022type_portable-lamp\u0022"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        field(input: String!): String!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_9dd2f586_1(
+              $input: String!
+            ) {
+              field(input: $input)
+            }
+          variables: |
+            {
+              "input": "tag:\u0022type_portable-lamp\u0022"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "field": "tag:\u0022type_portable-lamp\u0022"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $input: String!
+        ) {
+          field(input: $input)
+        }
+      name: testQuery
+      hash: 9dd2f5869cf5d627883a05994b98b50a
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_9dd2f586_1(
+          $input: String!
+        ) {
+          field(input: $input)
+        }
+      forwardedVariables:
+        - input

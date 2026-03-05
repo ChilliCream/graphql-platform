@@ -83,7 +83,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --pattern \"./**/*\" --staged"
+      "pre-commit": "pretty-quick --pattern \"./website/**/*\" --staged"
     }
   },
   "packageManager": "yarn@4.8.1"

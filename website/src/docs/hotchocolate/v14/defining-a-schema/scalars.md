@@ -207,9 +207,9 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 | `Uuid`      | GUID                                                         |
 | `Any`       | This type can be anything, string, int, list or object, etc. |
 
-## Uuid Type
+## UUID Type
 
-The `Uuid` scalar supports the following serialization formats.
+The `UUID` scalar supports the following serialization formats.
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |

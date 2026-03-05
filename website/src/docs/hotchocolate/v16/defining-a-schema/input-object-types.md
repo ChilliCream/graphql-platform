@@ -697,8 +697,7 @@ builder.Services
     ")
     .BindRuntimeType<Mutation>()
     .BindRuntimeType<Pet>()
-    .BindRuntimeType<Dog>()
-    .ModifyOptions(o => o.EnableOneOf = true);
+    .BindRuntimeType<Dog>();
 ```
 
 </Schema>

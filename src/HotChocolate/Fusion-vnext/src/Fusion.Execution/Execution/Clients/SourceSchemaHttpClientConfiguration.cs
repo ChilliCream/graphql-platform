@@ -49,7 +49,9 @@ public class SourceSchemaHttpClientConfiguration
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaHttpClientBatchingMode batchingMode =
+            SourceSchemaHttpClientBatchingMode.VariableBatching
+                | SourceSchemaHttpClientBatchingMode.RequestBatching,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -112,7 +114,9 @@ public class SourceSchemaHttpClientConfiguration
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaHttpClientBatchingMode batchingMode =
+            SourceSchemaHttpClientBatchingMode.VariableBatching
+                | SourceSchemaHttpClientBatchingMode.RequestBatching,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -131,6 +135,11 @@ public class SourceSchemaHttpClientConfiguration
         BatchingMode = batchingMode;
 
         DefaultAcceptHeaderValues = defaultAcceptHeaderValues ?? AcceptContentTypes.Default;
+
+        if (batchingMode.HasFlag(SourceSchemaHttpClientBatchingMode.VariableBatching))
+        {
+            batchingMode &= ~SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
+        }
 
         if (batchingAcceptHeaderValues.HasValue)
         {
@@ -207,7 +216,7 @@ public class SourceSchemaHttpClientConfiguration
 
     private static class AcceptContentTypes
     {
-        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> Default =
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Default { get; } =
         [
             new("application/graphql-response+json") { CharSet = "utf-8" },
             new("application/json") { CharSet = "utf-8" },
@@ -223,10 +232,8 @@ public class SourceSchemaHttpClientConfiguration
             new("application/json") { CharSet = "utf-8" }
         ];
 
-        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> ApolloRequestBatching =
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> ApolloRequestBatching { get; } =
         [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" },
             new("application/json") { CharSet = "utf-8" }
         ];
 

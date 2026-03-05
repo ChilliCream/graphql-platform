@@ -33,6 +33,8 @@
         "integer",
         "null"
       ],
+      "minimum": -128,
+      "maximum": 127,
       "description": "Byte description"
     },
     "date": {
@@ -77,6 +79,8 @@
         "number",
         "null"
       ],
+      "minimum": -79228162514264337593543950335,
+      "maximum": 79228162514264337593543950335,
       "description": "Float description"
     },
     "id": {
@@ -92,6 +96,8 @@
         "integer",
         "null"
       ],
+      "minimum": -2147483648,
+      "maximum": 2147483647,
       "description": "Int description"
     },
     "list": {
@@ -137,6 +143,8 @@
         "integer",
         "null"
       ],
+      "minimum": -9223372036854775808,
+      "maximum": 9223372036854775807,
       "description": "Long description"
     },
     "object": {
@@ -182,6 +190,8 @@
         "integer",
         "null"
       ],
+      "minimum": -32768,
+      "maximum": 32767,
       "description": "Short description"
     },
     "string": {
@@ -206,6 +216,42 @@
         "null"
       ],
       "description": "Unknown description"
+    },
+    "unsignedByte": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 255,
+      "description": "UnsignedByte description"
+    },
+    "unsignedInt": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 4294967295,
+      "description": "UnsignedInt description"
+    },
+    "unsignedLong": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "UnsignedLong description"
+    },
+    "unsignedShort": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 65535,
+      "description": "UnsignedShort description"
     },
     "uri": {
       "type": [

@@ -27,7 +27,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddJsonTypeConverter(
         this IRequestExecutorBuilder builder)
     {
-        builder.Services.AddSingleton<IChangeTypeProvider, JsonElementTypeChangeProvider>();
+        builder.Services.AddJsonTypeConverter();
         return builder;
     }
 
@@ -53,7 +53,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, IChangeTypeProvider
     {
-        builder.Services.AddSingleton<IChangeTypeProvider, T>();
+        builder.Services.AddTypeConverter<T>();
         return builder;
     }
 
@@ -81,7 +81,7 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IChangeTypeProvider
     {
-        builder.Services.AddSingleton<IChangeTypeProvider>(factory);
+        builder.Services.AddTypeConverter(factory);
         return builder;
     }
 
@@ -117,8 +117,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ChangeType<TSource, TTarget> changeType)
     {
-        builder.Services.AddSingleton<IChangeTypeProvider>(
-            new DelegateChangeTypeProvider<TSource, TTarget>(changeType));
+        builder.Services.AddTypeConverter(changeType);
         return builder;
     }
 
@@ -143,8 +142,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ChangeTypeProvider changeType)
     {
-        builder.Services.AddSingleton<IChangeTypeProvider>(
-            new DelegateChangeTypeProvider(changeType));
+        builder.Services.AddTypeConverter(changeType);
         return builder;
     }
 
@@ -193,7 +191,9 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services)
         where T : class, IChangeTypeProvider
     {
-        return services.AddSingleton<IChangeTypeProvider, T>();
+        return AddCustomTypeConverterProvider(
+            services,
+            ServiceDescriptor.Singleton<IChangeTypeProvider, T>());
     }
 
     /// <summary>
@@ -220,7 +220,10 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IChangeTypeProvider
     {
-        return services.AddSingleton<IChangeTypeProvider>(factory);
+        return AddCustomTypeConverterProvider(
+            services,
+            ServiceDescriptor.Singleton<IChangeTypeProvider>(
+                sp => factory(sp)));
     }
 
     /// <summary>
@@ -255,8 +258,10 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services,
         ChangeType<TSource, TTarget> changeType)
     {
-        return services.AddSingleton<IChangeTypeProvider>(
-            new DelegateChangeTypeProvider<TSource, TTarget>(changeType));
+        return AddCustomTypeConverterProvider(
+            services,
+            ServiceDescriptor.Singleton<IChangeTypeProvider>(
+                new DelegateChangeTypeProvider<TSource, TTarget>(changeType)));
     }
 
     /// <summary>
@@ -280,8 +285,45 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services,
         ChangeTypeProvider changeType)
     {
-        return services.AddSingleton<IChangeTypeProvider>(
-            new DelegateChangeTypeProvider(changeType));
+        return AddCustomTypeConverterProvider(
+            services,
+            ServiceDescriptor.Singleton<IChangeTypeProvider>(
+                new DelegateChangeTypeProvider(changeType)));
+    }
+
+    private static IServiceCollection AddCustomTypeConverterProvider(
+        IServiceCollection services,
+        ServiceDescriptor descriptor)
+    {
+        var index = FindJsonTypeConverterProviderIndex(services);
+
+        if (index >= 0)
+        {
+            services.Insert(index, descriptor);
+        }
+        else
+        {
+            services.Add(descriptor);
+        }
+
+        return services;
+    }
+
+    private static int FindJsonTypeConverterProviderIndex(IServiceCollection services)
+    {
+        for (var i = 0; i < services.Count; i++)
+        {
+            var descriptor = services[i];
+
+            if (descriptor.ServiceType == typeof(IChangeTypeProvider)
+                && (descriptor.ImplementationType == typeof(JsonElementTypeChangeProvider)
+                    || descriptor.ImplementationInstance is JsonElementTypeChangeProvider))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private sealed class DelegateChangeTypeProvider(

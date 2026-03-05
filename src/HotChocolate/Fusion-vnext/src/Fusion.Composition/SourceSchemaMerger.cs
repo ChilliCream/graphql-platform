@@ -75,6 +75,10 @@ internal sealed class SourceSchemaMerger
                     new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
                 {
+                    DirectiveNames.SpecifiedBy,
+                    new SpecifiedByDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
                     DirectiveNames.Tag,
                     new TagDirectiveMerger(_options.TagMergeBehavior)
                 }
@@ -99,7 +103,7 @@ internal sealed class SourceSchemaMerger
         // Remove unreferenced definitions.
         if (_options.RemoveUnreferencedDefinitions)
         {
-            mergedSchema.RemoveUnreferencedDefinitions(GetPreservedInputTypeNames());
+            mergedSchema.RemoveUnreferencedDefinitions(_schemas);
         }
 
         // Add Fusion definitions.
@@ -166,9 +170,8 @@ internal sealed class SourceSchemaMerger
 
             // Ensure that all directive definitions match the canonical definition.
             if (!grouping.All(
-                d => d.DirectiveDefinition
-                    .ToSyntaxNode()
-                    .Equals(canonicalDirectiveNode, SyntaxComparison.SyntaxIgnoreDescriptions)))
+                d => DirectiveDefinitionNodeComparer.Instance
+                    .Equals(d.DirectiveDefinition.ToSyntaxNode(), canonicalDirectiveNode)))
             {
                 // Skip merging if there is a mismatch.
                 continue;
@@ -271,37 +274,6 @@ internal sealed class SourceSchemaMerger
                 queryType.Fields.Add(canonicalNodeField);
             }
         }
-    }
-
-    /// <summary>
-    /// Returns a list of input type names for types that must be preserved in the merged schema
-    /// even if they are not directly referenced.
-    /// </summary>
-    private HashSet<string> GetPreservedInputTypeNames()
-    {
-        var preservedInputTypeNames = new HashSet<string>();
-
-        foreach (var schema in _schemas)
-        {
-            foreach (var type in schema.Types.OfType<IObjectTypeDefinition>())
-            {
-                foreach (var field in type.Fields)
-                {
-                    foreach (var argument in field.Arguments)
-                    {
-                        var argumentInnerType = argument.Type.InnerType();
-
-                        if (argumentInnerType is IInputObjectTypeDefinition inputObjectType
-                            && (argument.HasRequireDirective || field.IsLookup))
-                        {
-                            preservedInputTypeNames.Add(inputObjectType.Name);
-                        }
-                    }
-                }
-            }
-        }
-
-        return preservedInputTypeNames;
     }
 
     /// <summary>
@@ -956,6 +928,8 @@ internal sealed class SourceSchemaMerger
                 _directiveMergers[DirectiveNames.Cost]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.SerializeAs]
+                    .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.SpecifiedBy]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);

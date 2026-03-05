@@ -210,7 +210,7 @@ public sealed class DataLoaderTests
             CancellationToken cancellationToken)
             => await brandById
                 .Where(x => x.Name.StartsWith("Brand"))
-                .Where(x => x.Name.EndsWith("0"))
+                .Where(x => x.Name.EndsWith('0'))
                 .LoadAsync(id, cancellationToken);
 
         [UseFiltering]
