@@ -1,17 +1,14 @@
-using System;
-using Mocha;
-
 namespace Mocha.Sagas.Tests;
 
 public class SagaStateDescriptorTests
 {
-    private static readonly IMessagingConfigurationContext _context = TestMessagingSetupContext.Instance;
+    private static readonly IMessagingConfigurationContext s_context = TestMessagingSetupContext.Instance;
 
     [Fact]
     public void OnEvent_ShouldAddNewTransition_WhenEventTypeDoesNotExist()
     {
         // Arrange
-        var stateDescriptor = new SagaStateDescriptor<TestState>(_context, "TestState");
+        var stateDescriptor = new SagaStateDescriptor<TestState>(s_context, "TestState");
 
         // Act
         stateDescriptor.OnEvent<string>();
@@ -25,7 +22,7 @@ public class SagaStateDescriptorTests
     public void OnEvent_ShouldReturnExistingTransition_WhenEventTypeAlreadyExists()
     {
         // Arrange
-        var stateDescriptor = new SagaStateDescriptor<TestState>(_context, "TestState");
+        var stateDescriptor = new SagaStateDescriptor<TestState>(s_context, "TestState");
         var existingTransition = stateDescriptor.OnEvent<string>();
 
         // Act
@@ -39,7 +36,7 @@ public class SagaStateDescriptorTests
     public void CreateDefinition_ShouldReturnStateDefinitionWithTransitions()
     {
         // Arrange
-        var stateDescriptor = new SagaStateDescriptor<TestState>(_context, "TestState");
+        var stateDescriptor = new SagaStateDescriptor<TestState>(s_context, "TestState");
         stateDescriptor.OnEvent<string>();
         stateDescriptor.OnEvent<int>();
 

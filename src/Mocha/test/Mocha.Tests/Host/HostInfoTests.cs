@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests;

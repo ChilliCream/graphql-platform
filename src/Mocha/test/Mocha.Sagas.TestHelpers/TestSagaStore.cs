@@ -43,7 +43,9 @@ public class TestSagaStore(Func<ValueTask>? onTransactionComplete = null) : ISag
         var state = States.FirstOrDefault(x => x.Id == id);
         if (state is T s)
         {
+#pragma warning disable IDE0001 // Simplify Names
             return Task.FromResult<T?>(s);
+#pragma warning restore IDE0001 // Simplify Names
         }
 
         return Task.FromResult<T?>(default);

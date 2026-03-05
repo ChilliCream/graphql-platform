@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
@@ -43,7 +42,7 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         }
     }
 
-    private static readonly RabbitMQAcknowledgementMiddleware _instance = new();
+    private static readonly RabbitMQAcknowledgementMiddleware s_instance = new();
 
     /// <summary>
     /// Creates a <see cref="ReceiveMiddlewareConfiguration"/> that wraps the acknowledgement middleware singleton.
@@ -51,6 +50,6 @@ internal sealed class RabbitMQAcknowledgementMiddleware
     /// <returns>A middleware configuration keyed as "RabbitMQAcknowledgement".</returns>
     public static ReceiveMiddlewareConfiguration Create()
         => new(
-            static (context, next) => ctx => _instance.InvokeAsync(ctx, next),
+            static (context, next) => ctx => s_instance.InvokeAsync(ctx, next),
             "RabbitMQAcknowledgement");
 }

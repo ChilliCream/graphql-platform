@@ -625,11 +625,13 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         protected override void OnInitialize(
             IMessagingConfigurationContext context,
-            DispatchEndpointConfiguration configuration) { }
+            DispatchEndpointConfiguration configuration)
+        { }
 
         protected override void OnComplete(
             IMessagingConfigurationContext context,
-            DispatchEndpointConfiguration configuration) { }
+            DispatchEndpointConfiguration configuration)
+        { }
 
         protected override ValueTask DispatchAsync(IDispatchContext context) => ValueTask.CompletedTask;
     }

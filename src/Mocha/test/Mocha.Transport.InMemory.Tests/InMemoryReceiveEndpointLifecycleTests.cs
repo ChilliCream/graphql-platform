@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests;
@@ -10,7 +9,7 @@ namespace Mocha.Transport.InMemory.Tests;
 /// </summary>
 public class InMemoryReceiveEndpointLifecycleTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task Runtime_Should_StartAndStopCleanly_When_NoHandlersRegistered()
@@ -49,7 +48,7 @@ public class InMemoryReceiveEndpointLifecycleTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the event after start");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event after start");
     }
 
     [Fact]
@@ -71,7 +70,7 @@ public class InMemoryReceiveEndpointLifecycleTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Receive endpoint should process messages after start");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Receive endpoint should process messages after start");
 
         var msg = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
         Assert.Equal("ORD-1", msg.OrderId);
@@ -96,13 +95,13 @@ public class InMemoryReceiveEndpointLifecycleTests
             await bus.PublishAsync(new OrderCreated { OrderId = "ORD-BEFORE" }, CancellationToken.None);
         }
 
-        Assert.True(await recorder.WaitAsync(Timeout), "Message should be delivered before dispose");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Message should be delivered before dispose");
 
         // act - dispose the provider (which tears down the DI container)
         await provider.DisposeAsync();
 
         // assert - creating a new scope should fail after dispose
-        Assert.Throws<ObjectDisposedException>(() => provider.CreateScope());
+        Assert.Throws<ObjectDisposedException>(provider.CreateScope);
     }
 
     [Fact]
@@ -123,13 +122,13 @@ public class InMemoryReceiveEndpointLifecycleTests
             await bus.PublishAsync(new OrderCreated { OrderId = "ORD-BEFORE" }, CancellationToken.None);
         }
 
-        Assert.True(await recorder.WaitAsync(Timeout), "Message should be delivered before dispose");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Message should be delivered before dispose");
 
         // act - dispose the runtime
         await provider.DisposeAsync();
 
         // assert - provider is disposed, no new scopes can be created
-        Assert.Throws<ObjectDisposedException>(() => provider.CreateScope());
+        Assert.Throws<ObjectDisposedException>(provider.CreateScope);
     }
 
     [Fact]
@@ -160,7 +159,7 @@ public class InMemoryReceiveEndpointLifecycleTests
 
         // assert - the second message should be delivered despite the first throwing
         Assert.True(
-            await recorder.WaitAsync(Timeout),
+            await recorder.WaitAsync(s_timeout),
             "Receive endpoint should continue processing after handler exception");
 
         // The recorder should have received at least the successful message
@@ -189,7 +188,7 @@ public class InMemoryReceiveEndpointLifecycleTests
 
         // assert - all 3 messages should be recorded (handler records before throwing)
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: 3),
+            await recorder.WaitAsync(s_timeout, expectedCount: 3),
             "Receive endpoint should process all messages even when handler throws each time");
 
         Assert.Equal(3, recorder.Messages.Count);
@@ -221,7 +220,7 @@ public class InMemoryReceiveEndpointLifecycleTests
         }
 
         // assert - 5 odd messages should be recorded (handler throws on even calls)
-        Assert.True(await recorder.WaitAsync(Timeout, expectedCount: 5), "Expected 5 successful messages");
+        Assert.True(await recorder.WaitAsync(s_timeout, expectedCount: 5), "Expected 5 successful messages");
 
         Assert.Equal(5, recorder.Messages.Count);
         // With concurrent consumers, which messages hit even vs odd invocations

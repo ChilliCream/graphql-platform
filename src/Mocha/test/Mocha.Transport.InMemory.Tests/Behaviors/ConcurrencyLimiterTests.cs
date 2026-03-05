@@ -1,12 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class ConcurrencyLimiterTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task Handler_Should_LimitConcurrency_When_ConcurrencyLimiterConfigured()
@@ -34,7 +33,7 @@ public class ConcurrencyLimiterTests
 
         // assert — wait for all messages and check peak concurrency
         Assert.True(
-            await tracker.WaitAsync(Timeout, messageCount),
+            await tracker.WaitAsync(s_timeout, messageCount),
             $"Handler did not process all {messageCount} messages");
 
         Assert.Equal(1, tracker.PeakConcurrency);

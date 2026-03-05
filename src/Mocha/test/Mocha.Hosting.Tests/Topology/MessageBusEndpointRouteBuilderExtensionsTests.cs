@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Mocha.Hosting;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Hosting.Tests.Topology;

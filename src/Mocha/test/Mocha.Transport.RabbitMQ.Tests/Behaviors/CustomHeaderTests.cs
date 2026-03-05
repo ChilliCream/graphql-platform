@@ -1,14 +1,13 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class CustomHeaderTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public CustomHeaderTests(RabbitMQFixture fixture)
@@ -23,7 +22,7 @@ public class CustomHeaderTests
         var capture = new HeaderCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(capture)
             .AddMessageBus()
             .AddConsumer<HeaderSpyConsumer>()
@@ -43,7 +42,7 @@ public class CustomHeaderTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(Timeout), "Consumer did not receive the published message");
+        Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the published message");
 
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.TryGetValue("x-tenant", out var tenant), "Custom header 'x-tenant' not found");
@@ -74,7 +73,9 @@ public class CustomHeaderTests
             for (var i = 0; i < expectedCount; i++)
             {
                 if (!await _semaphore.WaitAsync(timeout))
+                {
                     return false;
+                }
             }
             return true;
         }

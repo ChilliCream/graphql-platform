@@ -1,8 +1,6 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha;
-using Mocha.Features;
 
 namespace Mocha.Sagas;
 
@@ -104,7 +102,7 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
         SagaStateConfiguration state,
         ImmutableArray<SagaTransition>? additionalTransitions = null)
     {
-        additionalTransitions ??= ImmutableArray<SagaTransition>.Empty;
+        additionalTransitions ??= [];
 
         var transitions =
             ImmutableArray.CreateBuilder<SagaTransition>(state.Transitions.Count + additionalTransitions.Value.Length);
@@ -146,7 +144,8 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
 
         return transitions.MoveToImmutable();
 
-        static void DefaultAction(object _, object __) { }
+        static void DefaultAction(object _, object __)
+        { }
     }
 
     private static ImmutableArray<SagaEventPublish> InitializeEventPublish(

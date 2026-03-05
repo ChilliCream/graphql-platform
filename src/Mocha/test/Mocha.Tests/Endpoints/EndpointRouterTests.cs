@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests;
@@ -201,12 +200,15 @@ public class EndpointRouterTests
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 
         // act - concurrent reads and writes
-        var readTask = Task.Run(() => { while (!cts.IsCancellationRequested)
+        var readTask = Task.Run(() =>
         {
-            _ = endpoints.Endpoints;
-            endpoints.TryGet(new Uri("queue:test"), out _);
-            _ = endpoints.GetAll(new Uri("queue:test"));
-        } }, default);
+            while (!cts.IsCancellationRequested)
+            {
+                _ = endpoints.Endpoints;
+                endpoints.TryGet(new Uri("queue:test"), out _);
+                _ = endpoints.GetAll(new Uri("queue:test"));
+            }
+        }, default);
 
         var writeTask = Task.Run(() =>
         {

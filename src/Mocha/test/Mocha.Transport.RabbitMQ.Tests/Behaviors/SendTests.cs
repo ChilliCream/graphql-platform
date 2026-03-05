@@ -1,13 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class SendTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public SendTests(RabbitMQFixture fixture)
@@ -22,7 +21,7 @@ public class SendTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
@@ -36,7 +35,7 @@ public class SendTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-1", Amount = 99.99m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the request");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the request");
 
         var message = Assert.Single(recorder.Messages);
         var payment = Assert.IsType<ProcessPayment>(message);
@@ -52,7 +51,7 @@ public class SendTests
         var refundRecorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddKeyedSingleton("payment", paymentRecorder)
             .AddKeyedSingleton("refund", refundRecorder)
             .AddMessageBus()
@@ -68,7 +67,7 @@ public class SendTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await paymentRecorder.WaitAsync(Timeout), "Payment handler did not receive the send message");
+        Assert.True(await paymentRecorder.WaitAsync(s_timeout), "Payment handler did not receive the send message");
 
         var msg = Assert.Single(paymentRecorder.Messages);
         Assert.IsType<ProcessPayment>(msg);
@@ -87,7 +86,7 @@ public class SendTests
         var refundRecorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddKeyedSingleton("payment", paymentRecorder)
             .AddKeyedSingleton("refund", refundRecorder)
             .AddMessageBus()
@@ -104,8 +103,8 @@ public class SendTests
         await messageBus.SendAsync(new ProcessRefund { OrderId = "ORD-2", Amount = 25.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await paymentRecorder.WaitAsync(Timeout), "Payment handler did not receive the message");
-        Assert.True(await refundRecorder.WaitAsync(Timeout), "Refund handler did not receive the message");
+        Assert.True(await paymentRecorder.WaitAsync(s_timeout), "Payment handler did not receive the message");
+        Assert.True(await refundRecorder.WaitAsync(s_timeout), "Refund handler did not receive the message");
 
         var payment = Assert.IsType<ProcessPayment>(Assert.Single(paymentRecorder.Messages));
         Assert.Equal("ORD-1", payment.OrderId);

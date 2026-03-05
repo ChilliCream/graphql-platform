@@ -1,6 +1,3 @@
-using Mocha;
-using Xunit;
-
 namespace Mocha.Sagas.Tests;
 
 /// <summary>
@@ -8,7 +5,7 @@ namespace Mocha.Sagas.Tests;
 /// </summary>
 public sealed class SagaTestPlan<T> where T : SagaStateBase
 {
-    private readonly List<Func<SagaTester<T>, Task>> _steps = new();
+    private readonly List<Func<SagaTester<T>, Task>> _steps = [];
 
     public SagaTester<T> Tester { get; }
 

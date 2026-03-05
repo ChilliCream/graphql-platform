@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Mocha.Middlewares;
 
 namespace Mocha.Outbox;
 

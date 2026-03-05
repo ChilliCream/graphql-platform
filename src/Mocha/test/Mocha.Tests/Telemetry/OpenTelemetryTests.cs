@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests;
@@ -29,7 +28,7 @@ public class OpenTelemetryTests
 
         // act
         await bus.PublishAsync(new TracedEvent { Data = "traced" }, CancellationToken.None);
-        Assert.True(await recorder.WaitAsync(Timeout));
+        Assert.True(await recorder.WaitAsync(s_timeout));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
         await Task.Delay(100, default);
@@ -85,7 +84,7 @@ public class OpenTelemetryTests
 
         // act
         await bus.PublishAsync(new TracedEvent { Data = "source-check" }, CancellationToken.None);
-        Assert.True(await recorder.WaitAsync(Timeout));
+        Assert.True(await recorder.WaitAsync(s_timeout));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
         await Task.Delay(100, default);
@@ -117,7 +116,7 @@ public class OpenTelemetryTests
         {
             await bus.PublishAsync(new TracedEvent { Data = $"batch-{i}" }, CancellationToken.None);
         }
-        Assert.True(await recorder.WaitAsync(Timeout, expectedCount: 3));
+        Assert.True(await recorder.WaitAsync(s_timeout, expectedCount: 3));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
         await Task.Delay(100, default);
@@ -144,7 +143,7 @@ public class OpenTelemetryTests
         await bus.PublishAsync(new TracedEvent { Data = "no-trace" }, CancellationToken.None);
 
         // assert - message still delivered
-        Assert.True(await recorder.WaitAsync(Timeout));
+        Assert.True(await recorder.WaitAsync(s_timeout));
         Assert.Single(recorder.Messages);
     }
 
@@ -816,7 +815,7 @@ public class OpenTelemetryTests
         Assert.NotEmpty(measurements);
     }
 
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     private static async Task<ServiceProvider> CreateBusAsync(Action<IMessageBusHostBuilder> configure)
     {

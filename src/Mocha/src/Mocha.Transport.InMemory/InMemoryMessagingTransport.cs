@@ -325,7 +325,7 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
 
         if (configuration is null && address is { Scheme: "queue" })
         {
-            string? name =
+            var name =
                 !string.IsNullOrEmpty(address.Host) ? address.Host
                 : segmentCount == 1 ? new string(path[ranges[0]]) : null;
 
@@ -337,7 +337,7 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
 
         if (configuration is null && address is { Scheme: "topic" })
         {
-            string? name =
+            var name =
                 !string.IsNullOrEmpty(address.Host) ? address.Host
                 : segmentCount == 1 ? new string(path[ranges[0]]) : null;
 

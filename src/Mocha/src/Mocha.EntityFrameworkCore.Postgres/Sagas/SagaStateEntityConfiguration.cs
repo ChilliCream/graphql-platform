@@ -11,7 +11,7 @@ namespace Mocha.Sagas.EfCore;
 internal sealed class SagaStateEntityConfiguration : IEntityTypeConfiguration<SagaState>
 {
     // Use default values from SagaStateTableInfo as the source of truth
-    private static readonly SagaStateTableInfo Defaults = new();
+    private static readonly SagaStateTableInfo s_defaults = new();
 
     /// <summary>
     /// Gets the shared singleton instance of the saga state entity configuration.
@@ -24,17 +24,17 @@ internal sealed class SagaStateEntityConfiguration : IEntityTypeConfiguration<Sa
     /// <param name="builder">The entity type builder for <see cref="SagaState"/>.</param>
     public void Configure(EntityTypeBuilder<SagaState> builder)
     {
-        builder.ToTable(Defaults.Table);
+        builder.ToTable(s_defaults.Table);
 
-        builder.HasKey(e => new { e.Id, e.SagaName }).HasName(Defaults.IxPrimaryKey);
+        builder.HasKey(e => new { e.Id, e.SagaName }).HasName(s_defaults.IxPrimaryKey);
 
-        builder.HasIndex(x => x.CreatedAt).HasDatabaseName(Defaults.IxCreatedAt);
+        builder.HasIndex(x => x.CreatedAt).HasDatabaseName(s_defaults.IxCreatedAt);
 
-        builder.Property(x => x.Version).IsConcurrencyToken().HasColumnName(Defaults.Version);
-        builder.Property(x => x.Id).HasColumnName(Defaults.Id);
-        builder.Property(x => x.SagaName).HasColumnName(Defaults.SagaName);
-        builder.Property(x => x.State).HasColumnName(Defaults.State).HasColumnType("json");
-        builder.Property(x => x.CreatedAt).HasColumnName(Defaults.CreatedAt);
-        builder.Property(x => x.UpdatedAt).HasColumnName(Defaults.UpdatedAt);
+        builder.Property(x => x.Version).IsConcurrencyToken().HasColumnName(s_defaults.Version);
+        builder.Property(x => x.Id).HasColumnName(s_defaults.Id);
+        builder.Property(x => x.SagaName).HasColumnName(s_defaults.SagaName);
+        builder.Property(x => x.State).HasColumnName(s_defaults.State).HasColumnType("json");
+        builder.Property(x => x.CreatedAt).HasColumnName(s_defaults.CreatedAt);
+        builder.Property(x => x.UpdatedAt).HasColumnName(s_defaults.UpdatedAt);
     }
 }

@@ -118,7 +118,7 @@ public class InMemorySagaStateStorageTests
         const int stateCount = 100;
 
         // act - concurrent saves
-        for (int i = 0; i < stateCount; i++)
+        for (var i = 0; i < stateCount; i++)
         {
             var localI = i;
             tasks.Add(

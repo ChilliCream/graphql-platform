@@ -1,6 +1,4 @@
-using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Sagas;
 using Mocha.Transport.InMemory;
 
@@ -8,7 +6,7 @@ namespace Mocha.Tests.Sagas;
 
 public class SagaMessageBusIntegrationTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     // ──────────────────────────────────────────────────────────────────────
     // Test 1: Custom state data persisted across multi-step transitions
@@ -38,7 +36,7 @@ public class SagaMessageBusIntegrationTests
 
         await WaitUntilAsync(
             () => storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId)?.State == "PaymentPending",
-            Timeout);
+            s_timeout);
 
         // assert step 1 custom data
         var state = storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId)!;
@@ -52,7 +50,7 @@ public class SagaMessageBusIntegrationTests
 
         await WaitUntilAsync(
             () => storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId)?.State == "ShipmentPending",
-            Timeout);
+            s_timeout);
 
         // assert step 2 custom data
         state = storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId)!;
@@ -65,7 +63,7 @@ public class SagaMessageBusIntegrationTests
             new OrderShipped { CorrelationId = sagaId, TrackingNumber = "TRACK-300" },
             CancellationToken.None);
 
-        await WaitUntilAsync(() => storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId) is null, Timeout);
+        await WaitUntilAsync(() => storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId) is null, s_timeout);
 
         Assert.Null(storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId));
     }
@@ -102,7 +100,7 @@ public class SagaMessageBusIntegrationTests
             CancellationToken.None);
 
         // assert - downstream handler received the notification
-        Assert.True(await recorder.WaitAsync(Timeout), "OrderNotification was not received by downstream handler");
+        Assert.True(await recorder.WaitAsync(s_timeout), "OrderNotification was not received by downstream handler");
 
         var notification = recorder.Messages.OfType<OrderNotification>().Single();
         Assert.Equal("ORD-HDR", notification.OrderId);
@@ -141,7 +139,7 @@ public class SagaMessageBusIntegrationTests
             CancellationToken.None);
 
         // assert - command handler received the command
-        Assert.True(await recorder.WaitAsync(Timeout), "ProcessPaymentCommand was not received by handler");
+        Assert.True(await recorder.WaitAsync(s_timeout), "ProcessPaymentCommand was not received by handler");
 
         var command = recorder.Messages.OfType<ProcessPaymentCommand>().Single();
         Assert.Equal("ORD-SEND", command.OrderId);
@@ -176,7 +174,7 @@ public class SagaMessageBusIntegrationTests
 
         await WaitUntilAsync(
             () => storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId) is not null,
-            Timeout);
+            s_timeout);
 
         // assert - metadata keys exist in state
         var state = storage.Load<OrderWorkflowState>("order-workflow-saga", sagaId)!;
@@ -218,7 +216,7 @@ public class SagaMessageBusIntegrationTests
             CancellationToken.None);
 
         // assert - lifecycle-published event was received
-        Assert.True(await recorder.WaitAsync(Timeout), "OnEntry-published OrderNotification was not received");
+        Assert.True(await recorder.WaitAsync(s_timeout), "OnEntry-published OrderNotification was not received");
 
         var notification = recorder.Messages.OfType<OrderNotification>().Single();
         Assert.Equal("ORD-LIFECYCLE", notification.OrderId);
@@ -253,13 +251,13 @@ public class SagaMessageBusIntegrationTests
 
         await WaitUntilAsync(
             () => storage.Load<OrderWorkflowState>("cancellable-saga", sagaId)?.State == "Active",
-            Timeout);
+            s_timeout);
 
         // act - step 2: cancel from Active state via DuringAny
         await bus.PublishAsync(new CancelOrder { CorrelationId = sagaId }, CancellationToken.None);
 
         // assert - saga reaches final state and is deleted
-        await WaitUntilAsync(() => storage.Load<OrderWorkflowState>("cancellable-saga", sagaId) is null, Timeout);
+        await WaitUntilAsync(() => storage.Load<OrderWorkflowState>("cancellable-saga", sagaId) is null, s_timeout);
 
         Assert.Null(storage.Load<OrderWorkflowState>("cancellable-saga", sagaId));
     }
@@ -302,7 +300,7 @@ public class SagaMessageBusIntegrationTests
                 sagaIds.All(id =>
                     storage.Load<OrderWorkflowState>("order-workflow-saga", id)?.State == "PaymentPending"
                 ),
-            Timeout);
+            s_timeout);
 
         // assert each instance has correct, isolated data
         for (var i = 0; i < instanceCount; i++)
@@ -326,7 +324,7 @@ public class SagaMessageBusIntegrationTests
                 sagaIds.All(id =>
                     storage.Load<OrderWorkflowState>("order-workflow-saga", id)?.State == "ShipmentPending"
                 ),
-            Timeout);
+            s_timeout);
 
         // assert each instance preserved its own data after concurrent step
         for (var i = 0; i < instanceCount; i++)
@@ -499,7 +497,7 @@ public class SagaMessageBusIntegrationTests
                     OrderId = e.OrderId,
                     Amount = e.Amount
                 })
-                .Publish<OrderNotification>(
+                .Publish(
                     (_, s) => new OrderNotification { OrderId = s.OrderId, Reason = "OrderSubmitted" })
                 .TransitionTo("Active");
 
@@ -524,7 +522,7 @@ public class SagaMessageBusIntegrationTests
                     OrderId = e.OrderId,
                     Amount = e.Amount
                 })
-                .Send<ProcessPaymentCommand>(
+                .Send(
                     (_, s) => new ProcessPaymentCommand { OrderId = s.OrderId, Amount = s.Amount })
                 .TransitionTo("AwaitingPayment");
 
@@ -553,7 +551,7 @@ public class SagaMessageBusIntegrationTests
             descriptor
                 .During("Active")
                 .OnEntry()
-                .Publish<OrderNotification>(
+                .Publish(
                     (_, s) => new OrderNotification { OrderId = s.OrderId, Reason = "EnteredActive" },
                     null);
 

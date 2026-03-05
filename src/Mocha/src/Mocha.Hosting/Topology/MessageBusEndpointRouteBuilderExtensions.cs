@@ -47,7 +47,7 @@ public static class MessageBusEndpointRouteBuilderExtensions
                 var description = MessageBusDescriptionVisitor.Visit(runtime);
 
                 return Results.Content(
-                    JsonSerializer.Serialize<MessageBusDescription>(description, s_jsonOptions),
+                    JsonSerializer.Serialize(description, s_jsonOptions),
                     "application/json");
             });
     }

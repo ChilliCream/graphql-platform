@@ -1,4 +1,3 @@
-using Mocha;
 using Mocha.Features;
 using Mocha.Middlewares;
 

@@ -140,7 +140,7 @@ public class MessageTypeSelectionMiddlewareTests : ReceiveMiddlewareTestBase
 
     private sealed class MockMessageTypeRegistry : IMessageTypeRegistry
     {
-        private readonly Dictionary<string, MessageType> _typesByIdentity = new();
+        private readonly Dictionary<string, MessageType> _typesByIdentity = [];
 
         public IMessageSerializerRegistry Serializers => null!;
         public IReadOnlySet<MessageType> MessageTypes => new HashSet<MessageType>(_typesByIdentity.Values);

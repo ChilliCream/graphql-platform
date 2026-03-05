@@ -5,7 +5,7 @@ namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class BatchingTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task Handler_Should_ReceiveBatch_When_SingleMessageSizeTrigger()
@@ -25,7 +25,7 @@ public class BatchingTests
         await bus.PublishAsync(new OrderCreated { OrderId = "1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler was not invoked within timeout");
 
         var batch = Assert.IsAssignableFrom<IMessageBatch<OrderCreated>>(Assert.Single(recorder.Batches));
         Assert.Single(batch);
@@ -55,7 +55,7 @@ public class BatchingTests
         await bus.PublishAsync(new OrderCreated { OrderId = "timeout-1" }, CancellationToken.None);
 
         // assert — batch should arrive via timeout with 1 message
-        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked via timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler was not invoked via timeout");
 
         var batch = Assert.IsAssignableFrom<IMessageBatch<OrderCreated>>(Assert.Single(recorder.Batches));
         Assert.Equal(BatchCompletionMode.Time, batch.CompletionMode);
@@ -87,7 +87,7 @@ public class BatchingTests
         }
 
         // assert — single batch containing all 5 messages
-        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler was not invoked within timeout");
 
         var batch = Assert.IsAssignableFrom<IMessageBatch<OrderCreated>>(Assert.Single(recorder.Batches));
         Assert.Equal(messageCount, batch.Count);

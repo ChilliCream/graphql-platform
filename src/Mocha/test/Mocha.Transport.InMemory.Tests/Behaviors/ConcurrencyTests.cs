@@ -5,7 +5,7 @@ namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class ConcurrencyTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task Handler_Should_LimitConcurrency_When_MaxConcurrencySetToOne()
@@ -35,7 +35,7 @@ public class ConcurrencyTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
             $"Handler did not process all {messageCount} messages within timeout");
 
         Assert.Equal(1, tracker.PeakConcurrency);
@@ -69,7 +69,7 @@ public class ConcurrencyTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
             $"Handler did not process all {messageCount} messages within timeout");
 
         Assert.True(tracker.PeakConcurrency > 1, $"Expected parallelism > 1, but peak was {tracker.PeakConcurrency}");

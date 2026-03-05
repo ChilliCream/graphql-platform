@@ -1,16 +1,14 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Features;
 using Mocha.Transport.InMemory;
-using Xunit;
 
 namespace Mocha.Sagas.Tests;
 
 public static class SagaTester
 {
-    private static readonly IMessagingRuntime _runtime = CreateRuntime();
+    private static readonly IMessagingRuntime s_runtime = CreateRuntime();
 
-    internal static IMessagingRuntime Runtime => _runtime;
+    internal static IMessagingRuntime Runtime => s_runtime;
 
     public static SagaTester<T> Create<T>(Saga<T> saga) where T : SagaStateBase
     {

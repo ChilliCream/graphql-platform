@@ -13,7 +13,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 {
     private const int InitialConnectionRetryDelaySeconds = 1;
     private const int MaxConnectionAttempts = 5;
-    private static readonly TimeSpan MaxBackoffDelay = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan s_maxBackoffDelay = TimeSpan.FromSeconds(60);
 
     private readonly Func<CancellationToken, ValueTask<IConnection>> _connectionFactory;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
@@ -276,7 +276,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     private static TimeSpan CalculateBackoffDelay(TimeSpan baseDelay, int attempt)
     {
         var delay = baseDelay * Math.Pow(2, attempt - 1);
-        return delay > MaxBackoffDelay ? MaxBackoffDelay : delay;
+        return delay > s_maxBackoffDelay ? s_maxBackoffDelay : delay;
     }
 
     private async Task DisposeConnectionInternalAsync()

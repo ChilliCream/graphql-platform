@@ -2,7 +2,7 @@ namespace Mocha.Sagas.Tests;
 
 public class TestSagaCleanup : ISagaCleanup
 {
-    public List<SagaStateBase> CleanedStates { get; } = new();
+    public List<SagaStateBase> CleanedStates { get; } = [];
 
     public Task CleanupAsync(Saga saga, SagaStateBase state, CancellationToken cancellationToken)
     {

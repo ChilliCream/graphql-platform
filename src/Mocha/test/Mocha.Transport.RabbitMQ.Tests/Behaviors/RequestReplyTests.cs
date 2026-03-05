@@ -1,14 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Events;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class RequestReplyTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public RequestReplyTests(RabbitMQFixture fixture)
@@ -22,7 +20,7 @@ public class RequestReplyTests
         // arrange
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddMessageBus()
             .AddRequestHandler<GetOrderStatusHandler>()
             .AddRabbitMQ()
@@ -46,7 +44,7 @@ public class RequestReplyTests
         // arrange
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddMessageBus()
             .AddRequestHandler<GetOrderStatusHandler>()
             .AddRabbitMQ()
@@ -80,7 +78,7 @@ public class RequestReplyTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
@@ -96,7 +94,7 @@ public class RequestReplyTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the request within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the request within timeout");
     }
 
     [Fact]
@@ -105,7 +103,7 @@ public class RequestReplyTests
         // arrange
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddMessageBus()
             .AddRequestHandler<GetOrderStatusHandler>()
             .AddRequestHandler<GetShipmentStatusHandler>()

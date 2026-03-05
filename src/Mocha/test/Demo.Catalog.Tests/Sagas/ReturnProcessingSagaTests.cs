@@ -7,10 +7,10 @@ namespace Demo.Catalog.Tests.Sagas;
 
 public sealed class ReturnProcessingSagaTests
 {
-    private static readonly Guid OrderId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-    private static readonly Guid ProductId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-    private static readonly Guid ReturnId = Guid.Parse("33333333-3333-3333-3333-333333333333");
-    private static readonly Guid RefundId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+    private static readonly Guid s_orderId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid s_productId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid s_returnId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+    private static readonly Guid s_refundId = Guid.Parse("44444444-4444-4444-4444-444444444444");
     private const int Quantity = 2;
     private const decimal Amount = 99.99m;
     private const string CustomerId = "CUST-002";
@@ -20,11 +20,11 @@ public sealed class ReturnProcessingSagaTests
     private static ReturnPackageReceivedEvent CreatePackageReceivedEvent()
         => new()
         {
-            ReturnId = ReturnId,
-            OrderId = OrderId,
+            ReturnId = s_returnId,
+            OrderId = s_orderId,
             TrackingNumber = TrackingNumber,
             ReceivedAt = DateTimeOffset.UtcNow,
-            ProductId = ProductId,
+            ProductId = s_productId,
             Quantity = Quantity,
             Amount = Amount,
             CustomerId = CustomerId,
@@ -34,9 +34,9 @@ public sealed class ReturnProcessingSagaTests
     private static InspectReturnResponse CreateInspectionResponse(InspectionResult result = InspectionResult.Passed)
         => new()
         {
-            OrderId = OrderId,
-            ProductId = ProductId,
-            ReturnId = ReturnId,
+            OrderId = s_orderId,
+            ProductId = s_productId,
+            ReturnId = s_returnId,
             Passed = result == InspectionResult.Passed,
             Result = result,
             InspectedAt = DateTimeOffset.UtcNow
@@ -45,8 +45,8 @@ public sealed class ReturnProcessingSagaTests
     private static RestockInventoryResponse CreateRestockResponse()
         => new()
         {
-            OrderId = OrderId,
-            ProductId = ProductId,
+            OrderId = s_orderId,
+            ProductId = s_productId,
             QuantityRestocked = Quantity,
             NewStockLevel = 50,
             Success = true,
@@ -56,8 +56,8 @@ public sealed class ReturnProcessingSagaTests
     private static ProcessRefundResponse CreateRefundSuccessResponse()
         => new()
         {
-            RefundId = RefundId,
-            OrderId = OrderId,
+            RefundId = s_refundId,
+            OrderId = s_orderId,
             Amount = Amount,
             Success = true,
             ProcessedAt = DateTimeOffset.UtcNow
@@ -67,7 +67,7 @@ public sealed class ReturnProcessingSagaTests
         => new()
         {
             RefundId = Guid.Empty,
-            OrderId = OrderId,
+            OrderId = s_orderId,
             Amount = 0,
             Success = false,
             FailureReason = "Payment gateway unavailable",
@@ -86,10 +86,10 @@ public sealed class ReturnProcessingSagaTests
             .ExpectSendMessage<InspectReturnCommand>(
                 (state, cmd) =>
                 {
-                    Assert.Equal(OrderId, cmd.OrderId);
-                    Assert.Equal(ProductId, cmd.ProductId);
+                    Assert.Equal(s_orderId, cmd.OrderId);
+                    Assert.Equal(s_productId, cmd.ProductId);
                     Assert.Equal(Quantity, cmd.Quantity);
-                    Assert.Equal(ReturnId, cmd.ReturnId);
+                    Assert.Equal(s_returnId, cmd.ReturnId);
                 })
             .RunAll();
     }
@@ -108,15 +108,15 @@ public sealed class ReturnProcessingSagaTests
             .ExpectSendMessage<RestockInventoryCommand>(
                 (state, cmd) =>
                 {
-                    Assert.Equal(OrderId, cmd.OrderId);
-                    Assert.Equal(ProductId, cmd.ProductId);
+                    Assert.Equal(s_orderId, cmd.OrderId);
+                    Assert.Equal(s_productId, cmd.ProductId);
                     Assert.Equal(Quantity, cmd.Quantity);
-                    Assert.Equal(ReturnId, cmd.ReturnId);
+                    Assert.Equal(s_returnId, cmd.ReturnId);
                 })
             .ExpectSendMessage<ProcessRefundCommand>(
                 (state, cmd) =>
                 {
-                    Assert.Equal(OrderId, cmd.OrderId);
+                    Assert.Equal(s_orderId, cmd.OrderId);
                     Assert.Equal(Amount, cmd.Amount);
                     Assert.Equal(CustomerId, cmd.CustomerId);
                 })
@@ -142,7 +142,7 @@ public sealed class ReturnProcessingSagaTests
         // Verify final state values before cleanup
         // State is cleaned up after Finally, so we check outbox instead
         var refundCmd = tester.ExpectSentMessage<ProcessRefundCommand>();
-        Assert.Equal(OrderId, refundCmd.OrderId);
+        Assert.Equal(s_orderId, refundCmd.OrderId);
     }
 
     [Fact]
@@ -170,10 +170,10 @@ public sealed class ReturnProcessingSagaTests
         await tester.Plan().On(CreatePackageReceivedEvent()).RunAll();
 
         var state = tester.State!;
-        Assert.Equal(OrderId, state.OrderId);
-        Assert.Equal(ProductId, state.ProductId);
+        Assert.Equal(s_orderId, state.OrderId);
+        Assert.Equal(s_productId, state.ProductId);
         Assert.Equal(Quantity, state.Quantity);
-        Assert.Equal(ReturnId, state.ReturnId);
+        Assert.Equal(s_returnId, state.ReturnId);
         Assert.Equal(TrackingNumber, state.ReturnTrackingNumber);
         Assert.Equal(CustomerId, state.CustomerId);
         Assert.Equal(Amount, state.Amount);

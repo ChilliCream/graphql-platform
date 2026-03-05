@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Sagas;
 using Mocha.Transport.InMemory;
 
@@ -7,7 +6,7 @@ namespace Mocha.Tests;
 
 public class SagaIntegrationTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task SagaInitialEvent_Should_CreateNewSagaInstance_When_Published()
@@ -32,7 +31,7 @@ public class SagaIntegrationTests
             CancellationToken.None);
 
         // assert — saga should transition to "AwaitingPayment"
-        await WaitUntilAsync(() => storage.Load<OrderSagaState>("order-processing-saga", sagaId) is not null, Timeout);
+        await WaitUntilAsync(() => storage.Load<OrderSagaState>("order-processing-saga", sagaId) is not null, s_timeout);
         var state = storage.Load<OrderSagaState>("order-processing-saga", sagaId)!;
         Assert.Equal("AwaitingPayment", state.State);
         Assert.Equal("ORD-SAGA-1", state.OrderId);
@@ -63,7 +62,7 @@ public class SagaIntegrationTests
 
         await WaitUntilAsync(
             () => storage.Load<OrderSagaState>("order-processing-saga", sagaId)?.State == "AwaitingPayment",
-            Timeout);
+            s_timeout);
         var state = storage.Load<OrderSagaState>("order-processing-saga", sagaId)!;
         Assert.Equal("AwaitingPayment", state.State);
 
@@ -74,7 +73,7 @@ public class SagaIntegrationTests
 
         await WaitUntilAsync(
             () => storage.Load<OrderSagaState>("order-processing-saga", sagaId)?.State == "AwaitingShipment",
-            Timeout);
+            s_timeout);
         state = storage.Load<OrderSagaState>("order-processing-saga", sagaId)!;
         Assert.Equal("AwaitingShipment", state.State);
         Assert.Equal("PAY-001", state.PaymentId);
@@ -84,7 +83,7 @@ public class SagaIntegrationTests
             new OrderShippedEvent { CorrelationId = sagaId, TrackingNumber = "TRACK-001" },
             CancellationToken.None);
 
-        await WaitUntilAsync(() => storage.Load<OrderSagaState>("order-processing-saga", sagaId) is null, Timeout);
+        await WaitUntilAsync(() => storage.Load<OrderSagaState>("order-processing-saga", sagaId) is null, s_timeout);
         Assert.Null(storage.Load<OrderSagaState>("order-processing-saga", sagaId));
     }
 
@@ -123,7 +122,7 @@ public class SagaIntegrationTests
             () =>
                 storage.Load<OrderSagaState>("order-processing-saga", id1)?.State == "AwaitingPayment"
                 && storage.Load<OrderSagaState>("order-processing-saga", id2)?.State == "AwaitingPayment",
-            Timeout);
+            s_timeout);
 
         // act - advance only saga 1
         await bus.PublishAsync(
@@ -132,7 +131,7 @@ public class SagaIntegrationTests
 
         await WaitUntilAsync(
             () => storage.Load<OrderSagaState>("order-processing-saga", id1)?.State == "AwaitingShipment",
-            Timeout);
+            s_timeout);
 
         // assert - saga 2 should still be in AwaitingPayment
         var state2 = storage.Load<OrderSagaState>("order-processing-saga", id2)!;
@@ -166,7 +165,7 @@ public class SagaIntegrationTests
             CancellationToken.None);
 
         // assert - the handler should still receive the event
-        Assert.True(await recorder.WaitAsync(Timeout));
+        Assert.True(await recorder.WaitAsync(s_timeout));
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)

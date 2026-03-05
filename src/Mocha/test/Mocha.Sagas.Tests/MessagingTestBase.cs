@@ -1,9 +1,5 @@
-using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Npgsql;
 
 namespace Mocha.Sagas.Tests;
@@ -54,7 +50,7 @@ public class MessagingTestBase
 
         await runtime.StartAsync(CancellationToken.None);
 
-        return new Disposable(async () => await runtime.DisposeAsync());
+        return new Disposable(runtime.DisposeAsync);
     }
 
     private sealed class Disposable(Func<ValueTask> dispose) : IAsyncDisposable

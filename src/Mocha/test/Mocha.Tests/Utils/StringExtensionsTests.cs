@@ -1,5 +1,3 @@
-using Mocha;
-
 namespace Mocha.Tests;
 
 public class StringExtensionsTests

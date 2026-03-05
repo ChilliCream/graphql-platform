@@ -1,6 +1,4 @@
-using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Events;
 using Mocha.Transport.InMemory;
 
@@ -49,7 +47,7 @@ public class FaultHandlingTests
         // act & assert — exact exception type depends on transport timing:
         // RemoteErrorException if the fault response arrives, TaskCanceledException
         // if the CTS fires first. Both confirm the handler did not succeed.
-        using var cts = new CancellationTokenSource(Timeout);
+        using var cts = new CancellationTokenSource(s_timeout);
         await Assert.ThrowsAnyAsync<Exception>(async () =>
             await bus.RequestAsync(new TestRequest { Data = "fail-me" }, cts.Token)
         );
@@ -68,7 +66,7 @@ public class FaultHandlingTests
         // act & assert — exact exception type depends on transport timing:
         // RemoteErrorException if the fault response arrives, TaskCanceledException
         // if the CTS fires first. Both confirm the handler did not succeed.
-        using var cts = new CancellationTokenSource(Timeout);
+        using var cts = new CancellationTokenSource(s_timeout);
         var ex = await Assert.ThrowsAnyAsync<Exception>(async () =>
             await bus.RequestAsync(new TestRequest { Data = "err" }, cts.Token)
         );
@@ -125,7 +123,7 @@ public class FaultHandlingTests
         await bus.PublishAsync(new TestEvent { Data = "success" }, CancellationToken.None);
 
         // assert - handler received it
-        Assert.True(await recorder.WaitAsync(Timeout));
+        Assert.True(await recorder.WaitAsync(s_timeout));
         Assert.Single(recorder.Messages);
     }
 
@@ -168,7 +166,7 @@ public class FaultHandlingTests
                 var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
                 // exact exception type depends on transport timing (see above)
-                using var cts = new CancellationTokenSource(Timeout);
+                using var cts = new CancellationTokenSource(s_timeout);
                 var ex = await Assert.ThrowsAnyAsync<Exception>(async () =>
                     await bus.RequestAsync(new TestRequest { Data = $"concurrent-{i}" }, cts.Token)
                 );
@@ -192,7 +190,7 @@ public class FaultHandlingTests
             });
     }
 
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     private static async Task<ServiceProvider> CreateBusAsync(Action<IMessageBusHostBuilder> configure)
     {
