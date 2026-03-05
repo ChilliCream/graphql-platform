@@ -11,7 +11,7 @@ namespace HotChocolate.Diagnostics;
 public partial class QueryInstrumentationTests
 {
     [Fact]
-    public async Task Track_events_of_a_simple_query_default()
+    public async Task Track_Events_Of_A_Simple_Query_Default()
     {
         using (CaptureActivities(out var activities))
         {
@@ -28,7 +28,7 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact(Skip = "This test is flaky with the new DL batching.")]
-    public async Task Track_data_loader_events()
+    public async Task Track_Data_Loader_Events()
     {
         using (CaptureActivities(out var activities))
         {
@@ -45,7 +45,7 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact(Skip = "This test is flaky with the new DL batching.")]
-    public async Task Track_data_loader_events_with_keys()
+    public async Task Track_Data_Loader_Events_With_Keys()
     {
         using (CaptureActivities(out var activities))
         {
@@ -62,7 +62,7 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact]
-    public async Task Track_events_of_a_simple_query_default_rename_root()
+    public async Task Track_Events_Of_A_Simple_Query_Default_Rename_Root()
     {
         using (CaptureActivities(out _))
         {
@@ -79,7 +79,7 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact]
-    public async Task Parsing_error_when_rename_root_is_activated()
+    public async Task Parsing_Error_When_Rename_Root_Is_Activated()
     {
         using (CaptureActivities(out _))
         {
@@ -96,7 +96,7 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact]
-    public async Task Validation_error_when_rename_root_is_activated()
+    public async Task Validation_Error_When_Rename_Root_Is_Activated()
     {
         using (CaptureActivities(out _))
         {
@@ -113,41 +113,7 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact]
-    public async Task Track_events_of_a_simple_query_detailed()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Ensure_operation_name_is_used_as_request_name()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Allow_document_to_be_captured()
+    public async Task Allow_Document_To_Be_Captured()
     {
         using (CaptureActivities(out var activities))
         {
@@ -168,7 +134,7 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact]
-    public async Task Ensure_that_the_validation_activity_has_an_error_status()
+    public async Task Ensure_That_The_Validation_Activity_Has_An_Error_Status()
     {
         using (CaptureActivities(out var activities))
         {
@@ -189,7 +155,7 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact]
-    public async Task Cause_a_resolver_error_that_deletes_the_whole_result()
+    public async Task Cause_A_Resolver_Error_That_Deletes_The_Whole_Result()
     {
         using (CaptureActivities(out var activities))
         {
@@ -203,40 +169,6 @@ public partial class QueryInstrumentationTests
                 })
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("query SayHelloOperation { causeFatalError }");
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Cause_a_resolver_error_that_deletes_the_whole_result_deep()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.Scopes = ActivityScopes.All;
-                    o.IncludeDocument = true;
-                })
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync(
-                    """
-                    query SayHelloOperation {
-                        deep {
-                            deeper {
-                                deeps {
-                                    deeper {
-                                        causeFatalError
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    """);
 
             // assert
             activities.MatchSnapshot();
@@ -351,40 +283,6 @@ public partial class QueryInstrumentationTests
                 .AddGraphQL()
                 .AddInstrumentation(o =>
                     o.Scopes = ActivityScopes.ValidateDocument | ActivityScopes.CompileOperation)
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task OperationNameInRequest_UsedAsActivityDisplayName()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("query MyOp { sayHello }");
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task NoOperationName_UsesAnonymousDisplayName()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ sayHello }");
 

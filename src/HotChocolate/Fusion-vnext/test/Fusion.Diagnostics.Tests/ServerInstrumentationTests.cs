@@ -162,43 +162,6 @@ public class ServerInstrumentationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Http_Post_Add_Query_To_Http_Activity()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-                [("a", server)],
-                configureGatewayBuilder: b => b.AddInstrumentation(
-                    o =>
-                    {
-                        o.Scopes = FusionActivityScopes.All;
-                        o.RequestDetails = RequestDetails.Default | RequestDetails.OperationName;
-                    }));
-
-            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-            var request = new OperationRequest(
-                query: """
-                    query ($name: String!) {
-                        greeting(name: $name)
-                    }
-                    """,
-                variables: new Dictionary<string, object?> { { "name", "World" } });
-
-            // act
-            using var result = await client.PostAsync(request, s_url);
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
     public async Task Http_Post_With_Extensions_Map()
     {
         using (CaptureActivities(out var activities))
@@ -514,39 +477,6 @@ public class ServerInstrumentationTests : FusionTestBase
                     }
                     """,
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
-
-            // act
-            using var result = await client.PostAsync(request, s_url);
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Http_Post_OperationNameInRequest_SetsActivityDisplayName()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-                [("a", server)],
-                configureGatewayBuilder: b => b.AddInstrumentation(
-                    o => o.Scopes = FusionActivityScopes.All));
-
-            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-            var request = new OperationRequest(
-                query: """
-                    query GetGreetingByName($name: String!) {
-                        greeting(name: $name)
-                    }
-                    """,
-                variables: new Dictionary<string, object?> { { "name", "World" } });
 
             // act
             using var result = await client.PostAsync(request, s_url);

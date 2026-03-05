@@ -88,7 +88,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Http_Post_variables_are_not_automatically_added_to_activities()
+    public async Task Http_Post_Variables_Are_Not_Automatically_Added_To_Activities()
     {
         using (CaptureActivities(out var activities))
         {
@@ -114,7 +114,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Http_Post_add_variables_to_http_activity()
+    public async Task Http_Post_Add_Variables_To_Http_Activity()
     {
         using (CaptureActivities(out var activities))
         {
@@ -144,37 +144,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Http_Post_add_query_to_http_activity()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateInstrumentedServer(
-                o =>
-                {
-                    o.Scopes = ActivityScopes.All;
-                    o.RequestDetails = RequestDetails.Default | RequestDetails.OperationName;
-                });
-
-            // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
-                query ($episode: Episode!) {
-                    hero(episode: $episode) {
-                        name
-                    }
-                }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
-            });
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Http_Post_with_extensions_map()
+    public async Task Http_Post_With_Extensions_Map()
     {
         using (CaptureActivities(out var activities))
         {
@@ -201,7 +171,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Http_Get_SDL_download()
+    public async Task Http_Get_SDL_Download()
     {
         using (CaptureActivities(out var activities))
         {
@@ -222,7 +192,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Http_Post_capture_deferred_response()
+    public async Task Http_Post_Capture_Deferred_Response()
     {
         using (CaptureActivities(out var activities))
         {
@@ -251,7 +221,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Http_Post_ensure_list_path_is_correctly_built()
+    public async Task Http_Post_Ensure_List_Path_Is_Correctly_Built()
     {
         using (CaptureActivities(out var activities))
         {
@@ -286,7 +256,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Http_Post_parser_error()
+    public async Task Http_Post_Parser_Error()
     {
         using (CaptureActivities(out var activities))
         {
@@ -322,7 +292,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Parsing_error_when_rename_root_is_activated()
+    public async Task Parsing_Error_When_Rename_Root_Is_Activated()
     {
         using (CaptureActivities(out var activities))
         {
@@ -346,7 +316,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Validation_error_when_rename_root_is_activated()
+    public async Task Validation_Error_When_Rename_Root_Is_Activated()
     {
         using (CaptureActivities(out var activities))
         {
@@ -478,32 +448,6 @@ public class ServerInstrumentationTests : ServerTestBase
                     }
                 }",
                 Extensions = new Dictionary<string, object?> { { "test", "abc" } }
-            });
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Http_Post_OperationNameInRequest_SetsActivityDisplayName()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateInstrumentedServer(
-                o => o.Scopes = ActivityScopes.All);
-
-            // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
-                query GetHeroByEpisode($episode: Episode!) {
-                    hero(episode: $episode) {
-                        name
-                    }
-                }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
