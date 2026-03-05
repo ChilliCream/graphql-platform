@@ -71,16 +71,16 @@
               "Value": "plan"
             },
             {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
+            },
+            {
               "Key": "graphql.operation.type",
               "Value": "query"
             },
             {
               "Key": "graphql.operation.name",
               "Value": "SayHelloOperation"
-            },
-            {
-              "Key": "graphql.document.hash",
-              "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
             }
           ],
           "event": []

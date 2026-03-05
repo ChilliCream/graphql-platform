@@ -90,12 +90,12 @@
                   "Value": "plan"
                 },
                 {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
                   "Key": "graphql.document.hash",
                   "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
                 }
               ],
               "event": []
