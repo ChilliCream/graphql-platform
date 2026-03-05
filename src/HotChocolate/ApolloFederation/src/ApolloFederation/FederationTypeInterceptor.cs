@@ -4,11 +4,11 @@ using System.Text;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Pagination;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.Types.TagHelper;
@@ -159,7 +159,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             }
         }
 
-        var hasRuntimeType = (IHasRuntimeType)configuration;
+        var hasRuntimeType = (IRuntimeTypeProvider)configuration;
         var type = hasRuntimeType.RuntimeType;
 
         if (type != typeof(object)

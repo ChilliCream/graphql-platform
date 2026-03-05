@@ -1,7 +1,4 @@
 using System.Buffers;
-#if NET8_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -224,7 +221,7 @@ public ref partial struct Utf8GraphQLParser
             var length = checked(sourceText.Length * 4);
             byte[]? source = null;
 
-            var sourceSpan = length <= GraphQLConstants.StackallocThreshold
+            var sourceSpan = length <= GraphQLCharacters.StackallocThreshold
                 ? stackalloc byte[length]
                 : source = ArrayPool<byte>.Shared.Rent(length);
 

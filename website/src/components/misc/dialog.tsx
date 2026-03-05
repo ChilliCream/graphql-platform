@@ -1,13 +1,13 @@
 import styled from "styled-components";
 import { Link } from "./link";
 
-export const Dialog = styled.div<{ show: boolean }>`
+export const Dialog = styled.div<{ $show: boolean }>`
   position: fixed;
   bottom: 0;
   z-index: 30;
   width: 100vw;
   background-color: #aba0ff;
-  display: ${({ show }) => (show ? "visible" : "none")};
+  display: ${({ $show }) => ($show ? "visible" : "none")};
 `;
 
 export const DialogButton = styled.button`

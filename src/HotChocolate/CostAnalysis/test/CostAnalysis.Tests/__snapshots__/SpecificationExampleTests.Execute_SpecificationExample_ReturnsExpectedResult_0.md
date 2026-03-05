@@ -44,4 +44,3 @@ type Query {
     users(max: Int): [User] @listSize(slicingArguments: ["max"])
 }
 ```
-

@@ -7,8 +7,7 @@ public class ReaderTests
     [Fact]
     public void Read_Two_NameTokens()
     {
-        var source = new ReadOnlySpan<byte>(
-            Encoding.UTF8.GetBytes("type foo"));
+        var source = new ReadOnlySpan<byte>("type foo"u8.ToArray());
         var lexer = new Utf8GraphQLReader(source);
 
         Assert.Equal(TokenKind.StartOfFile, lexer.Kind);
@@ -31,7 +30,7 @@ public class ReaderTests
     public void Read_NameBraceTokens()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
+        var sourceText = "{ x { y } }"u8.ToArray();
 
         // act
         var tokens = new List<SyntaxTokenInfo>();
@@ -50,8 +49,7 @@ public class ReaderTests
     public void Read_Comment()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "{ #test me foo bar \n me }");
+        var sourceText = "{ #test me foo bar \n me }"u8.ToArray();
 
         // act
         var tokens = new List<SyntaxTokenInfo>();
@@ -70,8 +68,7 @@ public class ReaderTests
     public void Read_StringValue()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "{ me(a: \"Abc¢def\\n\") }");
+        var sourceText = """{ me(a: "Abc¢def\n") }"""u8.ToArray();
 
         // act
         var tokens = new List<SyntaxTokenInfo>();
@@ -90,8 +87,7 @@ public class ReaderTests
     public void Read_BlockStringValue()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "{ me(a: \"\"\"\n     Abcdef\n\"\"\") }");
+        var sourceText = "{ me(a: \"\"\"\n     Abcdef\n\"\"\") }"u8.ToArray();
 
         // act
         var tokens = new List<SyntaxTokenInfo>();
@@ -131,8 +127,7 @@ public class ReaderTests
     public void Read_BlockString_SkipEscapes()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "abc \"\"\"def\\\"\"\"\"\"\" ghi");
+        var sourceText = "abc \"\"\"def\\\"\"\"\"\"\" ghi"u8.ToArray();
 
         // act
         var tokens = new List<SyntaxTokenInfo>();

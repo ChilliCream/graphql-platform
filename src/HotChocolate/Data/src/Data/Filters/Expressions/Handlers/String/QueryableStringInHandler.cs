@@ -25,4 +25,6 @@ public class QueryableStringInHandler : QueryableStringOperationHandler
             context.RuntimeTypes.Peek().Source,
             parsedValue);
     }
+
+    public static QueryableStringInHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

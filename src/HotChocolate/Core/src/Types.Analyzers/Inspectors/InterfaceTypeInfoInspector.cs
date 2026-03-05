@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
@@ -18,6 +19,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         var diagnostics = ImmutableArray<Diagnostic>.Empty;
+        var includeInternalMembers = context.SemanticModel.Compilation.IncludeInternalMembers();
 
         if (!IsInterfaceType(context, out var possibleType, out var classSymbol, out var runtimeType))
         {
@@ -47,7 +49,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal)
+            if (IsVisibleResolverMember(member, includeInternalMembers))
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {
@@ -57,12 +59,17 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
+                    var compilation = context.SemanticModel.Compilation;
+
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
                         member,
+                        compilation.GetDescription(member),
+                        compilation.GetDeprecationReason(member),
                         ResolverResultKind.Pure,
                         [],
-                        []);
+                        [],
+                        context.SemanticModel.Compilation.CreateTypeReference(member));
                 }
             }
         }
@@ -72,21 +79,34 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             Array.Resize(ref resolvers, i);
         }
 
-        syntaxInfo = new InterfaceTypeInfo(
+        var interfaceTypeInfo = new InterfaceTypeInfo(
+            context.SemanticModel.Compilation,
             classSymbol,
             runtimeType,
             possibleType,
             i == 0
                 ? []
-                : [.. resolvers]);
+                : [.. resolvers],
+            classSymbol.GetAttributes());
 
         if (diagnostics.Length > 0)
         {
-            syntaxInfo.AddDiagnosticRange(diagnostics);
+            interfaceTypeInfo.AddDiagnosticRange(diagnostics);
         }
 
+        syntaxInfo = interfaceTypeInfo;
         return true;
     }
+
+    private static bool IsVisibleResolverMember(ISymbol member, bool includeInternalMembers)
+        => member.DeclaredAccessibility switch
+        {
+            Accessibility.Public => true,
+            Accessibility.Internal => includeInternalMembers,
+            Accessibility.ProtectedOrInternal => includeInternalMembers,
+            Accessibility.ProtectedAndInternal => includeInternalMembers,
+            _ => false
+        };
 
     private static bool IsInterfaceType(
         GeneratorSyntaxContext context,
@@ -139,18 +159,31 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
     {
         var compilation = context.SemanticModel.Compilation;
         var parameters = resolverMethod.Parameters;
-        var resolverParameters = new ResolverParameter[parameters.Length];
+        var buffer = new ResolverParameter[parameters.Length];
+        var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
 
         for (var i = 0; i < parameters.Length; i++)
         {
-            resolverParameters[i] = ResolverParameter.Create(parameters[i], compilation);
+            var parameter = parameters[i];
+            var parameterKind = compilation.GetParameterKind(parameter, out var key);
+
+            buffer[i] = new ResolverParameter(
+                parameter,
+                parameterKind,
+                compilation.CreateTypeReference(parameter),
+                compilation.GetDescription(parameter)?.Description,
+                compilation.GetDeprecationReason(parameter),
+                key);
         }
 
         return new Resolver(
             resolverType.Name,
             resolverMethod,
+            compilation.GetDescription(resolverMethod),
+            compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
-            [.. resolverParameters],
-            []);
+            resolverParameters,
+            [],
+            compilation.CreateTypeReference(resolverMethod));
     }
 }

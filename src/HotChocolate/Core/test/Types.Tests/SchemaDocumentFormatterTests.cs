@@ -22,7 +22,7 @@ public static class SchemaDocumentFormatterTests
             }
 
             type Query {
-              hello: String
+              hello: String!
             }
             """);
     }
@@ -44,7 +44,7 @@ public static class SchemaDocumentFormatterTests
             }
 
             type Query {
-              hello: String
+              hello: String!
             }
 
             scalar Scalar1
@@ -71,7 +71,7 @@ public static class SchemaDocumentFormatterTests
             }
 
             type Query {
-              hello: String
+              hello: String!
             }
 
             scalar Scalar1

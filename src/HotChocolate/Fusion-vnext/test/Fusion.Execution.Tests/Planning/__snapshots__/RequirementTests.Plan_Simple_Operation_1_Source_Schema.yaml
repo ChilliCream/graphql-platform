@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       {
         books {
           titleAndId
@@ -7,13 +7,15 @@ operation:
           title @fusion__requirement
         }
       }
-    hash: 123
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
-      query Op_123_1 {
+    operation: |
+      query Op_123456789101112_1 {
         books {
           id
           title
@@ -22,10 +24,10 @@ nodes:
   - id: 2
     type: Operation
     schema: b
-    operation: >-
-      query Op_123_2(
+    operation: |
+      query Op_123456789101112_2(
         $__fusion_1_id: String!
-        $__fusion_2_title: String
+          $__fusion_2_title: String
       ) {
         bookById(id: $__fusion_1_id) {
           titleAndId(title: $__fusion_2_title)
@@ -35,8 +37,10 @@ nodes:
     target: $.books
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
       - name: __fusion_2_title
-        selectionMap: title
+        selectionMap: >-
+          title
     dependencies:
       - id: 1

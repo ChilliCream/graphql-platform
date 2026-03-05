@@ -1,3 +1,4 @@
+using System.IO.Pipelines;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 
@@ -20,8 +21,8 @@ public interface IHttpRequestParser
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestAsync(
-        Stream requestBody,
+    ValueTask<GraphQLRequest[]> ParseRequestAsync(
+        PipeReader requestBody,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -45,7 +46,7 @@ public interface IHttpRequestParser
     ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
         string documentId,
         string? operationName,
-        Stream requestBody,
+        PipeReader requestBody,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -57,7 +58,7 @@ public interface IHttpRequestParser
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    IReadOnlyList<GraphQLRequest> ParseRequest(string sourceText);
+    GraphQLRequest[] ParseRequest(string sourceText);
 
     /// <summary>
     /// Parses a GraphQL HTTP GET request from the HTTP query parameters.

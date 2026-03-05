@@ -55,7 +55,7 @@ internal static class ExternalSetterExpressionHelper
         {
             if (field.Directives.ContainsDirective<ExternalDirective>()
                 && typeDef.Fields.FirstOrDefault(f => f.Name == field.Name) is
-                    { Member: PropertyInfo { SetMethod: not null } property })
+                { Member: PropertyInfo { SetMethod: not null } property })
             {
                 var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
                 (block ??= []).Add(expression);

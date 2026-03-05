@@ -133,6 +133,36 @@ public class IntegrationTests
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Query_Using_DataLoader_Interface()
+    {
+        // arrange
+        var services = CreateApplicationServices();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorById(id: "QXV0aG9yOjE=") {
+                    someInfo
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorById": {
+                  "someInfo": "1 - some info"
+                }
+              }
+            }
+            """);
+    }
+
     private static IServiceProvider CreateApplicationServices(
         Action<IServiceCollection>? configure = null)
     {

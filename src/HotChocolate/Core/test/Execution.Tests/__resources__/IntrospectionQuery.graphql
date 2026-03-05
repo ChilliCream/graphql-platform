@@ -1,67 +1,78 @@
-  query IntrospectionQuery {
-    __schema {
-      queryType { name }
-      mutationType { name }
-      subscriptionType { name }
-      types {
-        ...FullType
-      }
-      directives {
-        name
-        description
-        args(includeDeprecated: true) {
-          ...InputValue
-        }
-        onOperation
-        onFragment
-        onField
-      }
+query IntrospectionQuery {
+  __schema {
+    queryType {
+      name
     }
-  }
-
-  fragment FullType on __Type {
-    kind
-    name
-    description
-    fields(includeDeprecated: true) {
+    mutationType {
+      name
+    }
+    subscriptionType {
+      name
+    }
+    types {
+      ...FullType
+    }
+    directives {
       name
       description
+      isRepeatable
       args(includeDeprecated: true) {
         ...InputValue
       }
-      type {
-        ...TypeRef
-      }
-      isDeprecated
-      deprecationReason
-    }
-    inputFields(includeDeprecated: true) {
-        ...InputValue
-    }
-    interfaces {
-      ...TypeRef
-    }
-    enumValues(includeDeprecated: true) {
-      name
-      description
-      isDeprecated
-      deprecationReason
-    }
-    possibleTypes {
-      ...TypeRef
+      locations
+      onOperation
+      onFragment
+      onField
     }
   }
-
-  fragment InputValue on __InputValue {
+}
+fragment FullType on __Type {
+  kind
+  name
+  description
+  specifiedByURL
+  fields(includeDeprecated: true) {
     name
     description
-    type { ...TypeRef }
-    defaultValue
+    args(includeDeprecated: true) {
+      ...InputValue
+    }
+    type {
+      ...TypeRef
+    }
     isDeprecated
     deprecationReason
   }
-
-  fragment TypeRef on __Type {
+  inputFields(includeDeprecated: true) {
+    ...InputValue
+  }
+  interfaces {
+    ...TypeRef
+  }
+  enumValues(includeDeprecated: true) {
+    name
+    description
+    isDeprecated
+    deprecationReason
+  }
+  possibleTypes {
+    ...TypeRef
+  }
+}
+fragment InputValue on __InputValue {
+  name
+  description
+  type {
+    ...TypeRef
+  }
+  defaultValue
+  isDeprecated
+  deprecationReason
+}
+fragment TypeRef on __Type {
+  kind
+  name
+  ofType {
     kind
     name
     ofType {
@@ -73,7 +84,12 @@
         ofType {
           kind
           name
+          ofType {
+            kind
+            name
+          }
         }
       }
     }
   }
+}

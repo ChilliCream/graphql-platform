@@ -18,8 +18,8 @@ internal static class ThrowHelper
     internal static GraphQLClientException DateTimeSerializer_InvalidFormat(
         string serializedValue) =>
         new(new ClientError(
-            "The serialized format for DateTime must be `yyyy-MM-ddTHH\\:mm\\:ss.fffzzz`. "
-            + "For more information read: `https://www.graphql-scalars.com/date-time`.",
+            "The serialized format for DateTime must be `yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFFzzz`. "
+            + "For more information read: `https://scalars.graphql.org/chillicream/date-time.html`.",
             extensions: new Dictionary<string, object?>
             {
                     { "serializedValue", serializedValue }
@@ -46,7 +46,7 @@ internal static class ThrowHelper
     internal static GraphQLClientException LocalDateTimeSerializer_InvalidFormat(
         string serializedValue) =>
         new(new ClientError(
-            "The serialized format for LocalDateTime must be `yyyy-MM-ddTHH:mm:ss`.",
+            "The serialized format for LocalDateTime must be `yyyy-MM-ddTHH:mm:ss.FFFFFFF`.",
             extensions: new Dictionary<string, object?>
             {
                 { "serializedValue", serializedValue }
@@ -55,15 +55,19 @@ internal static class ThrowHelper
     internal static GraphQLClientException LocalTimeSerializer_InvalidFormat(
         string serializedValue) =>
         new(new ClientError(
-            "The serialized format for LocalTime must be `HH:mm:ss`.",
+            "The serialized format for LocalTime must be `HH:mm:ss.FFFFFFF`.",
             extensions: new Dictionary<string, object?>
             {
                 { "serializedValue", serializedValue }
             }));
 
+    internal static GraphQLClientException UriFormatter_CouldNotParseUri(string value) =>
+        new(new ClientError(
+            $"The URI serializer could not parse value {value}. Invalid format."));
+
     internal static GraphQLClientException UrlFormatter_CouldNotParseUri(string value) =>
         new(new ClientError(
-            $"The URL serializer could not parse value{value}. Invalid format. "));
+            $"The URL serializer could not parse value {value}. Invalid format."));
 
     internal static GraphQLClientException TimeSpanSerializer_CouldNotParseValue(
         string value,

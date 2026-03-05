@@ -24,7 +24,7 @@ internal sealed class InputFieldDefaultMismatchRule : IEventHandler<InputFieldGr
 {
     public void Handle(InputFieldGroupEvent @event, CompositionContext context)
     {
-        var (_, fieldGroup, typeName) = @event;
+        var fieldGroup = @event.FieldGroup;
 
         var fieldGroupWithDefaultValues = fieldGroup
             .Where(i => i.Field.DefaultValue is not null)
@@ -53,7 +53,6 @@ internal sealed class InputFieldDefaultMismatchRule : IEventHandler<InputFieldGr
                         defaultValueA,
                         defaultValueB,
                         fieldA,
-                        typeName,
                         schemaA,
                         schemaB));
             }

@@ -28,6 +28,9 @@ public static class RabbitMQPubSubExtensions
     /// <param name="options">
     /// The subscription provider options. This parameter is optional; the default value is <c>null</c>.
     /// </param>
+    /// <param name="rabbitMqSubscriptionOptions">
+    /// The RabbitMQ subscription specific options. This parameter is optional; the default value is <c>null</c>.
+    /// </param>
     /// <returns>
     /// Returns the GraphQL configuration builder for configuration chaining.
     /// </returns>
@@ -37,12 +40,13 @@ public static class RabbitMQPubSubExtensions
     public static IRequestExecutorBuilder AddRabbitMQSubscriptions(
         this IRequestExecutorBuilder builder,
         ConnectionFactory? connectionFactory = null,
-        SubscriptionOptions? options = null)
+        SubscriptionOptions? options = null,
+        RabbitMQSubscriptionOptions? rabbitMqSubscriptionOptions = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services
-            .AddRabbitMQSubscriptionPublisher(connectionFactory, options)
+            .AddRabbitMQSubscriptionPublisher(connectionFactory, options, rabbitMqSubscriptionOptions)
             .TryAddSingleton<ITopicEventReceiver>(sp => sp.GetRequiredService<RabbitMQPubSub>());
 
         return builder;
@@ -64,6 +68,9 @@ public static class RabbitMQPubSubExtensions
     /// <param name="options">
     /// The subscription provider options. This parameter is optional; the default value is <c>null</c>.
     /// </param>
+    /// <param name="rabbitMqSubscriptionOptions">
+    /// The RabbitMQ subscription specific options. This parameter is optional; the default value is <c>null</c>.
+    /// </param>
     /// <returns>
     /// Returns the GraphQL configuration builder for configuration chaining.
     /// </returns>
@@ -73,10 +80,12 @@ public static class RabbitMQPubSubExtensions
     public static IServiceCollection AddRabbitMQSubscriptionPublisher(
         this IServiceCollection services,
         ConnectionFactory? connectionFactory = null,
-        SubscriptionOptions? options = null)
+        SubscriptionOptions? options = null,
+        RabbitMQSubscriptionOptions? rabbitMqSubscriptionOptions = null)
     {
         services.AddSubscriptionDiagnostics();
 
+        services.TryAddSingleton(rabbitMqSubscriptionOptions ?? new RabbitMQSubscriptionOptions());
         services.TryAddSingleton(connectionFactory ?? new ConnectionFactory());
         services.TryAddSingleton<IRabbitMQConnection, RabbitMQConnection>();
         services.TryAddSingleton(options ?? new SubscriptionOptions());

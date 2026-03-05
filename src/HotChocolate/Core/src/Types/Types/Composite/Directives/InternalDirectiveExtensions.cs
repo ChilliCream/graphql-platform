@@ -26,10 +26,7 @@ public static class InternalDirectiveExtensions
     /// </para>
     /// </summary>
     public static IObjectTypeDescriptor Internal(this IObjectTypeDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(Composite.Internal.Instance);
-    }
+        => descriptor.Directive(Composite.Internal.Instance);
 
     /// <summary>
     /// <para>
@@ -52,8 +49,5 @@ public static class InternalDirectiveExtensions
     /// </para>
     /// </summary>
     public static IObjectFieldDescriptor Internal(this IObjectFieldDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(Composite.Internal.Instance);
-    }
+        => descriptor.Directive(Composite.Internal.Instance);
 }

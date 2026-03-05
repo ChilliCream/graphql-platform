@@ -440,7 +440,7 @@ In this case, the Include is merged into the same DataLoader branch. The new Dat
 
 ## Conclusion
 
-While we hadn’t originally planned to release this at this time, I believe it brings a fantastic set of additions and will empower you to build layered and clean GraphQL  services better than ever. With the new APIs — and I’ve only shown a fraction of them — you can now create well-structured GraphQL services without compromising performance or abstraction. At the same time, you can keep complexity low and productivity high.
+While we hadn’t originally planned to release this at this time, I believe it brings a fantastic set of additions and will empower you to build layered and clean GraphQL services better than ever. With the new APIs — and I’ve only shown a fraction of them — you can now create well-structured GraphQL services without compromising performance or abstraction. At the same time, you can keep complexity low and productivity high.
 
 Try it out and let us know what you think! We’re always looking to improve Hot Chocolate based on your feedback.
 

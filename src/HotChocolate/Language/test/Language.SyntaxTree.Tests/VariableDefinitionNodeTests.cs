@@ -194,7 +194,7 @@ public class VariableDefinitionNodeTests
             new List<DirectiveNode> { new("qux") });
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public class VariableDefinitionNodeTests
                 new Location(6, 7, 8, 9));
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public class VariableDefinitionNodeTests
                 new VariableNode(new NameNode("quux")));
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -282,7 +282,7 @@ public class VariableDefinitionNodeTests
                 new NamedTypeNode(new NameNode("quux")));
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -325,7 +325,7 @@ public class VariableDefinitionNodeTests
                 new StringValueNode("quux"));
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -346,7 +346,7 @@ public class VariableDefinitionNodeTests
                 new List<DirectiveNode> { new("quux") });
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]

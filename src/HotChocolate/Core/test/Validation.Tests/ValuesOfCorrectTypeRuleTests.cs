@@ -120,6 +120,19 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact]
+    public void GoodOneOfDefaultValue()
+    {
+        ExpectValid(
+            """
+            mutation addPet($pet: PetInput! = { cat: { name: "Brontie" } }) {
+                addPet(pet: $pet) {
+                    name
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public void StringIntoInt()
     {
         ExpectErrors(
@@ -167,6 +180,57 @@ public class ValuesOfCorrectTypeRuleTests
             t => Assert.Equal(
                 "The specified value type of field `name` "
                 + "does not match the field type.",
+                t.Message));
+    }
+
+    [Fact]
+    public void BadOneOfWithNoFields()
+    {
+        ExpectErrors(
+            """
+            mutation oneOfWithNoFields {
+                addPet(pet: {}) {
+                    name
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "The OneOf Input Object `PetInput` requires that exactly one field must be "
+                + "supplied and that field must not be `null`.",
+                t.Message));
+    }
+
+    [Fact]
+    public void BadOneOfWithTwoFields()
+    {
+        ExpectErrors(
+            """
+            mutation oneOfWithTwoFields($dog: DogInput) {
+                addPet(pet: { cat: { name: "Brontie" }, dog: $dog }) {
+                    name
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "The OneOf Input Object `PetInput` requires that exactly one field must be "
+                + "supplied and that field must not be `null`.",
+                t.Message));
+    }
+
+    [Fact]
+    public void BadListOfOneOfWithNullableVariable()
+    {
+        ExpectErrors(
+            """
+            mutation listOfOneOfWithNullableVariable($dog: DogInput) {
+                addPets(pets: [{ dog: $dog }]) {
+                    name
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "The variable `$dog` assigned to the field `dog` of the OneOf Input Object "
+                + "`PetInput` must be non-null.",
                 t.Message));
     }
 
@@ -225,9 +289,11 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact]
-    public void OverflowInt()
+    public void OverflowInt_Should_Be_Valid()
     {
-        ExpectErrors(
+        // The validation will only look if the literal used is correct.
+        // The overflow would fail on field execution when the input value is coerced from that literal.
+        ExpectValid(
             $$"""
             {
                 arguments {
@@ -706,7 +772,7 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact]
-    public void BadUnknowEnumIntoEnum()
+    public void BadUnknownEnumIntoEnum()
     {
         ExpectErrors(
             """

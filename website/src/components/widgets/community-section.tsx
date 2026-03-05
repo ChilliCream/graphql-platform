@@ -104,7 +104,8 @@ const GraphContent = styled.div`
   padding: 40px;
 `;
 
-const GraphTitle = styled.h4`
+const GraphTitle = styled.h2`
+  font-weight: 700;
   flex: 0 0 auto;
 
   @media only screen and (min-width: 992px) {

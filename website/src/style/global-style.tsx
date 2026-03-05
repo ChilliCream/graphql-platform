@@ -93,7 +93,17 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   *:focus {
+    outline: 2px solid ${THEME_COLORS.primaryButton};
+    outline-offset: 2px;
+  }
+
+  *:focus:not(:focus-visible) {
     outline: none;
+  }
+
+  *:focus-visible {
+    outline: 2px solid ${THEME_COLORS.primaryButton};
+    outline-offset: 2px;
   }
 
   div, span {
@@ -129,6 +139,11 @@ export const GlobalStyle = createGlobalStyle`
     text-rendering: optimizeLegibility;
     word-break: break-word;
     color: ${THEME_COLORS.heading};
+    scroll-margin-top: 132px;
+
+    @media only screen and (min-width: 1280px) {
+      scroll-margin-top: 72px;
+    }
   }
 
   p {
@@ -313,8 +328,13 @@ export const GlobalStyle = createGlobalStyle`
 
   a.anchor {
     position: absolute;
-    left: 0;
-    visibility: hidden;
+    left: -1rem;
+    width: 1rem;
+    opacity: 0;
+  }
+
+  a.anchor:hover {
+    opacity: 1;
   }
 
   h1:hover a.anchor,
@@ -323,7 +343,7 @@ export const GlobalStyle = createGlobalStyle`
   h4:hover a.anchor,
   h5:hover a.anchor,
   h6:hover a.anchor {
-    visibility: visible;
+    opacity: 1;
   }
 
   ::-webkit-scrollbar

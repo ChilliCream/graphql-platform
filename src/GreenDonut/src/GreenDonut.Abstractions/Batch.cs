@@ -24,7 +24,7 @@ public abstract class Batch
     /// maximum size threshold).
     /// </para>
     /// </summary>
-    public abstract int Size { get;  }
+    public abstract int Size { get; }
 
     /// <summary>
     /// <para>
@@ -37,6 +37,12 @@ public abstract class Batch
     /// </para>
     /// </summary>
     public abstract BatchStatus Status { get; }
+
+    /// <summary>
+    /// Gets a high-resolution timestamp representing when this batch was first created.
+    /// This value is used to enforce maximum batch age timeouts to prevent starvation.
+    /// </summary>
+    public abstract long CreatedTimestamp { get; }
 
     /// <summary>
     /// Gets a high-resolution timestamp from representing the last time an item was added to this batch.

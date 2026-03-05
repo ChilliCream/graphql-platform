@@ -75,12 +75,6 @@ null
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
       "path": [
         "root"
       ]

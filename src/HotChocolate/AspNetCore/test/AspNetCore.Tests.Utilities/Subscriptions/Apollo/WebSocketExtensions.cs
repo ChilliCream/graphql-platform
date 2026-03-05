@@ -1,5 +1,6 @@
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
@@ -9,7 +10,6 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Transport.Sockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
@@ -151,7 +151,7 @@ public static class WebSocketExtensions
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
     }
 
-    public static async Task<IReadOnlyDictionary<string, object?>?> ReceiveServerMessageAsync(
+    public static async Task<JsonDocument?> ReceiveServerMessageAsync(
         this WebSocket webSocket,
         CancellationToken cancellationToken)
     {
@@ -183,7 +183,7 @@ public static class WebSocketExtensions
             return null;
         }
 
-        return (IReadOnlyDictionary<string, object?>?)ParseJson(stream.ToArray())!;
+        return JsonDocument.Parse(stream.ToArray());
     }
 
     private sealed class HelperOperationMessage(string type, string id, object payload)

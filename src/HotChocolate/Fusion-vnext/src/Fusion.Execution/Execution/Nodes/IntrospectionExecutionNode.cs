@@ -1,5 +1,5 @@
-using System.Diagnostics;
-using HotChocolate.Fusion.Execution.Extensions;
+using System.Text.Json;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -7,8 +7,13 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class IntrospectionExecutionNode : ExecutionNode
 {
     private readonly Selection[] _selections;
+    private readonly string[] _responseNames;
+    private readonly ExecutionNodeCondition[] _conditions;
 
-    public IntrospectionExecutionNode(int id, Selection[] selections)
+    public IntrospectionExecutionNode(
+        int id,
+        Selection[] selections,
+        ExecutionNodeCondition[] conditions)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -21,32 +26,35 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
         Id = id;
         _selections = selections;
+        _responseNames = selections.Select(t => t.ResponseName).ToArray();
+        _conditions = conditions;
     }
 
+    /// <inheritdoc />
     public override int Id { get; }
 
+    /// <inheritdoc />
+    public override ExecutionNodeType Type => ExecutionNodeType.Introspection;
+
+    /// <inheritdoc />
+    public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
+
+    /// <inheritdoc />
+    public override string? SchemaName => null;
+
+    /// <summary>
+    /// The introspection selections.
+    /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
 
-    public override ReadOnlySpan<ExecutionNode> Dependencies => default;
-
-    public override Task<ExecutionNodeResult> ExecuteAsync(
+    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var diagnosticEvents = context.GetDiagnosticEvents();
-        using var scope = diagnosticEvents.ExecuteIntrospection(context, this);
-        return Task.FromResult(ExecuteInternalAsync(context));
-    }
-
-    private ExecutionNodeResult ExecuteInternalAsync(
-        OperationPlanContext context)
-    {
-        var start = Stopwatch.GetTimestamp();
-        var resultPool = context.ResultPool;
-        var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
-        var root = context.ResultPool.RentObjectResult();
-        var selectionSet = context.OperationPlan.Operation.RootSelectionSet;
-        root.Initialize(resultPool, selectionSet, context.IncludeFlags, rawLeafFields: true);
+        var backlog = new Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)>();
+        var resultBuilder = new SourceResultDocumentBuilder(context.OperationPlan.Operation, context.IncludeFlags);
+        var root = resultBuilder.Root;
+        var index = 0;
 
         foreach (var selection in _selections)
         {
@@ -57,29 +65,28 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 continue;
             }
 
-            backlog.Push((null, selection, root[selection.ResponseName]));
+            var property = root.CreateProperty(selection, index++);
+            backlog.Push((null, selection, property));
         }
 
         ExecuteSelections(context, backlog);
-        context.AddPartialResults(root, _selections);
+        context.AddPartialResults(resultBuilder.Build(), _responseNames);
 
-        return new ExecutionNodeResult(
-            Id,
-            Activity.Current,
-            ExecutionStatus.Success,
-            Stopwatch.GetElapsedTime(start));
+        return new ValueTask<ExecutionStatus>(ExecutionStatus.Success);
     }
+
+    protected override IDisposable CreateScope(OperationPlanContext context)
+        => context.DiagnosticEvents.ExecuteIntrospectionNode(context, this);
 
     private static void ExecuteSelections(
         OperationPlanContext context,
-        Stack<(object? Parent, Selection Selection, FieldResult Result)> backlog)
+        Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)> backlog)
     {
         var operation = context.OperationPlan.Operation;
         var fieldContext = new ReusableFieldContext(
             context.Schema,
             context.Variables,
             context.IncludeFlags,
-            context.ResultPool,
             context.CreateRentedBuffer());
 
         while (backlog.TryPop(out var current))
@@ -91,13 +98,12 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
             if (!selection.IsLeaf)
             {
-                if (result is ObjectFieldResult { HasNullValue: false } objectFieldResult)
+                if (result.ValueKind is JsonValueKind.Object && selection.Type.IsObjectType())
                 {
                     var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
                     var selectionSet = operation.GetSelectionSet(selection, objectType);
-                    var objectResult = objectFieldResult.Value;
-                    var insertIndex = 0;
 
+                    var j = 0;
                     for (var i = 0; i < selectionSet.Selections.Length; i++)
                     {
                         var childSelection = selectionSet.Selections[i];
@@ -107,26 +113,28 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                             continue;
                         }
 
-                        backlog.Push((fieldContext.RuntimeResults[0], childSelection, objectResult.Fields[insertIndex++]));
+                        var property = result.CreateProperty(childSelection, j++);
+                        backlog.Push((fieldContext.RuntimeResults[0], childSelection, property));
                     }
                 }
-                else if (result is ListFieldResult { HasNullValue: false, Value: ObjectListResult list })
+                else if (result.ValueKind is JsonValueKind.Array
+                    && selection.Type.IsListType()
+                    && selection.Type.NamedType().IsObjectType())
                 {
                     var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
                     var selectionSet = operation.GetSelectionSet(selection, objectType);
 
-                    for (var i = 0; i < list.Items.Count; i++)
+                    var i = 0;
+                    foreach (var element in result.EnumerateArray())
                     {
-                        var objectResult = list.Items[i];
-                        var runtimeResult = fieldContext.RuntimeResults[i];
+                        var runtimeResult = fieldContext.RuntimeResults[i++];
 
-                        if (objectResult is null)
+                        if (element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                         {
                             continue;
                         }
 
-                        var insertIndex = 0;
-
+                        var k = 0;
                         for (var j = 0; j < selectionSet.Selections.Length; j++)
                         {
                             var childSelection = selectionSet.Selections[j];
@@ -136,15 +144,12 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                                 continue;
                             }
 
-                            backlog.Push((runtimeResult, childSelection, objectResult.Fields[insertIndex++]));
+                            var property = element.CreateProperty(childSelection, k++);
+                            backlog.Push((runtimeResult, childSelection, property));
                         }
                     }
                 }
             }
         }
-    }
-
-    protected internal override void Seal()
-    {
     }
 }

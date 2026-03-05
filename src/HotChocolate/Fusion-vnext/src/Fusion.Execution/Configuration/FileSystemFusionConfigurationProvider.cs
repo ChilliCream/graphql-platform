@@ -27,7 +27,9 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         Channel.CreateBounded<bool>(
             new BoundedChannelOptions(1)
             {
-                FullMode = BoundedChannelFullMode.DropNewest, SingleReader = true, SingleWriter = false
+                FullMode = BoundedChannelFullMode.DropNewest,
+                SingleReader = true,
+                SingleWriter = false
             });
 
     private readonly CancellationTokenSource _cts;
@@ -153,7 +155,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     }
 
                     using var archive = FusionArchive.Open(_fileName);
-                    using var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0), ct);
+                    using var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion, ct);
 
                     if (config is null)
                     {

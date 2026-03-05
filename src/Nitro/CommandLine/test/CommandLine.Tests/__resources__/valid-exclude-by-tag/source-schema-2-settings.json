@@ -1,0 +1,8 @@
+{
+  "name": "Schema2",
+  "transports": {
+    "http": {
+      "url": "http://localhost/graphql"
+    }
+  }
+}

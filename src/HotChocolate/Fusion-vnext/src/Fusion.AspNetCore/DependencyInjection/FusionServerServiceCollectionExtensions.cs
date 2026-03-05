@@ -25,7 +25,8 @@ public static class FusionServerServiceCollectionExtensions
 
         return services
             .AddGraphQLGateway(name)
-            .AddGraphQLGatewayServerCore()
+            .AddGraphQLGatewayServerCore(maxAllowedRequestSize)
+            .AddStartupInitialization()
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
     }
@@ -41,7 +42,8 @@ public static class FusionServerServiceCollectionExtensions
             sc.TryAddSingleton<IHttpResponseFormatter>(
                 sp => DefaultHttpResponseFormatter.Create(
                     new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
-                    sp.GetRequiredService<ITimeProvider>()));
+                    sp.GetRequiredService<ITimeProvider>(),
+                    IncrementalDeliveryFormat.Version_0_2));
 
             sc.TryAddSingleton<IHttpRequestParser>(
                 sp => new DefaultHttpRequestParser(
@@ -65,33 +67,12 @@ public static class FusionServerServiceCollectionExtensions
         return builder;
     }
 
-    public static IFusionGatewayBuilder AddHttpRequestInterceptor<T>(
+    private static IFusionGatewayBuilder AddStartupInitialization(
         this IFusionGatewayBuilder builder)
-        where T : IHttpRequestInterceptor, new()
     {
-        ArgumentNullException.ThrowIfNull(builder);
+        builder.Services.AddHostedService<FusionRequestExecutorWarmupService>();
 
-        return builder.ConfigureSchemaServices(
-            (_, s) =>
-            {
-                s.RemoveAll<IHttpRequestInterceptor>();
-                s.AddSingleton<IHttpRequestInterceptor>(new T());
-            });
-    }
-
-    public static IFusionGatewayBuilder AddHttpRequestInterceptor(
-        this IFusionGatewayBuilder builder,
-        Func<IServiceProvider, IHttpRequestInterceptor> factory)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(factory);
-
-        return builder.ConfigureSchemaServices(
-            (_, s) =>
-            {
-                s.RemoveAll<IHttpRequestInterceptor>();
-                s.AddSingleton(factory);
-            });
+        return builder;
     }
 
     private static IFusionGatewayBuilder AddDefaultHttpRequestInterceptor(

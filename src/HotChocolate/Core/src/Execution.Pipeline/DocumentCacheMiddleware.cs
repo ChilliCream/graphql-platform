@@ -116,7 +116,7 @@ internal sealed class DocumentCacheMiddleware
                 var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(DocumentCacheMiddleware));
+            WellKnownRequestMiddleware.DocumentCacheMiddleware);
 
     internal static DocumentCacheMiddleware Create(
         RequestDelegate next,

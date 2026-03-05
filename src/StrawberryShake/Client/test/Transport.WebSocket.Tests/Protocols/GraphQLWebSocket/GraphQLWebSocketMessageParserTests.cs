@@ -63,7 +63,7 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_TypeIsNull_ThrowException()
     {
         // arrange
-        var message = GetBytes($@"{{""type"": null, ""Foo"":1}}");
+        var message = GetBytes(@"{""type"": null, ""Foo"":1}");
 
         // act
         var ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));

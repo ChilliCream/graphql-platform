@@ -195,7 +195,7 @@
                 },
                 {
                   "OperationName": "ResolveFieldValue",
-                  "DisplayName": "/hero/friends/nodes[2]/friends",
+                  "DisplayName": "/hero/friends/nodes[0]/friends",
                   "Status": "Ok",
                   "tags": [
                     {
@@ -208,7 +208,7 @@
                     },
                     {
                       "Key": "graphql.selection.path",
-                      "Value": "/hero/friends/nodes[2]/friends"
+                      "Value": "/hero/friends/nodes[0]/friends"
                     },
                     {
                       "Key": "graphql.selection.hierarchy",
@@ -275,7 +275,7 @@
                 },
                 {
                   "OperationName": "ResolveFieldValue",
-                  "DisplayName": "/hero/friends/nodes[0]/friends",
+                  "DisplayName": "/hero/friends/nodes[2]/friends",
                   "Status": "Ok",
                   "tags": [
                     {
@@ -288,7 +288,7 @@
                     },
                     {
                       "Key": "graphql.selection.path",
-                      "Value": "/hero/friends/nodes[0]/friends"
+                      "Value": "/hero/friends/nodes[2]/friends"
                     },
                     {
                       "Key": "graphql.selection.hierarchy",

@@ -29,7 +29,7 @@
 
 ```sql
 -- @p='3'
-SELECT p."Name", p."BrandId", p."Id"
+SELECT p."BrandId", p."Name", p."Id"
 FROM "Products" AS p
 ORDER BY p."Name" DESC, p."Id"
 LIMIT @p
@@ -39,8 +39,7 @@ LIMIT @p
 
 ```sql
 -- @ids={ '2', '5' } (DbType = Object)
-SELECT b."Id", b."Name"
+SELECT b."Name", b."Id"
 FROM "Brands" AS b
 WHERE b."Id" = ANY (@ids)
 ```
-

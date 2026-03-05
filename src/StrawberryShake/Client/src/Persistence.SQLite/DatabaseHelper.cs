@@ -34,14 +34,14 @@ internal sealed class DatabaseHelper
 
     private static async Task CreateEntitiesTableAsync(SqliteConnection connection)
     {
-        using var command = connection.CreateCommand();
+        await using var command = connection.CreateCommand();
         command.CommandText = EntitiesTable;
         await command.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
 
     private static async Task CreateOperationsTableAsync(SqliteConnection connection)
     {
-        using var command = connection.CreateCommand();
+        await using var command = connection.CreateCommand();
         command.CommandText = OperationsTable;
         await command.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
@@ -78,7 +78,7 @@ internal sealed class DatabaseHelper
     {
         _loadEntities.Connection = connection;
 
-        using var reader =
+        await using var reader =
             await _loadEntities.ExecuteReaderAsync(cancellationToken);
 
         while (await reader.ReadAsync(cancellationToken))
@@ -125,7 +125,7 @@ internal sealed class DatabaseHelper
     {
         _loadOperations.Connection = connection;
 
-        using var reader =
+        await using var reader =
             await _loadOperations.ExecuteReaderAsync(cancellationToken);
 
         while (await reader.ReadAsync(cancellationToken))

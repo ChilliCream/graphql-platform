@@ -11,22 +11,28 @@ internal sealed class TypeRegistry
     private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = [];
     private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
         new(new ExtendedTypeRefEqualityComparer());
+    private readonly HashSet<ExtendedTypeReference> _explicitRuntimeTypeRefs =
+        new(new ExtendedTypeRefEqualityComparer());
     private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);
+    private readonly Dictionary<FactoryTypeReference, TypeReference> _lookups = new(new TypeRefEqualityComparer());
     private readonly List<RegisteredType> _types = [];
     private readonly TypeInterceptor _typeRegistryInterceptor;
 
     public TypeRegistry(TypeInterceptor typeRegistryInterceptor)
     {
-        _typeRegistryInterceptor = typeRegistryInterceptor ??
-            throw new ArgumentNullException(nameof(typeRegistryInterceptor));
+        ArgumentNullException.ThrowIfNull(typeRegistryInterceptor);
+
+        _typeRegistryInterceptor = typeRegistryInterceptor;
     }
 
     public int Count => _typeRegister.Count;
 
     public IReadOnlyList<RegisteredType> Types => _types;
 
-    public IReadOnlyDictionary<ExtendedTypeReference, TypeReference> RuntimeTypeRefs =>
-        _runtimeTypeRefs;
+    public IReadOnlyDictionary<ExtendedTypeReference, TypeReference> RuntimeTypeRefs
+        => _runtimeTypeRefs;
+
+    public IReadOnlyDictionary<FactoryTypeReference, TypeReference> Lookups => _lookups;
 
     public IReadOnlyDictionary<string, TypeReference> NameRefs => _nameRefs;
 
@@ -72,6 +78,13 @@ internal sealed class TypeRegistry
         return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
     }
 
+    public bool IsExplicitBinding(ExtendedTypeReference runtimeTypeRef)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeTypeRef);
+
+        return _explicitRuntimeTypeRefs.Contains(runtimeTypeRef);
+    }
+
     public bool TryGetTypeRef(
         string typeName,
         [NotNullWhen(true)] out TypeReference? typeRef)
@@ -89,12 +102,20 @@ internal sealed class TypeRegistry
 
     public IEnumerable<TypeReference> GetTypeRefs() => _runtimeTypeRefs.Values;
 
-    public void TryRegister(ExtendedTypeReference runtimeTypeRef, TypeReference typeRef)
+    public void TryRegister(
+        ExtendedTypeReference runtimeTypeRef,
+        TypeReference typeRef,
+        bool explicitBinding = false)
     {
         ArgumentNullException.ThrowIfNull(runtimeTypeRef);
         ArgumentNullException.ThrowIfNull(typeRef);
 
         _runtimeTypeRefs.TryAdd(runtimeTypeRef, typeRef);
+
+        if (explicitBinding)
+        {
+            _explicitRuntimeTypeRefs.Add(runtimeTypeRef);
+        }
     }
 
     public void Register(RegisteredType registeredType)
@@ -186,20 +207,26 @@ internal sealed class TypeRegistry
         _nameRefs[typeName] = registeredType.References[0];
     }
 
+    public void Register(FactoryTypeReference factoryRef, TypeReference typeDefRef)
+    {
+        ArgumentNullException.ThrowIfNull(factoryRef);
+        ArgumentNullException.ThrowIfNull(typeDefRef);
+
+        _lookups.TryAdd(factoryRef, typeDefRef);
+    }
+
     public void CompleteDiscovery()
     {
         foreach (var registeredType in _types)
         {
             TypeReference reference = TypeReference.Create(registeredType.Type);
             registeredType.References.TryAdd(reference);
-
             _typeRegister[reference] = registeredType;
 
             if (registeredType.Type.Scope is { } s)
             {
                 reference = TypeReference.Create(registeredType.Type, s);
                 registeredType.References.TryAdd(reference);
-
                 _typeRegister[reference] = registeredType;
             }
         }

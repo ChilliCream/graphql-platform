@@ -1,5 +1,0 @@
-query ImplicitClosedWorldSubfieldTool {
-  implicitClosedWorldSubfieldQuery {
-    implicitClosedWorldField
-  }
-}

@@ -2,8 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public class GenericTypeNamingTests

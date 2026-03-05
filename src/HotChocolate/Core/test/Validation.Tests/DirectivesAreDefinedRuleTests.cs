@@ -265,7 +265,7 @@ public class DirectivesAreDefinedRuleTests
     }
 
     [Fact]
-    public void WithMisplacedDirectivesOnFragemnt()
+    public void WithMisplacedDirectivesOnFragment()
     {
         ExpectErrors(
             """

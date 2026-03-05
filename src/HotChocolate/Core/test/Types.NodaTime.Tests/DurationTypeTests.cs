@@ -1,5 +1,8 @@
 using System.Globalization;
-using HotChocolate.Execution;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
 
@@ -7,214 +10,82 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class DurationTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public Duration PositiveWithDecimals
-                => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19));
-            public Duration NegativeWithDecimals
-                => -Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19));
-            public Duration PositiveWithoutDecimals
-                => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10));
-            public Duration PositiveWithoutSeconds
-                => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 0));
-            public Duration PositiveWithoutMinutes
-                => Duration.FromTimeSpan(new TimeSpan(123, 7, 0, 0));
-            public Duration PositiveWithRoundtrip
-                => Duration.FromTimeSpan(new TimeSpan(123, 26, 0, 70));
-        }
-
-        public class Mutation
-        {
-            public Duration Test(Duration arg)
-                => arg + Duration.FromMinutes(10);
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor = SchemaBuilder.New()
-        .AddQueryType<Schema.Query>()
-        .AddMutationType<Schema.Mutation>()
-        .AddNodaTime()
-        .Create()
-        .MakeExecutable();
-
     [Fact]
-    public void QueryReturnsSerializedDataWithDecimals()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: positiveWithDecimals }");
-        Assert.Equal("123:07:53:10.019", result.ExpectOperationResult().Data!["test"]);
+        var type = new DurationType();
+        var inputValue = new StringValueNode("123:07:53:10.019");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
+        Assert.Equal(
+            Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19)),
+            Assert.IsType<Duration>(runtimeValue));
     }
 
     [Fact]
-    public void QueryReturnsSerializedDataWithNegativeValue()
+    public void CoerceInputLiteral_Invalid_Value_Throws()
     {
-        var result = _testExecutor.Execute("query{test: negativeWithDecimals}");
-        Assert.Equal("-123:07:53:10.019", result.ExpectOperationResult().Data!["test"]);
+        var type = new DurationType();
+        var valueLiteral = new StringValueNode("+09:22:01:00");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void QueryReturnsSerializedDataWithoutDecimals()
+    public void CoerceInputValue()
     {
-        var result = _testExecutor.Execute("query{test: positiveWithoutDecimals}");
-        Assert.Equal("123:07:53:10", result.ExpectOperationResult().Data!["test"]);
+        var type = new DurationType();
+        var inputValue = ParseInputValue("\"123:07:53:10.019\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+        Assert.Equal(
+            Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19)),
+            Assert.IsType<Duration>(runtimeValue));
     }
 
     [Fact]
-    public void QueryReturnsSerializedDataWithoutSeconds()
+    public void CoerceInputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor.Execute("query{test:positiveWithoutSeconds}");
-        Assert.Equal("123:07:53:00", result.ExpectOperationResult().Data!["test"]);
+        var type = new DurationType();
+        var inputValue = ParseInputValue("\"+09:22:01:00\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void QueryReturnsSerializedDataWithoutMinutes()
+    public void CoerceOutputValue()
     {
-        var result = _testExecutor.Execute("query{test:positiveWithoutMinutes}");
-        Assert.Equal("123:07:00:00", result.ExpectOperationResult().Data!["test"]);
+        var type = new DurationType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19)), resultValue);
+        Assert.Equal("123:07:53:10.019", resultValue.GetString());
     }
 
     [Fact]
-    public void QueryReturnsSerializedDataWithRoundtrip()
+    public void CoerceOutputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor.Execute("query{test:positiveWithRoundtrip}");
-        Assert.Equal("124:02:01:10", result.ExpectOperationResult().Data!["test"]);
+        var type = new DurationType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("123:07:53:10.019", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void MutationParsesInputWithDecimals()
+    public void ValueToLiteral()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "09:22:01:00.019" } })
-                .Build());
-        Assert.Equal("9:22:11:00.019", result.ExpectOperationResult().Data!["test"]);
+        var type = new DurationType();
+        var valueLiteral = type.ValueToLiteral(Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19)));
+        Assert.Equal("\"123:07:53:10.019\"", valueLiteral.ToString());
     }
 
     [Fact]
-    public void MutationParsesInputWithoutDecimals()
+    public void ValueToLiteral_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "09:22:01:00" } })
-                .Build());
-        Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void MutationParsesInputWithoutLeadingZero()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "9:22:01:00" } })
-                .Build());
-        Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void MutationParsesInputWithNegativeValue()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "-9:22:01:00" } })
-                .Build());
-        Assert.Equal("-9:21:51:00", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void MutationDoesntParseInputWithPlusSign()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+09:22:01:00" } })
-                .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-    }
-
-    [Fact]
-    public void MutationDoesntParseInputWithOverflownHours()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "9:26:01:00" } })
-                .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-    }
-
-    [Fact]
-    public void MutationParsesLiteralWithDecimals()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"09:22:01:00.019\") }")
-                .Build());
-
-        Assert.Equal("9:22:11:00.019", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void MutationParsesLiteralWithoutDecimals()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"09:22:01:00\") }")
-                .Build());
-
-        Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void MutationParsesLiteralWithoutLeadingZero()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"09:22:01:00\") }")
-                .Build());
-
-        Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void MutationParsesLiteralWithNegativeValue()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"-9:22:01:00\") }")
-                .Build());
-
-        Assert.Equal("-9:21:51:00", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void MutationDoesntParseLiteralWithPlusSign()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"+09:22:01:00\") }")
-                .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-    }
-
-    [Fact]
-    public void MutationDoesntParseLiteralWithOverflownHours()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"9:26:01:00\") }")
-                .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
+        var type = new DurationType();
+        Action error = () => type.ValueToLiteral("123:07:53:10.019");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -253,5 +124,11 @@ public class DurationTypeIntegrationTests
 
         durationType.Description.MatchInlineSnapshot(
             "Represents a fixed (and calendar-independent) length of time.");
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

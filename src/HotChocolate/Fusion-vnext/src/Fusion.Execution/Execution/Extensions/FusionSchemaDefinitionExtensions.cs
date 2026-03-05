@@ -12,6 +12,13 @@ namespace HotChocolate.Execution;
 /// </summary>
 public static class FusionSchemaDefinitionExtensions
 {
+    public static FusionOptions GetOptions(this ISchemaDefinition schema)
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+
+        return schema.Features.GetRequired<FusionOptions>();
+    }
+
     public static FusionRequestOptions GetRequestOptions(
         this ISchemaDefinition schema)
     {

@@ -33,7 +33,7 @@ public sealed class EnumTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IEnumTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (!string.IsNullOrEmpty(Name))
         {

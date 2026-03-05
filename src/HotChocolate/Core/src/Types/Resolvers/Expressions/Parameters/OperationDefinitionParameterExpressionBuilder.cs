@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
@@ -15,9 +17,16 @@ internal sealed class OperationDefinitionParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(OperationDefinitionNode) == parameter.ParameterType;
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(OperationDefinitionNode) == parameter.Type;
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Operation.Definition;
+    {
+        Debug.Assert(typeof(T) == typeof(OperationDefinitionNode));
+        var operation = context.Operation.Definition;
+        return Unsafe.As<OperationDefinitionNode, T>(ref operation);
+    }
 }

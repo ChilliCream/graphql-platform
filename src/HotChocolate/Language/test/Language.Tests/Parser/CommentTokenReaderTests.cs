@@ -28,7 +28,7 @@ public class CommentTokenReaderTests
     public void EmptyComment()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes("#\n");
+        var source = "#\n"u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
 
         // act

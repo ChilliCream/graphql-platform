@@ -1,0 +1,16 @@
+{
+  "message": "The variable \u0060cat\u0060 is not compatible with the type of the current one-of location.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 22
+    }
+  ],
+  "path": [
+    "addPet"
+  ],
+  "extensions": {
+    "variable": "cat",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed"
+  }
+}

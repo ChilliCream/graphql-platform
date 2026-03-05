@@ -1,12 +1,9 @@
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
-
-#nullable enable
 
 public class OneOfIntegrationTests : TypeValidationTestBase
 {
@@ -17,8 +14,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: \"abc\", b: 123 }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: "abc", b: 123 })
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -29,8 +30,44 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: null, b: 123 }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: null, b: 123 })
+                }
+                """)
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task A_is_null_and_B_is_null_Error()
+    {
+        // Error: Exactly one key must be specified
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: null, b: null })
+                }
+                """)
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task A_is_null_Error()
+    {
+        // Error: Value for member field {a} must be non-null
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: null })
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -40,8 +77,28 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { b: 123 }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { b: 123 })
+                }
+                """)
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Input_is_empty_object_Error()
+    {
+        // Error: Exactly one key must be specified
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { })
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -52,11 +109,64 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: String!) { example(input: { a: $var, b: 123 }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", null } })
+                    .SetDocument(
+                        """
+                        query($a: String!) {
+                            example(input: { a: $a, b: 123 })
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "a": null
+                        }
+                        """)
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task A_is_unset_variable_and_B_is_set_Error()
+    {
+        // Error: Exactly one key must be specified
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($a: String!) {
+                            example(input: { a: $a, b: 123 })
+                        }
+                        """)
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task A_is_variable_and_B_is_unset_variable_Error()
+    {
+        // Error: Exactly one key must be specified
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($a: String!, $b: Int!) {
+                            example(input: { a: $a, b: $b })
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "a": "abc"
+                        }
+                        """)
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -67,28 +177,145 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", 123 } })
+                    .SetDocument(
+                        """
+                        query($b: Int!) {
+                            example(input: { b: $b })
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "b": 123
+                        }
+                        """)
                     .Build())
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task Var_is_object_with_field_b_set_to_123_Valid()
+    public async Task Var_is_object_with_field_B_set_to_123_Valid()
     {
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) } })
+                        """
+                        {
+                            "var": { "b": 123 }
+                        }
+                        """)
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Var_is_object_with_A_set_to_abc_and_B_set_to_123_Error()
+    {
+        // Error: Exactly one key must be specified
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "var": { "a": "abc", "b": 123 }
+                        }
+                        """)
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Var_is_object_with_A_set_to_abc_and_B_set_to_null_Error()
+    {
+        // Error: Exactly one key must be specified
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "var": { "a": "abc", "b": null }
+                        }
+                        """)
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Var_is_object_with_A_set_to_null_Error()
+    {
+        // Error: Value for member field {a} must be non-null
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                          example(input: $var)
+                        }
+                        """
+                        )
+                    .SetVariableValues(
+                        """
+                        {
+                          "var": { "a": null }
+                        }
+                        """)
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Var_is_empty_object_Error()
+    {
+        // Error: Exactly one key must be specified
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                          example(input: $var)
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                          "var": { }
+                        }
+                        """)
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -97,14 +324,17 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     public async Task Input_is_set_to_string_abc123_Error()
     {
         // Error: Incorrect value
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("{ example(input: \"abc123\") }")
+                    .SetDocument(
+                        """
+                        {
+                            example(input: "abc123")
+                        }
+                        """)
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -113,15 +343,23 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     public async Task Var_is_string_abc123_and_passed_to_input_Error()
     {
         // Error: Incorrect value
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: String!) { example(input: $var) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" } })
+                    .SetDocument(
+                        """
+                        query($var: String!) {
+                            example(input: $var)
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "var": "abc123"
+                        }
+                        """)
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -133,8 +371,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: \"abc\", b: \"123\" }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: "abc", b: "123" })
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -145,20 +387,52 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { b: \"123\" }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { b: "123" })
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task A_is_set_to_string_Error()
+    public async Task Var_is_object_with_B_set_to_abc_Error()
     {
         // Error: Incorrect value for member field {b}
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: \"123\" }) }")
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "var": { "b": "abc" }
+                        }
+                        """)
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task A_is_set_to_string_Valid()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: "abc" })
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -169,27 +443,38 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
+                    .SetDocument(
+                        """
+                        query($b: Int!) {
+                            example(input: { b: $b })
+                        }
+                        """)
                     .Build())
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task Var_is_object_with_field_a_set_to_abc_Valid()
+    public async Task Var_is_object_with_field_A_set_to_abc_Valid()
     {
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) } })
+                        """
+                        {
+                            "var": { "a": "abc" }
+                        }
+                        """)
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -201,22 +486,36 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: \"abc\", b: null }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: "abc", b: null })
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task B_is_variable_and_var_is_null_Valid()
+    public async Task B_is_variable_and_var_is_null_Error()
     {
+        // Error: Value for member field {b} must be non-null
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: Int) { example(input: { b: $var }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", null } })
+                    .SetDocument(
+                        """
+                        query($b: Int) {
+                            example(input: { b: $b })
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "b": null
+                        }
+                        """)
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -224,17 +523,46 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_set_and_C_is_invalid_prop_Error()
     {
-        // Error: Exactly one key must be specified
+        // Error: Unexpected field {c}
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { b: 123, c: \"xyz\" }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { b: 123, c: "xyz" })
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public void Oneof_Input_Objects_that_is_Valid()
+    public async Task Var_is_object_with_fields_B_and_C_set_Error()
+    {
+        // Error: Unexpected field {c}
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "var": { "b": 123, "c": "xyz" }
+                        }
+                        """)
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public void OneOf_Input_Objects_that_is_Valid()
         => ExpectValid(
             @"type Query {
                 foo(f: FooInput): String
@@ -246,7 +574,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             }");
 
     [Fact]
-    public void Oneof_Input_Objects_must_have_nullable_fields()
+    public void OneOf_Input_Objects_must_have_nullable_fields()
         => ExpectError(
             @"type Query {
                 foo(f: FooInput): String
@@ -258,7 +586,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             }");
 
     [Fact]
-    public void Oneof_Input_Objects_must_have_nullable_fields_with_two_fields_non_null()
+    public void OneOf_Input_Objects_must_have_nullable_fields_with_two_fields_non_null()
         => ExpectError(
             @"type Query {
                 foo(f: FooInput): String
@@ -270,67 +598,67 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             }");
 
     [Fact]
-    public void Oneof_Input_Objects_must_have_nullable_fields_with_one_field_has_default()
+    public void OneOf_Input_Objects_must_have_nullable_fields_with_one_field_has_default()
         => ExpectError(
-            @"type Query {
+            """
+            type Query {
                 foo(f: FooInput): String
             }
 
             input FooInput @oneOf {
-                a: String = ""a""
+                a: String = "a"
                 b: Int
-            }");
+            }
+            """);
 
     [Fact]
-    public void Oneof_Input_Objects_must_have_nullable_fields_with_two_fields_that_have_default()
+    public void OneOf_Input_Objects_must_have_nullable_fields_with_two_fields_that_have_default()
         => ExpectError(
-            @"type Query {
+            """
+            type Query {
                 foo(f: FooInput): String
             }
 
             input FooInput @oneOf {
-                a: String = ""a""
+                a: String = "a"
                 b: Int = 1
-            }");
+            }
+            """);
 
     [Fact]
-    public void Oneof_generic_code_first_schema()
+    public void OneOf_generic_code_first_schema()
         => SchemaBuilder.New()
             .AddQueryType<QueryType>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .Create()
             .ToString()
             .MatchSnapshot();
 
     [Fact]
-    public async Task Oneof_introspection()
+    public async Task OneOf_introspection()
     {
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(
-                o =>
-                {
-                    o.EnableOneOf = true;
-                    o.StrictValidation = true;
-                })
+            .ModifyOptions(o => o.StrictValidation = true)
             .ExecuteRequestAsync(
-                @"{
-                    oneof_input: __type(name: ""ExampleInput"") {
+                """
+                {
+                    oneOf_input: __type(name: "ExampleInput") {
                         # should be true
-                        oneOf
+                        isOneOf
                     }
 
-                    input: __type(name: ""StandardInput"") {
+                    input: __type(name: "StandardInput") {
                         # should be false
-                        oneOf
+                        isOneOf
                     }
 
-                    object: __type(name: ""Query"") {
+                    object: __type(name: "Query") {
                         # should be null
-                        oneOf
+                        isOneOf
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -347,7 +675,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 }
                 """)
             .AddResolver("Query", "foo", "abc")
-            .ModifyOptions(o => o.EnableOneOf = true)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -366,7 +693,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 }
                 """)
             .AddResolver("Query", "foo", "abc")
-            .ModifyOptions(o => o.EnableOneOf = true)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }

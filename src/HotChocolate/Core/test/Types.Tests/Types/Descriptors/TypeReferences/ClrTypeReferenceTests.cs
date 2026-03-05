@@ -14,7 +14,7 @@ public class ClrTypeReferenceTests
     public void TypeReference_Create(
         Type clrType,
         TypeContext context,
-        string scope)
+        string? scope)
     {
         // arrange
         // act
@@ -150,7 +150,7 @@ public class ClrTypeReferenceTests
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var result = x.Equals((TypeReference)null);
+        var result = x.Equals((TypeReference?)null);
 
         // assert
         Assert.False(result);
@@ -247,7 +247,7 @@ public class ClrTypeReferenceTests
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var result = x.Equals((object)null);
+        var result = x.Equals((object?)null);
 
         // assert
         Assert.False(result);

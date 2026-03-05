@@ -1,3 +1,5 @@
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
@@ -9,6 +11,8 @@ namespace HotChocolate.Execution;
 /// </summary>
 public sealed class VariableBatchRequest : IOperationRequest
 {
+    private bool _disposed;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="VariableBatchRequest" /> class.
     /// </summary>
@@ -23,6 +27,9 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// </param>
     /// <param name="operationName">
     /// A name of an operation in the GraphQL request document that shall be executed.
+    /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
     /// </param>
     /// <param name="variableValues">
     /// The list of variable values for the GraphQL request.
@@ -50,8 +57,9 @@ public sealed class VariableBatchRequest : IOperationRequest
         OperationDocumentId? documentId,
         OperationDocumentHash? documentHash,
         string? operationName,
-        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues,
-        IReadOnlyDictionary<string, object?>? extensions,
+        ErrorHandlingMode? errorHandlingMode,
+        JsonDocumentOwner variableValues,
+        JsonDocumentOwner? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
         IFeatureCollection? features,
         IServiceProvider? services,
@@ -59,13 +67,24 @@ public sealed class VariableBatchRequest : IOperationRequest
     {
         if (document is null && OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
+            throw new ArgumentException(OperationRequest_DocumentOrIdMustBeSet);
+        }
+
+        if (variableValues.Document.RootElement.ValueKind is not JsonValueKind.Array)
+        {
+            throw new ArgumentException(VariableBatchRequest_Variables_Must_Be_Array, nameof(variableValues));
+        }
+
+        if (extensions is not null && extensions.Document.RootElement.ValueKind is not JsonValueKind.Object)
+        {
+            throw new ArgumentException(OperationRequest_Extensions_Must_Be_Object, nameof(extensions));
         }
 
         Document = document;
         DocumentId = documentId ?? OperationDocumentId.Empty;
         DocumentHash = documentHash ?? OperationDocumentHash.Empty;
         OperationName = operationName;
+        ErrorHandlingMode = errorHandlingMode;
         VariableValues = variableValues;
         Extensions = extensions;
         ContextData = contextData;
@@ -96,14 +115,19 @@ public sealed class VariableBatchRequest : IOperationRequest
     public string? OperationName { get; }
 
     /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    public ErrorHandlingMode? ErrorHandlingMode { get; }
+
+    /// <summary>
     /// Gets a list of variable values for the GraphQL request.
     /// </summary>
-    public IReadOnlyList<IReadOnlyDictionary<string, object?>>? VariableValues { get; }
+    public JsonDocumentOwner VariableValues { get; }
 
     /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
-    public IReadOnlyDictionary<string, object?>? Extensions { get; }
+    public JsonDocumentOwner? Extensions { get; }
 
     /// <summary>
     /// Gets the initial request state.
@@ -125,6 +149,17 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// </summary>
     public RequestFlags Flags { get; }
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            VariableValues.Dispose();
+            Extensions?.Dispose();
+            _disposed = true;
+        }
+    }
+
     /// <summary>
     /// Creates a new request with the specified services.
     /// </summary>
@@ -134,12 +169,13 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified services.
     /// </returns>
-    public VariableBatchRequest WithServices(IServiceProvider services)
+    public VariableBatchRequest WithServices(IServiceProvider? services)
         => new(
             Document,
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -156,12 +192,13 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified features.
     /// </returns>
-    public VariableBatchRequest WithFeatures(IFeatureCollection features)
+    public VariableBatchRequest WithFeatures(IFeatureCollection? features)
         => new(
             Document,
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,

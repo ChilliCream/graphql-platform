@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query8
 }
 
@@ -9,7 +9,7 @@ interface Node {
 
 type Foo1 implements Node {
   id: ID!
-  clearTextId: String
+  clearTextId: String!
 }
 
 type Query8 {
@@ -17,5 +17,5 @@ type Query8 {
   node("ID of the object." id: ID!): Node
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  barById(id: ID!): Foo1
+  barById(id: ID!): Foo1!
 }

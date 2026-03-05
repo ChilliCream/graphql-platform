@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       {
         productBySlug(slug: "1") {
           name
@@ -16,13 +16,15 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
     schema: PRODUCTS
-    operation: >-
-      query Op_123_1 {
+    operation: |
+      query Op_123456789101112_1 {
         productBySlug(slug: "1") {
           name
           id
@@ -31,8 +33,8 @@ nodes:
   - id: 2
     type: Operation
     schema: REVIEWS
-    operation: >-
-      query Op_123_2(
+    operation: |
+      query Op_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         productById(id: $__fusion_1_id) {
@@ -51,14 +53,15 @@ nodes:
     target: $.productBySlug
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 3
     type: Operation
     schema: ACCOUNTS
-    operation: >-
-      query Op_123_3(
+    operation: |
+      query Op_123456789101112_3(
         $__fusion_2_id: ID!
       ) {
         userById(id: $__fusion_2_id) {
@@ -66,9 +69,10 @@ nodes:
         }
       }
     source: $.userById
-    target: $.reviews.nodes.author.productBySlug
+    target: $.productBySlug.reviews.nodes.author
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 2

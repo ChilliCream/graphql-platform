@@ -1,0 +1,29 @@
+{
+  "errors": [
+    {
+      "message": "The value provided for `ids` is not in a valid format.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 53
+        }
+      ],
+      "path": [
+        "fieldWithObjectWithListOfScalarsInput"
+      ],
+      "extensions": {
+        "code": "HC0001",
+        "coordinate": "ObjectWithListOfIdsInput.ids",
+        "inputPath": [
+          "arg",
+          "ids"
+        ],
+        "exception": {
+          "message": "Boom",
+          "stackTrace": "Test"
+        }
+      }
+    }
+  ],
+  "data": null
+}

@@ -259,12 +259,22 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             _ => null
         };
 
-        if (context.Variables.TryGetValue(
-                node.Name.Value,
-                out var variableDefinition)
-            && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
+        var isOneOfVariable =
+            parent is ObjectFieldNode
+            && context.Types[^2].NullableType() is IInputObjectTypeDefinition inputObjectType
+            && inputObjectType.Directives.ContainsName(DirectiveNames.OneOf.Name);
+
+        if (context.Variables.TryGetValue(node.Name.Value, out var variableDefinition)
+            && !IsVariableUsageAllowed(
+                variableDefinition,
+                context.Types.Peek(),
+                isOneOfVariable,
+                defaultValue))
         {
-            context.ReportError(context.VariableIsNotCompatible(node, variableDefinition));
+            context.ReportError(
+                isOneOfVariable
+                    ? context.OneOfVariableIsNotCompatible(node, variableDefinition)
+                    : context.VariableIsNotCompatible(node, variableDefinition));
         }
 
         return Skip;
@@ -294,9 +304,10 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     private bool IsVariableUsageAllowed(
         VariableDefinitionNode variableDefinition,
         IType locationType,
+        bool isOneOfVariable,
         IValueNode? locationDefault)
     {
-        if (locationType.IsNonNullType()
+        if (IsNonNullPosition(locationType, isOneOfVariable)
             && !variableDefinition.Type.IsNonNullType())
         {
             if (variableDefinition.DefaultValue.IsNull()
@@ -313,6 +324,11 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         return AreTypesCompatible(
             variableDefinition.Type,
             locationType);
+    }
+
+    private static bool IsNonNullPosition(IType locationType, bool isOneOfVariable)
+    {
+        return locationType.IsNonNullType() || isOneOfVariable;
     }
 
     // http://facebook.github.io/graphql/June2018/#AreTypesCompatible()

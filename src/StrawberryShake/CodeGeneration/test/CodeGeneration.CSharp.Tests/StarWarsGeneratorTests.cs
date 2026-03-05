@@ -110,23 +110,27 @@ public class StarWarsGeneratorTests
     [Fact]
     public void StarWarsTypeNameOnUnions() =>
         AssertStarWarsResult(
-            @"query SearchHero {
-                    search(text: ""l"") {
-                        __typename
-                    }
-                }");
+            """
+            query SearchHero {
+                search(text: "l") {
+                    __typename
+                }
+            }
+            """);
 
     [Fact]
     public void StarWarsUnionList() =>
         AssertStarWarsResult(
-            @"query SearchHero {
-                    search(text: ""l"") {
-                        ... on Human {
-                            name
-                        }
-                        ... on Droid {
-                            name
-                        }
+            """
+            query SearchHero {
+                search(text: "l") {
+                    ... on Human {
+                        name
                     }
-                }");
+                    ... on Droid {
+                        name
+                    }
+                }
+            }
+            """);
 }

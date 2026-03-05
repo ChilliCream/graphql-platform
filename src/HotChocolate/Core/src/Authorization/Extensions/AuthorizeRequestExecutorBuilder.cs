@@ -38,13 +38,13 @@ public static class AuthorizeRequestExecutorBuilder
 
         var prepareAuthorization = PrepareAuthorizationMiddleware.Create();
         builder.InsertUseRequest(
-            before: "DocumentValidationMiddleware",
+            before: WellKnownRequestMiddleware.DocumentValidationMiddleware,
             middleware: prepareAuthorization.Middleware,
             key: prepareAuthorization.Key);
 
         var authorizeRequest = AuthorizeRequestMiddleware.Create();
         builder.AppendUseRequest(
-            after: "DocumentValidationMiddleware",
+            after: WellKnownRequestMiddleware.DocumentValidationMiddleware,
             middleware: authorizeRequest.Middleware,
             key: authorizeRequest.Key);
         return builder;

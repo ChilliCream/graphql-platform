@@ -11,7 +11,7 @@ public class QueryExtension
 
     public bool Evict(IRequestExecutorProvider executorResolver, ISchemaDefinition schema)
     {
-        ((RequestExecutorManager)executorResolver).EvictRequestExecutor(schema.Name);
+        ((RequestExecutorManager)executorResolver).EvictExecutor(schema.Name);
         return true;
     }
 

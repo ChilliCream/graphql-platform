@@ -15,7 +15,7 @@ public class ManualBatchScheduler : IBatchScheduler
     {
         while (_queue.TryDequeue(out var batch))
         {
-            Task.Run(async () => await batch.DispatchAsync());
+            Task.Run(batch.DispatchAsync);
         }
     }
 }

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Fusion.Diagnostics</PackageId>
+    <AssemblyName>HotChocolate.Fusion.Diagnostics</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Diagnostics</RootNamespace>
+    <Description>Provides Hot Chocolate Fusion Diagnostics.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

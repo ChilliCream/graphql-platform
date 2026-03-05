@@ -1,8 +1,14 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class OperationSession : IOperationSession
 {
     private readonly CancellationTokenSource _cts = new();
@@ -31,7 +37,7 @@ internal sealed class OperationSession : IOperationSession
     public bool IsCompleted { get; private set; }
 
     public void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken)
-        => SendResultsAsync(request, cancellationToken).FireAndForget();
+        => _ = SendResultsAsync(request, cancellationToken);
 
     private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
@@ -47,7 +53,7 @@ internal sealed class OperationSession : IOperationSession
 
             switch (result)
             {
-                case IOperationResult queryResult:
+                case OperationResult queryResult:
                     if (queryResult.Data is null && queryResult.Errors is { Count: > 0 })
                     {
                         await _session.Protocol.SendErrorMessageAsync(
@@ -90,7 +96,7 @@ internal sealed class OperationSession : IOperationSession
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            // the operation was cancelled so we do nothings
+            // the operation was canceled so we do nothing
         }
         catch (Exception ex)
         {
@@ -118,6 +124,8 @@ internal sealed class OperationSession : IOperationSession
 
             // signal that the subscription is completed.
             Complete();
+
+            request.Dispose();
         }
     }
 
@@ -135,6 +143,11 @@ internal sealed class OperationSession : IOperationSession
             requestBuilder.SetOperationName(request.OperationName);
         }
 
+        if (request.ErrorHandlingMode is { } errorHandlingMode)
+        {
+            requestBuilder.SetErrorHandlingMode(errorHandlingMode);
+        }
+
         if (request.DocumentId is not null)
         {
             requestBuilder.SetDocumentId(request.DocumentId);
@@ -147,7 +160,7 @@ internal sealed class OperationSession : IOperationSession
 
         if (request.Variables is not null)
         {
-            requestBuilder.SetVariableValuesSet(request.Variables);
+            requestBuilder.SetVariableValues(request.Variables);
         }
 
         if (request.Extensions is not null)
@@ -158,7 +171,7 @@ internal sealed class OperationSession : IOperationSession
         return requestBuilder;
     }
 
-    private async Task SendResultMessageAsync(IOperationResult result, CancellationToken ct)
+    private async Task SendResultMessageAsync(OperationResult result, CancellationToken ct)
     {
         result = await _interceptor.OnResultAsync(_session, Id, result, ct);
         await _session.Protocol.SendResultMessageAsync(_session, Id, result, ct);

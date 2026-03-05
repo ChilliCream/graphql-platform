@@ -9,6 +9,7 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Interceptors;
+
 public class FlagsEnumInterceptor : TypeInterceptor
 {
     private const string FlagNameAddition = "Flags";

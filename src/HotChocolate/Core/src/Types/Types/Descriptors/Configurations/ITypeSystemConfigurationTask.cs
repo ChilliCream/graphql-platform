@@ -13,18 +13,17 @@ public interface ITypeSystemConfigurationTask
     ITypeSystemConfiguration Owner { get; }
 
     /// <summary>
-    /// Defines on which type initialization step this
-    /// configurations is applied on.
+    /// Defines on which type initialization step this configuration task is applied on.
     /// </summary>
     ApplyConfigurationOn On { get; }
 
     /// <summary>
-    /// Defines types on on which this configuration is dependant on.
+    /// Defines types on which this configuration is dependent on.
     /// </summary>
     IReadOnlyList<TypeDependency> Dependencies { get; }
 
     /// <summary>
-    /// Adds an additional type dependency.
+    /// Adds a type dependency.
     /// </summary>
     /// <param name="dependency">
     /// The type dependency.

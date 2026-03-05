@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <RootNamespace>Nitro.CommandLine</RootNamespace>
-    <AssemblyName>Nitro.CommandLine.Core</AssemblyName>
-  </PropertyGroup>
-
-</Project>

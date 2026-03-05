@@ -79,9 +79,9 @@ public sealed class KeyAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        switch (element)
+        switch (attributeProvider)
         {
             case Type type:
                 ConfigureType(type, descriptor);
@@ -127,12 +127,14 @@ public sealed class KeyAttribute : DescriptorAttribute
         {
             case IObjectFieldDescriptor fieldDesc:
                 fieldDesc.Extend().Configuration.Features.GetOrSet(
-                    static state => new KeyMarker(state), Resolvable);
+                    static state => new KeyMarker(state),
+                    Resolvable);
                 break;
 
             case IInterfaceFieldDescriptor fieldDesc:
                 fieldDesc.Extend().Configuration.Features.GetOrSet(
-                    static state => new KeyMarker(state), Resolvable);
+                    static state => new KeyMarker(state),
+                    Resolvable);
                 break;
         }
     }

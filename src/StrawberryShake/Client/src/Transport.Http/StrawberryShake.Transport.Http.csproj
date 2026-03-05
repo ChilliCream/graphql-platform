@@ -5,6 +5,7 @@
     <AssemblyName>StrawberryShake.Transport.Http</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.Http</RootNamespace>
     <Description>GraphQL over HTTP transport implementation for StrawberryShake GraphQL clients.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

@@ -33,5 +33,5 @@ internal sealed class InstrumentationMiddleware
                 var middleware = new InstrumentationMiddleware(next, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(InstrumentationMiddleware));
+            WellKnownRequestMiddleware.InstrumentationMiddleware);
 }

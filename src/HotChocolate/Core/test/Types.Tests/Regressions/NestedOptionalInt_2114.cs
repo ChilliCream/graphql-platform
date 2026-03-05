@@ -1,8 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Regressions;
 
 // Relates to issue https://github.com/ChilliCream/graphql-platform/issues/2114
@@ -32,7 +30,7 @@ public class NestedOptionalInt_2114
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
         Verify(input);
     }
 
@@ -86,7 +84,7 @@ public class NestedOptionalInt_2114
             });
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
         Verify(input);
     }
 

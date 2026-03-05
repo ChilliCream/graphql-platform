@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Types" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="Properties\FusionUtilitiesResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>FusionUtilitiesResources.Designer.cs</LastGenOutput>

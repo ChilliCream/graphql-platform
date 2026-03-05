@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -12,9 +13,10 @@ internal static class CompletionTools
 {
     public static FusionDirectiveCollection CreateDirectiveCollection(
         IReadOnlyList<DirectiveNode> directives,
-        CompositeSchemaBuilderContext context)
+        CompositeSchemaBuilderContext context,
+        bool applySerializeAsToScalars = false)
     {
-        directives = DirectiveTools.GetUserDirectives(directives);
+        directives = DirectiveTools.GetUserDirectives(directives, applySerializeAsToScalars);
 
         if (directives.Count == 0)
         {
@@ -97,7 +99,9 @@ internal static class CompletionTools
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
         var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
-        var temp = new SourceObjectType[types.Length];
+        var sourceObjectType = new SourceObjectType[types.Length];
+        var sourceImplements = ImplementsDirectiveParser.Parse(typeDef.Directives);
+        var sourceUnionMembersOf = context.GetSourceUnionMembers(typeDef.Name.Value);
 
         for (var i = 0; i < types.Length; i++)
         {
@@ -105,14 +109,18 @@ internal static class CompletionTools
             var schemaName = context.GetSchemaName(type.SchemaKey);
             var lookups = GetLookupBySchema(lookupDirectives, schemaName, typeDef.Name.Value, context);
             context.RegisterForCompletionRange(lookups);
+            sourceImplements.TryGetValue(type.SchemaKey, out var implements);
+            sourceUnionMembersOf.TryGetValue(type.SchemaKey, out var unionTypes);
 
-            temp[i] = new SourceObjectType(
+            sourceObjectType[i] = new SourceObjectType(
                 typeDef.Name.Value,
                 schemaName,
-                lookups);
+                lookups,
+                implements ?? [],
+                unionTypes ?? []);
         }
 
-        return new SourceObjectTypeCollection(temp);
+        return new SourceObjectTypeCollection(sourceObjectType);
     }
 
     public static SourceInterfaceTypeCollection CreateSourceInterfaceTypeCollection(
@@ -121,7 +129,9 @@ internal static class CompletionTools
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
         var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
-        var temp = new SourceInterfaceType[types.Length];
+        var sourceInterfaceType = new SourceInterfaceType[types.Length];
+        var sourceImplements = ImplementsDirectiveParser.Parse(
+            typeDef.Directives);
 
         for (var i = 0; i < types.Length; i++)
         {
@@ -129,14 +139,16 @@ internal static class CompletionTools
             var schemaName = context.GetSchemaName(type.SchemaKey);
             var lookups = GetLookupBySchema(lookupDirectives, schemaName, typeDef.Name.Value, context);
             context.RegisterForCompletionRange(lookups);
+            sourceImplements.TryGetValue(type.SchemaKey, out var implements);
 
-            temp[i] = new SourceInterfaceType(
+            sourceInterfaceType[i] = new SourceInterfaceType(
                 typeDef.Name.Value,
                 schemaName,
-                lookups);
+                lookups,
+                implements ?? []);
         }
 
-        return new SourceInterfaceTypeCollection(temp);
+        return new SourceInterfaceTypeCollection(sourceInterfaceType);
     }
 
     public static SourceUnionTypeCollection CreateSourceUnionTypeCollection(
@@ -199,8 +211,11 @@ internal static class CompletionTools
                         lookupSchemaName,
                         declaringTypeName,
                         lookup.Field.Name.Value,
+                        lookup.Field.Type.NamedType().Name.Value,
+                        lookup.Internal,
                         arguments.ToImmutable(),
-                        fields));
+                        fields,
+                        lookup.Path));
             }
         }
 
