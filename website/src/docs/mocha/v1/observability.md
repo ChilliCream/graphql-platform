@@ -55,9 +55,9 @@ builder.Services
 
 After publishing a message, open your tracing backend (Aspire Dashboard, Jaeger, or an OTLP collector). For each message flow you should see three linked spans:
 
-1. **`publish {destination}`** — Created by the dispatch pipeline when the message is sent. This span belongs to the publishing service.
-2. **`receive {endpoint}`** — Created by the receive pipeline when the message arrives at an endpoint. This span belongs to the consuming service and links back to the publish span.
-3. **`consumer {handler}`** — Created as a child of the receive span when your handler processes the message.
+1. **`publish {destination}`** - Created by the dispatch pipeline when the message is sent. This span belongs to the publishing service.
+2. **`receive {endpoint}`** - Created by the receive pipeline when the message arrives at an endpoint. This span belongs to the consuming service and links back to the publish span.
+3. **`consumer {handler}`** - Created as a child of the receive span when your handler processes the message.
 
 In the Aspire Dashboard, you will see the `publish` span from the publishing service linked to the `receive` span in the consumer service, with a child `consumer` span for the handler execution. The three spans appear as a single distributed trace that crosses service boundaries.
 
@@ -78,8 +78,6 @@ sequenceDiagram
     B->>B: receive span (Client, linked to parent)
     B->>B: consumer span (Consumer)
 ```
-
-> **Custom header format:** Mocha uses Mocha-specific headers (`trace-id`, `span-id`, `trace-state`, `parent-id`) rather than the W3C `traceparent` format. See [W3C Trace Context](https://www.w3.org/TR/trace-context/) for how the standard defines these fields. When receiving messages from non-Mocha producers that do not include these headers, the receive middleware starts a new root trace.
 
 Tracing and metrics are injected by middleware in all three pipelines: `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation`. See [Middleware and Pipelines](/docs/mocha/v1/middleware-and-pipelines) for how these fit into the pipeline architecture and how to reorder or replace them.
 
@@ -139,48 +137,51 @@ Register your observer instead of (or alongside) the built-in one:
 builder.Services.AddSingleton<IBusDiagnosticObserver, CustomDiagnosticObserver>();
 ```
 
-# Configure with .NET Aspire
+# Configure with Nitro
 
-The Aspire service defaults template provides a natural integration point. Add `"Mocha"` to the existing tracing and metrics configuration in your shared `ServiceDefaults` project:
+Nitro provides a managed telemetry backend for your Mocha services. Add the `ChilliCream.Nitro.Telemetry` package and configure the exporter:
 
 ```csharp
-public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder)
-    where TBuilder : IHostApplicationBuilder
-{
-    builder.Logging.AddOpenTelemetry(logging =>
-    {
-        logging.IncludeFormattedMessage = true;
-        logging.IncludeScopes = true;
-    });
-
-    builder.Services
-        .AddOpenTelemetry()
-        .WithMetrics(metrics =>
-        {
-            metrics
-                .AddMeter("Mocha") // Mocha metrics
-                .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation()
-                .AddRuntimeInstrumentation();
-        })
-        .WithTracing(tracing =>
-        {
-            tracing
-                .AddSource("Mocha") // Mocha spans
-                .AddSource(builder.Environment.ApplicationName)
-                .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation();
-        });
-
-    return builder;
-}
+dotnet add package ChilliCream.Nitro.Telemetry
 ```
 
-Then in each service, call `AddServiceDefaults()` before registering the bus:
+```csharp
+builder.Services
+    .AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddSource("Mocha")
+            .AddNitroExporter();
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddMeter("Mocha")
+            .AddNitroExporter();
+    });
+
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+    logging.AddNitroExporter();
+});
+
+builder.Services.AddNitroTelemetry();
+```
+
+Configure credentials through environment variables:
+
+| Variable        | Purpose                                          |
+| --------------- | ------------------------------------------------ |
+| `NITRO_API_KEY` | Authentication key for the Nitro API             |
+| `NITRO_API_ID`  | Your Nitro API identifier                        |
+| `NITRO_STAGE`   | Deployment stage (e.g., `production`, `staging`) |
+
+Then register the bus with instrumentation:
 
 ```csharp
-builder.AddServiceDefaults(); // Sets up OpenTelemetry with Mocha source
-
 builder.Services
     .AddMessageBus()
     .AddInstrumentation()
@@ -198,7 +199,10 @@ For more detail on .NET distributed tracing concepts and how `Activity` maps to 
 
 # Next steps
 
-- [Middleware and Pipelines](/docs/mocha/v1/middleware-and-pipelines) — Understand how `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation` fit into each pipeline.
-- [Reliability](/docs/mocha/v1/reliability) — Configure fault handling and circuit breakers that work alongside observability.
-- [Sagas](/docs/mocha/v1/sagas) — For long-running workflows that span multiple messages, see Sagas.
-- [Testing](/docs/mocha/v1/testing) — Verify your instrumentation setup in integration tests.
+- [Middleware and Pipelines](/docs/mocha/v1/middleware-and-pipelines) - Understand how `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation` fit into each pipeline.
+- [Reliability](/docs/mocha/v1/reliability) - Configure fault handling and circuit breakers that work alongside observability.
+- [Sagas](/docs/mocha/v1/sagas) - For long-running workflows that span multiple messages, see Sagas.
+
+> **Runnable example:** [OpenTelemetry](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Observability/OpenTelemetry)
+>
+> **Full demo:** [Demo.ServiceDefaults](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.ServiceDefaults) shows how to configure OpenTelemetry tracing and metrics for all services in a shared project, including the `"Mocha"` activity source. The [Demo.AppHost](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.AppHost) orchestrates everything with .NET Aspire for end-to-end observability.

@@ -3,11 +3,11 @@ title: "Middleware and Pipelines"
 description: "Understand how Mocha's three middleware pipelines process messages. Learn which pipeline to target, how to write custom middleware, and how to control execution order."
 ---
 
-Mocha's pipeline implements the [Pipes and Filters](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PipesAndFilters.html) pattern from Enterprise Integration Patterns. Every message flows through a chain of middleware before reaching your handler. Each filter in the chain can inspect, modify, short-circuit, or observe the message — then pass control to the next filter.
+Mocha's pipeline implements the [Pipes and Filters](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PipesAndFilters.html) pattern. Every message flows through a chain of middleware before reaching your handler. Each filter in the chain can inspect, modify, short-circuit, or observe the message - then pass control to the next filter.
 
 If you have used middleware in [ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/), the mental model is the same. Middleware wraps middleware in nested layers, like an onion. Each layer runs code before calling the next layer, and optionally runs more code after it returns.
 
-Most of the time, the defaults work and you never configure middleware directly. This page is for when you need to add cross-cutting behavior — a database transaction per handler, tenant context from headers, custom rate limiting — or when you want to understand how the built-in reliability and observability features fit into the pipeline.
+Most of the time, the defaults work and you never configure middleware directly. This page is for when you need to add cross-cutting behavior - a database transaction per handler, tenant context from headers, custom rate limiting - or when you want to understand how the built-in reliability and observability features fit into the pipeline.
 
 # How pipelines work
 
@@ -26,7 +26,7 @@ Message arrives
   ← return
 ```
 
-A middleware that does not call `next(context)` short-circuits the pipeline — everything after it is skipped. The expiry middleware uses this to drop stale messages without invoking any downstream code. A middleware that wraps `next` in a try/catch can intercept exceptions from downstream — the fault middleware uses this to route failed messages to an error endpoint.
+A middleware that does not call `next(context)` short-circuits the pipeline - everything after it is skipped. The expiry middleware uses this to drop stale messages without invoking any downstream code. A middleware that wraps `next` in a try/catch can intercept exceptions from downstream - the fault middleware uses this to route failed messages to an error endpoint.
 
 This wrapping model is why registration order matters: the first middleware registered becomes the outermost layer. It runs first on the way in, and last on the way out.
 
@@ -70,9 +70,9 @@ PublishAsync / SendAsync / RequestAsync
 
 Each pipeline operates on a different context:
 
-- **Dispatch** (`IDispatchContext`) — operates on the unserialized message object. Has the CLR message, headers, and destination address. Serialization happens at the end.
-- **Receive** (`IReceiveContext`) — operates on the raw envelope from the transport. Has the serialized body, headers, and transport metadata. Message type resolution and routing happen here.
-- **Consumer** (`IConsumeContext`) — operates on the deserialized message inside a specific consumer. Has the typed message, envelope metadata, and scoped services.
+- **Dispatch** (`IDispatchContext`) - operates on the unserialized message object. Has the CLR message, headers, and destination address. Serialization happens at the end.
+- **Receive** (`IReceiveContext`) - operates on the raw envelope from the transport. Has the serialized body, headers, and transport metadata. Message type resolution and routing happen here.
+- **Consumer** (`IConsumeContext`) - operates on the deserialized message inside a specific consumer. Has the typed message, envelope metadata, and scoped services.
 
 In a distributed system, the dispatch and receive pipelines run in different processes. With the InMemory transport, they run in the same process.
 
@@ -89,7 +89,7 @@ In a distributed system, the dispatch and receive pipelines run in different pro
 
 # Consumer middleware
 
-Consumer middleware wraps your handler execution. It is the most common customization point — use it for cross-cutting concerns that apply to every handler: database transactions, validation, timing, or tenant context resolution.
+Consumer middleware wraps your handler execution. It is the most common customization point - use it for cross-cutting concerns that apply to every handler: database transactions, validation, timing, or tenant context resolution.
 
 ## Database unit-of-work example
 
@@ -255,9 +255,9 @@ builder.Services
 
 # The factory pattern and DI scoping
 
-The factory lambda in `ReceiveMiddlewareConfiguration`, `ConsumerMiddlewareConfiguration`, and `DispatchMiddlewareConfiguration` runs once per message. Services resolved inside the lambda come from the request-scoped DI container for that message.
+The factory lambda in `ReceiveMiddlewareConfiguration`, `ConsumerMiddlewareConfiguration`, and `DispatchMiddlewareConfiguration` runs once at startup to build the pipeline delegate. Only the innermost delegate (your middleware's `InvokeAsync`) runs per message. Services resolved inside the innermost delegate come from the request-scoped DI container for that message. You do not want middleware instances created per message if possible - resolve services from `context.Services` inside `InvokeAsync` instead.
 
-> **Avoid capturing services outside the lambda.** If you resolve a service outside the factory lambda, it is shared across all messages and behaves as a singleton — even if it was registered as scoped. This breaks scoped services like `DbContext`:
+> **Avoid capturing services outside the lambda.** If you resolve a service outside the factory lambda, it is shared across all messages and behaves as a singleton - even if it was registered as scoped. This breaks scoped services like `DbContext`:
 >
 > ```csharp
 > // Wrong: DbContext captured as a singleton
@@ -314,3 +314,5 @@ The built-in middleware in the receive pipeline implements the reliability and o
 # Next steps
 
 The pipeline handles failures automatically. Learn how circuit breaking, dead-letter routing, and the transactional outbox work in [Reliability](/docs/mocha/v1/reliability).
+
+> **Runnable examples:** [CustomMiddleware](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Middleware/CustomMiddleware), [UnitOfWork](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Middleware/UnitOfWork)

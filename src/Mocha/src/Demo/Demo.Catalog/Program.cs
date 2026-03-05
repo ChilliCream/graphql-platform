@@ -56,10 +56,6 @@ using (var scope = app.Services.CreateScope())
     await db.Database.EnsureCreatedAsync();
 }
 
-// Start message bus runtime
-var runtime = (MessagingRuntime)app.Services.GetRequiredService<IMessagingRuntime>();
-await runtime.StartAsync(CancellationToken.None);
-
 // REST API Endpoints
 app.MapGet("/", () => "Catalog Service");
 
@@ -295,7 +291,7 @@ app.MapPost(
         }
     });
 
-app.MapMessageBus();
+app.MapMessageBusDeveloperTopology();
 
 app.Run();
 

@@ -3,17 +3,11 @@ title: "Quick Start"
 description: "Get started with Mocha in under five minutes. Install packages, register the message bus, define an event handler, publish your first event, and verify it works."
 ---
 
-By the end of this guide, you will have an ASP.NET Core app that publishes an `OrderPlaced` event and handles it -- all running in-process with the InMemory transport.
+By the end of this guide, you will have an ASP.NET Core app that publishes an `OrderPlaced` event and handles it - all running in-process with the InMemory transport.
 
 Here is what you are building:
 
-```
-POST /orders  →  PublishAsync(OrderPlaced)  →  InMemory Bus  →  OrderPlacedHandler
-```
-
-# Prerequisites
-
-- [.NET 9 SDK](https://dotnet.microsoft.com/download) or later
+<TopologyVisualization data='{"services":[{"host":{"serviceName":"MochaQuickStart","assemblyName":"MochaQuickStart.dll","instanceId":"quickstart-1"},"messageTypes":[{"identity":"msg:OrderPlaced","runtimeType":"OrderPlaced","runtimeTypeFullName":"MochaQuickStart.OrderPlaced","isInterface":false,"isInternal":false}],"consumers":[{"name":"OrderPlacedHandler","identityType":"OrderPlacedHandler","identityTypeFullName":"MochaQuickStart.OrderPlacedHandler"}],"routes":{"inbound":[{"kind":"subscribe","messageTypeIdentity":"msg:OrderPlaced","consumerName":"OrderPlacedHandler","endpoint":{"name":"order-placed-handler","address":"loopback://localhost/q/order-placed-handler","transportName":"InMemory"}}],"outbound":[{"kind":"publish","messageTypeIdentity":"msg:OrderPlaced","endpoint":{"name":"OrderPlaced","address":"loopback://localhost/c/OrderPlaced","transportName":"InMemory"}}]},"sagas":[]}],"transports":[{"identifier":"inmemory","name":"InMemory","schema":"loopback","transportType":"InMemoryTransport","receiveEndpoints":[{"name":"order-placed-handler","kind":"default","address":"loopback://localhost/q/order-placed-handler","source":{"address":"loopback://localhost/q/order-placed-handler"}}],"dispatchEndpoints":[{"name":"OrderPlaced","kind":"default","address":"loopback://localhost/c/OrderPlaced","destination":{"address":"loopback://localhost/c/OrderPlaced"}}],"topology":{"address":"loopback://localhost","entities":[{"kind":"channel","name":"OrderPlaced","address":"loopback://localhost/c/OrderPlaced","flow":"inbound","properties":{"type":"publish"}},{"kind":"queue","name":"order-placed-handler","address":"loopback://localhost/q/order-placed-handler","flow":"outbound","properties":{}}],"links":[{"kind":"subscription","address":"loopback://localhost/sub/OrderPlaced-order-placed-handler","source":"loopback://localhost/c/OrderPlaced","target":"loopback://localhost/q/order-placed-handler","direction":"forward","properties":{}}]}}]}' trace='{"traceId":"quickstart-trace-001","activities":[{"id":"qs-1","parentId":null,"startTime":"2024-06-15T10:30:00.000Z","durationMs":35,"status":"ok","operation":"publish","messageType":"OrderPlaced","messageTypeIdentity":"msg:OrderPlaced","transport":"InMemory"},{"id":"qs-2","parentId":"qs-1","startTime":"2024-06-15T10:30:00.001Z","durationMs":2,"status":"ok","operation":"dispatch","messageType":"OrderPlaced","messageTypeIdentity":"msg:OrderPlaced","endpointName":"OrderPlaced","endpointAddress":"loopback://localhost/c/OrderPlaced","transport":"InMemory"},{"id":"qs-3","parentId":"qs-2","startTime":"2024-06-15T10:30:00.008Z","durationMs":3,"status":"ok","operation":"receive","messageType":"OrderPlaced","messageTypeIdentity":"msg:OrderPlaced","endpointName":"order-placed-handler","endpointAddress":"loopback://localhost/q/order-placed-handler","transport":"InMemory"},{"id":"qs-4","parentId":"qs-3","startTime":"2024-06-15T10:30:00.011Z","durationMs":10,"status":"ok","operation":"consume","messageType":"OrderPlaced","messageTypeIdentity":"msg:OrderPlaced","consumerName":"OrderPlacedHandler"}]}' />
 
 # Create the project
 
@@ -31,7 +25,7 @@ dotnet add package Mocha
 dotnet add package Mocha.Transport.InMemory
 ```
 
-The InMemory transport keeps everything in-process -- no broker to install, no infrastructure to configure. It is the fastest way to get started and also useful for [testing](/docs/mocha/v1/testing).
+The InMemory transport keeps everything in-process - no broker to install, no infrastructure to configure. It is the fastest way to get started.
 
 # Define a message
 
@@ -54,7 +48,6 @@ No base class, no marker interface. Any record or class works as a message.
 A handler is a class that implements `IEventHandler<T>`. Create a file called `OrderPlacedHandler.cs`:
 
 ```csharp
-// OrderPlacedHandler.cs
 using Mocha;
 
 namespace MochaQuickStart;
@@ -67,7 +60,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Order received: {OrderId} — {ProductName} for {Amount:C}",
+            "Order received: {OrderId} - {ProductName} for {Amount:C}",
             message.OrderId,
             message.ProductName,
             message.Amount);
@@ -99,11 +92,6 @@ builder.Services
 
 var app = builder.Build();
 
-// Start the messaging runtime before the app begins serving requests.
-// This initializes all transports and receive endpoints so the bus is
-// ready to route messages when PublishAsync is called.
-await app.StartMessagingAsync();
-
 // Endpoint that publishes an event
 app.MapPost("/orders", async (IMessageBus bus) =>
 {
@@ -122,16 +110,9 @@ app.Run();
 
 Each registration line has a single responsibility:
 
-- `AddMessageBus()` -- registers the bus runtime and core services into DI.
-- `AddEventHandler<OrderPlacedHandler>()` -- registers your handler so the bus routes `OrderPlaced` events to it.
-- `AddInMemory()` -- adds the InMemory transport; messages stay in-process.
-- `StartMessagingAsync()` -- starts all transports and receive endpoints. Call this before the app begins serving requests.
-
-<Warning>
-
-Call `StartMessagingAsync()` before `app.Run()`. Without it, the bus has no active transport and published events are not delivered.
-
-</Warning>
+- `AddMessageBus()` - registers the bus runtime and core services into DI.
+- `AddEventHandler<OrderPlacedHandler>()` - registers your handler so the bus routes `OrderPlaced` events to it.
+- `AddInMemory()` - adds the InMemory transport; messages stay in-process.
 
 # Publish and verify
 
@@ -157,7 +138,7 @@ And in the application console, the handler's log message appears:
 
 ```text
 info: MochaQuickStart.OrderPlacedHandler[0]
-      Order received: a1b2c3d4-e5f6-7890-abcd-ef1234567890 — Mechanical Keyboard for $149.99
+      Order received: a1b2c3d4-e5f6-7890-abcd-ef1234567890 - Mechanical Keyboard for $149.99
 ```
 
 If you see that log line, it worked.
@@ -170,8 +151,12 @@ Your POST request hit the `/orders` endpoint, which called `PublishAsync` on `IM
 
 You have a working message bus. Here is where to go next:
 
-- **Understand messages:** [Messages](/docs/mocha/v1/messages) -- learn what a message is, how the envelope wraps it, and naming conventions for events and commands.
-- **Learn the three patterns:** [Messaging Patterns](/docs/mocha/v1/messaging-patterns) -- understand when to use pub/sub events, commands, and request/reply.
-- **Move to production:** [Transports](/docs/mocha/v1/transports) -- switch from InMemory to RabbitMQ for real workloads.
+- **Understand messages:** [Messages](/docs/mocha/v1/messages) - learn what a message is, how the envelope wraps it, and naming conventions for events and commands.
+- **Learn the three patterns:** [Messaging Patterns](/docs/mocha/v1/messaging-patterns) - understand when to use pub/sub events, commands, and request/reply.
+- **Move to production:** [Transports](/docs/mocha/v1/transports) - switch from InMemory to RabbitMQ for real workloads.
 
 Now that you have a working app, learn how messages work in [Messages](/docs/mocha/v1/messages).
+
+> **Runnable example:** [Examples/QuickStart](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/QuickStart)
+>
+> **Full demo:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo) shows a complete e-commerce system with Catalog, Billing, and Shipping services communicating through Mocha and orchestrated with .NET Aspire.

@@ -21,7 +21,7 @@ Mocha ships with two transports:
 Every transport implements the same `MessagingTransport` base class. The transport is always the last call in the builder chain:
 
 ```csharp
-// InMemory — zero configuration
+// InMemory - zero configuration
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
@@ -29,7 +29,7 @@ builder.Services
 ```
 
 ```csharp
-// RabbitMQ — production-ready
+// RabbitMQ - production-ready
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
@@ -40,53 +40,20 @@ Each `Add{Transport}()` method registers a transport instance, applies default c
 
 # Choose a transport
 
-Use this decision matrix to pick the right transport. Both columns include trade-offs — choose the one whose trade-offs you can accept:
+Use this decision matrix to pick the right transport. Both columns include trade-offs - choose the one whose trade-offs you can accept:
 
 | Criterion          | InMemory                          | RabbitMQ                                    |
 | ------------------ | --------------------------------- | ------------------------------------------- |
-| Setup effort       | None — zero dependencies          | Requires a running broker                   |
+| Setup effort       | None - zero dependencies          | Requires a running broker                   |
 | Message durability | **Messages lost on process exit** | Messages survive broker restarts            |
 | Multi-process      | **Single process only**           | Multiple services, multiple instances       |
 | Request/reply      | Supported                         | Supported                                   |
 | Operational cost   | None                              | Broker infrastructure, monitoring, upgrades |
-| Network latency    | None — in-process                 | Real network round-trip                     |
-| Integration tests  | Recommended                       | Use when testing broker-specific behavior   |
-
-**Development workflow:** Start with InMemory during local development. Switch to RabbitMQ when you deploy or when you need to test cross-service communication.
+| Network latency    | None - in-process                 | Real network round-trip                     |
 
 **InMemory limitations:** Because all messages live in process memory, the InMemory transport cannot model multi-service fan-out, cannot survive process restarts, and does not exercise RabbitMQ-specific behavior like connection recovery, acknowledgement semantics, or topology conflicts.
 
-**RabbitMQ operational cost:** RabbitMQ requires expertise to operate in production — cluster management, disk and memory alarms, queue type selection, and monitoring. Use a managed broker (CloudAMQP, Amazon MQ) if you want to reduce operational burden.
-
-# Two connections per broker transport
-
-Mocha opens two connections to the broker for RabbitMQ: one for consuming and one for dispatching.
-
-This design prevents back-pressure from slow consumers from blocking outbound message publishing. When a consumer processes messages slowly, the RabbitMQ client applies back-pressure on that connection. Without separation, a slow consumer could prevent your application from publishing new messages entirely. With separate connections, each direction operates independently.
-
-# Understand the transport lifecycle
-
-Every transport goes through a defined sequence of phases during startup:
-
-```mermaid
-graph LR
-    A[Initialize] --> B[Discover Endpoints]
-    B --> C[Complete]
-    C --> D[Start]
-    D --> E[Stop]
-    E --> F[Dispose]
-```
-
-| Phase                  | What happens                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Initialize**         | The transport reads its configuration, registers conventions, merges middleware from the bus and transport scopes, and creates any explicitly declared endpoints.                                                         |
-| **Discover Endpoints** | The transport discovers receive and dispatch endpoints from inbound/outbound routes. Reply endpoints are created automatically. Handlers are bound to receive endpoints based on the binding mode (implicit or explicit). |
-| **Complete**           | All receive and dispatch endpoints finalize their configuration. Middleware pipelines are compiled. Topology resources (exchanges, queues, bindings) are resolved.                                                        |
-| **Start**              | The transport establishes connections and activates all receive endpoints. Messages begin flowing. For RabbitMQ, this opens the two connections described above and provisions topology on the broker.                    |
-| **Stop**               | Receive endpoints are deactivated. Connections are drained gracefully.                                                                                                                                                    |
-| **Dispose**            | Connections and channels are released.                                                                                                                                                                                    |
-
-For InMemory, the Initialize through Complete phases build an in-process topology of topics and queues. No network connections are involved. For RabbitMQ, Start provisions the topology on the broker before any messages flow.
+**RabbitMQ operational cost:** RabbitMQ requires expertise to operate in production - cluster management, disk and memory alarms, queue type selection, and monitoring. Use a managed broker (CloudAMQP, Amazon MQ) if you want to reduce operational burden.
 
 # Scope and middleware
 
@@ -124,7 +91,7 @@ This scoping model lets you run different middleware configurations per transpor
 By default, transports bind handlers to endpoints implicitly using naming conventions:
 
 ```csharp
-// Implicit binding (default) — handlers are auto-discovered
+// Implicit binding (default) - handlers are auto-discovered
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
@@ -137,7 +104,7 @@ builder.Services
 To take full control over which handlers go to which endpoints:
 
 ```csharp
-// Explicit binding — you declare every endpoint
+// Explicit binding - you declare every endpoint
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
@@ -152,7 +119,30 @@ builder.Services
 
 Explicit binding is useful when you need multiple handlers on the same queue, custom queue names, or fine-grained control over endpoint topology.
 
+# Use multiple transports
+
+You can register multiple transports and route specific handlers to specific transports. The first transport registered is the default. Use the transport configuration callback to assign handlers:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddEventHandler<ClickStreamHandler>()
+    // Default transport for most messages
+    .AddRabbitMQ()
+    // High-throughput transport for click-stream data
+    .AddInMemory(transport =>
+    {
+        transport.Endpoint("click-stream")
+            .Handler<ClickStreamHandler>();
+    });
+```
+
+Each transport manages its own connections, topology, and middleware pipeline independently. A handler bound to one transport does not consume from another transport's endpoints.
+
 # Next steps
 
-- [InMemory Transport](/docs/mocha/v1/transports/in-memory) — Set up the InMemory transport for development and testing.
-- [RabbitMQ Transport](/docs/mocha/v1/transports/rabbitmq) — Configure the RabbitMQ transport for production deployments.
+- [InMemory Transport](/docs/mocha/v1/transports/in-memory) - Set up the InMemory transport for development and testing.
+- [RabbitMQ Transport](/docs/mocha/v1/transports/rabbitmq) - Configure the RabbitMQ transport for production deployments.
+
+> **Runnable example:** [MultiTransport](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Transports/MultiTransport)

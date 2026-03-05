@@ -3024,10 +3024,6 @@
             "title": "Sagas"
           },
           {
-            "path": "testing",
-            "title": "Testing"
-          },
-          {
             "path": "transports",
             "title": "Transports",
             "items": [
@@ -3035,6 +3031,10 @@
               { "path": "in-memory", "title": "InMemory" },
               { "path": "rabbitmq", "title": "RabbitMQ" }
             ]
+          },
+          {
+            "path": "hosting",
+            "title": "Hosting"
           }
         ]
       }

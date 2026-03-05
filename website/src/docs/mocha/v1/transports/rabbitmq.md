@@ -128,6 +128,12 @@ app.MapPost("/orders", async (IMessageBus bus) =>
 
 Send a POST request to `/orders` and check your application logs. You should see the handler process the event. You can also inspect the RabbitMQ management UI at `http://localhost:15672` to see the auto-provisioned exchanges and queues.
 
+# Two connections per broker transport
+
+Mocha opens two connections to the broker: one for consuming and one for dispatching.
+
+This design prevents back-pressure from slow consumers from blocking outbound message publishing. When a consumer processes messages slowly, the RabbitMQ client applies back-pressure on that connection. Without separation, a slow consumer could prevent your application from publishing new messages entirely. With separate connections, each direction operates independently.
+
 # How topology works
 
 When the transport starts, it provisions topology on the broker automatically. Here is how message types map to RabbitMQ resources:
@@ -148,46 +154,28 @@ graph LR
 :::warning
 **Message loss warning.** Messages published before the transport completes its Start phase may be lost if no queue is bound to the exchange yet. During deployment, ensure consuming services start before publishing services, or use [publisher confirms](https://www.rabbitmq.com/docs/reliability#publisher-confirms) to detect lost messages.
 
-If a message is published to an exchange with no bound queue — for example, when no consumer has started — that message is dropped. Mocha auto-provisions topology, but the window between exchange creation and queue binding is a real operational risk.
+If a message is published to an exchange with no bound queue - for example, when no consumer has started - that message is dropped. Mocha auto-provisions topology, but the window between exchange creation and queue binding is a real operational risk.
 :::
 
 ## Publisher confirms
 
 Mocha's RabbitMQ transport uses publisher confirms on dispatch, which means the broker acknowledges each published message before the publish call completes. This provides at-least-once delivery guarantees for outbound messages: if the broker does not confirm, the publish fails with an exception. See the [RabbitMQ Reliability Guide](https://www.rabbitmq.com/docs/reliability) for a full treatment of delivery guarantees.
 
-# Quorum queues for production
+## Default topology for event handlers
 
-:::warning
-**Use quorum queues for production workloads.** Classic queues are not replicated and can lose messages if a node fails. Quorum queues replicate across nodes using the Raft consensus algorithm and are the recommended queue type since RabbitMQ 4.0. Classic mirrored queues were removed in RabbitMQ 4.0.
-:::
+When you register an event handler with `AddEventHandler<T>()`, the RabbitMQ transport creates this topology:
 
-To configure a quorum queue on a custom endpoint:
+<TopologyVisualization data='{"services":[{"host":{"serviceName":"BillingService","assemblyName":"BillingService.dll","instanceId":"billing-svc-1"},"messageTypes":[{"identity":"msg:OrderPlaced","runtimeType":"OrderPlaced","runtimeTypeFullName":"MyApp.Messages.OrderPlaced","isInterface":false,"isInternal":false}],"consumers":[{"name":"OrderPlacedHandler","identityType":"OrderPlacedHandler","identityTypeFullName":"MyApp.Handlers.OrderPlacedHandler"}],"routes":{"inbound":[{"kind":"subscribe","messageTypeIdentity":"msg:OrderPlaced","consumerName":"OrderPlacedHandler","endpoint":{"name":"billing.order-placed","address":"rabbitmq://localhost/billing.order-placed","transportName":"RabbitMQ"}}],"outbound":[]},"sagas":[]}],"transports":[{"identifier":"rabbitmq://localhost:5672/","name":"RabbitMQ","schema":"rabbitmq","transportType":"RabbitMQMessagingTransport","receiveEndpoints":[{"name":"billing.order-placed","kind":"default","address":"rabbitmq://localhost/billing.order-placed","source":{"address":"rabbitmq://localhost:5672/q/billing.order-placed"}}],"dispatchEndpoints":[],"topology":{"address":"rabbitmq://localhost:5672/","entities":[{"kind":"exchange","name":"order-placed","address":"rabbitmq://localhost:5672/e/order-placed","flow":"inbound","properties":{"type":"fanout","durable":true,"autoDelete":false,"autoProvision":true}},{"kind":"exchange","name":"billing.order-placed","address":"rabbitmq://localhost:5672/e/billing.order-placed","flow":"inbound","properties":{"type":"fanout","durable":true,"autoDelete":false,"autoProvision":true}},{"kind":"queue","name":"billing.order-placed","address":"rabbitmq://localhost:5672/q/billing.order-placed","flow":"outbound","properties":{"durable":true,"exclusive":false,"autoDelete":false,"autoProvision":true}}],"links":[{"kind":"bind","address":"rabbitmq://localhost:5672/b/e/order-placed/e/billing.order-placed","source":"rabbitmq://localhost:5672/e/order-placed","target":"rabbitmq://localhost:5672/e/billing.order-placed","direction":"forward","properties":{"routingKey":null,"autoProvision":true}},{"kind":"bind","address":"rabbitmq://localhost:5672/b/e/billing.order-placed/q/billing.order-placed","source":"rabbitmq://localhost:5672/e/billing.order-placed","target":"rabbitmq://localhost:5672/q/billing.order-placed","direction":"forward","properties":{"routingKey":null,"autoProvision":true}}]}}]}' />
 
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddEventHandler<OrderPlacedEventHandler>()
-    .AddRabbitMQ(transport =>
-    {
-        transport.BindHandlersExplicitly();
+A fanout exchange named after the message type fans out to per-service exchanges, which bind to per-service queues. This allows multiple services to each receive a copy of every published event.
 
-        transport.Endpoint("order-processing")
-            .Queue("orders.processing")
-            .MaxPrefetch(50)
-            .MaxConcurrency(10)
-            .Handler<OrderPlacedEventHandler>();
+## Default topology for send handlers
 
-        // Declare the queue as a quorum queue
-        transport.DeclareQueue("orders.processing")
-            .Durable()
-            .AutoProvision()
-            .WithArgument("x-queue-type", "quorum");
-    });
-```
+When you register a request handler with `AddRequestHandler<T>()` for send (fire-and-forget), the transport creates a single queue:
 
-Quorum queues require a minimum three-node cluster. They must be durable (non-durable quorum queues are not supported). Higher prefetch values benefit quorum queues because consumers should not be starved while acknowledgements flow through the Raft consensus mechanism.
+<TopologyVisualization data='{"services":[{"host":{"serviceName":"InventoryService","assemblyName":"InventoryService.dll","instanceId":"inventory-svc-1"},"messageTypes":[{"identity":"msg:ReserveInventory","runtimeType":"ReserveInventory","runtimeTypeFullName":"MyApp.Messages.ReserveInventory","isInterface":false,"isInternal":false}],"consumers":[{"name":"ReserveInventoryHandler","identityType":"ReserveInventoryHandler","identityTypeFullName":"MyApp.Handlers.ReserveInventoryHandler"}],"routes":{"inbound":[{"kind":"request","messageTypeIdentity":"msg:ReserveInventory","consumerName":"ReserveInventoryHandler","endpoint":{"name":"reserve-inventory","address":"rabbitmq://localhost/reserve-inventory","transportName":"RabbitMQ"}}],"outbound":[]},"sagas":[]}],"transports":[{"identifier":"rabbitmq://localhost:5672/","name":"RabbitMQ","schema":"rabbitmq","transportType":"RabbitMQMessagingTransport","receiveEndpoints":[{"name":"reserve-inventory","kind":"default","address":"rabbitmq://localhost/reserve-inventory","source":{"address":"rabbitmq://localhost:5672/q/reserve-inventory"}}],"dispatchEndpoints":[],"topology":{"address":"rabbitmq://localhost:5672/","entities":[{"kind":"exchange","name":"reserve-inventory","address":"rabbitmq://localhost:5672/e/reserve-inventory","flow":"inbound","properties":{"type":"fanout","durable":true,"autoDelete":false,"autoProvision":true}},{"kind":"queue","name":"reserve-inventory","address":"rabbitmq://localhost:5672/q/reserve-inventory","flow":"outbound","properties":{"durable":true,"exclusive":false,"autoDelete":false,"autoProvision":true}}],"links":[{"kind":"bind","address":"rabbitmq://localhost:5672/b/e/reserve-inventory/q/reserve-inventory","source":"rabbitmq://localhost:5672/e/reserve-inventory","target":"rabbitmq://localhost:5672/q/reserve-inventory","direction":"forward","properties":{"routingKey":null,"autoProvision":true}}]}}]}' />
 
-See [RabbitMQ Quorum Queues](https://www.rabbitmq.com/docs/quorum-queues) for cluster requirements and configuration details.
+Send messages go to a dedicated queue. Only one handler processes each message - this is the point-to-point guarantee.
 
 # Declare custom topology
 
@@ -242,7 +230,7 @@ builder.Services
 
 **MaxConcurrency** controls how many messages the endpoint processes in parallel. Set this based on your handler's throughput characteristics.
 
-A good starting point: set `MaxPrefetch` equal to or slightly higher than `MaxConcurrency`. For slow handlers (long database operations, external API calls), lower `MaxPrefetch` to `10`–`20` to prevent messages from piling up in the consumer's unacknowledged buffer. For quorum queues specifically, avoid setting `MaxPrefetch` to `1` — a prefetch of `1` starves consumers while acknowledgements flow through the consensus mechanism and significantly reduces throughput.
+A good starting point: set `MaxPrefetch` equal to or slightly higher than `MaxConcurrency`. For slow handlers (long database operations, external API calls), lower `MaxPrefetch` to `10`–`20` to prevent messages from piling up in the consumer's unacknowledged buffer. For quorum queues specifically, avoid setting `MaxPrefetch` to `1` - a prefetch of `1` starves consumers while acknowledgements flow through the consensus mechanism and significantly reduces throughput.
 
 For prefetch tuning guidance from first principles, see [CloudAMQP Best Practices](https://www.cloudamqp.com/blog/part1-rabbitmq-best-practice.html).
 
@@ -260,6 +248,10 @@ All auto-provisioned resources are durable by default and survive broker restart
 
 # Next steps
 
-- [Transports Overview](/docs/mocha/v1/transports) — Understand the transport abstraction and lifecycle.
-- [Handlers and Consumers](/docs/mocha/v1/handlers-and-consumers) — Learn about handler types and consumer configuration.
-- [Reliability](/docs/mocha/v1/reliability) — Configure dead-letter routing, outbox, and fault handling.
+- [Transports Overview](/docs/mocha/v1/transports) - Understand the transport abstraction and lifecycle.
+- [Handlers and Consumers](/docs/mocha/v1/handlers-and-consumers) - Learn about handler types and consumer configuration.
+- [Reliability](/docs/mocha/v1/reliability) - Configure dead-letter routing, outbox, and fault handling.
+
+> **Runnable example:** [RabbitMQ](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Transports/RabbitMQ)
+>
+> **Full demo:** All three Demo services use RabbitMQ in production mode with .NET Aspire. See [Demo.AppHost](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.AppHost) for the Aspire orchestration and [Demo.Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog) for a complete service using `.AddRabbitMQ()` with outbox, sagas, and multiple handler types.

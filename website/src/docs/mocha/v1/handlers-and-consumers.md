@@ -1,6 +1,6 @@
 ---
 title: "Handlers and Consumers"
-description: "Learn how to implement message handlers in Mocha — event handlers, request handlers, command handlers, batch handlers, and the low-level consumer interface. Understand DI scoping, exception behavior, and how to publish from within a handler."
+description: "Learn how to implement message handlers in Mocha - event handlers, request handlers, send handlers, batch handlers, and the low-level consumer interface. Understand DI scoping, exception behavior, and how to publish from within a handler."
 ---
 
 # Handlers and consumers
@@ -15,9 +15,9 @@ Choose a handler interface based on the messaging pattern you are implementing:
 | ---------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `IEventHandler<T>`                 | Reacting to a published event. No reply expected. Multiple handlers can receive the same event. |
 | `IEventRequestHandler<TReq, TRes>` | Handling a request and returning a typed response to the caller.                                |
-| `IEventRequestHandler<TReq>`       | Handling a command with no typed response.                                                      |
+| `IEventRequestHandler<TReq>`       | Handling a send (fire-and-forget) with no typed response.                                       |
 | `IBatchEventHandler<T>`            | Processing multiple events at once for throughput efficiency.                                   |
-| `IConsumer<T>`                     | Accessing raw envelope metadata — headers, correlation IDs, or the full consume context.        |
+| `IConsumer<T>`                     | Accessing raw envelope metadata - headers, correlation IDs, or the full consume context.        |
 
 If you have read [Messaging Patterns](/docs/mocha/v1/messaging-patterns), these map directly: `IEventHandler<T>` is for `PublishAsync`, `IEventRequestHandler<TReq>` is for `SendAsync`, and `IEventRequestHandler<TReq, TRes>` is for `RequestAsync`.
 
@@ -70,7 +70,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
 }
 ```
 
-`IEventHandler<T>` has a single method: `HandleAsync(T message, CancellationToken cancellationToken)`. The bus deserializes the message and calls your handler. Constructor dependencies are resolved from a scoped DI container — more on this in [DI scoping](#di-scoping).
+`IEventHandler<T>` has a single method: `HandleAsync(T message, CancellationToken cancellationToken)`. The bus deserializes the message and calls your handler. Constructor dependencies are resolved from a scoped DI container - more on this in [DI scoping](#di-scoping).
 
 ## Register and run
 
@@ -91,7 +91,7 @@ app.Run();
 
 ## Verify the handler runs
 
-Publish an event from an API endpoint. `IMessageBus` is a scoped service — resolve it through endpoint injection:
+Publish an event from an API endpoint. `IMessageBus` is a scoped service - resolve it through endpoint injection:
 
 ```csharp
 app.MapPost("/orders", async (IMessageBus bus) =>
@@ -172,7 +172,7 @@ public class GetProductRequestHandler(AppDbContext db)
 }
 ```
 
-The return value is sent back to the caller automatically. The return value must not be `null` — if you return `null`, the bus throws an `InvalidOperationException`.
+The return value is sent back to the caller automatically. The return value must not be `null` - if you return `null`, the bus throws an `InvalidOperationException`.
 
 ## Register and call
 
@@ -195,13 +195,13 @@ var response = await bus.RequestAsync(
 
 If the handler throws, the exception propagates back to the caller. See [Exception behavior](#exception-behavior) for details.
 
-# Command handler
+# Send handler
 
-A command handler processes a one-way instruction. There is no typed response. The sender dispatches the command and moves on.
+A send handler processes a one-way instruction. There is no typed response. The sender dispatches the message and moves on.
 
-## Define the command
+## Define the message
 
-Commands do not implement `IEventRequest<T>` because there is no typed response.
+Send messages do not implement `IEventRequest<T>` because there is no typed response.
 
 ```csharp
 // ReserveInventoryCommand.cs
@@ -217,7 +217,7 @@ public sealed record ReserveInventoryCommand
 
 ## Implement the handler
 
-Use `IEventRequestHandler<TRequest>` — the single type parameter variant, with no response type:
+Use `IEventRequestHandler<TRequest>` - the single type parameter variant, with no response type:
 
 ```csharp
 // ReserveInventoryCommandHandler.cs
@@ -264,7 +264,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-Send the command:
+Send the message:
 
 ```csharp
 await bus.SendAsync(new ReserveInventoryCommand
@@ -282,11 +282,11 @@ info: MyApp.Handlers.ReserveInventoryCommandHandler[0]
       Reserving 3 units of product a1b2c3d4-...
 ```
 
-`SendAsync` completes after the message is dispatched to the transport. It does not wait for the handler to finish. To wait for completion, use `RequestAsync` instead — Mocha sends an automatic acknowledgment when the handler finishes.
+`SendAsync` completes after the message is dispatched to the transport. It does not wait for the handler to finish. To wait for completion, use `RequestAsync` instead - Mocha sends an automatic acknowledgment when the handler finishes.
 
 # Batch handler
 
-A batch handler receives groups of messages at once instead of one at a time. Use batch handlers for high-throughput scenarios where processing messages in bulk is more efficient — bulk database writes, aggregations, or analytics pipelines.
+A batch handler receives groups of messages at once instead of one at a time. Use batch handlers for high-throughput scenarios where processing messages in bulk is more efficient - bulk database writes, aggregations, or analytics pipelines.
 
 ## Implement the handler
 
@@ -381,7 +381,7 @@ info: MyApp.Handlers.OrderPlacedBatchHandler[0]
 
 # Advanced: accessing the envelope
 
-For cases where you need the full consume context — message headers, correlation IDs, source addresses — implement `IConsumer<T>` instead of a handler interface.
+For cases where you need the full consume context - message headers, correlation IDs, source addresses - implement `IConsumer<T>` instead of a handler interface.
 
 ```csharp
 // OrderAuditConsumer.cs
@@ -438,7 +438,7 @@ Mocha creates a new DI scope for each message. Your handler is instantiated from
 This means `DbContext` and other scoped services are safe to inject directly into handler constructors:
 
 ```csharp
-// AppDbContext is a scoped service — safe to inject
+// AppDbContext is a scoped service - safe to inject
 public class OrderPlacedHandler(AppDbContext db, ILogger<OrderPlacedHandler> logger)
     : IEventHandler<OrderPlaced>
 {
@@ -454,17 +454,17 @@ public class OrderPlacedHandler(AppDbContext db, ILogger<OrderPlacedHandler> log
 
 Each message gets its own scope and its own `DbContext` instance. Two messages processing concurrently do not share a `DbContext`.
 
-Singleton services are resolved from the root container as usual. If you inject a singleton that holds scoped state, you will get unexpected behavior — the same problem as in any ASP.NET Core application.
+Singleton services are resolved from the root container as usual. If you inject a singleton that holds scoped state, you will get unexpected behavior - the same problem as in any ASP.NET Core application.
 
 # Exception behavior
 
 When `HandleAsync` throws, the behavior depends on the handler type and the middleware pipeline:
 
-- **Event handlers and command handlers:** The exception is caught by the pipeline. By default, Mocha retries the message according to the configured retry policy, then moves it to the dead-letter queue if retries are exhausted. See [Reliability](/docs/mocha/v1/reliability) for retry and fault configuration.
+- **Event handlers and send handlers:** The exception is caught by the pipeline. By default, Mocha retries the message according to the configured retry policy, then moves it to the dead-letter queue if retries are exhausted. See [Reliability](/docs/mocha/v1/reliability) for retry and fault configuration.
 - **Request handlers:** The exception propagates back to the caller as a fault. If you use `RequestAsync`, it throws on the caller side. The caller receives the error, not a timeout.
 - **Batch handlers:** If the handler throws, all messages in the batch fault together. The pipeline treats the entire batch as a failed unit.
 
-When a message arrives, it passes through middleware before reaching your handler. The pipeline handles fault routing, dead-letter delivery, observability, and concurrency limits — without any code in your handler. See [Middleware and Pipelines](/docs/mocha/v1/middleware-and-pipelines) for details on writing custom pipeline middleware.
+When a message arrives, it passes through middleware before reaching your handler. The pipeline handles fault routing, dead-letter delivery, observability, and concurrency limits - without any code in your handler. See [Middleware and Pipelines](/docs/mocha/v1/middleware-and-pipelines) for details on writing custom pipeline middleware.
 
 # Publishing from a handler
 
@@ -507,9 +507,13 @@ Messages published from within a handler automatically inherit the `Conversation
 
 # Further reading
 
-- [Event-Driven Consumer](https://www.enterpriseintegrationpatterns.com/patterns/messaging/EventDrivenConsumer.html) — The EIP pattern that defines push-based message consumption, which is what Mocha's handlers implement.
-- [Competing Consumers](https://www.enterpriseintegrationpatterns.com/patterns/messaging/CompetingConsumers.html) — When multiple instances of your service run, they compete for messages on the same queue. This is the concurrency model for Mocha handlers under load.
+- [Event-Driven Consumer](https://www.enterpriseintegrationpatterns.com/patterns/messaging/EventDrivenConsumer.html) - The EIP pattern that defines push-based message consumption, which is what Mocha's handlers implement.
+- [Competing Consumers](https://www.enterpriseintegrationpatterns.com/patterns/messaging/CompetingConsumers.html) - When multiple instances of your service run, they compete for messages on the same queue. This is the concurrency model for Mocha handlers under load.
 
 # Next steps
 
 Your handlers are registered. Learn how Mocha routes messages to them in [Routing and Endpoints](/docs/mocha/v1/routing-and-endpoints).
+
+> **Runnable examples:** [BatchHandler](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/BatchHandler), [LowLevelConsumer](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/LowLevelConsumer), [CustomConsumer](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/CustomConsumer)
+>
+> **Full demo:** [Demo.Billing](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Billing) shows event handlers (`OrderPlacedEventHandler`), batch handlers (`OrderPlacedBatchHandler` with revenue aggregation, `BulkOrderBatchHandler` for high-volume processing), and request handlers (`ProcessRefundCommandHandler`).

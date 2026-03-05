@@ -23,7 +23,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-That configuration adds circuit breaking, concurrency limiting, transactional outbox, and database transaction wrapping — all as middleware in the receive and dispatch pipelines.
+That configuration adds circuit breaking, concurrency limiting, transactional outbox, and database transaction wrapping - all as middleware in the receive and dispatch pipelines.
 
 # Delivery guarantees
 
@@ -54,7 +54,7 @@ TransportCircuitBreaker
                     -> Your handler
 ```
 
-Each middleware can intercept failures from downstream, transform them, or short-circuit the pipeline. The reliability middlewares — dead-letter, fault, circuit breaker, expiry, and concurrency limiter — are all enabled by default with sensible defaults. You tune them when the defaults do not match your workload.
+Each middleware can intercept failures from downstream, transform them, or short-circuit the pipeline. The reliability middlewares - dead-letter, fault, circuit breaker, expiry, and concurrency limiter - are all enabled by default with sensible defaults. You tune them when the defaults do not match your workload.
 
 # Handle faults
 
@@ -111,7 +111,7 @@ See [Dead Letter Channel](https://www.enterpriseintegrationpatterns.com/patterns
 
 # Expire stale messages
 
-Messages can carry a `DeliverBy` timestamp that marks when they become stale. The expiry middleware checks this timestamp before any deserialization or handler work runs. If the current time exceeds `DeliverBy`, the message is silently dropped and marked as consumed — no exception, no dead-letter, no handler invocation.
+Messages can carry a `DeliverBy` timestamp that marks when they become stale. The expiry middleware checks this timestamp before any deserialization or handler work runs. If the current time exceeds `DeliverBy`, the message is silently dropped and marked as consumed - no exception, no dead-letter, no handler invocation.
 
 ## Set message expiry on publish
 
@@ -143,7 +143,7 @@ For time-sensitive commands, a short expiry prevents stale operations from execu
 
 # Limit concurrency
 
-The concurrency limiter middleware restricts how many messages a receive endpoint processes in parallel. It uses a `SemaphoreSlim` to gate access to the downstream pipeline.
+The concurrency limiter middleware restricts how many messages a receive endpoint processes in parallel.
 
 ```csharp
 builder.Services
@@ -153,7 +153,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-The default `MaxConcurrency` is `Environment.ProcessorCount`. Set it lower when your handlers access shared resources with limited capacity (database connection pools, external APIs with rate limits), or higher when handlers are I/O-bound and the resource can handle more parallel work.
+The default `MaxConcurrency` is `Environment.ProcessorCount * 2`. Set it lower when your handlers access shared resources with limited capacity (database connection pools, external APIs with rate limits), or higher when handlers are I/O-bound and the resource can handle more parallel work.
 
 The concurrency limiter is enabled by default. To disable it for a specific scope, set `Enabled` to `false`:
 
@@ -234,7 +234,7 @@ The transport breaker protects against cascading failures when the broker itself
 
 The transactional outbox solves the dual-write problem: when your handler writes to a database and publishes a message, either operation can fail independently.
 
-- If the database commits but the publish fails, the event is lost — downstream consumers never see it.
+- If the database commits but the publish fails, the event is lost - downstream consumers never see it.
 - If the publish succeeds but the database rolls back, the event describes state that never existed.
 
 The outbox writes messages to the same database transaction as your business data. A background processor picks up persisted messages and dispatches them to the transport, providing at-least-once delivery guarantees.
@@ -361,7 +361,7 @@ The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processo
 
 ## Skip the outbox for specific dispatches
 
-Some messages — like internal system events or replies that do not need durability — can bypass the outbox. The outbox middleware checks for an `OutboxMiddlewareFeature` on the dispatch context. Messages with `SkipOutbox = true` pass straight through to the transport.
+Some messages - like internal system events or replies that do not need durability - can bypass the outbox. The outbox middleware checks for an `OutboxMiddlewareFeature` on the dispatch context. Messages with `SkipOutbox = true` pass straight through to the transport.
 
 The outbox middleware also only intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
 
@@ -369,6 +369,10 @@ The outbox middleware also only intercepts messages of kind `Publish`, `Send`, `
 
 Your messaging pipeline now handles failures, limits concurrency, breaks circuits on sustained errors, and guarantees delivery through the outbox. To monitor your messaging system, see [Observability](/docs/mocha/v1/observability).
 
-- [**Middleware and Pipelines**](/docs/mocha/v1/middleware-and-pipelines) — Write custom middleware, control pipeline ordering, and understand the three pipeline stages.
-- [**Sagas**](/docs/mocha/v1/sagas) — Coordinate multi-step workflows with state machine sagas that use compensation when steps fail.
-- [**Observability**](/docs/mocha/v1/observability) — Trace message flows across services and monitor pipeline health with OpenTelemetry.
+- [**Middleware and Pipelines**](/docs/mocha/v1/middleware-and-pipelines) - Write custom middleware, control pipeline ordering, and understand the three pipeline stages.
+- [**Sagas**](/docs/mocha/v1/sagas) - Coordinate multi-step workflows with state machine sagas that use compensation when steps fail.
+- [**Observability**](/docs/mocha/v1/observability) - Trace message flows across services and monitor pipeline health with OpenTelemetry.
+
+> **Runnable examples:** [OutboxInbox](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Reliability/OutboxInbox), [CircuitBreaker](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Reliability/CircuitBreaker)
+>
+> **Full demo:** All three Demo services ([Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog), [Billing](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Billing), [Shipping](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Shipping)) use the PostgreSQL transactional outbox with `UseTransaction()` and `UseResilience()` for reliable message delivery.

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Mocha;
@@ -46,6 +47,8 @@ public static class MessageBusServiceCollectionExtensions
 
             return builder.Build(x);
         });
+
+        services.AddSingleton<IHostedService, MessagingRuntimeHostedService>();
 
         return new MessageBusHostBuilder(services, string.Empty);
     }
