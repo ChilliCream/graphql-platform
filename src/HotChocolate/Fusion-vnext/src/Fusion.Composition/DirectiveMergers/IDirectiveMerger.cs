@@ -12,7 +12,7 @@ internal interface IDirectiveMerger
 
     DirectiveMergeBehavior MergeBehavior { get; }
 
-    MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema);
+    MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema);
 
     void MergeDirectiveDefinition(
         MutableDirectiveDefinition directiveDefinition,

@@ -11,6 +11,10 @@ internal static class ModuleOptionsHelper
         => (GetModuleOptions(compilation) & ModuleOptions.IncludeInternalMembers)
             == ModuleOptions.IncludeInternalMembers;
 
+    public static bool DisableXmlDocumentation(this Compilation compilation)
+        => (GetModuleOptions(compilation) & ModuleOptions.DisableXmlDocumentation)
+            == ModuleOptions.DisableXmlDocumentation;
+
     private static ModuleOptions GetModuleOptions(Compilation compilation)
     {
         foreach (var attribute in compilation.Assembly.GetAttributes())
