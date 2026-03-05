@@ -15,9 +15,9 @@ internal class SpecifiedByDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 {
     public override string DirectiveName => DirectiveNames.SpecifiedBy;
 
-    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
+    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
-        return SpecifiedByMutableDirectiveDefinition.Create(schema);
+        return BuiltIns.SpecifiedBy.Create(schema);
     }
 
     public override void MergeDirectives(
