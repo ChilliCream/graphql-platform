@@ -55,11 +55,10 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             var activity = span.Activity;
 
-            activity.RecordException(error);
-            activity.MarkAsError();
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(error);
 
             _enricher.EnrichRequestError(activity, context, error);
-            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -69,11 +68,10 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             var activity = span.Activity;
 
-            activity.RecordError(error);
-            activity.MarkAsError();
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddGraphQLError(error);
 
             _enricher.EnrichRequestError(activity, context, error);
-            _enricher.EnrichError(activity, error);
         }
     }
 
@@ -117,13 +115,12 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         var activity = span.Activity;
 
+        activity.SetStatus(ActivityStatusCode.Error);
+
         foreach (var error in errors)
         {
-            activity.RecordError(error);
-            _enricher.EnrichError(activity, error);
+            activity.AddGraphQLError(error);
         }
-
-        activity.MarkAsError();
 
         _enricher.EnrichValidationErrors(activity, context, errors);
     }
@@ -237,11 +234,10 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.LocalContextData.TryGetValue(ResolveFieldSpanKey, out var value)
             && value is ResolveFieldSpan span)
         {
-            span.Activity.RecordError(error);
-            span.Activity.MarkAsError();
+            span.Activity.SetStatus(ActivityStatusCode.Error);
+            span.Activity.AddGraphQLError(error);
 
             _enricher.EnrichResolverError(span.Activity, context, error);
-            _enricher.EnrichError(span.Activity, error);
         }
     }
 

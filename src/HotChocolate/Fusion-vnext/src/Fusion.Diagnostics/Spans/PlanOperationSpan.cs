@@ -58,7 +58,7 @@ internal sealed class PlanOperationSpan(
     {
         if (context.GetOperationPlan() is not null)
         {
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         enricher.EnrichPlanOperation(Activity, context, operationPlanId);

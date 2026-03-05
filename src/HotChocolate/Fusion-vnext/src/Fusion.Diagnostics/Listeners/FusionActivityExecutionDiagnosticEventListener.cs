@@ -53,11 +53,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             var activity = span.Activity;
 
-            activity.RecordException(error);
-            activity.MarkAsError();
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(error);
 
             _enricher.EnrichRequestError(activity, context, error);
-            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -67,11 +66,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             var activity = span.Activity;
 
-            activity.RecordError(error);
-            activity.MarkAsError();
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddGraphQLError(error);
 
             _enricher.EnrichRequestError(activity, context, error);
-            _enricher.EnrichError(activity, error);
         }
     }
 
@@ -115,13 +113,12 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         var activity = span.Activity;
 
+        activity.SetStatus(ActivityStatusCode.Error);
+
         foreach (var error in errors)
         {
-            activity.RecordError(error);
-            _enricher.EnrichError(activity, error);
+            activity.AddGraphQLError(error);
         }
-
-        activity.MarkAsError();
 
         _enricher.EnrichValidationErrors(activity, context, errors);
     }
@@ -211,11 +208,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
-            activity.RecordException(error);
-            activity.MarkAsError();
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(error);
 
             _enricher.EnrichExecutionNodeError(activity, context, node, error);
-            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -227,11 +223,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
-            activity.RecordException(error);
-            activity.MarkAsError();
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(error);
 
             _enricher.EnrichSourceSchemaTransportError(activity, context, node, schemaName, error);
-            _enricher.EnrichException(activity, error);
         }
     }
 
@@ -243,11 +238,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
-            activity.RecordException(error);
-            activity.MarkAsError();
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(error);
 
             _enricher.EnrichSourceSchemaStoreError(activity, context, node, schemaName, error);
-            _enricher.EnrichException(activity, error);
         }
     }
 

@@ -54,7 +54,7 @@ internal sealed class VariableCoercionSpan(
     {
         if (context.VariableValues.Length > 0)
         {
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         enricher.EnrichCoerceVariables(Activity, context);

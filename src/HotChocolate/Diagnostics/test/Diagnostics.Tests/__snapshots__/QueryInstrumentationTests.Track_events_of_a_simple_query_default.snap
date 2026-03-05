@@ -16,10 +16,6 @@
         {
           "Key": "graphql.document.hash",
           "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "OK"
         }
       ],
       "event": []
@@ -40,10 +36,6 @@
         {
           "Key": "graphql.document.hash",
           "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "OK"
         }
       ],
       "event": []
@@ -76,10 +68,6 @@
         {
           "Key": "graphql.selection.field.parent_type",
           "Value": "SimpleQuery"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "OK"
         }
       ],
       "event": []

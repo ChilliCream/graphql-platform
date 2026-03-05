@@ -53,7 +53,7 @@ internal sealed class ExecuteRequestSpan(
                 }
             }
 
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         var documentInfo = context.OperationDocumentInfo;
@@ -77,11 +77,11 @@ internal sealed class ExecuteRequestSpan(
 
         if (context.Result is null or OperationResult { Errors: [_, ..] })
         {
-            Activity.MarkAsError();
+            Activity.SetStatus(ActivityStatusCode.Error);
         }
         else
         {
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         enricher?.EnrichExecuteRequest(Activity, context);

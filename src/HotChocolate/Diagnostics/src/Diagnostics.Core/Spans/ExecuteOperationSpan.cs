@@ -54,11 +54,11 @@ internal sealed class ExecuteOperationSpan(
     {
         if (context.Result is null or OperationResult { Errors: [_, ..] })
         {
-            Activity.MarkAsError();
+            Activity.SetStatus(ActivityStatusCode.Error);
         }
         else
         {
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         enricher.EnrichExecuteOperation(Activity, context);

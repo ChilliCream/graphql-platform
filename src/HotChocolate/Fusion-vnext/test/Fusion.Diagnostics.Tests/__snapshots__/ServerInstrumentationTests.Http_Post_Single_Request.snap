@@ -10,10 +10,6 @@
           "Value": "_Default"
         },
         {
-          "Key": "otel.status_code",
-          "Value": "OK"
-        },
-        {
           "Key": "graphql.http.request.type",
           "Value": "single"
         }
@@ -24,12 +20,7 @@
           "OperationName": "Parse HTTP Request",
           "DisplayName": "Parse HTTP Request",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
@@ -40,10 +31,6 @@
             {
               "Key": "graphql.operation.type",
               "Value": "query"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             },
             {
               "Key": "graphql.document.hash",
@@ -77,10 +64,6 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []
@@ -101,10 +84,6 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []
@@ -125,10 +104,6 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": [],
@@ -136,7 +111,7 @@
                 {
                   "OperationName": "GraphQL Step Execution",
                   "DisplayName": "GraphQL Step Execution",
-                  "Status": "Unset",
+                  "Status": "Ok",
                   "tags": [
                     {
                       "Key": "graphql.processing.type",
@@ -189,12 +164,7 @@
           "OperationName": "Format HTTP Response",
           "DisplayName": "Format HTTP Response",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         }
       ]

@@ -39,7 +39,10 @@ internal sealed class ResolveFieldSpan(
 
     protected override void OnComplete()
     {
-        Activity.MarkAsSuccess();
+        if (Activity.Status != ActivityStatusCode.Error)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
+        }
 
         enricher.EnrichResolveFieldValue(Activity, context);
     }

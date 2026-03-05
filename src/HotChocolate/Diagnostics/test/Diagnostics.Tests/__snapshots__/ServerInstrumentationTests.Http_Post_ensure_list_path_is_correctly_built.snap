@@ -10,10 +10,6 @@
           "Value": "_Default"
         },
         {
-          "Key": "otel.status_code",
-          "Value": "OK"
-        },
-        {
           "Key": "graphql.http.request.type",
           "Value": "single"
         }
@@ -24,12 +20,7 @@
           "OperationName": "Parse HTTP Request",
           "DisplayName": "Parse HTTP Request",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
@@ -40,10 +31,6 @@
             {
               "Key": "graphql.operation.type",
               "Value": "query"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             },
             {
               "Key": "graphql.document.hash",
@@ -77,10 +64,6 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:668e9631148921208d08dbb69513fa8e"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []
@@ -101,10 +84,6 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:668e9631148921208d08dbb69513fa8e"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []
@@ -125,10 +104,6 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:668e9631148921208d08dbb69513fa8e"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []
@@ -149,10 +124,6 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:668e9631148921208d08dbb69513fa8e"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": [],
@@ -185,10 +156,6 @@
                     {
                       "Key": "graphql.selection.field.parent_type",
                       "Value": "Query"
-                    },
-                    {
-                      "Key": "otel.status_code",
-                      "Value": "OK"
                     }
                   ],
                   "event": []
@@ -221,10 +188,6 @@
                     {
                       "Key": "graphql.selection.field.parent_type",
                       "Value": "Droid"
-                    },
-                    {
-                      "Key": "otel.status_code",
-                      "Value": "OK"
                     }
                   ],
                   "event": []
@@ -257,10 +220,6 @@
                     {
                       "Key": "graphql.selection.field.parent_type",
                       "Value": "Human"
-                    },
-                    {
-                      "Key": "otel.status_code",
-                      "Value": "OK"
                     }
                   ],
                   "event": []
@@ -293,10 +252,6 @@
                     {
                       "Key": "graphql.selection.field.parent_type",
                       "Value": "Human"
-                    },
-                    {
-                      "Key": "otel.status_code",
-                      "Value": "OK"
                     }
                   ],
                   "event": []
@@ -329,10 +284,6 @@
                     {
                       "Key": "graphql.selection.field.parent_type",
                       "Value": "Human"
-                    },
-                    {
-                      "Key": "otel.status_code",
-                      "Value": "OK"
                     }
                   ],
                   "event": []
@@ -345,12 +296,7 @@
           "OperationName": "Format HTTP Response",
           "DisplayName": "Format HTTP Response",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         }
       ]

@@ -56,7 +56,7 @@ internal sealed class ValidationSpan(
     {
         if (context.IsOperationDocumentValid())
         {
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         enricher.EnrichValidateDocument(Activity, context);

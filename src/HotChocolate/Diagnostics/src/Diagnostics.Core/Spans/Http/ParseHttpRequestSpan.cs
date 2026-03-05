@@ -21,20 +21,20 @@ internal sealed class ParseHttpRequestSpan(
             return null;
         }
 
-        activity.MarkAsSuccess();
+        activity.SetStatus(ActivityStatusCode.Ok);
 
         return new ParseHttpRequestSpan(activity, httpContext, enricher);
     }
 
     public void RecordErrors(IReadOnlyList<IError> errors)
     {
+        Activity.SetStatus(ActivityStatusCode.Error);
+
         foreach (var error in errors)
         {
-            Activity.RecordError(error);
-            enricher.EnrichError(Activity, error);
+            Activity.AddGraphQLError(error);
         }
 
-        Activity.MarkAsError();
         enricher.EnrichParserErrors(Activity, httpContext, errors);
     }
 

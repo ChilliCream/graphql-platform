@@ -100,8 +100,4 @@ public abstract class ActivityEnricherBase
     public virtual void EnrichExecuteOperation(
         Activity activity,
         RequestContext context) { }
-
-    public virtual void EnrichError(Activity activity, IError error) { }
-
-    public virtual void EnrichException(Activity activity, Exception exception) { }
 }

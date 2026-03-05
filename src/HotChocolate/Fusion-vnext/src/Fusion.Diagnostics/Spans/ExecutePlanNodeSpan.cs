@@ -83,6 +83,11 @@ internal sealed class ExecutePlanNodeSpan(
 
     protected override void OnComplete()
     {
+        if (Activity.Status != ActivityStatusCode.Error)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
         enricher.EnrichExecutePlanNode(Activity, context, node, schemaName);
     }
 

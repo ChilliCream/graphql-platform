@@ -14,10 +14,6 @@
           "Value": "SayHelloOperation"
         },
         {
-          "Key": "otel.status_code",
-          "Value": "OK"
-        },
-        {
           "Key": "graphql.document.hash",
           "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
         },
@@ -55,10 +51,6 @@
               "Value": "SayHelloOperation"
             },
             {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
             }
@@ -85,10 +77,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": []
@@ -113,10 +101,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": []
@@ -141,10 +125,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": [],
@@ -177,10 +157,6 @@
                 {
                   "Key": "graphql.selection.field.parent_type",
                   "Value": "SimpleQuery"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []

@@ -56,7 +56,7 @@ internal sealed class ExecuteHttpRequestSpan(
         }
 
         activity.SetTag(GraphQL.Schema.Name, schemaName);
-        activity.MarkAsSuccess();
+        activity.SetStatus(ActivityStatusCode.Ok);
 
         return new ExecuteHttpRequestSpan(activity, httpContext, kind, enricher, options);
     }
@@ -229,17 +229,17 @@ internal sealed class ExecuteHttpRequestSpan(
 
     public void RecordError(IError error)
     {
-        Activity.RecordError(error);
-        Activity.MarkAsError();
+        Activity.SetStatus(ActivityStatusCode.Error);
+        Activity.AddGraphQLError(error);
+
         enricher.EnrichHttpRequestError(Activity, httpContext, error);
-        enricher.EnrichError(Activity, error);
     }
 
     public void RecordError(Exception exception)
     {
-        Activity.RecordException(exception);
-        Activity.MarkAsError();
+        Activity.SetStatus(ActivityStatusCode.Error);
+        Activity.AddException(exception);
+
         enricher.EnrichHttpRequestError(Activity, httpContext, exception);
-        enricher.EnrichException(Activity, exception);
     }
 }

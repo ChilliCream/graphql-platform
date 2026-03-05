@@ -67,7 +67,7 @@ internal sealed class AnalyzeOperationComplexitySpan(
     {
         if (_costSet)
         {
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         enricher.EnrichAnalyzeOperationCost(Activity, context);

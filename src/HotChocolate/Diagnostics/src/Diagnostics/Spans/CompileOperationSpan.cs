@@ -55,7 +55,7 @@ internal sealed class CompileOperationSpan(
     {
         if (context.TryGetOperation(out _))
         {
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         enricher.EnrichCompileOperation(Activity, context);

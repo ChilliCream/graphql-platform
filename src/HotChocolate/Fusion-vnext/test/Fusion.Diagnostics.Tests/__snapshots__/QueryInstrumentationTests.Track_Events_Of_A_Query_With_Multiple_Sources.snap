@@ -10,10 +10,6 @@
           "Value": "query"
         },
         {
-          "Key": "otel.status_code",
-          "Value": "OK"
-        },
-        {
           "Key": "graphql.document.hash",
           "Value": "md5:073bf7696c078e52587c88890ef21bbe"
         }
@@ -43,10 +39,6 @@
               "Value": "query"
             },
             {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:073bf7696c078e52587c88890ef21bbe"
             }
@@ -69,10 +61,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:073bf7696c078e52587c88890ef21bbe"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": []
@@ -93,10 +81,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:073bf7696c078e52587c88890ef21bbe"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": []
@@ -117,10 +101,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:073bf7696c078e52587c88890ef21bbe"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": [],
@@ -128,7 +108,7 @@
             {
               "OperationName": "GraphQL Step Execution",
               "DisplayName": "GraphQL Step Execution",
-              "Status": "Unset",
+              "Status": "Ok",
               "tags": [
                 {
                   "Key": "graphql.processing.type",
@@ -176,7 +156,7 @@
             {
               "OperationName": "GraphQL Step Execution",
               "DisplayName": "GraphQL Step Execution",
-              "Status": "Unset",
+              "Status": "Ok",
               "tags": [
                 {
                   "Key": "graphql.processing.type",

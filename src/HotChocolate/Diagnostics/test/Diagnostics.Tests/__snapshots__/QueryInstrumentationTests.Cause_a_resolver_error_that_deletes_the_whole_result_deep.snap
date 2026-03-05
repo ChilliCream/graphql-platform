@@ -14,10 +14,6 @@
           "Value": "SayHelloOperation"
         },
         {
-          "Key": "otel.status_code",
-          "Value": "ERROR"
-        },
-        {
           "Key": "graphql.document.hash",
           "Value": "md5:803df9346db185e9dc0b22dd3909aa70"
         },
@@ -46,10 +42,6 @@
               "Value": "SayHelloOperation"
             },
             {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:803df9346db185e9dc0b22dd3909aa70"
             }
@@ -76,10 +68,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:803df9346db185e9dc0b22dd3909aa70"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
             }
           ],
           "event": [

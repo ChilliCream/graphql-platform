@@ -27,6 +27,11 @@ internal sealed class DataLoaderDispatchSpan(
 
     protected override void OnComplete()
     {
+        if (Activity.Status != ActivityStatusCode.Error)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
         enricher.EnrichRunBatchDispatchCoordinator(Activity);
     }
 }

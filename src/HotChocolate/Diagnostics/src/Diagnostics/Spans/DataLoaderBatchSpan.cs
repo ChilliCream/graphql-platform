@@ -35,6 +35,11 @@ internal sealed class DataLoaderBatchSpan<TKey>(
 
     protected override void OnComplete()
     {
+        if (Activity.Status != ActivityStatusCode.Error)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
         enricher.EnrichExecuteBatch(Activity, dataLoader, keys);
     }
 }

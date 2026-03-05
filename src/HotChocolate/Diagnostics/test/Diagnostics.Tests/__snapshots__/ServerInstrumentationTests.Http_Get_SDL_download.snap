@@ -8,10 +8,6 @@
         {
           "Key": "graphql.schema.name",
           "Value": "_Default"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "OK"
         }
       ],
       "event": []

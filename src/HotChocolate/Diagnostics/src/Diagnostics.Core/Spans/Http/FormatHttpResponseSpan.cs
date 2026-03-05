@@ -21,7 +21,7 @@ internal sealed class FormatHttpResponseSpan(
             return null;
         }
 
-        activity.MarkAsSuccess();
+        activity.SetStatus(ActivityStatusCode.Ok);
 
         return new FormatHttpResponseSpan(activity, httpContext, enricher);
     }

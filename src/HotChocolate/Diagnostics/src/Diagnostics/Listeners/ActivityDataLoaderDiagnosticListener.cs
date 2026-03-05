@@ -45,16 +45,12 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
 
     public override void BatchDispatchError(Exception error)
     {
-#if NET9_0_OR_GREATER
-        Activity.Current?.AddException(error);
-#else
-        Activity.Current?.SetStatus(ActivityStatusCode.Error, error.Message);
-#endif
-
         if (Activity.Current is { } activity)
         {
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(error);
+
             _enricher.EnrichBatchDispatchError(activity, error);
-            _enricher.EnrichException(activity, error);
         }
     }
 

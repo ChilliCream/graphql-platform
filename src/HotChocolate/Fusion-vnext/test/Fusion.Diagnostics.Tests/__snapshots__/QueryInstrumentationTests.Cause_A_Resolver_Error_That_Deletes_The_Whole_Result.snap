@@ -14,10 +14,6 @@
           "Value": "SayHelloOperation"
         },
         {
-          "Key": "otel.status_code",
-          "Value": "ERROR"
-        },
-        {
           "Key": "graphql.document.hash",
           "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
         },
@@ -55,10 +51,6 @@
               "Value": "SayHelloOperation"
             },
             {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
             }
@@ -85,10 +77,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": []
@@ -113,10 +101,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": []
@@ -141,10 +125,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
             }
           ],
           "event": [],
@@ -152,7 +132,7 @@
             {
               "OperationName": "GraphQL Step Execution",
               "DisplayName": "GraphQL Step Execution",
-              "Status": "Unset",
+              "Status": "Ok",
               "tags": [
                 {
                   "Key": "graphql.processing.type",

@@ -1,7 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using OpenTelemetry.Trace;
-using Status = OpenTelemetry.Trace.Status;
 
 namespace HotChocolate.Diagnostics;
 
@@ -9,25 +6,26 @@ internal static class ActivityExtensions
 {
     extension(Activity activity)
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void MarkAsSuccess()
+#if !NET9_0_OR_GREATER
+        public void AddException(Exception exception)
         {
-            activity.SetStatus(Status.Ok);
-            activity.SetStatus(ActivityStatusCode.Ok);
+            activity.AddEvent(
+                new ActivityEvent(
+                    "exception",
+                    tags: new ActivityTagsCollection
+                    {
+                        { "exception.message", exception.Message },
+                        { "exception.stacktrace", exception.ToString() },
+                        { "exception.type", exception.GetType().ToString() }
+                    }));
         }
+#endif
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void MarkAsError()
-        {
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
-
-        public void RecordError(IError error)
+        public void AddGraphQLError(IError error)
         {
             if (error.Exception is { } exception)
             {
-                activity.RecordException(exception);
+                activity.AddException(exception);
             }
 
             var tags = new ActivityTagsCollection

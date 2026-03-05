@@ -8,10 +8,6 @@
         {
           "Key": "graphql.schema.name",
           "Value": "_Default"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "OK"
         }
       ],
       "event": [],
@@ -20,12 +16,7 @@
           "OperationName": "Parse HTTP Request",
           "DisplayName": "Parse HTTP Request",
           "Status": "Error",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
-            }
-          ],
+          "tags": [],
           "event": [
             {
               "Name": "exception",
@@ -55,12 +46,7 @@
           "OperationName": "Format HTTP Response",
           "DisplayName": "Format HTTP Response",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         }
       ]

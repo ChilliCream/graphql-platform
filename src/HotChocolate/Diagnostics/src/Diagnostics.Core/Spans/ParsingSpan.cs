@@ -42,7 +42,7 @@ internal sealed class ParsingSpan(
                 }
             }
 
-            Activity.MarkAsSuccess();
+            Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         var documentInfo = context.OperationDocumentInfo;
