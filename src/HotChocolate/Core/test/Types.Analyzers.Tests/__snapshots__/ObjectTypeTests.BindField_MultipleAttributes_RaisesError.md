@@ -146,7 +146,11 @@ namespace TestNamespace
     "MessageFormat": "Duplicate '{0}' attribute",
     "Message": "Duplicate 'BindField' attribute",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   }
 ]
 ```
@@ -165,7 +169,11 @@ namespace TestNamespace
     "MessageFormat": "Duplicate '{0}' attribute",
     "Message": "Duplicate 'BindField' attribute",
     "Category": "Compiler",
-    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   }
 ]
 ```
