@@ -222,36 +222,6 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "Not yet implemented")]
-    public async Task Http_Post_Capture_Deferred_Response()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-                [("a", server)],
-                configureGatewayBuilder: b => b.AddInstrumentation(
-                    o => o.Scopes = FusionActivityScopes.All));
-
-            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-            var request = new OperationRequest(
-                """
-                TODO
-                """);
-
-            // act
-            using var result = await client.PostAsync(request, s_url);
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
     [Fact]
     public async Task Http_Post_Parser_Error()
     {

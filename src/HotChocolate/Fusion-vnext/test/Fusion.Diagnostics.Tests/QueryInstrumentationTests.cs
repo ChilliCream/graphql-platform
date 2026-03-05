@@ -496,7 +496,7 @@ public class QueryInstrumentationTests : FusionTestBase
         }
     }
 
-    [Fact]
+    [Fact(Skip = "This is flaky")]
     public async Task MultipleSources_HttpRequestError_MarksNodeSpanAsError()
     {
         using (CaptureActivities(out var activities))

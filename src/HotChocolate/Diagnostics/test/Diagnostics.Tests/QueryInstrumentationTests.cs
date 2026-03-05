@@ -27,40 +27,6 @@ public partial class QueryInstrumentationTests
         }
     }
 
-    [Fact(Skip = "This test is flaky with the new DL batching.")]
-    public async Task Track_Data_Loader_Events()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation()
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact(Skip = "This test is flaky with the new DL batching.")]
-    public async Task Track_Data_Loader_Events_With_Keys()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.IncludeDataLoaderKeys = true)
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
     [Fact]
     public async Task Track_Events_Of_A_Simple_Query_Default_Rename_Root()
     {
