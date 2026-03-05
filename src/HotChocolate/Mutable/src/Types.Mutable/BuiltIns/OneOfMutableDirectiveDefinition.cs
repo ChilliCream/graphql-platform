@@ -9,7 +9,7 @@ public sealed class OneOfMutableDirectiveDefinition : MutableDirectiveDefinition
         Locations = DirectiveLocation.InputObject;
     }
 
-    public static OneOfMutableDirectiveDefinition Create(ISchemaDefinition schema)
+    public static OneOfMutableDirectiveDefinition Create(ISchemaDefinition _)
     {
         return new OneOfMutableDirectiveDefinition();
     }
