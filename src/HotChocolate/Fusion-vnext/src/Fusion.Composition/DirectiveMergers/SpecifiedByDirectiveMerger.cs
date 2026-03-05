@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using System.Globalization;
-using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
@@ -12,14 +10,14 @@ using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.DirectiveMergers;
 
-internal class CostDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
+internal class SpecifiedByDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
     : DirectiveMergerBase(mergeBehavior)
 {
-    public override string DirectiveName => DirectiveNames.Cost;
+    public override string DirectiveName => DirectiveNames.SpecifiedBy;
 
     public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
-        return CostMutableDirectiveDefinition.Create(schema);
+        return BuiltIns.SpecifiedBy.Create(schema);
     }
 
     public override void MergeDirectives(
@@ -33,22 +31,22 @@ internal class CostDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
             return;
         }
 
-        var costDirectives =
+        var specifiedByDirectives =
             memberDefinitions
-                .SelectMany(d => d.Member.Directives.Where(dir => dir.Name == DirectiveNames.Cost))
-                .Select(CostDirective.From)
+                .SelectMany(d => d.Member.Directives.Where(dir => dir.Name == DirectiveNames.SpecifiedBy))
+                .Select(SpecifiedByDirective.From)
                 .ToArray();
 
-        if (costDirectives.Length == 0)
+        if (specifiedByDirectives.Length == 0)
         {
             return;
         }
 
-        var maxWeight = costDirectives.Max(d => d.Weight);
-        var weightArgument =
-            new ArgumentAssignment(ArgumentNames.Weight, maxWeight.ToString(CultureInfo.InvariantCulture));
-        var costDirective = new Directive(directiveDefinition, weightArgument);
+        var specifiedByDirective =
+            new Directive(
+                directiveDefinition,
+                new ArgumentAssignment(ArgumentNames.Url, specifiedByDirectives[0].Url));
 
-        mergedMember.AddDirective(costDirective);
+        mergedMember.AddDirective(specifiedByDirective);
     }
 }

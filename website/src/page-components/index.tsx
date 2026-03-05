@@ -148,7 +148,9 @@ const IndexPage: FC<IndexPageProps> = ({ recentPosts }) => {
 
 export default IndexPage;
 
-const Fusion = styled(FusionSvg)`
+const Fusion = styled(FusionSvg).attrs({
+  viewBox: "0 0 1246 1153",
+})`
   animation: 0.5s ease-in-out ${FADE_IN} forwards,
     0.5s ease-in-out ${ZOOM_IN} forwards;
   opacity: 0;
