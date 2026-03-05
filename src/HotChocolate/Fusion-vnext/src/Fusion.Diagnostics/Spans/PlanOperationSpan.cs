@@ -56,9 +56,20 @@ internal sealed class PlanOperationSpan(
 
     protected override void OnComplete()
     {
-        if (context.GetOperationPlan() is not null)
+        if (context.GetOperationPlan() is { } plan)
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
+
+            var operation = plan.Operation;
+            var operationType = operation.Definition.Operation;
+            var operationName = operation.Name;
+
+            Activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operationType]);
+
+            if (!string.IsNullOrEmpty(operationName))
+            {
+                Activity.SetTag(GraphQL.Operation.Name, operationName);
+            }
         }
 
         enricher.EnrichPlanOperation(Activity, context, operationPlanId);

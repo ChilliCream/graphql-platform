@@ -22,26 +22,13 @@ internal sealed class ParsingSpan(
             return null;
         }
 
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
-
         return new ParsingSpan(activity, context, enricher);
     }
 
     protected override void OnComplete()
     {
-        if (context.TryGetDocument(out var document, out _))
+        if (context.TryGetDocument(out _, out _))
         {
-            if (document.GetOperation(context.Request.OperationName) is { } operation)
-            {
-                Activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operation.Operation]);
-
-                var operationName = operation.Name?.Value;
-                if (!string.IsNullOrEmpty(operationName))
-                {
-                    Activity.SetTag(GraphQL.Operation.Name, operationName);
-                }
-            }
-
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 

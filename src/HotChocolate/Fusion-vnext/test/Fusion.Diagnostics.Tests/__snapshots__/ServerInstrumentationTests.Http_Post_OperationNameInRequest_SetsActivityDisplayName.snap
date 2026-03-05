@@ -62,14 +62,6 @@
                   "Value": "validate"
                 },
                 {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.operation.name",
-                  "Value": "GetGreetingByName"
-                },
-                {
                   "Key": "graphql.document.hash",
                   "Value": "md5:4f33a60d4ccb822195345aaf7258b649"
                 }

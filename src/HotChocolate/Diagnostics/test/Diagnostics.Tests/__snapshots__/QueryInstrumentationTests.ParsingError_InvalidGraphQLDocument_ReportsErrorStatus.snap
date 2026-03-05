@@ -36,10 +36,6 @@
           "Status": "Unset",
           "tags": [
             {
-              "Key": "graphql.processing.type",
-              "Value": "parse"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:bb507ba78696fc3c6ff3a17fb06784d5"
             }

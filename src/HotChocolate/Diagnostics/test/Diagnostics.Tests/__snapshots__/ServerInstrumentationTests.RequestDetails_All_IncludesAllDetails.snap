@@ -74,14 +74,6 @@
                   "Value": "validate"
                 },
                 {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.operation.name",
-                  "Value": "GetHero"
-                },
-                {
                   "Key": "graphql.document.hash",
                   "Value": "md5:9335388c19fd2e230b6294a596d13a93"
                 }
@@ -93,14 +85,6 @@
               "DisplayName": "GraphQL Complexity Analyzation",
               "Status": "Ok",
               "tags": [
-                {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.operation.name",
-                  "Value": "GetHero"
-                },
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:9335388c19fd2e230b6294a596d13a93"
@@ -118,16 +102,16 @@
                   "Value": "plan"
                 },
                 {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:9335388c19fd2e230b6294a596d13a93"
+                },
+                {
                   "Key": "graphql.operation.type",
                   "Value": "query"
                 },
                 {
                   "Key": "graphql.operation.name",
                   "Value": "GetHero"
-                },
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:9335388c19fd2e230b6294a596d13a93"
                 }
               ],
               "event": []

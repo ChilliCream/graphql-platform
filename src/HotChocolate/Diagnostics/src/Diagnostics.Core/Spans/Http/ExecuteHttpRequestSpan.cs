@@ -56,7 +56,6 @@ internal sealed class ExecuteHttpRequestSpan(
         }
 
         activity.SetTag(GraphQL.Schema.Name, schemaName);
-        activity.SetStatus(ActivityStatusCode.Ok);
 
         return new ExecuteHttpRequestSpan(activity, httpContext, kind, enricher, options);
     }
@@ -224,6 +223,11 @@ internal sealed class ExecuteHttpRequestSpan(
 
     protected override void OnComplete()
     {
+        if (Activity.Status != ActivityStatusCode.Error)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
         enricher.EnrichExecuteHttpRequest(Activity, httpContext, kind);
     }
 

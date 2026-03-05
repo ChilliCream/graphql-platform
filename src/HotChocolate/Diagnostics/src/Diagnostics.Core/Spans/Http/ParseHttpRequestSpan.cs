@@ -21,8 +21,6 @@ internal sealed class ParseHttpRequestSpan(
             return null;
         }
 
-        activity.SetStatus(ActivityStatusCode.Ok);
-
         return new ParseHttpRequestSpan(activity, httpContext, enricher);
     }
 
@@ -40,6 +38,11 @@ internal sealed class ParseHttpRequestSpan(
 
     protected override void OnComplete()
     {
+        if (Activity.Status != ActivityStatusCode.Error)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
         enricher.EnrichParseHttpRequest(Activity, httpContext);
     }
 }

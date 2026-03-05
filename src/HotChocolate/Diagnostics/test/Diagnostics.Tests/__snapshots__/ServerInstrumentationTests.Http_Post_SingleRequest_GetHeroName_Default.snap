@@ -50,10 +50,6 @@
               "Value": "validate"
             },
             {
-              "Key": "graphql.operation.type",
-              "Value": "query"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:acb8d5d513c260b3cef3e3a12b0e29af"
             }
@@ -70,12 +66,12 @@
               "Value": "plan"
             },
             {
-              "Key": "graphql.operation.type",
-              "Value": "query"
-            },
-            {
               "Key": "graphql.document.hash",
               "Value": "md5:acb8d5d513c260b3cef3e3a12b0e29af"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
             }
           ],
           "event": []

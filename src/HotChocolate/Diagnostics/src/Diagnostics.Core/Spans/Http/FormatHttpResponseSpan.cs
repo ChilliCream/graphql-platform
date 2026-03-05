@@ -21,13 +21,16 @@ internal sealed class FormatHttpResponseSpan(
             return null;
         }
 
-        activity.SetStatus(ActivityStatusCode.Ok);
-
         return new FormatHttpResponseSpan(activity, httpContext, enricher);
     }
 
     protected override void OnComplete()
     {
+        if (Activity.Status != ActivityStatusCode.Error)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
         enricher.EnrichFormatHttpResponse(Activity, httpContext);
     }
 }

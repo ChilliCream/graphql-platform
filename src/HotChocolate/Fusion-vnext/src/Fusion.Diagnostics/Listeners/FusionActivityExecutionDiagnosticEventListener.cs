@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using Microsoft.AspNetCore.Http;
-using OpenTelemetry.Trace;
 using static HotChocolate.Fusion.Diagnostics.HotChocolateFusionActivitySource;
 
 namespace HotChocolate.Fusion.Diagnostics.Listeners;
