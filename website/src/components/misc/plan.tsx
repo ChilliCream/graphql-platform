@@ -200,7 +200,6 @@ const PlanSeparator = styled.div`
 
   @media only screen and (min-width: 768px) {
     grid-row: 2;
-    border-left: 1px solid #211f31;
   }
 `;
 
