@@ -11,16 +11,4 @@ public sealed class SpecifiedByMutableDirectiveDefinition : MutableDirectiveDefi
     }
 
     public MutableInputFieldDefinition Url => Arguments[DirectiveNames.SpecifiedBy.Arguments.Url];
-
-    public static SpecifiedByMutableDirectiveDefinition Create(ISchemaDefinition schema)
-    {
-        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(
-            SpecScalarNames.String.Name,
-            out var stringType))
-        {
-            stringType = BuiltIns.String.Create();
-        }
-
-        return new SpecifiedByMutableDirectiveDefinition(stringType);
-    }
 }

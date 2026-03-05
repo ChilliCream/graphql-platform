@@ -8,9 +8,4 @@ public sealed class OneOfMutableDirectiveDefinition : MutableDirectiveDefinition
         IsSpecDirective = true;
         Locations = DirectiveLocation.InputObject;
     }
-
-    public static OneOfMutableDirectiveDefinition Create(ISchemaDefinition _)
-    {
-        return new OneOfMutableDirectiveDefinition();
-    }
 }
