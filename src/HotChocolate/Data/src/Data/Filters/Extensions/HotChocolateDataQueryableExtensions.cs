@@ -1,6 +1,5 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace

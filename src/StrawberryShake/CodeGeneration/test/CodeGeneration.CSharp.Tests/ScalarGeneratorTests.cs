@@ -16,6 +16,14 @@ public class ScalarGeneratorTests
             "extend schema @key(fields: \"id\")");
 
     [Fact]
+    public void Base64String_ScalarType() =>
+        AssertResult(
+            "query GetAttachment { base64String }",
+            "type Query { base64String: Base64String! }",
+            "scalar Base64String",
+            "extend schema @key(fields: \"id\")");
+
+    [Fact]
     public void ByteArray_ScalarType() =>
         AssertResult(
             "query GetAttachment { byteArray }",

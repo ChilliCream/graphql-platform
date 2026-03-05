@@ -1,0 +1,50 @@
+operation:
+  - document: |
+      {
+        feed {
+          byNovice
+          id @fusion__requirement
+          author @fusion__requirement {
+            yearsOfExperience
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          id
+          author {
+            yearsOfExperience
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+          $__fusion_2_yearsOfExperience: Int!
+      ) {
+        postById(id: $__fusion_1_id) {
+          byNovice(yearsOfExperience: $__fusion_2_yearsOfExperience)
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_yearsOfExperience
+        selectionMap: >-
+          author.yearsOfExperience
+    dependencies:
+      - id: 1

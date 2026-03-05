@@ -67,10 +67,10 @@ public class UuidTypeTests
         var type = new UuidType();
 
         // act
-        var isCompatible = type.IsValueCompatible(null!);
+        void Error() => type.IsValueCompatible(null!);
 
         // assert
-        Assert.False(isCompatible);
+        Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]

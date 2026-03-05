@@ -2,12 +2,12 @@
 query GetWithDefaultedVariables(
   "Any description"
   $any: Any! = { key: "value" }
+  "Base64String description"
+  $base64String: Base64String! = "ZGVmYXVsdA=="
   "Boolean description"
   $boolean: Boolean! = true
   "Byte description"
   $byte: Byte! = 1
-  "ByteArray description"
-  $byteArray: ByteArray! = "ZGVmYXVsdA=="
   "Date description"
   $date: Date! = "2000-01-01"
   "DateTime description"
@@ -42,6 +42,16 @@ query GetWithDefaultedVariables(
   $timeSpan: TimeSpan! = "PT5M"
   "Unknown description"
   $unknown: Unknown! = "default"
+  "UnsignedByte description"
+  $unsignedByte: UnsignedByte! = 1
+  "UnsignedInt description"
+  $unsignedInt: UnsignedInt! = 65536
+  "UnsignedLong description"
+  $unsignedLong: UnsignedLong! = 4294967296
+  "UnsignedShort description"
+  $unsignedShort: UnsignedShort! = 256
+  "URI description"
+  $uri: URI! = "https://example.com"
   "URL description"
   $url: URL! = "https://example.com"
   "UUID description"
@@ -49,9 +59,9 @@ query GetWithDefaultedVariables(
 ) {
   withDefaultedVariables(
     any: $any
+    base64String: $base64String
     boolean: $boolean
     byte: $byte
-    byteArray: $byteArray
     date: $date
     dateTime: $dateTime
     decimal: $decimal
@@ -69,13 +79,18 @@ query GetWithDefaultedVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    unsignedByte: $unsignedByte
+    unsignedInt: $unsignedInt
+    unsignedLong: $unsignedLong
+    unsignedShort: $unsignedShort
+    uri: $uri
     url: $url
     uuid: $uuid
   ) {
     any
+    base64String
     boolean
     byte
-    byteArray
     date
     dateTime
     decimal
@@ -99,6 +114,11 @@ query GetWithDefaultedVariables(
     string
     timeSpan
     unknown
+    unsignedByte
+    unsignedInt
+    unsignedLong
+    unsignedShort
+    uri
     url
     uuid
   }

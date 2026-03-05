@@ -939,8 +939,8 @@ public readonly partial struct ResultElement
         var encoding = Encoding.UTF8;
         var requiredBytes = encoding.GetByteCount(propertyName);
         byte[]? rented = null;
-        var buffer = JsonConstants.StackallocByteThreshold <= requiredBytes
-            ? stackalloc byte[propertyName.Length]
+        var buffer = requiredBytes <= JsonConstants.StackallocByteThreshold
+            ? stackalloc byte[requiredBytes]
             : (rented = ArrayPool<byte>.Shared.Rent(requiredBytes));
 
         try
@@ -1019,8 +1019,8 @@ public readonly partial struct ResultElement
 
         var requiredBytes = s_utf8Encoding.GetByteCount(value);
         byte[]? rented = null;
-        var buffer = JsonConstants.StackallocByteThreshold <= requiredBytes
-            ? stackalloc byte[value.Length]
+        var buffer = requiredBytes <= JsonConstants.StackallocByteThreshold
+            ? stackalloc byte[requiredBytes]
             : (rented = ArrayPool<byte>.Shared.Rent(requiredBytes));
 
         try
@@ -1141,6 +1141,13 @@ public readonly partial struct ResultElement
         Span<byte> buffer = stackalloc byte[31];
         Utf8Formatter.TryFormat(value, buffer, out var bytesWritten);
         _parent.AssignNumberValue(this, buffer[..bytesWritten]);
+    }
+
+    internal void MarkAsDeferred()
+    {
+        CheckValidInstance();
+
+        _parent.MarkAsDeferred(this);
     }
 
     /// <summary>

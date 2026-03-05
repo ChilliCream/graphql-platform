@@ -22,6 +22,8 @@ public sealed partial class JsonWriter
     /// </remarks>
     public void WriteNumberValue(ReadOnlySpan<byte> utf8FormattedNumber)
     {
+        FlushDeferredPropertyName();
+
         ValidateValue(utf8FormattedNumber);
 
         if (_indented)

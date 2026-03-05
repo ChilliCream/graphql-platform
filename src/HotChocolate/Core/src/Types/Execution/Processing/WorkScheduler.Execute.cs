@@ -10,7 +10,7 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
     /// <summary>
     /// Execute the work.
     /// </summary>
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync1()
     {
         AssertNotPooled();
 
@@ -22,6 +22,26 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
         {
             _buffer.AsSpan().Clear();
         }
+    }
+
+    /// <summary>
+    /// Waits for all tasks in the specified execution branch to complete.
+    /// Returns immediately if the branch has already completed or was never registered.
+    /// </summary>
+    public ValueTask WaitForCompletionAsync(int executionBranchId)
+    {
+        AssertNotPooled();
+
+        Branch? branch;
+
+        lock (_sync)
+        {
+            _activeBranches.TryGetValue(executionBranchId, out branch);
+        }
+
+        return branch is not null
+            ? branch.WaitForCompletionAsync(_ct)
+            : ValueTask.CompletedTask;
     }
 
     private async Task ExecuteInternalAsync(IExecutionTask?[] buffer)
@@ -84,8 +104,16 @@ RESTART:
 
     private async Task WaitForTask(uint taskId)
     {
-        while (!_completed.ContainsKey(taskId))
+        while (true)
         {
+            lock (_sync)
+            {
+                if (_completed.Contains(taskId))
+                {
+                    return;
+                }
+            }
+
             // we are waiting for completion of the current task
             // so we force the `TryDispatchOrComplete` to seek completion
             // even though the _work backlog might still have unprocessed

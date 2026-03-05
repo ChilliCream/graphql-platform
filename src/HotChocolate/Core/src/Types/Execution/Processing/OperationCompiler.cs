@@ -43,7 +43,7 @@ public sealed partial class OperationCompiler
         DocumentNode document,
         Schema schema,
         IFeatureProvider? context = null)
-        => Compile(id, id, null, document, schema);
+        => Compile(id, id, null, document, schema, context);
 
     public static Operation Compile(
         string id,
@@ -51,7 +51,7 @@ public sealed partial class OperationCompiler
         DocumentNode document,
         Schema schema,
         IFeatureProvider? context = null)
-        => Compile(id, id, operationName, document, schema);
+        => Compile(id, id, operationName, document, schema, context);
 
     public static Operation Compile(
         string id,
@@ -79,11 +79,14 @@ public sealed partial class OperationCompiler
         ArgumentNullException.ThrowIfNull(document);
 
         // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-        document = _documentRewriter.RewriteDocument(document, operationName);
+        var result = _documentRewriter.RewriteDocument(document, operationName);
+        document = result.Document;
         var operationDefinition = document.GetOperation(operationName);
 
         var includeConditions = new IncludeConditionCollection();
+        var deferConditions = new DeferConditionCollection();
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
+        DeferConditionVisitor.Instance.Visit(operationDefinition, deferConditions);
         var fields = _fieldsPool.Get();
 
         var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
@@ -99,7 +102,9 @@ public sealed partial class OperationCompiler
                 operationDefinition.SelectionSet.Selections,
                 rootType,
                 fields,
-                includeConditions);
+                includeConditions,
+                deferConditions,
+                parentDeferUsage: null);
 
             var selectionSet = BuildSelectionSet(
                 SelectionPath.Root,
@@ -121,9 +126,11 @@ public sealed partial class OperationCompiler
                 selectionSet,
                 compiler: this,
                 includeConditions,
+                deferConditions,
                 compilationContext.Features,
                 lastId,
-                compilationContext.ElementsById);
+                compilationContext.ElementsById,
+                hasIncrementalParts: result.HasIncrementalParts);
 
             selectionSet.Complete(operation);
 
@@ -149,6 +156,7 @@ public sealed partial class OperationCompiler
         Selection selection,
         ObjectType objectType,
         IncludeConditionCollection includeConditions,
+        DeferConditionCollection deferConditions,
         ref object[] elementsById,
         ref int lastId)
     {
@@ -168,7 +176,9 @@ public sealed partial class OperationCompiler
                 first.Node.SelectionSet!.Selections,
                 objectType,
                 fields,
-                includeConditions);
+                includeConditions,
+                deferConditions,
+                parentDeferUsage: first.DeferUsage);
 
             if (nodes.Length > 1)
             {
@@ -181,7 +191,9 @@ public sealed partial class OperationCompiler
                         node.Node.SelectionSet!.Selections,
                         objectType,
                         fields,
-                        includeConditions);
+                        includeConditions,
+                        deferConditions,
+                        parentDeferUsage: nodes[i].DeferUsage);
                 }
             }
 
@@ -203,7 +215,9 @@ public sealed partial class OperationCompiler
         IReadOnlyList<ISelectionNode> selections,
         IObjectTypeDefinition typeContext,
         OrderedDictionary<string, List<FieldSelectionNode>> fields,
-        IncludeConditionCollection includeConditions)
+        IncludeConditionCollection includeConditions,
+        DeferConditionCollection deferConditions,
+        DeferUsage? parentDeferUsage)
     {
         for (var i = 0; i < selections.Count; i++)
         {
@@ -226,7 +240,7 @@ public sealed partial class OperationCompiler
                     pathIncludeFlags |= 1ul << index;
                 }
 
-                nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags));
+                nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags, parentDeferUsage));
             }
             else if (selection is InlineFragmentNode inlineFragmentNode
                 && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
@@ -239,12 +253,24 @@ public sealed partial class OperationCompiler
                     pathIncludeFlags |= 1ul << index;
                 }
 
+                var newDeferUsage = parentDeferUsage;
+
+                if (DeferCondition.TryCreate(inlineFragmentNode, out var deferCondition))
+                {
+                    deferConditions.Add(deferCondition);
+                    var deferIndex = deferConditions.IndexOf(deferCondition);
+                    var label = GetDeferLabel(inlineFragmentNode);
+                    newDeferUsage = new DeferUsage(label, parentDeferUsage, (byte)deferIndex);
+                }
+
                 CollectFields(
                     pathIncludeFlags,
                     inlineFragmentNode.SelectionSet.Selections,
                     typeContext,
                     fields,
-                    includeConditions);
+                    includeConditions,
+                    deferConditions,
+                    newDeferUsage);
             }
         }
     }
@@ -260,16 +286,20 @@ public sealed partial class OperationCompiler
         var i = 0;
         var selections = new Selection[fieldMap.Count];
         var isConditional = false;
+        var hasDeferredSelections = false;
         var includeFlags = new List<ulong>();
+        var deferUsages = new List<DeferUsage>();
         var selectionSetId = ++lastId;
         var alwaysIncluded = false;
 
         foreach (var (responseName, nodes) in fieldMap)
         {
             includeFlags.Clear();
+            deferUsages.Clear();
 
             var first = nodes[0];
             var isInternal = IsInternal(first.Node);
+            var hasNonDeferredNode = first.DeferUsage is null;
 
             if (first.PathIncludeFlags == 0)
             {
@@ -278,6 +308,11 @@ public sealed partial class OperationCompiler
             else
             {
                 includeFlags.Add(first.PathIncludeFlags);
+            }
+
+            if (first.DeferUsage is not null)
+            {
+                deferUsages.Add(first.DeferUsage);
             }
 
             if (nodes.Count > 1)
@@ -305,6 +340,15 @@ public sealed partial class OperationCompiler
                         includeFlags.Add(next.PathIncludeFlags);
                     }
 
+                    if (next.DeferUsage is null)
+                    {
+                        hasNonDeferredNode = true;
+                    }
+                    else if (!hasNonDeferredNode)
+                    {
+                        deferUsages.Add(next.DeferUsage);
+                    }
+
                     if (isInternal)
                     {
                         isInternal = IsInternal(next.Node);
@@ -315,6 +359,39 @@ public sealed partial class OperationCompiler
             if (includeFlags.Count > 1)
             {
                 CollapseIncludeFlags(includeFlags);
+            }
+
+            // If any field node is not inside a deferred fragment, the selection
+            // is not deferred — it must be included in the initial response.
+            DeferUsage[]? finalDeferUsage = null;
+            ulong deferMask = 0;
+
+            if (!hasNonDeferredNode && deferUsages.Count > 0)
+            {
+                // Remove child defer usages when their parent is also in the set.
+                // A field should be delivered with the outermost (earliest) defer
+                // that contains it.
+                for (var j = deferUsages.Count - 1; j >= 0; j--)
+                {
+                    var parent = deferUsages[j].Parent;
+                    while (parent is not null)
+                    {
+                        if (deferUsages.Contains(parent))
+                        {
+                            deferUsages.RemoveAt(j);
+                            break;
+                        }
+
+                        parent = parent.Parent;
+                    }
+                }
+
+                finalDeferUsage = deferUsages.ToArray();
+                foreach (var usage in deferUsages)
+                {
+                    deferMask |= 1ul << usage.DeferConditionIndex;
+                }
+                hasDeferredSelections = true;
             }
 
             if (!typeContext.Fields.TryGetField(first.Node.Name.Value, out var field))
@@ -336,10 +413,12 @@ public sealed partial class OperationCompiler
                 field,
                 nodes.ToArray(),
                 includeFlags.Count > 0 ? includeFlags.ToArray() : [],
-                isInternal,
-                arguments,
-                fieldDelegate,
-                pureFieldDelegate);
+                deferUsage: finalDeferUsage,
+                deferMask: deferMask,
+                isInternal: isInternal,
+                arguments: arguments,
+                resolverPipeline: fieldDelegate,
+                pureResolver: pureFieldDelegate);
 
             if (optimizers.Length > 0)
             {
@@ -360,7 +439,7 @@ public sealed partial class OperationCompiler
         // if there are no optimizers registered for this selection we exit early.
         if (optimizers.Length == 0)
         {
-            return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional);
+            return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional, hasDeferredSelections);
         }
 
         var current = ImmutableCollectionsMarshal.AsImmutableArray(selections);
@@ -385,7 +464,7 @@ public sealed partial class OperationCompiler
         // This mean we can simply construct the SelectionSet.
         if (current == rewritten)
         {
-            return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional);
+            return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional, hasDeferredSelections);
         }
 
         if (current.Length < rewritten.Length)
@@ -405,7 +484,7 @@ public sealed partial class OperationCompiler
         }
 
         selections = ImmutableCollectionsMarshal.AsArray(rewritten)!;
-        return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional);
+        return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional, hasDeferredSelections);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
@@ -521,6 +600,34 @@ public sealed partial class OperationCompiler
         return false;
     }
 
+    private static string? GetDeferLabel(InlineFragmentNode node)
+    {
+        for (var i = 0; i < node.Directives.Count; i++)
+        {
+            var directive = node.Directives[i];
+
+            if (!directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            for (var j = 0; j < directive.Arguments.Count; j++)
+            {
+                var arg = directive.Arguments[j];
+
+                if (arg.Name.Value.Equals(DirectiveNames.Defer.Arguments.Label, StringComparison.Ordinal)
+                    && arg.Value is StringValueNode labelValue)
+                {
+                    return labelValue.Value;
+                }
+            }
+
+            return null;
+        }
+
+        return null;
+    }
+
     private class IncludeConditionVisitor : SyntaxWalker<IncludeConditionCollection>
     {
         public static readonly IncludeConditionVisitor Instance = new();
@@ -542,6 +649,23 @@ public sealed partial class OperationCompiler
             IncludeConditionCollection context)
         {
             if (IncludeCondition.TryCreate(node, out var condition))
+            {
+                context.Add(condition);
+            }
+
+            return base.Enter(node, context);
+        }
+    }
+
+    private class DeferConditionVisitor : SyntaxWalker<DeferConditionCollection>
+    {
+        public static readonly DeferConditionVisitor Instance = new();
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            DeferConditionCollection context)
+        {
+            if (DeferCondition.TryCreate(node, out var condition))
             {
                 context.Add(condition);
             }

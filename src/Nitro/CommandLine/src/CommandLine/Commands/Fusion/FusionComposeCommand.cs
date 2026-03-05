@@ -16,10 +16,6 @@ internal sealed class FusionComposeCommand : Command
     {
         Description = ComposeCommand_Description;
 
-        var environmentOption = new Option<string?>("--environment");
-        environmentOption.AddAlias("--env");
-        environmentOption.AddAlias("-e");
-
         var enableGlobalIdsOption = new Option<bool?>("--enable-global-object-identification")
         {
             Description = ComposeCommand_EnableGlobalObjectIdentification_Description
@@ -38,23 +34,25 @@ internal sealed class FusionComposeCommand : Command
 
         AddOption(Opt<SourceSchemaFileListOption>.Instance);
         AddOption(archiveOption);
-        AddOption(environmentOption);
+        AddOption(Opt<FusionEnvironmentOption>.Instance);
         AddOption(enableGlobalIdsOption);
         AddOption(includeSatisfiabilityPathsOption);
         AddOption(watchModeOption);
         AddOption(printSchemaOption);
         AddOption(Opt<WorkingDirectoryOption>.Instance);
+        AddOption(Opt<ExcludeTagListOption>.Instance);
 
         this.SetHandler(async context =>
         {
             var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
             var sourceSchemaFiles = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileListOption>.Instance)!;
             var archive = context.ParseResult.GetValueForOption(archiveOption)!;
-            var environment = context.ParseResult.GetValueForOption(environmentOption);
+            var environment = context.ParseResult.GetValueForOption(Opt<FusionEnvironmentOption>.Instance);
             var enableGlobalIds = context.ParseResult.GetValueForOption(enableGlobalIdsOption);
             var includeSatisfiabilityPaths = context.ParseResult.GetValueForOption(includeSatisfiabilityPathsOption);
             var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
             var printSchema = context.ParseResult.GetValueForOption(printSchemaOption);
+            var tagsToExclude = context.ParseResult.GetValueForOption(Opt<ExcludeTagListOption>.Instance);
 
             context.ExitCode = await ExecuteAsync(
                 context.Console,
@@ -66,6 +64,7 @@ internal sealed class FusionComposeCommand : Command
                 includeSatisfiabilityPaths,
                 watchMode,
                 printSchema,
+                tagsToExclude,
                 context.GetCancellationToken());
         });
     }
@@ -80,6 +79,7 @@ internal sealed class FusionComposeCommand : Command
         bool? includeSatisfiabilityPaths,
         bool watchMode,
         bool printSchema,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         archiveFile ??= workingDirectory;
@@ -123,6 +123,7 @@ internal sealed class FusionComposeCommand : Command
                 environment,
                 enableGlobalObjectIdentification,
                 includeSatisfiabilityPaths,
+                tagsToExclude,
                 cancellationToken);
         }
 
@@ -140,6 +141,10 @@ internal sealed class FusionComposeCommand : Command
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
                     IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
+                },
+                Preprocessor = new CompositionSettings.PreprocessorSettings
+                {
+                    ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
             printSchema,
@@ -154,6 +159,7 @@ internal sealed class FusionComposeCommand : Command
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         console.Out.WriteLine("🔍 Starting watch mode...");
@@ -173,6 +179,10 @@ internal sealed class FusionComposeCommand : Command
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
                     IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
+                },
+                Preprocessor = new CompositionSettings.PreprocessorSettings
+                {
+                    ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
             false,
@@ -198,6 +208,7 @@ internal sealed class FusionComposeCommand : Command
             environment,
             enableGlobalObjectIdentification,
             includeSatisfiabilityPaths,
+            tagsToExclude,
             cancellationToken);
 
         var sourceSchemaFileWatchers = new List<FileSystemWatcher>();
@@ -315,6 +326,7 @@ internal sealed class FusionComposeCommand : Command
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         var lastComposition = DateTime.MinValue;
@@ -354,6 +366,10 @@ internal sealed class FusionComposeCommand : Command
                         Satisfiability = new CompositionSettings.SatisfiabilitySettings
                         {
                             IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
+                        },
+                        Preprocessor = new CompositionSettings.PreprocessorSettings
+                        {
+                            ExcludeByTag = tagsToExclude?.ToHashSet()
                         }
                     },
                     false,
@@ -394,12 +410,13 @@ internal sealed class FusionComposeCommand : Command
             ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
             : FusionArchive.Create(archiveFile);
 
+        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
         try
         {
             var sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
 
             var compositionLog = new CompositionLog();
-            environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
             var result = await CompositionHelper.ComposeAsync(
                 compositionLog,
@@ -496,7 +513,7 @@ internal sealed class FusionComposeCommand : Command
 
         foreach (var sourceSchemaFile in sourceSchemaFiles)
         {
-            var (schemaName, sourceText, settings ) = await ReadSourceSchemaAsync(sourceSchemaFile, cancellationToken);
+            var (schemaName, sourceText, settings) = await ReadSourceSchemaAsync(sourceSchemaFile, cancellationToken);
 
             sourceSchemas.Add(schemaName, (sourceText, settings));
         }

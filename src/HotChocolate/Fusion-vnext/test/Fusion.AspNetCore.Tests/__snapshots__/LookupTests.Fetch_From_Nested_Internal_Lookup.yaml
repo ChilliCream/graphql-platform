@@ -132,12 +132,6 @@ sourceSchemas:
               },
               {
                 "__fusion_1_id": "2"
-              },
-              {
-                "__fusion_1_id": "2"
-              },
-              {
-                "__fusion_1_id": "2"
               }
             ]
         response:
@@ -196,6 +190,7 @@ operationPlan:
         }
       hash: 76f18599237e97efaa507bbabe6c3ee2
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

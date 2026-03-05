@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
@@ -76,7 +75,7 @@ internal sealed class __InputValue : ObjectType
         public static object? DefaultValue(IResolverContext context)
         {
             var field = context.Parent<IInputValueDefinition>();
-            return field.DefaultValue.IsNull() ? null : field.DefaultValue!.Print();
+            return field.DefaultValue.IsNull() ? null : field.DefaultValue!.ToString(indented: false);
         }
 
         public static object AppliedDirectives(IResolverContext context)

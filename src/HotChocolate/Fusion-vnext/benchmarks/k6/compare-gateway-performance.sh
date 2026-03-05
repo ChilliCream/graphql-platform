@@ -97,73 +97,40 @@ VAR_BATCH_RAMP_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variab
 VAR_BATCH_RAMP_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.reliability.error_rate")")
 
 # Start building markdown report
-cat > "$OUTPUT_MD" <<'EOF'
-### 🚀 Fusion Gateway Performance Results
+cat > "$OUTPUT_MD" <<EOF
+### Fusion Gateway Performance Results
 
 #### Simple Composite Query
 
-EOF
-
-# Add table with metrics
-cat >> "$OUTPUT_MD" <<EOF
-**Constant Load (50 VUs)**
-
-| Requests/sec | Error Rate |
-|--------------|------------|
-| ${NO_REC_RPS} req/s | ${NO_REC_ERR}% |
+| | Req/s | Err% |
+|:--|--:|--:|
+| **Constant** (50 VUs) | ${NO_REC_RPS} | ${NO_REC_ERR}% |
+| **Ramping** (0-500-0 VUs) | ${NO_REC_RAMP_RPS} | ${NO_REC_RAMP_ERR}% |
 
 <details>
-<summary>📊 Response Time Metrics</summary>
+<summary>Response Times & Query</summary>
 
-| Min | Med | Max | Avg | P90 | P95 |
-|-----|-----|-----|-----|-----|-----|
-| ${NO_REC_MIN}ms | ${NO_REC_P50}ms | ${NO_REC_MAX}ms | ${NO_REC_AVG}ms | ${NO_REC_P90}ms | ${NO_REC_P95}ms |
-
-</details>
-
-**Ramping Load (0→50→500→50 VUs)**
-
-| Requests/sec | Error Rate |
-|--------------|------------|
-| ${NO_REC_RAMP_RPS} req/s | ${NO_REC_RAMP_ERR}% |
-
-<details>
-<summary>📊 Response Time Metrics</summary>
-
-| Min | Med | Max | Avg | P90 | P95 |
-|-----|-----|-----|-----|-----|-----|
-| ${NO_REC_RAMP_MIN}ms | ${NO_REC_RAMP_P50}ms | ${NO_REC_RAMP_MAX}ms | ${NO_REC_RAMP_AVG}ms | ${NO_REC_RAMP_P90}ms | ${NO_REC_RAMP_P95}ms |
-
-**Executed Query**
+| | Min | Med | Avg | P90 | P95 | Max |
+|:--|--:|--:|--:|--:|--:|--:|
+| **Constant** | ${NO_REC_MIN}ms | ${NO_REC_P50}ms | ${NO_REC_AVG}ms | ${NO_REC_P90}ms | ${NO_REC_P95}ms | ${NO_REC_MAX}ms |
+| **Ramping** | ${NO_REC_RAMP_MIN}ms | ${NO_REC_RAMP_P50}ms | ${NO_REC_RAMP_AVG}ms | ${NO_REC_RAMP_P90}ms | ${NO_REC_RAMP_P95}ms | ${NO_REC_RAMP_MAX}ms |
 
 \`\`\`graphql
-fragment User on User {
-  id
-  username
-  name
-}
-
-fragment Review on Review {
-  id
-  body
-}
-
-fragment Product on Product {
-  inStock
-  name
-  price
-  shippingEstimate
-  upc
-  weight
-}
-
 query TestQuery {
   topProducts(first: 5) {
-    ...Product
+    inStock
+    name
+    price
+    shippingEstimate
+    upc
+    weight
     reviews {
-      ...Review
+      id
+      body
       author {
-        ...User
+        id
+        username
+        name
       }
     }
   }
@@ -172,74 +139,56 @@ query TestQuery {
 
 </details>
 
+---
+
 #### Deep Recursion Query
 
-**Constant Load (50 VUs)**
-
-| Requests/sec | Error Rate |
-|--------------|------------|
-| ${DEEP_REC_RPS} req/s | ${DEEP_REC_ERR}% |
-
-<details>
-<summary>📊 Response Time Metrics</summary>
-
-| Min | Med | Max | Avg | P90 | P95 |
-|-----|-----|-----|-----|-----|-----|
-| ${DEEP_REC_MIN}ms | ${DEEP_REC_P50}ms | ${DEEP_REC_MAX}ms | ${DEEP_REC_AVG}ms | ${DEEP_REC_P90}ms | ${DEEP_REC_P95}ms |
-
-</details>
-
-**Ramping Load (0→50→500→50 VUs)**
-
-| Requests/sec | Error Rate |
-|--------------|------------|
-| ${DEEP_REC_RAMP_RPS} req/s | ${DEEP_REC_RAMP_ERR}% |
+| | Req/s | Err% |
+|:--|--:|--:|
+| **Constant** (50 VUs) | ${DEEP_REC_RPS} | ${DEEP_REC_ERR}% |
+| **Ramping** (0-500-0 VUs) | ${DEEP_REC_RAMP_RPS} | ${DEEP_REC_RAMP_ERR}% |
 
 <details>
-<summary>📊 Response Time Metrics</summary>
+<summary>Response Times & Query</summary>
 
-| Min | Med | Max | Avg | P90 | P95 |
-|-----|-----|-----|-----|-----|-----|
-| ${DEEP_REC_RAMP_MIN}ms | ${DEEP_REC_RAMP_P50}ms | ${DEEP_REC_RAMP_MAX}ms | ${DEEP_REC_RAMP_AVG}ms | ${DEEP_REC_RAMP_P90}ms | ${DEEP_REC_RAMP_P95}ms |
-
-**Executed Query**
+| | Min | Med | Avg | P90 | P95 | Max |
+|:--|--:|--:|--:|--:|--:|--:|
+| **Constant** | ${DEEP_REC_MIN}ms | ${DEEP_REC_P50}ms | ${DEEP_REC_AVG}ms | ${DEEP_REC_P90}ms | ${DEEP_REC_P95}ms | ${DEEP_REC_MAX}ms |
+| **Ramping** | ${DEEP_REC_RAMP_MIN}ms | ${DEEP_REC_RAMP_P50}ms | ${DEEP_REC_RAMP_AVG}ms | ${DEEP_REC_RAMP_P90}ms | ${DEEP_REC_RAMP_P95}ms | ${DEEP_REC_RAMP_MAX}ms |
 
 \`\`\`graphql
-fragment User on User {
-  id
-  username
-  name
-}
-
-fragment Review on Review {
-  id
-  body
-}
-
-fragment Product on Product {
-  inStock
-  name
-  price
-  shippingEstimate
-  upc
-  weight
-}
-
 query TestQuery {
   users {
-    ...User
+    id
+    username
+    name
     reviews {
-      ...Review
+      id
+      body
       product {
-        ...Product
+        inStock
+        name
+        price
+        shippingEstimate
+        upc
+        weight
         reviews {
-          ...Review
+          id
+          body
           author {
-            ...User
+            id
+            username
+            name
             reviews {
-              ...Review
+              id
+              body
               product {
-                ...Product
+                inStock
+                name
+                price
+                shippingEstimate
+                upc
+                weight
               }
             }
           }
@@ -248,15 +197,29 @@ query TestQuery {
     }
   }
   topProducts(first: 5) {
-    ...Product
+    inStock
+    name
+    price
+    shippingEstimate
+    upc
+    weight
     reviews {
-      ...Review
+      id
+      body
       author {
-        ...User
+        id
+        username
+        name
         reviews {
-          ...Review
+          id
+          body
           product {
-            ...Product
+            inStock
+            name
+            price
+            shippingEstimate
+            upc
+            weight
           }
         }
       }
@@ -267,66 +230,45 @@ query TestQuery {
 
 </details>
 
+---
+
 #### Variable Batching Throughput
 
-**Constant Load (50 VUs)**
-
-| Requests/sec | Error Rate |
-|--------------|------------|
-| ${VAR_BATCH_RPS} req/s | ${VAR_BATCH_ERR}% |
-
-<details>
-<summary>📊 Response Time Metrics</summary>
-
-| Min | Med | Max | Avg | P90 | P95 |
-|-----|-----|-----|-----|-----|-----|
-| ${VAR_BATCH_MIN}ms | ${VAR_BATCH_P50}ms | ${VAR_BATCH_MAX}ms | ${VAR_BATCH_AVG}ms | ${VAR_BATCH_P90}ms | ${VAR_BATCH_P95}ms |
-
-</details>
-
-**Ramping Load (0→50→500→50 VUs)**
-
-| Requests/sec | Error Rate |
-|--------------|------------|
-| ${VAR_BATCH_RAMP_RPS} req/s | ${VAR_BATCH_RAMP_ERR}% |
+| | Req/s | Err% |
+|:--|--:|--:|
+| **Constant** (50 VUs) | ${VAR_BATCH_RPS} | ${VAR_BATCH_ERR}% |
+| **Ramping** (0-500-0 VUs) | ${VAR_BATCH_RAMP_RPS} | ${VAR_BATCH_RAMP_ERR}% |
 
 <details>
-<summary>📊 Response Time Metrics</summary>
+<summary>Response Times & Query</summary>
 
-| Min | Med | Max | Avg | P90 | P95 |
-|-----|-----|-----|-----|-----|-----|
-| ${VAR_BATCH_RAMP_MIN}ms | ${VAR_BATCH_RAMP_P50}ms | ${VAR_BATCH_RAMP_MAX}ms | ${VAR_BATCH_RAMP_AVG}ms | ${VAR_BATCH_RAMP_P90}ms | ${VAR_BATCH_RAMP_P95}ms |
-
-**Executed Query**
+| | Min | Med | Avg | P90 | P95 | Max |
+|:--|--:|--:|--:|--:|--:|--:|
+| **Constant** | ${VAR_BATCH_MIN}ms | ${VAR_BATCH_P50}ms | ${VAR_BATCH_AVG}ms | ${VAR_BATCH_P90}ms | ${VAR_BATCH_P95}ms | ${VAR_BATCH_MAX}ms |
+| **Ramping** | ${VAR_BATCH_RAMP_MIN}ms | ${VAR_BATCH_RAMP_P50}ms | ${VAR_BATCH_RAMP_AVG}ms | ${VAR_BATCH_RAMP_P90}ms | ${VAR_BATCH_RAMP_P95}ms | ${VAR_BATCH_RAMP_MAX}ms |
 
 \`\`\`graphql
-query TestQuery_8f7a46ce_2(
-  \$__fusion_1_upc: ID!
-  \$__fusion_2_price: Long!
-  \$__fusion_2_weight: Long!
-) {
-  productByUpc(upc: \$__fusion_1_upc) {
+query TestQuery(\$upc: ID!, \$price: Long!, \$weight: Long!) {
+  productByUpc(upc: \$upc) {
     inStock
-    shippingEstimate(weight: \$__fusion_2_weight, price: \$__fusion_2_price)
+    shippingEstimate(weight: \$weight, price: \$price)
   }
 }
 \`\`\`
 
-**Variables** (5 sets batched in single request)
+**Variables** (5 sets batched per request)
 
 \`\`\`json
 [
-  { "__fusion_1_upc": "1", "__fusion_2_price": 899, "__fusion_2_weight": 100 },
-  { "__fusion_1_upc": "2", "__fusion_2_price": 1299, "__fusion_2_weight": 1000 },
-  { "__fusion_1_upc": "3", "__fusion_2_price": 15, "__fusion_2_weight": 20 },
-  { "__fusion_1_upc": "4", "__fusion_2_price": 499, "__fusion_2_weight": 100 },
-  { "__fusion_1_upc": "5", "__fusion_2_price": 1299, "__fusion_2_weight": 1000 }
+  { "upc": "1", "price": 899, "weight": 100 },
+  { "upc": "2", "price": 1299, "weight": 1000 },
+  { "upc": "3", "price": 15, "weight": 20 },
+  { "upc": "4", "price": 499, "weight": 100 },
+  { "upc": "5", "price": 1299, "weight": 1000 }
 ]
 \`\`\`
 
 </details>
-
-_No baseline data available for comparison._
 EOF
 
 echo "Performance report generated: $OUTPUT_MD"

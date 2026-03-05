@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 

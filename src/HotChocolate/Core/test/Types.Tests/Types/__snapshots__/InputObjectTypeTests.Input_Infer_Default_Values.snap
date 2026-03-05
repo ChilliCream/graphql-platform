@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -14,7 +14,13 @@ input InputWithDefaultInput {
   withStringDefault: String = "abc"
   withNullDefault: String
   enum: FooEnum! = BAR
-  complexInput: [[ComplexInput!]!]! = [ [ { foo: 1 } ] ]
+  complexInput: [[ComplexInput!]!]! = [
+    [
+      {
+        foo: 1
+      }
+    ]
+  ]
   withoutDefault: String
 }
 

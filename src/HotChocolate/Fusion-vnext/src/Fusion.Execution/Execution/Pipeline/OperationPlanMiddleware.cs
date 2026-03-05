@@ -57,6 +57,7 @@ internal sealed class OperationPlanMiddleware
         var operationShortHash = operationHash[..8];
 
         using var scope = _diagnosticsEvents.PlanOperation(context, operationId);
+        var inFlightPlan = context.Features.Get<TaskCompletionSource<OperationPlan>>();
 
         try
         {
@@ -65,12 +66,20 @@ internal sealed class OperationPlanMiddleware
             var operation = rewritten.GetOperation(context.Request.OperationName);
 
             // After optimizing the query structure we can begin the planning process.
-            var operationPlan = _planner.CreatePlan(operationId, operationHash, operationShortHash, operation);
+            var operationPlan =
+                _planner.CreatePlan(
+                    operationId,
+                    operationHash,
+                    operationShortHash,
+                    operation,
+                    context.RequestAborted);
             OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
             context.SetOperationPlan(operationPlan);
+            inFlightPlan?.TrySetResult(operationPlan);
         }
         catch (Exception ex)
         {
+            inFlightPlan?.TrySetException(ex);
             _diagnosticsEvents.PlanOperationError(context, operationId, ex);
 
             throw;

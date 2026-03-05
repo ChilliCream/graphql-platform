@@ -6,7 +6,6 @@ using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using static System.Net.WebSockets.WebSocketMessageType;
 using static HotChocolate.Transport.Sockets.SocketDefaults;
 using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 

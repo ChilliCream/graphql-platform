@@ -9,19 +9,16 @@ using static HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// <para>
-/// This scalar represents a date without a time-zone in the
-/// <see href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</see> calendar system.
-/// </para>
-/// <para>
-/// The pattern is "YYYY-MM-DD" with "YYYY" representing the year, "MM" the month, and "DD" the day.
-/// </para>
+/// The <c>LocalDate</c> scalar type represents a date without time or time zone information. It is
+/// intended for scenarios where only the calendar date matters in a local context, such as contract
+/// effective dates, publication dates, or recurring events (e.g., "New Year's Day is January 1st"),
+/// where the specific time of day and time zone are irrelevant or managed separately.
 /// </summary>
-/// <seealso href="https://scalars.graphql.org/andimarek/local-date.html">Specification</seealso>
+/// <seealso href="https://scalars.graphql.org/chillicream/local-date.html">Specification</seealso>
 public class LocalDateType : ScalarType<DateOnly, StringValueNode>
 {
     private const string LocalFormat = "yyyy-MM-dd";
-    private const string SpecifiedByUri = "https://scalars.graphql.org/andimarek/local-date.html";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/local-date.html";
     private readonly bool _enforceSpecFormat;
 
     /// <summary>

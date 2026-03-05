@@ -1390,7 +1390,7 @@ public class AnyTypeTests
         var value = type.CoerceInputLiteral(new StringValueNode("Foo"));
 
         // assert
-        Assert.Equal("Foo",  Assert.IsType<JsonElement>(value).GetString());
+        Assert.Equal("Foo", Assert.IsType<JsonElement>(value).GetString());
     }
 
     [Fact]
@@ -1452,7 +1452,11 @@ public class AnyTypeTests
               jsonFromString: Any!
             }
 
-            scalar Any
+            "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+            directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+            "The `Any` scalar type represents any valid GraphQL value."
+            scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
             """);
     }
 

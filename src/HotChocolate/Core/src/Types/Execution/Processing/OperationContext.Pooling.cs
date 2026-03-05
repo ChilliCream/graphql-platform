@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
@@ -14,8 +15,12 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class OperationContext
 {
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
+    private readonly BranchTracker _branchTracker = new();
     private readonly WorkScheduler _workScheduler;
+    private readonly DeferExecutionCoordinator _deferExecutionCoordinator = new();
     private WorkScheduler _currentWorkScheduler;
+    private BranchTracker _currentBranchTracker;
+    private DeferExecutionCoordinator _currentDeferExecutionCoordinator;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
     private RequestContext _requestContext = null!;
     private Schema _schema = null!;
@@ -30,6 +35,7 @@ internal sealed partial class OperationContext
     private Func<object?> _resolveQueryRootValue = null!;
     private IBatchDispatcher _batchDispatcher = null!;
     private InputParser _inputParser = null!;
+    private int _branchId;
     private int _variableIndex;
     private object? _rootValue;
     private bool _isInitialized;
@@ -42,6 +48,8 @@ internal sealed partial class OperationContext
         _resolverTaskFactory = resolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
         _currentWorkScheduler = _workScheduler;
+        _currentBranchTracker = _branchTracker;
+        _currentDeferExecutionCoordinator = _deferExecutionCoordinator;
         _serviceScopeInitializer = serviceScopeInitializer;
         Converter = typeConverter;
     }
@@ -75,18 +83,30 @@ internal sealed partial class OperationContext
         _resolveQueryRootValue = resolveQueryRootValue;
         _batchDispatcher = batchDispatcher;
         _variableIndex = variableIndex;
-        _isInitialized = true;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
+        DeferFlags = operation.CreateDeferFlags(variables);
         Result.Data = new ResultDocument(operation, IncludeFlags);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = variableIndex;
 
-        _workScheduler.Initialize(batchDispatcher);
+        _currentBranchTracker = _branchTracker;
         _currentWorkScheduler = _workScheduler;
+        _currentDeferExecutionCoordinator = _deferExecutionCoordinator;
+        _isInitialized = true;
+
+        // once the operation context is marked as initialized we can initialize sub components.
+        _branchId = _currentBranchTracker.CreateNewBranchId();
+        _workScheduler.Initialize(_requestContext, batchDispatcher);
+        _deferExecutionCoordinator.Initialize(_currentBranchTracker, _branchId);
     }
 
-    public void InitializeFrom(OperationContext context)
+    public void InitializeDeferContext(
+        OperationContext context,
+        SelectionSet selectionSet,
+        Path selectionPath,
+        int executionBranchId,
+        DeferUsage deferUsage)
     {
         _requestContext = context._requestContext;
         _schema = context._schema;
@@ -102,23 +122,46 @@ internal sealed partial class OperationContext
         _rootValue = context._rootValue;
         _resolveQueryRootValue = context._resolveQueryRootValue;
         _batchDispatcher = context._batchDispatcher;
+        _currentBranchTracker = context._currentBranchTracker;
+        _currentWorkScheduler = context._currentWorkScheduler;
+        _currentDeferExecutionCoordinator = context._currentDeferExecutionCoordinator;
+        _branchId = executionBranchId;
         _isInitialized = true;
 
-        IncludeFlags = _operation.CreateIncludeFlags(_variables);
-        Result.Data = new ResultDocument(_operation, IncludeFlags);
+        IncludeFlags = context.IncludeFlags;
+        DeferFlags = context.DeferFlags;
+        Result.Data = new ResultDocument(
+            context.Operation,
+            selectionSet,
+            selectionPath,
+            context.IncludeFlags,
+            context.DeferFlags,
+            deferUsage);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = context._variableIndex;
+    }
 
-        _workScheduler.Initialize(_batchDispatcher);
-        _currentWorkScheduler = _workScheduler;
+    public void InitializeWorkSchedulerFrom(OperationContext context)
+    {
+        Debug.Assert(_isInitialized);
+
+        _currentBranchTracker = context._currentBranchTracker;
+        _currentWorkScheduler = context._currentWorkScheduler;
+        _branchId = _currentBranchTracker.CreateNewBranchId();
+        _deferExecutionCoordinator.Initialize(_currentBranchTracker, _branchId);
     }
 
     public void Clean()
     {
         if (_isInitialized)
         {
-            _currentWorkScheduler = _workScheduler;
+            _branchTracker.Reset();
             _workScheduler.Clear();
+            _deferExecutionCoordinator.Reset();
+
+            _currentBranchTracker = _branchTracker;
+            _currentWorkScheduler = _workScheduler;
+
             _requestContext = null!;
             _schema = null!;
             _errorHandler = null!;
@@ -131,6 +174,7 @@ internal sealed partial class OperationContext
             _rootValue = null;
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
+            _branchId = int.MinValue;
             _isInitialized = false;
             Result.Reset();
         }
@@ -141,6 +185,7 @@ internal sealed partial class OperationContext
         if (_isInitialized)
         {
             _currentWorkScheduler = _workScheduler;
+            _currentBranchTracker = _branchTracker;
         }
     }
 

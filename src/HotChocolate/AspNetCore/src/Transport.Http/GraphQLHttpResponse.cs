@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Net;
 using System.Net.Http.Headers;
 using System.IO.Pipelines;
+using HotChocolate.Buffers;
 using HotChocolate.Transport;
 using HotChocolate.Fusion.Text.Json;
 #else
@@ -10,7 +11,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 #endif
-using HotChocolate.Buffers;
 
 #if FUSION
 namespace HotChocolate.Fusion.Transport.Http;

@@ -35,8 +35,6 @@ builder
     .AddDefaultBatchDispatcher(
         new HotChocolate.Fetching.BatchDispatcherOptions
         {
-            EnableParallelBatches = false,
-            MaxParallelBatches = 4,
             MaxBatchWaitTimeUs = 50_000
         })
     .AddDiagnosticEventListener<BenchmarkDataLoaderDiagnosticEventListener>()

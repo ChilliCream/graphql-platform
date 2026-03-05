@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fetching;
@@ -19,7 +18,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private OperationResultBuilder _result = null!;
     private IErrorHandler _errorHandler = null!;
     private IExecutionDiagnosticEvents _diagnosticEvents = null!;
-    private readonly ConcurrentDictionary<uint, bool> _completed = new();
+    private readonly HashSet<uint> _completed = [];
     private uint _nextId = 1;
     private CancellationToken _ct;
 
@@ -27,8 +26,9 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private bool _isCompleted;
     private bool _isInitialized;
 
-    public void Initialize(IBatchDispatcher batchDispatcher)
+    public void Initialize(RequestContext requestContext, IBatchDispatcher batchDispatcher)
     {
+        _requestContext = requestContext;
         _batchDispatcher = batchDispatcher;
         _batchDispatcherSession = _batchDispatcher.Subscribe(this);
 
@@ -42,22 +42,16 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _isInitialized = true;
     }
 
-    public void Reset()
-    {
-        var batchDispatcher = _batchDispatcher;
-        Clear();
-        Initialize(batchDispatcher);
-    }
-
     public void Clear()
     {
         _work.Clear();
         _serial.Clear();
         _completed.Clear();
+        _activeBranches.Clear();
         _signal.Reset();
 
         _result = null!;
-        _batchDispatcherSession.Dispose();
+        _batchDispatcherSession?.Dispose();
         _batchDispatcherSession = null!;
         _batchDispatcher = null!;
 

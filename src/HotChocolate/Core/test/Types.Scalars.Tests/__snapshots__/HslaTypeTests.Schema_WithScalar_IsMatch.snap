@@ -6,5 +6,5 @@ type Query {
   scalar: Hsla
 }
 
-"The Hsla scalar type represents a CSS HSLA color as defined in https:\/\/www.w3.org\/TR\/css-color-3\/#hsla-color."
+"The Hsla scalar type represents a CSS HSLA color as defined in https://www.w3.org/TR/css-color-3/#hsla-color."
 scalar Hsla

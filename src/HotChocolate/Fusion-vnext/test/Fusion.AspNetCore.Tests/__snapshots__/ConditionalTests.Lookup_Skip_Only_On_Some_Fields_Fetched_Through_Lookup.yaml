@@ -92,7 +92,7 @@ sourceSchemas:
           document: |
             query testQuery_8a7e6c10_2(
               $skip: Boolean!
-              $__fusion_1_id: ID!
+                $__fusion_1_id: ID!
             ) {
               reviewById(id: $__fusion_1_id) {
                 rating
@@ -132,6 +132,7 @@ operationPlan:
       name: testQuery
       hash: 8a7e6c10a18f14af822384ae6c9a85c3
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -151,7 +152,7 @@ operationPlan:
       operation: |
         query testQuery_8a7e6c10_2(
           $skip: Boolean!
-          $__fusion_1_id: ID!
+            $__fusion_1_id: ID!
         ) {
           reviewById(id: $__fusion_1_id) {
             rating

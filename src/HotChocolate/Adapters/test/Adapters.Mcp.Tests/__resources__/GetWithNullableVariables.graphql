@@ -1,9 +1,9 @@
 "GetWithNullableVariables description"
 query GetWithNullableVariables(
   "Any description" $any: Any
+  "Base64String description" $base64String: Base64String
   "Boolean description" $boolean: Boolean
   "Byte description" $byte: Byte
-  "ByteArray description" $byteArray: ByteArray
   "Date description" $date: Date
   "DateTime description" $dateTime: DateTime
   "Decimal description" $decimal: Decimal
@@ -21,14 +21,19 @@ query GetWithNullableVariables(
   "String description" $string: String
   "TimeSpan description" $timeSpan: TimeSpan
   "Unknown description" $unknown: Unknown
+  "UnsignedByte description" $unsignedByte: UnsignedByte
+  "UnsignedInt description" $unsignedInt: UnsignedInt
+  "UnsignedLong description" $unsignedLong: UnsignedLong
+  "UnsignedShort description" $unsignedShort: UnsignedShort
+  "URI description" $uri: URI
   "URL description" $url: URL
   "UUID description" $uuid: UUID
 ) {
   withNullableVariables(
     any: $any
+    base64String: $base64String
     boolean: $boolean
     byte: $byte
-    byteArray: $byteArray
     date: $date
     dateTime: $dateTime
     decimal: $decimal
@@ -46,13 +51,18 @@ query GetWithNullableVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    unsignedByte: $unsignedByte
+    unsignedInt: $unsignedInt
+    unsignedLong: $unsignedLong
+    unsignedShort: $unsignedShort
+    uri: $uri
     url: $url
     uuid: $uuid
   ) {
     any
+    base64String
     boolean
     byte
-    byteArray
     date
     dateTime
     decimal
@@ -76,6 +86,11 @@ query GetWithNullableVariables(
     string
     timeSpan
     unknown
+    unsignedByte
+    unsignedInt
+    unsignedLong
+    unsignedShort
+    uri
     url
     uuid
   }

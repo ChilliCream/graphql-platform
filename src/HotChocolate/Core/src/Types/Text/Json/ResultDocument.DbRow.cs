@@ -24,7 +24,7 @@ public sealed partial class ResultDocument
         // 27 bits ParentRow + 5 reserved bits
         private readonly int _parentRow;
 
-        // 15 bits OperationReferenceId + 8 bits Flags + 9 reserved bits
+        // 15 bits OperationReferenceId + 9 bits Flags + 8 reserved bits
         private readonly int _opRefIdAndFlags;
 
         public DbRow(
@@ -125,9 +125,9 @@ public sealed partial class ResultDocument
         /// Element metadata flags.
         /// </summary>
         /// <remarks>
-        /// 8 bits = 256 combinations
+        /// 9 bits = 512 combinations
         /// </remarks>
-        public ElementFlags Flags => (ElementFlags)((_opRefIdAndFlags >> 15) & 0xFF);
+        public ElementFlags Flags => (ElementFlags)((_opRefIdAndFlags >> 15) & 0x1FF);
 
         /// <summary>
         /// True for primitive JSON values (strings, numbers, booleans, null).
@@ -143,7 +143,7 @@ public sealed partial class ResultDocument
     }
 
     [Flags]
-    internal enum ElementFlags : byte
+    internal enum ElementFlags : short
     {
         None = 0,
         IsRoot = 1,
@@ -153,6 +153,7 @@ public sealed partial class ResultDocument
         IsExcluded = 16,
         IsNullable = 32,
         IsInvalidated = 64,
-        IsEncoded = 128
+        IsEncoded = 128,
+        IsDeferred = 256
     }
 }

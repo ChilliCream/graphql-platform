@@ -74,25 +74,26 @@ public sealed partial class SourceResultDocument
 
             while (current < end)
             {
-                var row = document._parsedData.Get(current);
-                Debug.Assert(row.TokenType is JsonTokenType.PropertyName);
+                var nameRow = document._parsedData.Get(current);
+                Debug.Assert(nameRow.TokenType is JsonTokenType.PropertyName);
 
                 // property name
-                writer.WritePropertyName(document.ReadRawValue(row, includeQuotes: false));
+                writer.WritePropertyName(document.ReadRawValue(nameRow, includeQuotes: false));
 
                 // property value
-                current++;
-                row = document._parsedData.Get(current);
-                WriteValue(current, row);
+                var valueCursor = current + 1;
+                var valueRow = document._parsedData.Get(valueCursor);
+                current = valueCursor;
+                WriteValue(current, valueRow);
 
                 // next property (move past value)
-                if (row.IsSimpleValue)
+                if (valueRow.IsSimpleValue)
                 {
                     current++;
                 }
                 else
                 {
-                    current += row.NumberOfRows;
+                    current += valueRow.NumberOfRows;
                 }
             }
 

@@ -3,17 +3,17 @@
     {
       "message": "Unexpected Execution Error",
       "path": [
-        "foo"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "path": [
         "bar"
       ],
       "extensions": {
         "code": "NullRef"
       }
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "foo"
+      ]
     }
   ],
   "data": {

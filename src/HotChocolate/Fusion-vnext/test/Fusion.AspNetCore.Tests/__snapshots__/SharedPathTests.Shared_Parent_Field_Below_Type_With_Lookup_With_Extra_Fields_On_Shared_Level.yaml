@@ -153,19 +153,36 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          document: |
-            query Op_49906eea_2(
-              $__fusion_1_id: Int!
-            ) {
-              product(id: $__fusion_1_id) {
-                schema2
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": 1
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_49906eea_2(
+                  $__fusion_1_id: Int!
+                ) {
+                  product(id: $__fusion_1_id) {
+                    schema2
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": 1
+                }
+            - document: |
+                query Op_49906eea_3(
+                  $__fusion_2_id: Int!
+                ) {
+                  product(id: $__fusion_2_id) {
+                    shared {
+                      schema2
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": 1
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -175,23 +192,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_49906eea_3(
-              $__fusion_2_id: Int!
-            ) {
-              product(id: $__fusion_2_id) {
-                shared {
-                  schema2
-                }
-              }
-            }
-          variables: |
-            {
-              "__fusion_2_id": 1
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -218,6 +218,7 @@ operationPlan:
         }
       hash: 49906eeaddb0e14de3cf10cc5494b47a
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -245,6 +246,7 @@ operationPlan:
         }
       source: $.product
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -266,6 +268,7 @@ operationPlan:
         }
       source: $.product
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

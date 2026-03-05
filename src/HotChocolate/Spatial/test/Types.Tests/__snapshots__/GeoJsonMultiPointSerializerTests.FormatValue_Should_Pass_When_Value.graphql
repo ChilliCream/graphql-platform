@@ -1,1 +1,22 @@
-{ type: MultiPoint, coordinates: [ [ 10, 40 ], [ 40, 30 ], [ 20, 20 ], [ 30, 10 ] ], crs: 0 }
+{
+  type: MultiPoint,
+  coordinates: [
+    [
+      10,
+      40
+    ],
+    [
+      40,
+      30
+    ],
+    [
+      20,
+      20
+    ],
+    [
+      30,
+      10
+    ]
+  ],
+  crs: 0
+}

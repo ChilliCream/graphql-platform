@@ -4,10 +4,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class WorkQueue
 {
-    private readonly Stack<IExecutionTask> _stack = new();
+    private readonly Stack<IExecutionTask> _immediateStack = new();
+    private readonly Stack<IExecutionTask> _deferredStack = new();
     private int _running;
 
-    public bool IsEmpty => _stack.Count == 0;
+    public bool IsEmpty => _immediateStack.Count == 0 && _deferredStack.Count == 0;
 
     public bool HasRunningTasks => _running > 0;
 
@@ -25,7 +26,8 @@ internal sealed class WorkQueue
 
     public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
     {
-        if (_stack.TryPop(out executionTask))
+        if (_immediateStack.TryPop(out executionTask)
+            || _deferredStack.TryPop(out executionTask))
         {
             Interlocked.Increment(ref _running);
             return true;
@@ -38,12 +40,20 @@ internal sealed class WorkQueue
     {
         ArgumentNullException.ThrowIfNull(executionTask);
 
-        _stack.Push(executionTask);
+        if (executionTask.IsDeferred)
+        {
+            _deferredStack.Push(executionTask);
+        }
+        else
+        {
+            _immediateStack.Push(executionTask);
+        }
     }
 
     public void Clear()
     {
-        _stack.Clear();
+        _immediateStack.Clear();
+        _deferredStack.Clear();
         _running = 0;
     }
 }

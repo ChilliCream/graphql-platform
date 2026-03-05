@@ -249,7 +249,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WritePropertyName(MessageProperties.Type);
         jsonWriter.WriteStringValue(Utf8Messages.Data);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Format(result, arrayWriter);
+        _formatter.Format(result, jsonWriter);
         jsonWriter.WriteEndObject();
         await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
@@ -268,7 +268,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WritePropertyName(MessageProperties.Type);
         jsonWriter.WriteStringValue(Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Format(errors[0], arrayWriter);
+        _formatter.Format(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
         await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
@@ -317,7 +317,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         }
         else
         {
-            _formatter.Format(extensions, arrayWriter);
+            _formatter.Format(extensions, jsonWriter);
         }
 
         jsonWriter.WriteEndObject();

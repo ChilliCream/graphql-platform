@@ -18,8 +18,9 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 {
     public HttpGetMiddleware(
         HttpRequestDelegate next,
-        HttpRequestExecutorProxy executor)
-        : base(next, executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions)
+        : base(next, executor, baseOptions)
     {
     }
 
@@ -50,7 +51,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             {
                 using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
                 {
-                    await HandleRequestAsync(context, session);
+                    await HandleRequestAsync(context, session, options);
                 }
 
                 return;
@@ -62,7 +63,10 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         await NextAsync(context);
     }
 
-    private async Task HandleRequestAsync(HttpContext context, ExecutorSession session)
+    private static async Task HandleRequestAsync(
+        HttpContext context,
+        ExecutorSession session,
+        GraphQLServerOptions options)
     {
         HttpStatusCode? statusCode;
         IExecutionResult? result;
@@ -91,7 +95,6 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
         // before we can execute the request we need to determine the request flags.
         var request = parserResult.Request!;
-        var options = GetOptions(context);
         var requestFlags =
             MiddlewareHelper.DetermineHttpGetRequestFlags(
                 validationResult.RequestFlags,

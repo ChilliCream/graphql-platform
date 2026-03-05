@@ -126,8 +126,7 @@ public class ActivityEnricher
         if (request.Variables is not null
             && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            var node = CreateVariablesNode(request.Variables);
-            EnrichRequestVariables(context, request, node, activity);
+            EnrichRequestVariables(context, request, request.Variables, activity);
         }
 
         if (request.Extensions is not null
@@ -175,8 +174,7 @@ public class ActivityEnricher
             if (request.Variables is not null
                 && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
             {
-                var node = CreateVariablesNode(request.Variables);
-                EnrichBatchVariables(context, request, node, i, activity);
+                EnrichBatchVariables(context, request, request.Variables, i, activity);
             }
 
             if (request.Extensions is not null
@@ -222,8 +220,7 @@ public class ActivityEnricher
         if (request.Variables is not null
             && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            var node = CreateVariablesNode(request.Variables);
-            EnrichRequestVariables(context, request, node, activity);
+            EnrichRequestVariables(context, request, request.Variables, activity);
         }
 
         if (request.Extensions is not null
@@ -236,21 +233,17 @@ public class ActivityEnricher
     protected virtual void EnrichRequestVariables(
         HttpContext context,
         GraphQLRequest request,
-        ISyntaxNode variables,
+        JsonDocument variables,
         Activity activity)
-    {
-        activity.SetTag("graphql.http.request.variables", variables.Print());
-    }
+        => activity.SetTag("graphql.http.request.variables", variables.RootElement.ToString());
 
     protected virtual void EnrichBatchVariables(
         HttpContext context,
         GraphQLRequest request,
-        ISyntaxNode variables,
+        JsonDocument variables,
         int index,
         Activity activity)
-    {
-        activity.SetTag($"graphql.http.request[{index}].variables", variables.Print());
-    }
+        => activity.SetTag($"graphql.http.request[{index}].variables", variables.RootElement.ToString());
 
     protected virtual void EnrichRequestExtensions(
         HttpContext context,
@@ -619,24 +612,6 @@ public class ActivityEnricher
         }
 
         activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
-    }
-
-    private static ISyntaxNode CreateVariablesNode(JsonDocument? variables)
-    {
-        if (variables is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        var root = variables.RootElement;
-
-        if (root.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
-        {
-            throw new InvalidOperationException();
-        }
-
-        var parser = new JsonValueParser();
-        return parser.Parse(root);
     }
 }
 

@@ -23,8 +23,8 @@ response:
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjc=",
-                "email": "Author: QXV0aG9yOjc="
+                "displayName": "Author: QXV0aG9yOjk=",
+                "email": "Author: QXV0aG9yOjk="
               }
             }
           },
@@ -39,8 +39,8 @@ response:
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjk=",
-                "email": "Author: QXV0aG9yOjk="
+                "displayName": "Author: QXV0aG9yOjc=",
+                "email": "Author: QXV0aG9yOjc="
               }
             }
           }
@@ -105,7 +105,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjc="
+                          "id": "QXV0aG9yOjk="
                         }
                       }
                     },
@@ -121,7 +121,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjk="
+                          "id": "QXV0aG9yOjc="
                         }
                       }
                     }
@@ -145,85 +145,51 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_a7ffad65_2(
-              $__fusion_1_id: ID!
-            ) {
-              authorById(id: $__fusion_1_id) {
-                email
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_1_id": "QXV0aG9yOjc="
-              },
-              {
-                "__fusion_1_id": "QXV0aG9yOjg="
-              },
-              {
-                "__fusion_1_id": "QXV0aG9yOjk="
-              }
-            ]
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_a7ffad65_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    email
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjk="
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjg="
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjc="
+                  }
+                ]
+            - document: |
+                query testQuery_a7ffad65_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    displayName
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjk="
+                  },
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjg="
+                  },
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjc="
+                  }
+                ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "email": "Author: QXV0aG9yOjc="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "email": "Author: QXV0aG9yOjg="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "email": "Author: QXV0aG9yOjk="
-                  }
-                }
-              }
-      - request:
-          document: |
-            query testQuery_a7ffad65_3(
-              $__fusion_2_id: ID!
-            ) {
-              authorById(id: $__fusion_2_id) {
-                displayName
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "QXV0aG9yOjc="
-              },
-              {
-                "__fusion_2_id": "QXV0aG9yOjg="
-              },
-              {
-                "__fusion_2_id": "QXV0aG9yOjk="
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
-                  }
-                }
-              }
             - |
               {
                 "data": {
@@ -236,7 +202,39 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
+                    "displayName": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
                     "displayName": "Author: QXV0aG9yOjk="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjk="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjg="
                   }
                 }
               }
@@ -263,6 +261,7 @@ operationPlan:
       name: testQuery
       hash: a7ffad6524e32b71feed6541aa4acfb2
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -296,6 +295,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.wrappers.authorable<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -315,6 +315,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.wrappers.authorable.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

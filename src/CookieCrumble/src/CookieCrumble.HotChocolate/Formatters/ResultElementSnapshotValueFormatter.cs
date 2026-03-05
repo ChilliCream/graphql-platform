@@ -8,5 +8,5 @@ internal sealed class ResultElementSnapshotValueFormatter
     : SnapshotValueFormatter<ResultElement>
 {
     protected override void Format(IBufferWriter<byte> snapshot, ResultElement element)
-    => element.WriteTo(snapshot, indented: true);
+        => element.WriteTo(snapshot, indented: true);
 }

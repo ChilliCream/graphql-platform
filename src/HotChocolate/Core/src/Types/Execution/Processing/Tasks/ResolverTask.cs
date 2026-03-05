@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -8,8 +7,9 @@ namespace HotChocolate.Execution.Processing.Tasks;
 internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) : IExecutionTask
 {
     private readonly MiddlewareContext _context = new();
-    private readonly List<ResolverTask> _taskBuffer = [];
-    private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
+    private readonly List<IExecutionTask> _taskBuffer = [];
+    private readonly Dictionary<string, ArgumentValue> _args =
+        new Dictionary<string, ArgumentValue>(StringComparer.Ordinal);
     private OperationContext _operationContext = null!;
     private Selection _selection = null!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
@@ -18,6 +18,20 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// Gets or sets the internal execution id.
     /// </summary>
     public uint Id { get; set; }
+
+    /// <summary>
+    /// Gets the execution branch identifier this task belongs to.
+    /// Used by the defer coordinator to track which deferred execution branch
+    /// this task contributes results to.
+    /// </summary>
+    public int BranchId { get; private set; }
+
+    /// <summary>
+    /// Gets the primary defer usage that caused this execution branch to be created.
+    /// Used to determine whether child tasks should create new branches when their
+    /// primary defer usage differs from this one.
+    /// </summary>
+    internal DeferUsage? DeferUsage { get; private set; }
 
     /// <summary>
     /// Gets access to the resolver context for this task.
@@ -63,9 +77,12 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     public bool IsRegistered { get; set; }
 
     /// <inheritdoc />
+    public bool IsDeferred => DeferUsage is not null;
+
+    /// <inheritdoc />
     public void BeginExecute(CancellationToken cancellationToken)
     {
         Status = ExecutionTaskStatus.Running;
-        ExecuteAsync(cancellationToken).FireAndForget();
+        _ = ExecuteAsync(cancellationToken);
     }
 }

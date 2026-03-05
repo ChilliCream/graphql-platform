@@ -14,7 +14,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class DeleteMcpFeatureCollectionCommand : Command
 {
-   public DeleteMcpFeatureCollectionCommand() : base("delete")
+    public DeleteMcpFeatureCollectionCommand() : base("delete")
     {
         Description = "Deletes an MCP Feature Collection";
 
@@ -41,14 +41,14 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         console.WriteLine("Deleting an MCP Feature Collection");
         console.WriteLine();
 
-        const string apiMessage = "For which api do you want to delete an MCP Feature Collection?";
+        const string apiMessage = "For which API do you want to delete an MCP Feature Collection?";
         const string mcpFeatureCollectionMessage = "Which MCP Feature Collection do you want to delete?";
 
         if (mcpFeatureCollectionId is null)
         {
             if (!console.IsHumanReadable())
             {
-                throw Exit("The MCP Feature Collection id is required in non-interactive mode.");
+                throw Exit("The MCP Feature Collection ID is required in non-interactive mode.");
             }
 
             var workspaceId = context.RequireWorkspaceId();
@@ -76,7 +76,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         }
 
         var shouldDelete = await context.ConfirmWhenNotForced(
-            $"Do you want to delete the MCP Feature Collection with the id {mcpFeatureCollectionId}?"
+            $"Do you want to delete the MCP Feature Collection with the ID {mcpFeatureCollectionId}?"
                 .EscapeMarkup(),
             cancellationToken);
 

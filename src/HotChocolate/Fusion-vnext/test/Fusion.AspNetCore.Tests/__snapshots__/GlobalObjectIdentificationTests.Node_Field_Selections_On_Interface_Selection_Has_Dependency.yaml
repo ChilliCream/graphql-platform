@@ -207,6 +207,7 @@ operationPlan:
       name: testQuery
       hash: 70eb13080ba34e01a2aca487ab0f3a22
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Node
@@ -249,6 +250,7 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -269,6 +271,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item2>.products
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -293,6 +296,7 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -313,6 +317,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item1>.products
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

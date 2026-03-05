@@ -174,7 +174,7 @@ internal static class ErrorFactoryCompiler
                         Expression.Assign(variable, createError),
                         previous is null
                             ? Expression.Assign(variable, nullValue)
-                            : Expression.Assign(variable, previous));
+                            : previous);
             }
         }
 

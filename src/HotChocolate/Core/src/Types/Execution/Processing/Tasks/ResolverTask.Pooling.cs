@@ -14,12 +14,15 @@ internal sealed partial class ResolverTask
         ResultElement resultValue,
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContextData,
-        Path? path)
+        int executionBranchId,
+        DeferUsage? deferUsage)
     {
         _operationContext = operationContext;
         _selection = selection;
-        _context.Initialize(parent, selection, resultValue, operationContext, scopedContextData, path);
+        _context.Initialize(parent, selection, resultValue, operationContext, deferUsage, scopedContextData);
         IsSerial = selection.Strategy is SelectionExecutionStrategy.Serial;
+        BranchId = executionBranchId;
+        DeferUsage = deferUsage;
     }
 
     /// <summary>
@@ -34,6 +37,8 @@ internal sealed partial class ResolverTask
         _context.Clean();
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;
+        BranchId = int.MinValue;
+        DeferUsage = null;
         IsRegistered = false;
         Next = null;
         Previous = null;

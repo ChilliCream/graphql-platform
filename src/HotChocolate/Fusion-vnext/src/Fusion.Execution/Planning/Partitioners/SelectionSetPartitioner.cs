@@ -15,7 +15,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         var context = new Context
         {
             SchemaName = input.SchemaName,
-            AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionSet.Path,
             SelectionSetIndex = input.SelectionSetIndex
         };
@@ -25,13 +24,44 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 input.SelectionSet.Type,
                 input.SelectionSet.Node,
-                input.ProvidedSelectionSetNode);
+                null);
 
         return new SelectionSetPartitionerResult(
             resolvable,
             context.Unresolvable,
             context.FieldsWithRequirements,
             context.SelectionSetIndex);
+    }
+
+    private static ExecutionNodeCondition[]? ExtractDirectiveConditions(
+        IReadOnlyList<DirectiveNode> directives)
+    {
+        List<ExecutionNodeCondition>? conditions = null;
+
+        foreach (var directive in directives)
+        {
+            var passingValue = directive.Name.Value switch
+            {
+                "skip" => false,
+                "include" => true,
+                _ => (bool?)null
+            };
+
+            if (passingValue.HasValue
+                && directive.Arguments.Count > 0
+                && directive.Arguments[0].Value is VariableNode variable)
+            {
+                conditions ??= [];
+                conditions.Add(new ExecutionNodeCondition
+                {
+                    VariableName = variable.Name.Value,
+                    PassingValue = passingValue.Value,
+                    Directive = directive
+                });
+            }
+        }
+
+        return conditions?.ToArray();
     }
 
     private (SelectionSetNode?, SelectionSetNode?) RewriteSelectionSet(
@@ -73,12 +103,17 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                             }
                         }
 
+                        var fieldConditions = ExtractDirectiveConditions(fieldNode.Directives);
+                        var savedCount = context.PushConditions(fieldConditions);
+
                         var (resolvable, unresolvable) =
                             RewriteFieldNode(
                                 context,
                                 complexType!,
                                 fieldNode,
                                 GetProvidedField(fieldNode, providedSelectionSetNode));
+
+                        context.PopConditions(savedCount);
 
                         CompleteSelection(fieldNode, resolvable, unresolvable, i);
                     }
@@ -87,12 +122,17 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
                 case InlineFragmentNode inlineFragmentNode:
                 {
+                    var fragmentConditions = ExtractDirectiveConditions(inlineFragmentNode.Directives);
+                    var savedCount = context.PushConditions(fragmentConditions);
+
                     var (resolvable, unresolvable) =
                         RewriteFragmentNode(
                             context,
                             type,
                             inlineFragmentNode,
                             providedSelectionSetNode);
+
+                    context.PopConditions(savedCount);
 
                     CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     break;
@@ -126,7 +166,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 unresolvableSelectionSet,
                 type,
                 context.BuildPath());
-            context.Unresolvable = context.Unresolvable.Push(selectionSet);
+            context.Unresolvable = context.Unresolvable.Push(
+                new ConditionedSelectionSet(selectionSet, context.SnapshotConditions()));
             unresolvableSelections = null;
         }
 
@@ -237,20 +278,15 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             {
                 context.FieldsWithRequirements =
                     context.FieldsWithRequirements.Push(
-                        new FieldSelection(
-                            context.GetId((SelectionSetNode)context.Nodes.Peek()),
-                            fieldNode,
-                            field,
-                            context.BuildPath()));
+                        new ConditionedFieldSelection(
+                            new FieldSelection(
+                                context.GetId((SelectionSetNode)context.Nodes.Peek()),
+                                fieldNode,
+                                field,
+                                context.BuildPath()),
+                            context.SnapshotConditions()));
                 return (null, null);
             }
-
-            // if requirements are not allowed we return null
-            // which will remove the field from the rewritten selection set.
-            // if (!context.AllowRequirements && source.Requirements is not null)
-            // {
-            //    return (null, fieldNode);
-            // }
         }
 
         var selectionSet = fieldNode.SelectionSet;
@@ -326,8 +362,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
     {
         public required string SchemaName { get; init; }
 
-        public required bool AllowRequirements { get; init; }
-
         public required SelectionPath RootPath { get; init; }
 
         public required ISelectionSetIndex SelectionSetIndex { get; set; } = null!;
@@ -347,11 +381,40 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
         }
 
-        public ImmutableStack<SelectionSet> Unresolvable { get; set; } = [];
+        public ImmutableStack<ConditionedSelectionSet> Unresolvable { get; set; } = [];
 
-        public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; } = [];
+        public ImmutableStack<ConditionedFieldSelection> FieldsWithRequirements { get; set; } = [];
 
         public List<ISyntaxNode> Nodes { get; } = [];
+
+        private List<ExecutionNodeCondition> ActiveConditions { get; } = [];
+
+        public int PushConditions(ExecutionNodeCondition[]? conditions)
+        {
+            if (conditions is null || conditions.Length == 0)
+            {
+                return ActiveConditions.Count;
+            }
+
+            var savedCount = ActiveConditions.Count;
+            ActiveConditions.AddRange(conditions);
+            return savedCount;
+        }
+
+        public void PopConditions(int savedCount)
+        {
+            if (savedCount < ActiveConditions.Count)
+            {
+                ActiveConditions.RemoveRange(savedCount, ActiveConditions.Count - savedCount);
+            }
+        }
+
+        public ExecutionNodeCondition[] SnapshotConditions()
+        {
+            return ActiveConditions.Count == 0
+                ? []
+                : ActiveConditions.ToArray();
+        }
 
         public SelectionPath BuildPath()
         {

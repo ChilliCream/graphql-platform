@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Processing;
-using HotChocolate.Properties;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
@@ -99,6 +98,7 @@ internal static class OperationContextExtensions
             {
                 RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : null,
                 VariableIndex = resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : null,
+                Document = context.Operation.Document,
                 ContextData = resultBuilder.ContextData
             };
 

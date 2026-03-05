@@ -51,6 +51,8 @@ public sealed partial class JsonWriter
     /// </remarks>
     public void WriteStringValue(ReadOnlySpan<char> value)
     {
+        FlushDeferredPropertyName();
+
         WriteStringEscape(value);
 
         SetFlagToAddListSeparatorBeforeNextItem();
@@ -192,6 +194,8 @@ public sealed partial class JsonWriter
     /// </remarks>
     public void WriteStringValue(ReadOnlySpan<byte> utf8Value, bool skipEscaping = false)
     {
+        FlushDeferredPropertyName();
+
         ValidateValue(utf8Value);
 
         if (skipEscaping)
@@ -392,6 +396,8 @@ public sealed partial class JsonWriter
     /// <param name="utf8Value"></param>
     internal void WriteNumberValueAsStringUnescaped(ReadOnlySpan<byte> utf8Value)
     {
+        FlushDeferredPropertyName();
+
         // The value has been validated prior to calling this method.
 
         WriteStringByOptions(utf8Value);

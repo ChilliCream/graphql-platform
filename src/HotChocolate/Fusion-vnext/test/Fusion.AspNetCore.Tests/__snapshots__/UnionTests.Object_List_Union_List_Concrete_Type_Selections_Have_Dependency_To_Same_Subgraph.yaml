@@ -26,45 +26,7 @@ response:
             "posts": [
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxNQ=="
-                }
-              },
-              {
-                "author": {
-                  "subgraph2": "Author: QXV0aG9yOjE0"
-                }
-              },
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxMw=="
-                }
-              }
-            ]
-          },
-          {
-            "posts": [
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxOA=="
-                }
-              },
-              {
-                "author": {
-                  "subgraph2": "Author: QXV0aG9yOjE3"
-                }
-              },
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxNg=="
-                }
-              }
-            ]
-          },
-          {
-            "posts": [
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                  "subgraph2": "Product: UHJvZHVjdDoxOQ=="
                 }
               },
               {
@@ -74,7 +36,45 @@ response:
               },
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+                  "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                }
+              }
+            ]
+          },
+          {
+            "posts": [
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxNg=="
+                }
+              },
+              {
+                "author": {
+                  "subgraph2": "Author: QXV0aG9yOjE3"
+                }
+              },
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxOA=="
+                }
+              }
+            ]
+          },
+          {
+            "posts": [
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxMw=="
+                }
+              },
+              {
+                "author": {
+                  "subgraph2": "Author: QXV0aG9yOjE0"
+                }
+              },
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxNQ=="
                 }
               }
             ]
@@ -147,51 +147,7 @@ sourceSchemas:
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxNQ=="
-                          }
-                        },
-                        {
-                          "__typename": "Discussion",
-                          "author": {
-                            "id": "QXV0aG9yOjE0"
-                          }
-                        },
-                        {
-                          "__typename": "Photo",
-                          "product": {
-                            "id": "UHJvZHVjdDoxMw=="
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "posts": [
-                        {
-                          "__typename": "Photo",
-                          "product": {
-                            "id": "UHJvZHVjdDoxOA=="
-                          }
-                        },
-                        {
-                          "__typename": "Discussion",
-                          "author": {
-                            "id": "QXV0aG9yOjE3"
-                          }
-                        },
-                        {
-                          "__typename": "Photo",
-                          "product": {
-                            "id": "UHJvZHVjdDoxNg=="
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "posts": [
-                        {
-                          "__typename": "Photo",
-                          "product": {
-                            "id": "UHJvZHVjdDoyMQ=="
+                            "id": "UHJvZHVjdDoxOQ=="
                           }
                         },
                         {
@@ -203,7 +159,51 @@ sourceSchemas:
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxOQ=="
+                            "id": "UHJvZHVjdDoyMQ=="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxNg=="
+                          }
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "author": {
+                            "id": "QXV0aG9yOjE3"
+                          }
+                        },
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxOA=="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxMw=="
+                          }
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "author": {
+                            "id": "QXV0aG9yOjE0"
+                          }
+                        },
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxNQ=="
                           }
                         }
                       ]
@@ -233,94 +233,60 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_42ede545_2(
-              $__fusion_1_id: ID!
-            ) {
-              authorById(id: $__fusion_1_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_1_id": "QXV0aG9yOjE0"
-              },
-              {
-                "__fusion_1_id": "QXV0aG9yOjE3"
-              },
-              {
-                "__fusion_1_id": "QXV0aG9yOjIw"
-              }
-            ]
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_42ede545_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    subgraph2
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjIw"
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjE3"
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjE0"
+                  }
+                ]
+            - document: |
+                query testQuery_42ede545_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  productById(id: $__fusion_2_id) {
+                    subgraph2
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxOQ=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoyMQ=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxNg=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxOA=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxMw=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxNQ=="
+                  }
+                ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjE0"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjE3"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjIw"
-                  }
-                }
-              }
-      - request:
-          document: |
-            query testQuery_42ede545_3(
-              $__fusion_2_id: ID!
-            ) {
-              productById(id: $__fusion_2_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxMw=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxOA=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxNg=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoyMQ=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxNQ=="
-                  }
-                }
-              }
             - |
               {
                 "data": {
@@ -333,7 +299,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxOA=="
+                    "subgraph2": "Product: UHJvZHVjdDoxNQ=="
                   }
                 }
               }
@@ -349,7 +315,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                    "subgraph2": "Product: UHJvZHVjdDoxOA=="
                   }
                 }
               }
@@ -358,6 +324,38 @@ sourceSchemas:
                 "data": {
                   "productById": {
                     "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjE3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjE0"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjIw"
                   }
                 }
               }
@@ -386,6 +384,7 @@ operationPlan:
       name: testQuery
       hash: 42ede54588c2356a02a9e3bfb1f8a283
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -421,6 +420,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.users.posts<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -440,6 +440,7 @@ operationPlan:
         }
       source: $.productById
       target: $.users.posts<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

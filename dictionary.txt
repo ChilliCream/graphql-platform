@@ -5,9 +5,10 @@ accessibilities
 agrc
 Alderaan
 Andi
-andimarek
+appsettings
 ASPDEPR004
 ASPDEPR008
+aspnet
 aspnetcore
 Astromech
 automagically
@@ -19,6 +20,7 @@ bananacakepop
 bbox
 BCPROCKS
 bfnrt
+birthdates
 blazor
 blazorwasm
 Brontie
@@ -37,12 +39,14 @@ combinators
 contentfiles
 Contoso
 CQRS
+creds
 dataloaders
 debuggable
 decompile
 depersist
 deprioritization
 deprioritized
+Diagnoser
 Dispatchable
 DOCKERHUB
 drawio
@@ -52,12 +56,14 @@ EPSG
 esque
 evolvability
 Fanout
+FFFFFFFZ
 fffzzz
 fieldset
 FIPS
 foos
 fricking
 frontends
+Fzzz
 GEOGCS
 Giroux
 GraphiQL
@@ -155,6 +161,7 @@ runbooks
 Satisfiability
 Senn
 shoooe
+SHORTSHA
 Silmarillion
 skybridge
 Skywalker
@@ -182,6 +189,7 @@ Tatooine
 Tengler
 Testcontainers
 Toub
+Touchpoint
 TOWGS
 Trimmable
 Tzdb
@@ -198,3 +206,4 @@ websockets
 Wilhuff
 Wunder
 xunit
+Expando

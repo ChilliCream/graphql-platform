@@ -14,7 +14,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class DeleteOpenApiCollectionCommand : Command
 {
-   public DeleteOpenApiCollectionCommand() : base("delete")
+    public DeleteOpenApiCollectionCommand() : base("delete")
     {
         Description = "Deletes an OpenAPI collection";
 
@@ -41,14 +41,14 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
         console.WriteLine("Deleting an OpenAPI collection");
         console.WriteLine();
 
-        const string apiMessage = "For which api do you want to delete an OpenAPI collection?";
+        const string apiMessage = "For which API do you want to delete an OpenAPI collection?";
         const string openApiCollectionMessage = "Which OpenAPI collection do you want to delete?";
 
         if (openApiCollectionId is null)
         {
             if (!console.IsHumanReadable())
             {
-                throw Exit("The OpenAPI collection id is required in non-interactive mode.");
+                throw Exit("The OpenAPI collection ID is required in non-interactive mode.");
             }
 
             var workspaceId = context.RequireWorkspaceId();
@@ -76,7 +76,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
         }
 
         var shouldDelete = await context.ConfirmWhenNotForced(
-            $"Do you want to delete the OpenAPI collection with the id {openApiCollectionId}?"
+            $"Do you want to delete the OpenAPI collection with the ID {openApiCollectionId}?"
                 .EscapeMarkup(),
             cancellationToken);
 

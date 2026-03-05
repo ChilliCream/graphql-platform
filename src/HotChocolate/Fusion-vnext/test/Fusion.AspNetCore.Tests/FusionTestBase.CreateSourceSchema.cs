@@ -20,7 +20,9 @@ public abstract partial class FusionTestBase
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<HttpClient>? configureHttpClient = null,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaHttpClientBatchingMode batchingMode =
+            SourceSchemaHttpClientBatchingMode.VariableBatching
+                | SourceSchemaHttpClientBatchingMode.RequestBatching,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         bool isOffline = false,
         bool isTimingOut = false)
@@ -31,8 +33,7 @@ public abstract partial class FusionTestBase
                 app.UseWebSockets();
                 app.UseRouting();
                 app.UseEndpoints(endpoint =>
-                    endpoint.MapGraphQL(schemaName: schemaName)
-                        .WithOptions(new GraphQLServerOptions { EnableBatching = true }));
+                    endpoint.MapGraphQL(schemaName: schemaName));
             };
 
         return _testServerSession.CreateServer(
@@ -41,6 +42,7 @@ public abstract partial class FusionTestBase
                 services.AddRouting();
                 var builder = services.AddGraphQLServer(schemaName, disableDefaultSecurity: true);
                 builder.AddSourceSchemaDefaults();
+                builder.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
 
@@ -61,7 +63,9 @@ public abstract partial class FusionTestBase
         string schemaText,
         bool isOffline = false,
         bool isTimingOut = false,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaHttpClientBatchingMode batchingMode =
+            SourceSchemaHttpClientBatchingMode.VariableBatching
+                | SourceSchemaHttpClientBatchingMode.RequestBatching,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         Action<HttpClient>? configureHttpClient = null,
         HttpClient? httpClient = null)
@@ -76,7 +80,8 @@ public abstract partial class FusionTestBase
                     .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
                     .AddDocumentFromString(schemaText)
                     .AddResolverMocking()
-                    .AddTestDirectives();
+                    .AddTestDirectives()
+                    .ModifyServerOptions(o => o.Batching = AllowedBatching.All);
 
                 services.Configure<SourceSchemaOptions>(opt =>
                 {
@@ -92,10 +97,7 @@ public abstract partial class FusionTestBase
             {
                 app.UseRouting();
                 app.UseEndpoints(endpoint =>
-                {
-                    endpoint.MapGraphQL(schemaName: schemaName)
-                        .WithOptions(new GraphQLServerOptions { EnableBatching = true });
-                });
+                    endpoint.MapGraphQL(schemaName: schemaName));
             });
     }
 

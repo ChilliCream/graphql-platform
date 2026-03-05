@@ -69,7 +69,7 @@ After cloning the repository, run `init.sh` or `init.cmd`, which are located in 
 Other more focused solution files exist if you want to narrow in on a particular part of the platform.
 The smaller solution files are great when working with VSCode.
 
-The documentation is located in the `website` directory and can be started with `yarn start`.
+The documentation is located in the `website` directory and can be started with `yarn dev`.
 
 There are other available commands too. As set up in the [.build](./.build/) directory.
 

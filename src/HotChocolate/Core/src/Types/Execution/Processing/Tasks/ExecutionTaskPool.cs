@@ -5,7 +5,7 @@ using static System.Threading.Interlocked;
 namespace HotChocolate.Execution.Processing.Tasks;
 
 /// <summary>
-///  A pool of objects. Buffers a set of objects to ensure fast, thread safe object pooling
+/// A pool of objects. Buffers a set of objects to ensure fast, thread safe object pooling
 /// </summary>
 internal sealed class ExecutionTaskPool<T, TPolicy> : ObjectPool<T>
     where T : class, IExecutionTask
@@ -22,8 +22,8 @@ internal sealed class ExecutionTaskPool<T, TPolicy> : ObjectPool<T>
     }
 
     /// <summary>
-    ///  Gets an object from the buffer if one is available, otherwise get a new buffer
-    ///  from the pool one.
+    /// Gets an object from the buffer if one is available, otherwise get a new buffer
+    /// from the pool one.
     /// </summary>
     /// <returns>A <see cref="ResolverTask"/>.</returns>
     public override T Get()
@@ -49,8 +49,8 @@ internal sealed class ExecutionTaskPool<T, TPolicy> : ObjectPool<T>
     }
 
     /// <summary>
-    ///  Return an object from the buffer if one is available. If the buffer is full
-    ///  return the buffer to the pool
+    /// Return an object from the buffer if one is available. If the buffer is full
+    /// return the buffer to the pool
     /// </summary>
     public override void Return(T obj)
     {

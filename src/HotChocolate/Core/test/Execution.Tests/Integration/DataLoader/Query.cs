@@ -1,5 +1,4 @@
 using GreenDonut;
-using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 

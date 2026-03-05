@@ -146,7 +146,7 @@ internal static class CompositionHelper
             WellKnownVersions.LatestGatewayFormatVersion,
             cancellationToken);
 
-        await SaveCompositionSettingsAsync(archive, schemaComposerOptions, cancellationToken);
+        await SaveCompositionSettingsAsync(archive, mergedCompositionSettings, cancellationToken);
 
         await archive.CommitAsync(cancellationToken);
 
@@ -160,31 +160,14 @@ internal static class CompositionHelper
         var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
 
         return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
-            ?? new CompositionSettings
-            {
-                Merger = new CompositionSettings.MergerSettings
-                {
-                    EnableGlobalObjectIdentification = false
-                }
-            };
+            ?? new CompositionSettings();
     }
 
     private static async Task SaveCompositionSettingsAsync(
         FusionArchive archive,
-        SchemaComposerOptions options,
+        CompositionSettings settings,
         CancellationToken cancellationToken)
     {
-        var settings = new CompositionSettings
-        {
-            Merger = new CompositionSettings.MergerSettings
-            {
-                EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
-            },
-            Satisfiability = new CompositionSettings.SatisfiabilitySettings
-            {
-                IncludeSatisfiabilityPaths = options.Satisfiability.IncludeSatisfiabilityPaths
-            }
-        };
         var settingsJson = JsonSerializer.SerializeToDocument(
             settings,
             SettingsJsonSerializerContext.Default.CompositionSettings);

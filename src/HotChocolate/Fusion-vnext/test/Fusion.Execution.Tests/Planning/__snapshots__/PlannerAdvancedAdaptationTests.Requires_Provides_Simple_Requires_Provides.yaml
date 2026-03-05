@@ -1,0 +1,78 @@
+operation:
+  - document: |
+      {
+        me {
+          reviews {
+            id
+            author {
+              id
+              username
+            }
+            product {
+              inStock
+              upc @fusion__requirement
+            }
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: accounts
+    operation: |
+      query Op_123456789101112_1 {
+        me {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        userById(id: $__fusion_1_id) {
+          reviews {
+            id
+            author {
+              id
+              username
+            }
+            product {
+              upc
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.me
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: inventory
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_upc: String!
+      ) {
+        productByUpc(upc: $__fusion_2_upc) {
+          inStock
+        }
+      }
+    source: $.productByUpc
+    target: $.me.reviews.product
+    requirements:
+      - name: __fusion_2_upc
+        selectionMap: >-
+          upc
+    dependencies:
+      - id: 2

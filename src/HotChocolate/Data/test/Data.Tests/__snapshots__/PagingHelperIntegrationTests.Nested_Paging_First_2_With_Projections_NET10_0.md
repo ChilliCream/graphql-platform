@@ -19,7 +19,7 @@ LIMIT @p
 ## SQL 1
 
 ```sql
--- @keys={ '2', '1' } (DbType = Object)
+-- @keys={ '1', '2' } (DbType = Object)
 SELECT p1."BrandId", p3."Name", p3."BrandId", p3."Id"
 FROM (
     SELECT p."BrandId"
@@ -101,4 +101,3 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Name", p3."Id"
   }
 }
 ```
-

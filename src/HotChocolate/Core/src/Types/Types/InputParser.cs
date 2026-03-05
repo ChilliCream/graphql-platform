@@ -475,21 +475,24 @@ public sealed class InputParser
         InputField? field,
         IFeatureProvider context)
     {
+        var list = CreateList(type);
+
         if (inputValue.ValueKind is JsonValueKind.Array)
         {
-            var list = CreateList(type);
-
             var i = 0;
             foreach (var element in inputValue.EnumerateArray())
             {
                 var newPath = path.Append(i++);
                 list.Add(Deserialize(element, type.ElementType, newPath, field, context));
             }
-
-            return list;
+        }
+        else
+        {
+            var newPath = path.Append(0);
+            list.Add(Deserialize(inputValue, type.ElementType, newPath, field, context));
         }
 
-        throw ParseList_InvalidValueKind(type, path);
+        return list;
     }
 
     private object DeserializeObject(JsonElement inputValue, InputObjectType type, Path path, IFeatureProvider context)
@@ -619,14 +622,6 @@ public sealed class InputParser
             }
 
             object? value = null;
-
-            // if the type is nullable but the runtime type is a non-nullable value
-            // we will create a default instance and assign that instead.
-            if (field.RuntimeType.IsValueType)
-            {
-                value = Activator.CreateInstance(field.RuntimeType);
-            }
-
             return field.IsOptional
                 ? new Optional(value, false)
                 : value;

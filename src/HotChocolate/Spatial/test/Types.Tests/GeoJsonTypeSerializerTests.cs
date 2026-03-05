@@ -202,7 +202,7 @@ public class GeoJsonTypeSerializerTests
         var serializer = GeoJsonTypeSerializer.Default;
 
         // act
-        var success = serializer.TryParseString(typeName, out var resultValue);
+        var success = serializer.TryParseString(typeName, out _);
 
         // assert
         Assert.True(success);

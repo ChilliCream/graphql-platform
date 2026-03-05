@@ -6,8 +6,8 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
-using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,14 +62,12 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
         {
             // arrange
             using var testServer = CreateStarWarsServer(
-                configureConventions: mapping => mapping.WithOptions(
-                    new GraphQLServerOptions
+                configureServices: s => s
+                    .AddGraphQL()
+                    .ModifyServerOptions(o =>
                     {
-                        Sockets =
-                        {
-                            ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                            KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                        }
+                        o.Sockets.ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50);
+                        o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
                     }));
             var client = CreateWebSocketClient(testServer);
 

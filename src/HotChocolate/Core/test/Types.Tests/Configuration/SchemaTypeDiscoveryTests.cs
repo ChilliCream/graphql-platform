@@ -105,7 +105,7 @@ public class SchemaTypeDiscoveryTests
         // act
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithCustomScalar>()
-            .AddType<ByteArrayType>()
+            .AddType<Base64StringType>()
             .Create();
 
         // assert
@@ -113,7 +113,7 @@ public class SchemaTypeDiscoveryTests
         Assert.NotNull(fooByte);
 
         var field = fooByte.Fields["bar"];
-        Assert.Equal("ByteArray", field.Type.NamedType().Name);
+        Assert.Equal("Base64String", field.Type.NamedType().Name);
     }
 
     public class QueryFieldArgument(Bar bar)
@@ -180,9 +180,9 @@ public class SchemaTypeDiscoveryTests
         Bar
     }
 
-    public class ByteArrayType : ScalarType
+    public class Base64StringType : ScalarType
     {
-        public ByteArrayType() : base("ByteArray", BindingBehavior.Implicit)
+        public Base64StringType() : base("Base64String", BindingBehavior.Implicit)
         {
         }
 

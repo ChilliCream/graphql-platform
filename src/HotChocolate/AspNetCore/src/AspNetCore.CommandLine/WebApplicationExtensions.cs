@@ -1,4 +1,3 @@
-using System.CommandLine.Parsing;
 using HotChocolate.AspNetCore.CommandLine;
 
 namespace Microsoft.Extensions.Hosting;

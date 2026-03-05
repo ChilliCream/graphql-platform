@@ -60,10 +60,10 @@ public static class SerializeAsTests
         public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
             => throw new NotImplementedException();
 
-        public override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+        protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
             => throw new NotImplementedException();
 
-        public override IValueNode OnValueToLiteral(string runtimeValue)
+        protected override IValueNode OnValueToLiteral(string runtimeValue)
             => throw new NotImplementedException();
     }
 
@@ -105,10 +105,10 @@ public static class SerializeAsTests
         public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
             => throw new NotImplementedException();
 
-        public override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+        protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
             => throw new NotImplementedException();
 
-        public override IValueNode OnValueToLiteral(string runtimeValue)
+        protected override IValueNode OnValueToLiteral(string runtimeValue)
             => throw new NotImplementedException();
     }
 }

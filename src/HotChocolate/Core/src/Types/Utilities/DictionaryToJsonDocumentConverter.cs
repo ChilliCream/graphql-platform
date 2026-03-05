@@ -20,7 +20,7 @@ internal static class DictionaryToJsonDocumentConverter
     {
         using var buffer = new PooledArrayWriter();
         var writer = new JsonWriter(buffer, s_options);
-        JsonValueFormatter.WriteDictionary(writer, dictionary, s_jsonSerializerOptions, JsonNullIgnoreCondition.None);
+        JsonValueFormatter.WriteDictionary(writer, dictionary, s_jsonSerializerOptions);
 
         var jsonReader = new Utf8JsonReader(buffer.WrittenSpan);
         return JsonElement.ParseValue(ref jsonReader);
@@ -47,7 +47,7 @@ internal static class DictionaryToJsonDocumentConverter
     {
         using var buffer = new PooledArrayWriter();
         var writer = new JsonWriter(buffer, s_options);
-        JsonValueFormatter.WriteValue(writer, list, s_jsonSerializerOptions, JsonNullIgnoreCondition.None);
+        JsonValueFormatter.WriteValue(writer, list, s_jsonSerializerOptions);
 
         var jsonReader = new Utf8JsonReader(buffer.WrittenSpan);
         return JsonElement.ParseValue(ref jsonReader);

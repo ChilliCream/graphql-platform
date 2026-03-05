@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Collections.Immutable;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution;
 
@@ -126,6 +127,12 @@ public sealed class OperationResult : ExecutionResult
     public int? VariableIndex { get; init; }
 
     /// <summary>
+    /// Gets or initializes the defragmentized operation document that produced this result.
+    /// This may be used by transport formatters that need document-level selection context.
+    /// </summary>
+    public DocumentNode? Document { get; init; }
+
+    /// <summary>
     /// Gets or sets the path to the insertion point for incremental delivery.
     /// Informs clients how to patch subsequent delta payloads into the original payload.
     /// </summary>
@@ -143,7 +150,7 @@ public sealed class OperationResult : ExecutionResult
     /// <summary>
     /// Gets the data that is being delivered in this operation result.
     /// </summary>
-    public OperationResultData? Data { get; }
+    public OperationResultData? Data { get; internal set; }
 
     /// <summary>
     /// Gets the GraphQL errors that occurred during execution.
@@ -153,7 +160,10 @@ public sealed class OperationResult : ExecutionResult
         get => _errors;
         set
         {
-            if (!Data.HasValue && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
+            if (!Data.HasValue
+                && Errors is null or { Count: 0 }
+                && Extensions is null or { Count: 0 }
+                && Features.Get<IncrementalDataFeature>() is null)
             {
                 throw new ArgumentException("Either data, errors or extensions must be provided.");
             }
@@ -173,7 +183,10 @@ public sealed class OperationResult : ExecutionResult
         get => _extensions;
         set
         {
-            if (!Data.HasValue && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
+            if (!Data.HasValue
+                && Errors is null or { Count: 0 }
+                && Extensions is null or { Count: 0 }
+                && Features.Get<IncrementalDataFeature>() is null)
             {
                 throw new ArgumentException("Either data, errors or extensions must be provided.");
             }

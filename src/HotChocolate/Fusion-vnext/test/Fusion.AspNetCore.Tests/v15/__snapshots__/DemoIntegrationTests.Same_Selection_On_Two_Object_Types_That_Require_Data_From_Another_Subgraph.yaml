@@ -125,10 +125,16 @@ sourceSchemas:
               }
             }
           variables: |
-            {
-              "__fusion_1_id": "UHJvZHVjdDoz"
-            }
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDoz"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              }
+            ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -139,24 +145,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_e2224f1b_3(
-              $__fusion_2_id: ID!
-            ) {
-              node(id: $__fusion_2_id) {
-                __typename
-                ... on Product {
-                  name
-                }
-              }
-            }
-          variables: |
-            {
-              "__fusion_2_id": "UHJvZHVjdDo0"
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -187,6 +175,7 @@ operationPlan:
         }
       hash: e2224f1b985fbda85e8bf7b9b94be074
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -205,7 +194,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query Op_e2224f1b_2(
@@ -219,31 +208,12 @@ operationPlan:
           }
         }
       source: $.node<Product>
-      target: $.item2.product
+      targets:
+        - $.item2.product
+        - $.item1.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query Op_e2224f1b_3(
-          $__fusion_2_id: ID!
-        ) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
-      source: $.node<Product>
-      target: $.item1.product
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:

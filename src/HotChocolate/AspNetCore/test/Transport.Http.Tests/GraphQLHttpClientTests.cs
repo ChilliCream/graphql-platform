@@ -814,7 +814,8 @@ public class GraphQLHttpClientTests : ServerTestBase
                 ["ep"] = "JEDI",
                 ["review"] = new Dictionary<string, object?>
                 {
-                    ["stars"] = 5, ["commentary"] = "This is a great movie!"
+                    ["stars"] = 5,
+                    ["commentary"] = "This is a great movie!"
                 }
             });
 
@@ -876,7 +877,8 @@ public class GraphQLHttpClientTests : ServerTestBase
                 ["ep"] = "JEDI",
                 ["review"] = new Dictionary<string, object?>
                 {
-                    ["stars"] = 5, ["commentary"] = "This is a great movie!"
+                    ["stars"] = 5,
+                    ["commentary"] = "This is a great movie!"
                 }
             });
 
@@ -996,7 +998,8 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
-            Method = GraphQLHttpMethod.Post, EnableFileUploads = true
+            Method = GraphQLHttpMethod.Post,
+            EnableFileUploads = true
         };
 
         // act
@@ -1054,7 +1057,8 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
-            Method = GraphQLHttpMethod.Post, EnableFileUploads = true
+            Method = GraphQLHttpMethod.Post,
+            EnableFileUploads = true
         };
 
         // act
@@ -1093,7 +1097,8 @@ public class GraphQLHttpClientTests : ServerTestBase
                     stars
                   }
                 }
-                """)) { Method = GraphQLHttpMethod.Post, Accept = GraphQLHttpRequest.GraphQLOverHttp };
+                """))
+        { Method = GraphQLHttpMethod.Post, Accept = GraphQLHttpRequest.GraphQLOverHttp };
 
         var mutationRequest = new OperationRequest(
             """
@@ -1110,7 +1115,8 @@ public class GraphQLHttpClientTests : ServerTestBase
                 ["ep"] = "JEDI",
                 ["review"] = new Dictionary<string, object?>
                 {
-                    ["stars"] = 5, ["commentary"] = "This is a great movie!"
+                    ["stars"] = 5,
+                    ["commentary"] = "This is a great movie!"
                 }
             });
 
@@ -1154,7 +1160,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "application/graphql-response+json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -1182,7 +1188,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -1210,7 +1216,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "application/graphql-response+json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -1247,7 +1253,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -1286,7 +1292,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationBatchRequest(
+        var operationRequest = new OperationBatchRequest(
         [
             new OperationRequest("{ number }")
         ]);
@@ -1333,7 +1339,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationBatchRequest(
+        var operationRequest = new OperationBatchRequest(
         [
             new OperationRequest("{ number }"),
             new OperationRequest("{ number }")
@@ -1375,7 +1381,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "application/jsonl");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.VariableBatchRequest(
+        var operationRequest = new VariableBatchRequest(
             "{ number }",
             variables:
             [
@@ -1420,7 +1426,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "application/jsonl");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.VariableBatchRequest(
+        var operationRequest = new VariableBatchRequest(
             "{ number }",
             variables:
             [
@@ -1470,7 +1476,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "text/event-stream");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -1519,7 +1525,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             "text/event-stream");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -1541,6 +1547,72 @@ public class GraphQLHttpClientTests : ServerTestBase
         Assert.Equal(2, count);
     }
 
+    [Fact]
+    public async Task Post_Variables_Do_Not_Escape_Apostrophe_To_Unicode()
+    {
+        // arrange
+        var handler = new CapturingRequestHttpMessageHandler();
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest(
+            "mutation($input: String!) { updateDescription(input: $input) }",
+            variables: new Dictionary<string, object?>
+            {
+                ["input"] = "Bill Curry's lamp"
+            });
+
+        // act
+        using var response = await client.PostAsync(
+            operationRequest,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        Assert.NotNull(handler.LastBody);
+        Assert.Contains("Bill Curry's lamp", handler.LastBody);
+        Assert.DoesNotContain("\\u0027", handler.LastBody, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Post_Long_Description_Does_Not_Throw_And_RoundTrips()
+    {
+        // arrange
+        var handler = new CapturingRequestHttpMessageHandler();
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        const string description =
+            "Now available in three new luminous pastel colors, Bill Curry\u2019s mushroom-shaped Obello Lamp "
+            + "continues its journey. Celebrated for his bold use of color and inventive Space Age forms, the "
+            + "American designer first created the lamp in 1971. After its reintroduction by GUBI in 2022, in "
+            + "the color of frosted glass, the design returns in a trio of luminous pastels, each finished with "
+            + "a glossy finish that accentuates its sculptural silhouette. Balancing softness with warmth, this "
+            + "palette extends Curry\u2019s legacy with a fresh, contemporary expression. It's still iconic.";
+
+        var operationRequest = new OperationRequest(
+            "mutation($description: String!) { updateDescription(description: $description) }",
+            variables: new Dictionary<string, object?>
+            {
+                ["description"] = description
+            });
+
+        // act
+        using var response = await client.PostAsync(
+            operationRequest,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        Assert.NotNull(handler.LastBody);
+        Assert.DoesNotContain("\\u0027", handler.LastBody, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("\\u2019", handler.LastBody, StringComparison.OrdinalIgnoreCase);
+
+        using var body = JsonDocument.Parse(handler.LastBody!);
+        var serializedDescription = body.RootElement
+            .GetProperty("variables")
+            .GetProperty("description")
+            .GetString();
+
+        Assert.Equal(description, serializedDescription);
+    }
+
     private class MockHttpMessageHandler(Stream responseStream, string contentType) : HttpMessageHandler
     {
         public MockHttpMessageHandler(string responseContent, string contentType)
@@ -1552,7 +1624,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StreamContent(responseStream)
             };
@@ -1573,6 +1645,34 @@ public class GraphQLHttpClientTests : ServerTestBase
             }
 
             throw new Exception("Something went wrong");
+        }
+    }
+
+    private sealed class CapturingRequestHttpMessageHandler : HttpMessageHandler
+    {
+        public string? LastBody { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            LastBody = request.Content is null
+                ? null
+                : await request.Content.ReadAsStringAsync(cancellationToken);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """
+                    {
+                      "data": {
+                        "__typename": "Mutation"
+                      }
+                    }
+                    """,
+                    Encoding.UTF8,
+                    "application/json")
+            };
         }
     }
 

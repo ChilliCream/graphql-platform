@@ -33,20 +33,20 @@ response:
           "id": "SXRlbTI6MQ==",
           "products": [
             {
+              "id": "UHJvZHVjdDox",
+              "name": "Product: UHJvZHVjdDox"
+            },
+            {
               "id": "UHJvZHVjdDoy",
               "name": "Product: UHJvZHVjdDoy"
             },
             {
               "id": "UHJvZHVjdDoz",
               "name": "Product: UHJvZHVjdDoz"
-            },
-            {
-              "id": "UHJvZHVjdDo0",
-              "name": "Product: UHJvZHVjdDo0"
             }
           ],
           "singularProduct": {
-            "name": "Product: UHJvZHVjdDox"
+            "name": "Product: UHJvZHVjdDo0"
           }
         }
       }
@@ -118,17 +118,17 @@ sourceSchemas:
                     "id": "SXRlbTI6MQ==",
                     "products": [
                       {
+                        "id": "UHJvZHVjdDox"
+                      },
+                      {
                         "id": "UHJvZHVjdDoy"
                       },
                       {
                         "id": "UHJvZHVjdDoz"
-                      },
-                      {
-                        "id": "UHJvZHVjdDo0"
                       }
                     ],
                     "singularProduct": {
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDo0"
                     }
                   }
                 }
@@ -165,11 +165,32 @@ sourceSchemas:
               }
             }
           variables: |
-            {
-              "__fusion_1_id": "UHJvZHVjdDox"
-            }
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoz"
+              }
+            ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDo0"
+                  }
+                }
+              }
             - |
               {
                 "data": {
@@ -179,33 +200,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_f7a0a31d_5(
-              $__fusion_2_id: ID!
-            ) {
-              node(id: $__fusion_2_id) {
-                __typename
-                ... on Product {
-                  name
-                }
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "UHJvZHVjdDoy"
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoz"
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDo0"
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
@@ -221,15 +215,6 @@ sourceSchemas:
                   "node": {
                     "__typename": "Product",
                     "name": "Product: UHJvZHVjdDoz"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDo0"
                   }
                 }
               }
@@ -260,6 +245,7 @@ operationPlan:
       name: testQuery
       hash: f7a0a31d1db29f17823b689486c82f42
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Node
@@ -305,12 +291,13 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
         - id: 1
     - id: 4
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_f7a0a31d_4(
@@ -324,31 +311,12 @@ operationPlan:
           }
         }
       source: $.node<Product>
-      target: $.node<Item2>.singularProduct
+      targets:
+        - $.node<Item2>.singularProduct
+        - $.node<Item2>.products
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 3
-    - id: 5
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_f7a0a31d_5(
-          $__fusion_2_id: ID!
-        ) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
-      source: $.node<Product>
-      target: $.node<Item2>.products
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
@@ -371,6 +339,7 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -391,6 +360,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item1>.products
+      batchingGroupId: 2
       requirements:
         - name: __fusion_3_id
           selectionMap: >-

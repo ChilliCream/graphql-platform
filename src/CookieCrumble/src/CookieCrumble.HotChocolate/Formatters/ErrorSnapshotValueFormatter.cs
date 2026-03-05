@@ -13,6 +13,6 @@ internal sealed class ErrorSnapshotValueFormatter()
     protected override void Format(IBufferWriter<byte> snapshot, IError value)
     {
         var jsonWriter = new JsonWriter(snapshot, new JsonWriterOptions { Indented = true });
-        JsonValueFormatter.WriteError(jsonWriter, value, new JsonSerializerOptions { WriteIndented = true }, default);
+        JsonValueFormatter.WriteError(jsonWriter, value, new JsonSerializerOptions { WriteIndented = true });
     }
 }

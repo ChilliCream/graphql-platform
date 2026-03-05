@@ -8,12 +8,10 @@ namespace HotChocolate.Execution;
 
 public static class JsonValueFormatter
 {
-    // TODO : are the options still needed?
     public static void WriteValue(
         JsonWriter writer,
         object? value,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         if (value is null)
         {
@@ -24,11 +22,11 @@ public static class JsonValueFormatter
         switch (value)
         {
             case JsonDocument doc:
-                WriteJsonElement(doc.RootElement, writer, options, nullIgnoreCondition);
+                WriteJsonElement(doc.RootElement, writer, options);
                 break;
 
             case JsonElement element:
-                WriteJsonElement(element, writer, options, nullIgnoreCondition);
+                WriteJsonElement(element, writer, options);
                 break;
 
             case RawJsonValue rawJsonValue:
@@ -36,19 +34,19 @@ public static class JsonValueFormatter
                 break;
 
             case Dictionary<string, object?> dict:
-                WriteDictionary(writer, dict, options, nullIgnoreCondition);
+                WriteDictionary(writer, dict, options);
                 break;
 
             case IReadOnlyDictionary<string, object?> dict:
-                WriteDictionary(writer, dict, options, nullIgnoreCondition);
+                WriteDictionary(writer, dict, options);
                 break;
 
             case IList list:
-                WriteList(writer, list, options, nullIgnoreCondition);
+                WriteList(writer, list, options);
                 break;
 
             case IError error:
-                WriteError(writer, error, options, nullIgnoreCondition);
+                WriteError(writer, error, options);
                 break;
 
             case string s:
@@ -108,7 +106,7 @@ public static class JsonValueFormatter
                 break;
 
             case IResultDataJsonFormatter formatter:
-                formatter.WriteTo(writer, options, nullIgnoreCondition);
+                formatter.WriteTo(writer, options);
                 break;
 
             default:
@@ -120,8 +118,7 @@ public static class JsonValueFormatter
     private static void WriteJsonElement(
         JsonElement element,
         JsonWriter writer,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         switch (element.ValueKind)
         {
@@ -129,14 +126,8 @@ public static class JsonValueFormatter
                 writer.WriteStartObject();
                 foreach (var property in element.EnumerateObject())
                 {
-                    if (property.Value.ValueKind is JsonValueKind.Null
-                        && (nullIgnoreCondition & JsonNullIgnoreCondition.Fields) == JsonNullIgnoreCondition.Fields)
-                    {
-                        continue;
-                    }
-
                     writer.WritePropertyName(property.Name);
-                    WriteValue(writer, property.Value, options, nullIgnoreCondition);
+                    WriteValue(writer, property.Value, options);
                 }
                 writer.WriteEndObject();
                 break;
@@ -145,13 +136,7 @@ public static class JsonValueFormatter
                 writer.WriteStartArray();
                 foreach (var item in element.EnumerateArray())
                 {
-                    if (item.ValueKind is JsonValueKind.Null
-                        && (nullIgnoreCondition & JsonNullIgnoreCondition.Lists) == JsonNullIgnoreCondition.Lists)
-                    {
-                        continue;
-                    }
-
-                    WriteValue(writer, item, options, nullIgnoreCondition);
+                    WriteValue(writer, item, options);
                 }
                 writer.WriteEndArray();
                 break;
@@ -190,21 +175,14 @@ public static class JsonValueFormatter
     public static void WriteDictionary(
         JsonWriter writer,
         IReadOnlyDictionary<string, object?> dict,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         foreach (var item in dict)
         {
-            if (item.Value is null
-                && (nullIgnoreCondition & JsonNullIgnoreCondition.Fields) == JsonNullIgnoreCondition.Fields)
-            {
-                continue;
-            }
-
             writer.WritePropertyName(item.Key);
-            WriteValue(writer, item.Value, options, nullIgnoreCondition);
+            WriteValue(writer, item.Value, options);
         }
 
         writer.WriteEndObject();
@@ -213,22 +191,13 @@ public static class JsonValueFormatter
     private static void WriteList(
         JsonWriter writer,
         IList list,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         writer.WriteStartArray();
 
         for (var i = 0; i < list.Count; i++)
         {
-            var element = list[i];
-
-            if (element is null
-                && (nullIgnoreCondition & JsonNullIgnoreCondition.Lists) == JsonNullIgnoreCondition.Lists)
-            {
-                continue;
-            }
-
-            WriteValue(writer, element, options, nullIgnoreCondition);
+            WriteValue(writer, list[i], options);
         }
 
         writer.WriteEndArray();
@@ -237,8 +206,7 @@ public static class JsonValueFormatter
     public static void WriteErrors(
         JsonWriter writer,
         IReadOnlyList<IError> errors,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         if (errors is { Count: > 0 })
         {
@@ -246,9 +214,12 @@ public static class JsonValueFormatter
 
             writer.WriteStartArray();
 
-            for (var i = 0; i < errors.Count; i++)
+            // We sort errors by path to ensure a stable output:
+            // - Errors without paths (null) come first
+            // - Then errors sorted by path
+            foreach (var error in errors.OrderBy(e => e.Path, PathComparer.Instance))
             {
-                WriteError(writer, errors[i], options, nullIgnoreCondition);
+                WriteError(writer, error, options);
             }
 
             writer.WriteEndArray();
@@ -258,8 +229,7 @@ public static class JsonValueFormatter
     public static void WriteError(
         JsonWriter writer,
         IError error,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
@@ -268,7 +238,7 @@ public static class JsonValueFormatter
 
         WriteLocations(writer, error.Locations);
         WritePath(writer, error.Path);
-        WriteExtensions(writer, error.Extensions, options, nullIgnoreCondition);
+        WriteExtensions(writer, error.Extensions, options);
 
         writer.WriteEndObject();
     }
@@ -276,21 +246,19 @@ public static class JsonValueFormatter
     public static void WriteExtensions(
         JsonWriter writer,
         IReadOnlyDictionary<string, object?>? dict,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         if (dict is { Count: > 0 })
         {
             writer.WritePropertyName(Extensions);
-            WriteDictionary(writer, dict, options, nullIgnoreCondition);
+            WriteDictionary(writer, dict, options);
         }
     }
 
     public static void WriteIncremental(
         JsonWriter writer,
         OperationResult result,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         if (result.Pending is { Count: > 0 } pending)
         {
@@ -314,7 +282,7 @@ public static class JsonValueFormatter
 
             for (var i = 0; i < incremental.Count; i++)
             {
-                WriteIncrementalItem(writer, incremental[i], options, nullIgnoreCondition);
+                WriteIncrementalItem(writer, incremental[i], options);
             }
 
             writer.WriteEndArray();
@@ -328,7 +296,7 @@ public static class JsonValueFormatter
 
             for (var i = 0; i < completed.Count; i++)
             {
-                WriteIncrementalCompletedItem(writer, completed[i]);
+                WriteIncrementalCompletedItem(writer, completed[i], options);
             }
 
             writer.WriteEndArray();
@@ -346,7 +314,7 @@ public static class JsonValueFormatter
         writer.WriteStartObject();
 
         writer.WritePropertyName(Id);
-        writer.WriteNumberValue(item.Id);
+        writer.WriteStringValue(item.Id.ToString());
 
         writer.WritePropertyName(ResultFieldNames.Path);
         WritePathValue(writer, item.Path);
@@ -363,28 +331,38 @@ public static class JsonValueFormatter
     private static void WriteIncrementalItem(
         JsonWriter writer,
         IIncrementalResult item,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+        JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName(Id);
-        writer.WriteNumberValue(item.Id);
+        writer.WriteStringValue(item.Id.ToString());
 
         if (item.Errors is { Count: > 0 })
         {
-            WriteErrors(writer, item.Errors, options, nullIgnoreCondition);
+            WriteErrors(writer, item.Errors, options);
         }
 
-        if (item is IIncrementalObjectResult objectResult)
+        if (item is IncrementalObjectResult objectResult)
         {
+            if (objectResult.SubPath is not null)
+            {
+                writer.WritePropertyName(SubPath);
+                WritePathValue(writer, objectResult.SubPath);
+            }
+
             writer.WritePropertyName(Data);
 
-            // TODO: Write actual data
-            writer.WriteStartObject();
-            writer.WriteEndObject();
+            if (objectResult.Data.HasValue)
+            {
+                objectResult.Data.Value.Formatter.WriteDataTo(writer);
+            }
+            else
+            {
+                writer.WriteNullValue();
+            }
         }
-        else if (item is IIncrementalListResult listResult)
+        else if (item is IIncrementalListResult)
         {
             writer.WritePropertyName(Items);
 
@@ -400,12 +378,20 @@ public static class JsonValueFormatter
         writer.WriteEndObject();
     }
 
-    private static void WriteIncrementalCompletedItem(JsonWriter writer, CompletedResult item)
+    private static void WriteIncrementalCompletedItem(
+        JsonWriter writer,
+        CompletedResult item,
+        JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName(Id);
-        writer.WriteNumberValue(item.Id);
+        writer.WriteStringValue(item.Id.ToString());
+
+        if (item.Errors is { Count: > 0 })
+        {
+            WriteErrors(writer, item.Errors, options);
+        }
 
         writer.WriteEndObject();
     }
@@ -418,9 +404,10 @@ public static class JsonValueFormatter
 
             writer.WriteStartArray();
 
-            for (var i = 0; i < locations.Count; i++)
+            // We sort locations to ensure a stable output.
+            foreach (var location in locations.Order())
             {
-                WriteLocation(writer, locations[i]);
+                WriteLocation(writer, location);
             }
 
             writer.WriteEndArray();
@@ -472,5 +459,31 @@ public static class JsonValueFormatter
         }
 
         writer.WriteEndArray();
+    }
+}
+
+file sealed class PathComparer : IComparer<Path?>
+{
+    public static readonly PathComparer Instance = new();
+
+    public int Compare(Path? x, Path? y)
+    {
+        // Null paths should come first
+        if (x is null && y is null)
+        {
+            return 0;
+        }
+
+        if (x is null)
+        {
+            return -1;
+        }
+
+        if (y is null)
+        {
+            return 1;
+        }
+
+        return x.CompareTo(y);
     }
 }

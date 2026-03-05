@@ -36,6 +36,33 @@ public ref partial struct Utf8GraphQLParser
     }
 
     /// <summary>
+    /// Parses an operation definition with a pre-matched operation type,
+    /// avoiding redundant keyword comparison.
+    /// </summary>
+    private OperationDefinitionNode ParseOperationDefinition(OperationType operation)
+    {
+        var start = Start();
+
+        // skip the operation type keyword (already matched by caller)
+        MoveNext();
+
+        var name = _reader.Kind == TokenKind.Name ? ParseName() : null;
+        var variableDefinitions = ParseVariableDefinitions();
+        var directives = ParseDirectives(false);
+        var selectionSet = ParseSelectionSet();
+        var location = CreateLocation(in start);
+
+        return new OperationDefinitionNode(
+            location,
+            name,
+            TakeDescription(),
+            operation,
+            variableDefinitions,
+            directives,
+            selectionSet);
+    }
+
+    /// <summary>
     /// Parses a shorthand form operation definition.
     /// <see cref="OperationDefinitionNode" />:
     /// SelectionSet
@@ -179,7 +206,7 @@ public ref partial struct Utf8GraphQLParser
                     TokenPrinter.Print(ref _reader)));
         }
 
-        var selections = new List<ISelectionNode>();
+        var selections = new List<ISelectionNode>(8);
 
         // skip opening token
         MoveNext();
@@ -269,7 +296,7 @@ public ref partial struct Utf8GraphQLParser
     {
         if (_reader.Kind == TokenKind.LeftParenthesis)
         {
-            var list = new List<ArgumentNode>();
+            var list = new List<ArgumentNode>(4);
 
             // skip opening token
             MoveNext();

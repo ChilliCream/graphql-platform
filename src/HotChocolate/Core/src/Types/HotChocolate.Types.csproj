@@ -45,7 +45,6 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Queries" />
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
@@ -60,6 +59,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Primitives\GreenDonut.Data.Primitives.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
     <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Json\src\Json\HotChocolate.Text.Json.csproj" />

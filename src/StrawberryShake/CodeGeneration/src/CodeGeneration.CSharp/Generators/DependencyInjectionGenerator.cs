@@ -24,36 +24,41 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
     private static readonly string[] s_builtInSerializers =
     [
-        StringSerializer,
+        AnySerializer,
+        Base64StringSerializer,
         BooleanSerializer,
+        ByteArraySerializer,
         ByteSerializer,
-        ShortSerializer,
-        IntSerializer,
-        LongSerializer,
-        FloatSerializer,
-        DecimalSerializer,
-        UrlSerializer,
-        UUIDSerializer,
-        IdSerializer,
-        DateTimeSerializer,
         DateSerializer,
+        DateTimeSerializer,
+        DecimalSerializer,
+        FloatSerializer,
+        IdSerializer,
+        IntSerializer,
         LocalDateSerializer,
         LocalDateTimeSerializer,
         LocalTimeSerializer,
-        ByteArraySerializer,
+        LongSerializer,
+        ShortSerializer,
+        StringSerializer,
         TimeSpanSerializer,
-        JsonSerializer
+        UnsignedByteSerializer,
+        UnsignedIntSerializer,
+        UnsignedLongSerializer,
+        UnsignedShortSerializer,
+        UriSerializer,
+        UrlSerializer,
+        UUIDSerializer
     ];
 
     private static readonly Dictionary<string, string> s_alternativeTypeNames = new()
     {
-        ["Uuid"] = UUIDSerializer,
         ["Guid"] = UUIDSerializer,
-        ["URL"] = UrlSerializer,
-        ["Uri"] = UrlSerializer,
-        ["URI"] = UrlSerializer,
-        ["JSON"] = JsonSerializer,
-        ["Json"] = JsonSerializer
+        ["Json"] = AnySerializer,
+        ["JSON"] = AnySerializer,
+        ["Uri"] = UriSerializer,
+        ["Url"] = UrlSerializer,
+        ["Uuid"] = UUIDSerializer
     };
 
     protected override void Generate(

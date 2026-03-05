@@ -11,33 +11,45 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
     public async Task Schema()
     {
         // arrange
+        var snapshot = Snapshot.Create();
         var executor = await CreateExecutorAsync();
 
         // act
         var schema = executor.Schema.ToString();
+        snapshot.Add(schema);
 
         // assert
-        schema.MatchSnapshot();
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GetHeroName()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               hero {
                 name
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgFieldExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               hero {
@@ -50,14 +62,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgFieldArgumentExample1()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               human(id: "1000") {
@@ -65,14 +83,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 height
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgFieldArgumentExample2()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               human(id: "1000") {
@@ -80,14 +104,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 height(unit: FOOT)
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgAliasExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               empireHero: hero(episode: EMPIRE) {
@@ -97,14 +127,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 name
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgFragmentExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               leftComparison: hero(episode: EMPIRE) {
@@ -124,14 +160,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgOperationNameExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query HeroNameAndFriends {
               hero {
@@ -143,14 +185,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgVariableExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query HeroNameAndFriends($episode: Episode) {
               hero(episode: $episode) {
@@ -168,14 +216,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "episode": "JEDI"
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgVariableWithDefaultValueExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query HeroNameAndFriends($episode: Episode = JEDI) {
               hero(episode: $episode) {
@@ -187,14 +241,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveIncludeExample1()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query Hero($episode: Episode, $withFriends: Boolean!) {
               hero(episode: $episode) {
@@ -213,14 +273,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                   "episode": "JEDI",
                   "withFriends": false
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveIncludeExample2()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query Hero($episode: Episode, $withFriends: Boolean!) {
               hero(episode: $episode) {
@@ -239,14 +305,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                   "episode": "JEDI",
                   "withFriends": true
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample1()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query Hero($episode: Episode, $withFriends: Boolean!) {
               hero(episode: $episode) {
@@ -265,14 +337,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                   "episode": "JEDI",
                   "withFriends": false
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample2()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query Hero($episode: Episode, $withFriends: Boolean!) {
               hero(episode: $episode) {
@@ -291,14 +369,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                   "episode": "JEDI",
                   "withFriends": true
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample1WithPlainClrVarTypes()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query Hero($episode: Episode, $withFriends: Boolean!) {
               hero(episode: $episode) {
@@ -317,14 +401,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                   "episode": "JEDI",
                   "withFriends": false
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgMutationExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
               createReview(episode: $ep, review: $review) {
@@ -342,14 +432,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                     "commentary": "This is a great movie!"
                   }
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgMutationIgnoreAdditionalInputFieldsExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
               createReview(episode: $ep, review: $review) {
@@ -374,14 +470,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                     "commentary": "This is a great movie!"
                   }
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgTwoMutationsExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             mutation CreateReviewForEpisode($ep: Episode!, $ep2: Episode!, $review: ReviewInput!) {
               createReview(episode: $ep, review: $review) {
@@ -404,14 +506,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                     "commentary": "This is a great movie!"
                   }
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgMutationExample_With_ValueVariables()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             mutation CreateReviewForEpisode(
                 $ep: Episode!
@@ -432,14 +540,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                   "stars": 5,
                   "commentary": "This is a great movie!"
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgInlineFragmentExample1()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query HeroForEpisode($ep: Episode!) {
               hero(episode: $ep) {
@@ -458,14 +572,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "ep": "JEDI"
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgInlineFragmentExample2()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query HeroForEpisode($ep: Episode!) {
               hero(episode: $ep) {
@@ -484,14 +604,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "ep": "EMPIRE"
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgMetaFieldAndUnionExample()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               search(text: "an") {
@@ -510,14 +636,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task NonNullListVariableValues()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query op($ep: [Episode!]!) {
               heroes(episodes: $ep) {
@@ -530,14 +662,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "ep": ["EMPIRE"]
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task ConditionalInlineFragment()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               heroes(episodes: [EMPIRE]) {
@@ -547,14 +685,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task NonNullEnumsSerializeCorrectlyFromVariables()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query getHero($episode: Episode!) {
               hero(episode: $episode) {
@@ -567,28 +711,40 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "episode": "NEW_HOPE"
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task EnumValueIsCoercedToListValue()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
               heroes(episodes: EMPIRE) {
                 name
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task TypeNameFieldIsCorrectlyExecutedOnInterfaces()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query foo {
               hero(episode: NEW_HOPE) {
@@ -618,14 +774,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Execute_ListWithNullValues_ResultContainsNullElement()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query {
               human(id: "1001") {
@@ -636,14 +798,17 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SubscribeToReview()
     {
         // arrange
+        var snapshot = Snapshot.Create();
         var executor = await CreateExecutorAsync(output: output);
 
         // act
@@ -659,7 +824,6 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
 
         var results = subscriptionResult.ReadResultsAsync();
 
-        // assert
         await executor.ExecuteAsync(
             """
             mutation {
@@ -682,13 +846,17 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
             }
         }
 
-        eventResult?.MatchSnapshot();
+        snapshot.Add(eventResult);
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SubscribeToReview_WithInlineFragment()
     {
         // arrange
+        var snapshot = Snapshot.Create();
         var executor = await CreateExecutorAsync(output: output);
 
         // act
@@ -704,7 +872,6 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
                 """);
 
-        // assert
         await executor.ExecuteAsync(
             """
             mutation {
@@ -727,13 +894,17 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
             }
         }
 
-        eventResult?.MatchSnapshot();
+        snapshot.Add(eventResult);
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SubscribeToReview_FragmentDefinition()
     {
         // arrange
+        var snapshot = Snapshot.Create();
         var executor = await CreateExecutorAsync(output: output);
 
         // act
@@ -751,7 +922,6 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
                 """);
 
-        // assert
         await executor.ExecuteAsync(
             """
             mutation {
@@ -774,13 +944,17 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
             }
         }
 
-        eventResult?.MatchSnapshot();
+        snapshot.Add(eventResult);
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SubscribeToReview_With_Variables()
     {
         // arrange
+        var snapshot = Snapshot.Create();
         var executor = await CreateExecutorAsync();
 
         // act
@@ -804,7 +978,6 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                         """)
                     .Build());
 
-        // assert
         await executor.ExecuteAsync(
             """
             mutation {
@@ -827,7 +1000,10 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
             }
         }
 
-        eventResult?.MatchSnapshot();
+        snapshot.Add(eventResult);
+
+        // assert
+        snapshot.Match();
     }
 
     /// <summary>
@@ -1106,7 +1282,11 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
     [Theory]
     public async Task Include_With_Literal(string ifValue)
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create(postFix: ifValue);
+
+        // act
+        snapshot.Add(await ExpectValid(
             $$"""
             {
               human(id: "1000") {
@@ -1114,8 +1294,10 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 height
               }
             }
-            """)
-            .MatchSnapshotAsync(postFix: ifValue);
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [InlineData(true)]
@@ -1123,7 +1305,11 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
     [Theory]
     public async Task Include_With_Variable(bool ifValue)
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create(postFix: ifValue.ToString());
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query ($if: Boolean!) {
               human(id: "1000") {
@@ -1137,8 +1323,10 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "if": {{ifValue.ToString().ToLowerInvariant()}}
                 }
-                """))
-            .MatchSnapshotAsync(postFix: ifValue);
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [InlineData("true")]
@@ -1146,7 +1334,11 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
     [Theory]
     public async Task Skip_With_Literal(string ifValue)
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create(postFix: ifValue);
+
+        // act
+        snapshot.Add(await ExpectValid(
             $$"""
             {
               human(id: "1000") {
@@ -1154,8 +1346,10 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 height
               }
             }
-            """)
-            .MatchSnapshotAsync(postFix: ifValue);
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [InlineData(true)]
@@ -1163,7 +1357,11 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
     [Theory]
     public async Task Skip_With_Variable(bool ifValue)
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create(postFix: ifValue.ToString());
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query ($if: Boolean!) {
               human(id: "1000") {
@@ -1177,14 +1375,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "if": {{ifValue.ToString().ToLowerInvariant()}}
                 }
-                """))
-            .MatchSnapshotAsync(postFix: ifValue);
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SkipAll()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query ($if: Boolean!) {
               human(id: "1000") @skip(if: $if) {
@@ -1198,14 +1402,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "if": true
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SkipAll_Default_False()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query ($if: Boolean! = false) {
               human(id: "1000") @skip(if: $if) {
@@ -1213,14 +1423,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 height
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SkipAll_Default_True()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query ($if: Boolean! = true) {
               human(id: "1000") @skip(if: $if) {
@@ -1228,14 +1444,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 height
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SkipAllSecondLevelFields()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query ($if: Boolean!) {
               human(id: "1000") {
@@ -1248,14 +1470,20 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "if": true
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Type_Introspection_Returns_Null_If_Type_Not_Found()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query {
               a: __type(name: "Foo") {
@@ -1265,42 +1493,76 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 name
               }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_GetHeroQuery()
     {
+        // arrange
+        var snapshot = Snapshot.Create();
         var query = FileResource.Open("GetHeroQuery.graphql");
-        await ExpectValid(query).MatchSnapshotAsync();
+
+        // act
+        snapshot.Add(await ExpectValid(query));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_GetHeroWithFriendsQuery()
     {
+        // arrange
+        var snapshot = Snapshot.Create();
         var query = FileResource.Open("GetHeroWithFriendsQuery.graphql");
-        await ExpectValid(query).MatchSnapshotAsync();
+
+        // act
+        snapshot.Add(await ExpectValid(query));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_GetTwoHeroesWithFriendsQuery()
     {
+        // arrange
+        var snapshot = Snapshot.Create();
         var query = FileResource.Open("GetTwoHeroesWithFriendsQuery.graphql");
-        await ExpectValid(query).MatchSnapshotAsync();
+
+        // act
+        snapshot.Add(await ExpectValid(query));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_LargeQuery()
     {
+        // arrange
+        var snapshot = Snapshot.Create();
         var query = FileResource.Open("LargeQuery.graphql");
-        await ExpectValid(query).MatchSnapshotAsync();
+
+        // act
+        snapshot.Add(await ExpectValid(query));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task NestedFragmentsWithNestedObjectFieldsAndSkip()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             query ($if: Boolean!) {
               human(id: "1000") {
@@ -1349,7 +1611,9 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 {
                   "if": true
                 }
-                """))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 }

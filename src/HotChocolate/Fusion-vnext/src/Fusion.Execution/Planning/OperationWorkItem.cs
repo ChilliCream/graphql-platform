@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types.Metadata;
 
 namespace HotChocolate.Fusion.Planning;
@@ -9,6 +10,13 @@ internal sealed record OperationWorkItem(
     string? FromSchema = null)
     : WorkItem
 {
+    public ExecutionNodeCondition[] Conditions { get; init; } = [];
+
+    public override int EstimatedDepth
+        => Kind is OperationWorkItemKind.Root
+            ? 1
+            : base.EstimatedDepth;
+
     public static OperationWorkItem CreateRoot(SelectionSet selectionSet)
         => new(OperationWorkItemKind.Root, selectionSet);
 }

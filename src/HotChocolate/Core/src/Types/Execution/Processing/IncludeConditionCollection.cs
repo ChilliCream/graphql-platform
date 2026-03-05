@@ -2,7 +2,7 @@ using System.Collections;
 
 namespace HotChocolate.Execution.Processing;
 
-internal class IncludeConditionCollection : ICollection<IncludeCondition>
+internal sealed class IncludeConditionCollection : ICollection<IncludeCondition>
 {
     private readonly OrderedDictionary<IncludeCondition, int> _dictionary = [];
 

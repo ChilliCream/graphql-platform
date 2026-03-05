@@ -73,7 +73,7 @@ internal sealed partial class SubscriptionExecutor
                 await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            return new OperationResult([..ex.Errors]);
+            return new OperationResult([.. ex.Errors]);
         }
         catch (Exception ex)
         {
@@ -91,7 +91,7 @@ internal sealed partial class SubscriptionExecutor
         {
             if (error is AggregateError aggregateError)
             {
-                return [..aggregateError.Errors];
+                return [.. aggregateError.Errors];
             }
 
             return [error];

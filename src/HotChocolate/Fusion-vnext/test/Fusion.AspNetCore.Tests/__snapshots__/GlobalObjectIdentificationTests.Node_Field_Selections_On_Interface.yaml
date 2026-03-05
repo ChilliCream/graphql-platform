@@ -97,6 +97,7 @@ operationPlan:
       name: testQuery
       hash: 63ca3aafa7eb59911553fe11e060f57b
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Node
@@ -135,6 +136,7 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -154,6 +156,7 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:

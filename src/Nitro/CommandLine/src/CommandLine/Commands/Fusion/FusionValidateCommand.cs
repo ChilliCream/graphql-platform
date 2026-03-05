@@ -10,7 +10,6 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Options;
-using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -119,7 +118,7 @@ internal sealed class FusionValidateCommand : Command
             var existingArchiveStream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
                 apiId,
                 stageName,
-                client,
+                isFgp: false,
                 httpClientFactory,
                 ct);
 
@@ -185,7 +184,9 @@ internal sealed class FusionValidateCommand : Command
         {
             var input = new ValidateSchemaInput
             {
-                ApiId = apiId, Stage = stageName, Schema = new Upload(schemaStream, "schema.graphql")
+                ApiId = apiId,
+                Stage = stageName,
+                Schema = new Upload(schemaStream, "schema.graphql")
             };
 
             console.Log("Create validation request");
@@ -205,7 +206,7 @@ internal sealed class FusionValidateCommand : Command
                 if (x.Errors is { Count: > 0 } errors)
                 {
                     console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
+                    throw Exit("No request ID returned");
                 }
 
                 switch (x.Data?.OnSchemaVersionValidationUpdate)
@@ -265,7 +266,7 @@ internal sealed class FusionValidateCommand : Command
         if (configuration is null)
         {
             throw new InvalidOperationException(
-                $"Failed to retrieve gateway configuration from the fusion archive (format version: {latestVersion}). "
+                $"Failed to retrieve gateway configuration from the Fusion archive (format version: {latestVersion}). "
                 + "The archive may be corrupted, unsupported, or missing required configuration.");
         }
 

@@ -232,7 +232,7 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.ToString().MatchSnapshot(extension: ".graphql");;
+        document.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.ToString().MatchSnapshot(extension: ".graphql");;
+        document.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -478,7 +478,7 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.ToString().MatchSnapshot(extension: ".graphql");;
+        document.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact(Skip = "Implement Parse Variable Directives")]
@@ -493,6 +493,6 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.ToString().MatchSnapshot(extension: ".graphql");;
+        document.ToString().MatchSnapshot(extension: ".graphql");
     }
 }

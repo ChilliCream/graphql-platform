@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-release}"
 GATEWAY_PORT=5220
-GATEWAY_CPUSET="${GATEWAY_CPUSET:-2-7}"
+GATEWAY_CPUSET="${GATEWAY_CPUSET:-}"
 
 # Check for taskset availability
 HAS_TASKSET=false

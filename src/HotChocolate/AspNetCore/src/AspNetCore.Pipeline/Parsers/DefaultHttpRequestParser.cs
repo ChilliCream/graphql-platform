@@ -62,8 +62,11 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                     throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
                 }
 
-                // We tell the pipe that we've examined everything but consumed nothing yet.
-                requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (!result.IsCompleted && !result.IsCanceled)
+                {
+                    // We tell the pipe that we've examined everything but consumed nothing yet.
+                    requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                }
             }
             while (result is { IsCompleted: false, IsCanceled: false });
 
@@ -124,8 +127,11 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                     throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
                 }
 
-                // We tell the pipe that we've examined everything but consumed nothing yet.
-                requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                if (!result.IsCompleted && !result.IsCanceled)
+                {
+                    // We tell the pipe that we've examined everything but consumed nothing yet.
+                    requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                }
             }
             while (result is { IsCompleted: false, IsCanceled: false });
 
@@ -302,7 +308,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -352,9 +358,9 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             s_utf8.GetBytes(sourceText, span);
             return Parse(span, _parserOptions, _documentCache, _documentHashProvider);
         }
-        catch (OperationIdFormatException)
+        catch (InvalidGraphQLRequestException ex)
         {
-            throw ErrorHelper.InvalidOperationIdFormat();
+            throw ErrorHelper.InvalidRequest(ex);
         }
         finally
         {

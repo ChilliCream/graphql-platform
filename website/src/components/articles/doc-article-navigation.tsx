@@ -1,4 +1,3 @@
-import { graphql } from "gatsby";
 import React, {
   FC,
   MouseEvent,
@@ -13,7 +12,6 @@ import styled, { css } from "styled-components";
 import { ScrollContainer } from "@/components/article-elements";
 import { IconContainer, Link } from "@/components/misc";
 import { Icon } from "@/components/sprites";
-import { DocArticleNavigationFragment } from "@/graphql-types";
 import { closeTOC } from "@/state/common";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/style";
 import {
@@ -30,8 +28,34 @@ import ChevronDownIconSvg from "@/images/icons/chevron-down.svg";
 import ChevronUpIconSvg from "@/images/icons/chevron-up.svg";
 import Grid2IconSvg from "@/images/icons/grid-2.svg";
 
+interface DocArticleNavigationProduct {
+  path?: string | null;
+  title?: string | null;
+  description?: string | null;
+  latestStableVersion?: string | null;
+  versions?: Array<{
+    path?: string | null;
+    title?: string | null;
+    items?: Array<{
+      path?: string | null;
+      title?: string | null;
+      items?: Array<{
+        path?: string | null;
+        title?: string | null;
+      } | null> | null;
+    } | null> | null;
+  } | null> | null;
+}
+
+interface DocArticleNavigationData {
+  config?: {
+    products?: Array<DocArticleNavigationProduct | null> | null;
+  } | null;
+  [key: string]: any;
+}
+
 export interface DocArticleNavigationProps {
-  readonly data: DocArticleNavigationFragment;
+  readonly data: DocArticleNavigationData;
   readonly selectedPath: string;
   readonly selectedProduct: string;
   readonly selectedVersion: string;
@@ -284,34 +308,6 @@ function isActiveItem(selectedPath: string, itemPath: string) {
 function containsActiveItem(selectedPath: string, itemPath: string) {
   return (selectedPath + "/").startsWith(itemPath + "/");
 }
-
-export const DocArticleNavigationGraphQLFragment = graphql`
-  fragment DocArticleNavigation on Query {
-    config: file(
-      sourceInstanceName: { eq: "docs" }
-      relativePath: { eq: "docs.json" }
-    ) {
-      products: childrenDocsJson {
-        path
-        title
-        description
-        latestStableVersion
-        versions {
-          path
-          title
-          items {
-            path
-            title
-            items {
-              path
-              title
-            }
-          }
-        }
-      }
-    }
-  }
-`;
 
 interface Item {
   path: string;
