@@ -65,7 +65,7 @@
                     "description": "The `Any` scalar type represents any valid GraphQL value."
                   },
                   "base64String": {
-                    "pattern": "\"^(?:[A-Za-z0-9+\\\\/]{4})*(?:[A-Za-z0-9+\\\\/]{2}==|[A-Za-z0-9+\\\\/]{3}=)?$\"",
+                    "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
                     "type": "string",
                     "description": "The `Base64String` scalar type represents an array of bytes encoded as a Base64 string."
                   },
@@ -78,14 +78,16 @@
                     "format": "int32"
                   },
                   "date": {
-                    "pattern": "\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\"",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                     "type": "string",
-                    "description": "The `Date` scalar type represents a date in UTC."
+                    "description": "The `Date` scalar type represents a date in UTC.",
+                    "format": "date"
                   },
                   "dateTime": {
-                    "pattern": "\"^\\\\d{4}-\\\\d{2}-\\\\d{2}[Tt]\\\\d{2}:\\\\d{2}:\\\\d{2}(?:\\\\.\\\\d{1,9})?(?:[Zz]|[+-]\\\\d{2}:\\\\d{2})$\"",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
                     "type": "string",
-                    "description": "The `DateTime` scalar type represents a date and time with time zone offset information."
+                    "description": "The `DateTime` scalar type represents a date and time with time zone offset information.",
+                    "format": "date-time"
                   },
                   "decimal": {
                     "type": "number",
@@ -147,17 +149,18 @@
                     }
                   },
                   "localDate": {
-                    "pattern": "\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\"",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                     "type": "string",
-                    "description": "The `LocalDate` scalar type represents a date without time or time zone information."
+                    "description": "The `LocalDate` scalar type represents a date without time or time zone information.",
+                    "format": "date"
                   },
                   "localDateTime": {
-                    "pattern": "\"^\\\\d{4}-\\\\d{2}-\\\\d{2}[Tt]\\\\d{2}:\\\\d{2}:\\\\d{2}(?:\\\\.\\\\d{1,9})?$\"",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                     "type": "string",
                     "description": "The `LocalDateTime` scalar type represents a date and time without time zone information."
                   },
                   "localTime": {
-                    "pattern": "\"^\\\\d{2}:\\\\d{2}:\\\\d{2}(?:\\\\.\\\\d{1,9})?$\"",
+                    "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                     "type": "string",
                     "description": "The `LocalTime` scalar type represents a time of day without date or time zone information."
                   },
@@ -185,7 +188,7 @@
                             "type": "object",
                             "properties": {
                               "field1C": {
-                                "pattern": "\"^\\\\d{2}:\\\\d{2}:\\\\d{2}(?:\\\\.\\\\d{1,9})?$\"",
+                                "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                                 "type": "string",
                                 "description": "field1C description"
                               }
@@ -206,25 +209,29 @@
                     "type": "string"
                   },
                   "timeSpan": {
-                    "pattern": "\"^-?P(?:\\\\d+W|(?=\\\\d|T(?:\\\\d|$))(?:\\\\d+Y)?(?:\\\\d+M)?(?:\\\\d+D)?(?:T(?:\\\\d+H)?(?:\\\\d+M)?(?:\\\\d+(?:\\\\.\\\\d+)?S)?)?)$\"",
+                    "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
                     "type": "string",
-                    "description": "The `TimeSpan` scalar type represents a duration of time."
+                    "description": "The `TimeSpan` scalar type represents a duration of time.",
+                    "format": "duration"
                   },
                   "unknown": {
                     "type": "string"
                   },
                   "uri": {
                     "type": "string",
-                    "description": "The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986."
+                    "description": "The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.",
+                    "format": "uri"
                   },
                   "url": {
                     "type": "string",
-                    "description": "The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986."
+                    "description": "The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.",
+                    "format": "uri"
                   },
                   "uuid": {
-                    "pattern": "\"^[\\\\da-fA-F]{8}-[\\\\da-fA-F]{4}-[\\\\da-fA-F]{4}-[\\\\da-fA-F]{4}-[\\\\da-fA-F]{12}$\"",
+                    "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
                     "type": "string",
-                    "description": "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562."
+                    "description": "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.",
+                    "format": "uuid"
                   }
                 }
               }
@@ -291,7 +298,7 @@
                       "nullable": true
                     },
                     "base64String": {
-                      "pattern": "\"^(?:[A-Za-z0-9+\\\\/]{4})*(?:[A-Za-z0-9+\\\\/]{2}==|[A-Za-z0-9+\\\\/]{3}=)?$\"",
+                      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
                       "type": "string",
                       "description": "The `Base64String` scalar type represents an array of bytes encoded as a Base64 string.",
                       "nullable": true
@@ -307,15 +314,17 @@
                       "nullable": true
                     },
                     "date": {
-                      "pattern": "\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\"",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                       "type": "string",
                       "description": "The `Date` scalar type represents a date in UTC.",
+                      "format": "date",
                       "nullable": true
                     },
                     "dateTime": {
-                      "pattern": "\"^\\\\d{4}-\\\\d{2}-\\\\d{2}[Tt]\\\\d{2}:\\\\d{2}:\\\\d{2}(?:\\\\.\\\\d{1,9})?(?:[Zz]|[+-]\\\\d{2}:\\\\d{2})$\"",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
                       "type": "string",
                       "description": "The `DateTime` scalar type represents a date and time with time zone offset information.",
+                      "format": "date-time",
                       "nullable": true
                     },
                     "decimal": {
@@ -386,19 +395,20 @@
                       "nullable": true
                     },
                     "localDate": {
-                      "pattern": "\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\"",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                       "type": "string",
                       "description": "The `LocalDate` scalar type represents a date without time or time zone information.",
+                      "format": "date",
                       "nullable": true
                     },
                     "localDateTime": {
-                      "pattern": "\"^\\\\d{4}-\\\\d{2}-\\\\d{2}[Tt]\\\\d{2}:\\\\d{2}:\\\\d{2}(?:\\\\.\\\\d{1,9})?$\"",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                       "type": "string",
                       "description": "The `LocalDateTime` scalar type represents a date and time without time zone information.",
                       "nullable": true
                     },
                     "localTime": {
-                      "pattern": "\"^\\\\d{2}:\\\\d{2}:\\\\d{2}(?:\\\\.\\\\d{1,9})?$\"",
+                      "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                       "type": "string",
                       "description": "The `LocalTime` scalar type represents a time of day without date or time zone information.",
                       "nullable": true
@@ -428,7 +438,7 @@
                               "type": "object",
                               "properties": {
                                 "field1C": {
-                                  "pattern": "\"^\\\\d{2}:\\\\d{2}:\\\\d{2}(?:\\\\.\\\\d{1,9})?$\"",
+                                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                                   "type": "string",
                                   "description": "The `LocalTime` scalar type represents a time of day without date or time zone information.",
                                   "nullable": true
@@ -453,9 +463,10 @@
                       "nullable": true
                     },
                     "timeSpan": {
-                      "pattern": "\"^-?P(?:\\\\d+W|(?=\\\\d|T(?:\\\\d|$))(?:\\\\d+Y)?(?:\\\\d+M)?(?:\\\\d+D)?(?:T(?:\\\\d+H)?(?:\\\\d+M)?(?:\\\\d+(?:\\\\.\\\\d+)?S)?)?)$\"",
+                      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
                       "type": "string",
                       "description": "The `TimeSpan` scalar type represents a duration of time.",
+                      "format": "duration",
                       "nullable": true
                     },
                     "unknown": {
@@ -465,12 +476,14 @@
                     "url": {
                       "type": "string",
                       "description": "The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.",
+                      "format": "uri",
                       "nullable": true
                     },
                     "uuid": {
-                      "pattern": "\"^[\\\\da-fA-F]{8}-[\\\\da-fA-F]{4}-[\\\\da-fA-F]{4}-[\\\\da-fA-F]{4}-[\\\\da-fA-F]{12}$\"",
+                      "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
                       "type": "string",
                       "description": "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.",
+                      "format": "uuid",
                       "nullable": true
                     }
                   }
