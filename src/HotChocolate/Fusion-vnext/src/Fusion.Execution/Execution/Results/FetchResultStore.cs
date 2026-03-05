@@ -35,8 +35,6 @@ internal sealed class FetchResultStore : IDisposable
     private readonly List<CompositeResultElement> _collectTargetCombined = [];
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
-    private Path? _lastStartPath;
-    private CompositeResultElement _lastStartResult;
     private List<IError>? _errors;
     private bool _disposed;
 
@@ -65,8 +63,6 @@ internal sealed class FetchResultStore : IDisposable
             _errorHandlingMode,
             maxDepth: 32);
 
-        _lastStartPath = Path.Root;
-        _lastStartResult = _result.Data;
         _memory.Push(_result);
     }
 
@@ -84,8 +80,6 @@ internal sealed class FetchResultStore : IDisposable
             _errorHandlingMode,
             maxDepth: 32);
 
-        _lastStartPath = Path.Root;
-        _lastStartResult = _result.Data;
         _memory.Push(_result);
     }
 
@@ -1333,36 +1327,21 @@ AddErrors_Next:
     {
         if (path.IsRoot)
         {
-            var root = _result.Data;
-            _lastStartPath = Path.Root;
-            _lastStartResult = root;
-            return root;
-        }
-
-        if (ReferenceEquals(path, _lastStartPath))
-        {
-            return _lastStartResult;
+            return _result.Data;
         }
 
         var parent = path.Parent;
-        var element = ReferenceEquals(parent, _lastStartPath)
-            ? _lastStartResult
-            : GetStartResult(parent);
+        var element = GetStartResult(parent);
         var elementKind = element.ValueKind;
 
         if (elementKind is JsonValueKind.Null)
         {
-            _lastStartPath = path;
-            _lastStartResult = element;
             return element;
         }
 
         if (elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
         {
-            var field = element.TryGetProperty(nameSegment.Name, out var result) ? result : default;
-            _lastStartPath = path;
-            _lastStartResult = field;
-            return field;
+            return element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
         }
 
         if (elementKind is JsonValueKind.Array && path is IndexerPathSegment indexSegment)
@@ -1373,10 +1352,7 @@ AddErrors_Next:
                     $"The path segment '{indexSegment}' does not exist in the data.");
             }
 
-            var arrayElement = element[indexSegment.Index];
-            _lastStartPath = path;
-            _lastStartResult = arrayElement;
-            return arrayElement;
+            return element[indexSegment.Index];
         }
 
         throw new InvalidOperationException(
