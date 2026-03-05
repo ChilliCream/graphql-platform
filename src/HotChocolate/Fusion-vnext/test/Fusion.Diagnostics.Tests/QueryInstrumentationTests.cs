@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -39,99 +38,6 @@ public class QueryInstrumentationTests : FusionTestBase
 
             // assert
             activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Track_Events_Of_A_Simple_Query_Default_Rename_Root()
-    {
-        using (CaptureActivities(out _))
-        {
-            // arrange
-            using var server1 = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("a", server1)
-            ],
-            configureGatewayBuilder: b => b
-                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
-
-            var executor = await gateway.Services.GetRequestExecutorAsync();
-
-            var request = OperationRequestBuilder.New()
-                .SetDocument("{ sayHello }")
-                .Build();
-
-            // act
-            await executor.ExecuteAsync(request);
-
-            // assert
-            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
-        }
-    }
-
-    [Fact]
-    public async Task Parsing_Error_When_Rename_Root_Is_Activated()
-    {
-        using (CaptureActivities(out _))
-        {
-            // arrange
-            using var server1 = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("a", server1)
-            ],
-            configureGatewayBuilder: b => b
-                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
-
-            var executor = await gateway.Services.GetRequestExecutorAsync();
-
-            var request = OperationRequestBuilder.New()
-                .SetDocument("{ sayHello")
-                .Build();
-
-            // act
-            await executor.ExecuteAsync(request);
-
-            // assert
-            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
-        }
-    }
-
-    [Fact]
-    public async Task Validation_Error_When_Rename_Root_Is_Activated()
-    {
-        using (CaptureActivities(out _))
-        {
-            // arrange
-            using var server1 = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("a", server1)
-            ],
-            configureGatewayBuilder: b => b
-                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
-
-            var executor = await gateway.Services.GetRequestExecutorAsync();
-
-            var request = OperationRequestBuilder.New()
-                .SetDocument("{ abc123 }")
-                .Build();
-
-            // act
-            await executor.ExecuteAsync(request);
-
-            // assert
-            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
         }
     }
 

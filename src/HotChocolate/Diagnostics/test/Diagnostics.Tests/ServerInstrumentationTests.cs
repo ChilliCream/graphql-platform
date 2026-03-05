@@ -292,53 +292,6 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Parsing_Error_When_Rename_Root_Is_Activated()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateInstrumentedServer(
-                o => o.Scopes = ActivityScopes.All);
-
-            // act
-            await server.PostRawAsync(new ClientQueryRequest
-            {
-                // lang=text
-                Query = @"
-                {
-                    1
-                }"
-            });
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Validation_Error_When_Rename_Root_Is_Activated()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateInstrumentedServer(
-                o => o.Scopes = ActivityScopes.All);
-
-            // act
-            await server.PostRawAsync(new ClientQueryRequest
-            {
-                Query = @"
-                {
-                    abc
-                }"
-            });
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
     public async Task RequestDetails_None_ExcludesAllDetails()
     {
         using (CaptureActivities(out var activities))

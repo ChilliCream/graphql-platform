@@ -5,6 +5,9 @@ namespace HotChocolate.Fusion.Diagnostics;
 
 public static partial class ActivityTestHelper
 {
+    private static readonly Regex _stackTracePathRegex =
+        new(@" in (?<path>.+?):line (?<line>\d+)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     public static IDisposable CaptureActivities(out object activities)
     {
         var sync = new object();
@@ -85,18 +88,25 @@ public static partial class ActivityTestHelper
     }
 
     private static IEnumerable<KeyValuePair<string, object?>> ScrubEventTags(
-        IEnumerable<KeyValuePair<string, object?>> tags)
+        IEnumerable<KeyValuePair<string, object?>>? tags)
     {
+        if (tags is null)
+        {
+            yield break;
+        }
+
         foreach (var tag in tags)
         {
-            if (tag is { Key: "exception.stacktrace", Value: string stackTrace })
+            if (tag.Value is string stackTrace
+                && (tag.Key.Equals("exception.stacktrace", StringComparison.Ordinal)
+                    || tag.Key.EndsWith(".stacktrace", StringComparison.Ordinal)))
             {
                 yield return new KeyValuePair<string, object?>(
                     tag.Key,
-                    StackTracePathRegex().Replace(stackTrace, match =>
+                    _stackTracePathRegex.Replace(stackTrace, match =>
                     {
-                        var fileName = System.IO.Path.GetFileName(match.Groups[1].Value);
-                        var lineNumber = match.Groups[2].Value;
+                        var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
+                        var lineNumber = match.Groups["line"].Value;
                         return $" in {fileName}:line {lineNumber}";
                     }));
             }
@@ -106,9 +116,6 @@ public static partial class ActivityTestHelper
             }
         }
     }
-
-    [GeneratedRegex(@" in (.+):line (\d+)")]
-    private static partial Regex StackTracePathRegex();
 
     private sealed class Session : IDisposable
     {

@@ -16,7 +16,7 @@ internal sealed class AnalyzeOperationComplexitySpan(
         RequestContext context,
         ActivityEnricherBase enricher)
     {
-        var activity = source.StartActivity("GraphQL Complexity Analyzation");
+        var activity = source.StartActivity("GraphQL Complexity Analysis");
 
         if (activity is null)
         {

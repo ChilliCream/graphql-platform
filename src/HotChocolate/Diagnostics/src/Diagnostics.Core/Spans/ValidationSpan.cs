@@ -15,7 +15,7 @@ internal sealed class ValidationSpan(
         RequestContext context,
         ActivityEnricherBase enricher)
     {
-        var activity = source.StartActivity( "GraphQL Document Validation");
+        var activity = source.StartActivity("GraphQL Document Validation");
 
         if (activity is null)
         {

@@ -33,11 +33,6 @@ internal abstract class ExecuteRequestSpanBase(
             Activity.EnrichOperation(operationType, operationName);
         }
 
-        if (Activity.Status != ActivityStatusCode.Error)
-        {
-            Activity.SetStatus(ActivityStatusCode.Ok);
-        }
-
         var documentInfo = Context.OperationDocumentInfo;
 
         Activity.EnrichDocumentInfo(documentInfo);
@@ -51,7 +46,7 @@ internal abstract class ExecuteRequestSpanBase(
         {
             Activity.SetStatus(ActivityStatusCode.Error);
         }
-        else
+        else if (Activity.Status != ActivityStatusCode.Error)
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
         }

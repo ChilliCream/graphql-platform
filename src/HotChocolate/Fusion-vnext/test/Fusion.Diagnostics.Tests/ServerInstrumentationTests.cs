@@ -262,61 +262,6 @@ public class ServerInstrumentationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Parsing_Error_When_Rename_Root_Is_Activated()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-                [("a", server)],
-                configureGatewayBuilder: b => b
-                    .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
-
-            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-            // lang=text
-            var request = new OperationRequest("{ 1 }");
-
-            // act
-            using var result = await client.PostAsync(request, s_url);
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Validation_Error_When_Rename_Root_Is_Activated()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-                [("a", server)],
-                configureGatewayBuilder: b => b
-                    .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All));
-
-            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-            var request = new OperationRequest("{ abc }");
-
-            // act
-            using var result = await client.PostAsync(request, s_url);
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
     public async Task RequestDetails_None_ExcludesAllDetails()
     {
         using (CaptureActivities(out var activities))

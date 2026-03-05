@@ -1,10 +1,14 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Diagnostics;
 
 public static class ActivityTestHelper
 {
+    private static readonly Regex _stackTracePathRegex =
+        new(@" in (?<path>.+?):line (?<line>\d+)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     public static IDisposable CaptureActivities(out object activities)
     {
         var sync = new object();
@@ -76,7 +80,41 @@ public static class ActivityTestHelper
         data["DisplayName"] = activity.DisplayName;
         data["Status"] = activity.Status;
         data["tags"] = activity.TagObjects;
-        data["event"] = activity.Events.Select(t => new { t.Name, t.Tags });
+        data["event"] = activity.Events.Select(t => new
+        {
+            t.Name,
+            Tags = ScrubEventTags(t.Tags)
+        });
+    }
+
+    private static IEnumerable<KeyValuePair<string, object?>> ScrubEventTags(
+        IEnumerable<KeyValuePair<string, object?>>? tags)
+    {
+        if (tags is null)
+        {
+            yield break;
+        }
+
+        foreach (var tag in tags)
+        {
+            if (tag.Value is string stackTrace
+                && (tag.Key.Equals("exception.stacktrace", StringComparison.Ordinal)
+                    || tag.Key.EndsWith(".stacktrace", StringComparison.Ordinal)))
+            {
+                yield return new KeyValuePair<string, object?>(
+                    tag.Key,
+                    _stackTracePathRegex.Replace(stackTrace, match =>
+                    {
+                        var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
+                        var lineNumber = match.Groups["line"].Value;
+                        return $" in {fileName}:line {lineNumber}";
+                    }));
+            }
+            else
+            {
+                yield return tag;
+            }
+        }
     }
 
     private sealed class Session : IDisposable

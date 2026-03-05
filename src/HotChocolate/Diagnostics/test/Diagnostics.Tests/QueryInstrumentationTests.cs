@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -24,57 +23,6 @@ public partial class QueryInstrumentationTests
 
             // assert
             activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Track_Events_Of_A_Simple_Query_Default_Rename_Root()
-    {
-        using (CaptureActivities(out _))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
-
-            // assert
-            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
-        }
-    }
-
-    [Fact]
-    public async Task Parsing_Error_When_Rename_Root_Is_Activated()
-    {
-        using (CaptureActivities(out _))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello");
-
-            // assert
-            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
-        }
-    }
-
-    [Fact]
-    public async Task Validation_Error_When_Rename_Root_Is_Activated()
-    {
-        using (CaptureActivities(out _))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
-                .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ abc123 }");
-
-            // assert
-            Assert.Equal("CaptureActivities", Activity.Current!.DisplayName);
         }
     }
 

@@ -93,8 +93,8 @@
               "event": []
             },
             {
-              "OperationName": "GraphQL Complexity Analyzation",
-              "DisplayName": "GraphQL Complexity Analyzation",
+              "OperationName": "GraphQL Complexity Analysis",
+              "DisplayName": "GraphQL Complexity Analysis",
               "Status": "Ok",
               "tags": [
                 {
