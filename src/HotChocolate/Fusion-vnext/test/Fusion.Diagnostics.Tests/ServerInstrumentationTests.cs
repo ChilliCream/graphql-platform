@@ -31,6 +31,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -58,6 +59,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -85,6 +87,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.GetAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -118,6 +121,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -155,6 +159,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -189,6 +194,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -255,6 +261,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -293,6 +300,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -331,6 +339,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -362,6 +371,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -395,6 +405,7 @@ public class ServerInstrumentationTests : FusionTestBase
 
             // act
             using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();

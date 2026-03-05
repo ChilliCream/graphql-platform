@@ -1,13 +1,17 @@
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Transport.Http;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Diagnostics;
 
 [Collection("Instrumentation")]
 public class ServerInstrumentationTests : ServerTestBase
 {
+    private static readonly Uri s_url = new("http://localhost:5000/graphql");
+
     public ServerInstrumentationTests(TestServerFactory serverFactory)
         : base(serverFactory)
     {
@@ -20,17 +24,18 @@ public class ServerInstrumentationTests : ServerTestBase
         {
             // arrange
             using var server = CreateInstrumentedServer();
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                @"
                 {
                     hero {
                         name
                     }
-                }"
-            });
+                }");
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -45,17 +50,18 @@ public class ServerInstrumentationTests : ServerTestBase
             // arrange
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                @"
                 {
                     hero {
                         name
                     }
-                }"
-            });
+                }");
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -70,17 +76,18 @@ public class ServerInstrumentationTests : ServerTestBase
             // arrange
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                @"
                 {
                     hero {
                         name
                     }
-                }"
-            });
+                }");
+            using var result = await client.GetAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -95,18 +102,19 @@ public class ServerInstrumentationTests : ServerTestBase
             // arrange
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                query: @"
                 query ($episode: Episode!) {
                     hero(episode: $episode) {
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
-            });
+                variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } });
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -125,18 +133,19 @@ public class ServerInstrumentationTests : ServerTestBase
                     o.Scopes = ActivityScopes.All;
                     o.RequestDetails = RequestDetails.Default | RequestDetails.Variables;
                 });
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                query: @"
                 query ($episode: Episode!) {
                     hero(episode: $episode) {
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
-            });
+                variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } });
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -151,19 +160,20 @@ public class ServerInstrumentationTests : ServerTestBase
             // arrange
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                query: @"
                 query ($episode: Episode!) {
                     hero(episode: $episode) {
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
-                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
-            });
+                variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                extensions: new Dictionary<string, object?> { { "test", "abc" } });
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -303,19 +313,20 @@ public class ServerInstrumentationTests : ServerTestBase
                     o.Scopes = ActivityScopes.All;
                     o.RequestDetails = RequestDetails.None;
                 });
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                query: @"
                 query GetHero($episode: Episode!) {
                     hero(episode: $episode) {
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
-                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
-            });
+                variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                extensions: new Dictionary<string, object?> { { "test", "abc" } });
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -334,19 +345,20 @@ public class ServerInstrumentationTests : ServerTestBase
                     o.Scopes = ActivityScopes.All;
                     o.RequestDetails = RequestDetails.All;
                 });
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                query: @"
                 query GetHero($episode: Episode!) {
                     hero(episode: $episode) {
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
-                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
-            });
+                variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                extensions: new Dictionary<string, object?> { { "test", "abc" } });
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -365,17 +377,18 @@ public class ServerInstrumentationTests : ServerTestBase
                     o.Scopes = ActivityScopes.All;
                     o.RequestDetails = RequestDetails.Document;
                 });
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                @"
                 {
                     hero {
                         name
                     }
-                }"
-            });
+                }");
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
@@ -390,18 +403,19 @@ public class ServerInstrumentationTests : ServerTestBase
             // arrange
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
 
             // act
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            var request = new OperationRequest(
+                query: @"
                 query GetHero {
                     hero {
                         name
                     }
                 }",
-                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
-            });
+                extensions: new Dictionary<string, object?> { { "test", "abc" } });
+            using var result = await client.PostAsync(request, s_url);
+            await result.ReadAsResultAsync();
 
             // assert
             activities.MatchSnapshot();
