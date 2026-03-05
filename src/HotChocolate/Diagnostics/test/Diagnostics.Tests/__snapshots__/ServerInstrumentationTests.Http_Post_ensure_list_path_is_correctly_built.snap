@@ -74,10 +74,6 @@
               "Status": "Ok",
               "tags": [
                 {
-                  "Key": "graphql.processing.type",
-                  "Value": "parse"
-                },
-                {
                   "Key": "graphql.operation.type",
                   "Value": "query"
                 },

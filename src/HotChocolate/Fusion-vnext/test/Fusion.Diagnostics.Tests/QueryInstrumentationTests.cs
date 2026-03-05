@@ -1,5 +1,8 @@
 using System.Diagnostics;
+using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
@@ -445,6 +448,377 @@ public class QueryInstrumentationTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task PersistedOperation_LoadsFromStorage_DefaultScopes()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var storage = new InMemoryOperationDocumentStorage();
+            storage.Add("sayHelloOp", "{ sayHello }");
+
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation()
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline());
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            // act
+            await executor.ExecuteAsync(OperationRequest.FromId("sayHelloOp"));
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task ParsingError_InvalidGraphQLDocument_ReportsErrorStatus()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task ValidationError_UnknownField_ReportsErrorStatus()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ unknownField123 }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task DefaultScopes_ExcludesExecuteRequestAndParseDocumentSpans()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation());
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task AllScopes_IncludesAllSpans()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task CustomScopes_OnlyValidateAndPlan_LimitsSpans()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.ValidateDocument
+                    | FusionActivityScopes.PlanOperation));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task OperationNameInRequest_UsedAsActivityDisplayName()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("query MyOp { sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task NoOperationName_UsesAnonymousDisplayName()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task MultipleSources_HttpRequestError_MarksNodeSpanAsError()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<QueryA>());
+
+            using var server2 = CreateSourceSchema(
+                "b",
+                b => b.AddQueryType<QueryB>(),
+                isOffline: true);
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+            {
+                o.Scopes = FusionActivityScopes.All;
+                o.IncludeDocument = true;
+            }));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello sayGoodbye }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task MultipleSources_SourceSchemaResolverError_RecordsDeeplyNestedError()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<QueryA>());
+
+            using var server2 = CreateSourceSchema(
+                "b",
+                b => b.AddQueryType<QueryBWithDeepError>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+            {
+                o.Scopes = FusionActivityScopes.All;
+                o.IncludeDocument = true;
+            }));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        sayHello
+                        deepB {
+                            deeperB {
+                                causeFatalError
+                            }
+                        }
+                    }
+                    """)
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task DocumentCache_SecondExecution_RecordsCacheHitEvent()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            // act - execute twice so second uses cached document
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
     public class Query
     {
         public string SayHello() => "hello";
@@ -466,6 +840,24 @@ public class QueryInstrumentationTests : FusionTestBase
         public string SayGoodbye() => "goodbye";
     }
 
+    [GraphQLName("Query")]
+    public class QueryBWithDeepError
+    {
+        public string SayGoodbye() => "goodbye";
+
+        public DeepB DeepB() => new();
+    }
+
+    public class DeepB
+    {
+        public DeeperB DeeperB() => new();
+    }
+
+    public class DeeperB
+    {
+        public string CauseFatalError() => throw new GraphQLException("deep fail");
+    }
+
     public class Deep
     {
         public Deeper Deeper() => new();
@@ -476,5 +868,34 @@ public class QueryInstrumentationTests : FusionTestBase
     public class Deeper
     {
         public Deep[] Deeps() => [new Deep()];
+    }
+
+    private sealed class InMemoryOperationDocumentStorage : IOperationDocumentStorage
+    {
+        private readonly Dictionary<string, DocumentNode> _cache = [];
+
+        public void Add(string id, string document)
+            => _cache[id] = Utf8GraphQLParser.Parse(document);
+
+        public ValueTask<IOperationDocument?> TryReadAsync(
+            OperationDocumentId documentId,
+            CancellationToken cancellationToken = default)
+        {
+            if (_cache.TryGetValue(documentId.Value, out var document))
+            {
+                return new ValueTask<IOperationDocument?>(new OperationDocument(document));
+            }
+
+            return new ValueTask<IOperationDocument?>(default(IOperationDocument));
+        }
+
+        public ValueTask SaveAsync(
+            OperationDocumentId documentId,
+            IOperationDocument document,
+            CancellationToken cancellationToken = default)
+        {
+            _cache[documentId.Value] = Utf8GraphQLParser.Parse(document.AsSpan());
+            return default;
+        }
     }
 }

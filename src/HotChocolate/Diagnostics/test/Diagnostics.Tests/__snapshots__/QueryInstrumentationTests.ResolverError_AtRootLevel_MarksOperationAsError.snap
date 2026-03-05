@@ -1,0 +1,163 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+        },
+        {
+          "Key": "graphql.document.body",
+          "Value": "{\n  causeFatalError\n}"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "parse"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "SimpleQuery.causeFatalError",
+              "DisplayName": "SimpleQuery.causeFatalError",
+              "Status": "Error",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
+                {
+                  "Key": "graphql.selection.name",
+                  "Value": "causeFatalError"
+                },
+                {
+                  "Key": "graphql.selection.path",
+                  "Value": "causeFatalError"
+                },
+                {
+                  "Key": "graphql.selection.field.name",
+                  "Value": "causeFatalError"
+                },
+                {
+                  "Key": "graphql.selection.field.coordinate",
+                  "Value": "SimpleQuery.causeFatalError"
+                },
+                {
+                  "Key": "graphql.selection.field.parent_type",
+                  "Value": "SimpleQuery"
+                }
+              ],
+              "event": [
+                {
+                  "Name": "exception",
+                  "Tags": [
+                    {
+                      "Key": "graphql.error.message",
+                      "Value": "fail"
+                    },
+                    {
+                      "Key": "graphql.error.path",
+                      "Value": "causeFatalError"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

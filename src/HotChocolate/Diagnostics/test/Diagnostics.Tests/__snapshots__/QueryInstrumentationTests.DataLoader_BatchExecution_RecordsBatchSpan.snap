@@ -1,0 +1,194 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:9b20745108c8de5afccc35cd56ead9fc"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "parse"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:9b20745108c8de5afccc35cd56ead9fc"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:9b20745108c8de5afccc35cd56ead9fc"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:9b20745108c8de5afccc35cd56ead9fc"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:9b20745108c8de5afccc35cd56ead9fc"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "SimpleQuery.dataLoader",
+              "DisplayName": "SimpleQuery.dataLoader",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
+                {
+                  "Key": "graphql.selection.name",
+                  "Value": "dataLoader"
+                },
+                {
+                  "Key": "graphql.selection.path",
+                  "Value": "dataLoader"
+                },
+                {
+                  "Key": "graphql.selection.field.name",
+                  "Value": "dataLoader"
+                },
+                {
+                  "Key": "graphql.selection.field.coordinate",
+                  "Value": "SimpleQuery.dataLoader"
+                },
+                {
+                  "Key": "graphql.selection.field.parent_type",
+                  "Value": "SimpleQuery"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL DataLoader Dispatch",
+              "DisplayName": "GraphQL DataLoader Dispatch",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "dataloader_dispatch"
+                }
+              ],
+              "event": [
+                {
+                  "Name": "BatchEvaluated",
+                  "Tags": [
+                    {
+                      "Key": "openBatches",
+                      "Value": 1
+                    }
+                  ]
+                },
+                {
+                  "Name": "BatchDispatched",
+                  "Tags": [
+                    {
+                      "Key": "dispatchedBatches",
+                      "Value": 1
+                    }
+                  ]
+                }
+              ],
+              "activities": [
+                {
+                  "OperationName": "GraphQL DataLoader Batch CustomDataLoader",
+                  "DisplayName": "GraphQL DataLoader Batch CustomDataLoader",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "dataloader_batch"
+                    },
+                    {
+                      "Key": "graphql.dataloader.name",
+                      "Value": "CustomDataLoader"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

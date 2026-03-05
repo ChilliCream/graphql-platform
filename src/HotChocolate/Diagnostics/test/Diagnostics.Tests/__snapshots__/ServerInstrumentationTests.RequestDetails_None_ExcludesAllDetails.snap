@@ -8,10 +8,6 @@
         {
           "Key": "graphql.schema.name",
           "Value": "_Default"
-        },
-        {
-          "Key": "graphql.http.request.type",
-          "Value": "single"
         }
       ],
       "event": [],
@@ -33,8 +29,12 @@
               "Value": "query"
             },
             {
+              "Key": "graphql.operation.name",
+              "Value": "GetHero"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+              "Value": "md5:9335388c19fd2e230b6294a596d13a93"
             }
           ],
           "event": [
@@ -62,8 +62,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHero"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:9335388c19fd2e230b6294a596d13a93"
                 }
               ],
               "event": []
@@ -78,8 +82,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHero"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:9335388c19fd2e230b6294a596d13a93"
                 }
               ],
               "event": []
@@ -98,8 +106,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHero"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:9335388c19fd2e230b6294a596d13a93"
                 }
               ],
               "event": []
@@ -118,8 +130,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHero"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:9335388c19fd2e230b6294a596d13a93"
                 }
               ],
               "event": []
@@ -138,8 +154,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHero"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:9335388c19fd2e230b6294a596d13a93"
                 }
               ],
               "event": [],

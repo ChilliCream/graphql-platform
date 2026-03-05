@@ -383,6 +383,179 @@ public class ServerInstrumentationTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task RequestDetails_None_ExcludesAllDetails()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(
+                    o =>
+                    {
+                        o.Scopes = FusionActivityScopes.All;
+                        o.RequestDetails = RequestDetails.None;
+                    }));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            var request = new OperationRequest(
+                query: """
+                    query GetGreeting($name: String!) {
+                        greeting(name: $name)
+                    }
+                    """,
+                variables: new Dictionary<string, object?> { { "name", "World" } },
+                extensions: new Dictionary<string, object?> { { "test", "abc" } });
+
+            // act
+            using var result = await client.PostAsync(request, s_url);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task RequestDetails_All_IncludesAllDetails()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(
+                    o =>
+                    {
+                        o.Scopes = FusionActivityScopes.All;
+                        o.RequestDetails = RequestDetails.All;
+                    }));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            var request = new OperationRequest(
+                query: """
+                    query GetGreeting($name: String!) {
+                        greeting(name: $name)
+                    }
+                    """,
+                variables: new Dictionary<string, object?> { { "name", "World" } },
+                extensions: new Dictionary<string, object?> { { "test", "abc" } });
+
+            // act
+            using var result = await client.PostAsync(request, s_url);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task RequestDetails_DocumentOnly_IncludesDocumentTag()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(
+                    o =>
+                    {
+                        o.Scopes = FusionActivityScopes.All;
+                        o.RequestDetails = RequestDetails.Document;
+                    }));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            var request = new OperationRequest("{ sayHello }");
+
+            // act
+            using var result = await client.PostAsync(request, s_url);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task RequestDetails_Default_IncludesIdHashOperationNameExtensions()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(
+                    o => o.Scopes = FusionActivityScopes.All));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            var request = new OperationRequest(
+                query: """
+                    query GetGreeting {
+                        sayHello
+                    }
+                    """,
+                extensions: new Dictionary<string, object?> { { "test", "abc" } });
+
+            // act
+            using var result = await client.PostAsync(request, s_url);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_OperationNameInRequest_SetsActivityDisplayName()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(
+                    o => o.Scopes = FusionActivityScopes.All));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            var request = new OperationRequest(
+                query: """
+                    query GetGreetingByName($name: String!) {
+                        greeting(name: $name)
+                    }
+                    """,
+                variables: new Dictionary<string, object?> { { "name", "World" } });
+
+            // act
+            using var result = await client.PostAsync(request, s_url);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
     public class Query
     {
         public string SayHello() => "hello";

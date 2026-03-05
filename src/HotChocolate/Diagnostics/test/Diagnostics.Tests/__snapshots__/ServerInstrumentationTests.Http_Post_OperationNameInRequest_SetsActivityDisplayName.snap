@@ -33,8 +33,12 @@
               "Value": "query"
             },
             {
+              "Key": "graphql.operation.name",
+              "Value": "GetHeroByEpisode"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+              "Value": "md5:2c13f23738dd0ee7712bcb326e40ca72"
             }
           ],
           "event": [
@@ -62,8 +66,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHeroByEpisode"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:2c13f23738dd0ee7712bcb326e40ca72"
                 }
               ],
               "event": []
@@ -78,8 +86,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHeroByEpisode"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:2c13f23738dd0ee7712bcb326e40ca72"
                 }
               ],
               "event": []
@@ -98,8 +110,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHeroByEpisode"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:2c13f23738dd0ee7712bcb326e40ca72"
                 }
               ],
               "event": []
@@ -118,8 +134,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHeroByEpisode"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:2c13f23738dd0ee7712bcb326e40ca72"
                 }
               ],
               "event": []
@@ -138,8 +158,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetHeroByEpisode"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:2c13f23738dd0ee7712bcb326e40ca72"
                 }
               ],
               "event": [],

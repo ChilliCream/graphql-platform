@@ -368,6 +368,149 @@ public class ServerInstrumentationTests : ServerTestBase
         }
     }
 
+    [Fact]
+    public async Task RequestDetails_None_ExcludesAllDetails()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateInstrumentedServer(
+                o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.RequestDetails = RequestDetails.None;
+                });
+
+            // act
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                query GetHero($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }",
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
+            });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task RequestDetails_All_IncludesAllDetails()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateInstrumentedServer(
+                o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.RequestDetails = RequestDetails.All;
+                });
+
+            // act
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                query GetHero($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }",
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
+            });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task RequestDetails_DocumentOnly_IncludesDocumentTag()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateInstrumentedServer(
+                o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.RequestDetails = RequestDetails.Document;
+                });
+
+            // act
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    hero {
+                        name
+                    }
+                }"
+            });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task RequestDetails_Default_IncludesIdHashOperationNameExtensions()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All);
+
+            // act
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                query GetHero {
+                    hero {
+                        name
+                    }
+                }",
+                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
+            });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_OperationNameInRequest_SetsActivityDisplayName()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All);
+
+            // act
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                query GetHeroByEpisode($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }",
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+            });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
     private TestServer CreateInstrumentedServer(
         Action<InstrumentationOptions>? options = null)
         => CreateStarWarsServer(

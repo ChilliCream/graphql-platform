@@ -12,6 +12,10 @@
         {
           "Key": "graphql.http.request.type",
           "Value": "single"
+        },
+        {
+          "Key": "graphql.http.request.query.body",
+          "Value": "{\n  sayHello\n}"
         }
       ],
       "event": [],
@@ -34,12 +38,12 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
             }
           ],
           "event": [
             {
-              "Name": "AddedOperationToCache",
+              "Name": "AddedOperationPlanToCache",
               "Tags": []
             },
             {
@@ -63,23 +67,7 @@
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "GraphQL Complexity Analyzation",
-              "DisplayName": "GraphQL Complexity Analyzation",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
                 }
               ],
               "event": []
@@ -99,27 +87,7 @@
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "GraphQL Variable Coercion",
-              "DisplayName": "GraphQL Variable Coercion",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "graphql.processing.type",
-                  "Value": "variable_coercion"
-                },
-                {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
                 }
               ],
               "event": []
@@ -139,39 +107,55 @@
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
                 }
               ],
               "event": [],
               "activities": [
                 {
-                  "OperationName": "Query.hero",
-                  "DisplayName": "Query.hero",
+                  "OperationName": "GraphQL Step Execution",
+                  "DisplayName": "GraphQL Step Execution",
                   "Status": "Ok",
                   "tags": [
                     {
                       "Key": "graphql.processing.type",
-                      "Value": "resolve"
+                      "Value": "step_execute"
                     },
                     {
-                      "Key": "graphql.selection.name",
-                      "Value": "hero"
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
                     },
                     {
-                      "Key": "graphql.selection.path",
-                      "Value": "hero"
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
                     },
                     {
-                      "Key": "graphql.selection.field.name",
-                      "Value": "hero"
+                      "Key": "graphql.operation.step.id",
+                      "Value": "1"
                     },
                     {
-                      "Key": "graphql.selection.field.coordinate",
-                      "Value": "Query.hero"
+                      "Key": "graphql.operation.step.kind",
+                      "Value": "operation"
                     },
                     {
-                      "Key": "graphql.selection.field.parent_type",
-                      "Value": "Query"
+                      "Key": "graphql.operation.step.plan.id",
+                      "Value": "456132b93ebaf15a39534753bf72f9f4bfa1152a08d04bc8a88539feec1cb52c"
+                    },
+                    {
+                      "Key": "graphql.source.name",
+                      "Value": "a"
+                    },
+                    {
+                      "Key": "graphql.source.operation.name",
+                      "Value": "Op_f7e9989f_1"
+                    },
+                    {
+                      "Key": "graphql.source.operation.kind",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.source.operation.hash",
+                      "Value": "sha256:35c1feb1208268226c7d5d5d0ae122e4d38cb79621e862b1e252d37fc83c530a"
                     }
                   ],
                   "event": []

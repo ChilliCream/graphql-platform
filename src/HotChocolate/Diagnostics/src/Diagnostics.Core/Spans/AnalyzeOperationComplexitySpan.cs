@@ -23,8 +23,6 @@ internal sealed class AnalyzeOperationComplexitySpan(
             return null;
         }
 
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
-
         if (context.TryGetDocument(out var document, out _)
             && document.GetOperation(context.Request.OperationName) is { } operation)
         {
