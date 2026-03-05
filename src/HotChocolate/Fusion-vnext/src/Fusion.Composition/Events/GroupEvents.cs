@@ -33,6 +33,10 @@ internal record OutputFieldGroupEvent(
     ImmutableArray<OutputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
 
+internal record ScalarTypeGroupEvent(
+    string TypeName,
+    ImmutableArray<ScalarTypeInfo> TypeGroup) : IEvent;
+
 internal record TypeGroupEvent(
     string TypeName,
     ImmutableArray<TypeInfo> TypeGroup) : IEvent;

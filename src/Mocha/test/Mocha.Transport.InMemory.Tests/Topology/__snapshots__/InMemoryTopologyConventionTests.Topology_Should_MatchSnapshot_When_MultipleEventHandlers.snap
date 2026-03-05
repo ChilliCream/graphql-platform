@@ -1,0 +1,27 @@
+﻿{
+  "Topics": [
+    "mocha.test-helpers.order-created",
+    "order-created"
+  ],
+  "Queues": [
+    "test-app.order-created",
+    "test-app.order-created-handler-2"
+  ],
+  "Bindings": [
+    {
+      "Source": "mocha.test-helpers.order-created",
+      "Destination": "order-created",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "order-created",
+      "Destination": "test-app.order-created",
+      "Kind": "Queue"
+    },
+    {
+      "Source": "order-created",
+      "Destination": "test-app.order-created-handler-2",
+      "Kind": "Queue"
+    }
+  ]
+}
