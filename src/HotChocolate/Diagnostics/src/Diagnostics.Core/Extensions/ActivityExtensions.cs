@@ -23,15 +23,17 @@ internal static class ActivityExtensions
 
         public void AddGraphQLError(IError error)
         {
-            if (error.Exception is { } exception)
-            {
-                activity.AddException(exception);
-            }
-
             var tags = new ActivityTagsCollection
             {
                 [SemanticConventions.GraphQL.Error.Message] = error.Message
             };
+
+            if (error.Exception is { } exception)
+            {
+                tags["exception.message"] = exception.Message;
+                tags["exception.stacktrace"] = exception.ToString();
+                tags["exception.type"] = exception.GetType().ToString();
+            }
 
             if (error.Path is not null)
             {
@@ -59,7 +61,6 @@ internal static class ActivityExtensions
                 tags[SemanticConventions.GraphQL.Error.Locations] = locations;
             }
 
-            // TODO: Not sure if this is correct according to the spec
             activity.AddEvent(new ActivityEvent("exception", default, tags));
         }
     }

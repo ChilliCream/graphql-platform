@@ -9,8 +9,6 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
     InstrumentationOptions options)
     : DataLoaderDiagnosticEventListener
 {
-    private readonly ActivityEnricher _enricher = enricher;
-
     public override IDisposable ExecuteBatch<TKey>(
         IDataLoader dataLoader,
         IReadOnlyList<TKey> keys)
@@ -20,7 +18,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = DataLoaderBatchSpan<TKey>.Start(Source, dataLoader, keys, _enricher);
+        var span = DataLoaderBatchSpan<TKey>.Start(Source, dataLoader, keys, enricher);
 
         if (span is null)
         {
@@ -38,7 +36,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
 
     public override IDisposable RunBatchDispatchCoordinator()
     {
-        var span = DataLoaderDispatchSpan.Start(Source, _enricher);
+        var span = DataLoaderDispatchSpan.Start(Source, enricher);
 
         return span ?? EmptyScope;
     }
@@ -50,7 +48,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
 
-            _enricher.EnrichBatchDispatchError(activity, error);
+            enricher.EnrichBatchDispatchError(activity, error);
         }
     }
 

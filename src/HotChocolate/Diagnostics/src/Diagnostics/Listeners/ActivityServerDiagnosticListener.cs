@@ -11,8 +11,6 @@ internal sealed class ActivityServerDiagnosticListener(
     InstrumentationOptions options)
     : ServerDiagnosticEventListener
 {
-    private readonly ActivityEnricher _enricher = enricher;
-
     public override IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind)
     {
         if (options.SkipExecuteHttpRequest)
@@ -20,7 +18,7 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ExecuteHttpRequestSpan.Start(Source, context, kind, _enricher, options);
+        var span = ExecuteHttpRequestSpan.Start(Source, context, kind, enricher, options);
 
         if (span is null)
         {
@@ -85,7 +83,7 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ParseHttpRequestSpan.Start(Source, context, _enricher);
+        var span = ParseHttpRequestSpan.Start(Source, context, enricher);
 
         if (span is null)
         {
@@ -112,7 +110,7 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = FormatHttpResponseSpan.Start(Source, context, _enricher);
+        var span = FormatHttpResponseSpan.Start(Source, context, enricher);
 
         return span ?? EmptyScope;
     }

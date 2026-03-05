@@ -13,7 +13,6 @@ internal sealed class ActivityExecutionDiagnosticListener(
     InstrumentationOptions options) : ExecutionDiagnosticEventListener
 {
     private const string ResolveFieldSpanKey = "HotChocolate.Diagnostics.ResolveFieldSpan";
-    private readonly ActivityEnricher _enricher = enricher;
 
     public override bool EnableResolveFieldValue => true;
 
@@ -36,8 +35,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
         }
 
         var span = httpContextActivity is not null
-            ? new ExecuteRequestSpan(httpContextActivity, context, options, _enricher, false)
-            : ExecuteRequestSpan.Start(Source, context, options, _enricher);
+            ? new ExecuteRequestSpan(httpContextActivity, context, options, enricher, false)
+            : ExecuteRequestSpan.Start(Source, context, options, enricher);
 
         if (span is null)
         {
@@ -58,7 +57,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
 
-            _enricher.EnrichRequestError(activity, context, error);
+            enricher.EnrichRequestError(activity, context, error);
         }
     }
 
@@ -71,7 +70,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddGraphQLError(error);
 
-            _enricher.EnrichRequestError(activity, context, error);
+            enricher.EnrichRequestError(activity, context, error);
         }
     }
 
@@ -82,7 +81,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ParsingSpan.Start(Source, context, _enricher);
+        var span = ParsingSpan.Start(Source, context, enricher);
 
         return span ?? EmptyScope;
     }
@@ -94,7 +93,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ValidationSpan.Start(Source, context, _enricher);
+        var span = ValidationSpan.Start(Source, context, enricher);
 
         if (span is null)
         {
@@ -122,7 +121,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             activity.AddGraphQLError(error);
         }
 
-        _enricher.EnrichValidationErrors(activity, context, errors);
+        enricher.EnrichValidationErrors(activity, context, errors);
     }
 
     public override IDisposable AnalyzeOperationCost(RequestContext context)
@@ -132,7 +131,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = AnalyzeOperationComplexitySpan.Start(Source, context, _enricher);
+        var span = AnalyzeOperationComplexitySpan.Start(Source, context, enricher);
 
         if (span is null)
         {
@@ -161,7 +160,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = CompileOperationSpan.Start(Source, context, _enricher);
+        var span = CompileOperationSpan.Start(Source, context, enricher);
 
         return span ?? EmptyScope;
     }
@@ -183,7 +182,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             context,
             operation.Kind,
             operation.Name,
-            _enricher);
+            enricher);
 
         return span ?? EmptyScope;
     }
@@ -205,7 +204,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             context,
             operation.Kind,
             operation.Name,
-            _enricher);
+            enricher);
 
         return span ?? EmptyScope;
     }
@@ -217,7 +216,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ResolveFieldSpan.Start(Source, context, _enricher);
+        var span = ResolveFieldSpan.Start(Source, context, enricher);
 
         if (span is null)
         {
@@ -237,7 +236,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             span.Activity.SetStatus(ActivityStatusCode.Error);
             span.Activity.AddGraphQLError(error);
 
-            _enricher.EnrichResolverError(span.Activity, context, error);
+            enricher.EnrichResolverError(span.Activity, context, error);
         }
     }
 
@@ -250,7 +249,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        _enricher.EnrichOnSubscriptionEvent(activity, context, subscriptionId);
+        enricher.EnrichOnSubscriptionEvent(activity, context, subscriptionId);
 
         return activity;
     }
