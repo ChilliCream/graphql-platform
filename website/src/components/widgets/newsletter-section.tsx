@@ -206,6 +206,11 @@ const MediaBox = styled.div`
 `;
 
 const MediaConnectLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   text-decoration: none;
   color: ${THEME_COLORS.footerLink};
   transition: color 0.2s ease-in-out;
