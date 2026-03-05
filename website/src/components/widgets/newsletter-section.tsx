@@ -146,7 +146,7 @@ const Newsletter = styled.div`
   }
 `;
 
-const NewsletterTitle = styled.h3`
+const NewsletterTitle = styled.h2`
   flex: 0 0 auto;
   margin-bottom: 24px;
 
@@ -184,7 +184,7 @@ const Media = styled.div`
   );
 `;
 
-const MediaTitle = styled.h3`
+const MediaTitle = styled.h2`
   flex: 0 0 auto;
   margin-bottom: 32px;
 `;
