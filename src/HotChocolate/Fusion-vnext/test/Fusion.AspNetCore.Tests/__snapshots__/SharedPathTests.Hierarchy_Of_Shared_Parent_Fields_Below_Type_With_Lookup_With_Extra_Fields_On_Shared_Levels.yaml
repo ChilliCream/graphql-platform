@@ -222,54 +222,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_b3a5d887_2(
-                  $__fusion_1_id: Int!
-                ) {
-                  product(id: $__fusion_1_id) {
-                    schema2
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": 1
-                }
-            - document: |
-                query Op_b3a5d887_3(
-                  $__fusion_2_id: Int!
-                ) {
-                  product(id: $__fusion_2_id) {
-                    shared {
-                      schema2
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_2_id": 1
-                }
-            - document: |
-                query Op_b3a5d887_4(
-                  $__fusion_3_id: Int!
-                ) {
-                  product(id: $__fusion_3_id) {
-                    shared {
-                      shared2 {
-                        schema2
-                      }
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_3_id": 1
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
@@ -280,54 +232,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_b3a5d887_2(
-                  $__fusion_1_id: Int!
-                ) {
-                  product(id: $__fusion_1_id) {
-                    schema2
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": 1
-                }
-            - document: |
-                query Op_b3a5d887_3(
-                  $__fusion_2_id: Int!
-                ) {
-                  product(id: $__fusion_2_id) {
-                    shared {
-                      schema2
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_2_id": 1
-                }
-            - document: |
-                query Op_b3a5d887_4(
-                  $__fusion_3_id: Int!
-                ) {
-                  product(id: $__fusion_3_id) {
-                    shared {
-                      shared2 {
-                        schema2
-                      }
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_3_id": 1
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {

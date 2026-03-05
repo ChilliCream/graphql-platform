@@ -204,6 +204,14 @@ public class CustomRequestMiddleware
 }
 ```
 
+## Resolver `Selection` API changes
+
+In v16, `context.Selection` is a compiled execution selection. The old `context.Selection.SelectionSet` is no longer available.
+
+- `context.Selection.DeclaringSelectionSet` is the parent selection set (where the current field is declared), not the current field's child selection set.
+- `context.Selection.SyntaxNodes` now returns `FieldSelectionNode` wrappers. Use `.Node` to access the underlying `FieldNode`.
+- Because selections are merged during operation compilation, one execution selection can map to multiple syntax nodes.
+
 ## OperationResultBuilder is now internal
 
 If you've previously used the `OperationResultBuilder` to construct an `OperationResult`, switch to constructing it directly instead:
@@ -278,6 +286,27 @@ Some GraphQL validation errors included an extension named `fieldCoordinate` tha
     "field": null
   }
 }
+```
+
+## `FileValueNode` renamed to `UploadValueNode`
+
+The upload literal node has been renamed from `FileValueNode` to `UploadValueNode`.
+If you are referencing this type directly in custom scalar logic or tests, update your code accordingly:
+
+```diff
+-if (valueLiteral is FileValueNode fileValue)
++if (valueLiteral is UploadValueNode uploadValue)
+ {
+    var file = uploadValue.File;
+    var key = uploadValue.Key;
+ }
+```
+
+If you are constructing upload value nodes manually, note that the constructor now also requires the multipart key:
+
+```diff
+-var valueNode = new FileValueNode(file);
++var valueNode = new UploadValueNode("0", file);
 ```
 
 ## Errors from `TypeConverter`s are now accessible in the `ErrorFilter`

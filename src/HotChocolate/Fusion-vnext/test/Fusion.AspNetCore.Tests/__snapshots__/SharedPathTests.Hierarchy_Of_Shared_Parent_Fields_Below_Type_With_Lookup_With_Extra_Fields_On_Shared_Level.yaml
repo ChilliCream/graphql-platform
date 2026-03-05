@@ -206,42 +206,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_c1c44a8c_2(
-                  $__fusion_1_id: Int!
-                ) {
-                  product(id: $__fusion_1_id) {
-                    shared {
-                      schema2
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": 1
-                }
-            - document: |
-                query Op_c1c44a8c_3(
-                  $__fusion_2_id: Int!
-                ) {
-                  product(id: $__fusion_2_id) {
-                    shared {
-                      shared2 {
-                        schema2
-                      }
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_2_id": 1
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {

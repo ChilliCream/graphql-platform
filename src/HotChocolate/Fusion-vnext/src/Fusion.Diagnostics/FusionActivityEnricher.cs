@@ -339,7 +339,7 @@ public class FusionActivityEnricher
             activity.SetTag("graphql.document.body", documentInfo.Document.Print());
         }
 
-        if (context.Result is OperationResult {Errors: [_, ..] errors})
+        if (context.Result is OperationResult { Errors: [_, ..] errors })
         {
             activity.SetTag("graphql.errors.count", errors.Count);
         }

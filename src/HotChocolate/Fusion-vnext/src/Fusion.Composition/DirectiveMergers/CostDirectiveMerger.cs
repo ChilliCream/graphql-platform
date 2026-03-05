@@ -17,7 +17,7 @@ internal class CostDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 {
     public override string DirectiveName => DirectiveNames.Cost;
 
-    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
+    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
         return CostMutableDirectiveDefinition.Create(schema);
     }

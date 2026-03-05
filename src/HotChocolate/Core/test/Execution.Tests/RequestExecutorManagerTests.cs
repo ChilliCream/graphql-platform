@@ -1,5 +1,7 @@
+using System.Reflection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -244,6 +246,48 @@ public class RequestExecutorManagerTests
         cts.Dispose();
     }
 
+    [Fact]
+    public async Task EvictExecutor_With_Custom_TypeInspector_Should_Rebuild_Without_Init_Exception()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(50));
+        var executorEvictedResetEvent = new SemaphoreSlim(0, 1);
+
+        var manager = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Issue6695Query>()
+            .TryAddConvention<ITypeInspector, TuneDataTypeInspector>()
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<RequestExecutorManager>();
+
+        manager.Subscribe(new RequestExecutorEventObserver(@event =>
+        {
+            if (@event.Type == RequestExecutorEventType.Evicted)
+            {
+                executorEvictedResetEvent.Release();
+            }
+        }));
+
+        // act
+        var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var initialResult = await initialExecutor.ExecuteAsync("{ ping }");
+
+        manager.EvictExecutor();
+
+        await executorEvictedResetEvent.WaitAsync(cts.Token);
+
+        var rebuiltExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var rebuiltResult = await rebuiltExecutor.ExecuteAsync("{ ping }");
+
+        // assert
+        Assert.Empty(initialResult.ExpectOperationResult().Errors);
+        Assert.Empty(rebuiltResult.ExpectOperationResult().Errors);
+        Assert.NotNull(initialResult.ExpectOperationResult().Data);
+        Assert.NotNull(rebuiltResult.ExpectOperationResult().Data);
+        Assert.NotSame(initialExecutor, rebuiltExecutor);
+    }
+
 #pragma warning disable CS9113 // Parameter is unread.
     private sealed class CustomWarmupTask(IDocumentCache documentCache, SomeService service) : IRequestExecutorWarmupTask
 #pragma warning restore CS9113 // Parameter is unread.
@@ -259,4 +303,18 @@ public class RequestExecutorManagerTests
     {
         public void TriggerChange() => OnTypesChanged();
     }
+
+    public sealed class Issue6695Query
+    {
+        public string Ping() => "pong";
+    }
+
+    private sealed class TuneDataTypeInspector : DefaultTypeInspector
+    {
+        public override bool IsMemberIgnored(MemberInfo member)
+            => base.IsMemberIgnored(member) || member.IsDefined(typeof(ApiIgnoreAttribute));
+    }
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+    private sealed class ApiIgnoreAttribute : Attribute;
 }

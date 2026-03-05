@@ -9,7 +9,7 @@ internal static class PropertyTreeBuilder
         Type type,
         string requirements)
     {
-        if (!requirements.Trim().StartsWith("{"))
+        if (!requirements.Trim().StartsWith('{'))
         {
             requirements = "{" + requirements + "}";
         }

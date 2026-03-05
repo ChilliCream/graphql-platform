@@ -22,6 +22,7 @@ public class ObjectTypeInspector : ISyntaxInspector
     {
         var diagnostics = ImmutableArray<Diagnostic>.Empty;
         var isOperationType = false;
+        var includeInternalMembers = context.SemanticModel.Compilation.IncludeInternalMembers();
 
         OperationType? operationType = null;
         if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
@@ -58,44 +59,58 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is
-                Accessibility.Public or
-                Accessibility.Internal or
-                Accessibility.ProtectedAndInternal
-                && !member.IsIgnored())
+            if (member.IsIgnored())
             {
-                if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
-                {
-                    if (methodSymbol.Skip())
-                    {
-                        continue;
-                    }
+                continue;
+            }
 
-                    if (!isOperationType && methodSymbol.IsNodeResolver())
-                    {
-                        nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
-                    }
-                    else
-                    {
-                        resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol);
-                        continue;
-                    }
+            if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
+            {
+                var hasNodeResolverAttribute = methodSymbol.IsNodeResolver();
+                var includeInternalNodeResolver = hasNodeResolverAttribute
+                    && methodSymbol.DeclaredAccessibility is
+                        Accessibility.Internal
+                        or Accessibility.ProtectedOrInternal
+                        or Accessibility.ProtectedAndInternal;
+
+                if (!IsVisibleResolverMember(member, includeInternalMembers) && !includeInternalNodeResolver)
+                {
+                    continue;
                 }
 
-                if (member is IPropertySymbol)
+                if (methodSymbol.Skip())
                 {
-                    var compilation = context.SemanticModel.Compilation;
-
-                    resolvers[i++] = new Resolver(
-                        classSymbol.Name,
-                        member,
-                        compilation.GetDescription(member, []),
-                        compilation.GetDeprecationReason(member),
-                        ResolverResultKind.Pure,
-                        [],
-                        member.GetMemberBindings(),
-                        compilation.CreateTypeReference(member));
+                    continue;
                 }
+
+                if (!isOperationType && hasNodeResolverAttribute)
+                {
+                    nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
+                    continue;
+                }
+
+                resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol);
+                continue;
+            }
+
+            if (member is IPropertySymbol)
+            {
+                if (!IsVisibleResolverMember(member, includeInternalMembers))
+                {
+                    continue;
+                }
+
+                var compilation = context.SemanticModel.Compilation;
+
+                resolvers[i++] = new Resolver(
+                    classSymbol.Name,
+                    member,
+                    compilation.GetDescription(member),
+                    compilation.GetDeprecationReason(member),
+                    ResolverResultKind.Pure,
+                    [],
+                    member.GetMemberBindings(),
+                    compilation.CreateTypeReference(member));
             }
         }
 
@@ -107,6 +122,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         if (runtimeType is not null)
         {
             var objectTypeInfo = new ObjectTypeInfo(
+                context.SemanticModel.Compilation,
                 classSymbol,
                 runtimeType,
                 nodeResolver,
@@ -123,25 +139,26 @@ public class ObjectTypeInspector : ISyntaxInspector
             return true;
         }
 
-        var rooType = new RootTypeInfo(
+        var rootType = new RootTypeInfo(
+            context.SemanticModel.Compilation,
             classSymbol,
             operationType!.Value,
             possibleType,
             i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
             classSymbol.GetAttributes());
 
-        rooType.SourceSchemaDetected =
-            rooType.Shareable is not DirectiveScope.None
-                || rooType.Inaccessible is not DirectiveScope.None
-                || rooType.DescriptorAttributes.HasSourceSchemaAttribute()
-                || rooType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
+        rootType.SourceSchemaDetected =
+            rootType.Shareable is not DirectiveScope.None
+                || rootType.Inaccessible is not DirectiveScope.None
+                || rootType.DescriptorAttributes.HasSourceSchemaAttribute()
+                || rootType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
 
         if (diagnostics.Length > 0)
         {
-            rooType.AddDiagnosticRange(diagnostics);
+            rootType.AddDiagnosticRange(diagnostics);
         }
 
-        syntaxInfo = rooType;
+        syntaxInfo = rootType;
         return true;
     }
 
@@ -188,6 +205,16 @@ public class ObjectTypeInspector : ISyntaxInspector
         runtimeType = null;
         return false;
     }
+
+    private static bool IsVisibleResolverMember(ISymbol member, bool includeInternalMembers)
+        => member.DeclaredAccessibility switch
+        {
+            Accessibility.Public => true,
+            Accessibility.Internal => includeInternalMembers,
+            Accessibility.ProtectedOrInternal => includeInternalMembers,
+            Accessibility.ProtectedAndInternal => includeInternalMembers,
+            _ => false
+        };
 
     private static bool IsOperationType(
         GeneratorSyntaxContext context,
@@ -272,7 +299,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDescription(parameter)?.Description,
                 compilation.GetDeprecationReason(parameter),
                 key);
         }
@@ -282,7 +309,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         return new Resolver(
             resolverTypeName,
             resolverMethod,
-            compilation.GetDescription(resolverMethod, resolverParameters),
+            compilation.GetDescription(resolverMethod),
             compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
             resolverParameters,
@@ -314,7 +341,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDescription(parameter)?.Description,
                 compilation.GetDeprecationReason(parameter),
                 key);
 
@@ -338,7 +365,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                     parameter,
                     ResolverParameterKind.Argument,
                     compilation.CreateTypeReference(parameter),
-                    parameter.GetDescriptionFromAttribute(),
+                    compilation.GetDescription(parameter)?.Description,
                     compilation.GetDeprecationReason(parameter),
                     key);
             }
@@ -359,7 +386,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         return new Resolver(
             resolverType.Name,
             resolverMethod,
-            compilation.GetDescription(resolverMethod, resolverParameters),
+            compilation.GetDescription(resolverMethod),
             compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
             resolverParameters,

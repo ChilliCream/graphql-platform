@@ -5,7 +5,7 @@ using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static System.StringComparison;
+using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 using TypeInfo = HotChocolate.Types.Analyzers.Models.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
@@ -50,7 +50,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
 
                     if (current.GetAttributes().Any(
                             t => t.AttributeClass?.ToDisplayString()
-                                .StartsWith(WellKnownAttributes.InterfaceTypeAttribute, Ordinal) is true))
+                                .StartsWith(InterfaceTypeAttribute, StringComparison.Ordinal) is true))
                     {
                         syntaxInfo = new TypeInfo(typeDisplayString);
                         return true;

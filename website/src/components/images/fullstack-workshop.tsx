@@ -7,7 +7,11 @@ export const FullstackWorkshopImage: FC = () => {
       <img
         src="/blog/2024-04-01-fullstack-workshop/header.png"
         alt="Fullstack Workshop"
-        style={{ width: "100%", height: "auto", borderRadius: "var(--border-radius)" }}
+        style={{
+          width: "100%",
+          height: "auto",
+          borderRadius: "var(--border-radius)",
+        }}
       />
     </Container>
   );
