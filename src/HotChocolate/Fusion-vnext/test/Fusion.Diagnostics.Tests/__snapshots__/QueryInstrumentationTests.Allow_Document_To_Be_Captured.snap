@@ -10,8 +10,24 @@
           "Value": "execute"
         },
         {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "SayHelloOperation"
+        },
+        {
           "Key": "otel.status_code",
           "Value": "OK"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
+        },
+        {
+          "Key": "graphql.document.body",
+          "Value": "query SayHelloOperation {\n  sayHello\n}"
         }
       ],
       "event": [
@@ -141,6 +157,18 @@
                 {
                   "Key": "graphql.processing.type",
                   "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "SayHelloOperation"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:6af18618ae20c266f6ffc352b78cb69b"
                 },
                 {
                   "Key": "graphql.operation.step.id",

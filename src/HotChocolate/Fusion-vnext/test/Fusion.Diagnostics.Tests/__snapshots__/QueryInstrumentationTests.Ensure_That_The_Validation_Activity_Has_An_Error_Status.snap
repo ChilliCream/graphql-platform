@@ -10,8 +10,24 @@
           "Value": "execute"
         },
         {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "SayHelloOperation"
+        },
+        {
           "Key": "otel.status_code",
           "Value": "ERROR"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
+        },
+        {
+          "Key": "graphql.document.body",
+          "Value": "query SayHelloOperation {\n  sayHello_\n}"
         }
       ],
       "event": [],

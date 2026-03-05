@@ -10,8 +10,16 @@
           "Value": "execute"
         },
         {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
           "Key": "otel.status_code",
           "Value": "OK"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:073bf7696c078e52587c88890ef21bbe"
         }
       ],
       "event": [
@@ -127,6 +135,14 @@
                   "Value": "step_execute"
                 },
                 {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+                },
+                {
                   "Key": "graphql.operation.step.id",
                   "Value": "1"
                 },
@@ -165,6 +181,14 @@
                 {
                   "Key": "graphql.processing.type",
                   "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:073bf7696c078e52587c88890ef21bbe"
                 },
                 {
                   "Key": "graphql.operation.step.id",

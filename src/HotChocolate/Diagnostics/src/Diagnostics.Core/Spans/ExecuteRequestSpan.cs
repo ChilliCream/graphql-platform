@@ -6,18 +6,18 @@ using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
-// TODO: Needs additional tags probably
 internal sealed class ExecuteRequestSpan(
     Activity activity,
     RequestContext context,
+    InstrumentationOptionsBase options,
     ActivityEnricherBase? enricher,
     bool shouldDisposeActivity) : SpanBase(activity, shouldDisposeActivity)
 {
     public static ExecuteRequestSpan? Start(
         ActivitySource source,
         RequestContext context,
-        ActivityEnricherBase enricher,
-        InstrumentationOptionsBase options)
+        InstrumentationOptionsBase options,
+        ActivityEnricherBase enricher)
     {
         var activity = source.StartActivity("GraphQL Operation", ActivityKind.Server);
 
@@ -28,18 +28,52 @@ internal sealed class ExecuteRequestSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
 
-        var documentInfo = context.OperationDocumentInfo;
-
-        if (options.IncludeDocument && documentInfo.Document is not null)
-        {
-            activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
-        }
-
-        return new ExecuteRequestSpan(activity, context, enricher, true);
+        return new ExecuteRequestSpan(
+            activity,
+            context,
+            options,
+            enricher,
+            true);
     }
 
     protected override void OnComplete()
     {
+        // TODO: This could be faster through the operation
+        if (context.TryGetDocument(out var document, out _))
+        {
+            if (document.GetOperation(context.Request.OperationName) is { } operation)
+            {
+                Activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operation.Operation]);
+
+                var operationName = operation.Name?.Value;
+                if (!string.IsNullOrEmpty(operationName))
+                {
+                    Activity.SetTag(GraphQL.Operation.Name, operationName);
+                }
+            }
+
+            Activity.MarkAsSuccess();
+        }
+
+        var documentInfo = context.OperationDocumentInfo;
+
+        var hash = documentInfo.Hash;
+
+        if (!hash.IsEmpty)
+        {
+            Activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
+        }
+
+        if (documentInfo.IsPersisted && documentInfo.Id.HasValue)
+        {
+            Activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
+        }
+
+        if (options.IncludeDocument && documentInfo.Document is not null)
+        {
+            Activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
+        }
+
         if (context.Result is null or OperationResult { Errors: [_, ..] })
         {
             Activity.MarkAsError();

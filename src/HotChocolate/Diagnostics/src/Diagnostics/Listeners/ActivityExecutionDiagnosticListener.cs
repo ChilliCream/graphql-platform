@@ -36,8 +36,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
         }
 
         var span = httpContextActivity is not null
-            ? new ExecuteRequestSpan(httpContextActivity, context, null, false)
-            : ExecuteRequestSpan.Start(Source, context, _enricher, options);
+            ? new ExecuteRequestSpan(httpContextActivity, context, options, _enricher, false)
+            : ExecuteRequestSpan.Start(Source, context, options, _enricher);
 
         if (span is null)
         {
@@ -88,8 +88,6 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         return span ?? EmptyScope;
     }
-
-    // TODO: A dedicated event for parsing errors would be nice
 
     public override IDisposable ValidateDocument(RequestContext context)
     {
@@ -178,7 +176,17 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = VariableCoercionSpan.Start(Source, context, _enricher);
+        if (!context.TryGetOperation(out var operation))
+        {
+            return EmptyScope;
+        }
+
+        var span = VariableCoercionSpan.Start(
+            Source,
+            context,
+            operation.Kind,
+            operation.Name,
+            _enricher);
 
         return span ?? EmptyScope;
     }
@@ -190,7 +198,17 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ExecuteOperationSpan.Start(Source, context, _enricher);
+        if (!context.TryGetOperation(out var operation))
+        {
+            return EmptyScope;
+        }
+
+        var span = ExecuteOperationSpan.Start(
+            Source,
+            context,
+            operation.Kind,
+            operation.Name,
+            _enricher);
 
         return span ?? EmptyScope;
     }

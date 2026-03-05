@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
@@ -13,6 +14,8 @@ internal sealed class ExecuteOperationSpan(
     public static ExecuteOperationSpan? Start(
         ActivitySource source,
         RequestContext context,
+        OperationType operationType,
+        string? operationName,
         ActivityEnricherBase enricher)
     {
         var activity = source.StartActivity("GraphQL Operation Execution");
@@ -24,17 +27,11 @@ internal sealed class ExecuteOperationSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
 
-        // TODO: This should get it from the operation
-        if (context.TryGetDocument(out var document, out _)
-            && document.GetOperation(context.Request.OperationName) is { } operation)
-        {
-            activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operation.Operation]);
+        activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operationType]);
 
-            var operationName = operation.Name?.Value;
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operationName);
-            }
+        if (!string.IsNullOrEmpty(operationName))
+        {
+            activity.SetTag(GraphQL.Operation.Name, operationName);
         }
 
         var documentInfo = context.OperationDocumentInfo;
