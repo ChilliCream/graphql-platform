@@ -131,19 +131,48 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.WriteLine();
         Writer.WriteIndentedLine("var naming = descriptor.Extend().Context.Naming;");
 
-        if (type.Resolvers.Any(t => t.Bindings.Length > 0))
+        var hasFieldBindings =
+            type.Resolvers.Any(t => t.Bindings.Any(b => b.Kind is MemberBindingKind.Field));
+        var hasPropertyBindings =
+            type.Resolvers.Any(t => t.Bindings.Any(b => b.Kind is MemberBindingKind.Property));
+
+        if (hasFieldBindings)
         {
-            Writer.WriteIndentedLine("var ignoredFields = new global::System.Collections.Generic.HashSet<string>();");
+            Writer.WriteIndentedLine("var boundFields = new global::System.Collections.Generic.HashSet<string>();");
 
             foreach (var binding in type.Resolvers.SelectMany(t => t.Bindings))
             {
                 if (binding.Kind is MemberBindingKind.Field)
                 {
                     Writer.WriteIndentedLine(
-                        "ignoredFields.Add(\"{0}\");",
+                        "boundFields.Add(\"{0}\");",
                         binding.Name);
                 }
-                else if (binding.Kind is MemberBindingKind.Property)
+            }
+
+            Writer.WriteLine();
+            Writer.WriteIndentedLine("foreach(string fieldName in boundFields)");
+            Writer.WriteIndentedLine("{");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine("descriptor.Field(fieldName);");
+            }
+
+            Writer.WriteIndentedLine("}");
+        }
+
+        if (hasPropertyBindings)
+        {
+            if (hasFieldBindings)
+            {
+                Writer.WriteLine();
+            }
+
+            Writer.WriteIndentedLine("var ignoredFields = new global::System.Collections.Generic.HashSet<string>();");
+
+            foreach (var binding in type.Resolvers.SelectMany(t => t.Bindings))
+            {
+                if (binding.Kind is MemberBindingKind.Property)
                 {
                     Writer.WriteIndentedLine(
                         "ignoredFields.Add(naming.GetMemberName(\"{0}\", global::{1}.ObjectField));",
