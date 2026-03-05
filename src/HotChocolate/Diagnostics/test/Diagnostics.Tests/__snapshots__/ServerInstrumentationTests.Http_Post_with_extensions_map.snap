@@ -1,1 +1,243 @@
-{}
+{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "GraphQL HTTP POST",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        },
+        {
+          "Key": "otel.status_code",
+          "Value": "OK"
+        },
+        {
+          "Key": "graphql.http.request.type",
+          "Value": "single"
+        },
+        {
+          "Key": "graphql.http.request.extensions",
+          "Value": "{\"test\":\"abc\"}"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "Parse HTTP Request",
+          "DisplayName": "Parse HTTP Request",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation",
+          "DisplayName": "query",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+            }
+          ],
+          "event": [
+            {
+              "Name": "AddedOperationToCache",
+              "Tags": []
+            },
+            {
+              "Name": "AddedDocumentToCache",
+              "Tags": []
+            }
+          ],
+          "activities": [
+            {
+              "OperationName": "GraphQL Document Validation",
+              "DisplayName": "GraphQL Document Validation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Complexity Analyzation",
+              "DisplayName": "GraphQL Complexity Analyzation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "parse"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation Planning",
+              "DisplayName": "GraphQL Operation Planning",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "plan"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Variable Coercion",
+              "DisplayName": "GraphQL Variable Coercion",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "variable_coercion"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation Execution",
+              "DisplayName": "GraphQL Operation Execution",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "Query.hero",
+                  "DisplayName": "Query.hero",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Query.hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.parent_type",
+                      "Value": "Query"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "OperationName": "Format HTTP Response",
+          "DisplayName": "Format HTTP Response",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        }
+      ]
+    }
+  ]
+}

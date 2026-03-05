@@ -24,7 +24,7 @@ internal sealed class ExecuteHttpRequestSpan(
         ActivityEnricherBase enricher,
         InstrumentationOptionsBase options)
     {
-        var activity = source.StartActivity();
+        var activity = source.StartActivity("ExecuteHttpRequest");
 
         if (activity is null)
         {
