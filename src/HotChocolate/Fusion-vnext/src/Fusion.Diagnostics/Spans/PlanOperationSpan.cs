@@ -26,30 +26,7 @@ internal sealed class PlanOperationSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
 
-        if (context.TryGetDocument(out var document, out _)
-            && document.GetOperation(context.Request.OperationName) is { } operation)
-        {
-            activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operation.Operation]);
-
-            var operationName = operation.Name?.Value;
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                activity.SetTag(GraphQL.Operation.Name, operationName);
-            }
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        var hash = documentInfo.Hash;
-
-        if (!hash.IsEmpty)
-        {
-            activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
-        }
-
-        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        activity.EnrichDocumentInfo(context.OperationDocumentInfo);
 
         return new PlanOperationSpan(activity, context, enricher, operationPlanId);
     }
@@ -61,15 +38,7 @@ internal sealed class PlanOperationSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
 
             var operation = plan.Operation;
-            var operationType = operation.Definition.Operation;
-            var operationName = operation.Name;
-
-            Activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operationType]);
-
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                Activity.SetTag(GraphQL.Operation.Name, operationName);
-            }
+            Activity.EnrichOperation(operation.Definition.Operation, operation.Name);
         }
 
         enricher.EnrichPlanOperation(context, operationPlanId, Activity);

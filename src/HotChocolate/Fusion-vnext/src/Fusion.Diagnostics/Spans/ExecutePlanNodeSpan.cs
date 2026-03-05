@@ -41,28 +41,8 @@ internal sealed class ExecutePlanNodeSpan(
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.StepExecute);
 
         var operation = context.OperationPlan.Operation;
-        var operationType = operation.Definition.Operation;
-        var operationName = operation.Name;
-
-        activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operationType]);
-
-        if (!string.IsNullOrEmpty(operationName))
-        {
-            activity.SetTag(GraphQL.Operation.Name, operationName);
-        }
-
-        var documentInfo = context.RequestContext.OperationDocumentInfo;
-        var hash = documentInfo.Hash;
-
-        if (!hash.IsEmpty)
-        {
-            activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
-        }
-
-        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        activity.EnrichOperation(operation.Definition.Operation, operation.Name);
+        activity.EnrichDocumentInfo(context.RequestContext.OperationDocumentInfo);
 
         activity.SetTag(GraphQL.Operation.Step.Id, node.Id.ToString(CultureInfo.InvariantCulture));
         activity.SetTag(GraphQL.Operation.Step.Kind, KindValues[node.Type]);

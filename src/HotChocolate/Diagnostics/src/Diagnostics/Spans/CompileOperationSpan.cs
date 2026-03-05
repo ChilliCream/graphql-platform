@@ -23,18 +23,7 @@ internal sealed class CompileOperationSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
 
-        var documentInfo = context.OperationDocumentInfo;
-        var hash = documentInfo.Hash;
-
-        if (!hash.IsEmpty)
-        {
-            activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
-        }
-
-        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        activity.EnrichDocumentInfo(context.OperationDocumentInfo);
 
         return new CompileOperationSpan(activity, context, enricher);
     }
@@ -45,13 +34,7 @@ internal sealed class CompileOperationSpan(
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
 
-            Activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operation.Kind]);
-
-            var operationName = operation.Name;
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                Activity.SetTag(GraphQL.Operation.Name, operationName);
-            }
+            Activity.EnrichOperation(operation.Kind, operation.Name);
         }
 
         enricher.EnrichCompileOperation(context, Activity);

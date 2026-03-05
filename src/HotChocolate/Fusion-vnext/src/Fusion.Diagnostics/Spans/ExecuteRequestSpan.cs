@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
-using static HotChocolate.Diagnostics.SemanticConventions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Diagnostics;
 
@@ -9,7 +9,8 @@ internal sealed class ExecuteRequestSpan(
     RequestContext context,
     InstrumentationOptionsBase options,
     ActivityEnricherBase? enricher,
-    bool shouldDisposeActivity) : ExecuteRequestSpanBase(activity, context, options, enricher, shouldDisposeActivity)
+    bool shouldDisposeActivity)
+    : ExecuteRequestSpanBase(activity, context, options, enricher, shouldDisposeActivity)
 {
     public static ExecuteRequestSpan? Start(
         ActivitySource source,
@@ -32,21 +33,19 @@ internal sealed class ExecuteRequestSpan(
             true);
     }
 
-    protected override void OnComplete()
+    protected override bool TryGetOperationInfo(
+        out OperationType operationType,
+        out string? operationName)
     {
-        if (Context.GetOperationPlan() is { Operation: var operation})
+        if (Context.GetOperationPlan() is { Operation: var operation })
         {
-            var operationType = GraphQL.Operation.TypeValues[operation.Definition.Operation];
-            Activity.SetTag(GraphQL.Operation.Type, operationType);
-            Activity.DisplayName = operationType;
-
-            var operationName = operation.Name;
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                Activity.SetTag(GraphQL.Operation.Name, operationName);
-            }
+            operationType = operation.Definition.Operation;
+            operationName = operation.Name;
+            return true;
         }
 
-        base.OnComplete();
+        operationType = default;
+        operationName = null;
+        return false;
     }
 }

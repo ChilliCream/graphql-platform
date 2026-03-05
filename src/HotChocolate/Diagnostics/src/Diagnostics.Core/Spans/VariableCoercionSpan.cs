@@ -27,25 +27,8 @@ internal sealed class VariableCoercionSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.VariableCoercion);
 
-        activity.SetTag(GraphQL.Operation.Type, GraphQL.Operation.TypeValues[operationType]);
-
-        if (!string.IsNullOrEmpty(operationName))
-        {
-            activity.SetTag(GraphQL.Operation.Name, operationName);
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-        var hash = documentInfo.Hash;
-
-        if (!hash.IsEmpty)
-        {
-            activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
-        }
-
-        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        activity.EnrichOperation(operationType, operationName);
+        activity.EnrichDocumentInfo(context.OperationDocumentInfo);
 
         return new VariableCoercionSpan(activity, context, enricher);
     }

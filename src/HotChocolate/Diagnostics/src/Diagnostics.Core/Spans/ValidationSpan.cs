@@ -24,18 +24,7 @@ internal sealed class ValidationSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Validate);
 
-        var documentInfo = context.OperationDocumentInfo;
-        var hash = documentInfo.Hash;
-
-        if (!hash.IsEmpty)
-        {
-            activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
-        }
-
-        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
-        {
-            activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        activity.EnrichDocumentInfo(context.OperationDocumentInfo);
 
         return new ValidationSpan(activity, context, enricher);
     }

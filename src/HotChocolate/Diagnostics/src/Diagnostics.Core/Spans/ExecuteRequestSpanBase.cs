@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
@@ -19,8 +20,19 @@ internal abstract class ExecuteRequestSpanBase(
         return source.StartActivity("GraphQL Operation", ActivityKind.Server);
     }
 
+    protected abstract bool TryGetOperationInfo(
+        out OperationType operationType,
+        out string? operationName);
+
     protected override void OnComplete()
     {
+        if (TryGetOperationInfo(out var operationType, out var operationName))
+        {
+            var operationTypeValue = GraphQL.Operation.TypeValues[operationType];
+            Activity.DisplayName = operationTypeValue;
+            Activity.EnrichOperation(operationType, operationName);
+        }
+
         if (Activity.Status != ActivityStatusCode.Error)
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
@@ -28,17 +40,7 @@ internal abstract class ExecuteRequestSpanBase(
 
         var documentInfo = Context.OperationDocumentInfo;
 
-        var hash = documentInfo.Hash;
-
-        if (!hash.IsEmpty)
-        {
-            Activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
-        }
-
-        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
-        {
-            Activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        Activity.EnrichDocumentInfo(documentInfo);
 
         if (options.IncludeDocument && documentInfo.Document is not null)
         {

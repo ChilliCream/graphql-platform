@@ -22,6 +22,12 @@ internal sealed class ParsingSpan(
             return null;
         }
 
+        // We do not set this here, as parsing can happen in the HTTP middleware
+        // or the HotChocolate pipeline.
+        // For the moment we just track both as regular spans.
+        // Maybe in the future we can reconcile this.
+        // activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
+
         return new ParsingSpan(activity, context, enricher);
     }
 
@@ -32,18 +38,7 @@ internal sealed class ParsingSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        var documentInfo = context.OperationDocumentInfo;
-        var hash = documentInfo.Hash;
-
-        if (!hash.IsEmpty)
-        {
-            Activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
-        }
-
-        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
-        {
-            Activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
-        }
+        Activity.EnrichDocumentInfo(context.OperationDocumentInfo);
 
         enricher.EnrichParseDocument(context, Activity);
     }
