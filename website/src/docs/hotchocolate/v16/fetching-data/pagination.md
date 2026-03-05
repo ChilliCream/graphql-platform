@@ -820,15 +820,36 @@ If no paging providers have been registered, a default paging provider capable o
 
 The following options can be configured.
 
-| Property                       | Default | Description                                                                         |
-| ------------------------------ | ------- | ----------------------------------------------------------------------------------- |
-| `MaxPageSize`                  | `50`    | Maximum number of items a client can request via `first`, `last` or `take`.         |
-| `DefaultPageSize`              | `10`    | The default number of items, if a client does not specify`first`, `last` or `take`. |
-| `IncludeTotalCount`            | `false` | Add a `totalCount` field for clients to request the total number of items.          |
-| `AllowBackwardPagination`      | `true`  | Include `before` and `last` arguments on the _Connection_.                          |
-| `RequirePagingBoundaries`      | `false` | Clients need to specify either `first`, `last` or `take`.                           |
-| `InferConnectionNameFromField` | `true`  | Infer the name of the _Connection_ from the field name rather than its type.        |
-| `ProviderName`                 | `null`  | The name of the pagination provider to use.                                         |
+| Property                       | Default       | Description                                                                                                                                                                |
+| ------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MaxPageSize`                  | `50`          | Maximum number of items a client can request via `first`, `last` or `take`.                                                                                                |
+| `DefaultPageSize`              | `10`          | The default number of items, if a client does not specify`first`, `last` or `take`.                                                                                        |
+| `IncludeTotalCount`            | `false`       | Add a `totalCount` field for clients to request the total number of items.                                                                                                 |
+| `AllowBackwardPagination`      | `true`        | Include `before` and `last` arguments on the _Connection_.                                                                                                                 |
+| `RequirePagingBoundaries`      | `false`       | Clients need to specify either `first`, `last` or `take`.                                                                                                                  |
+| `InferConnectionNameFromField` | `true`        | Infer the name of the _Connection_ from the field name rather than its type.                                                                                               |
+| `ProviderName`                 | `null`        | The name of the pagination provider to use.                                                                                                                                |
+| `NullOrdering`                 | `Unspecified` | Controls how `null` values are ordered relative to non-null values when a nullable field is used as a cursor key. See [Nullable cursor keys](#nullable-cursor-keys) below. |
+
+# Nullable cursor keys
+
+When a cursor key field can be `null`, you must tell Hot Chocolate how the database orders `null` values so that cursor-based pagination produces correct results across pages.
+
+Set `NullOrdering` on `PagingOptions` to match your database's native behavior:
+
+| Value              | When to use                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------- |
+| `Unspecified`      | Default. The EF Core paging handler auto-detects the ordering for known providers (see note below). |
+| `NativeNullsFirst` | `null` is ordered **before** all non-null values (e.g. SQL Server, SQLite, in-memory LINQ).         |
+| `NativeNullsLast`  | `null` is ordered **after** all non-null values (e.g. PostgreSQL default behavior).                 |
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt => opt.NullOrdering = NullOrdering.NativeNullsLast);
+```
+
+> **Auto-detection:** When `NullOrdering` is `Unspecified` and the EF Core paging handler is used, the correct ordering is detected automatically for all supported providers: PostgreSQL (`NativeNullsLast`), and SQL Server, SQLite, and in-memory (`NativeNullsFirst`). For unrecognized providers, an error is thrown when nullable cursor keys are present — set `PagingOptions.NullOrdering` explicitly to resolve it.
 
 # Pagination defaults
 

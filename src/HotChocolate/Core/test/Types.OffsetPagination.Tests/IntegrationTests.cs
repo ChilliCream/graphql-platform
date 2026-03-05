@@ -695,6 +695,20 @@ public class IntegrationTests
         Assert.Equal("Cannot handle the specified data source.", error.Message);
     }
 
+    [Fact]
+    public async Task Attribute_Dictionary_ReturnType_ThrowsSchemaException()
+    {
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<UglyLegacyQuery>()
+                .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
     public class QueryType : ObjectType<Query>
     {
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -827,6 +841,16 @@ public class IntegrationTests
         [UseOffsetPaging]
         public ImmutableArray<int> Test()
         {
+            return [];
+        }
+    }
+
+    public class UglyLegacyQuery
+    {
+        [UseOffsetPaging]
+        public async Task<Dictionary<string, string>> UglyLegacyResolver()
+        {
+            await Task.Yield();
             return [];
         }
     }
