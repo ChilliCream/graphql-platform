@@ -32,5 +32,6 @@ internal static class WellKnownDirectiveNames
     public const string Require = DirectiveNames.Require.Name;
     public const string SerializeAs = DirectiveNames.SerializeAs.Name;
     public const string Shareable = DirectiveNames.Shareable.Name;
+    public const string SpecifiedBy = DirectiveNames.SpecifiedBy.Name;
     public const string Tag = DirectiveNames.Tag.Name;
 }
