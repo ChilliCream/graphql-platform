@@ -8,6 +8,7 @@ namespace HotChocolate.Types.Analyzers.Models;
 public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
 {
     public InterfaceTypeInfo(
+        Compilation compilation,
         INamedTypeSymbol schemaType,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax classDeclarationSyntax,
@@ -20,7 +21,7 @@ public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
         RuntimeTypeFullName = runtimeType.ToDisplayString();
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
-        Description = schemaType.GetDescription();
+        Description = compilation.GetDescription(schemaType);
         // sharable directives are only allowed on object types and field definitions
         Shareable = DirectiveScope.None;
         Attributes = attributes;

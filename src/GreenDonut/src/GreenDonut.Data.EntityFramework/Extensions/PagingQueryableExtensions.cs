@@ -132,7 +132,11 @@ public static class PagingQueryableExtensions
         if (arguments.After is not null)
         {
             cursor = CursorParser.Parse(arguments.After, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, true);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(
+                keys,
+                cursor,
+                true,
+                arguments.NullOrdering);
             source = source.Where(whereExpr);
             offset = cursorOffset;
 
@@ -157,7 +161,11 @@ public static class PagingQueryableExtensions
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, false);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(
+                keys,
+                cursor,
+                false,
+                arguments.NullOrdering);
             source = source.Where(whereExpr);
             offset = cursorOffset;
 
