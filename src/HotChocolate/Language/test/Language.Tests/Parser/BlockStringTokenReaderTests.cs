@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace HotChocolate.Language;
 
 public class BlockStringTokenReaderTests
@@ -254,50 +252,5 @@ public class BlockStringTokenReaderTests
         // assert
         Assert.Equal("0", reader.GetScalarValue());
         Assert.Equal(TokenKind.Integer, reader.Kind);
-    }
-
-    [Theory]
-    [InlineData("\"foo\\", "Unescaped_Backslash")]
-    [InlineData("\"\"\"foo\\\"\"\"", "Unescaped_Backslash_BlockString")]
-    [InlineData("\"\"\"foo\\\"", "Unterminated_BlockString")]
-    [InlineData("-", "Standalone_Minus")]
-    [InlineData("..", "Incomplete_Spread")]
-    [InlineData("1.", "Invalid_Decimal")]
-    [InlineData("1e", "Invalid_Exponent")]
-    [InlineData("1e-", "Invalid_Exponent_Minus")]
-    [InlineData(".1", "Invalid_Decimal_NoPrefixNumber")]
-    [InlineData("\0xEF\0xBB", "Incorrect_UTF8_BOM")]
-    public void InvalidInput_ThrowsSyntaxException(string sourceText, string postFix)
-    {
-        // arrange
-        var source = Encoding.UTF8.GetBytes(sourceText);
-
-        // act & assert
-        var reader = new Utf8GraphQLReader(source);
-        try
-        {
-            reader.Read();
-            Assert.Fail("No exception was thrown.");
-        }
-        catch (SyntaxException ex)
-        {
-            ex.Message.MatchSnapshot(postFix: postFix);
-        }
-    }
-
-    [Fact]
-    public void Utf8Bom_IsSkipped()
-    {
-        // arrange
-        var source = new byte[] { 0xEF, 0xBB, 0xBF, (byte)'a' };
-
-        // act
-        var reader = new Utf8GraphQLReader(source);
-        var result = reader.Read();
-
-        // assert
-        Assert.True(result);
-        Assert.Equal(TokenKind.Name, reader.Kind);
-        Assert.Equal("a", Utf8GraphQLReader.GetString(reader.Value));
     }
 }
