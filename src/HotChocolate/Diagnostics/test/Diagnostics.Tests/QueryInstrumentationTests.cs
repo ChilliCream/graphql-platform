@@ -342,21 +342,27 @@ public partial class QueryInstrumentationTests
     [Fact]
     public async Task DocumentCache_SecondExecution_RecordsCacheHitEvent()
     {
+        // arrange
+        var services = new ServiceCollection()
+            .AddGraphQL()
+            .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+            .AddQueryType<SimpleQuery>()
+            .Services
+            .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ sayHello }")
+            .SetDocumentHash(new OperationDocumentHash("abc", "sha256", HashFormat.Hex))
+            .Build();
+
+        // act - execute twice so second uses cached document
+        await executor.ExecuteAsync(request);
+
         using (CaptureActivities(out var activities))
         {
-            // arrange
-            var services = new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
-                .AddQueryType<SimpleQuery>()
-                .Services
-                .BuildServiceProvider();
-
-            var executor = await services.GetRequestExecutorAsync();
-
-            // act - execute twice so second uses cached document
-            await executor.ExecuteAsync("{ sayHello }");
-            await executor.ExecuteAsync("{ sayHello }");
+            await executor.ExecuteAsync(request);
 
             // assert
             activities.MatchSnapshot();

@@ -494,28 +494,30 @@ public class QueryInstrumentationTests : FusionTestBase
     [Fact]
     public async Task DocumentCache_SecondExecution_RecordsCacheHitEvent()
     {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server1 = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<Query>());
 
-            using var gateway = await CreateCompositeSchemaAsync(
+        using var gateway = await CreateCompositeSchemaAsync(
             [
                 ("a", server1)
             ],
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+        var executor = await gateway.Services.GetRequestExecutorAsync();
 
-            // act - execute twice so second uses cached document
-            var request = OperationRequestBuilder.New()
-                .SetDocument("{ sayHello }")
-                .Build();
+        // act - execute twice so second uses cached document
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ sayHello }")
+            .SetDocumentHash(new OperationDocumentHash("abc", "sha256", HashFormat.Hex))
+            .Build();
 
-            await executor.ExecuteAsync(request);
+        await executor.ExecuteAsync(request);
+
+        using (CaptureActivities(out var activities))
+        {
             await executor.ExecuteAsync(request);
 
             // assert
