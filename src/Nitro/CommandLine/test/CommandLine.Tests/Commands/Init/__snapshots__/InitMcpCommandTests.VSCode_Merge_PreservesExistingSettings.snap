@@ -1,0 +1,21 @@
+{
+  "editor.fontSize": 14,
+  "mcp": {
+    "servers": {
+      "existing-mcp": {
+        "command": "existing",
+        "args": [
+          "run"
+        ]
+      },
+      "nitro": {
+        "command": "npx",
+        "args": [
+          "@chillicream/nitro",
+          "mcp",
+          "serve"
+        ]
+      }
+    }
+  }
+}

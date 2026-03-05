@@ -1,6 +1,7 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using ChilliCream.Nitro.CommandLine.Commands.Mcp.Serve;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -22,5 +23,6 @@ internal sealed class McpCommand : Command
         AddCommand(new UploadMcpFeatureCollectionCommand());
         AddCommand(new PublishMcpFeatureCollectionCommand());
         AddCommand(new ValidateMcpFeatureCollectionCommand());
+        AddCommand(new McpServeCommand());
     }
 }

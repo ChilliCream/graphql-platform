@@ -1,0 +1,14 @@
+{
+  "mcp": {
+    "servers": {
+      "nitro": {
+        "command": "npx",
+        "args": [
+          "@chillicream/nitro",
+          "mcp",
+          "serve"
+        ]
+      }
+    }
+  }
+}

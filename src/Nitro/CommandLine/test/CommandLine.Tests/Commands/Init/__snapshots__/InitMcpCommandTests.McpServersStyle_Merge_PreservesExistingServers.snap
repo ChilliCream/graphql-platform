@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "other-server": {
+      "command": "other",
+      "args": [
+        "serve"
+      ]
+    },
+    "nitro": {
+      "command": "npx",
+      "args": [
+        "@chillicream/nitro",
+        "mcp",
+        "serve"
+      ]
+    }
+  }
+}
