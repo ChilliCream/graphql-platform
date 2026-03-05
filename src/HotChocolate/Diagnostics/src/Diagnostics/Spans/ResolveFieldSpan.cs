@@ -34,9 +34,6 @@ internal sealed class ResolveFieldSpan(
         activity.SetTag(GraphQL.Selection.Field.Coordinate, activity.DisplayName);
         activity.SetTag(GraphQL.Selection.Field.ParentType, coordinate.Name);
 
-        // TODO: Re-add this
-        // context.SetLocalState(ResolverActivity, activity);
-
         return new ResolveFieldSpan(activity, context, enricher);
     }
 

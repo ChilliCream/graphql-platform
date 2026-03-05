@@ -1,19 +1,32 @@
 {
   "activities": [
     {
-      "OperationName": "ExecuteRequest",
+      "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
-          "Key": "graphql.document.hash",
-          "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+          "Key": "graphql.processing.type",
+          "Value": "execute"
+        },
+        {
+          "Key": "otel.status_code",
+          "Value": "OK"
         }
       ],
-      "event": [],
+      "event": [
+        {
+          "Name": "AddedOperationPlanToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
       "activities": [
         {
-          "OperationName": "ParseDocument",
+          "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
           "Status": "Ok",
           "tags": [
@@ -22,8 +35,8 @@
               "Value": "parse"
             },
             {
-              "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+              "Key": "graphql.operation.type",
+              "Value": "query"
             },
             {
               "Key": "otel.status_code",
@@ -33,7 +46,7 @@
           "event": []
         },
         {
-          "OperationName": "ValidateDocument",
+          "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
           "Status": "Ok",
           "tags": [
@@ -42,6 +55,10 @@
               "Value": "validate"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
               "Key": "graphql.document.hash",
               "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
             },
@@ -53,7 +70,7 @@
           "event": []
         },
         {
-          "OperationName": "PlanOperation",
+          "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
           "Status": "Ok",
           "tags": [
@@ -77,7 +94,7 @@
           "event": []
         },
         {
-          "OperationName": "ExecuteOperation",
+          "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
           "Status": "Ok",
           "tags": [
@@ -101,9 +118,9 @@
           "event": [],
           "activities": [
             {
-              "OperationName": "ExecuteOperationNode",
+              "OperationName": "GraphQL Step Execution",
               "DisplayName": "GraphQL Step Execution",
-              "Status": "Ok",
+              "Status": "Unset",
               "tags": [
                 {
                   "Key": "graphql.processing.type",
@@ -122,14 +139,6 @@
                   "Value": "456132b93ebaf15a39534753bf72f9f4bfa1152a08d04bc8a88539feec1cb52c"
                 },
                 {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-                },
-                {
                   "Key": "graphql.source.name",
                   "Value": "a"
                 },
@@ -144,10 +153,6 @@
                 {
                   "Key": "graphql.source.operation.hash",
                   "Value": "sha256:35c1feb1208268226c7d5d5d0ae122e4d38cb79621e862b1e252d37fc83c530a"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []

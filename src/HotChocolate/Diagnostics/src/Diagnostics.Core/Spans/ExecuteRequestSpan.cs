@@ -11,12 +11,8 @@ internal sealed class ExecuteRequestSpan(
     Activity activity,
     RequestContext context,
     ActivityEnricherBase? enricher,
-    bool shouldDisposeActivity) : IDisposable
+    bool shouldDisposeActivity) : SpanBase(activity, shouldDisposeActivity)
 {
-    private bool _disposed;
-
-    public Activity Activity { get; } = activity;
-
     public static ExecuteRequestSpan? Start(
         ActivitySource source,
         RequestContext context,
@@ -42,22 +38,7 @@ internal sealed class ExecuteRequestSpan(
         return new ExecuteRequestSpan(activity, context, enricher, true);
     }
 
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _disposed = true;
-
-            OnComplete();
-
-            if (shouldDisposeActivity)
-            {
-                Activity.Dispose();
-            }
-        }
-    }
-
-    private void OnComplete()
+    protected override void OnComplete()
     {
         if (context.Result is null or OperationResult { Errors: [_, ..] })
         {

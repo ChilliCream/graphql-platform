@@ -1,13 +1,17 @@
 {
   "activities": [
     {
-      "OperationName": "ValidateDocument",
+      "OperationName": "GraphQL Document Validation",
       "DisplayName": "GraphQL Document Validation",
       "Status": "Ok",
       "tags": [
         {
           "Key": "graphql.processing.type",
           "Value": "validate"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
         },
         {
           "Key": "graphql.document.hash",
@@ -21,7 +25,7 @@
       "event": []
     },
     {
-      "OperationName": "CompileOperation",
+      "OperationName": "GraphQL Operation Planning",
       "DisplayName": "GraphQL Operation Planning",
       "Status": "Ok",
       "tags": [
@@ -45,7 +49,7 @@
       "event": []
     },
     {
-      "OperationName": "ResolveFieldValue",
+      "OperationName": "SimpleQuery.sayHello",
       "DisplayName": "SimpleQuery.sayHello",
       "Status": "Ok",
       "tags": [

@@ -1,27 +1,32 @@
 {
   "activities": [
     {
-      "OperationName": "ExecuteRequest",
+      "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
       "Status": "Error",
       "tags": [
         {
-          "Key": "graphql.document.hash",
-          "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
-        },
-        {
-          "Key": "graphql.document.body",
-          "Value": "query SayHelloOperation {\n  causeFatalError\n}"
+          "Key": "graphql.processing.type",
+          "Value": "execute"
         },
         {
           "Key": "otel.status_code",
           "Value": "ERROR"
         }
       ],
-      "event": [],
+      "event": [
+        {
+          "Name": "AddedOperationPlanToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
       "activities": [
         {
-          "OperationName": "ParseDocument",
+          "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
           "Status": "Ok",
           "tags": [
@@ -30,8 +35,12 @@
               "Value": "parse"
             },
             {
-              "Key": "graphql.document.hash",
-              "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloOperation"
             },
             {
               "Key": "otel.status_code",
@@ -41,7 +50,7 @@
           "event": []
         },
         {
-          "OperationName": "ValidateDocument",
+          "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
           "Status": "Ok",
           "tags": [
@@ -50,6 +59,14 @@
               "Value": "validate"
             },
             {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloOperation"
+            },
+            {
               "Key": "graphql.document.hash",
               "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
             },
@@ -61,7 +78,7 @@
           "event": []
         },
         {
-          "OperationName": "PlanOperation",
+          "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
           "Status": "Ok",
           "tags": [
@@ -89,7 +106,7 @@
           "event": []
         },
         {
-          "OperationName": "ExecuteOperation",
+          "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
           "Status": "Error",
           "tags": [
@@ -117,9 +134,9 @@
           "event": [],
           "activities": [
             {
-              "OperationName": "ExecuteOperationNode",
+              "OperationName": "GraphQL Step Execution",
               "DisplayName": "GraphQL Step Execution",
-              "Status": "Ok",
+              "Status": "Unset",
               "tags": [
                 {
                   "Key": "graphql.processing.type",
@@ -138,18 +155,6 @@
                   "Value": "5f75eb886568e255310bed3eb3e1f7f1c91f1a22f71ac7c36f00d8df27400d8e"
                 },
                 {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.operation.name",
-                  "Value": "SayHelloOperation"
-                },
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
-                },
-                {
                   "Key": "graphql.source.name",
                   "Value": "a"
                 },
@@ -164,10 +169,6 @@
                 {
                   "Key": "graphql.source.operation.hash",
                   "Value": "sha256:1b35e9142c2e8235f31d2b3ae0de3d2ba54692a7aa6481803c3841fd135f4c4c"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []

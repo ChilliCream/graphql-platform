@@ -1,5 +1,3 @@
-using System.Text;
-using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -45,8 +43,7 @@ public class ActivityDataLoaderDiagnosticListenerTests
         {
             Scopes = scopes
         };
-        var pool = new DefaultObjectPoolProvider().Create(new StringBuilderPooledObjectPolicy());
-        var enricher = new ActivityEnricher(pool, options);
+        var enricher = new ActivityEnricher(options);
         return new Listeners.ActivityDataLoaderDiagnosticListener(enricher, options);
     }
 }

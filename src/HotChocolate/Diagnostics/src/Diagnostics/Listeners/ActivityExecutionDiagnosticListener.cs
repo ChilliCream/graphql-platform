@@ -12,6 +12,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
     ActivityEnricher enricher,
     InstrumentationOptions options) : ExecutionDiagnosticEventListener
 {
+    private const string ResolveFieldSpanKey = "HotChocolate.Diagnostics.ResolveFieldSpan";
     private readonly ActivityEnricher _enricher = enricher;
 
     public override bool EnableResolveFieldValue => true;
@@ -208,14 +209,15 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        context.Features.Set(span);
+        context.LocalContextData = context.LocalContextData.SetItem(ResolveFieldSpanKey, span);
 
         return span;
     }
 
     public override void ResolverError(IMiddlewareContext context, IError error)
     {
-        if (context.Features.TryGet<ResolveFieldSpan>(out var span))
+        if (context.LocalContextData.TryGetValue(ResolveFieldSpanKey, out var value)
+            && value is ResolveFieldSpan span)
         {
             span.Activity.RecordError(error);
             span.Activity.MarkAsError();

@@ -1,7 +1,7 @@
 {
   "activities": [
     {
-      "OperationName": "BatchCoordinator",
+      "OperationName": "GraphQL DataLoader Dispatch",
       "DisplayName": "GraphQL DataLoader Dispatch",
       "Status": "Unset",
       "tags": [

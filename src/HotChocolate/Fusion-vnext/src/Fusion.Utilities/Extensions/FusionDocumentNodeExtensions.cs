@@ -2,17 +2,8 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal static class FusionDocumentNodeExtensions
+public static class FusionDocumentNodeExtensions
 {
-    private const string NoOperationFoundMessage =
-        "There are no operations in the GraphQL document.";
-
-    private const string MultipleOperationMessage =
-        "The operation name can only be omitted if there is just one operation in a GraphQL document.";
-
-    private const string InvalidOperationNameMessage =
-        "The specified operation `{0}` cannot be found.";
-
     public static OperationDefinitionNode GetOperation(
         this DocumentNode document,
         string? operationName)
@@ -83,7 +74,7 @@ internal static class FusionDocumentNodeExtensions
     private static GraphQLException OperationResolverHelper_NoOperationFound(
         DocumentNode documentNode) =>
         new(ErrorBuilder.New()
-            .SetMessage(NoOperationFoundMessage)
+            .SetMessage("There are no operations in the GraphQL document.")
             .AddLocation(documentNode)
             .Build());
 
@@ -91,7 +82,7 @@ internal static class FusionDocumentNodeExtensions
         OperationDefinitionNode firstOperation,
         OperationDefinitionNode secondOperation) =>
         new(ErrorBuilder.New()
-            .SetMessage(MultipleOperationMessage)
+            .SetMessage("The operation name can only be omitted if there is just one operation in a GraphQL document.")
             .AddLocation(firstOperation)
             .AddLocation(secondOperation)
             .Build());
@@ -100,7 +91,7 @@ internal static class FusionDocumentNodeExtensions
         DocumentNode documentNode,
         string operationName) =>
         new(ErrorBuilder.New()
-            .SetMessage(InvalidOperationNameMessage, operationName)
+            .SetMessage("The specified operation `{0}` cannot be found.", operationName)
             .AddLocation(documentNode)
             .SetExtension("operationName", operationName)
             .Build());

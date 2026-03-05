@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace HotChocolate.Diagnostics;
 
-internal abstract class SpanBase(Activity activity) : IDisposable
+internal abstract class SpanBase(Activity activity, bool shouldDisposeActivity = true) : IDisposable
 {
     private bool _disposed;
 
@@ -18,7 +18,10 @@ internal abstract class SpanBase(Activity activity) : IDisposable
 
             OnComplete();
 
-            Activity.Dispose();
+            if (shouldDisposeActivity)
+            {
+                Activity.Dispose();
+            }
         }
     }
 }
