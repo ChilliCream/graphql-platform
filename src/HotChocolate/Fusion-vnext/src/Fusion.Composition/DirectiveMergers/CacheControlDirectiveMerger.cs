@@ -20,7 +20,7 @@ internal class CacheControlDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
             ? $"fusion__{DirectiveNames.CacheControl}"
             : DirectiveNames.CacheControl;
 
-    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
+    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
         return CacheControlMutableDirectiveDefinition.Create(schema);
     }

@@ -23,6 +23,7 @@ public static class MessageBusServiceCollectionExtensions
     public static IMessageBusHostBuilder AddMessageBus(this IServiceCollection services)
     {
         services.AddLogging();
+        services.AddScoped<ConsumeContextAccessor>();
         services.AddScoped<IMessageBus, DefaultMessageBus>();
 
         services.AddSingleton(static sp =>
