@@ -45,38 +45,31 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             Debug.Assert(tokenType is not ElementTokenType.Reference);
             Debug.Assert(tokenType is not ElementTokenType.EndObject);
             Debug.Assert(tokenType is not ElementTokenType.EndArray);
+            var isSourceResult = (ElementFlags.SourceResult & row.Flags) == ElementFlags.SourceResult;
 
             switch (tokenType)
             {
-                case ElementTokenType.StartObject
-                    when (ElementFlags.SourceResult & row.Flags) != ElementFlags.SourceResult:
-                    WriteObject(cursor, row);
-                    break;
-
                 case ElementTokenType.StartObject:
-                {
-                    var sourceDocument = document._sources[row.SourceDocumentId];
-                    // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
-                    var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
-                    var formatter = new SourceResultDocument.RawJsonFormatter(sourceDocument, writer);
-                    formatter.WriteValue(sourceCursor);
-                    break;
-                }
-
-                case ElementTokenType.StartArray
-                    when (ElementFlags.SourceResult & row.Flags) != ElementFlags.SourceResult:
-                    WriteArray(cursor, row);
+                    if (isSourceResult)
+                    {
+                        WriteSourceValue(row);
+                    }
+                    else
+                    {
+                        WriteObject(cursor, row);
+                    }
                     break;
 
                 case ElementTokenType.StartArray:
-                {
-                    var sourceDocument = document._sources[row.SourceDocumentId];
-                    // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
-                    var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
-                    var formatter = new SourceResultDocument.RawJsonFormatter(sourceDocument, writer);
-                    formatter.WriteValue(sourceCursor);
+                    if (isSourceResult)
+                    {
+                        WriteSourceValue(row);
+                    }
+                    else
+                    {
+                        WriteArray(cursor, row);
+                    }
                     break;
-                }
 
                 case ElementTokenType.None:
                 case ElementTokenType.Null:
@@ -108,6 +101,15 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private void WriteSourceValue(DbRow row)
+        {
+            var sourceDocument = document._sources[row.SourceDocumentId];
+            // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
+            var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
+            var formatter = new SourceResultDocument.RawJsonFormatter(sourceDocument, writer);
+            formatter.WriteValue(sourceCursor);
         }
 
         private void WriteObject(Cursor start, DbRow startRow)
