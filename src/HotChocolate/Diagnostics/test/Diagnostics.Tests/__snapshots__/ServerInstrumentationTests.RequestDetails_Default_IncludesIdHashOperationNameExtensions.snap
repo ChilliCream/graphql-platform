@@ -6,12 +6,24 @@
       "Status": "Ok",
       "tags": [
         {
+          "Key": "graphql.http.kind",
+          "Value": "HttpPost"
+        },
+        {
           "Key": "graphql.schema.name",
           "Value": "_Default"
         },
         {
           "Key": "graphql.http.request.type",
           "Value": "single"
+        },
+        {
+          "Key": "graphql.http.request.query.id",
+          "Value": "029e67e1b2d8493b3dd23fdaf6545b03"
+        },
+        {
+          "Key": "graphql.http.request.query.hash",
+          "Value": "029e67e1b2d8493b3dd23fdaf6545b03"
         },
         {
           "Key": "graphql.http.request.extensions",
@@ -80,6 +92,14 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
+                },
+                {
+                  "Key": "graphql.operation.fieldCost",
+                  "Value": 1.0
+                },
+                {
+                  "Key": "graphql.operation.typeCost",
+                  "Value": 2.0
                 }
               ],
               "event": []

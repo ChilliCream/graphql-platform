@@ -47,7 +47,7 @@ internal sealed class ExecuteHttpRequestSpan(
                 break;
         }
 
-        activity.SetTag(GraphQL.Http.Kind, kind);
+        activity.SetTag(GraphQL.Http.Kind, kind.ToString());
 
         if (!(httpContext.Items.TryGetValue(SchemaName, out var value)
             && value is string schemaName))
@@ -67,13 +67,13 @@ internal sealed class ExecuteHttpRequestSpan(
         if (request.DocumentId is not null
             && (options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
         {
-            Activity.SetTag(GraphQL.Http.Request.QueryId, request.DocumentId.Value);
+            Activity.SetTag(GraphQL.Http.Request.QueryId, request.DocumentId.Value.Value);
         }
 
         if (request.DocumentHash is not null
             && (options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
         {
-            Activity.SetTag(GraphQL.Http.Request.QueryHash, request.DocumentHash.Value);
+            Activity.SetTag(GraphQL.Http.Request.QueryHash, request.DocumentHash.Value.Value);
         }
 
         if (request.Document is not null
@@ -178,13 +178,13 @@ internal sealed class ExecuteHttpRequestSpan(
         if (request.DocumentId is not null
             && (options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
         {
-            Activity.SetTag(GraphQL.Http.Request.QueryId, request.DocumentId.Value);
+            Activity.SetTag(GraphQL.Http.Request.QueryId, request.DocumentId.Value.Value);
         }
 
         if (request.DocumentHash is not null
             && (options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
         {
-            Activity.SetTag(GraphQL.Http.Request.QueryHash, request.DocumentHash.Value);
+            Activity.SetTag(GraphQL.Http.Request.QueryHash, request.DocumentHash.Value.Value);
         }
 
         if (request.Document is not null

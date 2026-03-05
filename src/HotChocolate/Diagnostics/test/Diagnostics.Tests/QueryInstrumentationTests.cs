@@ -383,6 +383,27 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact]
+    public async Task DataLoader_BatchExecution_With_Keys_RecordsBatchSpan()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.IncludeDataLoaderKeys = true;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task VariableCoercion_WithAllScopes_RecordsCoercionSpan()
     {
         using (CaptureActivities(out var activities))

@@ -6,6 +6,10 @@
       "Status": "Ok",
       "tags": [
         {
+          "Key": "graphql.http.kind",
+          "Value": "HttpPost"
+        },
+        {
           "Key": "graphql.schema.name",
           "Value": "_Default"
         },
@@ -76,6 +80,14 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:acb8d5d513c260b3cef3e3a12b0e29af"
+                },
+                {
+                  "Key": "graphql.operation.fieldCost",
+                  "Value": 1.0
+                },
+                {
+                  "Key": "graphql.operation.typeCost",
+                  "Value": 2.0
                 }
               ],
               "event": []

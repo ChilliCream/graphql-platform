@@ -172,6 +172,12 @@
                     {
                       "Key": "graphql.dataloader.batch.size",
                       "Value": 1
+                    },
+                    {
+                      "Key": "graphql.dataloader.batch.keys",
+                      "Value": [
+                        "abc"
+                      ]
                     }
                   ],
                   "event": []

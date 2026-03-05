@@ -6,6 +6,10 @@
       "Status": "Ok",
       "tags": [
         {
+          "Key": "graphql.http.kind",
+          "Value": "HttpPost"
+        },
+        {
           "Key": "graphql.schema.name",
           "Value": "_Default"
         }

@@ -6,12 +6,24 @@
       "Status": "Ok",
       "tags": [
         {
+          "Key": "graphql.http.kind",
+          "Value": "HttpPost"
+        },
+        {
           "Key": "graphql.schema.name",
           "Value": "_Default"
         },
         {
           "Key": "graphql.http.request.type",
           "Value": "single"
+        },
+        {
+          "Key": "graphql.http.request.query.id",
+          "Value": "08c6969c8d553f85d6541aa54ef01acb"
+        },
+        {
+          "Key": "graphql.http.request.query.hash",
+          "Value": "08c6969c8d553f85d6541aa54ef01acb"
         },
         {
           "Key": "graphql.http.request.query.body",
