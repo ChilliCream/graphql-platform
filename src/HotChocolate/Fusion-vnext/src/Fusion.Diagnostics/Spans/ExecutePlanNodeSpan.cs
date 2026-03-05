@@ -87,7 +87,7 @@ internal sealed class ExecutePlanNodeSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichExecutePlanNode(Activity, context, node, schemaName);
+        enricher.EnrichExecutePlanNode(context, node, schemaName, Activity);
     }
 
     private static void SetSourceSchemaTags(Activity activity, OperationSourceText operation, string? schemaName)

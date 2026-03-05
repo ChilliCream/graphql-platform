@@ -107,7 +107,7 @@ internal sealed class ExecuteHttpRequestSpan(
             }
         }
 
-        enricher.EnrichStartSingleRequest(Activity, httpContext, request);
+        enricher.EnrichStartSingleRequest(httpContext, request, Activity);
     }
 
     public void SetBatchRequestDetails(IReadOnlyList<GraphQLRequest> batch)
@@ -166,7 +166,7 @@ internal sealed class ExecuteHttpRequestSpan(
             }
         }
 
-        enricher.EnrichStartBatchRequest(Activity, httpContext, batch);
+        enricher.EnrichStartBatchRequest(httpContext, batch, Activity);
     }
 
     public void SetOperationBatchRequestDetails(
@@ -218,7 +218,7 @@ internal sealed class ExecuteHttpRequestSpan(
             }
         }
 
-        enricher.EnrichStartOperationBatchRequest(Activity, httpContext, request, operations);
+        enricher.EnrichStartOperationBatchRequest(httpContext, request, operations, Activity);
     }
 
     protected override void OnComplete()
@@ -228,7 +228,7 @@ internal sealed class ExecuteHttpRequestSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichExecuteHttpRequest(Activity, httpContext, kind);
+        enricher.EnrichExecuteHttpRequest(httpContext, kind, Activity);
     }
 
     public void RecordError(IError error)
@@ -236,7 +236,7 @@ internal sealed class ExecuteHttpRequestSpan(
         Activity.SetStatus(ActivityStatusCode.Error);
         Activity.AddGraphQLError(error);
 
-        enricher.EnrichHttpRequestError(Activity, httpContext, error);
+        enricher.EnrichHttpRequestError(httpContext, error, Activity);
     }
 
     public void RecordError(Exception exception)
@@ -244,6 +244,6 @@ internal sealed class ExecuteHttpRequestSpan(
         Activity.SetStatus(ActivityStatusCode.Error);
         Activity.AddException(exception);
 
-        enricher.EnrichHttpRequestError(Activity, httpContext, exception);
+        enricher.EnrichHttpRequestError(httpContext, exception, Activity);
     }
 }

@@ -72,6 +72,6 @@ internal sealed class PlanOperationSpan(
             }
         }
 
-        enricher.EnrichPlanOperation(Activity, context, operationPlanId);
+        enricher.EnrichPlanOperation(context, operationPlanId, Activity);
     }
 }

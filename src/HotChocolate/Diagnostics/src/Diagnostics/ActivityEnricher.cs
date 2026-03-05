@@ -16,32 +16,32 @@ public class ActivityEnricher(InstrumentationOptions options) : ActivityEnricher
     protected InstrumentationOptions Options { get; } = options;
 
     public virtual void EnrichCompileOperation(
-        Activity activity,
-        RequestContext context) { }
+        RequestContext context,
+        Activity activity) { }
 
     public virtual void EnrichResolveFieldValue(
-        Activity activity,
-        IMiddlewareContext context) { }
+        IMiddlewareContext context,
+        Activity activity) { }
 
     public virtual void EnrichResolverError(
-        Activity activity,
         IMiddlewareContext context,
-        IError error) { }
+        IError error,
+        Activity activity) { }
 
     public virtual void EnrichExecuteBatch<TKey>(
-        Activity activity,
         IDataLoader dataLoader,
-        IReadOnlyList<TKey> keys) where TKey : notnull { }
+        IReadOnlyList<TKey> keys,
+        Activity activity) where TKey : notnull { }
 
     public virtual void EnrichRunBatchDispatchCoordinator(
         Activity activity) { }
 
     public virtual void EnrichBatchDispatchError(
-        Activity activity,
-        Exception exception) { }
+        Exception exception,
+        Activity activity) { }
 
     public virtual void EnrichOnSubscriptionEvent(
-        Activity activity,
         RequestContext context,
-        ulong subscriptionId) { }
+        ulong subscriptionId,
+        Activity activity) { }
 }

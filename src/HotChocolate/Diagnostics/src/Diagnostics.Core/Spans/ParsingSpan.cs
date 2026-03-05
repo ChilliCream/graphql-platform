@@ -45,6 +45,6 @@ internal sealed class ParsingSpan(
             Activity.SetTag(GraphQL.Document.Id, documentInfo.Id.Value);
         }
 
-        enricher.EnrichParseDocument(Activity, context);
+        enricher.EnrichParseDocument(context, Activity);
     }
 }

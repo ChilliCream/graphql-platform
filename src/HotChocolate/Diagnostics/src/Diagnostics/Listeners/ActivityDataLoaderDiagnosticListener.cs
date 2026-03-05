@@ -48,7 +48,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
 
-            enricher.EnrichBatchDispatchError(activity, error);
+            enricher.EnrichBatchDispatchError(error, activity);
         }
     }
 

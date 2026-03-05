@@ -54,6 +54,6 @@ internal abstract class ExecuteRequestSpanBase(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher?.EnrichExecuteRequest(Activity, Context);
+        enricher?.EnrichExecuteRequest(Context, Activity);
     }
 }

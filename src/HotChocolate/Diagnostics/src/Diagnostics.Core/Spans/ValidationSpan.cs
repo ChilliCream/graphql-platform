@@ -47,6 +47,6 @@ internal sealed class ValidationSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichValidateDocument(Activity, context);
+        enricher.EnrichValidateDocument(context, Activity);
     }
 }

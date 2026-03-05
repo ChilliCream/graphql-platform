@@ -57,6 +57,6 @@ internal sealed class VariableCoercionSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichCoerceVariables(Activity, context);
+        enricher.EnrichCoerceVariables(context, Activity);
     }
 }

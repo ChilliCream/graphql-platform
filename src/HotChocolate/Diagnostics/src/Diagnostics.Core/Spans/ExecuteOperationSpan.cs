@@ -61,6 +61,6 @@ internal sealed class ExecuteOperationSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichExecuteOperation(Activity, context);
+        enricher.EnrichExecuteOperation(context, Activity);
     }
 }

@@ -46,7 +46,7 @@ internal sealed class AnalyzeOperationComplexitySpan(
 
         _costSet = true;
 
-        enricher.EnrichOperationCost(Activity, context, fieldCost, typeCost);
+        enricher.EnrichOperationCost(context, fieldCost, typeCost, Activity);
     }
 
     protected override void OnComplete()
@@ -56,6 +56,6 @@ internal sealed class AnalyzeOperationComplexitySpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichAnalyzeOperationCost(Activity, context);
+        enricher.EnrichAnalyzeOperationCost(context, Activity);
     }
 }

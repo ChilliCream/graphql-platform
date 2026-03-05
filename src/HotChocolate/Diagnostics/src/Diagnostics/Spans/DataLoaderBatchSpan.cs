@@ -40,6 +40,6 @@ internal sealed class DataLoaderBatchSpan<TKey>(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichExecuteBatch(Activity, dataLoader, keys);
+        enricher.EnrichExecuteBatch(dataLoader, keys, Activity);
     }
 }

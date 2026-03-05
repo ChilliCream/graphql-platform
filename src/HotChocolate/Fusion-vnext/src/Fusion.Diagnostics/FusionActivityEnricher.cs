@@ -17,40 +17,40 @@ public class FusionActivityEnricher(InstrumentationOptions options) : ActivityEn
     protected InstrumentationOptions Options { get; } = options;
 
     public virtual void EnrichPlanOperation(
-        Activity activity,
         RequestContext context,
-        string operationPlanId) { }
+        string operationPlanId,
+        Activity activity) { }
 
     public virtual void EnrichExecutePlanNode(
-        Activity activity,
         OperationPlanContext context,
         ExecutionNode node,
-        string? schemaName) { }
+        string? schemaName,
+        Activity activity) { }
 
     public virtual void EnrichExecutionNodeError(
-        Activity activity,
         OperationPlanContext context,
         ExecutionNode node,
-        Exception exception) { }
+        Exception exception,
+        Activity activity) { }
 
     public virtual void EnrichSourceSchemaTransportError(
-        Activity activity,
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
-        Exception exception) { }
+        Exception exception,
+        Activity activity) { }
 
     public virtual void EnrichSourceSchemaStoreError(
-        Activity activity,
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
-        Exception exception) { }
+        Exception exception,
+        Activity activity) { }
 
     public virtual void EnrichOnSubscriptionEvent(
-        Activity activity,
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
-        ulong subscriptionId) { }
+        ulong subscriptionId,
+        Activity activity) { }
 }

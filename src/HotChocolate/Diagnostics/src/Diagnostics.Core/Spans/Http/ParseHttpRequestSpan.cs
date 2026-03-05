@@ -33,7 +33,7 @@ internal sealed class ParseHttpRequestSpan(
             Activity.AddGraphQLError(error);
         }
 
-        enricher.EnrichParserErrors(Activity, httpContext, errors);
+        enricher.EnrichParserErrors(httpContext, errors, Activity);
     }
 
     protected override void OnComplete()
@@ -43,6 +43,6 @@ internal sealed class ParseHttpRequestSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichParseHttpRequest(Activity, httpContext);
+        enricher.EnrichParseHttpRequest(httpContext, Activity);
     }
 }

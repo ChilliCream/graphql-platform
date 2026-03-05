@@ -44,6 +44,6 @@ internal sealed class ResolveFieldSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichResolveFieldValue(Activity, context);
+        enricher.EnrichResolveFieldValue(context, Activity);
     }
 }

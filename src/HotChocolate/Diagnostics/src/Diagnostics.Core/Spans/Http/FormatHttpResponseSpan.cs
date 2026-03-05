@@ -31,6 +31,6 @@ internal sealed class FormatHttpResponseSpan(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher.EnrichFormatHttpResponse(Activity, httpContext);
+        enricher.EnrichFormatHttpResponse(httpContext, Activity);
     }
 }

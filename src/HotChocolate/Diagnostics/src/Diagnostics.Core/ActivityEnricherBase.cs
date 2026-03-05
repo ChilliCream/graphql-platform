@@ -13,91 +13,91 @@ namespace HotChocolate.Diagnostics;
 public abstract class ActivityEnricherBase
 {
     public virtual void EnrichExecuteHttpRequest(
-        Activity activity,
         HttpContext httpContext,
-        HttpRequestKind kind) { }
+        HttpRequestKind kind,
+        Activity activity) { }
 
     public virtual void EnrichStartSingleRequest(
-        Activity activity,
-        HttpContext httpContext,
-        GraphQLRequest request) { }
-
-    public virtual void EnrichStartBatchRequest(
-        Activity activity,
-        HttpContext httpContext,
-        IReadOnlyList<GraphQLRequest> batch) { }
-
-    public virtual void EnrichStartOperationBatchRequest(
-        Activity activity,
         HttpContext httpContext,
         GraphQLRequest request,
-        IReadOnlyList<string> operations) { }
+        Activity activity) { }
+
+    public virtual void EnrichStartBatchRequest(
+        HttpContext httpContext,
+        IReadOnlyList<GraphQLRequest> batch,
+        Activity activity) { }
+
+    public virtual void EnrichStartOperationBatchRequest(
+        HttpContext httpContext,
+        GraphQLRequest request,
+        IReadOnlyList<string> operations,
+        Activity activity) { }
 
     public virtual void EnrichHttpRequestError(
-        Activity activity,
         HttpContext httpContext,
-        IError error) { }
+        IError error,
+        Activity activity) { }
 
     public virtual void EnrichHttpRequestError(
-        Activity activity,
         HttpContext httpContext,
-        Exception exception) { }
+        Exception exception,
+        Activity activity) { }
 
     public virtual void EnrichParseHttpRequest(
-        Activity activity,
-        HttpContext httpContext) { }
+        HttpContext httpContext,
+        Activity activity) { }
 
     public virtual void EnrichParserErrors(
-        Activity activity,
         HttpContext httpContext,
-        IReadOnlyList<IError> errors) { }
+        IReadOnlyList<IError> errors,
+        Activity activity) { }
 
     public virtual void EnrichFormatHttpResponse(
-        Activity activity,
-        HttpContext httpContext) { }
+        HttpContext httpContext,
+        Activity activity) { }
 
     public virtual void EnrichExecuteRequest(
-        Activity activity,
-        RequestContext context) { }
+        RequestContext context,
+        Activity activity) { }
 
     public virtual void EnrichRequestError(
-        Activity activity,
         RequestContext context,
-        Exception exception) { }
+        Exception exception,
+        Activity activity) { }
 
     public virtual void EnrichRequestError(
-        Activity activity,
         RequestContext context,
-        IError error) { }
+        IError error,
+        Activity activity) { }
 
     public virtual void EnrichParseDocument(
-        Activity activity,
-        RequestContext context) { }
+        RequestContext context,
+        Activity activity) { }
 
     public virtual void EnrichValidateDocument(
-        Activity activity,
-        RequestContext context) { }
+        RequestContext context,
+        Activity activity) { }
 
     public virtual void EnrichValidationErrors(
-        Activity activity,
         RequestContext context,
-        IReadOnlyList<IError> errors) { }
+        IReadOnlyList<IError> errors,
+        Activity activity) { }
 
     public virtual void EnrichAnalyzeOperationCost(
-        Activity activity,
-        RequestContext context) { }
+        RequestContext context,
+        Activity activity) { }
 
     public virtual void EnrichOperationCost(
-        Activity activity,
         RequestContext context,
         double fieldCost,
-        double typeCost) { }
+        double typeCost,
+        Activity activity) { }
 
     public virtual void EnrichCoerceVariables(
-        Activity activity,
-        RequestContext context) { }
+        RequestContext context,
+        Activity activity) { }
 
     public virtual void EnrichExecuteOperation(
-        Activity activity,
-        RequestContext context) { }
+        RequestContext context,
+        Activity activity) { }
 }

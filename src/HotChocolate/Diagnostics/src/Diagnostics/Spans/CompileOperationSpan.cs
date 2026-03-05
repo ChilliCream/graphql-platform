@@ -54,6 +54,6 @@ internal sealed class CompileOperationSpan(
             }
         }
 
-        enricher.EnrichCompileOperation(Activity, context);
+        enricher.EnrichCompileOperation(context, Activity);
     }
 }

@@ -596,17 +596,39 @@ builder.Services
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
 
-## OpenTelemetry span attribute changes
+## AddInstrumentation
 
-The OpenTelemetry span attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec).
+### `InstrumentationOptions` changes
+
+- `RenameRootActivity` was removed.
+- `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
+- `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+
+### Custom enricher changes
+
+If you've implemented a custom `ActivityEnricher`, you now no longer need to pass the `ObjectPool<StringBuilder>` down to the base class:
+
+```diff
+public class CustomActivityEnricher(
+-  ObjectPool<StringBuilder> stringBuilderPool,
+  InstrumentationOptions options
+-) : ActivityEnricher(stringBuilderPool, options);
++) : ActivityEnricher(options);
+```
+
+## OpenTelemetry span and status changes
+
+The OpenTelemetry spans and attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec).
 
 If you have dashboards or alerts that filter on the old attribute names or values, update them accordingly.
 
-## Removed attributes
+### Removed attributes
 
-| Attribute |
-| --------- |
-| TODO      |
+| Attribute                     |
+| ----------------------------- |
+| `graphql.operation.id`        |
+| `graphql.selection.type`      |
+| `graphql.selection.hierarchy` |
 
 ### Renamed attributes
 
@@ -616,13 +638,30 @@ If you have dashboards or alerts that filter on the old attribute names or value
 | `graphql.selection.field.declaringType` | `graphql.selection.field.parent_type` |
 | `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`       |
 | `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`       |
+| `graphql.fusion.node.schema`            | `graphql.source.name`                 |
+| `graphql.fusion.node.type`              | `graphql.operation.step.kind`         |
+| `graphql.error.location.line/column`    | `graphql.error.locations`             |
 
 ### Changed attribute values
 
-| Attribute                | Old Value                             | New Value                             |
-| ------------------------ | ------------------------------------- | ------------------------------------- |
-| `graphql.operation.type` | `Query` / `Mutation` / `Subscription` | `query` / `mutation` / `subscription` |
-| `graphql.http.kind`      | `operation-batch`                     | `operation_batch`                     |
+| Attribute                | Old Value                             | New Value                                           |
+| ------------------------ | ------------------------------------- | --------------------------------------------------- |
+| `graphql.operation.type` | `Query` / `Mutation` / `Subscription` | `query` / `mutation` / `subscription`               |
+| `graphql.http.kind`      | `operation-batch`                     | `operation_batch`                                   |
+| `graphql.document.hash`  | `<hash>`                              | `<hash-algorithm>:<hash>` , e.g. `md5:<hash>`       |
+| `graphql.document.id`    | -                                     | Value is only set if document is a trusted document |
+
+## Diagnostic Listeners
+
+We removed the following methods from the `IExecutionDiagnosticEventListener` since they no longer apply:
+
+- `ExecuteStream`
+- `ExecuteDeferredTask`
+- `DispatchBatch`
+- `SubscriptionTransportError`
+- `SubscriptionEventResult`
+
+Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
 
 # Deprecations
 

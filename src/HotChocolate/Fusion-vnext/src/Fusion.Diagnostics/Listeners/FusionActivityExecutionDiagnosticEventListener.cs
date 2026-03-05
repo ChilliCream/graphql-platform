@@ -53,7 +53,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
 
-            enricher.EnrichRequestError(activity, context, error);
+            enricher.EnrichRequestError(context, error, activity);
         }
     }
 
@@ -66,7 +66,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddGraphQLError(error);
 
-            enricher.EnrichRequestError(activity, context, error);
+            enricher.EnrichRequestError(context, error, activity);
         }
     }
 
@@ -117,7 +117,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.AddGraphQLError(error);
         }
 
-        enricher.EnrichValidationErrors(activity, context, errors);
+        enricher.EnrichValidationErrors(context, errors, activity);
     }
 
     public override IDisposable PlanOperation(RequestContext context, string operationPlanId)
@@ -208,7 +208,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
 
-            enricher.EnrichExecutionNodeError(activity, context, node, error);
+            enricher.EnrichExecutionNodeError(context, node, error, activity);
         }
     }
 
@@ -223,7 +223,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
 
-            enricher.EnrichSourceSchemaTransportError(activity, context, node, schemaName, error);
+            enricher.EnrichSourceSchemaTransportError(context, node, schemaName, error, activity);
         }
     }
 
@@ -238,7 +238,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
 
-            enricher.EnrichSourceSchemaStoreError(activity, context, node, schemaName, error);
+            enricher.EnrichSourceSchemaStoreError(context, node, schemaName, error, activity);
         }
     }
 
@@ -255,7 +255,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        enricher.EnrichOnSubscriptionEvent(activity, context, node, schemaName, subscriptionId);
+        enricher.EnrichOnSubscriptionEvent(context, node, schemaName, subscriptionId, activity);
 
         return activity;
     }

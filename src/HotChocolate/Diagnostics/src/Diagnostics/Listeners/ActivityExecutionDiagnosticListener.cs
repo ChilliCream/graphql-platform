@@ -57,7 +57,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
 
-            enricher.EnrichRequestError(activity, context, error);
+            enricher.EnrichRequestError(context, error, activity);
         }
     }
 
@@ -70,7 +70,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddGraphQLError(error);
 
-            enricher.EnrichRequestError(activity, context, error);
+            enricher.EnrichRequestError(context, error, activity);
         }
     }
 
@@ -121,7 +121,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             activity.AddGraphQLError(error);
         }
 
-        enricher.EnrichValidationErrors(activity, context, errors);
+        enricher.EnrichValidationErrors(context, errors, activity);
     }
 
     public override IDisposable AnalyzeOperationCost(RequestContext context)
@@ -236,7 +236,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             span.Activity.SetStatus(ActivityStatusCode.Error);
             span.Activity.AddGraphQLError(error);
 
-            enricher.EnrichResolverError(span.Activity, context, error);
+            enricher.EnrichResolverError(context, error, span.Activity);
         }
     }
 
@@ -249,7 +249,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        enricher.EnrichOnSubscriptionEvent(activity, context, subscriptionId);
+        enricher.EnrichOnSubscriptionEvent(context, subscriptionId, activity);
 
         return activity;
     }
