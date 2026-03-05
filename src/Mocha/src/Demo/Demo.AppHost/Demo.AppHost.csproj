@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.0" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>HotChocolate.Demo.AppHost</AssemblyName>
+    <RootNamespace>HotChocolate.Demo.AppHost</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Demo.Catalog\Demo.Catalog.csproj" />
+    <ProjectReference Include="..\Demo.Billing\Demo.Billing.csproj" />
+    <ProjectReference Include="..\Demo.Shipping\Demo.Shipping.csproj" />
+  </ItemGroup>
+</Project>
