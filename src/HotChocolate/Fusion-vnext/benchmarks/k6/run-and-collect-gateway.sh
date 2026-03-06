@@ -50,12 +50,11 @@ echo "Output file: $OUTPUT_FILE"
 echo "Running each test ${NUM_RUNS} times to reduce variance"
 if $HAS_TASKSET; then
   echo "CPU Assignments:"
-  echo "  k6:                cores 0-1"
-  echo "  Gateway (constant):  cores 2-4 (3 CPUs)"
-  echo "  Gateway (ramping):   cores 2-5 (4 CPUs)"
-  echo "  Source Schemas (constant): cores 5-15"
-  echo "  Source Schemas (ramping):  cores 6-15"
-  echo "  Inventory Service: cores 2-5 (4 CPUs)"
+  echo "  k6:                 core 0"
+  echo "  Gateway (constant): cores 1-2 (2 CPUs)"
+  echo "  Gateway (ramping):  cores 1-3 (3 CPUs)"
+  echo "  Source Schemas:     unpinned"
+  echo "  Inventory Service:  same as gateway"
 fi
 echo ""
 
@@ -72,14 +71,14 @@ calculate_median() {
 }
 
 # Function to start infrastructure for gateway tests - constant mode
-# Gateway on cores 2-4 (3 CPUs), all source schemas on cores 5-15
+# k6: core 0, Gateway: cores 1-2, Sources: unpinned
 start_infrastructure_gateway_constant() {
-    echo -e "${YELLOW}    Starting source schemas on cores 5-15...${NC}"
-    export SOURCES_CPUSET="5-15"
+    echo -e "${YELLOW}    Starting source schemas (unpinned)...${NC}"
+    export SOURCES_CPUSET=""
     "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
 
-    echo -e "${YELLOW}    Starting gateway on cores 2-4...${NC}"
-    export GATEWAY_CPUSET="2-4"
+    echo -e "${YELLOW}    Starting gateway on cores 1-2...${NC}"
+    export GATEWAY_CPUSET="1-2"
     "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
@@ -87,14 +86,14 @@ start_infrastructure_gateway_constant() {
 }
 
 # Function to start infrastructure for gateway tests - ramping mode
-# Gateway on cores 2-5 (4 CPUs), all source schemas on cores 6-15
+# k6: core 0, Gateway: cores 1-3, Sources: unpinned
 start_infrastructure_gateway_ramping() {
-    echo -e "${YELLOW}    Starting source schemas on cores 6-15...${NC}"
-    export SOURCES_CPUSET="6-15"
+    echo -e "${YELLOW}    Starting source schemas (unpinned)...${NC}"
+    export SOURCES_CPUSET=""
     "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
 
-    echo -e "${YELLOW}    Starting gateway on cores 2-5...${NC}"
-    export GATEWAY_CPUSET="2-5"
+    echo -e "${YELLOW}    Starting gateway on cores 1-3...${NC}"
+    export GATEWAY_CPUSET="1-3"
     "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
@@ -102,10 +101,10 @@ start_infrastructure_gateway_ramping() {
 }
 
 # Function to start infrastructure for variable-batch test
-# Only inventory service on cores 2-5 (4 CPUs)
+# k6: core 0, Inventory: same cores as gateway for the mode
 start_infrastructure_variable_batch() {
-    echo -e "${YELLOW}    Starting inventory service on cores 2-5...${NC}"
-    export INVENTORY_CPUSET="2-5"
+    echo -e "${YELLOW}    Starting inventory service on cores 1-2...${NC}"
+    export INVENTORY_CPUSET="1-2"
     "$SCRIPT_DIR/start-inventory-only.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Waiting for service to be ready...${NC}"
@@ -120,53 +119,53 @@ stop_infrastructure() {
 }
 
 # Run no-recursion test multiple times (constant mode)
-# k6 on cores 0-1, gateway on 2-4, sources on 5-15
+# k6 on core 0, gateway on 1-2, sources unpinned
 echo -e "${BLUE}Running No Recursion Test - Constant Mode (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     start_infrastructure_gateway_constant
-    maybe_taskset "0-1" k6 run --summary-export=/tmp/no-recursion-summary-${i}.json "$SCRIPT_DIR/no-recursion.js"
+    maybe_taskset "0" k6 run --summary-export=/tmp/no-recursion-summary-${i}.json "$SCRIPT_DIR/no-recursion.js"
     stop_infrastructure
 done
 
 # Run no-recursion test once in ramping mode
-# k6 on cores 0-1, gateway on 2-5, sources on 6-15
+# k6 on core 0, gateway on 1-3, sources unpinned
 echo -e "${BLUE}Running No Recursion Test - Ramping Mode (1 run)...${NC}"
 start_infrastructure_gateway_ramping
-MODE=ramping maybe_taskset "0-1" k6 run --summary-export=/tmp/no-recursion-ramping-summary.json "$SCRIPT_DIR/no-recursion.js"
+MODE=ramping maybe_taskset "0" k6 run --summary-export=/tmp/no-recursion-ramping-summary.json "$SCRIPT_DIR/no-recursion.js"
 stop_infrastructure
 
 # Run deep-recursion test multiple times (constant mode)
-# k6 on cores 0-1, gateway on 2-4, sources on 5-15
+# k6 on core 0, gateway on 1-2, sources unpinned
 echo -e "${BLUE}Running Deep Recursion Test - Constant Mode (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     start_infrastructure_gateway_constant
-    maybe_taskset "0-1" k6 run --summary-export=/tmp/deep-recursion-summary-${i}.json "$SCRIPT_DIR/deep-recursion.js"
+    maybe_taskset "0" k6 run --summary-export=/tmp/deep-recursion-summary-${i}.json "$SCRIPT_DIR/deep-recursion.js"
     stop_infrastructure
 done
 
 # Run deep-recursion test once in ramping mode
-# k6 on cores 0-1, gateway on 2-5, sources on 6-15
+# k6 on core 0, gateway on 1-3, sources unpinned
 echo -e "${BLUE}Running Deep Recursion Test - Ramping Mode (1 run)...${NC}"
 start_infrastructure_gateway_ramping
-MODE=ramping maybe_taskset "0-1" k6 run --summary-export=/tmp/deep-recursion-ramping-summary.json "$SCRIPT_DIR/deep-recursion.js"
+MODE=ramping maybe_taskset "0" k6 run --summary-export=/tmp/deep-recursion-ramping-summary.json "$SCRIPT_DIR/deep-recursion.js"
 stop_infrastructure
 
 # Run variable-batch-throughput test multiple times (constant mode)
-# k6 on cores 0-1, inventory service on 2-5 (4 CPUs)
+# k6 on core 0, inventory on 1-2
 echo -e "${BLUE}Running Variable Batch Throughput Test - Constant Mode (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     start_infrastructure_variable_batch
-    maybe_taskset "0-1" k6 run --summary-export=/tmp/variable-batch-summary-${i}.json "$SCRIPT_DIR/variable-batch-throughput.js"
+    maybe_taskset "0" k6 run --summary-export=/tmp/variable-batch-summary-${i}.json "$SCRIPT_DIR/variable-batch-throughput.js"
     stop_infrastructure
 done
 
 # Run variable-batch-throughput test once in ramping mode
 echo -e "${BLUE}Running Variable Batch Throughput Test - Ramping Mode (1 run)...${NC}"
 start_infrastructure_variable_batch
-MODE=ramping maybe_taskset "0-1" k6 run --summary-export=/tmp/variable-batch-ramping-summary.json "$SCRIPT_DIR/variable-batch-throughput.js"
+MODE=ramping maybe_taskset "0" k6 run --summary-export=/tmp/variable-batch-ramping-summary.json "$SCRIPT_DIR/variable-batch-throughput.js"
 stop_infrastructure
 
 # Parse the summary statistics from k6 JSON output

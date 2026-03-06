@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Formatters;
@@ -6,6 +7,9 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
+using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
@@ -69,15 +73,13 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             {
                 // arrange
                 using var testServer = CreateStarWarsServer(
-                    configureConventions: mapping => mapping.WithOptions(
-                        new GraphQLServerOptions
+                    configureServices: s => s
+                        .AddGraphQL()
+                        .ModifyServerOptions(o =>
                         {
-                            Sockets =
-                            {
-                                ConnectionInitializationTimeout =
-                                    TimeSpan.FromMilliseconds(1000),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                            o.Sockets.ConnectionInitializationTimeout =
+                                TimeSpan.FromMilliseconds(1000);
+                            o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
                         }));
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
@@ -103,14 +105,13 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             {
                 // arrange
                 using var testServer = CreateStarWarsServer(
-                    configureConventions: mapping => mapping.WithOptions(
-                        new GraphQLServerOptions
+                    configureServices: s => s
+                        .AddGraphQL()
+                        .ModifyServerOptions(o =>
                         {
-                            Sockets =
-                            {
-                                ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                            o.Sockets.ConnectionInitializationTimeout =
+                                TimeSpan.FromMilliseconds(50);
+                            o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
                         }));
                 var client = CreateWebSocketClient(testServer);
 
@@ -286,6 +287,69 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await snapshot.Add(message).MatchAsync(ct);
             });
     }
+
+    [Fact]
+    public Task Subscribe_With_PersistedQuery_Extension_Only_Works()
+        => TryTest(
+            async ct =>
+            {
+                // arrange
+                var storage = new OperationStorage();
+                var hashProvider = new MD5DocumentHashProvider(HashFormat.Base64);
+                const string query = "subscription { onReview(episode: NEW_HOPE) { stars } }";
+                var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query)).Value;
+                storage.AddOperation(hash, query);
+
+                using var testServer = CreateStarWarsServer(
+                    configureServices: services => services
+                        .AddGraphQLServer()
+                        .AddMD5DocumentHashProvider(HashFormat.Base64)
+                        .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage)),
+                    output: output);
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                var subscribeMessage = JsonSerializer.Serialize(
+                    new
+                    {
+                        type = "subscribe",
+                        id = "abc",
+                        payload = new
+                        {
+                            extensions = new Dictionary<string, object?>
+                            {
+                                ["persistedQuery"] = new Dictionary<string, object?>
+                                {
+                                    ["version"] = 1,
+                                    [hashProvider.Name] = hash
+                                }
+                            }
+                        }
+                    });
+
+                // act
+                await webSocket.SendMessageAsync(subscribeMessage, ct);
+
+                await testServer.SendPostRequestAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            """
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    commentary: "foo"
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
+                            }
+                            """
+                    });
+
+                // assert
+                var message = await WaitForMessage(webSocket, Messages.Next, ct);
+                Assert.NotNull(message);
+            });
 
     [Fact]
     public Task Subscribe_Id_Not_Unique()
@@ -958,6 +1022,31 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 var messageOnReview = messageData.GetProperty("onReview");
                 Assert.False(messageOnReview.TryGetProperty("commentary", out _));
             });
+
+    private sealed class OperationStorage : IOperationDocumentStorage
+    {
+        private readonly Dictionary<string, OperationDocument> _cache =
+            new(StringComparer.Ordinal);
+
+        public ValueTask<IOperationDocument?> TryReadAsync(
+            OperationDocumentId documentId,
+            CancellationToken cancellationToken = default)
+            => _cache.TryGetValue(documentId.Value, out var value)
+                ? new ValueTask<IOperationDocument?>(value)
+                : new ValueTask<IOperationDocument?>(default(IOperationDocument));
+
+        public ValueTask SaveAsync(
+            OperationDocumentId documentId,
+            IOperationDocument document,
+            CancellationToken cancellationToken = default)
+            => throw new NotImplementedException();
+
+        public void AddOperation(string key, string sourceText)
+        {
+            var doc = new OperationDocument(Utf8GraphQLParser.Parse(sourceText));
+            _cache.Add(key, doc);
+        }
+    }
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor
     {

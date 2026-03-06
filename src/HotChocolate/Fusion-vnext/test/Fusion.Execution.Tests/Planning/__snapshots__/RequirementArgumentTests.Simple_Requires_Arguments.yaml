@@ -58,6 +58,7 @@ nodes:
       }
     source: $.testById
     target: $.test
+    batchingGroupId: 1
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -77,6 +78,7 @@ nodes:
       }
     source: $.testById
     target: $.test
+    batchingGroupId: 1
     requirements:
       - name: __fusion_4_id
         selectionMap: >-

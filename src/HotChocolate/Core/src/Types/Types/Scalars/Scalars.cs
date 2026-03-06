@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -24,6 +23,7 @@ public static class Scalars
         { typeof(int), typeof(IntType) },
         { typeof(JsonElement), typeof(AnyType) },
         { typeof(long), typeof(LongType) },
+        { typeof(object), typeof(AnyType) },
         { typeof(sbyte), typeof(ByteType) },
         { typeof(short), typeof(ShortType) },
         { typeof(string), typeof(StringType) },
@@ -66,35 +66,6 @@ public static class Scalars
         { ScalarNames.UUID, typeof(UuidType) }
     };
 
-    private static readonly Dictionary<Type, ValueKind> s_scalarKinds = new()
-    {
-        { typeof(bool?), ValueKind.Boolean },
-        { typeof(bool), ValueKind.Boolean },
-        { typeof(byte?), ValueKind.Integer },
-        { typeof(byte), ValueKind.Integer },
-        { typeof(decimal?), ValueKind.Float },
-        { typeof(decimal), ValueKind.Float },
-        { typeof(double?), ValueKind.Float },
-        { typeof(double), ValueKind.Float },
-        { typeof(float?), ValueKind.Float },
-        { typeof(float), ValueKind.Float },
-        { typeof(int?), ValueKind.Integer },
-        { typeof(int), ValueKind.Integer },
-        { typeof(long?), ValueKind.Integer },
-        { typeof(long), ValueKind.Integer },
-        { typeof(sbyte?), ValueKind.Integer },
-        { typeof(sbyte), ValueKind.Integer },
-        { typeof(short?), ValueKind.Integer },
-        { typeof(short), ValueKind.Integer },
-        { typeof(string), ValueKind.String },
-        { typeof(uint?), ValueKind.Integer },
-        { typeof(uint), ValueKind.Integer },
-        { typeof(ulong?), ValueKind.Integer },
-        { typeof(ulong), ValueKind.Integer },
-        { typeof(ushort?), ValueKind.Integer },
-        { typeof(ushort), ValueKind.Integer }
-    };
-
     private static readonly HashSet<string> s_specScalars =
     [
         ScalarNames.ID,
@@ -133,55 +104,6 @@ public static class Scalars
     public static bool IsBuiltIn(string typeName)
         => !string.IsNullOrEmpty(typeName)
             && s_nameLookup.ContainsKey(typeName);
-
-    /// <summary>
-    /// Tries to infer the GraphQL literal kind from a runtime value.
-    /// </summary>
-    /// <param name="value">
-    /// The runtime value.
-    /// </param>
-    /// <param name="kind">
-    /// The expected GraphQL literal kind.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the literal kind can be inferred.
-    /// </returns>
-    public static bool TryGetKind(object? value, out ValueKind kind)
-    {
-        if (value is null)
-        {
-            kind = ValueKind.Null;
-            return true;
-        }
-
-        var valueType = value.GetType();
-
-        if (valueType.IsEnum)
-        {
-            kind = ValueKind.Enum;
-            return true;
-        }
-
-        if (s_scalarKinds.TryGetValue(valueType, out kind))
-        {
-            return true;
-        }
-
-        if (value is IDictionary)
-        {
-            kind = ValueKind.Object;
-            return true;
-        }
-
-        if (value is ICollection)
-        {
-            kind = ValueKind.List;
-            return true;
-        }
-
-        kind = ValueKind.Unknown;
-        return false;
-    }
 
     internal static bool IsSpec(string typeName)
         => s_specScalars.Contains(typeName);

@@ -150,6 +150,26 @@ public class SortInputTypeTests : SortTestBase
     }
 
     [Fact]
+    public void SortInputType_Field_ArrayLengthExpression_Infers_IntRuntimeType()
+    {
+        // arrange
+        var schema = CreateSchema(
+            s => s
+                .AddType<CardReaderSortInputType>());
+
+        // act
+        Assert.True(
+            schema.Types.TryGetType<CardReaderSortInputType>(
+                "CardReaderSortInput",
+                out var sortType));
+
+        // assert
+        Assert.NotNull(sortType);
+        var lengthField = Assert.IsType<SortField>(sortType.Fields["cardReaderUidLength"]);
+        Assert.Equal(typeof(int), lengthField.RuntimeType?.Source);
+    }
+
+    [Fact]
     public void SortInputType_Should_ThrowException_WhenNoConventionIsRegistered()
     {
         // arrange
@@ -164,7 +184,10 @@ public class SortInputTypeTests : SortTestBase
         // act
         // assert
         var exception = Assert.Throws<SchemaException>(builder.Create);
-        exception.Message.MatchSnapshot();
+        Assert.Contains(
+            "No sorting convention found for scope `Foo`. Register a convention with "
+            + "`AddConvention<ISortConvention, TYourConvention>(\"Foo\")` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -182,7 +205,9 @@ public class SortInputTypeTests : SortTestBase
         // act
         // assert
         var exception = Assert.Throws<SchemaException>(builder.Create);
-        exception.Message.MatchSnapshot();
+        Assert.Contains(
+            "No default sorting convention found. Call `AddSorting()` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -237,6 +262,18 @@ public class SortInputTypeTests : SortTestBase
         // assert
         schema.MatchSnapshot();
         schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_ShouldInferDeprecatedDirective_ForDeprecatedFields()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s.AddType(new SortInputType<TypeWithDeprecatedField>()));
+
+        // assert
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -374,6 +411,21 @@ public class SortInputTypeTests : SortTestBase
         }
     }
 
+    public class CardReader
+    {
+        public byte[] CardReaderUid { get; set; } = [];
+    }
+
+    public class CardReaderSortInputType : SortInputType<CardReader>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<CardReader> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Name("CardReaderSortInput");
+            descriptor.Field(x => x.CardReaderUid.Length).Name("cardReaderUidLength");
+        }
+    }
+
     public class UserQueryType : ObjectType<User>
     {
         protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -399,4 +451,8 @@ public class SortInputTypeTests : SortTestBase
             descriptor.Field(x => x.Root).UseFiltering();
         }
     }
+
+    public record TypeWithDeprecatedField(
+        string Foo,
+        [property: GraphQLDeprecated("old")] string? DeprecatedField = null);
 }

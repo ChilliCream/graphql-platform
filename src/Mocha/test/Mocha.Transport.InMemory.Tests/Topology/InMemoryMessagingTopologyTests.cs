@@ -294,7 +294,7 @@ public class InMemoryMessagingTopologyTests
         Assert.Equal(queueNames.Count, queueNames.Distinct().Count());
 
         // Verify all expected names are present
-        for (int i = 0; i < operationCount; i++)
+        for (var i = 0; i < operationCount; i++)
         {
             Assert.Contains(topology.Topics, t => t.Name == $"topic-{i}");
             Assert.Contains(topology.Queues, q => q.Name == $"queue-{i}");

@@ -21,8 +21,9 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
 
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
-        HttpRequestExecutorProxy executor)
-        : base(next, executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions)
+        : base(next, executor, baseOptions)
     {
     }
 
@@ -49,6 +50,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
 
     protected async Task HandleRequestAsync(HttpContext context, ExecutorSession session, CancellationToken ct)
     {
+        var options = GetOptions(context);
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;
 
@@ -147,7 +149,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
 
                     if (!string.IsNullOrEmpty(operationNames)
                         && TryParseOperations(operationNames, out var ops)
-                        && GetOptions(context).EnableBatching)
+                        && options.Batching.HasFlag(AllowedBatching.RequestBatching))
                     {
                         result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
                     }
@@ -169,16 +171,16 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // Most GraphQL requests will be of this type where we want to execute
                 // a single GraphQL query or mutation.
                 case 1:
-                    result = await session.ExecuteSingleAsync(context, requests[0], requestFlags);
+                    result = await session.ExecuteSingleAsync(context, requests[0], requestFlags, options);
                     break;
 
                 // if the HTTP request body contains more than one GraphQL request than
                 // we need to execute a request batch where we need to execute multiple
                 // fully specified GraphQL requests at once.
                 default:
-                    if (GetOptions(context).EnableBatching)
+                    if (options.Batching.HasFlag(AllowedBatching.RequestBatching))
                     {
-                        result = await session.ExecuteBatchAsync(context, requests, requestFlags);
+                        result = await session.ExecuteBatchAsync(context, requests, requestFlags, options);
                     }
                     else
                     {

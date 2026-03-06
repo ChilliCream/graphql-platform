@@ -1,6 +1,4 @@
-using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests.IntegrationTests;

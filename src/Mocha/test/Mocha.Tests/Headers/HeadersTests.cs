@@ -1,6 +1,4 @@
-using System.Text;
 using System.Text.Json;
-using Mocha;
 
 namespace Mocha.Tests;
 
@@ -55,7 +53,7 @@ public class HeadersTests
     {
         var headers = new Headers();
 
-        var found = headers.TryGetValue("missing", out var value);
+        var found = headers.TryGetValue("missing", out _);
 
         Assert.False(found);
     }

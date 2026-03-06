@@ -131,19 +131,48 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.WriteLine();
         Writer.WriteIndentedLine("var naming = descriptor.Extend().Context.Naming;");
 
-        if (type.Resolvers.Any(t => t.Bindings.Length > 0))
+        var hasFieldBindings =
+            type.Resolvers.Any(t => t.Bindings.Any(b => b.Kind is MemberBindingKind.Field));
+        var hasPropertyBindings =
+            type.Resolvers.Any(t => t.Bindings.Any(b => b.Kind is MemberBindingKind.Property));
+
+        if (hasFieldBindings)
         {
-            Writer.WriteIndentedLine("var ignoredFields = new global::System.Collections.Generic.HashSet<string>();");
+            Writer.WriteIndentedLine("var boundFields = new global::System.Collections.Generic.HashSet<string>();");
 
             foreach (var binding in type.Resolvers.SelectMany(t => t.Bindings))
             {
                 if (binding.Kind is MemberBindingKind.Field)
                 {
                     Writer.WriteIndentedLine(
-                        "ignoredFields.Add(\"{0}\");",
+                        "boundFields.Add(\"{0}\");",
                         binding.Name);
                 }
-                else if (binding.Kind is MemberBindingKind.Property)
+            }
+
+            Writer.WriteLine();
+            Writer.WriteIndentedLine("foreach(string fieldName in boundFields)");
+            Writer.WriteIndentedLine("{");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine("descriptor.Field(fieldName);");
+            }
+
+            Writer.WriteIndentedLine("}");
+        }
+
+        if (hasPropertyBindings)
+        {
+            if (hasFieldBindings)
+            {
+                Writer.WriteLine();
+            }
+
+            Writer.WriteIndentedLine("var ignoredFields = new global::System.Collections.Generic.HashSet<string>();");
+
+            foreach (var binding in type.Resolvers.SelectMany(t => t.Bindings))
+            {
+                if (binding.Kind is MemberBindingKind.Property)
                 {
                     Writer.WriteIndentedLine(
                         "ignoredFields.Add(naming.GetMemberName(\"{0}\", global::{1}.ObjectField));",
@@ -969,7 +998,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             if (resolver.Kind is ResolverKind.NodeResolver
                 && parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
-                && (parameter.Name == "id" || parameter.Key == "id"))
+                && IsNodeResolverIdParameter(resolver, parameter, i))
             {
                 Writer.WriteIndentedLine(
                     "var args{0} = context.GetLocalState<{1}>("
@@ -1292,9 +1321,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor)",
+                                "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor),",
                                 i,
                                 WellKnownTypes.ConnectionFlags);
+                            Writer.WriteIndentedLine(
+                                "NullOrdering = args{0}_options.NullOrdering",
+                                i);
                         }
 
                         Writer.WriteIndentedLine("};");
@@ -1322,6 +1354,30 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     throw new ArgumentOutOfRangeException();
             }
         }
+    }
+
+    private static bool IsNodeResolverIdParameter(
+        Resolver resolver,
+        ResolverParameter parameter,
+        int parameterIndex)
+    {
+        if (parameter.Name == "id" || parameter.Key == "id")
+        {
+            return true;
+        }
+
+        if (parameterIndex != 0)
+        {
+            return false;
+        }
+
+        if (resolver.Parameters.Any(p => p.Name == "id" || p.Key == "id"))
+        {
+            return false;
+        }
+
+        return parameter.Name.EndsWith("Id", StringComparison.Ordinal)
+            || (parameter.Key?.EndsWith("Id", StringComparison.Ordinal) ?? false);
     }
 
     private void WriteAssignTypeRef(

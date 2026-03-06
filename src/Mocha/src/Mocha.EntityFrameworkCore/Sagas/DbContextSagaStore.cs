@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Utils;
 
@@ -154,7 +153,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
         lock (_lock)
         {
             _arrayWriter ??= new PooledArrayWriter();
-            _buffers ??= new List<byte[]>();
+            _buffers ??= [];
 
             _arrayWriter.Reset();
             saga.StateSerializer.Serialize(state, _arrayWriter);
@@ -185,7 +184,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
 
             var writtenMemory = _arrayWriter.WrittenMemory;
 
-            return saga.StateSerializer.Deserialize<T>(writtenMemory) ?? default(T);
+            return saga.StateSerializer.Deserialize<T>(writtenMemory) ?? default;
         }
     }
 

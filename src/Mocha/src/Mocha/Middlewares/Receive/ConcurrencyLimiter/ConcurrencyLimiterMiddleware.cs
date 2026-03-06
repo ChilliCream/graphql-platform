@@ -43,10 +43,14 @@ public sealed class ConcurrencyLimiterMiddleware(int maxConcurrency) : IDisposab
                 }
 
                 var maxConcurrency =
-                    context.GetConfiguration(f => f.MaxConcurrency)
-                    ?? ConcurrencyLimiterOptions.Defaults.MaxConcurrency;
+                    context.GetConfiguration(f => f.MaxConcurrency);
 
-                var middleware = new ConcurrencyLimiterMiddleware(maxConcurrency);
+                if (maxConcurrency is null)
+                {
+                    return next;
+                }
+
+                var middleware = new ConcurrencyLimiterMiddleware(maxConcurrency.Value);
 
                 return ctx => middleware.InvokeAsync(ctx, next);
             },

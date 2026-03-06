@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Mocha.EntityFrameworkCore;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Outbox;
 using Mocha.Transport.InMemory;
@@ -11,7 +10,7 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
 public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
     [Fact]
     public async Task Outbox_Should_DeliverMessage_When_EventPublished()
@@ -27,7 +26,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         await bus.PublishAsync(new TestEvent { Payload = "hello" }, default);
 
         // Assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler should have received the message");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler should have received the message");
         var received = Assert.Single(recorder.Messages.OfType<TestEvent>());
         Assert.Equal("hello", received.Payload);
     }
@@ -50,7 +49,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         }
 
         // Assert
-        Assert.True(await recorder.WaitAsync(Timeout, count), $"Handler should have received all {count} messages");
+        Assert.True(await recorder.WaitAsync(s_timeout, count), $"Handler should have received all {count} messages");
         var payloads = recorder.Messages.OfType<TestEvent>().Select(e => e.Payload).OrderBy(p => p).ToList();
         Assert.Equal(count, payloads.Count);
         for (var i = 0; i < count; i++)
@@ -80,7 +79,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
 
         // Assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, count),
+            await recorder.WaitAsync(s_timeout, count),
             $"Handler should have received all {count} messages under load");
 
         var payloads = recorder.Messages.OfType<TestEvent>().Select(e => e.Payload).ToHashSet();
@@ -149,7 +148,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         {
             // Assert — all pre-existing messages are processed
             Assert.True(
-                await recorder.WaitAsync(Timeout, count),
+                await recorder.WaitAsync(s_timeout, count),
                 "Worker should process messages that were persisted before it started");
 
             var payloads = recorder.Messages.OfType<TestEvent>().Select(e => e.Payload).ToHashSet();
@@ -212,7 +211,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
                 await bus.PublishAsync(new TestEvent { Payload = "before-stop" }, default);
             }
 
-            Assert.True(await recorder.WaitAsync(Timeout), "First message should be delivered before worker stops");
+            Assert.True(await recorder.WaitAsync(s_timeout), "First message should be delivered before worker stops");
 
             // Phase 2: stop worker
             foreach (var svc in hostedServices)
@@ -239,7 +238,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
 
             // Assert — message published during downtime is delivered.
             // Wait until "during-stop" appears in the recorder's messages.
-            using var waitCts = new CancellationTokenSource(Timeout);
+            using var waitCts = new CancellationTokenSource(s_timeout);
             while (!recorder.Messages.OfType<TestEvent>().Any(e => e.Payload == "during-stop"))
             {
                 await Task.Delay(50, waitCts.Token);
@@ -279,7 +278,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
 
             // Wait for this message to be delivered before publishing the next
             Assert.True(
-                await recorder.WaitAsync(Timeout),
+                await recorder.WaitAsync(s_timeout),
                 $"Message live-{i} should be delivered while worker is running");
         }
 
@@ -316,7 +315,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
 
         // Assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, totalMessages),
+            await recorder.WaitAsync(s_timeout, totalMessages),
             $"All {totalMessages} messages from {scopeCount} scopes should be delivered");
 
         var payloads = recorder.Messages.OfType<TestEvent>().Select(e => e.Payload).ToHashSet();

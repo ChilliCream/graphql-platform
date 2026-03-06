@@ -1,5 +1,3 @@
-using Mocha;
-
 namespace Mocha.Sagas;
 
 /// <summary>
@@ -13,7 +11,7 @@ public sealed class SagaStateDescriptor<TState>
     , ISagaFinalStateDescriptor<TState> where TState : SagaStateBase
 {
     private readonly SagaLifeCycleDescriptor<TState> _onEntry;
-    private readonly List<SagaTransitionDescriptor<TState>> _transitions = new();
+    private readonly List<SagaTransitionDescriptor<TState>> _transitions = [];
 
     protected internal override SagaStateConfiguration Configuration { get; protected set; }
 

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Mocha;
@@ -6,13 +5,12 @@ namespace Mocha;
 /// <summary>
 /// Hosted service that automatically starts the messaging runtime when the host starts.
 /// </summary>
-internal sealed class MessagingRuntimeHostedService(IServiceProvider services) : IHostedService
+internal sealed class MessagingRuntimeHostedService(IMessagingRuntime runtime) : IHostedService
 {
-    private MessagingRuntime? _runtime;
+    private readonly MessagingRuntime _runtime = (MessagingRuntime)runtime;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _runtime = (MessagingRuntime)services.GetRequiredService<IMessagingRuntime>();
         await _runtime.StartAsync(cancellationToken);
     }
 

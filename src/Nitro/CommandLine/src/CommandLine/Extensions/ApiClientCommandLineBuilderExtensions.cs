@@ -49,7 +49,7 @@ internal static class ApiClientCommandLineBuilderExtensions
                         throw new ExitException($"Could not parse cloud URL: {cloudUrl}");
                     }
 
-                    // Ensure that Uri is always <host>/graphql
+                    // Ensure that URI is always <host>/graphql
                     var uriBuilder = new UriBuilder(uri)
                     {
                         Path = "/graphql",
@@ -64,7 +64,7 @@ internal static class ApiClientCommandLineBuilderExtensions
                 else
                 {
                     throw new ExitException(
-                        $"Could not find any api URL. Either specify --cloud-url or run {"nitro login".AsCommand()}");
+                        $"Could not find any API URL. Either specify --cloud-url or run {"nitro login".AsCommand()}");
                 }
 
                 if (sessionService.Session?.Tokens?.AccessToken is { } token
@@ -92,7 +92,7 @@ internal static class ApiClientCommandLineBuilderExtensions
                 client.DefaultRequestHeaders.Add(Headers.GraphQLPreflight, "1");
 
                 client.DefaultRequestVersion = new Version(2, 0);
-                client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
+                client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
 
                 clientConfig?.ConfigureClient?.Invoke(client);
             });

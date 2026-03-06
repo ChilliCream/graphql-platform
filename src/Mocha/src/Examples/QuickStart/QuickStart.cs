@@ -9,16 +9,17 @@ using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors();
+
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 
-builder.Services.AddCors();
-
 var app = builder.Build();
 
 app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 app.MapGet("/orders", async (IMessageBus bus) =>
 {
     var orderPlaced = new OrderPlaced(

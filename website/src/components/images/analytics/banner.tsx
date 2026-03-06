@@ -7,7 +7,11 @@ export const AnalyticsBannerImage: FC = () => {
     <img
       src="/images/analytics/banner.png"
       alt="Instant Insights. Enhanced Performance."
-      style={{ maxWidth: ANALYTICS_BANNER_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      style={{
+        maxWidth: ANALYTICS_BANNER_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };

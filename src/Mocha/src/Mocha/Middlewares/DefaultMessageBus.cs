@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
@@ -17,7 +16,12 @@ namespace Mocha;
 /// <param name="runtime">The messaging runtime used to resolve message types, endpoints, and transports.</param>
 /// <param name="services">The scoped service provider injected into each dispatch context.</param>
 /// <param name="pools">Object pools providing reusable <see cref="DispatchContext"/> instances.</param>
-public sealed class DefaultMessageBus(IMessagingRuntime runtime, IServiceProvider services, IMessagingPools pools)
+/// <param name="consumeContextAccessor">Accessor for the ambient consume context used to propagate correlation IDs.</param>
+public sealed class DefaultMessageBus(
+    IMessagingRuntime runtime,
+    IServiceProvider services,
+    IMessagingPools pools,
+    ConsumeContextAccessor consumeContextAccessor)
     : IMessageBus
 {
     private readonly ObjectPool<DispatchContext> _contextPool = pools.DispatchContext;
@@ -56,6 +60,7 @@ public sealed class DefaultMessageBus(IMessagingRuntime runtime, IServiceProvide
         var context = _contextPool.Get();
         try
         {
+            PropagateCorrelationIds(context);
             context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
             context.Message = message;
             context.AddHeaders(options.Headers);
@@ -105,6 +110,7 @@ public sealed class DefaultMessageBus(IMessagingRuntime runtime, IServiceProvide
         var context = _contextPool.Get();
         try
         {
+            PropagateCorrelationIds(context);
             context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
 
             context.Message = message;
@@ -263,6 +269,7 @@ public sealed class DefaultMessageBus(IMessagingRuntime runtime, IServiceProvide
         var context = _contextPool.Get();
         try
         {
+            PropagateCorrelationIds(context);
             context.CorrelationId = correlationId;
             context.Initialize(services, endpoint, runtime, requestType, cancellationToken);
 
@@ -287,6 +294,15 @@ public sealed class DefaultMessageBus(IMessagingRuntime runtime, IServiceProvide
         }
 
         throw new InvalidOperationException("Unexpected response type.");
+    }
+
+    private void PropagateCorrelationIds(DispatchContext context)
+    {
+        if (consumeContextAccessor.Context is { } ambient)
+        {
+            context.ConversationId ??= ambient.ConversationId;
+            context.CausationId ??= ambient.MessageId;
+        }
     }
 }
 

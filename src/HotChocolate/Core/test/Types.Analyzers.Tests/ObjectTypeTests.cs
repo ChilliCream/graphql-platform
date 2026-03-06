@@ -165,6 +165,58 @@ public class ObjectTypeTests
     }
 
     [Fact]
+    public async Task BindField_BoundProperty_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public class Query
+            {
+                public string Greeting { get; set; }
+            }
+
+            [ObjectType<Query>]
+            internal static partial class QueryType
+            {
+                [BindField("greeting")]
+                public static string GetGreeting([Parent] Query query)
+                    => query.Greeting + " world";
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task BindField_MultipleAttributes_RaisesError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public class Query
+            {
+                public string Greeting { get; set; }
+                public string Salutation { get; set; }
+            }
+
+            [ObjectType<Query>]
+            internal static partial class QueryType
+            {
+                [BindField("greeting")]
+                [BindField("salutation")]
+                public static string GetGreeting([Parent] Query query)
+                    => query.Greeting + query.Salutation;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Argument_With_DefaultValue()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

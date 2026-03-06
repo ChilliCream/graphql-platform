@@ -32,19 +32,34 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query Op_b05a9c48_3(
-              $__fusion_3_id: ID!
-            ) {
-              productById(id: $__fusion_3_id) {
-                nullableField
-              }
-            }
-          variables: |
-            {
-              "__fusion_3_id": "1"
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_b05a9c48_3(
+                  $__fusion_3_id: ID!
+                ) {
+                  productById(id: $__fusion_3_id) {
+                    nullableField
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_3_id": "1"
+                }
+            - document: |
+                query Op_b05a9c48_4(
+                  $__fusion_4_id: ID!
+                ) {
+                  productById(id: $__fusion_4_id) {
+                    id
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_4_id": "1"
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -54,21 +69,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_b05a9c48_4(
-              $__fusion_4_id: ID!
-            ) {
-              productById(id: $__fusion_4_id) {
-                id
-              }
-            }
-          variables: |
-            {
-              "__fusion_4_id": "1"
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -194,6 +194,7 @@ operationPlan:
         }
       source: $.productById
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_3_id
           selectionMap: >-
@@ -213,6 +214,7 @@ operationPlan:
         }
       source: $.productById
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_4_id
           selectionMap: >-

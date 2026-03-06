@@ -1,4 +1,3 @@
-using Mocha;
 using Mocha.Middlewares;
 using Mocha.Outbox;
 
@@ -6,7 +5,7 @@ namespace Mocha.Sagas.Tests;
 
 public class TestMessageOutbox : IMessageOutbox
 {
-    public List<Operation> Messages { get; } = new();
+    public List<Operation> Messages { get; } = [];
 
     public Task PublishAsync<T>(T message, CancellationToken cancellationToken) where T : notnull
     {

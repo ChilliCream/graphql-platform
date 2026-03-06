@@ -77,13 +77,21 @@ public class FilterInputTypeDescriptor
 
         var fields = new Dictionary<string, FilterFieldConfiguration>(StringComparer.Ordinal);
         var handledProperties = new HashSet<MemberInfo>();
+        var operationFields = Operations.Select(t => t.CreateConfiguration()).ToArray();
 
         FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateConfiguration())
-                .Concat(Operations.Select(t => t.CreateConfiguration())),
+            Fields.Select(t => t.CreateConfiguration()),
             f => f.Member,
             fields,
             handledProperties);
+
+        foreach (var operationField in operationFields)
+        {
+            if (!string.IsNullOrEmpty(operationField.Name))
+            {
+                fields[operationField.Name] = operationField;
+            }
+        }
 
         OnCompleteFields(fields, handledProperties);
 

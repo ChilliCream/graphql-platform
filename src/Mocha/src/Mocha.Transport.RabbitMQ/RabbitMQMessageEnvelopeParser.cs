@@ -71,7 +71,7 @@ internal sealed class RabbitMQMessageEnvelopeParser
         var result = new Headers(headers.Count);
         foreach (var (key, value) in headers)
         {
-            object? strValue = value switch
+            var strValue = value switch
             {
                 byte[] bytes => Encoding.UTF8.GetString(bytes),
                 AmqpTimestamp timestamp => DateTimeOffset.FromUnixTimeSeconds(timestamp.UnixTime),

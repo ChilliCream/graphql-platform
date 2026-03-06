@@ -36,7 +36,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
         string patId,
         CancellationToken cancellationToken)
     {
-        var confirmMessage = $"Do you really want to delete path with id {patId}";
+        var confirmMessage = $"Do you really want to delete PAT with ID {patId}";
         var force = await context.ConfirmWhenNotForced(confirmMessage, cancellationToken);
         if (!force)
         {
@@ -59,7 +59,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
         }
 
         console.OkLine(
-            $"PersonalAccessToken {changeResult.Description.AsHighlight()} [dim](ID:{changeResult.Id})[/] was deleted");
+            $"PersonalAccessToken {changeResult.Description.AsHighlight()} [dim](ID: {changeResult.Id})[/] was deleted");
 
         context.SetResult(PersonalAccessTokenDetailPrompt.From(changeResult).ToObject());
 

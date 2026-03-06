@@ -65,7 +65,8 @@ public class GraphQLQueryBenchmark
             static () => new FixedSizeArrayPool(
                 FixedSizeArrayPoolKinds.JsonMemory,
                 JsonMemory.BufferSize,
-                128,
+                [128, 256, 512, 1024],
+                TimeSpan.FromSeconds(30),
                 preAllocate: true));
     }
 

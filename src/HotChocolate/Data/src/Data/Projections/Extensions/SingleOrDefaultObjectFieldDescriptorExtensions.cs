@@ -1,5 +1,7 @@
 using HotChocolate.Data.Projections;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
@@ -49,8 +51,10 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
 
                     var selectionType = typeInfo.NamedType;
                     definition.ResultType = selectionType;
-                    definition.Type =
-                        context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
+                    if (ShouldRewriteFieldType(definition.Type))
+                    {
+                        definition.Type = context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
+                    }
 
                     definition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
@@ -68,6 +72,16 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
 
         return descriptor;
     }
+
+    private static bool ShouldRewriteFieldType(TypeReference? typeReference)
+        => typeReference switch
+        {
+            null => true,
+            ExtendedTypeReference extended => extended.Type.IsArrayOrList,
+            SyntaxTypeReference syntax => syntax.Type.IsListType(),
+            FactoryTypeReference factory => factory.TypeStructure.IsListType(),
+            _ => false
+        };
 
     private static void CompileMiddleware(
         Type type,

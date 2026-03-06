@@ -150,7 +150,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         options.Validate();
 
         var consumerType = typeof(BatchConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType!);
-        var consumer = (Consumer)Activator.CreateInstance(consumerType, options, (Action<IConsumerDescriptor>?)null)!;
+        var consumer = (Consumer)Activator.CreateInstance(consumerType, options, null)!;
         _consumers.Add(consumer);
 
         return this;

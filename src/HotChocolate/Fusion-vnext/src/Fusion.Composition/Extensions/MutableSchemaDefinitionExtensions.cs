@@ -136,7 +136,7 @@ internal static class MutableSchemaDefinitionExtensions
 
     public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
-        HashSet<string> preserveInputTypeNames)
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -159,6 +159,16 @@ internal static class MutableSchemaDefinitionExtensions
         if (schema.SubscriptionType is not null)
         {
             backlog.Push(schema.SubscriptionType);
+        }
+
+        var preservedTypeNames = GetPreservedTypeNames(sourceSchemas);
+
+        foreach (var typeName in preservedTypeNames)
+        {
+            if (schema.Types.TryGetType(typeName, out var inputType))
+            {
+                backlog.Push(inputType);
+            }
         }
 
         while (backlog.TryPop(out var type))
@@ -199,7 +209,7 @@ internal static class MutableSchemaDefinitionExtensions
         var definitionsToRemove = new HashSet<ITypeSystemMember>();
         foreach (var type in schema.Types)
         {
-            if (touchedDefinitions.Contains(type) || preserveInputTypeNames.Contains(type.NamedType().Name))
+            if (touchedDefinitions.Contains(type))
             {
                 continue;
             }
@@ -244,6 +254,38 @@ internal static class MutableSchemaDefinitionExtensions
                 && (string.IsNullOrEmpty(schemaName)
                     || (string)d.Arguments[WellKnownArgumentNames.Schema].Value! == schemaName))
             .ToList();
+    }
+
+    /// <summary>
+    /// Returns a list of type names for types that must be preserved in the merged schema
+    /// even if they are not directly referenced.
+    /// </summary>
+    private static HashSet<string> GetPreservedTypeNames(ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    {
+        var preservedTypeNames = new HashSet<string>();
+
+        foreach (var schema in sourceSchemas)
+        {
+            foreach (var type in schema.Types.OfType<IObjectTypeDefinition>())
+            {
+                foreach (var field in type.Fields)
+                {
+                    foreach (var argument in field.Arguments)
+                    {
+                        var argumentInnerType = argument.Type.InnerType();
+
+                        if ((argument.HasRequireDirective || field.IsLookup)
+                            && argumentInnerType is INameProvider { Name: var name }
+                            && !SpecScalarNames.IsSpecScalar(name))
+                        {
+                            preservedTypeNames.Add(name);
+                        }
+                    }
+                }
+            }
+        }
+
+        return preservedTypeNames;
     }
 
     private static void InspectComplexType(

@@ -1286,6 +1286,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The scalar type &apos;{0}&apos; has a different specified-by URL in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
+        /// </summary>
+        internal static string LogEntryHelper_SpecifiedByUrlMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_SpecifiedByUrlMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; has a different kind in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
         /// </summary>
         internal static string LogEntryHelper_TypeKindMismatch {
@@ -1525,6 +1534,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ShareableMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ShareableMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @specifiedBy directive must have a &apos;url&apos; argument of type String..
+        /// </summary>
+        internal static string SpecifiedByDirective_UrlArgument_Invalid {
+            get {
+                return ResourceManager.GetString("SpecifiedByDirective_UrlArgument_Invalid", resourceCulture);
             }
         }
         

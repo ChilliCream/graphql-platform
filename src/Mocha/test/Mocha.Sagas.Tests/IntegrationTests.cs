@@ -1,19 +1,12 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
-using Mocha.Events;
-using Mocha.Sagas;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;
 
 public class IntegrationTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     private static async Task<ServiceProvider> CreateBusAsync(Action<IMessageBusHostBuilder> configure)
     {
@@ -49,7 +42,7 @@ public class IntegrationTests
         await bus.PublishAsync(new InitEvent(), CancellationToken.None);
 
         // wait for the saga to publish TestMessage so we can get the saga ID
-        Assert.True(await recorder.WaitAsync(Timeout), "Saga did not publish TestMessage within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Saga did not publish TestMessage within timeout");
 
         var testMessage = Assert.Single(recorder.Messages);
         var sagaId = Assert.IsType<TestMessage>(testMessage).Id;
@@ -90,7 +83,7 @@ public class IntegrationTests
         await bus.PublishAsync(new StartTimeoutEvent(), CancellationToken.None);
 
         // wait for the saga to publish a TriggerEvent so we can observe it started
-        Assert.True(await recorder.WaitAsync(Timeout), "Saga did not publish event within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Saga did not publish event within timeout");
 
         var recorded = Assert.Single(recorder.Messages);
         var sagaId = Assert.IsType<TriggerEvent>(recorded).CorrelationId!.Value;

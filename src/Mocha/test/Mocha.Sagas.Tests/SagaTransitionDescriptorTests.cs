@@ -1,18 +1,14 @@
-using System;
-using Mocha;
-using Mocha.Events;
-
 namespace Mocha.Sagas.Tests;
 
 public class SagaTransitionDescriptorTests
 {
-    private static readonly IMessagingConfigurationContext _context = TestMessagingSetupContext.Instance;
+    private static readonly IMessagingConfigurationContext s_context = TestMessagingSetupContext.Instance;
 
     [Fact]
     public void Then_ShouldSetAction_WhenCalled()
     {
         // Arrange
-        var transitionDescriptor = new SagaTransitionDescriptor<TestState, string>(_context, SagaTransitionKind.Event);
+        var transitionDescriptor = new SagaTransitionDescriptor<TestState, string>(s_context, SagaTransitionKind.Event);
         Action<TestState, string> action = (state, evt) => { };
 
         // Act
@@ -27,7 +23,7 @@ public class SagaTransitionDescriptorTests
     public void TransitionTo_ShouldSetTransitionTo_WhenCalled()
     {
         // Arrange
-        var transitionDescriptor = new SagaTransitionDescriptor<TestState, string>(_context, SagaTransitionKind.Event);
+        var transitionDescriptor = new SagaTransitionDescriptor<TestState, string>(s_context, SagaTransitionKind.Event);
 
         // Act
         transitionDescriptor.TransitionTo("NextState");
@@ -41,7 +37,7 @@ public class SagaTransitionDescriptorTests
     public void Publish_ShouldAddNewPublishDefinition_WhenCalled()
     {
         // Arrange
-        var transitionDescriptor = new SagaTransitionDescriptor<TestState, string>(_context, SagaTransitionKind.Event);
+        var transitionDescriptor = new SagaTransitionDescriptor<TestState, string>(s_context, SagaTransitionKind.Event);
 
         // Act
         transitionDescriptor.Publish((_, state) => new SagaTimedOutEvent(Guid.NewGuid()));
@@ -56,7 +52,7 @@ public class SagaTransitionDescriptorTests
     public void StateFactory_ShouldSetFactory_WhenCalled()
     {
         // Arrange
-        var transitionDescriptor = new SagaTransitionDescriptor<TestState, string>(_context, SagaTransitionKind.Event);
+        var transitionDescriptor = new SagaTransitionDescriptor<TestState, string>(s_context, SagaTransitionKind.Event);
         Func<string, TestState> factory = state => new TestState(Guid.NewGuid(), state);
 
         // Act

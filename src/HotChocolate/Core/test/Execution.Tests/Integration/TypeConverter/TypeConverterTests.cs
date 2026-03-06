@@ -27,7 +27,7 @@ public partial class TypeConverterTests
                 """
                 {
                   "a": {
-                    "id": "934b987bc0d842bbabfd8a3b3f8b476e",
+                    "id": "934b987b-c0d8-42bb-abfd-8a3b3f8b476e",
                     "time": "2018-05-29T01:00:00Z",
                     "number": 123
                   }
@@ -90,7 +90,7 @@ public partial class TypeConverterTests
                 """
                 {
                   "a": {
-                    "id": "934b987bc0d842bbabfd8a3b3f8b476e",
+                    "id": "934b987b-c0d8-42bb-abfd-8a3b3f8b476e",
                     "time": "2018-05-29T01:00:00Z",
                     "number": 123
                   }
