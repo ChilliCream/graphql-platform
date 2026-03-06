@@ -13,6 +13,7 @@ internal static class ResultDataMapper
 {
     private const int CachedNumericStringMax = 4096;
     private static readonly StringValueNode[] s_cachedNumericStrings = CreateCachedNumericStrings();
+    private static readonly IntValueNode[] s_cachedNumericIntValues = CreateCachedNumericIntValues();
 
     public static IValueNode? Map(
         CompositeResultElement result,
@@ -136,6 +137,11 @@ internal static class ResultDataMapper
             case JsonValueKind.Number:
                 if (value.TryGetInt64(out var intValue))
                 {
+                    if ((ulong)intValue <= CachedNumericStringMax)
+                    {
+                        return s_cachedNumericIntValues[(int)intValue];
+                    }
+
                     return new IntValueNode(intValue);
                 }
 
@@ -219,6 +225,18 @@ internal static class ResultDataMapper
         for (var i = 0; i < values.Length; i++)
         {
             values[i] = new StringValueNode(i.ToString());
+        }
+
+        return values;
+    }
+
+    private static IntValueNode[] CreateCachedNumericIntValues()
+    {
+        var values = new IntValueNode[CachedNumericStringMax + 1];
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            values[i] = new IntValueNode(i);
         }
 
         return values;
