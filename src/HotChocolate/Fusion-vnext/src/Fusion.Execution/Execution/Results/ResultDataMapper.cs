@@ -14,7 +14,7 @@ internal static class ResultDataMapper
 {
     private const int CachedNumericStringMax = 4096;
     private static readonly StringValueNode[] s_cachedNumericStrings = CreateCachedNumericStrings();
-    private static readonly ReadOnlyMemorySegment[] s_cachedNumericInts = CreateCachedNumericInts();
+    private static readonly IntValueNode[] s_cachedNumericIntValues = CreateCachedNumericIntValues();
 
     public static IValueNode? Map(
         CompositeResultElement result,
@@ -140,7 +140,7 @@ internal static class ResultDataMapper
                 {
                     if ((ulong)intValue <= CachedNumericStringMax)
                     {
-                        return new IntValueNode(s_cachedNumericInts[(int)intValue]);
+                        return s_cachedNumericIntValues[(int)intValue];
                     }
 
                     return new IntValueNode(intValue);
@@ -231,13 +231,13 @@ internal static class ResultDataMapper
         return values;
     }
 
-    private static ReadOnlyMemorySegment[] CreateCachedNumericInts()
+    private static IntValueNode[] CreateCachedNumericIntValues()
     {
-        var values = new ReadOnlyMemorySegment[CachedNumericStringMax + 1];
+        var values = new IntValueNode[CachedNumericStringMax + 1];
 
         for (var i = 0; i < values.Length; i++)
         {
-            values[i] = new ReadOnlyMemorySegment(Encoding.UTF8.GetBytes(i.ToString()));
+            values[i] = new IntValueNode(i);
         }
 
         return values;
