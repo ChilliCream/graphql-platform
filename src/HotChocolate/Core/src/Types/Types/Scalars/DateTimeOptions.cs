@@ -3,21 +3,8 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// <para>
 /// Defines options for configuring the behavior of date and time scalar types, such as
 /// <c>DateTime</c>, <c>LocalDateTime</c>, and <c>LocalTime</c>.
-/// </para>
-/// <para>
-/// These options allow you to specify the precision of fractional seconds for both input parsing
-/// and output serialization, ensuring that the date and time values are handled with the desired
-/// level of detail.
-/// </para>
-/// <para>
-/// The default precision is set to 7, which corresponds to the maximum precision supported by
-/// .NET's date and time types. Adjusting these options can help optimize performance and storage
-/// when high precision is not required, while still adhering to the GraphQL specification for date
-/// and time formats.
-/// </para>
 /// </summary>
 public struct DateTimeOptions
 {
