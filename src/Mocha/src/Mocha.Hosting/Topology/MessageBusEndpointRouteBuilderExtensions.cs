@@ -21,18 +21,15 @@ public static class MessageBusEndpointRouteBuilderExtensions
     };
 
     /// <summary>
-    /// Maps an HTTP GET endpoint that returns the message bus topology as JSON.
+    /// Maps an HTTP GET endpoint that exposes the message bus topology as JSON for diagnostic purposes.
+    /// This endpoint reveals internal routing, consumer, and endpoint details and should only be
+    /// used during development — similar to <c>UseDeveloperExceptionPage</c>.
     /// </summary>
-    /// <remarks>
-    /// The endpoint serializes the runtime topology description (routes, consumers, and endpoints)
-    /// using camelCase JSON naming. It requires the <see cref="IMessagingRuntime"/> to be registered
-    /// as a <c>MessagingRuntime</c> instance in the service provider.
-    /// </remarks>
     /// <param name="endpoints">The endpoint route builder to extend.</param>
     /// <param name="path">The URL path for the topology endpoint. Defaults to <c>/.well-known/message-topology</c>.</param>
     /// <returns>An <see cref="IEndpointConventionBuilder"/> for further endpoint configuration.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the messaging runtime is not available in the service provider.</exception>
-    public static IEndpointConventionBuilder MapMessageBus(
+    public static IEndpointConventionBuilder MapMessageBusDeveloperTopology(
         this IEndpointRouteBuilder endpoints,
         string path = "/.well-known/message-topology")
     {
@@ -46,9 +43,33 @@ public static class MessageBusEndpointRouteBuilderExtensions
 
                 var description = MessageBusDescriptionVisitor.Visit(runtime);
 
+                // Reshape into the DiagramData format expected by the visualizer:
+                // { services: [{ host, messageTypes, consumers, routes, sagas }], transports: [...] }
+                var diagramData = new DiagramDataPayload(
+                    [
+                        new ServicePayload(
+                            description.Host,
+                            description.MessageTypes,
+                            description.Consumers,
+                            description.Routes,
+                            description.Sagas ?? [])
+                    ],
+                    description.Transports);
+
                 return Results.Content(
-                    JsonSerializer.Serialize(description, s_jsonOptions),
+                    JsonSerializer.Serialize(diagramData, s_jsonOptions),
                     "application/json");
             });
     }
+
+    private sealed record DiagramDataPayload(
+        IReadOnlyList<ServicePayload> Services,
+        IReadOnlyList<TransportDescription> Transports);
+
+    private sealed record ServicePayload(
+        HostDescription Host,
+        IReadOnlyList<MessageTypeDescription> MessageTypes,
+        IReadOnlyList<ConsumerDescription> Consumers,
+        RoutesDescription Routes,
+        IReadOnlyList<SagaDescription> Sagas);
 }

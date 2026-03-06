@@ -2971,5 +2971,73 @@
         ]
       }
     ]
+  },
+  {
+    "path": "mocha",
+    "title": "Mocha",
+    "description": "Messaging Bus for .NET",
+    "metaDescription": "Mocha is a messaging framework for .NET that combines simplicity, flexibility, and observability with deep Nitro integration.",
+    "latestStableVersion": "v1",
+    "versions": [
+      {
+        "path": "v1",
+        "title": "v1",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "quick-start",
+            "title": "Quick Start"
+          },
+          {
+            "path": "messages",
+            "title": "Messages"
+          },
+          {
+            "path": "messaging-patterns",
+            "title": "Messaging Patterns"
+          },
+          {
+            "path": "handlers-and-consumers",
+            "title": "Handlers and Consumers"
+          },
+          {
+            "path": "routing-and-endpoints",
+            "title": "Routing and Endpoints"
+          },
+          {
+            "path": "middleware-and-pipelines",
+            "title": "Middleware and Pipelines"
+          },
+          {
+            "path": "reliability",
+            "title": "Reliability"
+          },
+          {
+            "path": "observability",
+            "title": "Observability"
+          },
+          {
+            "path": "sagas",
+            "title": "Sagas"
+          },
+          {
+            "path": "transports",
+            "title": "Transports",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              { "path": "in-memory", "title": "InMemory" },
+              { "path": "rabbitmq", "title": "RabbitMQ" }
+            ]
+          },
+          {
+            "path": "hosting",
+            "title": "Hosting"
+          }
+        ]
+      }
+    ]
   }
 ]
