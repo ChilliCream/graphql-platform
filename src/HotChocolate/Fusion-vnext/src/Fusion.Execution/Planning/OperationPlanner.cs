@@ -714,16 +714,8 @@ public sealed partial class OperationPlanner
         if (lookup is null
             && operationType == OperationType.Query
             && !workItem.SelectionSet.Path.IsRoot
-            && resolvable.Selections is
-            [
-                FieldNode
-                {
-                    Name.Value: "viewer",
-                    Alias: null,
-                    Arguments.Count: 0,
-                    Directives.Count: 0
-                } field
-            ])
+            && resolvable.Selections is [FieldNode field]
+            && PlannerExtensions.IsViewerFieldSelection(field))
         {
             source = SelectionPath.Root.AppendField(field.Name.Value);
         }
@@ -2455,7 +2447,7 @@ internal static class PlannerExtensions
     private static bool IsViewerRootSelection(SelectionSetNode selectionSet)
         => selectionSet.Selections is [FieldNode field] && IsViewerFieldSelection(field);
 
-    private static bool IsViewerFieldSelection(FieldNode field)
+    internal static bool IsViewerFieldSelection(FieldNode field)
         => field is
         {
             Name.Value: "viewer",
