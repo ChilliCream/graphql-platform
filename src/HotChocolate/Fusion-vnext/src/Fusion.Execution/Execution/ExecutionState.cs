@@ -252,8 +252,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     public bool EnqueueNextNodes(OperationPlanContext context, CancellationToken cancellationToken)
     {
-        _stack.Clear();
-
         if (_ready.Count == 0)
         {
             return false;
@@ -261,20 +259,52 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         var isSorted = true;
         var previousId = int.MinValue;
+        var readyCount = _ready.Count;
 
         foreach (var node in _ready)
         {
             if ((uint)node.Id < (uint)_remainingDependencies.Length
                 && _remainingDependencies[node.Id] == 0)
             {
-                _stack.Push(node);
-
                 if (node.Id < previousId)
                 {
                     isSorted = false;
                 }
 
                 previousId = node.Id;
+            }
+        }
+
+        if (isSorted)
+        {
+            var enqueuedAny = false;
+
+            for (var i = 0; i < readyCount; i++)
+            {
+                var node = _ready[i];
+
+                if ((uint)node.Id < (uint)_remainingDependencies.Length
+                    && _remainingDependencies[node.Id] == 0)
+                {
+                    StartNode(context, node, cancellationToken);
+                    enqueuedAny = true;
+                }
+            }
+
+            _ready.Clear();
+            return enqueuedAny;
+        }
+
+        _stack.Clear();
+
+        for (var i = 0; i < readyCount; i++)
+        {
+            var node = _ready[i];
+
+            if ((uint)node.Id < (uint)_remainingDependencies.Length
+                && _remainingDependencies[node.Id] == 0)
+            {
+                _stack.Push(node);
             }
         }
 
@@ -285,7 +315,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             return false;
         }
 
-        if (!isSorted && _stack.Count > 1)
+        if (_stack.Count > 1)
         {
             _stack.Sort(static (a, b) => a.Id.CompareTo(b.Id));
         }
