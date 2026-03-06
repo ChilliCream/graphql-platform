@@ -306,7 +306,7 @@ public class LocalTimeTypeTests
         const string s = "15:30";
 
         // act
-        var type = new LocalTimeType(disableFormatCheck: true);
+        var type = new LocalTimeType(new DateTimeOptions { ValidateInputFormat = false });
         var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
         var result = type.CoerceInputValue(inputValue, null!);
 

@@ -22,7 +22,6 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFFzzz";
     private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/date-time.html";
 
-    private readonly bool _enforceSpecFormat;
     private readonly DateTimeOptions _options;
     private readonly string _utcFormat;
     private readonly string _localFormat;
@@ -35,31 +34,16 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit,
-        bool disableFormatCheck = false,
         DateTimeOptions? options = null)
         : base(name, bind)
     {
-        options ??= new DateTimeOptions();
-        _options = options.Value;
+        _options = options ?? new DateTimeOptions();
         Description = description;
         Pattern = GetPattern();
         SpecifiedBy = new Uri(SpecifiedByUri);
-        _enforceSpecFormat = !disableFormatCheck;
         _utcFormat = GetUtcFormat();
         _localFormat = GetLocalFormat();
         _dateTimeRegex = GetDateTimeRegex();
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
-    /// </summary>
-    public DateTimeType(bool disableFormatCheck)
-        : this(
-            ScalarNames.DateTime,
-            TypeResources.DateTimeType_Description,
-            BindingBehavior.Implicit,
-            disableFormatCheck: disableFormatCheck)
-    {
     }
 
     /// <summary>
@@ -83,7 +67,40 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             ScalarNames.DateTime,
             TypeResources.DateTimeType_Description,
             BindingBehavior.Implicit,
-            disableFormatCheck: false)
+            options: null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// </summary>
+    [Obsolete("Use the constructor that accepts DateTimeOptions instead.")]
+    public DateTimeType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
+        : base(name, bind)
+    {
+        _options = new DateTimeOptions { ValidateInputFormat = !disableFormatCheck };
+        Description = description;
+        Pattern = GetPattern();
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _utcFormat = GetUtcFormat();
+        _localFormat = GetLocalFormat();
+        _dateTimeRegex = GetDateTimeRegex();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// </summary>
+    [Obsolete("Use the constructor that accepts DateTimeOptions instead.")]
+    public DateTimeType(bool disableFormatCheck)
+        : this(
+            ScalarNames.DateTime,
+            TypeResources.DateTimeType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
     {
     }
 
@@ -126,7 +143,7 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     private bool TryParseStringValue(string serialized, out DateTimeOffset value)
     {
         // Check format.
-        if (_enforceSpecFormat && !_dateTimeRegex.IsMatch(serialized))
+        if (_options.ValidateInputFormat && !_dateTimeRegex.IsMatch(serialized))
         {
             value = default;
             return false;

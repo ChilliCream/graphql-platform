@@ -75,4 +75,10 @@ public struct DateTimeOptions
             field = value;
         }
     } = DefaultOutputPrecision;
+
+    /// <summary>
+    /// Gets a value indicating whether the input format of date and time values should be validated
+    /// against the expected format. Defaults to <c>true</c>.
+    /// </summary>
+    public bool ValidateInputFormat { get; init; } = true;
 }

@@ -311,7 +311,7 @@ public class DateTimeTypeTests
         const string s = "2011-08-30";
 
         // act
-        var type = new DateTimeType(disableFormatCheck: true);
+        var type = new DateTimeType(new DateTimeOptions { ValidateInputFormat = false });
         var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
         var result = type.CoerceInputValue(inputValue, null!);
 

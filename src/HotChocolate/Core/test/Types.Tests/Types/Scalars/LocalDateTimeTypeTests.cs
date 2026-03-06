@@ -306,7 +306,7 @@ public class LocalDateTimeTypeTests
         const string s = "2011-08-30";
 
         // act
-        var type = new LocalDateTimeType(disableFormatCheck: true);
+        var type = new LocalDateTimeType(new DateTimeOptions { ValidateInputFormat = false });
         var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
         var result = type.CoerceInputValue(inputValue, null!);
 

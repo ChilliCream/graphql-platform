@@ -22,7 +22,6 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
     private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFF";
     private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/local-date-time.html";
 
-    private readonly bool _enforceSpecFormat;
     private readonly DateTimeOptions _options;
     private readonly string _localFormat;
     private readonly Regex _localDateTimeRegex;
@@ -34,30 +33,15 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
         string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit,
-        bool disableFormatCheck = false,
         DateTimeOptions? options = null)
         : base(name, bind)
     {
-        options ??= new DateTimeOptions();
-        _options = options.Value;
+        _options = options ?? new DateTimeOptions();
         Description = description;
         Pattern = GetPattern();
         SpecifiedBy = new Uri(SpecifiedByUri);
-        _enforceSpecFormat = !disableFormatCheck;
         _localFormat = GetLocalFormat();
         _localDateTimeRegex = GetLocalDateTimeRegex();
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
-    /// </summary>
-    public LocalDateTimeType(bool disableFormatCheck)
-        : this(
-            ScalarNames.LocalDateTime,
-            TypeResources.LocalDateTimeType_Description,
-            BindingBehavior.Implicit,
-            disableFormatCheck: disableFormatCheck)
-    {
     }
 
     /// <summary>
@@ -79,7 +63,40 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
     public LocalDateTimeType()
         : this(
             ScalarNames.LocalDateTime,
-            TypeResources.LocalDateTimeType_Description)
+            TypeResources.LocalDateTimeType_Description,
+            options: null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
+    /// </summary>
+    [Obsolete("Use the constructor that accepts DateTimeOptions instead.")]
+    public LocalDateTimeType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
+        : base(name, bind)
+    {
+        _options = new DateTimeOptions { ValidateInputFormat = !disableFormatCheck };
+        Description = description;
+        Pattern = GetPattern();
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _localFormat = GetLocalFormat();
+        _localDateTimeRegex = GetLocalDateTimeRegex();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
+    /// </summary>
+    [Obsolete("Use the constructor that accepts DateTimeOptions instead.")]
+    public LocalDateTimeType(bool disableFormatCheck)
+        : this(
+            ScalarNames.LocalDateTime,
+            TypeResources.LocalDateTimeType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
     {
     }
 
@@ -116,7 +133,7 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
     private bool TryParseStringValue(string serialized, out DateTime value)
     {
         // Check format.
-        if (_enforceSpecFormat && !_localDateTimeRegex.IsMatch(serialized))
+        if (_options.ValidateInputFormat && !_localDateTimeRegex.IsMatch(serialized))
         {
             value = default;
             return false;
