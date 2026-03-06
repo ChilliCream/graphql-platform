@@ -78,6 +78,360 @@ public class BatchResolverTests
     }
 
     [Fact]
+    public async Task ResolveBatchWith_Expression_Should_Resolve()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<ObjectType<User>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddObjectType<User>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensions>(
+                            t => t.GetGreeting(default!));
+                })
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ResolveBatchWith_MemberInfo_Should_Resolve()
+    {
+        var method = typeof(UserExtensions).GetMethod(nameof(UserExtensions.GetGreeting))!;
+
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<ObjectType<User>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddObjectType<User>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith(method);
+                })
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ResolveBatchWith_Expression_With_Service()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddSingleton<GreetingService>()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<ObjectType<User>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddObjectType<User>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithService>(
+                            t => t.GetGreeting(default!, default!));
+                })
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ResolveBatchWith_Expression_With_Argument()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<ObjectType<User>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddObjectType<User>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithArgument>(
+                            t => t.GetGreeting(default!, default!));
+                })
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting(prefix: "Hi")
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hi, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hi, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hi, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ResolveBatchWith_Expression_With_GlobalState()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<ObjectType<User>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddObjectType<User>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithGlobalState>(
+                            t => t.GetGreeting(default!, default!));
+                })
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            {
+                                users {
+                                    name
+                                    greeting
+                                }
+                            }
+                            """)
+                        .SetGlobalState("prefix", "Hey")
+                        .Build());
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hey, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hey, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hey, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ResolveBatchWith_Expression_With_CancellationToken()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<ObjectType<User>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddObjectType<User>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithCancellationToken>(
+                            t => t.GetGreeting(default!, default));
+                })
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task BatchResolver_Annotated_Should_Resolve_Nested_Field()
     {
         // arrange & act
@@ -345,7 +699,375 @@ public class BatchResolverTests
             """);
     }
 
-    public record User(int Id, string Name);
+    [Fact]
+    public async Task BatchResolver_Interface_Inherited_By_ObjectType()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<InterfaceType<IUser>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddInterfaceType<IUser>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensions>(
+                            t => t.GetGreeting(default!));
+                })
+                .AddObjectType<User>(d => d.Implements<InterfaceType<IUser>>())
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Interface_With_Argument()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<InterfaceType<IUser>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddInterfaceType<IUser>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithArgument>(
+                            t => t.GetGreeting(default!, default!));
+                })
+                .AddObjectType<User>(d => d.Implements<InterfaceType<IUser>>())
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting(prefix: "Hi")
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hi, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hi, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hi, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Interface_With_Service()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddSingleton<GreetingService>()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<InterfaceType<IUser>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddInterfaceType<IUser>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithService>(
+                            t => t.GetGreeting(default!, default!));
+                })
+                .AddObjectType<User>(d => d.Implements<InterfaceType<IUser>>())
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Interface_With_GlobalState()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<InterfaceType<IUser>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddInterfaceType<IUser>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithGlobalState>(
+                            t => t.GetGreeting(default!, default!));
+                })
+                .AddObjectType<User>(d => d.Implements<InterfaceType<IUser>>())
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            {
+                                users {
+                                    name
+                                    greeting
+                                }
+                            }
+                            """)
+                        .SetGlobalState("prefix", "Hey")
+                        .Build());
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hey, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hey, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hey, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Interface_With_ScopedState()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<InterfaceType<IUser>>>()
+                        .Resolve(ctx =>
+                        {
+                            ctx.ScopedContextData = ctx.ScopedContextData.SetItem("suffix", "!!!");
+                            return new List<User>
+                            {
+                                new(1, "Alice"),
+                                new(2, "Bob"),
+                                new(3, "Charlie")
+                            };
+                        });
+                })
+                .AddInterfaceType<IUser>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithScopedState>(
+                            t => t.GetGreeting(default!, default!));
+                })
+                .AddObjectType<User>(d => d.Implements<InterfaceType<IUser>>())
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!!!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!!!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!!!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Interface_With_CancellationToken()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<InterfaceType<IUser>>>()
+                        .Resolve(new List<User>
+                        {
+                            new(1, "Alice"),
+                            new(2, "Bob"),
+                            new(3, "Charlie")
+                        });
+                })
+                .AddInterfaceType<IUser>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithCancellationToken>(
+                            t => t.GetGreeting(default!, default));
+                })
+                .AddObjectType<User>(d => d.Implements<InterfaceType<IUser>>())
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "users": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    public interface IUser
+    {
+        string Name { get; }
+    }
+
+    public record User(int Id, string Name) : IUser;
 
     public class AnnotatedQuery
     {

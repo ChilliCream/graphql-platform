@@ -7,6 +7,7 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -92,7 +93,7 @@ public class InterfaceFieldDescriptor
             FieldDescriptorUtilities.DiscoverArguments(
                 Context,
                 definition.Arguments,
-                definition.Member,
+                definition.ResolverMember ?? definition.Member,
                 _parameterInfos,
                 definition.GetParameterExpressionBuilders(),
                 IsBatchResolver());
@@ -264,6 +265,59 @@ public class InterfaceFieldDescriptor
         throw new ArgumentException(
             ObjectTypeDescriptor_MustBePropertyOrMethod,
             nameof(propertyOrMethod));
+    }
+
+    public IInterfaceFieldDescriptor ResolveBatchWith<TResolver>(
+        Expression<Func<TResolver, object?>> propertyOrMethod)
+    {
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        return ResolveBatchWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
+    }
+
+    public IInterfaceFieldDescriptor ResolveBatchWith(MemberInfo propertyOrMethod)
+    {
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        return ResolveBatchWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IInterfaceFieldDescriptor ResolveBatchWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
+    {
+        if (resolverType?.IsAbstract is true)
+        {
+            throw new ArgumentException(
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
+        }
+
+        if (propertyOrMethod is not MethodInfo method)
+        {
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        var elementType = BatchResolverCompiler.GetListElementType(method.ReturnType)
+            ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
+
+        Configuration.Flags |= CoreFieldFlags.BatchResolver;
+        Configuration.SetMoreSpecificType(
+            Context.TypeInspector.GetType(elementType),
+            TypeContext.Output);
+        Configuration.ResolverType = resolverType;
+        Configuration.ResolverMember = propertyOrMethod;
+        Configuration.Resolver = null;
+        Configuration.ResultType = elementType;
+
+        _parameterInfos = Context.TypeInspector.GetParameters(method);
+        Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+
+        return this;
     }
 
     public IInterfaceFieldDescriptor Use(FieldMiddleware middleware)

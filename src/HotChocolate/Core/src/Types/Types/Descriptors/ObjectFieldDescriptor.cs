@@ -233,7 +233,7 @@ public class ObjectFieldDescriptor
                 FieldDescriptorUtilities.DiscoverArguments(
                     Context,
                     definition.Arguments,
-                    definition.Member,
+                    definition.ResolverMember ?? definition.Member,
                     _parameterInfos,
                     definition.GetParameterExpressionBuilders(),
                     IsBatchResolver());
@@ -484,6 +484,61 @@ public class ObjectFieldDescriptor
                     }
                 }
             };
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveBatchWith<TResolver>(
+        Expression<Func<TResolver, object?>> propertyOrMethod)
+    {
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        return ResolveBatchWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveBatchWith(MemberInfo propertyOrMethod)
+    {
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        return ResolveBatchWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IObjectFieldDescriptor ResolveBatchWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
+    {
+        if (resolverType?.IsAbstract is true)
+        {
+            throw new ArgumentException(
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
+        }
+
+        if (propertyOrMethod is not MethodInfo method)
+        {
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        var elementType = BatchResolverCompiler.GetListElementType(method.ReturnType)
+            ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
+
+        Configuration.Flags |= CoreFieldFlags.BatchResolver;
+        Configuration.SetMoreSpecificType(
+            Context.TypeInspector.GetType(elementType),
+            TypeContext.Output);
+        Configuration.ResolverType = resolverType;
+        Configuration.ResolverMember = propertyOrMethod;
+        Configuration.Resolver = null;
+        Configuration.ResultType = elementType;
+
+        _parameterInfos = Context.TypeInspector.GetParameters(method);
+        Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+
         return this;
     }
 
