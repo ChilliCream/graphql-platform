@@ -285,6 +285,27 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     }
 
     /// <inheritdoc />
+    public BatchFieldDelegate CompileBatchResolve(
+        MethodInfo method,
+        Type? sourceType = null,
+        Type? resolverType = null,
+        IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+
+        argumentNames ??= _emptyLookup;
+        parameterExpressionBuilders ??= s_empty;
+
+        return BatchResolverCompiler.Compile(
+            method,
+            sourceType,
+            resolverType,
+            argumentNames,
+            p => GetParameterExpressionBuilder(p, parameterExpressionBuilders));
+    }
+
+    /// <inheritdoc />
     public IEnumerable<ParameterInfo> GetArgumentParameters(
         ParameterInfo[] parameters,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)

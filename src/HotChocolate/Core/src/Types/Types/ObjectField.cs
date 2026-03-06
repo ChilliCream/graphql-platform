@@ -217,7 +217,8 @@ public sealed class ObjectField : OutputField
             Resolver,
             skipMiddleware);
 
-        if (middleware is null && definition.BatchResolver is null)
+        if (middleware is null
+            && definition.BatchResolver is null)
         {
             context.ReportError(
                 ObjectField_HasNoResolver(

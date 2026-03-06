@@ -8,6 +8,7 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Descriptors;
@@ -62,6 +63,10 @@ public class ObjectFieldDescriptor
                 _parameterInfos = context.TypeInspector.GetParameters(m);
                 Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
                 Configuration.ResultType = m.ReturnType;
+                if (m.IsDefined(typeof(BatchResolverAttribute)))
+                {
+                    Configuration.Flags |= CoreFieldFlags.BatchResolver;
+                }
                 break;
 
             case PropertyInfo p:
@@ -103,6 +108,10 @@ public class ObjectFieldDescriptor
             {
                 case MethodInfo m:
                     Configuration.ResultType = m.ReturnType;
+                    if (m.IsDefined(typeof(BatchResolverAttribute)))
+                    {
+                        Configuration.Flags |= CoreFieldFlags.BatchResolver;
+                    }
                     break;
 
                 case PropertyInfo p:
@@ -207,7 +216,8 @@ public class ObjectFieldDescriptor
                     definition.Arguments,
                     definition.Member,
                     _parameterInfos,
-                    definition.GetParameterExpressionBuilders());
+                    definition.GetParameterExpressionBuilders(),
+                    IsBatchResolver());
 
                 foreach (var parameter in _parameterInfos)
                 {
@@ -430,7 +440,31 @@ public class ObjectFieldDescriptor
     {
         ArgumentNullException.ThrowIfNull(batchResolver);
 
-        Configuration.BatchResolver = batchResolver;
+        Configuration.BatchResolver =
+            async contexts =>
+            {
+                var results = await batchResolver(contexts).ConfigureAwait(false);
+
+                if (results.Count != contexts.Length)
+                {
+                    throw ThrowHelper.BatchResolver_ResultCountMismatch(contexts.Length, results.Count);
+                }
+
+                for (var i = 0; i < contexts.Length; i++)
+                {
+                    var result = results[i];
+
+                    if (result.IsError)
+                    {
+                        contexts[i].ReportError(result.Error!);
+                        contexts[i].Result = null;
+                    }
+                    else
+                    {
+                        contexts[i].Result = result.Value;
+                    }
+                }
+            };
         return this;
     }
 
@@ -500,6 +534,9 @@ public class ObjectFieldDescriptor
         Configuration.Features.Set(new FieldRequirementFeature(requires, Configuration.SourceType));
         return this;
     }
+
+    private bool IsBatchResolver()
+        => (Configuration.Flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver;
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>

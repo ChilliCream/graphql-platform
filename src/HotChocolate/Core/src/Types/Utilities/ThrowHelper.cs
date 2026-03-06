@@ -30,6 +30,17 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
+    public static SchemaException BatchResolver_ArgumentMustBeList(ParameterInfo parameter)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.BatchResolver_ArgumentMustBeList,
+                    parameter.Name)
+                .Build());
+
+    public static InvalidOperationException BatchResolver_ResultCountMismatch(int expected, int actual)
+        => new(string.Format(TypeResources.BatchResolver_ResultCountMismatch, expected, actual));
+
     public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member)
         => new SchemaException(
             SchemaErrorBuilder.New()
