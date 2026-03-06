@@ -82,8 +82,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .AddGraphQLGateway()
                 .AddInMemoryConfiguration(schemaDocument)
                 .UseDefaultPipeline()
-                .InsertUseRequest(
-                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                .UseRequest(
                     (_, _) =>
                     {
                         return context =>
@@ -94,7 +93,9 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                                     ImmutableOrderedDictionary<string, object?>.Empty.Add("operationPlan", plan));
                             return ValueTask.CompletedTask;
                         };
-                    })
+                    },
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                    allowMultiple: true)
                 .Services
                 .BuildServiceProvider();
 
