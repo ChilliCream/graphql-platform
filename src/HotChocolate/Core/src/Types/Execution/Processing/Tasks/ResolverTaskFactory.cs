@@ -58,12 +58,24 @@ internal static class ResolverTaskFactory
                         continue;
                     }
 
-                    bufferedTasks[i++] =
-                        operationContext.CreateResolverTask(
-                            parent,
+                    if (selection.Strategy is SelectionExecutionStrategy.Batch)
+                    {
+                        scheduler.RegisterBatchEntry(
                             selection,
+                            parent,
                             field.Value,
-                            scopedContext);
+                            scopedContext,
+                            mainBranchId);
+                    }
+                    else
+                    {
+                        bufferedTasks[i++] =
+                            operationContext.CreateResolverTask(
+                                parent,
+                                selection,
+                                field.Value,
+                                scopedContext);
+                    }
                 }
 
                 if (i == 0 && branches.IsEmpty)
@@ -99,12 +111,26 @@ internal static class ResolverTaskFactory
             {
                 foreach (var field in data)
                 {
-                    bufferedTasks[i++] =
-                        operationContext.CreateResolverTask(
+                    var selection = field.AssertSelection();
+
+                    if (selection.Strategy is SelectionExecutionStrategy.Batch)
+                    {
+                        scheduler.RegisterBatchEntry(
+                            selection,
                             parent,
-                            field.AssertSelection(),
                             field.Value,
-                            scopedContext);
+                            scopedContext,
+                            mainBranchId);
+                    }
+                    else
+                    {
+                        bufferedTasks[i++] =
+                            operationContext.CreateResolverTask(
+                                parent,
+                                selection,
+                                field.Value,
+                                scopedContext);
+                    }
                 }
 
                 if (i == 0)
@@ -202,18 +228,13 @@ internal static class ResolverTaskFactory
                 }
                 else if (selection.Strategy is SelectionExecutionStrategy.Batch)
                 {
-                    var batchTask =
-                        operationContext.Scheduler.GetOrCreateBatchTask(
-                            selection.FieldSelectionPath,
-                            selection.Field,
-                            context.ParentBranchId,
-                            parentDeferUsage);
-
-                    batchTask.AddEntry(
-                        parent,
+                    operationContext.Scheduler.RegisterBatchEntry(
                         selection,
+                        parent,
                         field.Value,
-                        context.ResolverContext.ScopedContextData);
+                        context.ResolverContext.ScopedContextData,
+                        context.ParentBranchId,
+                        parentDeferUsage);
                 }
                 else
                 {
@@ -225,6 +246,42 @@ internal static class ResolverTaskFactory
                             context.ResolverContext.ScopedContextData,
                             context.ParentBranchId,
                             parentDeferUsage));
+                }
+            }
+        }
+        else
+        {
+            foreach (var field in resultValue.EnumerateObject())
+            {
+                var selection = field.AssertSelection();
+
+                if (selection.Strategy is SelectionExecutionStrategy.Pure)
+                {
+                    ResolveAndCompleteInline(
+                        context,
+                        selection,
+                        selectionSetType,
+                        field.Value,
+                        parent);
+                }
+                else if (selection.Strategy is SelectionExecutionStrategy.Batch)
+                {
+                    operationContext.Scheduler.RegisterBatchEntry(
+                        selection,
+                        parent,
+                        field.Value,
+                        context.ResolverContext.ScopedContextData,
+                        context.ParentBranchId);
+                }
+                else
+                {
+                    context.Tasks.Add(
+                        operationContext.CreateResolverTask(
+                            parent,
+                            selection,
+                            field.Value,
+                            context.ResolverContext.ScopedContextData,
+                            context.ParentBranchId));
                 }
             }
         }

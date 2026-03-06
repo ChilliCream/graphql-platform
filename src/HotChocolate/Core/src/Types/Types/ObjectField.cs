@@ -41,7 +41,7 @@ public sealed class ObjectField : OutputField
         SubscribeResolver = original.SubscribeResolver;
         ResultPostProcessor = original.ResultPostProcessor;
         PureResolver = original.PureResolver;
-        BatchResolverPipeline = original.BatchResolverPipeline;
+        BatchMiddleware = original.BatchMiddleware;
         DependencyInjectionScope = original.DependencyInjectionScope;
         Middleware = original.Middleware;
         Flags = original.Flags;
@@ -102,7 +102,7 @@ public sealed class ObjectField : OutputField
     /// <summary>
     /// Gets the compiled batch resolver pipeline.
     /// </summary>
-    public BatchFieldDelegate? BatchResolverPipeline { get; private set; }
+    public BatchFieldDelegate? BatchMiddleware { get; private set; }
 
     /// <summary>
     /// Gets the result post-processor.
@@ -211,7 +211,7 @@ public sealed class ObjectField : OutputField
             Resolver,
             skipMiddleware);
 
-        if (middleware is null)
+        if (middleware is null && definition.BatchResolver is null)
         {
             context.ReportError(
                 ObjectField_HasNoResolver(
@@ -219,7 +219,7 @@ public sealed class ObjectField : OutputField
                     Name,
                     context.Type));
         }
-        else
+        else if (middleware is not null)
         {
             Middleware = middleware;
         }
@@ -229,7 +229,7 @@ public sealed class ObjectField : OutputField
         // Compile the batch resolver pipeline if a batch resolver is configured.
         if (definition.BatchResolver is not null)
         {
-            BatchResolverPipeline = CompileBatchPipeline(
+            BatchMiddleware = CompileBatchPipeline(
                 definition.GetBatchMiddlewareDefinitions(),
                 definition.BatchResolver);
         }

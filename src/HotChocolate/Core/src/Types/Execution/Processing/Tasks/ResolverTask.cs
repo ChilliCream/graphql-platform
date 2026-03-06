@@ -4,7 +4,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
-internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) : IExecutionTask
+internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) : IResolverTask
 {
     private readonly MiddlewareContext _context = new();
     private readonly List<IExecutionTask> _taskBuffer = [];
@@ -80,7 +80,8 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// <inheritdoc />
     public bool IsDeferred => DeferUsage is not null;
 
-    internal MiddlewareContext MiddlewareContext => _context;
+    /// <inheritdoc />
+    public SelectionPath FieldSelectionPath => Selection.FieldSelectionPath;
 
     /// <inheritdoc />
     public void BeginExecute(CancellationToken cancellationToken)

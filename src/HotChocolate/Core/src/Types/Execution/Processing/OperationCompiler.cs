@@ -421,7 +421,7 @@ public sealed partial class OperationCompiler
                 arguments: arguments,
                 resolverPipeline: fieldDelegate,
                 pureResolver: pureFieldDelegate,
-                batchResolverPipeline: field.BatchResolverPipeline);
+                batchResolverPipeline: field.BatchMiddleware);
 
             if (optimizers.Length > 0)
             {

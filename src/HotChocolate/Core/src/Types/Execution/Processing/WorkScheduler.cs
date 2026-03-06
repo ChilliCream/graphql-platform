@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
@@ -92,32 +94,58 @@ internal sealed partial class WorkScheduler
     {
         AssertNotPooled();
 
-        if (task.IsRegistered)
+        if (!task.IsRegistered)
         {
-            var work = task.IsSerial ? _serial : _work;
+            return;
+        }
 
-            CompleteBranchTask(task.BranchId);
+        var work = task.IsSerial ? _serial : _work;
 
-            // complete is thread-safe
-            if (work.Complete())
-            {
-                lock (_sync)
+        switch (task)
+        {
+            case Tasks.ResolverTask resolverTask:
+                CompleteBranchTask(task.BranchId);
+
+                if (work.Complete())
                 {
-                    _completed.Add(task.Id);
-
-                    if (task is Tasks.ResolverTask rt)
+                    lock (_sync)
                     {
-                        DecrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
-                    }
-                    else if (task is Tasks.BatchResolverTask bt)
-                    {
-                        DecrementPathCountUnsafe(bt.SelectionPath);
+                        _completed.Add(resolverTask.Id);
+                        DecrementPathCountUnsafe(resolverTask.FieldSelectionPath);
                     }
                 }
+                break;
 
-                _signal.Set();
-            }
+            case Tasks.BatchResolverTask batchResolverTask:
+                lock (_sync)
+                {
+                    foreach (var additionalBranchId in batchResolverTask.BranchIds)
+                    {
+                        CompleteBranchTaskUnsafe(additionalBranchId);
+                    }
+
+                    if (work.Complete())
+                    {
+                        _completed.Add(task.Id);
+                        DecrementPathCountUnsafe(batchResolverTask.FieldSelectionPath);
+                    }
+                }
+                break;
+
+            default:
+                CompleteBranchTask(task.BranchId);
+
+                if (work.Complete())
+                {
+                    lock (_sync)
+                    {
+                        _completed.Add(task.Id);
+                    }
+                }
+                break;
         }
+
+        _signal.Set();
     }
 
     private void RegisterBranchTaskUnsafe(int branchId)
@@ -151,6 +179,21 @@ internal sealed partial class WorkScheduler
                 _activeBranches.Remove(branchId);
                 branch.Complete();
             }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void CompleteBranchTaskUnsafe(int branchId)
+    {
+        if (branchId == BranchTracker.SystemBranchId)
+        {
+            return;
+        }
+        if (_activeBranches.TryGetValue(branchId, out var branch)
+            && branch.CompleteTask())
+        {
+            _activeBranches.Remove(branchId);
+            branch.Complete();
         }
     }
 

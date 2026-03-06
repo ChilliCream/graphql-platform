@@ -1,6 +1,8 @@
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution.Processing.Tasks;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
@@ -11,34 +13,38 @@ internal sealed partial class WorkScheduler
     private readonly Dictionary<(SelectionPath Path, DeferUsage? Defer), BatchResolverTask> _pendingBatches = [];
 
     /// <summary>
-    /// Gets or creates a <see cref="BatchResolverTask"/> for the given selection path
-    /// and defer usage combination. Entries with different defer usages are kept in
-    /// separate batches so that each batch can be delivered under the correct
-    /// <c>@defer</c> boundary.
-    /// Called during value completion when a batch field is encountered.
-    /// The task is held in the pending batches registry until all ancestor
-    /// paths have completed, at which point it is moved to the work queue.
+    /// Registers work to be executed as part of a batch resolver task.
     /// </summary>
-    public BatchResolverTask GetOrCreateBatchTask(
-        SelectionPath selectionPath,
-        ObjectField field,
+    public void RegisterBatchEntry(
+        Selection selection,
+        object? parent,
+        ResultElement resultValue,
+        IImmutableDictionary<string, object?> scopedContextData,
         int branchId,
         DeferUsage? deferUsage = null)
     {
         AssertNotPooled();
 
-        var key = (selectionPath, deferUsage);
+        var key = (selection.FieldSelectionPath, deferUsage);
 
         lock (_sync)
         {
             if (!_pendingBatches.TryGetValue(key, out var batchTask))
             {
-                batchTask = operationContext.CreateBatchResolverTask(field, selectionPath, branchId, deferUsage);
+                batchTask =
+                    operationContext.CreateBatchResolverTask(
+                        selection.Field,
+                        selection.FieldSelectionPath,
+                        branchId,
+                        deferUsage);
                 _pendingBatches[key] = batchTask;
-                IncrementPathCountUnsafe(selectionPath);
+                IncrementPathCountUnsafe(selection.FieldSelectionPath);
             }
 
-            return batchTask;
+            if (batchTask.AddEntry(parent, selection, resultValue, scopedContextData, branchId))
+            {
+                RegisterBranchTaskUnsafe(branchId);
+            }
         }
     }
 
@@ -90,7 +96,6 @@ internal sealed partial class WorkScheduler
             batchTask.Id = Interlocked.Increment(ref _nextId);
             batchTask.IsRegistered = true;
             _work.Push(batchTask);
-            RegisterBranchTaskUnsafe(batchTask.BranchId);
         }
 
         if (toRemove is null)
