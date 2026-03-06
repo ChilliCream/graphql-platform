@@ -106,6 +106,10 @@ public static class WellKnownTypes
     public const string NonNullTypeNode = "HotChocolate.Language.NonNullTypeNode";
     public const string ListTypeNode = "HotChocolate.Language.ListTypeNode";
     public const string NamedTypeNode = "HotChocolate.Language.NamedTypeNode";
+    public const string BatchFieldDelegate = "HotChocolate.Resolvers.BatchFieldDelegate";
+    public const string ImmutableArrayOfMiddlewareContext = "System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext>";
+    public const string IList = "System.Collections.IList";
+    public const string MiddlewareContext = "HotChocolate.Resolvers.IMiddlewareContext";
 
     public static HashSet<string> TypeClass { get; } =
     [

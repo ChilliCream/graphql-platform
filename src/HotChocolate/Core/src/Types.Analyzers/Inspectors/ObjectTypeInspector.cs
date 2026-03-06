@@ -262,6 +262,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
         var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
+        var isBatchResolver = resolverMethod.IsBatchResolver();
 
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -271,7 +272,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             buffer[i] = new ResolverParameter(
                 parameter,
                 parameterKind,
-                compilation.CreateTypeReference(parameter),
+                compilation.CreateTypeReference(parameter, isBatchResolver),
                 parameter.GetDescriptionFromAttribute(),
                 compilation.GetDeprecationReason(parameter),
                 key);
@@ -287,10 +288,14 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             resolverParameters,
             resolverMethod.GetMemberBindings(),
-            compilation.CreateTypeReference(resolverMethod),
-            kind: compilation.IsConnectionType(resolverMethod.ReturnType)
-                ? ResolverKind.ConnectionResolver
-                : ResolverKind.Default);
+            isBatchResolver
+                ? compilation.CreateTypeReference(resolverMethod, isBatchResolver: true)
+                : compilation.CreateTypeReference(resolverMethod),
+            kind: isBatchResolver
+                ? ResolverKind.BatchResolver
+                : compilation.IsConnectionType(resolverMethod.ReturnType)
+                    ? ResolverKind.ConnectionResolver
+                    : ResolverKind.Default);
     }
 
     private static Resolver CreateNodeResolver(
@@ -449,6 +454,19 @@ file static class Extensions
         foreach (var attribute in methodSymbol.GetAttributes())
         {
             if (attribute.AttributeClass.IsOrInheritsFrom(NodeResolverAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsBatchResolver(this IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == BatchResolverAttribute)
             {
                 return true;
             }

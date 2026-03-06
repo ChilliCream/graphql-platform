@@ -63,7 +63,7 @@ public class ObjectFieldDescriptor
                 Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
                 if (m.IsDefined(typeof(BatchResolverAttribute)))
                 {
-                    Configuration.Flags |= CoreFieldFlags.BatchResolver;
+                    Configuration.SetBatchResolverFlags();
                     var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
                         ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
                     Configuration.ResultType = elementType;
@@ -121,7 +121,7 @@ public class ObjectFieldDescriptor
                 case MethodInfo m:
                     if (m.IsDefined(typeof(BatchResolverAttribute)))
                     {
-                        Configuration.Flags |= CoreFieldFlags.BatchResolver;
+                        Configuration.SetBatchResolverFlags();
                         var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
                             ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
                         Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
@@ -527,7 +527,7 @@ public class ObjectFieldDescriptor
         var elementType = BatchResolverCompiler.GetListElementType(method.ReturnType)
             ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
 
-        Configuration.Flags |= CoreFieldFlags.BatchResolver;
+        Configuration.SetBatchResolverFlags();
         Configuration.SetMoreSpecificType(
             Context.TypeInspector.GetType(elementType),
             TypeContext.Output);

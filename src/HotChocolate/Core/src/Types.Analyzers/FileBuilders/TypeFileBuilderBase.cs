@@ -258,9 +258,21 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         WriteResolverBindingDescriptor(type, resolver);
 
-        Writer.WriteIndentedLine(
-            "configuration.ResultType = typeof({0});",
-            resolver.ReturnType.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
+        if (resolver.Kind is ResolverKind.BatchResolver)
+        {
+            // For batch resolvers, the return type is a list (e.g. List<string>).
+            // The ResultType should be the element type (e.g. string).
+            var elementType = GetListElementType(resolver.ReturnType);
+            Writer.WriteIndentedLine(
+                "configuration.ResultType = typeof({0});",
+                elementType);
+        }
+        else
+        {
+            Writer.WriteIndentedLine(
+                "configuration.ResultType = typeof({0});",
+                resolver.ReturnType.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
+        }
 
         WriteFieldFlags(resolver);
 
@@ -274,7 +286,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         if (!resolver.Parameters.IsEmpty)
         {
-            var parentInfo = resolver.Parameters.GetParentInfo();
+            var parentInfo = resolver.Parameters.GetParentInfo(resolver.Kind);
             if (parentInfo.HasValue)
             {
                 Writer.WriteIndentedLine(
@@ -495,16 +507,24 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         Writer.WriteLine();
-        Writer.WriteIndentedLine("configuration.Resolvers = context.Resolvers.{0}();", resolver.Member.Name);
 
-        if (resolver.ResultKind is not ResolverResultKind.Pure
-            && !resolver.Member.HasPostProcessorAttribute()
-            && resolver.Member.IsListType(out var elementType))
+        if (resolver.Kind is ResolverKind.BatchResolver)
         {
-            Writer.WriteIndentedLine(
-                "configuration.ResultPostProcessor = global::{0}<{1}>.Default;",
-                WellKnownTypes.ListPostProcessor,
-                elementType);
+            Writer.WriteIndentedLine("configuration.BatchResolver = context.Resolvers.{0}();", resolver.Member.Name);
+        }
+        else
+        {
+            Writer.WriteIndentedLine("configuration.Resolvers = context.Resolvers.{0}();", resolver.Member.Name);
+
+            if (resolver.ResultKind is not ResolverResultKind.Pure
+                && !resolver.Member.HasPostProcessorAttribute()
+                && resolver.Member.IsListType(out var elementType))
+            {
+                Writer.WriteIndentedLine(
+                    "configuration.ResultPostProcessor = global::{0}<{1}>.Default;",
+                    WellKnownTypes.ListPostProcessor,
+                    elementType);
+            }
         }
     }
 
@@ -512,6 +532,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     {
         Writer.WriteLine();
         Writer.WriteIndentedLine("configuration.SetSourceGeneratorFlags();");
+
+        if (resolver.Kind is ResolverKind.BatchResolver)
+        {
+            Writer.WriteIndentedLine("configuration.SetBatchResolverFlags();");
+        }
 
         if (resolver.Kind is ResolverKind.ConnectionResolver)
         {
@@ -747,6 +772,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         switch (resolver.Member)
         {
             case IMethodSymbol resolverMethod
+                when resolver.Kind is ResolverKind.BatchResolver:
+                WriteBatchResolver(resolver, resolverMethod, typeLookup);
+                break;
+
+            case IMethodSymbol resolverMethod
                 when resolver.ResultKind is ResolverResultKind.Pure:
                 WritePureResolver(resolver, resolverMethod, typeLookup);
                 break;
@@ -919,6 +949,262 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         Writer.WriteIndentedLine("}");
+    }
+
+    private void WriteBatchResolver(
+        Resolver resolver,
+        IMethodSymbol resolverMethod,
+        ILocalTypeLookup typeLookup)
+    {
+        var isAsync = resolver.ResultKind is ResolverResultKind.Task or ResolverResultKind.TaskAsyncEnumerable;
+
+        // Public accessor method: returns BatchFieldDelegate
+        Writer.WriteMethod(
+            "public",
+            returnType: WellKnownTypes.BatchFieldDelegate,
+            methodName: $"{resolver.Member.Name}",
+            [],
+            resolver.Member.Name);
+
+        Writer.WriteLine();
+
+        // Private batch delegate method
+        Writer.WriteIndented("private ");
+
+        if (isAsync)
+        {
+            Writer.Write("async ");
+        }
+
+        Writer.WriteLine(
+            "global::{0} {1}(global::{2} contexts)",
+            WellKnownTypes.ValueTask,
+            resolver.Member.Name,
+            WellKnownTypes.ImmutableArrayOfMiddlewareContext);
+        Writer.WriteIndentedLine("{");
+
+        using (Writer.IncreaseIndent())
+        {
+            // Declare variables for batched parameters (parent, arguments) and singular parameters (services, state, etc.)
+            for (var i = 0; i < resolver.Parameters.Length; i++)
+            {
+                var parameter = resolver.Parameters[i];
+
+                switch (parameter.Kind)
+                {
+                    case ResolverParameterKind.Parent:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = new {1}(contexts.Length);",
+                            i,
+                            parameter.Type.ToFullyQualified());
+                        break;
+
+                    case ResolverParameterKind.Argument:
+                    case ResolverParameterKind.Unknown:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = new {1}(contexts.Length);",
+                            i,
+                            ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
+                        break;
+
+                    case ResolverParameterKind.CancellationToken:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = contexts[0].RequestAborted;",
+                            i);
+                        break;
+
+                    case ResolverParameterKind.Service:
+                        if (parameter.Key is null)
+                        {
+                            Writer.WriteIndentedLine(
+                                "var args{0} = contexts[0].Service<{1}>();",
+                                i,
+                                ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
+                        }
+                        else
+                        {
+                            Writer.WriteIndentedLine(
+                                "var args{0} = contexts[0].Service<{1}>(\"{2}\");",
+                                i,
+                                ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup),
+                                parameter.Key);
+                        }
+
+                        break;
+
+                    case ResolverParameterKind.GetGlobalState when !parameter.IsNullable:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = contexts[0].GetGlobalState<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
+                        break;
+
+                    case ResolverParameterKind.GetGlobalState:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = contexts[0].GetGlobalStateOrDefault<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
+                        break;
+
+                    case ResolverParameterKind.GetScopedState when !parameter.IsNullable:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = contexts[0].GetScopedState<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
+                        break;
+
+                    case ResolverParameterKind.GetScopedState:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = contexts[0].GetScopedStateOrDefault<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
+                        break;
+
+                    default:
+                        // Fallback for any other kind: extract from first context
+                        Writer.WriteIndentedLine(
+                            "var args{0} = default({1})!;",
+                            i,
+                            ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
+                        break;
+                }
+            }
+
+            // Build collection loop for batched parameters (parent, arguments)
+            var hasBatchedParams = false;
+
+            for (var i = 0; i < resolver.Parameters.Length; i++)
+            {
+                var parameter = resolver.Parameters[i];
+
+                if (parameter.Kind is ResolverParameterKind.Parent
+                    or ResolverParameterKind.Argument
+                    or ResolverParameterKind.Unknown)
+                {
+                    hasBatchedParams = true;
+                    break;
+                }
+            }
+
+            if (hasBatchedParams)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
+                Writer.WriteIndentedLine("{");
+
+                using (Writer.IncreaseIndent())
+                {
+                    for (var i = 0; i < resolver.Parameters.Length; i++)
+                    {
+                        var parameter = resolver.Parameters[i];
+
+                        switch (parameter.Kind)
+                        {
+                            case ResolverParameterKind.Parent:
+                            {
+                                // Get the element type from the list parameter (e.g. List<User> -> User)
+                                var elementType = GetListElementType(parameter.Type);
+                                Writer.WriteIndentedLine(
+                                    "args{0}.Add(contexts[i].Parent<{1}>());",
+                                    i,
+                                    elementType);
+                                break;
+                            }
+
+                            case ResolverParameterKind.Argument:
+                            case ResolverParameterKind.Unknown:
+                            {
+                                var elementType = GetListElementType(parameter.Type);
+                                Writer.WriteIndentedLine(
+                                    "args{0}.Add(contexts[i].ArgumentValue<{1}>(\"{2}\"));",
+                                    i,
+                                    elementType,
+                                    parameter.Key ?? parameter.Name);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                Writer.WriteIndentedLine("}");
+            }
+
+            Writer.WriteLine();
+
+            // Call the user's batch resolver method
+            if (isAsync)
+            {
+                Writer.WriteIndentedLine(
+                    "var result = await {0}.{1}({2});",
+                    resolver.Member.ContainingType.ToFullyQualified(),
+                    resolver.Member.Name,
+                    GetResolverArgumentAssignments(resolver.Parameters.Length));
+
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("if (result is global::{0} list)", WellKnownTypes.IList);
+                Writer.WriteIndentedLine("{");
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
+                    Writer.WriteIndentedLine("{");
+                    using (Writer.IncreaseIndent())
+                    {
+                        Writer.WriteIndentedLine("contexts[i].Result = i < list.Count ? list[i] : null;");
+                    }
+
+                    Writer.WriteIndentedLine("}");
+                }
+
+                Writer.WriteIndentedLine("}");
+            }
+            else
+            {
+                Writer.WriteIndentedLine(
+                    "var result = {0}.{1}({2});",
+                    resolver.Member.ContainingType.ToFullyQualified(),
+                    resolver.Member.Name,
+                    GetResolverArgumentAssignments(resolver.Parameters.Length));
+
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("if (result is global::{0} list)", WellKnownTypes.IList);
+                Writer.WriteIndentedLine("{");
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
+                    Writer.WriteIndentedLine("{");
+                    using (Writer.IncreaseIndent())
+                    {
+                        Writer.WriteIndentedLine("contexts[i].Result = i < list.Count ? list[i] : null;");
+                    }
+
+                    Writer.WriteIndentedLine("}");
+                }
+
+                Writer.WriteIndentedLine("}");
+                Writer.WriteIndentedLine("return default;");
+            }
+        }
+
+        Writer.WriteIndentedLine("}");
+    }
+
+    private static string GetListElementType(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType.ToFullyQualified();
+        }
+
+        if (type is INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            return namedType.TypeArguments[0].ToFullyQualified();
+        }
+
+        return type.ToFullyQualified();
     }
 
     private void WritePropertyResolver(Resolver resolver)
@@ -1575,15 +1861,35 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
 file static class Extensions
 {
-    public static (string Requirements, string Type)? GetParentInfo(this ImmutableArray<ResolverParameter> parameters)
+    public static (string Requirements, string Type)? GetParentInfo(
+        this ImmutableArray<ResolverParameter> parameters,
+        ResolverKind resolverKind = ResolverKind.Default)
     {
         var parameter = parameters.FirstOrDefault(t => t.Kind is ResolverParameterKind.Parent);
 
         if (!string.IsNullOrEmpty(parameter?.Requirements))
         {
-            return (parameter!.Requirements!, parameter.Type.ToFullyQualified());
+            var type = resolverKind is ResolverKind.BatchResolver
+                ? GetListElementType(parameter!.Type)
+                : parameter!.Type.ToFullyQualified();
+            return (parameter.Requirements!, type);
         }
 
         return null;
+    }
+
+    private static string GetListElementType(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType.ToFullyQualified();
+        }
+
+        if (type is INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            return namedType.TypeArguments[0].ToFullyQualified();
+        }
+
+        return type.ToFullyQualified();
     }
 }
