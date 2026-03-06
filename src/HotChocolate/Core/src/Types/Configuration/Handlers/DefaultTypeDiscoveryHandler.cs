@@ -190,13 +190,23 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
                     .Name("key")
                     .Extend()
                     .OnBeforeCreate(
-                        (_, field) => field.SetMoreSpecificType(keyType, TypeContext.Output));
+                        (_, field) =>
+                        {
+                            field.SetMoreSpecificType(keyType, TypeContext.Output);
+                            field.SourceType = runtimeType;
+                            field.ResolverType = runtimeType;
+                        });
 
                 descriptor.Field(valueProperty)
                     .Name("value")
                     .Extend()
                     .OnBeforeCreate(
-                        (_, field) => field.SetMoreSpecificType(valueType, TypeContext.Output));
+                        (_, field) =>
+                        {
+                            field.SetMoreSpecificType(valueType, TypeContext.Output);
+                            field.SourceType = runtimeType;
+                            field.ResolverType = runtimeType;
+                        });
 
                 descriptor.Extend()
                     .OnBeforeCreate(
@@ -259,12 +269,12 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
         var keyName = keyType.Type.Name;
         var valueName = valueType.Type.Name;
 
-        if (keyType.IsNullable)
+        if (keyType.IsNullable && keyType.Type.IsValueType)
         {
             keyName = $"Nullable{keyName}";
         }
 
-        if (valueType.IsNullable)
+        if (valueType.IsNullable && valueType.Type.IsValueType)
         {
             valueName = $"Nullable{valueName}";
         }
