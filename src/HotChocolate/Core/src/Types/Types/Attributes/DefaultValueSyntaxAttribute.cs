@@ -18,7 +18,7 @@ namespace HotChocolate.Types;
 /// <code>
 /// public class InputWithComplexDefault
 /// {
-///     [DefaultValueSyntax("[ { user:  { enabled: true }}]")]
+///     [DefaultValueSyntax("[{ user:  { enabled: true }}]")]
 ///     public List&lt;User>? WithComplexDefault { get; set; }
 ///
 ///     public string? WithoutDefault { get; set; }

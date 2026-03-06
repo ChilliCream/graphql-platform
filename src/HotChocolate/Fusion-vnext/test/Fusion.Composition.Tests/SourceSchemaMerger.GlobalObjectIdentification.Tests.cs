@@ -43,7 +43,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
 
             interface Node
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "node(id: ID!): Node", map: [ "id" ], path: null, internal: false) {
+                @fusion__lookup(schema: A, key: "id", field: "node(id: ID!): Node", map: ["id"], path: null, internal: false) {
                 id: ID!
                     @fusion__field(schema: A)
             }

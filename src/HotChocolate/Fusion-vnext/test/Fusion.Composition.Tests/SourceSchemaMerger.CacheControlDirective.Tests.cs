@@ -395,11 +395,11 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
                 field1: Int
-                    @cacheControl(vary: [ "Accept-Encoding", "User-Agent", "Accept-Language" ])
+                    @cacheControl(vary: ["Accept-Encoding", "User-Agent", "Accept-Language"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
                 field2: Int
-                    @cacheControl(vary: [ "Accept-Encoding" ])
+                    @cacheControl(vary: ["Accept-Encoding"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
                 field3: Int

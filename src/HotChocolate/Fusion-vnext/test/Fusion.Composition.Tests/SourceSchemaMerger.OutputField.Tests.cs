@@ -132,7 +132,7 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 discountPercentage: Int
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
-                    @fusion__requires(schema: B, requirements: "percent", field: "discountPercentage(percent: Int): Int", map: [ "percent" ])
+                    @fusion__requires(schema: B, requirements: "percent", field: "discountPercentage(percent: Int): Int", map: ["percent"])
                 percent: Int
                     @fusion__field(schema: A)
             }
