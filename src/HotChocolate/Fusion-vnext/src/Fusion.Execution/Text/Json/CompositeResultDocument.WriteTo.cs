@@ -86,14 +86,18 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
 
                 case ElementTokenType.String:
                 {
-                    var value = document.ReadRawValue(row);
+                    var value = isSourceResult
+                        ? document._sources[row.SourceDocumentId].ReadRawValue(row.Location, row.SizeOrLength)
+                        : document.ReadRawValue(row);
                     writer.WriteStringValue(value, skipEscaping: true);
                     break;
                 }
 
                 case ElementTokenType.Number:
                 {
-                    var value = document.ReadRawValue(row);
+                    var value = isSourceResult
+                        ? document._sources[row.SourceDocumentId].ReadRawValue(row.Location, row.SizeOrLength)
+                        : document.ReadRawValue(row);
                     writer.WriteNumberValue(value);
                     break;
                 }
