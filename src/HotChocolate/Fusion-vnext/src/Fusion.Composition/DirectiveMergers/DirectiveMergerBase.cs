@@ -12,7 +12,7 @@ internal abstract class DirectiveMergerBase(DirectiveMergeBehavior mergeBehavior
 
     public DirectiveMergeBehavior MergeBehavior { get; } = mergeBehavior;
 
-    public abstract MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema);
+    public abstract MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema);
 
     public virtual void MergeDirectiveDefinition(
         MutableDirectiveDefinition directiveDefinition,

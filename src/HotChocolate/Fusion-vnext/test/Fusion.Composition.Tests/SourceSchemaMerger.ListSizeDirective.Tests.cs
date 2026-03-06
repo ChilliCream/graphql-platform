@@ -180,23 +180,23 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
                 field1: [Int]
-                    @listSize(slicingArguments: [ "first", "last" ])
+                    @listSize(slicingArguments: ["first", "last"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
                     @fusion__listSize(schema: A)
-                    @fusion__listSize(schema: B, slicingArguments: [ "first", "last" ])
+                    @fusion__listSize(schema: B, slicingArguments: ["first", "last"])
                 field2: [Int]
-                    @listSize(slicingArguments: [ "first", "last" ])
+                    @listSize(slicingArguments: ["first", "last"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
                     @fusion__listSize(schema: A, slicingArguments: null)
-                    @fusion__listSize(schema: B, slicingArguments: [ "first", "last" ])
+                    @fusion__listSize(schema: B, slicingArguments: ["first", "last"])
                 field3: [Int]
-                    @listSize(slicingArguments: [ "first", "last", "another" ])
+                    @listSize(slicingArguments: ["first", "last", "another"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
-                    @fusion__listSize(schema: A, slicingArguments: [ "first", "last" ])
-                    @fusion__listSize(schema: B, slicingArguments: [ "first", "last", "another" ])
+                    @fusion__listSize(schema: A, slicingArguments: ["first", "last"])
+                    @fusion__listSize(schema: B, slicingArguments: ["first", "last", "another"])
             }
             """,
             modifySchema: s_removeListSizeDirective);
@@ -238,23 +238,23 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
                 field1: [Int]
-                    @listSize(sizedFields: [ "edges", "nodes" ])
+                    @listSize(sizedFields: ["edges", "nodes"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
                     @fusion__listSize(schema: A)
-                    @fusion__listSize(schema: B, sizedFields: [ "edges", "nodes" ])
+                    @fusion__listSize(schema: B, sizedFields: ["edges", "nodes"])
                 field2: [Int]
-                    @listSize(sizedFields: [ "edges", "nodes" ])
+                    @listSize(sizedFields: ["edges", "nodes"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
                     @fusion__listSize(schema: A, sizedFields: null)
-                    @fusion__listSize(schema: B, sizedFields: [ "edges", "nodes" ])
+                    @fusion__listSize(schema: B, sizedFields: ["edges", "nodes"])
                 field3: [Int]
-                    @listSize(sizedFields: [ "edges", "nodes", "another" ])
+                    @listSize(sizedFields: ["edges", "nodes", "another"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
-                    @fusion__listSize(schema: A, sizedFields: [ "edges", "nodes" ])
-                    @fusion__listSize(schema: B, sizedFields: [ "edges", "nodes", "another" ])
+                    @fusion__listSize(schema: A, sizedFields: ["edges", "nodes"])
+                    @fusion__listSize(schema: B, sizedFields: ["edges", "nodes", "another"])
             }
             """,
             modifySchema: s_removeListSizeDirective);

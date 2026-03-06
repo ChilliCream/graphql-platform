@@ -1032,4 +1032,10 @@ Type: `{0}`</value>
   <data name="RegexType_InvalidFormat" xml:space="preserve">
     <value>{0}Type cannot parse the provided value. The value does not match the required regular expression pattern.</value>
   </data>
+  <data name="DateTimeOptions_InputPrecision_InvalidValue" xml:space="preserve">
+    <value>InputPrecision must be less than or equal to 7.</value>
+  </data>
+  <data name="DateTimeOptions_OutputPrecision_InvalidValue" xml:space="preserve">
+    <value>OutputPrecision must be less than or equal to 7.</value>
+  </data>
 </root>

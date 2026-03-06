@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.EntityFrameworkCore.Postgres.Tests</AssemblyName>
+    <RootNamespace>Mocha.EntityFrameworkCore.Postgres.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Squadron.PostgreSql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Mocha.EntityFrameworkCore.Postgres\Mocha.EntityFrameworkCore.Postgres.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.EntityFrameworkCore\Mocha.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Outbox\Mocha.Outbox.csproj" />
+  </ItemGroup>
+</Project>

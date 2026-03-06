@@ -13,9 +13,9 @@ internal class OneOfDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 {
     public override string DirectiveName => DirectiveNames.OneOf;
 
-    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
+    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
-        return OneOfMutableDirectiveDefinition.Create(schema);
+        return BuiltIns.OneOf.Create();
     }
 
     public override void MergeDirectives(

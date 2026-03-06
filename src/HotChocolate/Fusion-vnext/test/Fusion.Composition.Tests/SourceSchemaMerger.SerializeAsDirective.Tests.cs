@@ -42,7 +42,7 @@ public sealed class SourceSchemaMergerSerializeAsDirectiveTests : SourceSchemaMe
                 @fusion__type(schema: B)
 
             scalar Foo
-                @serializeAs(type: [ STRING, INT ])
+                @serializeAs(type: [STRING, INT])
                 @fusion__type(schema: A)
                 @fusion__type(schema: B)
             """,

@@ -42,12 +42,23 @@ export interface DocsNavItem {
 
 const DOCS_DIR = getContentDir("docs");
 
-let _cachedDocPages: DocPage[] | null = null;
+// Use globalThis to persist cache across HMR in development
+const _globalCache = globalThis as typeof globalThis & {
+  __docPagesCache?: DocPage[] | null;
+};
+if (!_globalCache.__docPagesCache) {
+  _globalCache.__docPagesCache = null;
+}
 
 function getGitMetadata(filePath: string): {
   lastUpdated: string;
   lastAuthorName: string;
 } {
+  // Skip expensive git operations in development — 636 execSync calls is brutal
+  if (process.env.NODE_ENV === "development") {
+    return { lastUpdated: "", lastAuthorName: "" };
+  }
+
   try {
     const result = execSync(`git log -1 --format="%ai||%an" -- "${filePath}"`, {
       encoding: "utf-8",
@@ -75,7 +86,7 @@ export function getDocsConfig(): DocsProduct[] {
 }
 
 export function getAllDocPages(): DocPage[] {
-  if (_cachedDocPages) return _cachedDocPages;
+  if (_globalCache.__docPagesCache) return _globalCache.__docPagesCache;
 
   const files = getFilesRecursively(DOCS_DIR, ".md");
   const pages: DocPage[] = [];
@@ -115,7 +126,7 @@ export function getAllDocPages(): DocPage[] {
     });
   }
 
-  _cachedDocPages = pages;
+  _globalCache.__docPagesCache = pages;
   return pages;
 }
 

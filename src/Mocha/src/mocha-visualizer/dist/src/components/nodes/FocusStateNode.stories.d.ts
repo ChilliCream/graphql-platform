@@ -1,0 +1,10 @@
+import { Meta, StoryObj } from "@storybook/react";
+declare const meta: Meta;
+export default meta;
+type Story = StoryObj;
+export declare const InitialState: Story;
+export declare const IntermediateState: Story;
+export declare const FinalState: Story;
+export declare const BareState: Story;
+export declare const SendActionsOnly: Story;
+export declare const ResponseOnly: Story;

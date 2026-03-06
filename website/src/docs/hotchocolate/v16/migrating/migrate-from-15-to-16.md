@@ -204,6 +204,26 @@ public class CustomRequestMiddleware
 }
 ```
 
+## `Schema.DefaultName` moved to `ISchemaDefinition.DefaultName`
+
+The `Schema.DefaultName` constant is no longer available in v16.
+Use `ISchemaDefinition.DefaultName` instead:
+
+```diff
+-var schemaName = Schema.DefaultName;
++var schemaName = ISchemaDefinition.DefaultName;
+```
+
+If you previously used a string literal for the default schema name, replace it with `ISchemaDefinition.DefaultName` (current value: `_Default`).
+
+## Resolver `Selection` API changes
+
+In v16, `context.Selection` is a compiled execution selection. The old `context.Selection.SelectionSet` is no longer available.
+
+- `context.Selection.DeclaringSelectionSet` is the parent selection set (where the current field is declared), not the current field's child selection set.
+- `context.Selection.SyntaxNodes` now returns `FieldSelectionNode` wrappers. Use `.Node` to access the underlying `FieldNode`.
+- Because selections are merged during operation compilation, one execution selection can map to multiple syntax nodes.
+
 ## OperationResultBuilder is now internal
 
 If you've previously used the `OperationResultBuilder` to construct an `OperationResult`, switch to constructing it directly instead:
