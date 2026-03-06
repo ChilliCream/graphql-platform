@@ -426,7 +426,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    public IObjectFieldDescriptor ResolveBatch(BatchFieldDelegate batchResolver)
+    public IObjectFieldDescriptor ResolveBatch(BatchResolverDelegate batchResolver)
     {
         ArgumentNullException.ThrowIfNull(batchResolver);
 

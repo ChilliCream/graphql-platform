@@ -24,6 +24,11 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     public bool IsRoot => _length == 0;
 
     /// <summary>
+    /// Gets the name of the last segment in the path, or <c>null</c> if the path is root.
+    /// </summary>
+    public string? Name => _length > 0 ? _segments[_length - 1].Name : null;
+
+    /// <summary>
     /// Gets the parent path.
     /// </summary>
     public SelectionPath? Parent

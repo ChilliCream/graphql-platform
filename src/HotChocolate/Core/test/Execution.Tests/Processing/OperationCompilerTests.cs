@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
@@ -1975,6 +1976,7 @@ public class OperationCompilerTests
                 var compiledSelection = new Selection(
                     context.NewSelectionId(),
                     "someName",
+                    SelectionPath.Root,
                     baz,
                     [new FieldSelectionNode(bazSelection, 0)],
                     [],

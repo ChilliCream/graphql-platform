@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Text.Json;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 

@@ -265,7 +265,7 @@ public interface IObjectFieldDescriptor
     /// parent contexts and resolves them in a single invocation.
     /// </summary>
     /// <param name="batchResolver">The batch resolver delegate.</param>
-    IObjectFieldDescriptor ResolveBatch(BatchFieldDelegate batchResolver);
+    IObjectFieldDescriptor ResolveBatch(BatchResolverDelegate batchResolver);
 
     /// <summary>
     /// Registers a batch middleware on the field. The middleware wraps the

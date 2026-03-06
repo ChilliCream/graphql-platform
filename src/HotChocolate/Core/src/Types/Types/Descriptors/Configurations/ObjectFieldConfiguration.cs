@@ -96,7 +96,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// <summary>
     /// The delegate that represents the batch resolver.
     /// </summary>
-    public BatchFieldDelegate? BatchResolver { get; set; }
+    public BatchResolverDelegate? BatchResolver { get; set; }
 
     /// <summary>
     /// A list of batch middleware components which will be used to form the batch field pipeline.

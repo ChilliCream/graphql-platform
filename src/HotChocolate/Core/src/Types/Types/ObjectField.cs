@@ -41,6 +41,7 @@ public sealed class ObjectField : OutputField
         SubscribeResolver = original.SubscribeResolver;
         ResultPostProcessor = original.ResultPostProcessor;
         PureResolver = original.PureResolver;
+        BatchResolver = original.BatchResolver;
         BatchMiddleware = original.BatchMiddleware;
         DependencyInjectionScope = original.DependencyInjectionScope;
         Middleware = original.Middleware;
@@ -98,6 +99,11 @@ public sealed class ObjectField : OutputField
     /// Gets the subscription resolver.
     /// </summary>
     public SubscribeResolverDelegate? SubscribeResolver { get; private set; }
+
+    /// <summary>
+    /// Gets the batch resolver.
+    /// </summary>
+    public BatchResolverDelegate? BatchResolver { get; private set; }
 
     /// <summary>
     /// Gets the compiled batch resolver pipeline.
@@ -229,9 +235,10 @@ public sealed class ObjectField : OutputField
         // Compile the batch resolver pipeline if a batch resolver is configured.
         if (definition.BatchResolver is not null)
         {
+            BatchResolver = definition.BatchResolver;
             BatchMiddleware = CompileBatchPipeline(
                 definition.GetBatchMiddlewareDefinitions(),
-                definition.BatchResolver);
+                CreateBatchResolverMiddleware(definition.BatchResolver));
         }
 
         // if the source generator has configured this field, we will not try to infer a post-processor with
@@ -266,6 +273,28 @@ public sealed class ObjectField : OutputField
             return definition.ResultType;
         }
     }
+
+    private static BatchFieldDelegate CreateBatchResolverMiddleware(
+        BatchResolverDelegate batchResolver)
+        => async contexts =>
+        {
+            var results = await batchResolver(contexts).ConfigureAwait(false);
+
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                var result = results[i];
+
+                if (result.IsError)
+                {
+                    contexts[i].ReportError(result.Error!);
+                    contexts[i].Result = null;
+                }
+                else
+                {
+                    contexts[i].Result = result.Value;
+                }
+            }
+        };
 
     private static BatchFieldDelegate CompileBatchPipeline(
         IReadOnlyList<BatchFieldMiddlewareConfiguration> middlewareComponents,

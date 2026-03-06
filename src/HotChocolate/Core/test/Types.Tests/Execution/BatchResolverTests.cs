@@ -1,3 +1,4 @@
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,13 +32,15 @@ public class BatchResolverTests
                         .Type<StringType>()
                         .ResolveBatch(contexts =>
                         {
-                            foreach (var context in contexts)
+                            var results = new ResolverResult[contexts.Count];
+
+                            for (var i = 0; i < contexts.Count; i++)
                             {
-                                var user = context.Parent<User>();
-                                context.Result = $"Hello, {user.Name}!";
+                                var user = contexts[i].Parent<User>();
+                                results[i] = ResolverResult.Ok($"Hello, {user.Name}!");
                             }
 
-                            return ValueTask.CompletedTask;
+                            return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                         });
                 })
                 .ExecuteRequestAsync(
