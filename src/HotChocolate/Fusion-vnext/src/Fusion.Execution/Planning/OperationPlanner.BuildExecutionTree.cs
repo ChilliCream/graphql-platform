@@ -195,11 +195,13 @@ public sealed partial class OperationPlanner
             return step.Definition.SelectionSet.Selections is
             [
                 FieldNode
+#pragma warning disable format
                 {
                     Alias: null,
                     Name.Value: IntrospectionFieldNames.TypeName,
                     Directives: [{ Name.Value: "fusion__empty" }]
                 }
+#pragma warning restore format
             ];
         }
 

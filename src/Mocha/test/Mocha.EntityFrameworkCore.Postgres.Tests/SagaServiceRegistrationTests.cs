@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Mocha.EntityFrameworkCore;
-using Mocha.EntityFrameworkCore.Postgres;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Sagas;
 using Mocha.Sagas.EfCore;

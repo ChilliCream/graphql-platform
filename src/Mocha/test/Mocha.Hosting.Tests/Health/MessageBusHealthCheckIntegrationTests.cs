@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Mocha.Hosting;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Hosting.Tests.Health;

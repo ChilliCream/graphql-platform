@@ -1,14 +1,13 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class TransportMiddlewareTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public TransportMiddlewareTests(RabbitMQFixture fixture)
@@ -24,7 +23,7 @@ public class TransportMiddlewareTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -56,7 +55,7 @@ public class TransportMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-T1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
         Assert.Contains("transport-receive-mw", tracker.Invocations);
     }
 
@@ -68,7 +67,7 @@ public class TransportMiddlewareTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -101,7 +100,7 @@ public class TransportMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-T2" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
         Assert.Contains("transport-append-receive", tracker.Invocations);
     }
 
@@ -113,7 +112,7 @@ public class TransportMiddlewareTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -146,7 +145,7 @@ public class TransportMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-T3" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
         Assert.Contains("transport-prepend-receive", tracker.Invocations);
     }
 
@@ -158,7 +157,7 @@ public class TransportMiddlewareTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -184,7 +183,7 @@ public class TransportMiddlewareTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-TD1", Amount = 50.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
         Assert.Contains("transport-dispatch-mw", tracker.Invocations);
     }
 
@@ -196,7 +195,7 @@ public class TransportMiddlewareTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -223,7 +222,7 @@ public class TransportMiddlewareTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-TD2", Amount = 25.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
         Assert.Contains("transport-append-dispatch", tracker.Invocations);
     }
 
@@ -235,7 +234,7 @@ public class TransportMiddlewareTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -262,7 +261,7 @@ public class TransportMiddlewareTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-TD3", Amount = 10.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
         Assert.Contains("transport-prepend-dispatch", tracker.Invocations);
     }
 

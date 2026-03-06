@@ -1,13 +1,12 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class CorrelationTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task Publish_Should_AutoGenerateIds_When_NoIdsSet()
@@ -28,7 +27,7 @@ public class CorrelationTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, default);
 
         // assert
-        Assert.True(await capture.WaitAsync(Timeout));
+        Assert.True(await capture.WaitAsync(s_timeout));
         var ctx = Assert.Single(capture.Contexts);
 
         Assert.NotNull(ctx.MessageId);
@@ -56,10 +55,10 @@ public class CorrelationTests
 
         // act — two independent publishes
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-A" }, default);
-        Assert.True(await capture.WaitAsync(Timeout));
+        Assert.True(await capture.WaitAsync(s_timeout));
 
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-B" }, default);
-        Assert.True(await capture.WaitAsync(Timeout));
+        Assert.True(await capture.WaitAsync(s_timeout));
 
         // assert — each publish gets its own MessageId and ConversationId
         Assert.Equal(2, capture.Contexts.Count);
@@ -88,7 +87,7 @@ public class CorrelationTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-CTX" }, default);
 
         // assert
-        Assert.True(await capture.WaitAsync(Timeout));
+        Assert.True(await capture.WaitAsync(s_timeout));
         var ctx = Assert.Single(capture.Contexts);
 
         Assert.NotNull(ctx.ConversationId);
@@ -116,7 +115,7 @@ public class CorrelationTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-FAN" }, default);
 
         // assert — both consumers received the event
-        Assert.True(await capture.WaitAsync(Timeout, 2));
+        Assert.True(await capture.WaitAsync(s_timeout, 2));
         Assert.Equal(2, capture.Contexts.Count);
 
         var all = capture.Contexts.ToArray();
@@ -152,7 +151,7 @@ public class CorrelationTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-CHAIN" }, default);
 
         // assert — wait for both captures (OrderCreated + ProcessPayment)
-        Assert.True(await capture.WaitAsync(Timeout, 2), "Both handlers should fire");
+        Assert.True(await capture.WaitAsync(s_timeout, 2), "Both handlers should fire");
         Assert.Equal(2, capture.Contexts.Count);
 
         var hop1 = capture.Contexts.Single(c => c.Label == "OrderCreatedForwarder");
@@ -198,7 +197,9 @@ public class CorrelationTests
             for (var i = 0; i < expectedCount; i++)
             {
                 if (!await _semaphore.WaitAsync(timeout))
+                {
                     return false;
+                }
             }
             return true;
         }

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Sagas;
 using Mocha.Transport.InMemory;
 
@@ -345,7 +344,7 @@ public class MessagingVisitorTests
 
     public sealed class RecordingContext
     {
-        public List<string> Calls { get; } = new();
+        public List<string> Calls { get; } = [];
     }
 
     public class RecordingVisitor : MessagingVisitor<RecordingContext>

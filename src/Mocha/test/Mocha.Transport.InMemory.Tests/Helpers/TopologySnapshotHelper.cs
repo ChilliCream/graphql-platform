@@ -6,7 +6,7 @@ namespace Mocha.Transport.InMemory.Tests.Helpers;
 
 public static partial class TopologySnapshotHelper
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
@@ -50,7 +50,7 @@ public static partial class TopologySnapshotHelper
             .ToList();
 
         var snapshot = new TopologySnapshot(topics, queues, bindings);
-        return JsonSerializer.Serialize(snapshot, JsonOptions);
+        return JsonSerializer.Serialize(snapshot, s_jsonOptions);
     }
 
     public static string CreateDescribeSnapshot(TransportDescription description)
@@ -91,7 +91,7 @@ public static partial class TopologySnapshotHelper
             receiveEndpoints,
             dispatchEndpoints);
 
-        return JsonSerializer.Serialize(snapshot, JsonOptions);
+        return JsonSerializer.Serialize(snapshot, s_jsonOptions);
     }
 
     private static bool IsReplyName(string name)

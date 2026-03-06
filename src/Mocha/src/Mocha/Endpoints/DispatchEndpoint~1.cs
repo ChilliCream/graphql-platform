@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using Mocha.Middlewares;
-
 namespace Mocha;
 
 /// <summary>

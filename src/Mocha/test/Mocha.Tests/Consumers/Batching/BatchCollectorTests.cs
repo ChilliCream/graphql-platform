@@ -6,7 +6,7 @@ namespace Mocha.Tests.Consumers.Batching;
 
 public sealed class BatchCollectorTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task Add_Should_DispatchBatch_When_MaxBatchSizeReached()
@@ -19,7 +19,7 @@ public sealed class BatchCollectorTests
         await AddEntries(collector, 3);
 
         // assert
-        Assert.True(await dispatched.WaitAsync(Timeout), "Batch was not dispatched when MaxBatchSize reached");
+        Assert.True(await dispatched.WaitAsync(s_timeout), "Batch was not dispatched when MaxBatchSize reached");
 
         var batch = dispatched.Single();
         Assert.Equal(3, batch.Count);
@@ -47,7 +47,7 @@ public sealed class BatchCollectorTests
         fakeTime.Advance(timeout.Add(TimeSpan.FromMilliseconds(10)));
 
         // assert
-        Assert.True(await dispatched.WaitAsync(Timeout), "Batch was not dispatched when timer fired");
+        Assert.True(await dispatched.WaitAsync(s_timeout), "Batch was not dispatched when timer fired");
 
         var batch = dispatched.Single();
         Assert.Single(batch);
@@ -67,7 +67,7 @@ public sealed class BatchCollectorTests
         await collector.DisposeAsync();
 
         // assert
-        Assert.True(await dispatched.WaitAsync(Timeout), "Remaining buffer was not flushed on dispose");
+        Assert.True(await dispatched.WaitAsync(s_timeout), "Remaining buffer was not flushed on dispose");
 
         var batch = dispatched.Single();
         Assert.Equal(5, batch.Count);
@@ -98,13 +98,13 @@ public sealed class BatchCollectorTests
         await AddEntries(collector, 7);
 
         // wait for the two size-triggered batches
-        Assert.True(await dispatched.WaitAsync(Timeout, expectedCount: 2));
+        Assert.True(await dispatched.WaitAsync(s_timeout, expectedCount: 2));
 
         // dispose to flush the remaining 1
         await collector.DisposeAsync();
 
         // wait for 1 more batch (the forced flush)
-        Assert.True(await dispatched.WaitAsync(Timeout, expectedCount: 1));
+        Assert.True(await dispatched.WaitAsync(s_timeout, expectedCount: 1));
 
         // assert
         Assert.Equal(3, dispatched.Batches.Count);
@@ -132,7 +132,7 @@ public sealed class BatchCollectorTests
 
         // wait for all full batches (100/10 = 10 batches)
         Assert.True(
-            await dispatched.WaitAsync(Timeout, expectedCount: totalMessages / batchSize),
+            await dispatched.WaitAsync(s_timeout, expectedCount: totalMessages / batchSize),
             "Not all batches were dispatched under concurrent load");
 
         // assert — total messages across all batches should equal totalMessages
@@ -159,7 +159,7 @@ public sealed class BatchCollectorTests
 
         // assert — exactly 2 batches dispatched
         Assert.True(
-            await dispatched.WaitAsync(Timeout, expectedCount: 2),
+            await dispatched.WaitAsync(s_timeout, expectedCount: 2),
             "Expected exactly 2 batches to be dispatched");
 
         Assert.Equal(2, dispatched.Batches.Count);
@@ -184,7 +184,7 @@ public sealed class BatchCollectorTests
         }
 
         // assert — batch dispatched in order
-        Assert.True(await dispatched.WaitAsync(Timeout), "Batch was not dispatched");
+        Assert.True(await dispatched.WaitAsync(s_timeout), "Batch was not dispatched");
 
         var batch = dispatched.Single();
         Assert.Equal(5, batch.Count);

@@ -1,12 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class PublishSubscribeTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task PublishAsync_Should_DeliverToHandler_When_SingleHandlerRegistered()
@@ -27,7 +26,7 @@ public class PublishSubscribeTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the event within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
 
         var message = Assert.Single(recorder.Messages);
         var order = Assert.IsType<OrderCreated>(message);
@@ -56,8 +55,8 @@ public class PublishSubscribeTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder1.WaitAsync(Timeout), "First handler did not receive the event");
-        Assert.True(await recorder2.WaitAsync(Timeout), "Second handler did not receive the event");
+        Assert.True(await recorder1.WaitAsync(s_timeout), "First handler did not receive the event");
+        Assert.True(await recorder2.WaitAsync(s_timeout), "Second handler did not receive the event");
 
         Assert.Single(recorder1.Messages);
         Assert.Single(recorder2.Messages);
@@ -101,8 +100,8 @@ public class PublishSubscribeTests
         await bus.PublishAsync(new ItemShipped { TrackingNumber = "TRK-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await orderRecorder.WaitAsync(Timeout), "OrderCreated handler did not receive the event");
-        Assert.True(await shipmentRecorder.WaitAsync(Timeout), "ItemShipped handler did not receive the event");
+        Assert.True(await orderRecorder.WaitAsync(s_timeout), "OrderCreated handler did not receive the event");
+        Assert.True(await shipmentRecorder.WaitAsync(s_timeout), "ItemShipped handler did not receive the event");
 
         Assert.IsType<OrderCreated>(Assert.Single(orderRecorder.Messages));
         Assert.IsType<ItemShipped>(Assert.Single(shipmentRecorder.Messages));
@@ -130,7 +129,7 @@ public class PublishSubscribeTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: 3),
+            await recorder.WaitAsync(s_timeout, expectedCount: 3),
             "Handler did not receive all 3 events within timeout");
 
         Assert.Equal(3, recorder.Messages.Count);
@@ -164,7 +163,7 @@ public class PublishSubscribeTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
             $"Handler did not receive all {messageCount} events within timeout");
 
         Assert.Equal(messageCount, recorder.Messages.Count);

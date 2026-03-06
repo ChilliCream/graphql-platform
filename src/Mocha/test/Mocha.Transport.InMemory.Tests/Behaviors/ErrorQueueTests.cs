@@ -1,13 +1,12 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class ErrorQueueTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task PublishAsync_Should_RouteToErrorQueue_When_HandlerThrows()
@@ -40,7 +39,7 @@ public class ErrorQueueTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-FAULT" }, CancellationToken.None);
 
         // assert — faulted message lands in error queue with fault headers
-        Assert.True(await capture.WaitAsync(Timeout), "Error consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(s_timeout), "Error consumer did not receive the faulted message");
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.TryGetValue("fault-exception-type", out var exType));
         Assert.Contains("InvalidOperationException", (string?)exType);
@@ -83,7 +82,7 @@ public class ErrorQueueTests
         await bus.SendAsync(new ProcessPayment { OrderId = "ORD-FAULT", Amount = 10.00m }, CancellationToken.None);
 
         // assert — faulted message lands in error queue
-        Assert.True(await capture.WaitAsync(Timeout), "Error consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(s_timeout), "Error consumer did not receive the faulted message");
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.TryGetValue("fault-exception-type", out var exType));
         Assert.Contains("InvalidOperationException", (string?)exType);
@@ -120,7 +119,7 @@ public class ErrorQueueTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-PRESERVE" }, CancellationToken.None);
 
         // assert — error queue consumer receives the original message
-        Assert.True(await capture.WaitAsync(Timeout), "Error consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(s_timeout), "Error consumer did not receive the faulted message");
         var msg = Assert.Single(capture.Messages);
         Assert.Equal("ORD-PRESERVE", msg.OrderId);
     }
@@ -159,7 +158,9 @@ public class ErrorQueueTests
             for (var i = 0; i < expectedCount; i++)
             {
                 if (!await _semaphore.WaitAsync(timeout))
+                {
                     return false;
+                }
             }
             return true;
         }

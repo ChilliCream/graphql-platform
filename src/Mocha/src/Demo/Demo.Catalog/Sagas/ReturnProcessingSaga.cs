@@ -53,7 +53,9 @@ public sealed class ReturnProcessingSaga : Saga<RefundSagaState>
         descriptor
             .During(AwaitingBothReplies)
             .OnReply<ProcessRefundResponse>()
-            .Then((state, response) => { if (response.Success)
+            .Then((state, response) =>
+            {
+                if (response.Success)
                 {
                     state.RefundId = response.RefundId;
                     state.RefundedAmount = response.Amount;
@@ -62,14 +64,17 @@ public sealed class ReturnProcessingSaga : Saga<RefundSagaState>
                 else
                 {
                     state.FailureReason = response.FailureReason;
-                } })
+                }
+            })
             .TransitionTo(RefundDoneAwaitingRestock);
 
         // Waiting for refund after restock done
         descriptor
             .During(RestockDoneAwaitingRefund)
             .OnReply<ProcessRefundResponse>()
-            .Then((state, response) => { if (response.Success)
+            .Then((state, response) =>
+            {
+                if (response.Success)
                 {
                     state.RefundId = response.RefundId;
                     state.RefundedAmount = response.Amount;
@@ -78,7 +83,8 @@ public sealed class ReturnProcessingSaga : Saga<RefundSagaState>
                 else
                 {
                     state.FailureReason = response.FailureReason;
-                } })
+                }
+            })
             .TransitionTo(Completed);
 
         // Waiting for restock after refund done

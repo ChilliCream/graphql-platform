@@ -46,7 +46,7 @@ public class MiddlewareTests
         await bus.PublishAsync(new OrderCreated { OrderId = "MW-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Event did not flow through middleware pipeline");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Event did not flow through middleware pipeline");
 
         var message = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
         Assert.Equal("MW-1", message.OrderId);
@@ -92,7 +92,7 @@ public class MiddlewareTests
         await bus.RequestAsync(new ProcessPayment { Amount = 42.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Request did not flow through middleware pipeline");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Request did not flow through middleware pipeline");
 
         var message = Assert.IsType<ProcessPayment>(Assert.Single(recorder.Messages));
         Assert.Equal(42.00m, message.Amount);
@@ -266,7 +266,7 @@ public class MiddlewareTests
         }
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout, expectedCount: 5));
+        Assert.True(await recorder.WaitAsync(s_timeout, expectedCount: 5));
         Assert.Equal(5, recorder.Messages.Count);
     }
 
@@ -294,7 +294,7 @@ public class MiddlewareTests
         await Task.WhenAll(tasks);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout, expectedCount: 10));
+        Assert.True(await recorder.WaitAsync(s_timeout, expectedCount: 10));
         Assert.Equal(10, recorder.Messages.Count);
     }
 
@@ -329,7 +329,7 @@ public class MiddlewareTests
         Assert.All(responses, r => Assert.Equal("Shipped", r.Status));
     }
 
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {

@@ -1,5 +1,3 @@
-using Mocha.Hosting;
-
 namespace Mocha.Hosting.Tests.Health;
 
 public sealed class HealthRequestHandlerTests

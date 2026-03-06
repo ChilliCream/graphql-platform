@@ -1,14 +1,13 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class ErrorQueueTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public ErrorQueueTests(RabbitMQFixture fixture)
@@ -23,7 +22,7 @@ public class ErrorQueueTests
         var capture = new ErrorCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(capture)
             .AddMessageBus()
             .AddEventHandler<ThrowingOrderHandler>()
@@ -47,7 +46,7 @@ public class ErrorQueueTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-FAULT" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(Timeout), "Error queue consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(s_timeout), "Error queue consumer did not receive the faulted message");
 
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.ContainsKey("fault-exception-type"), "Missing fault-exception-type header");
@@ -63,7 +62,7 @@ public class ErrorQueueTests
         var capture = new ErrorCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(capture)
             .AddMessageBus()
             .AddRequestHandler<ThrowingPaymentHandler>()
@@ -91,7 +90,7 @@ public class ErrorQueueTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(Timeout), "Error queue consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(s_timeout), "Error queue consumer did not receive the faulted message");
 
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.ContainsKey("fault-exception-type"), "Missing fault-exception-type header");
@@ -105,7 +104,7 @@ public class ErrorQueueTests
         var capture = new ErrorCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(capture)
             .AddMessageBus()
             .AddEventHandler<ThrowingOrderHandler>()
@@ -129,7 +128,7 @@ public class ErrorQueueTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-PRESERVE" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(Timeout), "Error queue consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(s_timeout), "Error queue consumer did not receive the faulted message");
 
         var message = Assert.Single(capture.Messages);
         Assert.Equal("ORD-PRESERVE", message.OrderId);
@@ -171,7 +170,9 @@ public class ErrorQueueTests
             for (var i = 0; i < expectedCount; i++)
             {
                 if (!await _semaphore.WaitAsync(timeout))
+                {
                     return false;
+                }
             }
 
             return true;

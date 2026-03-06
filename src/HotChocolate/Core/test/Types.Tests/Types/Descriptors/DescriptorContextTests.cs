@@ -1,7 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Descriptors;
 
