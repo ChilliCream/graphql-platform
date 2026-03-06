@@ -21,15 +21,15 @@ public sealed class OperationCompilerSingleFlightTests
             .AddQueryType(d => d.Field("foo").Resolve("bar"))
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => new CompileCountListener(() => Interlocked.Increment(ref compileCount)))
-            .InsertUseRequest(
-                before: WellKnownRequestMiddleware.OperationCacheMiddleware,
+            .UseRequest(
                 (_, next) => CreateGateMiddleware(next, gate),
                 key: "Gate",
+                before: WellKnownRequestMiddleware.OperationCacheMiddleware,
                 allowMultiple: true)
-            .InsertUseRequest(
-                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
+            .UseRequest(
                 (_, next) => CreateSingleFlightLeaderDelayMiddleware(next, TimeSpan.FromMilliseconds(100)),
                 key: "LeaderDelay",
+                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()
@@ -68,10 +68,10 @@ public sealed class OperationCompilerSingleFlightTests
             })
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => new CompileCountListener(() => Interlocked.Increment(ref compileCount)))
-            .InsertUseRequest(
-                before: WellKnownRequestMiddleware.OperationCacheMiddleware,
+            .UseRequest(
                 (_, next) => CreateGateMiddleware(next, gate),
                 key: "Gate",
+                before: WellKnownRequestMiddleware.OperationCacheMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()
@@ -113,20 +113,20 @@ public sealed class OperationCompilerSingleFlightTests
             .AddQueryType(d => d.Field("foo").Resolve("bar"))
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => new CompileCountListener(() => Interlocked.Increment(ref compileCount)))
-            .InsertUseRequest(
-                before: WellKnownRequestMiddleware.OperationCacheMiddleware,
+            .UseRequest(
                 (_, next) => CreateGateMiddleware(next, gate),
                 key: "Gate",
+                before: WellKnownRequestMiddleware.OperationCacheMiddleware,
                 allowMultiple: true)
-            .InsertUseRequest(
-                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
+            .UseRequest(
                 (_, next) => CreateSingleFlightLeaderDelayMiddleware(next, TimeSpan.FromMilliseconds(100)),
                 key: "LeaderDelay",
-                allowMultiple: true)
-            .InsertUseRequest(
                 before: WellKnownRequestMiddleware.OperationResolverMiddleware,
+                allowMultiple: true)
+            .UseRequest(
                 (_, next) => CreateThrowingMiddleware(next),
                 key: "Throwing",
+                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()
@@ -162,10 +162,10 @@ public sealed class OperationCompilerSingleFlightTests
             .AddQueryType(d => d.Field("foo").Resolve("bar"))
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => new CompileCountListener(() => Interlocked.Increment(ref compileCount)))
-            .InsertUseRequest(
-                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
+            .UseRequest(
                 (_, next) => CreateBlockingMiddleware(next, compileGate),
                 key: "Blocking",
+                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()
