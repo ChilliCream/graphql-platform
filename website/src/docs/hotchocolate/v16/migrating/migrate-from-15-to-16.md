@@ -204,6 +204,18 @@ public class CustomRequestMiddleware
 }
 ```
 
+## `Schema.DefaultName` moved to `ISchemaDefinition.DefaultName`
+
+The `Schema.DefaultName` constant is no longer available in v16.
+Use `ISchemaDefinition.DefaultName` instead:
+
+```diff
+-var schemaName = Schema.DefaultName;
++var schemaName = ISchemaDefinition.DefaultName;
+```
+
+If you previously used a string literal for the default schema name, replace it with `ISchemaDefinition.DefaultName` (current value: `_Default`).
+
 ## Resolver `Selection` API changes
 
 In v16, `context.Selection` is a compiled execution selection. The old `context.Selection.SelectionSet` is no longer available.
