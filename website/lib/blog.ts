@@ -26,10 +26,16 @@ export interface BlogPost {
 const BLOG_DIR = getContentDir("blog");
 const POSTS_PER_PAGE = 21;
 
-let _cachedPosts: BlogPost[] | null = null;
+// Use globalThis to persist cache across HMR in development
+const _globalCache = globalThis as typeof globalThis & {
+  __blogPostsCache?: BlogPost[] | null;
+};
+if (!_globalCache.__blogPostsCache) {
+  _globalCache.__blogPostsCache = null;
+}
 
 export function getAllBlogPosts(): BlogPost[] {
-  if (_cachedPosts) return _cachedPosts;
+  if (_globalCache.__blogPostsCache) return _globalCache.__blogPostsCache;
 
   const files = getFilesRecursively(BLOG_DIR, ".md");
   const posts: BlogPost[] = [];
@@ -71,7 +77,7 @@ export function getAllBlogPosts(): BlogPost[] {
   // Sort by date descending
   posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  _cachedPosts = posts;
+  _globalCache.__blogPostsCache = posts;
   return posts;
 }
 

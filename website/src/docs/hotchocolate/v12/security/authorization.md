@@ -181,7 +181,7 @@ public class UserType : ObjectType<User>
 <Schema>
 
 ```sdl
-type User @authorize(roles: [ "Guest", "Administrator" ]) {
+type User @authorize(roles: ["Guest", "Administrator"]) {
   name: String!
   address: Address! @authorize(roles: "Administrator")
 }

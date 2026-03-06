@@ -301,7 +301,7 @@ app.MapPost(
         }
     });
 
-app.MapMessageBus();
+app.MapMessageBusDeveloperTopology();
 
 app.Run();
 
