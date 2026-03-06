@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
@@ -127,7 +126,7 @@ public class QueryableProjectionScalarHandler
             ParameterExpression parameter,
             [NotNullWhen(true)] out PropertyInfo? property)
         {
-            Expression? current = expression;
+            var current = expression;
 
             while (current is not null)
             {

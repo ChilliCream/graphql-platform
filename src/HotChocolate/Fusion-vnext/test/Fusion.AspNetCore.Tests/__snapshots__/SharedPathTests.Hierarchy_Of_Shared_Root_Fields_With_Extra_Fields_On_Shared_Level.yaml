@@ -180,26 +180,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_2deb87e6_2 {
-                  viewer {
-                    schema2
-                  }
-                }
-            - document: |
-                query Op_2deb87e6_4 {
-                  viewer {
-                    settings {
-                      schema2
-                    }
-                  }
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {

@@ -38,7 +38,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
         console.WriteLine("Creating an OpenAPI collection");
         console.WriteLine();
 
-        const string apiMessage = "For which api do you want to create an OpenAPI collection?";
+        const string apiMessage = "For which API do you want to create an OpenAPI collection?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         var name = await context

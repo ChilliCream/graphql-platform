@@ -24,18 +24,22 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             .AddGraphQLGateway()
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => listener)
-            .InsertUseRequest(
+            .UseRequest(
+                (_, next) => CreateGateMiddleware(next, gate),
                 before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
-                (_, next) => CreateGateMiddleware(next, gate))
-            .InsertUseRequest(
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSingleFlightLeaderDelayMiddleware(next, TimeSpan.FromMilliseconds(100)),
                 before: WellKnownRequestMiddleware.OperationPlanMiddleware,
-                (_, next) => CreateSingleFlightLeaderDelayMiddleware(next, TimeSpan.FromMilliseconds(100)))
-            .InsertUseRequest(
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
                 before: WellKnownRequestMiddleware.OperationPlanMiddleware,
-                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds))
-            .InsertUseRequest(
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
                 before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
-                (_, _) => CreatePlanCaptureMiddleware())
+                allowMultiple: true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -78,15 +82,18 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             .AddGraphQLGateway()
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => listener)
-            .InsertUseRequest(
+            .UseRequest(
+                (_, next) => CreateGateMiddleware(next, gate),
                 before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
-                (_, next) => CreateGateMiddleware(next, gate))
-            .InsertUseRequest(
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
                 before: WellKnownRequestMiddleware.OperationPlanMiddleware,
-                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds))
-            .InsertUseRequest(
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
                 before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
-                (_, _) => CreatePlanCaptureMiddleware())
+                allowMultiple: true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -139,15 +146,18 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => listener)
             .ModifyPlannerOptions(o => o.MaxPlanningTime = TimeSpan.FromTicks(1))
-            .InsertUseRequest(
+            .UseRequest(
+                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
                 before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
-                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver))
-            .InsertUseRequest(
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, leaderGate),
                 before: WellKnownRequestMiddleware.OperationPlanMiddleware,
-                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, leaderGate))
-            .InsertUseRequest(
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
                 before: WellKnownRequestMiddleware.OperationPlanMiddleware,
-                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds))
+                allowMultiple: true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -201,12 +211,14 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => listener)
             .AddOperationPlannerInterceptor(_ => blockingInterceptor)
-            .InsertUseRequest(
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
                 before: WellKnownRequestMiddleware.OperationPlanMiddleware,
-                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds))
-            .InsertUseRequest(
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
                 before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
-                (_, _) => CreatePlanCaptureMiddleware())
+                allowMultiple: true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """

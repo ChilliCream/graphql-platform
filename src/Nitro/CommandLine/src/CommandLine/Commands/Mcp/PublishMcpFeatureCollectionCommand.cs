@@ -98,7 +98,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                 if (x.Errors is { Count: > 0 } errors)
                 {
                     console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
+                    throw Exit("No request ID returned");
                 }
 
                 switch (x.Data?.OnMcpFeatureCollectionVersionPublishingUpdate)

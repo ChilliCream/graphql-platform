@@ -187,6 +187,8 @@ dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.RCS1129.severity = none
 # Use StringBuilder.Append(char) for single character strings.
 dotnet_diagnostic.CA1834.severity = warning
+# Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char.
+dotnet_diagnostic.CA1866.severity = warning
 # Simplify name.
 dotnet_diagnostic.IDE0001.severity = warning
 # Simplify member access.
@@ -306,6 +308,11 @@ dotnet_diagnostic.RCS1261.severity = warning
 dotnet_diagnostic.RCS1266.severity = warning
 # Unnecessary conditional access.
 dotnet_diagnostic.RCS9003.severity = warning
+
+[**/Migrations/**.cs]
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.IDE0005.severity = none
+dotnet_diagnostic.IDE0300.severity = none
 
 # netstandard2.0
 [src/HotChocolate/{Core/src/Types.Analyzers,Language}/**/*.cs]

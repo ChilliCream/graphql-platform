@@ -3,7 +3,7 @@ request:
   document: |
     query testQuery(
       $skip1: Boolean!
-      $skip2: Boolean!
+        $skip2: Boolean!
     ) {
       viewer {
         ... @skip(if: $skip1) {
@@ -34,7 +34,7 @@ sourceSchemas:
       }
 
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
 
       type Viewer {
@@ -45,7 +45,7 @@ sourceSchemas:
           document: |
             query testQuery_c099bff0_1(
               $skip1: Boolean!
-              $skip2: Boolean!
+                $skip2: Boolean!
             ) {
               viewer {
                 ... @skip(if: $skip1) {
@@ -75,36 +75,18 @@ sourceSchemas:
       }
 
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
 
       type Viewer {
         fieldB: String!
       }
-    interactions:
-      - request:
-          document: |
-            query testQuery_c099bff0_2 {
-              viewer {
-                fieldB
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "viewer": {
-                    "fieldB": "Viewer"
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |
         query testQuery(
           $skip1: Boolean!
-          $skip2: Boolean!
+            $skip2: Boolean!
         ) {
           viewer {
             ... @skip(if: $skip1) {
@@ -118,6 +100,7 @@ operationPlan:
       name: testQuery
       hash: c099bff074b026e46b9754ca9feb8322
       searchSpace: 2
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -125,7 +108,7 @@ operationPlan:
       operation: |
         query testQuery_c099bff0_1(
           $skip1: Boolean!
-          $skip2: Boolean!
+            $skip2: Boolean!
         ) {
           viewer {
             ... @skip(if: $skip1) {
@@ -147,3 +130,8 @@ operationPlan:
             fieldB
           }
         }
+      conditions:
+        - variable: $skip1
+          passingValue: false
+        - variable: $skip2
+          passingValue: false

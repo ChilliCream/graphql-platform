@@ -630,7 +630,8 @@ public sealed partial class OperationPlanner
             current,
             lookup,
             workItem.EstimatedDepth,
-            backlog);
+            backlog,
+            workItem.Conditions);
         PlanSelections(
             workItem,
             current,
@@ -730,6 +731,7 @@ public sealed partial class OperationPlanner
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
             Dependents = workItem.Dependents,
             Requirements = requirements,
+            Conditions = workItem.Conditions,
             Target = workItem.SelectionSet.Path,
             Source = source,
             Lookup = lookup
@@ -772,7 +774,8 @@ public sealed partial class OperationPlanner
         PlanNode current,
         Lookup lookup,
         int lookupStepDepth,
-        Backlog backlog)
+        Backlog backlog,
+        ExecutionNodeCondition[]? conditions = null)
     {
         var processed = new HashSet<string>();
         var lookupStepId = current.Steps.NextId();
@@ -857,10 +860,10 @@ public sealed partial class OperationPlanner
                 if (!unresolvable.IsEmpty)
                 {
                     var top = unresolvable.Peek();
-                    if (top.Id == workItemSelectionSet.Id)
+                    if (top.SelectionSet.Id == workItemSelectionSet.Id)
                     {
                         unresolvable = unresolvable.Pop(out top);
-                        selectionSet = top.Node;
+                        selectionSet = top.SelectionSet.Node;
                     }
 
                     backlog = backlog.PushUnresolvable(
@@ -886,7 +889,8 @@ public sealed partial class OperationPlanner
                     FromSchema: lookup.SchemaName)
                 {
                     Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId),
-                    ParentDepth = lookupStepDepth
+                    ParentDepth = lookupStepDepth,
+                    Conditions = conditions ?? []
                 });
         }
 
@@ -1043,7 +1047,8 @@ public sealed partial class OperationPlanner
             current,
             lookup,
             workItem.EstimatedDepth,
-            backlog);
+            backlog,
+            workItem.Conditions);
         backlog = current.Backlog;
 
         if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
@@ -1088,7 +1093,8 @@ public sealed partial class OperationPlanner
                     FromSchema: lookup.SchemaName)
                 {
                     Dependents = ImmutableHashSet<int>.Empty.Add(stepId),
-                    ParentDepth = stepDepth
+                    ParentDepth = stepDepth,
+                    Conditions = workItem.Conditions
                 });
         }
 
@@ -1185,6 +1191,7 @@ public sealed partial class OperationPlanner
             RootSelectionSetId = index.GetId(selectionSetNode),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
             Requirements = requirements,
+            Conditions = workItem.Conditions,
             Target = workItem.Selection.Path,
             Source = source,
             Lookup = lookup
@@ -1701,21 +1708,22 @@ public sealed partial class OperationPlanner
                 // Unresolvable child selections are pushed to the backlog and will be processed
                 // in a later planing iteration.
                 var top = unresolvable.Peek();
-                if (top.Id == workItem.Selection.SelectionSetId)
+                if (top.SelectionSet.Id == workItem.Selection.SelectionSetId)
                 {
                     unresolvable = unresolvable.Pop(out top);
-                    requirements = top.Node;
+                    requirements = top.SelectionSet.Node;
                 }
 
-                foreach (var selectionSet in unresolvable.Reverse())
+                foreach (var entry in unresolvable.Reverse())
                 {
                     backlog = backlog.Push(
                         new OperationWorkItem(
                             OperationWorkItemKind.Lookup,
-                            selectionSet,
+                            entry.SelectionSet,
                             FromSchema: current.SchemaName)
                         {
-                            ParentDepth = GetOperationStepDepth(current, step.Id)
+                            ParentDepth = GetOperationStepDepth(current, step.Id),
+                            Conditions = entry.Conditions
                         });
                 }
             }
@@ -2378,7 +2386,10 @@ internal static class PlannerExtensions
                     [inlineFragmentPathItem.Node.WithSelectionSet(finalSelectionSet)]);
             }
 
-            segments = segments.RemoveAt(segments.Length - 1);
+            if (pathItem is not InlineFragmentPathItem { TypeCondition: null })
+            {
+                segments = segments.RemoveAt(segments.Length - 1);
+            }
 
             if (pathItems.TryPeek(out var parentPathItem))
             {
@@ -2482,9 +2493,10 @@ internal static class PlannerExtensions
                 case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:
                     var fieldAliasOrName = segment.Name;
 
-                    var fieldSelection = currentSelectionSetNode.Selections
-                        .OfType<FieldNode>()
-                        .FirstOrDefault(f => f.Name.Value == fieldAliasOrName || f.Alias?.Value == fieldAliasOrName);
+                    var fieldSelection = FindThroughAnonymousFragments<FieldNode>(
+                        currentSelectionSetNode,
+                        f => f.Name.Value == fieldAliasOrName || f.Alias?.Value == fieldAliasOrName,
+                        items);
 
                     if (fieldSelection is null)
                     {
@@ -2505,9 +2517,10 @@ internal static class PlannerExtensions
                     break;
 
                 case SelectionPathSegmentKind.InlineFragment:
-                    var inlineFragmentSelection = currentSelectionSetNode.Selections
-                        .OfType<InlineFragmentNode>()
-                        .FirstOrDefault(f => f.TypeCondition?.Name.Value == segment.Name);
+                    var inlineFragmentSelection = FindThroughAnonymousFragments<InlineFragmentNode>(
+                        currentSelectionSetNode,
+                        f => f.TypeCondition?.Name.Value == segment.Name,
+                        items);
 
                     if (inlineFragmentSelection is null)
                     {
@@ -2537,6 +2550,40 @@ internal static class PlannerExtensions
         }
 
         return items;
+    }
+
+    private static T? FindThroughAnonymousFragments<T>(
+        SelectionSetNode selectionSetNode,
+        Func<T, bool> predicate,
+        Stack<IPathItem> items) where T : class, ISelectionNode
+    {
+        foreach (var selection in selectionSetNode.Selections)
+        {
+            if (selection is T candidate && predicate(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        foreach (var selection in selectionSetNode.Selections)
+        {
+            if (selection is InlineFragmentNode { TypeCondition: null } anonymousFragment)
+            {
+                items.Push(new InlineFragmentPathItem(anonymousFragment, null));
+
+                var found = FindThroughAnonymousFragments(
+                    anonymousFragment.SelectionSet, predicate, items);
+
+                if (found is not null)
+                {
+                    return found;
+                }
+
+                items.Pop();
+            }
+        }
+
+        return null;
     }
 
     private interface IPathItem;

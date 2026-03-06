@@ -263,7 +263,10 @@ public class FilterInputTypeTest : FilterTestBase
         // act
         // assert
         var exception = Assert.Throws<SchemaException>(builder.Create);
-        exception.Message.MatchSnapshot();
+        Assert.Contains(
+            "No filter convention found for scope `Foo`. Register a convention with "
+            + "`AddConvention<IFilterConvention, TYourConvention>(\"Foo\")` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -281,7 +284,9 @@ public class FilterInputTypeTest : FilterTestBase
         // act
         // assert
         var exception = Assert.Throws<SchemaException>(builder.Create);
-        exception.Message.MatchSnapshot();
+        Assert.Contains(
+            "No default filter convention found. Call `AddFiltering()` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -478,6 +483,18 @@ public class FilterInputTypeTest : FilterTestBase
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_ShouldInferDeprecatedDirective_ForDeprecatedFields()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s.AddType(new FilterInputType<TypeWithDeprecatedField>()));
+
+        // assert
+        schema.MatchSnapshot();
     }
 
     public class FooDirectiveType
@@ -696,6 +713,10 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     public record struct ExampleValueType(string Foo, string Bar);
+
+    public record TypeWithDeprecatedField(
+        string Foo,
+        [property: GraphQLDeprecated("old")] string? DeprecatedField = null);
 
     private class BookFilterInput : FilterInputType<Book>
     {

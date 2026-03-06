@@ -37,12 +37,12 @@ internal sealed class DeleteApiKeyCommand : Command
         CancellationToken cancellationToken)
     {
         var choice = await context.ConfirmWhenNotForced(
-            $"Do you really want to delete api key with id {keyId}",
+            $"Do you really want to delete API key with ID {keyId}",
             cancellationToken);
 
         if (!choice)
         {
-            throw Exit("Api key was not deleted");
+            throw Exit("API key was not deleted");
         }
 
         var result = await client.DeleteApiKeyCommandMutation
@@ -57,11 +57,11 @@ internal sealed class DeleteApiKeyCommand : Command
         var changeResult = data.DeleteApiKey.ApiKey;
         if (changeResult is null)
         {
-            throw Exit("Could not delete api key");
+            throw Exit("Could not delete API key");
         }
 
         console.OkLine(
-            $"ApiKey {changeResult.Name.AsHighlight()} [dim](ID:{changeResult.Id})[/] was deleted");
+            $"API key {changeResult.Name.AsHighlight()} [dim](ID: {changeResult.Id})[/] was deleted");
 
         context.SetResult(ApiKeyDetailPrompt.From(changeResult).ToObject());
 

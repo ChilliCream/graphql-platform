@@ -17,7 +17,7 @@ internal class ListSizeDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 {
     public override string DirectiveName => DirectiveNames.ListSize;
 
-    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
+    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
         return ListSizeMutableDirectiveDefinition.Create(schema);
     }

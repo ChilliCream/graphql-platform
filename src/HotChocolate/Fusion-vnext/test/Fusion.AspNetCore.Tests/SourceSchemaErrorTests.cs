@@ -133,9 +133,8 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var server1 = CreateSourceSchema(
             "A",
             b => b.AddQueryType<SourceSchema5.Query>()
-                .InsertUseRequest(
-                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
-                    middleware: (_, _) =>
+                .UseRequest(
+                    (_, _) =>
                     {
                         return context =>
                         {
@@ -147,7 +146,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                             return ValueTask.CompletedTask;
                         };
                     },
-                    key: "error"));
+                    key: "error",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -185,9 +185,8 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var server1 = CreateSourceSchema(
             "A",
             b => b.AddQueryType<SourceSchema6.Query>()
-                .InsertUseRequest(
-                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
-                    middleware: (_, _) =>
+                .UseRequest(
+                    (_, _) =>
                     {
                         return context =>
                         {
@@ -199,7 +198,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                             return ValueTask.CompletedTask;
                         };
                     },
-                    key: "error"));
+                    key: "error",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -665,9 +665,8 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var server2 = CreateSourceSchema(
             "B",
             b => b.AddQueryType<SourceSchema5.Query>()
-                .InsertUseRequest(
-                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
-                    middleware: (_, _) =>
+                .UseRequest(
+                    (_, _) =>
                     {
                         return context =>
                         {
@@ -679,7 +678,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                             return ValueTask.CompletedTask;
                         };
                     },
-                    key: "error"));
+                    key: "error",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -1050,7 +1050,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                         .SetExtension("stringValue", "a-string")
                         .SetExtension("booleanValue", true)
                         .SetExtension("numberValue", 123)
-                        .SetExtension("arrayValue", new [] { 1, 2, 3})
+                        .SetExtension("arrayValue", new[] { 1, 2, 3 })
                         .SetExtension("emptyArrayValue", Array.Empty<string>())
                         .SetPath(context.Path)
                         .SetException(new Exception("Some exception"))

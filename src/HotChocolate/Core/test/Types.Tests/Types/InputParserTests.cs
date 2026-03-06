@@ -401,6 +401,25 @@ public class InputParserTests
     }
 
     [Fact]
+    public void Deserialize_List_Can_Be_Coerced_From_Single_Value()
+    {
+        // arrange
+        var parser = new InputParser(new DefaultTypeConverter());
+        var type = (IType)new ListType(new BooleanType());
+        var inputValue = JsonDocument.Parse("true");
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        var runtimeValue =
+            parser.ParseInputValue(inputValue.RootElement, type, context.Object, Path.Root.Append("root"));
+
+        // assert
+        Assert.Collection(Assert.IsType<List<bool?>>(runtimeValue), Assert.True);
+    }
+
+    [Fact]
     public async Task Integration_InputObjectDefaultValue_ValueIsInitialized()
     {
         // arrange

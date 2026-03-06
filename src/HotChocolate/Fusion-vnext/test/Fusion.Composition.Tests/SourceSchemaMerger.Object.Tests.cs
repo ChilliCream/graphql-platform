@@ -261,8 +261,8 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Product
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: [ "name" ], path: null, internal: false) {
+                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: null, internal: false) {
                 id: ID!
                     @fusion__field(schema: A)
                 name: String!
@@ -313,8 +313,8 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Product
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "sku", field: "productBySku(sku: String!): Product", map: [ "sku" ], path: null, internal: false) {
+                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "sku", field: "productBySku(sku: String!): Product", map: ["sku"], path: null, internal: false) {
                 id: ID!
                     @fusion__field(schema: A)
                 price(regionName: String!
@@ -324,8 +324,8 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type ProductPrice
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "regionName", field: "price(regionName: String!): ProductPrice", map: [ "regionName" ], path: "productById", internal: false)
-                @fusion__lookup(schema: A, key: "regionName", field: "price(regionName: String!): ProductPrice", map: [ "regionName" ], path: "productBySku", internal: false) {
+                @fusion__lookup(schema: A, key: "regionName", field: "price(regionName: String!): ProductPrice", map: ["regionName"], path: "productById", internal: false)
+                @fusion__lookup(schema: A, key: "regionName", field: "price(regionName: String!): ProductPrice", map: ["regionName"], path: "productBySku", internal: false) {
                 product: Product
                     @fusion__field(schema: A)
                 regionName: String!
@@ -395,9 +395,9 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Product
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "sku", field: "productBySku(sku: String!): Product", map: [ "sku" ], path: "lookups1", internal: false)
-                @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: [ "name" ], path: "lookups1.lookups2", internal: false) {
+                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "sku", field: "productBySku(sku: String!): Product", map: ["sku"], path: "lookups1", internal: false)
+                @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: "lookups1.lookups2", internal: false) {
                 id: ID!
                     @fusion__field(schema: A)
             }
@@ -446,7 +446,7 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Person
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "address { id }", field: "personByAddressId(id: ID!): Person", map: [ "address.id" ], path: null, internal: false) {
+                @fusion__lookup(schema: A, key: "address { id }", field: "personByAddressId(id: ID!): Person", map: ["address.id"], path: null, internal: false) {
                 address: Address
                     @fusion__field(schema: A)
                 id: ID!
@@ -501,8 +501,8 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             type Person
                 @fusion__type(schema: A)
                 @fusion__type(schema: B)
-                @fusion__lookup(schema: A, key: "id", field: "personById(id: ID!): Person", map: [ "id" ], path: null, internal: false)
-                @fusion__lookup(schema: B, key: "sku", field: "personBySku(sku: String!): Person", map: [ "sku" ], path: null, internal: false) {
+                @fusion__lookup(schema: A, key: "id", field: "personById(id: ID!): Person", map: ["id"], path: null, internal: false)
+                @fusion__lookup(schema: B, key: "sku", field: "personBySku(sku: String!): Person", map: ["sku"], path: null, internal: false) {
                 id: ID!
                     @fusion__field(schema: A)
                 sku: String!
@@ -543,7 +543,7 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Product
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id categoryId", field: "productByIdAndCategoryId(id: ID! categoryId: Int): Product!", map: [ "id", "categoryId" ], path: null, internal: false) {
+                @fusion__lookup(schema: A, key: "id categoryId", field: "productByIdAndCategoryId(id: ID! categoryId: Int): Product!", map: ["id", "categoryId"], path: null, internal: false) {
                 categoryId: Int
                     @fusion__field(schema: A)
                 id: ID!
@@ -613,14 +613,14 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Brand
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "brand1(by: BrandByInput1!): Brand", map: [ "{ id }" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "key", field: "brand1(by: BrandByInput1!): Brand", map: [ "{ key }" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "name id", field: "brand2(name: String! and: BrandByInput1!): Brand", map: [ "name", "{ id }" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "name key", field: "brand2(name: String! and: BrandByInput1!): Brand", map: [ "name", "{ key }" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "id name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: [ "{ id }", "{ name }" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "key name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: [ "{ key }", "{ name }" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "id title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: [ "{ id }", "{ title }" ], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "key title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: [ "{ key }", "{ title }" ], path: null, internal: false) {
+                @fusion__lookup(schema: A, key: "id", field: "brand1(by: BrandByInput1!): Brand", map: ["{ id }"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "key", field: "brand1(by: BrandByInput1!): Brand", map: ["{ key }"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "name id", field: "brand2(name: String! and: BrandByInput1!): Brand", map: ["name", "{ id }"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "name key", field: "brand2(name: String! and: BrandByInput1!): Brand", map: ["name", "{ key }"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "id name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ id }", "{ name }"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "key name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ key }", "{ name }"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "id title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ id }", "{ title }"], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "key title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ key }", "{ title }"], path: null, internal: false) {
                 id: Int!
                     @fusion__field(schema: A)
                 key: String!
@@ -681,7 +681,7 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Product
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null, internal: true) {
+                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: true) {
                 id: ID!
                     @fusion__field(schema: A)
             }
@@ -720,7 +720,7 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Product
                 @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null, internal: false) {
+                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false) {
                 id: ID!
                     @fusion__field(schema: A)
             }

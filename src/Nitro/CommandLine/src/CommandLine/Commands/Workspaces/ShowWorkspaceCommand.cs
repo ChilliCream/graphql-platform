@@ -44,7 +44,7 @@ internal sealed class ShowWorkspaceCommand : Command
         }
         else
         {
-            throw Exit($"Could not find a workspace with id {id.EscapeMarkup().AsHighlight()}");
+            throw Exit($"Could not find a workspace with ID {id.EscapeMarkup().AsHighlight()}");
         }
 
         return ExitCodes.Success;
