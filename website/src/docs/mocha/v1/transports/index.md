@@ -59,7 +59,7 @@ Use this decision matrix to pick the right transport. Both columns include trade
 
 Mocha uses a three-level feature scope: **bus**, **transport**, and **endpoint**. Features set at the bus level apply to all transports. Features set at the transport level override bus-level defaults for that transport. Features set at the endpoint level override both.
 
-```
+```text
 Bus scope (global defaults)
   └── Transport scope (transport-specific overrides)
        └── Endpoint scope (endpoint-specific overrides)
