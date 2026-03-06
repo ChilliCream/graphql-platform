@@ -680,16 +680,25 @@ AddErrors_Next:
         Dictionary<string, int>? seenStrings = null;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
+        var isNonNullRequirement = requirement.Type.Kind == SyntaxKind.NonNullType;
 
-        foreach (var result in elements)
+        for (var i = 0; i < elements.Count; i++)
         {
-            if (!result.TryGetProperty(fieldName, out var value)
-                || value.ValueKind is JsonValueKind.Undefined)
+            var result = elements[i];
+
+            if (!result.TryGetProperty(fieldName, out var value))
             {
                 continue;
             }
 
-            if (value.ValueKind is JsonValueKind.Null && requirement.Type.Kind == SyntaxKind.NonNullType)
+            var valueKind = value.ValueKind;
+
+            if (valueKind is JsonValueKind.Undefined)
+            {
+                continue;
+            }
+
+            if (valueKind is JsonValueKind.Null && isNonNullRequirement)
             {
                 continue;
             }
@@ -697,7 +706,7 @@ AddErrors_Next:
             variableValueSets ??= new VariableValues[elements.Count];
             IValueNode mappedValue;
 
-            if (value.ValueKind is JsonValueKind.String)
+            if (valueKind is JsonValueKind.String)
             {
                 var stringValue = value.AssertString();
 
