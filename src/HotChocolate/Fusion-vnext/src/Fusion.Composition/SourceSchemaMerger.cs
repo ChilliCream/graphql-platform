@@ -75,6 +75,10 @@ internal sealed class SourceSchemaMerger
                     new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
                 {
+                    DirectiveNames.SpecifiedBy,
+                    new SpecifiedByDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
                     DirectiveNames.Tag,
                     new TagDirectiveMerger(_options.TagMergeBehavior)
                 }
@@ -924,6 +928,8 @@ internal sealed class SourceSchemaMerger
                 _directiveMergers[DirectiveNames.Cost]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.SerializeAs]
+                    .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.SpecifiedBy]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);

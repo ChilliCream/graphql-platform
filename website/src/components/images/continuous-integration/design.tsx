@@ -7,7 +7,11 @@ export const ContinuousIntegrationDesignImage: FC = () => {
     <img
       src="/images/continuous-integration/design.png"
       alt="Connect Your Ecosystem"
-      style={{ maxWidth: CONTINUOUS_INTEGRATION_DESIGN_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      style={{
+        maxWidth: CONTINUOUS_INTEGRATION_DESIGN_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };

@@ -5,13 +5,15 @@
  * Ported for PrismJS by Simon Jespersen [https://github.com/simjes]
  */
 
+code,
 code[class*="language-"],
+pre,
 pre[class*="language-"] {
-  background: #27212e;
+  background-color: #eb64b927;
   color: #ffffff;
   font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace; /* this is the default */
   /* The following properties are standard, please leave them as they are */
-  font-size: 1em;
+  font-size: 1rem;
   direction: ltr;
   text-align: left;
   white-space: pre;
@@ -32,7 +34,7 @@ code[class*="language-"]::-moz-selection,
 code[class*="language-"] ::-moz-selection,
 pre[class*="language-"]::-moz-selection,
 pre[class*="language-"] ::-moz-selection {
-  background: #eb64b927;
+  background-color: #eb64b927;
   color: inherit;
 }
 
@@ -40,11 +42,12 @@ code[class*="language-"]::selection,
 code[class*="language-"] ::selection,
 pre[class*="language-"]::selection,
 pre[class*="language-"] ::selection {
-  background: #eb64b927;
+  background-color: #eb64b927;
   color: inherit;
 }
 
 /* Properties specific to code blocks */
+pre,
 pre[class*="language-"] {
   padding: 1em; /* this is standard */
   margin: 0.5em 0; /* this is the default */
@@ -53,9 +56,10 @@ pre[class*="language-"] {
 }
 
 /* Properties specific to inline code */
+:not(pre) > code,
 :not(pre) > code[class*="language-"] {
-  padding: 0.2em 0.3em;
-  border-radius: 0.5rem;
+  border-radius: 0.25rem;
+  padding: 0.0625rem 0.25rem;
   white-space: normal; /* this is standard */
 }
 

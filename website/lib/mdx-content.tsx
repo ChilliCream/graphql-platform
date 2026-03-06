@@ -18,6 +18,7 @@ import { Warning } from "@/components/mdx/warning";
 import { ApiChoiceTabs } from "@/components/mdx/api-choice-tabs";
 import { InputChoiceTabs } from "@/components/mdx/input-choice-tabs";
 import { List, Panel, Tab, Tabs } from "@/components/mdx/tabs";
+import { TopologyVisualization } from "@/components/mdx/topology-visualization";
 
 const mdxComponents = {
   pre: CodeBlock,
@@ -36,6 +37,7 @@ const mdxComponents = {
   Tab,
   List,
   Panel,
+  TopologyVisualization,
   // Hyphenated aliases for dotted component names (dots invalid in HTML element names)
   "InputChoiceTabs-CLI": InputChoiceTabs.CLI,
   "InputChoiceTabs-VisualStudio": InputChoiceTabs.VisualStudio,
@@ -59,6 +61,7 @@ const mdxComponents = {
   "inputchoicetabs-visualstudio": InputChoiceTabs.VisualStudio,
   "apichoicetabs-minimalapis": ApiChoiceTabs.MinimalApis,
   "apichoicetabs-regular": ApiChoiceTabs.Regular,
+  topologyvisualization: TopologyVisualization,
 };
 
 interface MdxContentProps {

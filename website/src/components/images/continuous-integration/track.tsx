@@ -7,7 +7,11 @@ export const ContinuousIntegrationTrackImage: FC = () => {
     <img
       src="/images/continuous-integration/track.png"
       alt="Connect Your Ecosystem"
-      style={{ maxWidth: CONTINUOUS_INTEGRATION_TRACK_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      style={{
+        maxWidth: CONTINUOUS_INTEGRATION_TRACK_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };

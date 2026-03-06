@@ -50,24 +50,6 @@ sourceSchemas:
       type Viewer {
         name: String!
       }
-    interactions:
-      - request:
-          document: |
-            query testQuery_94aeda21_2 {
-              viewer {
-                name
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "viewer": {
-                    "name": "Viewer"
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |
@@ -86,6 +68,7 @@ operationPlan:
       name: testQuery
       hash: 94aeda214eb5ef6506cfe4be360505e6
       searchSpace: 2
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -108,3 +91,6 @@ operationPlan:
             name
           }
         }
+      conditions:
+        - variable: $skip
+          passingValue: false

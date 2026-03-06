@@ -507,9 +507,9 @@ AddErrors_Next:
         {
             var segment = selectionSet[i];
 
-            foreach (var element in current)
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
-                if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+                foreach (var element in current)
                 {
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
@@ -518,7 +518,10 @@ AddErrors_Next:
                         next.Add(element);
                     }
                 }
-                else if (segment.Kind is SelectionPathSegmentKind.Field)
+            }
+            else if (segment.Kind is SelectionPathSegmentKind.Field)
+            {
+                foreach (var element in current)
                 {
                     if (!element.TryGetProperty(segment.Name, out var value))
                     {
@@ -549,9 +552,7 @@ AddErrors_Next:
                 }
             }
 
-            var temp = current;
-            current = next;
-            next = temp;
+            (next, current) = (current, next);
             next.Clear();
 
             if (current.Count == 0)
@@ -623,7 +624,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ObjectValueNode, int>(VariableValueComparer.Instance)
+                seen ??= new Dictionary<ObjectValueNode, int>(elements.Count, VariableValueComparer.Instance)
                 {
                     [variableValueSets[0].Values] = 0
                 };
@@ -677,16 +678,25 @@ AddErrors_Next:
         Dictionary<string, int>? seenStrings = null;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
+        var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
 
-        foreach (var result in elements)
+        for (var i = 0; i < elements.Count; i++)
         {
-            if (!result.TryGetProperty(fieldName, out var value)
-                || value.ValueKind is JsonValueKind.Undefined)
+            var result = elements[i];
+
+            if (!result.TryGetProperty(fieldName, out var value))
             {
                 continue;
             }
 
-            if (value.ValueKind is JsonValueKind.Null && requirement.Type.Kind == SyntaxKind.NonNullType)
+            var valueKind = value.ValueKind;
+
+            if (valueKind is JsonValueKind.Undefined)
+            {
+                continue;
+            }
+
+            if (valueKind is JsonValueKind.Null && isNonNullRequirement)
             {
                 continue;
             }
@@ -694,7 +704,7 @@ AddErrors_Next:
             variableValueSets ??= new VariableValues[elements.Count];
             IValueNode mappedValue;
 
-            if (value.ValueKind is JsonValueKind.String)
+            if (valueKind is JsonValueKind.String)
             {
                 var stringValue = value.AssertString();
 
@@ -707,7 +717,7 @@ AddErrors_Next:
                 }
 
                 mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
+                seenStrings ??= new Dictionary<string, int>(elements.Count, StringComparer.Ordinal);
                 seenStrings[stringValue] = nextIndex;
             }
             else
@@ -722,7 +732,7 @@ AddErrors_Next:
                     continue;
                 }
 
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
+                seen ??= new Dictionary<IValueNode, int>(elements.Count, SingleValueNodeComparer.Instance);
                 seen[mappedValue] = nextIndex;
             }
 
@@ -766,7 +776,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
+                seen ??= new Dictionary<IValueNode, int>(elements.Count, SingleValueNodeComparer.Instance)
                 {
                     [variableValueSets[0].Values.Fields[0].Value] = 0
                 };
@@ -845,14 +855,14 @@ AddErrors_Next:
                 continue;
             }
 
-            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
-            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
+            var mappedValue1 = MapRequirementLeafValue(value1, ref buffer);
+            var mappedValue2 = MapRequirementLeafValue(value2, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
             var key = new TwoValueNodeTuple(mappedValue1, mappedValue2);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Count, TwoValueNodeTupleComparer.Instance)
                 {
                     [new TwoValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -916,7 +926,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Count, TwoValueNodeTupleComparer.Instance)
                 {
                     [new TwoValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -1015,15 +1025,15 @@ AddErrors_Next:
                 continue;
             }
 
-            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
-            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
-            var mappedValue3 = ResultDataMapper.MapLeafValue(value3, ref buffer);
+            var mappedValue1 = MapRequirementLeafValue(value1, ref buffer);
+            var mappedValue2 = MapRequirementLeafValue(value2, ref buffer);
+            var mappedValue3 = MapRequirementLeafValue(value3, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
             var key = new ThreeValueNodeTuple(mappedValue1, mappedValue2, mappedValue3);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(ThreeValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Count, ThreeValueNodeTupleComparer.Instance)
                 {
                     [new ThreeValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -1099,7 +1109,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(ThreeValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Count, ThreeValueNodeTupleComparer.Instance)
                 {
                     [new ThreeValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -1202,6 +1212,14 @@ AddErrors_Next:
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static IValueNode MapRequirementLeafValue(
+        CompositeResultElement value,
+        ref PooledArrayWriter? buffer)
+        => value.ValueKind is JsonValueKind.String
+            ? ResultDataMapper.GetStringValueNode(value.AssertString())
+            : ResultDataMapper.MapLeafValue(value, ref buffer);
+
     private static void AppendUnrolledLists(
         CompositeResultElement list,
         List<CompositeResultElement> destination)
@@ -1265,14 +1283,10 @@ AddErrors_Next:
 
                 case SelectionPathSegmentKind.InlineFragment:
                     if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String)
-                    {
-                        return default;
-                    }
-
-                    var typeName = typeNameProperty.GetString()!;
-
-                    if (typeName != segment.Name)
+                            || typeNameProperty.ValueKind != JsonValueKind.String
+                            || !typeNameProperty.TextEqualsHelper(
+                                segment.Name,
+                                isPropertyName: false))
                     {
                         return default;
                     }

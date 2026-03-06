@@ -1,3 +1,5 @@
+const path = require("path");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export",
@@ -11,8 +13,35 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  transpilePackages: ["@docsearch/react", "next-mdx-remote", "@mdx-js/react"],
+  transpilePackages: [
+    "@chillicream/mocha-visualizer",
+    "@docsearch/react",
+    "next-mdx-remote",
+    "@mdx-js/react",
+  ],
   webpack(config) {
+    // Ensure peer dependencies of the portal-linked mocha-visualizer resolve
+    // from the website's node_modules (portal packages live outside this directory).
+    const websiteModules = path.resolve(__dirname, "node_modules");
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@xyflow/react": path.resolve(websiteModules, "@xyflow/react"),
+      "@fortawesome/react-fontawesome": path.resolve(
+        websiteModules,
+        "@fortawesome/react-fontawesome"
+      ),
+      "@fortawesome/fontawesome-svg-core": path.resolve(
+        websiteModules,
+        "@fortawesome/fontawesome-svg-core"
+      ),
+      "@fortawesome/free-solid-svg-icons": path.resolve(
+        websiteModules,
+        "@fortawesome/free-solid-svg-icons"
+      ),
+      elkjs: path.resolve(websiteModules, "elkjs"),
+      "styled-components": path.resolve(websiteModules, "styled-components"),
+    };
+
     // SVG sprite loader for artwork, companies, icons, logo directories
     const spriteRule = {
       test: /images\/(artwork|companies|icons|logo)\/.*\.svg$/,

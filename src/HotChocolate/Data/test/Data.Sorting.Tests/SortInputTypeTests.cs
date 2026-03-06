@@ -184,7 +184,10 @@ public class SortInputTypeTests : SortTestBase
         // act
         // assert
         var exception = Assert.Throws<SchemaException>(builder.Create);
-        exception.Message.MatchSnapshot();
+        Assert.Contains(
+            "No sorting convention found for scope `Foo`. Register a convention with "
+            + "`AddConvention<ISortConvention, TYourConvention>(\"Foo\")` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -202,7 +205,9 @@ public class SortInputTypeTests : SortTestBase
         // act
         // assert
         var exception = Assert.Throws<SchemaException>(builder.Create);
-        exception.Message.MatchSnapshot();
+        Assert.Contains(
+            "No default sorting convention found. Call `AddSorting()` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -257,6 +262,18 @@ public class SortInputTypeTests : SortTestBase
         // assert
         schema.MatchSnapshot();
         schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_ShouldInferDeprecatedDirective_ForDeprecatedFields()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s.AddType(new SortInputType<TypeWithDeprecatedField>()));
+
+        // assert
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -434,4 +451,8 @@ public class SortInputTypeTests : SortTestBase
             descriptor.Field(x => x.Root).UseFiltering();
         }
     }
+
+    public record TypeWithDeprecatedField(
+        string Foo,
+        [property: GraphQLDeprecated("old")] string? DeprecatedField = null);
 }

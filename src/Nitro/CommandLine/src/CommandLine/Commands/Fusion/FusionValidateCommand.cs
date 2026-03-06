@@ -118,7 +118,7 @@ internal sealed class FusionValidateCommand : Command
             var existingArchiveStream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
                 apiId,
                 stageName,
-                client,
+                isFgp: false,
                 httpClientFactory,
                 ct);
 
