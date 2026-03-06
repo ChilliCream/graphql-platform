@@ -324,7 +324,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [ \"foo\" ]) }");
+            "{ foo(input: [\"foo\"]) }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -349,7 +349,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [ { a: \"foo\" } ]) }");
+            "{ foo(input: [{ a: \"foo\" }]) }");
 
         // assert
         result.ToJson().MatchSnapshot();
