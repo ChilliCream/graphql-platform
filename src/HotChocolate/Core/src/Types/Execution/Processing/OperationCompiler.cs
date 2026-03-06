@@ -12,12 +12,12 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
+    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
     private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
-    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     internal OperationCompiler(
         Schema schema,
@@ -421,7 +421,7 @@ public sealed partial class OperationCompiler
                 arguments: arguments,
                 resolverPipeline: fieldDelegate,
                 pureResolver: pureFieldDelegate,
-                batchResolverPipeline: field.BatchMiddleware);
+                batchResolverPipeline: field.BatchResolver);
 
             if (optimizers.Length > 0)
             {

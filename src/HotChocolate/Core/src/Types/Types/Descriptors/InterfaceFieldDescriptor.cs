@@ -54,6 +54,11 @@ public class InterfaceFieldDescriptor
         {
             _parameterInfos = context.TypeInspector.GetParameters(m);
             Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+
+            if (m.IsDefined(typeof(BatchResolverAttribute)))
+            {
+                Configuration.Flags |= CoreFieldFlags.BatchResolver;
+            }
         }
     }
 
@@ -89,10 +94,14 @@ public class InterfaceFieldDescriptor
                 definition.Arguments,
                 definition.Member,
                 _parameterInfos,
-                definition.GetParameterExpressionBuilders());
+                definition.GetParameterExpressionBuilders(),
+                IsBatchResolver());
             _argumentsInitialized = true;
         }
     }
+
+    private bool IsBatchResolver()
+        => (Configuration.Flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver;
 
     public new IInterfaceFieldDescriptor Name(string name)
     {

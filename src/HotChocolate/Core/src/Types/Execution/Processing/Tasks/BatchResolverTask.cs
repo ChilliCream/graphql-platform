@@ -289,7 +289,7 @@ internal sealed class BatchResolverTask : IResolverTask
             }
         }
 
-        await _field.BatchMiddleware!(contexts).ConfigureAwait(false);
+        await _field.BatchResolver!(contexts).ConfigureAwait(false);
 
         // Post-process results for each context.
         if (_field.ResultPostProcessor is { } postProcessor)

@@ -8,8 +8,8 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
-using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Properties.TypeResources;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -47,7 +47,6 @@ public class ObjectFieldDescriptor
         Configuration.Member = member ?? throw new ArgumentNullException(nameof(member));
         Configuration.Name = naming.GetMemberName(member, MemberKind.ObjectField);
         Configuration.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
-        Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Configuration.SourceType = sourceType;
         Configuration.ResolverType = resolverType == sourceType ? null : resolverType;
         Configuration.IsParallelExecutable = context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
@@ -62,15 +61,28 @@ public class ObjectFieldDescriptor
             case MethodInfo m:
                 _parameterInfos = context.TypeInspector.GetParameters(m);
                 Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
-                Configuration.ResultType = m.ReturnType;
                 if (m.IsDefined(typeof(BatchResolverAttribute)))
                 {
                     Configuration.Flags |= CoreFieldFlags.BatchResolver;
+                    var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
+                        ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
+                    Configuration.ResultType = elementType;
+                    Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
+                }
+                else
+                {
+                    Configuration.ResultType = m.ReturnType;
+                    Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
                 }
                 break;
 
             case PropertyInfo p:
                 Configuration.ResultType = p.PropertyType;
+                Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+                break;
+
+            default:
+                Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
                 break;
         }
     }
@@ -107,10 +119,17 @@ public class ObjectFieldDescriptor
             switch (member)
             {
                 case MethodInfo m:
-                    Configuration.ResultType = m.ReturnType;
                     if (m.IsDefined(typeof(BatchResolverAttribute)))
                     {
                         Configuration.Flags |= CoreFieldFlags.BatchResolver;
+                        var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
+                            ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
+                        Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
+                        Configuration.ResultType = elementType;
+                    }
+                    else
+                    {
+                        Configuration.ResultType = m.ReturnType;
                     }
                     break;
 

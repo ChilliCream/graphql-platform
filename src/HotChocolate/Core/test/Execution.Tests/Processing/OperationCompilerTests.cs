@@ -1,5 +1,4 @@
 using System.Text;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;

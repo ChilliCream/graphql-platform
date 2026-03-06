@@ -141,6 +141,15 @@ namespace HotChocolate.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The batch resolver method '{0}.{1}' must return a list type ....
+        /// </summary>
+        internal static string BatchResolver_ReturnTypeMustBeList {
+            get {
+                return ResourceManager.GetString("BatchResolver_ReturnTypeMustBeList", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The specified binding cannot be handled..
         /// </summary>
         internal static string BindingCompiler_AddBinding_BindingCannotBeHandled {
