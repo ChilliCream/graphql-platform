@@ -391,7 +391,7 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 [21]: https://tools.ietf.org/html/rfc7042#page-19
 [22]: https://tools.ietf.org/html/rfc7043
 
-Most of these scalars are built on top of native .NET types. An email address for example is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
+Most of these scalars are built on top of native .NET types. An email address, for example, is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
 
 ```csharp
 [GraphQLType<EmailAddressType>]
