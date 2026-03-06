@@ -59,9 +59,9 @@ const PageLink = styled(NextLink)`
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
+  min-width: 44px;
+  min-height: 44px;
+  line-height: 44px;
   border: 2px solid ${THEME_COLORS.primaryButtonBorder};
   border-radius: var(--button-border-radius);
   font-family: ${FONT_FAMILY_HEADING};

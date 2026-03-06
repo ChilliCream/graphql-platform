@@ -1,7 +1,4 @@
-using System.Collections.Frozen;
 using System.Collections.Immutable;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -118,7 +115,7 @@ public sealed class MessagingRuntime(
     /// <param name="cancellationToken">A token to cancel the startup sequence.</param>
     public async ValueTask StartAsync(CancellationToken cancellationToken)
     {
-        if(IsStarted)
+        if (IsStarted)
         {
             return;
         }

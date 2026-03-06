@@ -1,12 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests.Behaviors;
 
 public class VolumeTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task PublishAsync_Should_DeliverAll_When_1000EventsPublished()
@@ -33,7 +32,7 @@ public class VolumeTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: eventCount),
+            await recorder.WaitAsync(s_timeout, expectedCount: eventCount),
             $"Handler did not receive all {eventCount} events within timeout");
 
         Assert.Equal(eventCount, recorder.Messages.Count);
@@ -76,7 +75,7 @@ public class VolumeTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: totalMessages),
+            await recorder.WaitAsync(s_timeout, expectedCount: totalMessages),
             $"Handler did not receive all {totalMessages} messages within timeout");
 
         Assert.Equal(totalMessages, recorder.Messages.Count);

@@ -1,13 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class PublishSubscribeTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public PublishSubscribeTests(RabbitMQFixture fixture)
@@ -22,7 +21,7 @@ public class PublishSubscribeTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
@@ -36,7 +35,7 @@ public class PublishSubscribeTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the event within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
 
         var message = Assert.Single(recorder.Messages);
         var order = Assert.IsType<OrderCreated>(message);
@@ -51,7 +50,7 @@ public class PublishSubscribeTests
         var recorder2 = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddKeyedSingleton("r1", recorder1)
             .AddKeyedSingleton("r2", recorder2)
             .AddMessageBus()
@@ -67,8 +66,8 @@ public class PublishSubscribeTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder1.WaitAsync(Timeout), "First handler did not receive the event");
-        Assert.True(await recorder2.WaitAsync(Timeout), "Second handler did not receive the event");
+        Assert.True(await recorder1.WaitAsync(s_timeout), "First handler did not receive the event");
+        Assert.True(await recorder2.WaitAsync(s_timeout), "Second handler did not receive the event");
 
         Assert.Single(recorder1.Messages);
         Assert.Single(recorder2.Messages);
@@ -81,7 +80,7 @@ public class PublishSubscribeTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
@@ -98,7 +97,7 @@ public class PublishSubscribeTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: 3),
+            await recorder.WaitAsync(s_timeout, expectedCount: 3),
             "Handler did not receive all 3 events within timeout");
 
         Assert.Equal(3, recorder.Messages.Count);
@@ -115,7 +114,7 @@ public class PublishSubscribeTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
@@ -134,7 +133,7 @@ public class PublishSubscribeTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
             $"Handler did not receive all {messageCount} events within timeout");
 
         Assert.Equal(messageCount, recorder.Messages.Count);

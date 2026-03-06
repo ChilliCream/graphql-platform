@@ -6,7 +6,7 @@ namespace Mocha.Tests;
 
 public class CircuitBreakerMiddlewareTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task ClosedCircuit_Should_AllowMessageToFlow_When_HandlerSucceeds()
@@ -26,7 +26,7 @@ public class CircuitBreakerMiddlewareTests
         await bus.PublishAsync(new TestEvent { Data = "ok-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout));
+        Assert.True(await recorder.WaitAsync(s_timeout));
         Assert.Single(recorder.Messages);
     }
 
@@ -50,7 +50,7 @@ public class CircuitBreakerMiddlewareTests
         await bus.PublishAsync(new TestEvent { Data = "ok-3" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout, expectedCount: 3));
+        Assert.True(await recorder.WaitAsync(s_timeout, expectedCount: 3));
         Assert.Equal(3, recorder.Messages.Count);
     }
 
@@ -106,7 +106,7 @@ public class CircuitBreakerMiddlewareTests
         await bus.PublishAsync(new TestEvent { Data = "custom-1" }, CancellationToken.None);
 
         // assert - messages still flow when circuit is closed
-        Assert.True(await recorder.WaitAsync(Timeout));
+        Assert.True(await recorder.WaitAsync(s_timeout));
         Assert.Single(recorder.Messages);
     }
 
@@ -129,7 +129,7 @@ public class CircuitBreakerMiddlewareTests
         await bus.PublishAsync(new TestEvent { Data = "disabled-cb" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout));
+        Assert.True(await recorder.WaitAsync(s_timeout));
         Assert.Single(recorder.Messages);
     }
 
@@ -204,7 +204,7 @@ public class CircuitBreakerMiddlewareTests
         await Task.Delay(TimeSpan.FromSeconds(2));
 
         // should now allow a message through (half-open -> closed on success)
-        var waitForBreak = recorder.WaitAsync(Timeout);
+        var waitForBreak = recorder.WaitAsync(s_timeout);
         await bus.PublishAsync(new TestEvent { Data = "third" }, CancellationToken.None);
         Assert.True(await waitForBreak);
 

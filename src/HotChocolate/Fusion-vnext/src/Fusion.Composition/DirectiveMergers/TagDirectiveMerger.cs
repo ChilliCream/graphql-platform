@@ -19,7 +19,7 @@ internal class TagDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
             ? $"fusion__{DirectiveNames.Tag}"
             : DirectiveNames.Tag;
 
-    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
+    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
         return TagMutableDirectiveDefinition.Create(schema);
     }

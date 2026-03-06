@@ -94,7 +94,7 @@ public class MessageTypeTests
         Assert.NotNull(messageType);
         Assert.Equal(messageType.EnclosedMessageTypes.Length, messageType.EnclosedMessageIdentities.Length);
 
-        for (int i = 0; i < messageType.EnclosedMessageTypes.Length; i++)
+        for (var i = 0; i < messageType.EnclosedMessageTypes.Length; i++)
         {
             Assert.Equal(messageType.EnclosedMessageTypes[i].Identity, messageType.EnclosedMessageIdentities[i]);
         }

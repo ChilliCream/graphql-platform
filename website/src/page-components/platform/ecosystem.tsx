@@ -82,7 +82,7 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>Authentication Flows</h5>
+                  <h3>Authentication Flows</h3>
                 </header>
                 <p>
                   Choose between various authentication flows like basic, bearer
@@ -93,7 +93,7 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>Organization Workspaces</h5>
+                  <h3>Organization Workspaces</h3>
                 </header>
                 <p>
                   Organize your GraphQL APIs and collaborate with colleagues
@@ -104,7 +104,7 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>Document Synchronization</h5>
+                  <h3>Document Synchronization</h3>
                 </header>
                 <p>
                   Keep your documents safe across all your devices and your
@@ -115,9 +115,9 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>
+                  <h3>
                     PWA <SrOnly>(Progressive Web Application)</SrOnly> Support
-                  </h5>
+                  </h3>
                 </header>
                 <p>
                   Use your favorite Browser to install Nitro as a PWA on your
@@ -128,7 +128,7 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>Beautiful Themes</h5>
+                  <h3>Beautiful Themes</h3>
                 </header>
                 <p>
                   Choose your single preferred theme or let the system
@@ -139,7 +139,7 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>GraphQL File Upload</h5>
+                  <h3>GraphQL File Upload</h3>
                 </header>
                 <p>
                   Implements the latest version of the{" "}
@@ -153,9 +153,9 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>
+                  <h3>
                     Subscriptions over SSE <SrOnly>(Server-Sent Events)</SrOnly>
-                  </h5>
+                  </h3>
                 </header>
                 <p>
                   Supports{" "}
@@ -169,7 +169,7 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>Performant GraphQL IDE</h5>
+                  <h3>Performant GraphQL IDE</h3>
                 </header>
                 <p>
                   Lagging apps can be frustrating. We do not accept that and
@@ -181,9 +181,9 @@ const EcosystemPage: FC<EcosystemPageProps> = ({ recentPosts }) => {
             <Card>
               <CardOffer>
                 <header>
-                  <h5>
+                  <h3>
                     Subscriptions over WS <SrOnly>(WebSockets)</SrOnly>
-                  </h5>
+                  </h3>
                 </header>
                 <p>
                   Supports{" "}

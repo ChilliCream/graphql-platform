@@ -20,7 +20,7 @@ namespace Explorer;
 /// </summary>
 public class JsonTopologyPrinter
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -50,7 +50,7 @@ public class JsonTopologyPrinter
         ArgumentNullException.ThrowIfNull(runtime);
 
         var model = BuildTopologyModel(runtime);
-        return JsonSerializer.Serialize(model, JsonOptions);
+        return JsonSerializer.Serialize(model, s_jsonOptions);
     }
 
     public JsonBusModel BuildTopologyModel(MessagingRuntime runtime)
@@ -287,14 +287,18 @@ public class JsonTopologyPrinter
         foreach (var endpoint in transport.ReceiveEndpoints)
         {
             if (endpoint.Source is not null)
+            {
                 outboundResources.Add(endpoint.Source);
+            }
         }
 
         // Dispatch endpoints connect to inbound resources (messages flow INTO transport)
         foreach (var endpoint in transport.DispatchEndpoints)
         {
             if (endpoint.Destination is not null)
+            {
                 inboundResources.Add(endpoint.Destination);
+            }
         }
 
         foreach (var resource in outboundResources)
@@ -312,7 +316,9 @@ public class JsonTopologyPrinter
         {
             // Skip if already added as outbound (resource used for both directions)
             if (outboundResources.Contains(resource))
+            {
                 continue;
+            }
 
             entities.Add(
                 new JsonTopologyEntity
@@ -338,12 +344,16 @@ public class JsonTopologyPrinter
         foreach (var consumer in runtime.Consumers)
         {
             if (consumer is not SagaConsumer sagaConsumer)
+            {
                 continue;
+            }
 
             // Access the saga through reflection since SagaConsumer uses a primary constructor
             var saga = GetSagaFromConsumer(sagaConsumer);
             if (saga is null)
+            {
                 continue;
+            }
 
             var sagaModel = new JsonSagaModel
             {
@@ -473,7 +483,9 @@ public class JsonTopologyPrinter
     private static string GetTypeName(Type type)
     {
         if (!type.IsGenericType)
+        {
             return type.Name;
+        }
 
         var genericTypeName = type.Name.Split('`')[0];
         var genericArgs = string.Join(", ", type.GetGenericArguments().Select(GetTypeName));

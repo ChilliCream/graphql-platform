@@ -67,10 +67,14 @@ app.MapPost(
     {
         var shipment = await db.Shipments.FirstOrDefaultAsync(s => s.Id == id);
         if (shipment is null)
+        {
             return Results.NotFound("Shipment not found");
+        }
 
         if (shipment.Status == ShipmentStatus.Shipped)
+        {
             return Results.BadRequest("Shipment already shipped");
+        }
 
         shipment.Status = ShipmentStatus.Shipped;
         shipment.Carrier = request.Carrier;
@@ -118,10 +122,14 @@ app.MapPost(
     {
         var returnShipment = await db.ReturnShipments.FirstOrDefaultAsync(r => r.Id == id);
         if (returnShipment is null)
+        {
             return Results.NotFound("Return shipment not found");
+        }
 
         if (returnShipment.Status == ReturnShipmentStatus.Received)
+        {
             return Results.BadRequest("Return package already received");
+        }
 
         returnShipment.Status = ReturnShipmentStatus.Received;
         returnShipment.ReceivedAt = DateTimeOffset.UtcNow;

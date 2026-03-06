@@ -124,7 +124,7 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
             // Enrich activity with context state after all middlewares have run
             if (_activity is not null)
             {
-                string consumerName = _context.MessageType is not null ? _context.MessageType.Identity : "unknown";
+                var consumerName = _context.MessageType is not null ? _context.MessageType.Identity : "unknown";
 
                 _activity
                     .EnrichMessageDefault()

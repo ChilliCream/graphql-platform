@@ -23,7 +23,7 @@ public abstract class ReceiveMiddlewareTestBase
     protected static IServiceProvider CreateServices(Action<IServiceCollection>? configure = null)
     {
         var services = new ServiceCollection();
-        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton(TimeProvider.System);
         services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
         configure?.Invoke(services);
         return services.BuildServiceProvider();

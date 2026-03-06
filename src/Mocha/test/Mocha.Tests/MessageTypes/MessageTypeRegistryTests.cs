@@ -124,12 +124,17 @@ public class MessageTypeRegistryTests
             .ToArray();
 
         foreach (var thread in threads)
+        {
             thread.Start();
+        }
+
         foreach (var thread in threads)
+        {
             thread.Join();
+        }
 
         // assert
-        Assert.All(results, r => Assert.NotNull(r));
+        Assert.All(results, Assert.NotNull);
         Assert.All(results, r => Assert.Same(results[0], r));
     }
 

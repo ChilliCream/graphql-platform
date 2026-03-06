@@ -1,13 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class ConcurrencyTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(60);
     private readonly RabbitMQFixture _fixture;
 
     public ConcurrencyTests(RabbitMQFixture fixture)
@@ -44,7 +43,7 @@ public class ConcurrencyTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
             $"Handler did not process all {messageCount} messages within timeout");
 
         Assert.Equal(1, tracker.PeakConcurrency);
@@ -60,7 +59,7 @@ public class ConcurrencyTests
 
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -79,7 +78,7 @@ public class ConcurrencyTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
             $"Handler did not process all {messageCount} messages within timeout");
 
         Assert.True(tracker.PeakConcurrency > 1, $"Expected parallelism > 1, but peak was {tracker.PeakConcurrency}");

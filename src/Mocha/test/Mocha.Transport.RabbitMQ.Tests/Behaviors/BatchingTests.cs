@@ -6,7 +6,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection("RabbitMQ")]
 public class BatchingTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(60);
     private readonly RabbitMQFixture _fixture;
 
     public BatchingTests(RabbitMQFixture fixture)
@@ -35,7 +35,7 @@ public class BatchingTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler was not invoked within timeout");
 
         var batch = Assert.IsAssignableFrom<IMessageBatch<OrderCreated>>(Assert.Single(recorder.Batches));
         Assert.Single(batch);
@@ -68,7 +68,7 @@ public class BatchingTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "timeout-1" }, CancellationToken.None);
 
         // assert — batch should arrive via timeout with 1 message
-        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked via timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler was not invoked via timeout");
 
         var batch = Assert.IsAssignableFrom<IMessageBatch<OrderCreated>>(Assert.Single(recorder.Batches));
         Assert.Equal(BatchCompletionMode.Time, batch.CompletionMode);
@@ -107,7 +107,7 @@ public class BatchingTests
         }
 
         // assert — single batch containing all 5 messages
-        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler was not invoked within timeout");
 
         var batch = Assert.IsAssignableFrom<IMessageBatch<OrderCreated>>(Assert.Single(recorder.Batches));
         Assert.Equal(messageCount, batch.Count);

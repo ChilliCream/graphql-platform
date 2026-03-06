@@ -1,14 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class ConnectionRecoveryTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan RecoveryTimeout = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_recoveryTimeout = TimeSpan.FromSeconds(15);
     private readonly RabbitMQFixture _fixture;
 
     public ConnectionRecoveryTests(RabbitMQFixture fixture)
@@ -23,7 +22,7 @@ public class ConnectionRecoveryTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
@@ -35,7 +34,7 @@ public class ConnectionRecoveryTests
 
         // act - publish message 1, verify received
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, default);
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive message 1");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
 
         // drop all connections
         await _fixture.CloseAllConnectionsAsync("recovery-test");
@@ -54,7 +53,7 @@ public class ConnectionRecoveryTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
@@ -66,7 +65,7 @@ public class ConnectionRecoveryTests
 
         // act - publish message 1
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, default);
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive message 1");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
 
         // drop connections twice
         await _fixture.CloseAllConnectionsAsync("recovery-test-1");
@@ -87,7 +86,7 @@ public class ConnectionRecoveryTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<PaymentHandler>()
@@ -99,7 +98,7 @@ public class ConnectionRecoveryTests
 
         // send message 1
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m }, default);
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive message 1");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
 
         // drop connections
         await _fixture.CloseAllConnectionsAsync("channel-pool-recovery");
@@ -113,7 +112,7 @@ public class ConnectionRecoveryTests
 
     private static async Task WaitForRecoveryAsync(IMessageBus messageBus, MessageRecorder recorder, int expectedCount)
     {
-        var deadline = DateTimeOffset.UtcNow.Add(RecoveryTimeout);
+        var deadline = DateTimeOffset.UtcNow.Add(s_recoveryTimeout);
         while (DateTimeOffset.UtcNow < deadline)
         {
             try
@@ -141,7 +140,7 @@ public class ConnectionRecoveryTests
         MessageRecorder recorder,
         int expectedCount)
     {
-        var deadline = DateTimeOffset.UtcNow.Add(RecoveryTimeout);
+        var deadline = DateTimeOffset.UtcNow.Add(s_recoveryTimeout);
         while (DateTimeOffset.UtcNow < deadline)
         {
             try

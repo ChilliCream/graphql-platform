@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Features;
 using Mocha.Transport.InMemory;
 
@@ -11,7 +6,7 @@ namespace Mocha.Sagas.Tests;
 
 public sealed class SagaStateMachineTests
 {
-    private static readonly IMessagingRuntime _runtime = CreateRuntime();
+    private static readonly IMessagingRuntime s_runtime = CreateRuntime();
 
     private readonly TestMessageOutbox _outbox;
     private readonly TestSagaStore _store;
@@ -937,7 +932,7 @@ public sealed class SagaStateMachineTests
             CorrelationId = Guid.NewGuid().ToString(),
             MessageId = Guid.NewGuid().ToString(),
             Services = _services,
-            Runtime = _runtime
+            Runtime = s_runtime
         };
 
         // Set the message via MessageParsingFeature so context.GetMessage() works

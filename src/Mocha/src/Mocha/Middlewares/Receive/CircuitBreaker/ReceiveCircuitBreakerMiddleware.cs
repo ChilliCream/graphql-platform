@@ -30,7 +30,7 @@ public sealed class ReceiveCircuitBreakerMiddleware(
             catch (BrokenCircuitException ex)
             {
                 // Honor Polly's retry hint when available, but clamp to sane delay bounds.
-                long totalMilliseconds = (long)(ex.RetryAfter?.TotalMilliseconds ?? breakDuration.TotalMilliseconds);
+                var totalMilliseconds = (long)(ex.RetryAfter?.TotalMilliseconds ?? breakDuration.TotalMilliseconds);
                 totalMilliseconds = totalMilliseconds is < 0 or > uint.MaxValue
                     ? (long)breakDuration.TotalMilliseconds
                     : totalMilliseconds;

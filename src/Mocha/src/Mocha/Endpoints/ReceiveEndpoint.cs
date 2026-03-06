@@ -131,6 +131,9 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
             configure(context, state);
 
+            var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
+            accessor.Context = context;
+
             await _pipeline(context);
         }
         catch (Exception ex)
@@ -140,6 +143,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         }
         finally
         {
+            var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
+            accessor.Context = null;
             pools.ReceiveContext.Return(context);
         }
     }
@@ -236,7 +241,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// <param name="configuration">The receive endpoint configuration.</param>
     protected virtual void OnComplete(
         IMessagingConfigurationContext context,
-        ReceiveEndpointConfiguration configuration) { }
+        ReceiveEndpointConfiguration configuration)
+    { }
 
     /// <summary>
     /// Starts this endpoint, enabling it to begin receiving and processing messages.

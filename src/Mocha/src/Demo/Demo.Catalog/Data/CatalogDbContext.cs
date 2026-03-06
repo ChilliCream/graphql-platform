@@ -1,8 +1,6 @@
 using Demo.Catalog.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Mocha.Outbox;
 using Mocha.Sagas.EfCore;
 

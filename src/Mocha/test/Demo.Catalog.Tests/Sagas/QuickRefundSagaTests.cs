@@ -7,8 +7,8 @@ namespace Demo.Catalog.Tests.Sagas;
 
 public sealed class QuickRefundSagaTests
 {
-    private static readonly Guid OrderId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-    private static readonly Guid RefundId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid s_orderId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid s_refundId = Guid.Parse("22222222-2222-2222-2222-222222222222");
     private const decimal Amount = 49.99m;
     private const string CustomerId = "CUST-001";
     private const string Reason = "Item not as described";
@@ -16,7 +16,7 @@ public sealed class QuickRefundSagaTests
     private static RequestQuickRefundRequest CreateRequest()
         => new()
         {
-            OrderId = OrderId,
+            OrderId = s_orderId,
             Amount = Amount,
             CustomerId = CustomerId,
             Reason = Reason
@@ -25,8 +25,8 @@ public sealed class QuickRefundSagaTests
     private static ProcessRefundResponse CreateSuccessResponse()
         => new()
         {
-            RefundId = RefundId,
-            OrderId = OrderId,
+            RefundId = s_refundId,
+            OrderId = s_orderId,
             Amount = Amount,
             Success = true,
             ProcessedAt = DateTimeOffset.UtcNow
@@ -36,7 +36,7 @@ public sealed class QuickRefundSagaTests
         => new()
         {
             RefundId = Guid.Empty,
-            OrderId = OrderId,
+            OrderId = s_orderId,
             Amount = 0,
             Success = false,
             FailureReason = "Insufficient funds",
@@ -55,7 +55,7 @@ public sealed class QuickRefundSagaTests
             .ExpectSendMessage<ProcessRefundCommand>(
                 (state, cmd) =>
                 {
-                    Assert.Equal(OrderId, cmd.OrderId);
+                    Assert.Equal(s_orderId, cmd.OrderId);
                     Assert.Equal(Amount, cmd.Amount);
                     Assert.Equal(Reason, cmd.Reason);
                     Assert.Equal(CustomerId, cmd.CustomerId);
@@ -78,9 +78,9 @@ public sealed class QuickRefundSagaTests
                 (state, resp) =>
                 {
                     Assert.True(resp.Success);
-                    Assert.Equal(RefundId, resp.RefundId);
+                    Assert.Equal(s_refundId, resp.RefundId);
                     Assert.Equal(Amount, resp.RefundedAmount);
-                    Assert.Equal(OrderId, resp.OrderId);
+                    Assert.Equal(s_orderId, resp.OrderId);
                 })
             .ExpectCompletion()
             .RunAll();
@@ -103,7 +103,7 @@ public sealed class QuickRefundSagaTests
                     Assert.False(resp.Success);
                     Assert.Equal("Insufficient funds", resp.FailureReason);
                     Assert.Null(resp.RefundId);
-                    Assert.Equal(OrderId, resp.OrderId);
+                    Assert.Equal(s_orderId, resp.OrderId);
                 })
             .ExpectCompletion()
             .RunAll();
@@ -117,7 +117,7 @@ public sealed class QuickRefundSagaTests
         await tester.Plan().On(CreateRequest()).RunAll();
 
         var state = tester.State!;
-        Assert.Equal(OrderId, state.OrderId);
+        Assert.Equal(s_orderId, state.OrderId);
         Assert.Equal(Amount, state.Amount);
         Assert.Equal(CustomerId, state.CustomerId);
         Assert.Equal(Reason, state.Reason);

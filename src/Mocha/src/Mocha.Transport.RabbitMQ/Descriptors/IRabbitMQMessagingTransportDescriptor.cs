@@ -1,5 +1,3 @@
-using RabbitMQ.Client;
-
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>

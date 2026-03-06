@@ -57,7 +57,7 @@ public static class OutboxServiceCollectionExtensions
                     options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
                 });
 
-        builder.Services.AddSingleton<PostgresOutboxProcessor>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
             var options = optionsMonitor.Get(builder.Name);
@@ -70,7 +70,7 @@ public static class OutboxServiceCollectionExtensions
                 options.Queries);
         });
 
-        builder.Services.AddSingleton<PostgresMessageBusOutboxWorker>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
             var options = optionsMonitor.Get(builder.Name);

@@ -1538,6 +1538,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @specifiedBy directive must have a &apos;url&apos; argument of type String..
+        /// </summary>
+        internal static string SpecifiedByDirective_UrlArgument_Invalid {
+            get {
+                return ResourceManager.GetString("SpecifiedByDirective_UrlArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The @tag directive must have a &apos;name&apos; argument of type String..
         /// </summary>
         internal static string TagDirective_NameArgument_Invalid {

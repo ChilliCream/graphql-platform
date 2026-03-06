@@ -268,7 +268,7 @@ public partial class ObjectTypeXmlDocInferenceTests
             "Parameter doc.");
     }
 
-   [Fact]
+    [Fact]
     public void XmlDocumentation_ForMethod_WithInheritdoc_Inside_Summary()
     {
         var snapshot =
@@ -316,7 +316,7 @@ public partial class ObjectTypeXmlDocInferenceTests
             "My Parameter doc.");
     }
 
-   [Fact]
+    [Fact]
     public void XmlDocumentation_ForMethod_WithInheritdoc_Inside_Param()
     {
         var snapshot =
@@ -364,7 +364,7 @@ public partial class ObjectTypeXmlDocInferenceTests
             "My Parameter doc. Inherited: Parameter doc.");
     }
 
-   [Fact]
+    [Fact]
     public void XmlDocumentation_ForMethod_WithInheritdoc_Inside_Returns()
     {
         var snapshot =
@@ -412,7 +412,7 @@ public partial class ObjectTypeXmlDocInferenceTests
             "My Parameter doc.");
     }
 
-   [Fact]
+    [Fact]
     public void XmlDocumentation_ForMethod_WithInheritdoc_Inside_Exception()
     {
         var snapshot =

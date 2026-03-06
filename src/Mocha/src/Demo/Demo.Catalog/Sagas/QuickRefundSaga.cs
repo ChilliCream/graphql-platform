@@ -28,7 +28,9 @@ public sealed class QuickRefundSaga : Saga<RefundSagaState>
         descriptor
             .During(AwaitingRefund)
             .OnReply<ProcessRefundResponse>()
-            .Then((state, response) => { if (response.Success)
+            .Then((state, response) =>
+            {
+                if (response.Success)
                 {
                     state.RefundId = response.RefundId;
                     state.RefundedAmount = response.Amount;
@@ -36,7 +38,8 @@ public sealed class QuickRefundSaga : Saga<RefundSagaState>
                 else
                 {
                     state.FailureReason = response.FailureReason ?? "Refund processing failed";
-                } })
+                }
+            })
             .TransitionTo(Completed);
 
         // Note: We handle both success and failure in the same transition,

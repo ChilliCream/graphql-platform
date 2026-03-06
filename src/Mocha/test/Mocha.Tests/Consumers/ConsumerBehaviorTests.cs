@@ -261,7 +261,9 @@ public sealed class ConsumerBehaviorTests
             for (var i = 0; i < expectedCount; i++)
             {
                 if (!await _semaphore.WaitAsync(timeout))
+                {
                     return false;
+                }
             }
             return true;
         }

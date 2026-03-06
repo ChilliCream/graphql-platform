@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore;
 using Mocha.EntityFrameworkCore.Postgres;
-using Mocha.Sagas;
 using Mocha.Sagas.EfCore;
 using EfCoreSagaState = Mocha.Sagas.EfCore.SagaState;
 
