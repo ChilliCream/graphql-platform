@@ -670,11 +670,12 @@ public sealed partial class OperationPlanner
         backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
         backlog = backlog.PushRequirements(fieldsWithRequirements, stepId, stepDepth);
 
-        // lookups are always queries.
+        // Lookups are always queries. Root work items can also be rewritten to the query root
+        // when walking shared paths (for example the viewer convention in mutations).
         var operationType =
-            lookup is null
-                ? current.OperationDefinition.Operation
-                : OperationType.Query;
+            lookup is not null || IsQueryRootSelection(workItem.SelectionSet)
+                ? OperationType.Query
+                : current.OperationDefinition.Operation;
 
         var operationBuilder =
             OperationDefinitionBuilder
@@ -710,6 +711,15 @@ public sealed partial class OperationPlanner
         }
 
         (var definition, index, var source) = operationBuilder.Build(index);
+
+        if (lookup is null
+            && operationType == OperationType.Query
+            && !workItem.SelectionSet.Path.IsRoot
+            && resolvable.Selections is [FieldNode field]
+            && PlannerExtensions.IsViewerFieldSelection(field))
+        {
+            source = SelectionPath.Root.AppendField(field.Name.Value);
+        }
 
         var step = new OperationPlanStep
         {
@@ -755,6 +765,9 @@ public sealed partial class OperationPlanner
 
         possiblePlans.EnqueueBranches(next);
     }
+
+    private bool IsQueryRootSelection(SelectionSet selectionSet)
+        => selectionSet.Type.Name.Equals(_schema.QueryType.Name, StringComparison.Ordinal);
 
     private PlanNode InlineLookupRequirements(
         SelectionSet workItemSelectionSet,
@@ -2327,6 +2340,7 @@ internal static class PlannerExtensions
         var segments = selectionSet.Path.Segments;
         var finalSelectionSet = selectionSet.Node;
         var fieldsMovedUp = 0;
+        var viewerFallbackToQueryRoot = false;
 
         while (pathItems.TryPop(out var pathItem))
         {
@@ -2338,6 +2352,20 @@ internal static class PlannerExtensions
                         out var fieldResolution)
                     || !fieldResolution.ContainsSchema(schemaName))
                 {
+                    if (planNodeTemplate.OperationDefinition.Operation != OperationType.Query
+                        && IsViewerFieldSelection(fieldPathItem.Node)
+                        && HasViewerQueryRoot(schemaName, compositeSchema))
+                    {
+                        finalSelectionSet = new SelectionSetNode(
+                            [fieldPathItem.Node.WithSelectionSet(finalSelectionSet)]);
+                        selectionSetIndexBuilder.Register(
+                            planNodeTemplate.InternalOperationDefinition.SelectionSet,
+                            finalSelectionSet);
+                        fieldsMovedUp++;
+                        viewerFallbackToQueryRoot = true;
+                        break;
+                    }
+
                     yield break;
                 }
 
@@ -2407,9 +2435,11 @@ internal static class PlannerExtensions
             }
         }
 
-        // Even if we can walk up to the root of a non-Query operation,
-        // we want to bail here as we do not want two nodes with the same root fields.
-        if (planNodeTemplate.OperationDefinition.Operation != OperationType.Query)
+        // For mutations/subscriptions we generally avoid query-root fallback to prevent
+        // duplicate root operations. The viewer convention is the one supported exception,
+        // because cross-subgraph viewer fields are resolved via Query.viewer.
+        if (planNodeTemplate.OperationDefinition.Operation != OperationType.Query
+            && !IsViewerRootSelection(finalSelectionSet))
         {
             yield break;
         }
@@ -2418,19 +2448,40 @@ internal static class PlannerExtensions
             selectionSetIndexBuilder.GetId(finalSelectionSet),
             finalSelectionSet,
             compositeSchema.QueryType,
-            SelectionPath.Root);
+            viewerFallbackToQueryRoot ? selectionSet.Path : SelectionPath.Root);
 
         var newRootWorkItem = workItem with { Kind = OperationWorkItemKind.Root, SelectionSet = newRootSelectionSet };
 
         yield return (newRootWorkItem, fieldsMovedUp, selectionSetIndexBuilder);
     }
 
+    private static bool IsViewerRootSelection(SelectionSetNode selectionSet)
+        => selectionSet.Selections is [FieldNode field] && IsViewerFieldSelection(field);
+
+    internal static bool IsViewerFieldSelection(FieldNode field)
+        => field is
+        {
+            Name.Value: "viewer",
+            Alias: null,
+            Arguments.Count: 0,
+            Directives.Count: 0
+        };
+
+    private static bool HasViewerQueryRoot(
+        string schemaName,
+        FusionSchemaDefinition compositeSchema)
+        => compositeSchema.TryGetFieldResolution(
+            compositeSchema.QueryType,
+            "viewer",
+            out var viewerResolution)
+            && viewerResolution.ContainsSchema(schemaName);
+
     private static Stack<IPathItem>? ReverseSelectionPath(
         OperationDefinitionNode operationDefinitionNode,
         SelectionPath path,
         FusionSchemaDefinition compositeSchema)
     {
-        IOutputTypeDefinition currentType = compositeSchema.QueryType;
+        IOutputTypeDefinition currentType = compositeSchema.GetOperationType(operationDefinitionNode.Operation);
         var currentSelectionSetNode = operationDefinitionNode.SelectionSet;
 
         var items = new Stack<IPathItem>();
