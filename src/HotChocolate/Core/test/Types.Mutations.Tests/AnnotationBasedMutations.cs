@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
-public class AnnotationBasedMutations
+public partial class AnnotationBasedMutations
 {
     [Fact]
     public async Task SimpleMutation_Inferred()
@@ -1975,7 +1975,7 @@ public class AnnotationBasedMutations
         public string UserName { get; set; } = null!;
     }
 
-    public class Issue4803NamingConvention : DefaultNamingConventions
+    public partial class Issue4803NamingConvention : DefaultNamingConventions
     {
         public override string GetMemberName(MemberInfo member, MemberKind kind)
         {
@@ -1999,9 +1999,11 @@ public class AnnotationBasedMutations
 
         private static string ToSnakeCase(string memberName)
         {
-            var pattern = new System.Text.RegularExpressions.Regex(
-                @"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+");
+            var pattern = SnakeCasePatternRegex();
             return string.Join("_", pattern.Matches(memberName)).ToLowerInvariant();
         }
+
+        [System.Text.RegularExpressions.GeneratedRegex(@"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+")]
+        private static partial System.Text.RegularExpressions.Regex SnakeCasePatternRegex();
     }
 }
