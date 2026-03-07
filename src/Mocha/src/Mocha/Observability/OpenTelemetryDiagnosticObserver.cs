@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -61,26 +62,32 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
         {
             _context = context;
 
-            var traceId = context.Headers.Get(MessageHeaders.TraceId);
-            var traceState = context.Headers.Get(MessageHeaders.TraceState);
-            var spanId = context.Headers.Get(MessageHeaders.SpanId);
+            var traceparent = context.Headers.Get(MessageHeaders.Traceparent);
 
             Activity? activity = null;
 
-            if (!string.IsNullOrEmpty(traceId) && !string.IsNullOrEmpty(spanId))
+            if (!string.IsNullOrEmpty(traceparent))
             {
-                var parentContext = new ActivityContext(
-                    ActivityTraceId.CreateFromString(traceId),
-                    ActivitySpanId.CreateFromString(spanId),
-                    ActivityTraceFlags.Recorded,
-                    traceState);
+                ReadOnlySpan<char> span = traceparent;
+                Span<Range> ranges = stackalloc Range[5];
+                var count = span.Split(ranges, '-');
 
-                activity = OpenTelemetry.Source.CreateActivity(
-                    $"receive {context.Endpoint.Address}",
-                    ActivityKind.Client,
-                    parentContext);
+                if (count >= 4)
+                {
+                    var traceId = ActivityTraceId.CreateFromString(span[ranges[1]]);
+                    var spanId = ActivitySpanId.CreateFromString(span[ranges[2]]);
+                    var flags = (ActivityTraceFlags)byte.Parse(span[ranges[3]], NumberStyles.HexNumber);
+                    var traceState = context.Headers.Get(MessageHeaders.Tracestate);
 
-                activity?.Start();
+                    var parentContext = new ActivityContext(traceId, spanId, flags, traceState);
+
+                    activity = OpenTelemetry.Source.CreateActivity(
+                        $"receive {context.Endpoint.Address}",
+                        ActivityKind.Client,
+                        parentContext);
+
+                    activity?.Start();
+                }
             }
 
             activity ??= OpenTelemetry.Source.StartActivity($"receive {context.Endpoint.Address}", ActivityKind.Client);

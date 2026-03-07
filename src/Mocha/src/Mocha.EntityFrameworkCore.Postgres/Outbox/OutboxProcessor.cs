@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
@@ -262,24 +263,29 @@ public sealed class PostgresOutboxProcessor
         CancellationToken cancellationToken)
     {
         Activity? activity = null;
-        var traceId = envelope.Headers?.Get(MessageHeaders.TraceId);
-        var traceState = envelope.Headers?.Get(MessageHeaders.TraceState);
-        var spanId = envelope.Headers?.Get(MessageHeaders.SpanId);
+        var traceparent = envelope.Headers?.Get(MessageHeaders.Traceparent);
 
-        if (!string.IsNullOrEmpty(traceId) && !string.IsNullOrEmpty(spanId))
+        if (!string.IsNullOrEmpty(traceparent))
         {
-            var parentContext = new ActivityContext(
-                ActivityTraceId.CreateFromString(traceId),
-                ActivitySpanId.CreateFromString(spanId),
-                ActivityTraceFlags.Recorded,
-                traceState);
+            ReadOnlySpan<char> span = traceparent;
+            Span<Range> ranges = stackalloc Range[5];
+            var count = span.Split(ranges, '-');
 
-            activity = OpenTelemetry.Source.CreateActivity(
-                $"outbox send {envelope.MessageId}",
-                ActivityKind.Client,
-                parentContext);
+            if (count >= 4)
+            {
+                var parentContext = new ActivityContext(
+                    ActivityTraceId.CreateFromString(span[ranges[1]]),
+                    ActivitySpanId.CreateFromString(span[ranges[2]]),
+                    (ActivityTraceFlags)byte.Parse(span[ranges[3]], NumberStyles.HexNumber),
+                    envelope.Headers?.Get(MessageHeaders.Tracestate));
 
-            activity?.Start();
+                activity = OpenTelemetry.Source.CreateActivity(
+                    $"outbox send {envelope.MessageId}",
+                    ActivityKind.Client,
+                    parentContext);
+
+                activity?.Start();
+            }
         }
 
         var context = _contextPool.Get();
