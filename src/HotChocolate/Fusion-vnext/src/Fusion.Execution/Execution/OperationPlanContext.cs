@@ -266,8 +266,10 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     {
         var resultPath = Path.Root;
 
-        foreach (var segment in selectionSet.Segments)
+        for (var i = 0; i < selectionSet.Length; i++)
         {
+            var segment = selectionSet[i];
+
             if (segment.Kind is SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field)
             {
                 resultPath = resultPath.Append(segment.Name);

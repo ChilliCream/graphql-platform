@@ -23,6 +23,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     internal Selection(
         int id,
         string responseName,
+        SelectionPath fieldSelectionPath,
         ObjectField field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
@@ -31,7 +32,8 @@ public sealed class Selection : ISelection, IFeatureProvider
         bool isInternal = false,
         ArgumentMap? arguments = null,
         FieldDelegate? resolverPipeline = null,
-        PureFieldDelegate? pureResolver = null)
+        PureFieldDelegate? pureResolver = null,
+        BatchFieldDelegate? batchResolverPipeline = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -44,14 +46,17 @@ public sealed class Selection : ISelection, IFeatureProvider
 
         Id = id;
         ResponseName = responseName;
+        FieldSelectionPath = fieldSelectionPath;
         Field = field;
         Type = field.Type;
         Arguments = arguments ?? s_emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
+        BatchResolverPipeline = batchResolverPipeline;
         Strategy = InferStrategy(
             isSerial: !field.IsParallelExecutable,
-            hasPureResolver: pureResolver is not null);
+            hasPureResolver: pureResolver is not null,
+            hasBatchResolver: batchResolverPipeline is not null);
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _deferUsage = deferUsage ?? [];
@@ -75,6 +80,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         int id,
         string responseName,
         byte[] utf8ResponseName,
+        SelectionPath fieldSelectionPath,
         ObjectField field,
         IType type,
         FieldSelectionNode[] syntaxNodes,
@@ -85,15 +91,18 @@ public sealed class Selection : ISelection, IFeatureProvider
         ArgumentMap? arguments,
         SelectionExecutionStrategy strategy,
         FieldDelegate? resolverPipeline,
-        PureFieldDelegate? pureResolver)
+        PureFieldDelegate? pureResolver,
+        BatchFieldDelegate? batchResolverPipeline)
     {
         Id = id;
         ResponseName = responseName;
+        FieldSelectionPath = fieldSelectionPath;
         Field = field;
         Type = type;
         Arguments = arguments ?? s_emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
+        BatchResolverPipeline = batchResolverPipeline;
         Strategy = strategy;
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
@@ -110,6 +119,8 @@ public sealed class Selection : ISelection, IFeatureProvider
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
+
+    public SelectionPath FieldSelectionPath { get; }
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
@@ -186,6 +197,13 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// Gets the pure resolver delegate for this selection.
     /// </summary>
     public PureFieldDelegate? PureResolver { get; private set; }
+
+    /// <summary>
+    /// Gets the batch resolver pipeline delegate for this selection.
+    /// When set, the field is resolved using a batch pipeline that receives
+    /// multiple parent contexts in a single invocation.
+    /// </summary>
+    public BatchFieldDelegate? BatchResolverPipeline { get; private set; }
 
     /// <summary>
     /// Gets the syntax nodes that contributed to this selection.
@@ -612,6 +630,7 @@ nextItem:
             Id,
             ResponseName,
             _utf8ResponseName,
+            FieldSelectionPath,
             field,
             field.Type,
             _syntaxNodes,
@@ -622,7 +641,8 @@ nextItem:
             Arguments,
             Strategy,
             ResolverPipeline,
-            PureResolver);
+            PureResolver,
+            BatchResolverPipeline);
 
         selection._declaringSelectionSet = _declaringSelectionSet;
 
@@ -637,6 +657,7 @@ nextItem:
             Id,
             ResponseName,
             _utf8ResponseName,
+            FieldSelectionPath,
             Field,
             type,
             _syntaxNodes,
@@ -647,7 +668,8 @@ nextItem:
             Arguments,
             Strategy,
             ResolverPipeline,
-            PureResolver);
+            PureResolver,
+            BatchResolverPipeline);
 
         selection._declaringSelectionSet = _declaringSelectionSet;
 
@@ -666,7 +688,8 @@ nextItem:
 
     internal void SetResolvers(
         FieldDelegate? resolverPipeline = null,
-        PureFieldDelegate? pureResolver = null)
+        PureFieldDelegate? pureResolver = null,
+        BatchFieldDelegate? batchResolverPipeline = null)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -675,7 +698,10 @@ nextItem:
 
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
-        Strategy = InferStrategy(hasPureResolver: pureResolver is not null);
+        BatchResolverPipeline = batchResolverPipeline;
+        Strategy = InferStrategy(
+            hasPureResolver: pureResolver is not null,
+            hasBatchResolver: batchResolverPipeline is not null);
     }
 
     /// <summary>
@@ -696,8 +722,15 @@ nextItem:
 
     private SelectionExecutionStrategy InferStrategy(
         bool isSerial = false,
-        bool hasPureResolver = false)
+        bool hasPureResolver = false,
+        bool hasBatchResolver = false)
     {
+        // batch resolver takes precedence — it handles its own execution strategy.
+        if (hasBatchResolver)
+        {
+            return SelectionExecutionStrategy.Batch;
+        }
+
         // once a field is marked serial it even with a pure resolver cannot become pure.
         if (Strategy is SelectionExecutionStrategy.Serial || isSerial)
         {

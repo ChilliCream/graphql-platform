@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;

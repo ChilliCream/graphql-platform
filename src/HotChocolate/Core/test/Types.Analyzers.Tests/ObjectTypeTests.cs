@@ -920,4 +920,124 @@ public class ObjectTypeTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task BatchResolver_Simple_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting([Parent] List<User> users)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task BatchResolver_Async_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static ValueTask<List<string>> GetGreeting(
+                    [Parent] List<User> users,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task BatchResolver_With_Service_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class GreetingService
+            {
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    [Service] GreetingService greetingService)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task BatchResolver_With_Argument_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    List<string> prefix)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
 }

@@ -121,7 +121,34 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Base64StringType_Description", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The parameter &apos;{0}&apos; on a batch resolver must be a list type ....
+        /// </summary>
+        internal static string BatchResolver_ArgumentMustBeList {
+            get {
+                return ResourceManager.GetString("BatchResolver_ArgumentMustBeList", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A batch resolver must return exactly one result per context. Expected {0} results but got {1}..
+        /// </summary>
+        internal static string BatchResolver_ResultCountMismatch {
+            get {
+                return ResourceManager.GetString("BatchResolver_ResultCountMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The batch resolver method '{0}.{1}' must return a list type ....
+        /// </summary>
+        internal static string BatchResolver_ReturnTypeMustBeList {
+            get {
+                return ResourceManager.GetString("BatchResolver_ReturnTypeMustBeList", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The specified binding cannot be handled..
         /// </summary>

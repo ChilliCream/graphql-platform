@@ -66,7 +66,7 @@ public sealed class Resolver
     public bool IsStatic => Member.IsStatic;
 
     public bool IsPure
-        => Kind is not ResolverKind.NodeResolver
+        => Kind is not (ResolverKind.NodeResolver or ResolverKind.BatchResolver)
             && ResultKind is ResolverResultKind.Pure
             && Parameters.All(t => t.IsPure);
 
