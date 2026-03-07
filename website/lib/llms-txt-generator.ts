@@ -65,6 +65,8 @@ const PRODUCT_DESCRIPTIONS: Record<string, string> = {
 export function generateLlmsTxt(): string {
   const products = getDocsConfig();
   const blogPosts = getAllBlogPosts();
+  const allPages = getAllDocPages({ skipGitMetadata: true });
+  const validSlugs = new Set(allPages.map((p) => p.slug));
 
   const lines: string[] = [
     "# ChilliCream GraphQL Platform",
@@ -95,6 +97,7 @@ export function generateLlmsTxt(): string {
     lines.push(`### ${product.title}`, "");
     const navItems = flattenNavItems(product, version.path, version.items);
     for (const item of navItems) {
+      if (!validSlugs.has(item.url)) continue;
       lines.push(`- [${item.title}](${item.url})`);
     }
     lines.push("");
@@ -114,7 +117,7 @@ export function generateLlmsTxt(): string {
 
 export function generateLlmsFullTxt(): string {
   const products = getDocsConfig();
-  const allPages = getAllDocPages();
+  const allPages = getAllDocPages({ skipGitMetadata: true });
 
   const lines: string[] = [
     "# ChilliCream GraphQL Platform - Full Documentation",
@@ -122,6 +125,8 @@ export function generateLlmsFullTxt(): string {
     "> The ChilliCream GraphQL Platform is an open-source ecosystem for building GraphQL APIs in .NET, including Hot Chocolate (server), Strawberry Shake (client), Green Donut (DataLoader), Fusion (distributed GraphQL), and Nitro (GraphQL IDE).",
     "",
   ];
+
+  const pagesBySlug = new Map(allPages.map((p) => [p.slug, p]));
 
   for (const product of products) {
     const version = getLatestVersion(product);
@@ -131,8 +136,7 @@ export function generateLlmsFullTxt(): string {
     const navItems = flattenNavItems(product, versionPath, version.items);
 
     for (const navItem of navItems) {
-      // Find matching page content
-      const page = allPages.find((p) => p.slug === navItem.url);
+      const page = pagesBySlug.get(navItem.url);
       if (!page || !page.content.trim()) continue;
 
       lines.push(`## ${navItem.url}`, "");
