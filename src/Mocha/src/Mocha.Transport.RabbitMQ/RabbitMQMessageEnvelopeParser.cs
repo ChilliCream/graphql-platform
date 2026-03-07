@@ -38,14 +38,29 @@ internal sealed class RabbitMQMessageEnvelopeParser
             MessageType = props.Type ?? props.Headers?.GetString(RabbitMQMessageHeaders.MessageType),
             SentAt = sentAt,
             DeliverBy = ParseExpiration(props.Expiration, sentAt),
-            // TODO quorum queues can use x-delivery-count instead of redelivered!
-            DeliveryCount = eventArgs.Redelivered ? 1 : 0,
+            DeliveryCount = GetDeliveryCount(props.Headers, eventArgs.Redelivered),
             Headers = BuildHeaders(props.Headers),
             EnclosedMessageTypes = props.Headers?.GetStringArray(RabbitMQMessageHeaders.EnclosedMessageTypes) ?? [],
             Body = eventArgs.Body
         };
 
         return envelope;
+    }
+
+    /// <summary>
+    /// Returns the delivery count from the quorum queue <c>x-delivery-count</c> header when
+    /// available; otherwise falls back to the classic queue <c>Redelivered</c> flag.
+    /// </summary>
+    private static int GetDeliveryCount(IDictionary<string, object?>? headers, bool redelivered)
+    {
+        if (headers is not null
+            && headers.TryGetValue("x-delivery-count", out var value)
+            && value is long count)
+        {
+            return (int)count;
+        }
+
+        return redelivered ? 1 : 0;
     }
 
     private static DateTimeOffset? ParseExpiration(string? expiration, DateTimeOffset? sentAt)

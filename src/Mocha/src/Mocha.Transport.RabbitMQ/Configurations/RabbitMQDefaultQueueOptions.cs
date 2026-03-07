@@ -54,7 +54,11 @@ public sealed class RabbitMQDefaultQueueOptions
         if (Arguments.Count > 0 || QueueType is not null)
         {
             configuration.Arguments ??= new Dictionary<string, object>();
-            configuration.Arguments.TryAdd("x-queue-type", QueueType);
+
+            if (QueueType is not null)
+            {
+                configuration.Arguments.TryAdd("x-queue-type", QueueType);
+            }
 
             foreach (var (key, value) in Arguments)
             {
