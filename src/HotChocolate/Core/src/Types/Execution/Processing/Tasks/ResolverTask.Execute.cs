@@ -254,8 +254,3 @@ internal sealed partial class ResolverTask
         }
     }
 }
-
-internal interface IResolverTask : IExecutionTask
-{
-    SelectionPath FieldSelectionPath { get; }
-}
