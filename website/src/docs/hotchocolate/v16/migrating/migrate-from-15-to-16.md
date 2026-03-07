@@ -618,7 +618,7 @@ builder.Services
 
 ### XML documents are inferred by the source generator
 
-For types handled by the source generator, for example `QueryType` or `ObjectType<T>`, XML comments are now inferred by the generator during compile-time.
+For types handled by the source generator, for example `QueryType` or `ObjectType<T>`, XML comments are now inferred by the source generator during compile-time.
 You may disable this and fall back to runtime XML comment inference by specifiying `ModuleOptions.DisableXmlDocumentation`.
 
 ```csharp

@@ -217,7 +217,7 @@ builder.Services
 
 ### Types handled by the source generator
 
-For types handled by the source generator, for example `QueryType` or `ObjectType<T>`, XML comments are inferred by the generator itself during compile-time.
+For types handled by the source generator, for example `QueryType` or `ObjectType<T>`, XML comments are inferred by the source generator itself during compile-time.
 
 > Note: XML comment inference by the source generator takes precedence over runtime XML comment inference.
 
