@@ -28,6 +28,13 @@ public interface IRabbitMQMessagingTransportDescriptor
         Func<IServiceProvider, IRabbitMQConnectionProvider> connectionFactory);
 
     /// <summary>
+    /// Configures bus-level defaults that are applied to all auto-provisioned queues and exchanges.
+    /// </summary>
+    /// <param name="configure">A delegate that configures the bus defaults.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQMessagingTransportDescriptor ConfigureDefaults(Action<RabbitMQBusDefaults> configure);
+
+    /// <summary>
     /// Gets or creates a receive endpoint descriptor with the specified name.
     /// </summary>
     /// <param name="name">The endpoint name, also used as the default queue name.</param>

@@ -72,7 +72,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             Port = Connection.Port,
             Path = Connection.VirtualHost
         };
-        _topology = new RabbitMQMessagingTopology(this, builder.Uri);
+
+        _topology = new RabbitMQMessagingTopology(this, builder.Uri, configuration.Defaults);
 
         foreach (var exchange in configuration.Exchanges)
         {

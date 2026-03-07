@@ -177,6 +177,78 @@ When you register a request handler with `AddRequestHandler<T>()` for send (fire
 
 Send messages go to a dedicated queue. Only one handler processes each message - this is the point-to-point guarantee.
 
+# Configure transport-level defaults
+
+You can set defaults that apply to all auto-provisioned queues and exchanges. This is useful when you want consistent settings across all resources without configuring each one individually.
+
+Use `ConfigureDefaults` to set queue and exchange defaults:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRabbitMQ(transport =>
+    {
+        transport.ConfigureDefaults(defaults =>
+        {
+            // All queues will be quorum with a delivery limit of 5
+            defaults.Queue.QueueType = RabbitMQQueueType.Quorum;
+            defaults.Queue.Arguments["x-delivery-limit"] = 5;
+
+            // All exchanges will use topic routing
+            defaults.Exchange.Type = RabbitMQExchangeType.Topic;
+        });
+    });
+```
+
+For example, to enable [quorum queues](https://www.rabbitmq.com/docs/quorum-queues) with a specific initial group size:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRabbitMQ(transport =>
+    {
+        transport.ConfigureDefaults(defaults =>
+        {
+            defaults.Queue.QueueType = RabbitMQQueueType.Quorum;
+            defaults.Queue.Arguments["x-quorum-initial-group-size"] = 3;
+        });
+    });
+```
+
+Or to use [stream queues](https://www.rabbitmq.com/docs/streams) for append-only log semantics:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRabbitMQ(transport =>
+    {
+        transport.ConfigureDefaults(defaults =>
+        {
+            defaults.Queue.QueueType = RabbitMQQueueType.Stream;
+        });
+    });
+```
+
+Available queue defaults:
+
+| Property     | Type                         | Description                                                       |
+| ------------ | ---------------------------- | ----------------------------------------------------------------- |
+| `QueueType`  | `string`                     | Queue type: `RabbitMQQueueType.Classic`, `.Quorum`, or `.Stream`  |
+| `Durable`    | `bool?`                      | Whether queues survive broker restarts (default: `true`)          |
+| `AutoDelete` | `bool?`                      | Whether queues are auto-deleted when unused (default: `false`)    |
+| `Arguments`  | `Dictionary<string, object>` | Additional arguments (e.g., `x-delivery-limit`, `x-max-priority`) |
+
+Available exchange defaults:
+
+| Property     | Type                         | Description                                                                      |
+| ------------ | ---------------------------- | -------------------------------------------------------------------------------- |
+| `Type`       | `string`                     | Exchange type: `RabbitMQExchangeType.Fanout`, `.Direct`, `.Topic`, or `.Headers` |
+| `Durable`    | `bool?`                      | Whether exchanges survive broker restarts (default: `true`)                      |
+| `AutoDelete` | `bool?`                      | Whether exchanges are auto-deleted when unused (default: `false`)                |
+| `Arguments`  | `Dictionary<string, object>` | Additional arguments (e.g., `alternate-exchange`)                                |
+
+Defaults never override explicitly configured values. If you declare a queue with a specific queue type, that setting takes precedence over the transport default. You can call `ConfigureDefaults` multiple times — each call accumulates settings on the same defaults object.
+
 # Declare custom topology
 
 Mocha auto-provisions topology by default. To declare additional exchanges, queues, or bindings:
