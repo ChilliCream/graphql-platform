@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
@@ -267,18 +266,9 @@ public sealed class PostgresOutboxProcessor
 
         if (!string.IsNullOrEmpty(traceparent))
         {
-            ReadOnlySpan<char> span = traceparent;
-            Span<Range> ranges = stackalloc Range[5];
-            var count = span.Split(ranges, '-');
-
-            if (count >= 4)
+            var tracestate = envelope.Headers?.Get(MessageHeaders.Tracestate);
+            if (ActivityContext.TryParse(traceparent, tracestate, out var parentContext))
             {
-                var parentContext = new ActivityContext(
-                    ActivityTraceId.CreateFromString(span[ranges[1]]),
-                    ActivitySpanId.CreateFromString(span[ranges[2]]),
-                    (ActivityTraceFlags)byte.Parse(span[ranges[3]], NumberStyles.HexNumber),
-                    envelope.Headers?.Get(MessageHeaders.Tracestate));
-
                 activity = OpenTelemetry.Source.CreateActivity(
                     $"outbox send {envelope.MessageId}",
                     ActivityKind.Client,

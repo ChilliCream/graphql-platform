@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -68,19 +67,9 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
 
             if (!string.IsNullOrEmpty(traceparent))
             {
-                ReadOnlySpan<char> span = traceparent;
-                Span<Range> ranges = stackalloc Range[5];
-                var count = span.Split(ranges, '-');
-
-                if (count >= 4)
+                var traceState = context.Headers.Get(MessageHeaders.Tracestate);
+                if (ActivityContext.TryParse(traceparent, traceState, out var parentContext))
                 {
-                    var traceId = ActivityTraceId.CreateFromString(span[ranges[1]]);
-                    var spanId = ActivitySpanId.CreateFromString(span[ranges[2]]);
-                    var flags = (ActivityTraceFlags)byte.Parse(span[ranges[3]], NumberStyles.HexNumber);
-                    var traceState = context.Headers.Get(MessageHeaders.Tracestate);
-
-                    var parentContext = new ActivityContext(traceId, spanId, flags, traceState);
-
                     activity = OpenTelemetry.Source.CreateActivity(
                         $"receive {context.Endpoint.Address}",
                         ActivityKind.Client,

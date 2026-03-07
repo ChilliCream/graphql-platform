@@ -15,7 +15,11 @@ internal static class OpenTelemetry
             return headers;
         }
 
-        headers.TryAdd(MessageHeaders.Traceparent, activity.Id);
+        var traceparent = TraceparentHelper.FormatTraceparent(activity);
+        if (traceparent is not null)
+        {
+            headers.TryAdd(MessageHeaders.Traceparent, traceparent);
+        }
 
         if (!string.IsNullOrEmpty(activity.TraceStateString))
         {
