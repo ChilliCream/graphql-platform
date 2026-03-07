@@ -616,6 +616,15 @@ builder.Services
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
 
+### XML documents are inferred by the source generator
+
+For types handled by the source generator, for example `QueryType` or `ObjectType<T>`, XML comments are now inferred by the generator during compile-time.
+You may disable this and fall back to runtime XML comment inference by specifiying `ModuleOptions.DisableXmlDocumentation`.
+
+```csharp
+[assembly: Module("YourModuleName", ModuleOptions.Default | ModuleOptions.DisableXmlDocumentation)]
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

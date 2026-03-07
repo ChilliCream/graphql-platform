@@ -151,7 +151,7 @@ builder.Services
 
 # XML Documentation
 
-Hot Chocolate provides the ability to automatically generate API documentation from our existing [XML documentation](https://docs.microsoft.com/dotnet/csharp/codedoc).
+Hot Chocolate provides the ability to automatically generate API documentation from our existing [XML documentation](https://docs.microsoft.com/dotnet/csharp/codedoc) at runtime.
 
 The following will produce the same schema descriptions we declared above.
 
@@ -202,13 +202,33 @@ To make the XML documentation available to Hot Chocolate, we have to enable `Gen
 
 > Note: The `<NoWarn>` element is optional. It prevents the compiler from emitting warnings for missing documentation strings.
 
-If we do not want to include XML documentation in our schema, we can set the `UseXmlDocumentation` property on the schema's `ISchemaOptions`.
+> Note: Because XML documentation is inferred at runtime (except for source-generated types), you also need to ship the generated XML documentation files.
+
+
+## Opt-Out
+
+If you do not want to include XML documentation in our schema, set the `UseXmlDocumentation` property on the schema's `ISchemaOptions` to `false`.
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
     .ModifyOptions(opt => opt.UseXmlDocumentation = false);
 ```
+
+### Types handled by the source generator
+
+For types handled by the source generator, for example `QueryType` or `ObjectType<T>`, XML comments are inferred by the generator itself during compile-time.
+
+> Note: XML comment inference by the source generator takes precedence over runtime XML comment inference.
+
+Because of this, even when `UseXmlDocumentation` is set to `false`, XML comments may still be emitted in the schema for such types.
+To disable this behavior as well, specify `ModuleOptions.DisableXmlDocumentation`.
+
+```csharp
+[assembly: Module("YourModuleName", ModuleOptions.Default | ModuleOptions.DisableXmlDocumentation)]
+```
+
+Specifying `ModuleOptions.DisableXmlDocumentation` without setting `UseXmlDocumentation` to `false` also allows you to fall back to runtime XML comment inference.
 
 ## With a custom naming convention
 
