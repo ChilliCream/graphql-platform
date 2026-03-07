@@ -137,6 +137,13 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public IRabbitMQMessagingTransportDescriptor AutoProvision(bool autoProvision = true)
+    {
+        Configuration.AutoProvision = autoProvision;
+        return this;
+    }
+
+    /// <inheritdoc />
     public IRabbitMQMessagingTransportDescriptor ConnectionProvider(
         Func<IServiceProvider, IRabbitMQConnectionProvider> connectionProvider)
     {

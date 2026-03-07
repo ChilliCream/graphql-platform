@@ -206,6 +206,116 @@ builder.Services
 
 All explicitly declared topology is provisioned when the transport starts, before receive endpoints begin consuming.
 
+# Control auto-provisioning
+
+By default, the transport auto-provisions all topology resources (exchanges, queues, bindings) on the broker at startup. In production environments where infrastructure is managed externally - for example by Terraform, Ansible, or the [RabbitMQ Messaging Topology Operator](https://www.rabbitmq.com/kubernetes/operator/install-topology-operator) on Kubernetes - you can disable auto-provisioning so the transport expects resources to already exist.
+
+## Disable globally
+
+Turn off auto-provisioning for the entire transport:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.AutoProvision(false);
+    });
+```
+
+With auto-provisioning disabled, the transport will not create any exchanges, queues, or bindings. All resources must already exist on the broker before the transport starts.
+
+## Override per resource
+
+Individual resources can override the transport-level setting. This is useful when most topology is managed externally but a few resources need to be created dynamically:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRabbitMQ(transport =>
+    {
+        // Disable globally
+        transport.AutoProvision(false);
+
+        // This exchange already exists on the broker - skip provisioning
+        transport.DeclareExchange("order-events");
+
+        // This queue should be created by the transport
+        transport.DeclareQueue("billing-orders")
+            .AutoProvision(true);
+
+        // This binding should also be created
+        transport.DeclareBinding("order-events", "billing-orders")
+            .AutoProvision(true);
+    });
+```
+
+The effective auto-provision value for each resource follows a cascading pattern:
+
+| Resource setting | Transport setting | Result          |
+| ---------------- | ----------------- | --------------- |
+| `true`           | any               | Provisioned     |
+| `false`          | any               | Not provisioned |
+| not set          | `true` (default)  | Provisioned     |
+| not set          | `false`           | Not provisioned |
+
+When a resource does not specify `AutoProvision`, it inherits the transport-level default. When the transport does not specify `AutoProvision`, it defaults to `true`.
+
+## Common patterns
+
+**Fully managed infrastructure:** Disable auto-provisioning globally and declare all resources without `AutoProvision`. The transport will use existing broker resources without attempting to create them.
+
+```csharp
+transport.AutoProvision(false);
+transport.DeclareExchange("order-events");
+transport.DeclareQueue("billing-orders");
+transport.DeclareBinding("order-events", "billing-orders");
+```
+
+**Selective provisioning:** Disable globally but enable for specific resources that are owned by this service.
+
+```csharp
+transport.AutoProvision(false);
+transport.DeclareExchange("shared-events");              // managed externally
+transport.DeclareQueue("my-service-queue")
+    .AutoProvision(true);                                // owned by this service
+transport.DeclareBinding("shared-events", "my-service-queue")
+    .AutoProvision(true);                                // owned by this service
+```
+
+**Kubernetes with the Messaging Topology Operator:** When the [RabbitMQ Messaging Topology Operator](https://www.rabbitmq.com/kubernetes/operator/install-topology-operator) manages your exchanges, queues, and bindings as Kubernetes custom resources, disable auto-provisioning entirely. The operator declares topology through CRDs, and the transport simply uses the existing resources:
+
+```yaml
+# Kubernetes CRD - managed by the Messaging Topology Operator
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: billing-orders
+spec:
+  name: billing-orders
+  durable: true
+  rabbitmqClusterReference:
+    name: my-cluster
+```
+
+```csharp
+// Application code - topology already exists on the broker
+transport.AutoProvision(false);
+transport.DeclareExchange("order-events");
+transport.DeclareQueue("billing-orders");
+transport.DeclareBinding("order-events", "billing-orders");
+```
+
+**Opt-out individual resources:** Keep auto-provisioning enabled but skip specific resources that are managed elsewhere.
+
+```csharp
+transport.DeclareExchange("platform-events")
+    .AutoProvision(false);                               // managed by platform team
+transport.DeclareQueue("my-queue");                      // auto-provisioned (default)
+transport.DeclareBinding("platform-events", "my-queue"); // auto-provisioned (default)
+```
+
 # Prefetch and concurrency
 
 Customize queue names, prefetch counts, and handler assignments on receive endpoints:

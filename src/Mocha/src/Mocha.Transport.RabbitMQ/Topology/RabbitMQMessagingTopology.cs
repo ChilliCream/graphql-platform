@@ -13,6 +13,12 @@ public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transpo
     private readonly List<RabbitMQBinding> _bindings = [];
 
     /// <summary>
+    /// Gets a value indicating whether topology resources should be auto-provisioned by default.
+    /// Individual resources may override this setting via their own <c>AutoProvision</c> property.
+    /// </summary>
+    public bool AutoProvision { get; internal set; } = true;
+
+    /// <summary>
     /// Gets the list of exchanges registered in this topology.
     /// </summary>
     public IReadOnlyList<RabbitMQExchange> Exchanges => _exchanges;
