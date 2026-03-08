@@ -212,6 +212,7 @@
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
@@ -222,6 +223,7 @@
   <Folder Name="/HotChocolate/Fusion-vnext/test/">
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
@@ -335,6 +337,37 @@
   <Folder Name="/HotChocolate/Utilities/test/">
     <Project Path="HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj" />
     <Project Path="HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/" />
+  <Folder Name="/Mocha/src/">
+    <Project Path="Mocha/src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
+    <Project Path="Mocha/src/Mocha.EntityFrameworkCore.Postgres/Mocha.EntityFrameworkCore.Postgres.csproj" />
+    <Project Path="Mocha/src/Mocha.EntityFrameworkCore/Mocha.EntityFrameworkCore.csproj" />
+    <Project Path="Mocha/src/Mocha.Hosting/Mocha.Hosting.csproj" />
+    <Project Path="Mocha/src/Mocha.Outbox/Mocha.Outbox.csproj" />
+    <Project Path="Mocha/src/Mocha.Threading/Mocha.Threading.csproj" />
+    <Project Path="Mocha/src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
+    <Project Path="Mocha/src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
+    <Project Path="Mocha/src/Mocha/Mocha.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Demo/">
+    <Project Path="Mocha/src/Demo/Demo.AppHost/Demo.AppHost.csproj" />
+    <Project Path="Mocha/src/Demo/Demo.Billing/Demo.Billing.csproj" />
+    <Project Path="Mocha/src/Demo/Demo.Catalog/Demo.Catalog.csproj" />
+    <Project Path="Mocha/src/Demo/Demo.Contracts/Demo.Contracts.csproj" />
+    <Project Path="Mocha/src/Demo/Demo.ServiceDefaults/Demo.ServiceDefaults.csproj" />
+    <Project Path="Mocha/src/Demo/Demo.Shipping/Demo.Shipping.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/test/">
+    <Project Path="Mocha/test/Demo.Catalog.Tests/Demo.Catalog.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.EntityFrameworkCore.Postgres.Tests/Mocha.EntityFrameworkCore.Postgres.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Hosting.Tests/Mocha.Hosting.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Sagas.TestHelpers/Mocha.Sagas.TestHelpers.csproj" />
+    <Project Path="Mocha/test/Mocha.Sagas.Tests/Mocha.Sagas.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.TestHelpers/Mocha.TestHelpers.csproj" />
+    <Project Path="Mocha/test/Mocha.Tests/Mocha.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Transport.InMemory.Tests/Mocha.Transport.InMemory.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
   </Folder>
   <Folder Name="/Nitro/" />
   <Folder Name="/Nitro/CommandLine/" />

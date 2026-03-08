@@ -153,13 +153,24 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          document: |
-            query Op_2deb87e6_2 {
-              viewer {
-                schema2
-              }
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_2deb87e6_2 {
+                  viewer {
+                    schema2
+                  }
+                }
+            - document: |
+                query Op_2deb87e6_4 {
+                  viewer {
+                    settings {
+                      schema2
+                    }
+                  }
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -169,17 +180,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_2deb87e6_4 {
-              viewer {
-                settings {
-                  schema2
-                }
-              }
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -260,6 +260,7 @@ operationPlan:
             schema2
           }
         }
+      batchingGroupId: 1
     - id: 3
       type: Operation
       schema: C
@@ -280,3 +281,4 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1

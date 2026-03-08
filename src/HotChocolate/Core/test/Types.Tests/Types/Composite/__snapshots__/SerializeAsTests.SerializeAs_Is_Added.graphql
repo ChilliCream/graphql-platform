@@ -28,6 +28,6 @@ directive @serializeAs("The primitive type a scalar is serialized to." type: [Sc
 
 scalar Custom1 @serializeAs(type: STRING)
 
-scalar Custom2 @serializeAs(type: [ STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST ])
+scalar Custom2 @serializeAs(type: [STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST])
 
 scalar Custom3 @serializeAs(type: STRING, pattern: "\\b\\d{3}\\b")

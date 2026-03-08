@@ -84,7 +84,7 @@ internal class ForwardPaginationContainer<TResult, TEdge>
         if (!HasNext())
         {
             throw new ExitException(
-                "The end of the connection was reached, but nitro tried to fetch next");
+                "The end of the connection was reached, but Nitro tried to fetch next");
         }
 
         if (_currentPage < _pages.Count - 1)
@@ -110,7 +110,7 @@ internal class ForwardPaginationContainer<TResult, TEdge>
         if (!HasPrevious())
         {
             throw new ExitException(
-                "The start of the connection was reached, but nitro tried to fetch previous");
+                "The start of the connection was reached, but Nitro tried to fetch previous");
         }
 
         return new ValueTask<IReadOnlyList<TEdge>>(_pages[--_currentPage]);

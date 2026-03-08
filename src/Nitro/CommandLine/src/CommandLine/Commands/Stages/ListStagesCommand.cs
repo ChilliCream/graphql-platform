@@ -45,7 +45,7 @@ internal sealed class ListStagesCommand : Command
         IApiClient client,
         CancellationToken ct)
     {
-        const string apiMessage = "For which api do you want to display the clients?";
+        const string apiMessage = "For which API do you want to display the clients?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         var result = await client.ListStagesQuery.ExecuteAsync(apiId, ct);
@@ -58,7 +58,7 @@ internal sealed class ListStagesCommand : Command
 
         var stage = await SelectableTable
             .From(stages)
-            .Title($"Stages of api {apiId}")
+            .Title($"Stages of API {apiId}")
             .AddColumn("Id", x => x.Id)
             .AddColumn("Name", x => x.Name)
             .AddColumn("After",
@@ -85,7 +85,7 @@ internal sealed class ListStagesCommand : Command
         var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
         if (apiId is null)
         {
-            throw ThrowHelper.Exit("The api id is required in non-interactive mode.");
+            throw ThrowHelper.Exit("The API ID is required in non-interactive mode.");
         }
 
         var result = await client.ListStagesQuery.ExecuteAsync(apiId, ct);

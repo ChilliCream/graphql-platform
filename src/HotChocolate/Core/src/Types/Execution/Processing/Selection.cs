@@ -23,6 +23,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     internal Selection(
         int id,
         string responseName,
+        SelectionPath fieldSelectionPath,
         ObjectField field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
@@ -31,7 +32,8 @@ public sealed class Selection : ISelection, IFeatureProvider
         bool isInternal = false,
         ArgumentMap? arguments = null,
         FieldDelegate? resolverPipeline = null,
-        PureFieldDelegate? pureResolver = null)
+        PureFieldDelegate? pureResolver = null,
+        BatchFieldDelegate? batchResolverPipeline = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -44,14 +46,17 @@ public sealed class Selection : ISelection, IFeatureProvider
 
         Id = id;
         ResponseName = responseName;
+        FieldSelectionPath = fieldSelectionPath;
         Field = field;
         Type = field.Type;
         Arguments = arguments ?? s_emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
+        BatchResolverPipeline = batchResolverPipeline;
         Strategy = InferStrategy(
             isSerial: !field.IsParallelExecutable,
-            hasPureResolver: pureResolver is not null);
+            hasPureResolver: pureResolver is not null,
+            hasBatchResolver: batchResolverPipeline is not null);
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _deferUsage = deferUsage ?? [];
@@ -75,6 +80,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         int id,
         string responseName,
         byte[] utf8ResponseName,
+        SelectionPath fieldSelectionPath,
         ObjectField field,
         IType type,
         FieldSelectionNode[] syntaxNodes,
@@ -85,15 +91,18 @@ public sealed class Selection : ISelection, IFeatureProvider
         ArgumentMap? arguments,
         SelectionExecutionStrategy strategy,
         FieldDelegate? resolverPipeline,
-        PureFieldDelegate? pureResolver)
+        PureFieldDelegate? pureResolver,
+        BatchFieldDelegate? batchResolverPipeline)
     {
         Id = id;
         ResponseName = responseName;
+        FieldSelectionPath = fieldSelectionPath;
         Field = field;
         Type = type;
         Arguments = arguments ?? s_emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
+        BatchResolverPipeline = batchResolverPipeline;
         Strategy = strategy;
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
@@ -110,6 +119,8 @@ public sealed class Selection : ISelection, IFeatureProvider
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
+
+    public SelectionPath FieldSelectionPath { get; }
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
@@ -186,6 +197,13 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// Gets the pure resolver delegate for this selection.
     /// </summary>
     public PureFieldDelegate? PureResolver { get; private set; }
+
+    /// <summary>
+    /// Gets the batch resolver pipeline delegate for this selection.
+    /// When set, the field is resolved using a batch pipeline that receives
+    /// multiple parent contexts in a single invocation.
+    /// </summary>
+    public BatchFieldDelegate? BatchResolverPipeline { get; private set; }
 
     /// <summary>
     /// Gets the syntax nodes that contributed to this selection.
@@ -283,7 +301,7 @@ public sealed class Selection : ISelection, IFeatureProvider
 
     /// <inheritdoc />
     public bool IsDeferred(ulong deferFlags)
-        => _deferMask != 0 && (_deferMask & deferFlags) == _deferMask;
+        => _deferMask != 0 && (_deferMask & deferFlags) != 0;
 
     /// <summary>
     /// Determines whether this selection is deferred relative to a parent defer usage.
@@ -305,17 +323,17 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// </returns>
     public bool IsDeferred(ulong deferFlags, DeferUsage? parentDeferUsage)
     {
-        if (_deferMask != 0 && (_deferMask & deferFlags) == _deferMask)
+        if (_deferMask != 0 && (_deferMask & deferFlags) != 0)
         {
             if (parentDeferUsage is null)
             {
                 return true;
             }
 
-            // If the primary defer usage matches the parent's defer context,
-            // this selection is already being delivered in that context
-            // and does not need to be deferred separately.
-            if (ReferenceEquals(GetPrimaryDeferUsage(deferFlags), parentDeferUsage))
+            // If the parent's defer usage is in this selection's active defer usage set,
+            // this selection belongs to the parent's context and does not need to be
+            // deferred separately.
+            if (HasActiveDeferUsage(deferFlags, parentDeferUsage))
             {
                 return false;
             }
@@ -418,6 +436,192 @@ public sealed class Selection : ISelection, IFeatureProvider
         return primary;
     }
 
+    /// <summary>
+    /// Returns all active defer usages for this selection given the active defer flags.
+    /// If any occurrence of the field is non-deferred (i.e., a defer usage chain leads to no
+    /// active defer), returns <c>null</c> — the field belongs in the initial response.
+    /// Parent-child pruning is applied: if a parent and child defer are both active,
+    /// only the parent is kept.
+    /// </summary>
+    /// <param name="deferFlags">The active defer flags.</param>
+    /// <returns>
+    /// The array of active defer usages (pruned), or <c>null</c> if the field is not deferred.
+    /// </returns>
+    public DeferUsage[]? GetActiveDeferUsages(ulong deferFlags)
+    {
+        if (_deferUsage.Length == 0)
+        {
+            return null;
+        }
+
+        // Fast path for single defer usage (most common case).
+        if (_deferUsage.Length == 1)
+        {
+            var usage = _deferUsage[0];
+
+            while (usage is not null)
+            {
+                if ((deferFlags & (1UL << usage.DeferConditionIndex)) != 0)
+                {
+                    return [usage];
+                }
+
+                usage = usage.Parent;
+            }
+
+            return null;
+        }
+
+        // Multiple defer usages: resolve each to its nearest active ancestor.
+        DeferUsage[]? result = null;
+        var count = 0;
+
+        for (var i = 0; i < _deferUsage.Length; i++)
+        {
+            var effective = _deferUsage[i];
+
+            while (effective is not null)
+            {
+                if ((deferFlags & (1UL << effective.DeferConditionIndex)) != 0)
+                {
+                    break;
+                }
+
+                effective = effective.Parent;
+            }
+
+            if (effective is null)
+            {
+                // This occurrence has no active defer in its chain.
+                // The field appears non-deferred and belongs in the initial response.
+                return null;
+            }
+
+            // Check if we already have this effective usage (dedup).
+            var isDuplicate = false;
+            if (result is not null)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    if (result[j] == effective)
+                    {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!isDuplicate)
+            {
+                result ??= new DeferUsage[_deferUsage.Length];
+                result[count++] = effective;
+            }
+        }
+
+        if (result is null || count == 0)
+        {
+            return null;
+        }
+
+        // Prune parent-child: if a parent and child are both in the set,
+        // remove the child (keep only the outermost).
+        for (var i = count - 1; i >= 0; i--)
+        {
+            var ancestor = result[i].Parent;
+
+            while (ancestor is not null)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    if (j != i && result[j] == ancestor)
+                    {
+                        // result[i] is a child of result[j] — remove it
+                        // and break out of both the inner for and while loops.
+                        result[i] = result[--count];
+                        goto nextItem;
+                    }
+                }
+
+                ancestor = ancestor.Parent;
+            }
+
+// We use goto to avoid an additional boolean condition check on every
+// while-loop iteration that a break+flag approach would require.
+nextItem:
+            ;
+        }
+
+        if (count == 0)
+        {
+            return null;
+        }
+
+        if (count < result.Length)
+        {
+            Array.Resize(ref result, count);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Determines whether the specified <paramref name="target"/> defer usage is among
+    /// this selection's active defer usages (after resolving inactive defers to their
+    /// nearest active ancestor and applying parent-child pruning).
+    /// </summary>
+    /// <param name="deferFlags">The active defer flags.</param>
+    /// <param name="target">The defer usage to look for.</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="target"/> is in the active defer usage set.
+    /// </returns>
+    public bool HasActiveDeferUsage(ulong deferFlags, DeferUsage target)
+    {
+        if (_deferUsage.Length == 0)
+        {
+            return false;
+        }
+
+        // Resolve each defer usage to its nearest active ancestor and check
+        // if any resolves to the target. We also need to check that no
+        // occurrence is non-deferred (which would make the whole field non-deferred).
+        var hasNonDeferred = false;
+        var found = false;
+
+        for (var i = 0; i < _deferUsage.Length; i++)
+        {
+            var effective = _deferUsage[i];
+
+            while (effective is not null)
+            {
+                if ((deferFlags & (1UL << effective.DeferConditionIndex)) != 0)
+                {
+                    break;
+                }
+
+                effective = effective.Parent;
+            }
+
+            if (effective is null)
+            {
+                hasNonDeferred = true;
+                break;
+            }
+
+            if (effective == target)
+            {
+                found = true;
+            }
+        }
+
+        // If any occurrence is non-deferred, the field is not deferred at all.
+        if (hasNonDeferred)
+        {
+            return false;
+        }
+
+        return found;
+    }
+
     public Selection WithField(ObjectField field)
     {
         ArgumentNullException.ThrowIfNull(field);
@@ -426,6 +630,7 @@ public sealed class Selection : ISelection, IFeatureProvider
             Id,
             ResponseName,
             _utf8ResponseName,
+            FieldSelectionPath,
             field,
             field.Type,
             _syntaxNodes,
@@ -436,7 +641,8 @@ public sealed class Selection : ISelection, IFeatureProvider
             Arguments,
             Strategy,
             ResolverPipeline,
-            PureResolver);
+            PureResolver,
+            BatchResolverPipeline);
 
         selection._declaringSelectionSet = _declaringSelectionSet;
 
@@ -451,6 +657,7 @@ public sealed class Selection : ISelection, IFeatureProvider
             Id,
             ResponseName,
             _utf8ResponseName,
+            FieldSelectionPath,
             Field,
             type,
             _syntaxNodes,
@@ -461,7 +668,8 @@ public sealed class Selection : ISelection, IFeatureProvider
             Arguments,
             Strategy,
             ResolverPipeline,
-            PureResolver);
+            PureResolver,
+            BatchResolverPipeline);
 
         selection._declaringSelectionSet = _declaringSelectionSet;
 
@@ -480,7 +688,8 @@ public sealed class Selection : ISelection, IFeatureProvider
 
     internal void SetResolvers(
         FieldDelegate? resolverPipeline = null,
-        PureFieldDelegate? pureResolver = null)
+        PureFieldDelegate? pureResolver = null,
+        BatchFieldDelegate? batchResolverPipeline = null)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -489,7 +698,10 @@ public sealed class Selection : ISelection, IFeatureProvider
 
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
-        Strategy = InferStrategy(hasPureResolver: pureResolver is not null);
+        BatchResolverPipeline = batchResolverPipeline;
+        Strategy = InferStrategy(
+            hasPureResolver: pureResolver is not null,
+            hasBatchResolver: batchResolverPipeline is not null);
     }
 
     /// <summary>
@@ -510,8 +722,15 @@ public sealed class Selection : ISelection, IFeatureProvider
 
     private SelectionExecutionStrategy InferStrategy(
         bool isSerial = false,
-        bool hasPureResolver = false)
+        bool hasPureResolver = false,
+        bool hasBatchResolver = false)
     {
+        // batch resolver takes precedence — it handles its own execution strategy.
+        if (hasBatchResolver)
+        {
+            return SelectionExecutionStrategy.Batch;
+        }
+
         // once a field is marked serial it even with a pure resolver cannot become pure.
         if (Strategy is SelectionExecutionStrategy.Serial || isSerial)
         {

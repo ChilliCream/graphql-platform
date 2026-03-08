@@ -167,7 +167,7 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 delivery(zip: String!
                     @fusion__inputField(schema: A)): DeliveryEstimates
                     @fusion__field(schema: A)
-                    @fusion__requires(schema: A, requirements: "dimension { size weight }", field: "delivery(zip: String! size: Int! weight: Int!): DeliveryEstimates", map: [ null, "dimension.size", "dimension.weight" ])
+                    @fusion__requires(schema: A, requirements: "dimension { size weight }", field: "delivery(zip: String! size: Int! weight: Int!): DeliveryEstimates", map: [null, "dimension.size", "dimension.weight"])
                 dimension: ProductDimension!
                     @fusion__field(schema: A)
                 id: ID!

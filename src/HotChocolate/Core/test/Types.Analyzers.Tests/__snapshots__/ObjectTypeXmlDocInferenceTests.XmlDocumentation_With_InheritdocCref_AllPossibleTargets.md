@@ -1,4 +1,4 @@
-﻿# XmlDocumentation_With_InheritdocCref_AllPossibleTargets
+# XmlDocumentation_With_InheritdocCref_AllPossibleTargets
 
 ## HotChocolateTypeModule.735550c.g.cs
 
@@ -376,4 +376,3 @@ namespace TestNamespace
   }
 ]
 ```
-

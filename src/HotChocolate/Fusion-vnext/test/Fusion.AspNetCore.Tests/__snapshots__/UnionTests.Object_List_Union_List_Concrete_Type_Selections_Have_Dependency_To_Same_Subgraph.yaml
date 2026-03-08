@@ -233,83 +233,57 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_42ede545_2(
-              $__fusion_1_id: ID!
-            ) {
-              authorById(id: $__fusion_1_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_1_id": "QXV0aG9yOjIw"
-              },
-              {
-                "__fusion_1_id": "QXV0aG9yOjE3"
-              },
-              {
-                "__fusion_1_id": "QXV0aG9yOjE0"
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjIw"
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_42ede545_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    subgraph2
                   }
                 }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjE3"
+              variables: |
+                [
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjIw"
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjE3"
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjE0"
+                  }
+                ]
+            - document: |
+                query testQuery_42ede545_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  productById(id: $__fusion_2_id) {
+                    subgraph2
                   }
                 }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjE0"
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxOQ=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoyMQ=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxNg=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxOA=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxMw=="
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoxNQ=="
                   }
-                }
-              }
-      - request:
-          document: |
-            query testQuery_42ede545_3(
-              $__fusion_2_id: ID!
-            ) {
-              productById(id: $__fusion_2_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoyMQ=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxNg=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxOA=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxMw=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
-              }
-            ]
+                ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
@@ -317,7 +291,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+                    "subgraph2": "Product: UHJvZHVjdDoxMw=="
                   }
                 }
               }
@@ -325,7 +299,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                    "subgraph2": "Product: UHJvZHVjdDoxNQ=="
                   }
                 }
               }
@@ -349,7 +323,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxMw=="
+                    "subgraph2": "Product: UHJvZHVjdDoxOQ=="
                   }
                 }
               }
@@ -357,7 +331,31 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxNQ=="
+                    "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjE3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjE0"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjIw"
                   }
                 }
               }
@@ -422,6 +420,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.users.posts<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -441,6 +440,7 @@ operationPlan:
         }
       source: $.productById
       target: $.users.posts<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

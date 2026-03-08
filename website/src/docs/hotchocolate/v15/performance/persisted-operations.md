@@ -148,12 +148,8 @@ Unlike with Redis, a Blob Storage client has no easy way to set the expiration o
           }
         },
         "filters": {
-          "blobTypes": [
-            "blockBlob"
-          ],
-          "prefixMatch": [
-            "hotchocolate/"
-          ]
+          "blobTypes": ["blockBlob"],
+          "prefixMatch": ["hotchocolate/"]
         }
       }
     }

@@ -469,6 +469,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// A predicate that can be used to specify to which parameter the
     /// expression shall be applied to.
     /// </param>
+    /// <param name="isPure">
+    /// Defines if the parameter expression can be used for pure resolvers.
+    /// </param>
     /// <typeparam name="T">
     /// The parameter result type.
     /// </typeparam>
@@ -479,7 +482,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddParameterExpressionBuilder<T>(
         this IRequestExecutorBuilder builder,
         Expression<Func<IResolverContext, T>> expression,
-        Func<ParameterInfo, bool>? canHandle = null)
+        Func<ParameterInfo, bool>? canHandle = null,
+        bool isPure = true)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(expression);
@@ -487,12 +491,12 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         if (canHandle is null)
         {
             builder.Services.AddParameterExpressionBuilder(
-                _ => new CustomParameterExpressionBuilder<T>(expression));
+                _ => new CustomParameterExpressionBuilder<T>(expression, isPure));
         }
         else
         {
             builder.Services.AddParameterExpressionBuilder(
-                _ => new CustomParameterExpressionBuilder<T>(expression, canHandle));
+                _ => new CustomParameterExpressionBuilder<T>(expression, canHandle, isPure));
         }
 
         return builder;

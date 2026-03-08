@@ -75,7 +75,6 @@ public sealed class ResolverParameter
             ResolverParameterKind.Parent or
             ResolverParameterKind.Service or
             ResolverParameterKind.GetGlobalState or
-            ResolverParameterKind.SetGlobalState or
             ResolverParameterKind.GetScopedState or
             ResolverParameterKind.HttpContext or
             ResolverParameterKind.HttpRequest or

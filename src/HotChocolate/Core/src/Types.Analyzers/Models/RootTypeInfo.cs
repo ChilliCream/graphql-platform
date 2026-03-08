@@ -10,6 +10,7 @@ public sealed class RootTypeInfo
     , IOutputTypeInfo
 {
     public RootTypeInfo(
+        Compilation compilation,
         INamedTypeSymbol schemaType,
         OperationType operationType,
         ClassDeclarationSyntax classDeclarationSyntax,
@@ -21,7 +22,7 @@ public sealed class RootTypeInfo
         SchemaTypeFullName = schemaType.ToDisplayString();
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
-        Description = schemaType.GetDescription();
+        Description = compilation.GetDescription(schemaType);
         Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();

@@ -1,0 +1,17 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input TypeWithDeprecatedFieldSortInput {
+  foo: SortEnumType
+  deprecatedField: SortEnumType @deprecated(reason: "old")
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}

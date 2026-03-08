@@ -7,7 +7,11 @@ export const EvolveImage: FC = () => {
     <img
       src="/images/startpage/evolve.png"
       alt="Observe"
-      style={{ maxWidth: EVOLVE_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      style={{
+        maxWidth: EVOLVE_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };

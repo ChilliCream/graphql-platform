@@ -89,6 +89,61 @@ public class QueryContextUnionProjectionTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task AsSelector_With_Nested_Object_List_Projects_Data()
+    {
+        var executor = await CreateExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              inspectionTemplates {
+                fields {
+                  key
+                }
+              }
+            }
+            """);
+
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors ?? []);
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AsSelector_With_List_Of_Union_Field_Projects_Data()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<TenantQuery>()
+            .AddType<Entry>()
+            .AddType<FileEntry>()
+            .AddType<FolderEntry>()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              tenants {
+                name
+                entries {
+                  ... on FileEntry {
+                    fileName
+                  }
+                  ... on FolderEntry {
+                    folderName
+                  }
+                }
+              }
+            }
+            """);
+
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors ?? []);
+        result.MatchSnapshot();
+    }
+
     private static async Task<IRequestExecutor> CreateExecutorAsync()
         => await new ServiceCollection()
             .AddGraphQL()
@@ -104,18 +159,22 @@ public class QueryContextUnionProjectionTests
     public class Query
     {
         public IQueryable<InspectionDefinition> GetInspectionDefinitions(ISelection selection)
-            => SingleData.AsQueryable()
+            => s_singleData.AsQueryable()
                 .Select(selection.AsSelector<InspectionDefinition>());
 
         [UsePaging]
         public IQueryable<InspectionDefinition> GetPagedInspectionDefinitions(ISelection selection)
-            => SingleData.AsQueryable()
+            => s_singleData.AsQueryable()
                 .Select(selection.AsSelector<InspectionDefinition>());
 
         [UsePaging]
         public IQueryable<InspectionGroup> GetPagedInspectionGroups(ISelection selection)
-            => GroupData.AsQueryable()
+            => s_groupData.AsQueryable()
                 .Select(selection.AsSelector<InspectionGroup>());
+
+        public IQueryable<InspectionTemplate> GetInspectionTemplates(ISelection selection)
+            => s_templateData.AsQueryable()
+                .Select(selection.AsSelector<InspectionTemplate>());
     }
 
     public class InspectionDefinition
@@ -134,6 +193,20 @@ public class QueryContextUnionProjectionTests
         public string Name { get; set; } = string.Empty;
 
         public IReadOnlyList<InspectionDefinition> Definitions { get; set; } = [];
+    }
+
+    public class InspectionTemplate
+    {
+        public int Id { get; set; }
+
+        public IReadOnlyList<InspectionTemplateField> Fields { get; set; } = [];
+    }
+
+    public class InspectionTemplateField
+    {
+        public string Key { get; set; } = string.Empty;
+
+        public string Label { get; set; } = string.Empty;
     }
 
     [ExtendObjectType<InspectionGroup>]
@@ -173,7 +246,7 @@ public class QueryContextUnionProjectionTests
             var query = context.GetQueryContext<Page<InspectionDefinition>, InspectionDefinition>();
             var pageSize = pagingArgs.First ?? pagingArgs.Last ?? int.MaxValue;
 
-            var grouped = GroupDefinitionData
+            var grouped = s_groupDefinitionData
                 .Where(x => keys.Contains(x.GroupId))
                 .GroupBy(x => x.GroupId)
                 .ToDictionary(x => x.Key, x => x.ToArray());
@@ -215,7 +288,7 @@ public class QueryContextUnionProjectionTests
         public required string FieldModelKey { get; set; }
     }
 
-    private static readonly InspectionDefinition[] SingleData =
+    private static readonly InspectionDefinition[] s_singleData =
     [
         new()
         {
@@ -228,7 +301,7 @@ public class QueryContextUnionProjectionTests
         }
     ];
 
-    private static readonly InspectionGroup[] GroupData =
+    private static readonly InspectionGroup[] s_groupData =
     [
         new()
         {
@@ -237,7 +310,7 @@ public class QueryContextUnionProjectionTests
         }
     ];
 
-    private static readonly InspectionDefinition[] GroupDefinitionData =
+    private static readonly InspectionDefinition[] s_groupDefinitionData =
     [
         new()
         {
@@ -256,6 +329,78 @@ public class QueryContextUnionProjectionTests
             {
                 FieldModelKey = "field-2"
             }
+        }
+    ];
+
+    private static readonly InspectionTemplate[] s_templateData =
+    [
+        new()
+        {
+            Id = 1,
+            Fields =
+            [
+                new()
+                {
+                    Key = "field-1",
+                    Label = "Field 1"
+                },
+                new()
+                {
+                    Key = "field-2",
+                    Label = "Field 2"
+                }
+            ]
+        }
+    ];
+
+    // --- List union projection types ---
+
+    public class TenantQuery
+    {
+        public IQueryable<Tenant> GetTenants(ISelection selection)
+            => s_tenantData.AsQueryable()
+                .Select(selection.AsSelector<Tenant>());
+    }
+
+    public class Tenant
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public List<Entry> Entries { get; set; } = [];
+    }
+
+    [UnionType]
+    public abstract class Entry
+    {
+        public int Id { get; set; }
+    }
+
+    [ObjectType]
+    public class FileEntry : Entry
+    {
+        public required string FileName { get; set; }
+    }
+
+    [ObjectType]
+    public class FolderEntry : Entry
+    {
+        public required string FolderName { get; set; }
+    }
+
+    private static readonly Tenant[] s_tenantData =
+    [
+        new()
+        {
+            Id = 1,
+            Name = "tenant-1",
+            Entries =
+            [
+                new FileEntry { Id = 1, FileName = "file-1.txt" },
+                new FolderEntry { Id = 2, FolderName = "folder-1" },
+                new FileEntry { Id = 3, FileName = "file-2.txt" }
+            ]
         }
     ];
 }

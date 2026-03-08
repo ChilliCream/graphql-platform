@@ -1068,4 +1068,19 @@ Type: `{0}`</value>
   <data name="OptInFeatureStabilityDirective_Stability_NotValid" xml:space="preserve">
     <value>The stability must follow the GraphQL type name rules.</value>
   </data>
+  <data name="DateTimeOptions_InputPrecision_InvalidValue" xml:space="preserve">
+    <value>InputPrecision must be less than or equal to 7.</value>
+  </data>
+  <data name="DateTimeOptions_OutputPrecision_InvalidValue" xml:space="preserve">
+    <value>OutputPrecision must be less than or equal to 7.</value>
+  </data>
+  <data name="BatchResolver_ArgumentMustBeList" xml:space="preserve">
+    <value>The parameter '{0}' on a batch resolver must be a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers receive one value per parent object, so all argument parameters must be collections.</value>
+  </data>
+  <data name="BatchResolver_ResultCountMismatch" xml:space="preserve">
+    <value>A batch resolver must return exactly one result per context. Expected {0} results but got {1}.</value>
+  </data>
+  <data name="BatchResolver_ReturnTypeMustBeList" xml:space="preserve">
+    <value>The batch resolver method '{0}.{1}' must return a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers return one result per parent object, so the return type must be a collection.</value>
+  </data>
 </root>
