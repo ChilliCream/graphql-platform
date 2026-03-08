@@ -322,8 +322,8 @@ All auto-provisioned resources are durable by default and survive broker restart
 
 - [Transports Overview](/docs/mocha/v1/transports) - Understand the transport abstraction and lifecycle.
 - [Handlers and Consumers](/docs/mocha/v1/handlers-and-consumers) - Learn about handler types and consumer configuration.
-- [Reliability](/docs/mocha/v1/reliability) - Configure dead-letter routing, outbox, and fault handling.
+- [Reliability](/docs/mocha/v1/reliability) - Configure dead-letter routing, outbox, inbox, and fault handling.
 
 > **Runnable example:** [RabbitMQ](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Transports/RabbitMQ)
 >
-> **Full demo:** All three Demo services use RabbitMQ in production mode with .NET Aspire. See [Demo.AppHost](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.AppHost) for the Aspire orchestration and [Demo.Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog) for a complete service using `.AddRabbitMQ()` with outbox, sagas, and multiple handler types.
+> **Full demo:** All three Demo services use RabbitMQ in production mode with .NET Aspire. See [Demo.AppHost](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.AppHost) for the Aspire orchestration and [Demo.Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog) for a complete service using `.AddRabbitMQ()` with outbox, inbox, sagas, and multiple handler types.

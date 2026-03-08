@@ -5,6 +5,7 @@ using Demo.Shipping.Handlers;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
+using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
 
@@ -28,7 +29,10 @@ builder
     .AddRequestHandler<GetShipmentStatusRequestHandler>()
     .AddRequestHandler<CreateReturnLabelCommandHandler>()
     .AddEntityFramework<ShippingDbContext>(p =>
-        p.AddPostgresOutbox())
+    {
+        p.AddPostgresOutbox();
+        p.UsePostgresInbox();
+    })
     .AddRabbitMQ();
 
 var app = builder.Build();

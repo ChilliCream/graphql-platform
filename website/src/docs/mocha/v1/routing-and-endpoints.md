@@ -314,5 +314,5 @@ The middleware pipeline is compiled per-endpoint from the same three layers: bus
 Your routing and endpoint configuration is set. From here:
 
 - [**Middleware and Pipelines**](/docs/mocha/v1/middleware-and-pipelines) - Write custom middleware, control pipeline ordering, and understand how the three pipeline stages interact. Want to customize the processing pipeline? That's the next page.
-- [**Reliability**](/docs/mocha/v1/reliability) - Configure fault handling, circuit breakers, concurrency limits, and the transactional outbox.
+- [**Reliability**](/docs/mocha/v1/reliability) - Configure fault handling, circuit breakers, concurrency limits, the transactional outbox, and the idempotent inbox.
 - [**Transports**](/docs/mocha/v1/transports) - Dive into transport-specific configuration for RabbitMQ and InMemory.

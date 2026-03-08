@@ -130,8 +130,8 @@ builder.Services
     .AddEntityFramework<AppDbContext>(p =>
     {
         p.AddPostgresOutbox();
-        p.AddPostgresInbox();
         p.UseTransaction();
+        p.UsePostgresInbox();
     })
     .AddRabbitMQ();
 ```

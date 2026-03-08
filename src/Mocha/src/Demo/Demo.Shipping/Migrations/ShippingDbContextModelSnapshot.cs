@@ -23,44 +23,14 @@ namespace Demo.Shipping.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Mocha.Outbox.OutboxMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<JsonDocument>("Envelope")
-                        .IsRequired()
-                        .HasColumnType("json")
-                        .HasColumnName("envelope");
-
-                    b.Property<int>("TimesSent")
-                        .HasColumnType("integer")
-                        .HasColumnName("times_sent");
-
-                    b.HasKey("Id")
-                        .HasName("ix_outbox_messages_primary_key");
-
-                    b.HasIndex("CreatedAt")
-                        .IsDescending()
-                        .HasDatabaseName("ix_outbox_messages_created_at");
-
-                    b.HasIndex("TimesSent")
-                        .HasDatabaseName("ix_outbox_messages_times_sent");
-
-                    b.ToTable("outbox_messages", (string)null);
-                });
-
             modelBuilder.Entity("Demo.Shipping.Entities.ReturnShipment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -84,6 +54,15 @@ namespace Demo.Shipping.Migrations
 
                     b.Property<Guid>("OriginalShipmentId")
                         .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("ReceivedAt")
                         .HasColumnType("timestamp with time zone");
@@ -179,6 +158,66 @@ namespace Demo.Shipping.Migrations
                     b.HasIndex("ShipmentId");
 
                     b.ToTable("ShipmentItems");
+                });
+
+            modelBuilder.Entity("Mocha.Inbox.InboxMessage", b =>
+                {
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("message_id");
+
+                    b.Property<string>("MessageType")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("message_type");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("MessageId")
+                        .HasName("ix_inbox_messages_primary_key");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("ix_inbox_messages_processed_at");
+
+                    b.ToTable("inbox_messages", (string)null);
+                });
+
+            modelBuilder.Entity("Mocha.Outbox.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<JsonDocument>("Envelope")
+                        .IsRequired()
+                        .HasColumnType("json")
+                        .HasColumnName("envelope");
+
+                    b.Property<int>("TimesSent")
+                        .HasColumnType("integer")
+                        .HasColumnName("times_sent");
+
+                    b.HasKey("Id")
+                        .HasName("ix_outbox_messages_primary_key");
+
+                    b.HasIndex("CreatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("ix_outbox_messages_created_at");
+
+                    b.HasIndex("TimesSent")
+                        .HasDatabaseName("ix_outbox_messages_times_sent");
+
+                    b.ToTable("outbox_messages", (string)null);
                 });
 
             modelBuilder.Entity("Demo.Shipping.Entities.ReturnShipment", b =>

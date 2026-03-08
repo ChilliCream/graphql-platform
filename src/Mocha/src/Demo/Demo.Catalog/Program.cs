@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
 using Mocha.Hosting;
+using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Sagas;
 using Mocha.Transport.RabbitMQ;
@@ -41,6 +42,7 @@ builder
     .AddEntityFramework<CatalogDbContext>(p =>
     {
         p.AddPostgresOutbox();
+        p.UsePostgresInbox();
         p.AddPostgresSagas();
         p.UseResilience();
         p.UseTransaction();
