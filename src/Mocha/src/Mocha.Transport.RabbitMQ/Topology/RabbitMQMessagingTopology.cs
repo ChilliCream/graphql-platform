@@ -7,13 +7,20 @@ namespace Mocha.Transport.RabbitMQ;
 public sealed class RabbitMQMessagingTopology(
     RabbitMQMessagingTransport transport,
     Uri baseAddress,
-    RabbitMQBusDefaults defaults)
+    RabbitMQBusDefaults defaults,
+    bool autoProvision)
     : MessagingTopology<RabbitMQMessagingTransport>(transport, baseAddress)
 {
     private readonly object _lock = new();
     private readonly List<RabbitMQExchange> _exchanges = [];
     private readonly List<RabbitMQQueue> _queues = [];
     private readonly List<RabbitMQBinding> _bindings = [];
+
+    /// <summary>
+    /// Gets a value indicating whether topology resources should be auto-provisioned by default.
+    /// Individual resources may override this setting via their own <c>AutoProvision</c> property.
+    /// </summary>
+    public bool AutoProvision => autoProvision;
 
     /// <summary>
     /// Gets the list of exchanges registered in this topology.

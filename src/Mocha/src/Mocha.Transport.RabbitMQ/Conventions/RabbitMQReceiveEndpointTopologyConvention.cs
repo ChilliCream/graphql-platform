@@ -32,7 +32,8 @@ public sealed class RabbitMQReceiveEndpointTopologyConvention : IRabbitMQReceive
                 new RabbitMQQueueConfiguration
                 {
                     Name = configuration.QueueName,
-                    AutoDelete = endpoint.Kind == ReceiveEndpointKind.Reply
+                    AutoDelete = endpoint.Kind == ReceiveEndpointKind.Reply,
+                    AutoProvision = configuration.AutoProvision
                 });
         }
 

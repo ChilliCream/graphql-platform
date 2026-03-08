@@ -70,6 +70,17 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <returns>A binding descriptor for further configuration.</returns>
     IRabbitMQBindingDescriptor DeclareBinding(string exchange, string queue);
 
+    /// <summary>
+    /// Sets whether topology resources should be automatically provisioned on the broker.
+    /// When disabled, queues, exchanges, and bindings must exist before the transport starts.
+    /// Individual resources can override this setting via their own <c>AutoProvision</c> method.
+    /// </summary>
+    /// <param name="autoProvision">
+    /// <c>true</c> to enable auto-provisioning (default); <c>false</c> to disable it globally.
+    /// </param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQMessagingTransportDescriptor AutoProvision(bool autoProvision = true);
+
     /// <inheritdoc cref="IMessagingTransportDescriptor.Name" />
     new IRabbitMQMessagingTransportDescriptor Name(string name);
 
