@@ -148,7 +148,7 @@ public class OpenTelemetryTests
     }
 
     [Fact]
-    public void WithActivity_Sets_Trace_Headers_From_Current_Activity()
+    public void WithActivity_Sets_Traceparent_Header_From_Current_Activity()
     {
         // arrange
         using var source = new ActivitySource("test-source");
@@ -166,20 +166,17 @@ public class OpenTelemetryTests
         headers.WithActivity();
 
         // assert
-        Assert.True(headers.ContainsKey(MessageHeaders.TraceId.Key));
-        Assert.True(headers.ContainsKey(MessageHeaders.SpanId.Key));
+        Assert.True(headers.ContainsKey(MessageHeaders.Traceparent.Key));
 
-        var traceId = headers.GetValue(MessageHeaders.TraceId.Key) as string;
-        var spanId = headers.GetValue(MessageHeaders.SpanId.Key) as string;
+        var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
+        Assert.NotNull(traceparent);
 
-        Assert.NotNull(traceId);
-        Assert.NotNull(spanId);
-        Assert.Equal(activity.TraceId.ToHexString(), traceId);
-        Assert.Equal(activity.SpanId.ToHexString(), spanId);
+        var expected = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-01";
+        Assert.Equal(expected, traceparent);
     }
 
     [Fact]
-    public void WithActivity_Sets_TraceState_When_Activity_Has_TraceState()
+    public void WithActivity_Sets_Tracestate_When_Activity_Has_TraceState()
     {
         // arrange
         using var source = new ActivitySource("test-source");
@@ -198,13 +195,13 @@ public class OpenTelemetryTests
         headers.WithActivity();
 
         // assert
-        Assert.True(headers.ContainsKey(MessageHeaders.TraceState.Key));
-        var traceState = headers.GetValue(MessageHeaders.TraceState.Key) as string;
-        Assert.Equal("key1=value1,key2=value2", traceState);
+        Assert.True(headers.ContainsKey(MessageHeaders.Tracestate.Key));
+        var tracestate = headers.GetValue(MessageHeaders.Tracestate.Key) as string;
+        Assert.Equal("key1=value1,key2=value2", tracestate);
     }
 
     [Fact]
-    public void WithActivity_Sets_ParentId_When_Activity_Has_Parent()
+    public void WithActivity_Does_Not_Set_Tracestate_When_Activity_Has_No_TraceState()
     {
         // arrange
         using var source = new ActivitySource("test-source");
@@ -213,9 +210,8 @@ public class OpenTelemetryTests
         listener.Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded;
         ActivitySource.AddActivityListener(listener);
 
-        using var parentActivity = source.StartActivity("parent-operation");
-        using var childActivity = source.StartActivity("child-operation");
-        Assert.NotNull(childActivity);
+        using var activity = source.StartActivity("test-operation");
+        Assert.NotNull(activity);
 
         var headers = new Headers();
 
@@ -223,12 +219,8 @@ public class OpenTelemetryTests
         headers.WithActivity();
 
         // assert
-        if (childActivity.ParentId != null)
-        {
-            Assert.True(headers.ContainsKey(MessageHeaders.ParentId.Key));
-            var parentId = headers.GetValue(MessageHeaders.ParentId.Key) as string;
-            Assert.Equal(childActivity.ParentId, parentId);
-        }
+        Assert.True(headers.ContainsKey(MessageHeaders.Traceparent.Key));
+        Assert.False(headers.ContainsKey(MessageHeaders.Tracestate.Key));
     }
 
     [Fact]
@@ -246,13 +238,13 @@ public class OpenTelemetryTests
 
         // assert
         Assert.Same(headers, result);
-        Assert.False(headers.ContainsKey(MessageHeaders.TraceId.Key));
-        Assert.False(headers.ContainsKey(MessageHeaders.SpanId.Key));
+        Assert.False(headers.ContainsKey(MessageHeaders.Traceparent.Key));
+        Assert.False(headers.ContainsKey(MessageHeaders.Tracestate.Key));
         Assert.Equal("existing-value", headers.GetValue("existing-header"));
     }
 
     [Fact]
-    public void WithActivity_Does_Not_Overwrite_Existing_Trace_Headers()
+    public void WithActivity_Does_Not_Overwrite_Existing_Traceparent_Header()
     {
         // arrange
         using var source = new ActivitySource("test-source");
@@ -265,14 +257,38 @@ public class OpenTelemetryTests
         Assert.NotNull(activity);
 
         var headers = new Headers();
-        headers.Set(MessageHeaders.TraceId.Key, "existing-trace-id");
+        headers.Set(MessageHeaders.Traceparent.Key, "00-existing-trace-id-span-01");
 
         // act
         headers.WithActivity();
 
         // assert - TryAdd should not overwrite existing value
-        var traceId = headers.GetValue(MessageHeaders.TraceId.Key) as string;
-        Assert.Equal("existing-trace-id", traceId);
+        var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
+        Assert.Equal("00-existing-trace-id-span-01", traceparent);
+    }
+
+    [Fact]
+    public void WithActivity_Sets_Unsampled_TraceFlags_When_Activity_Not_Recorded()
+    {
+        // arrange
+        using var source = new ActivitySource("test-source");
+        using var listener = new ActivityListener();
+        listener.ShouldListenTo = _ => true;
+        listener.Sample = (ref _) => ActivitySamplingResult.PropagationData;
+        ActivitySource.AddActivityListener(listener);
+
+        using var activity = source.StartActivity("test-operation");
+        Assert.NotNull(activity);
+
+        var headers = new Headers();
+
+        // act
+        headers.WithActivity();
+
+        // assert
+        var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
+        Assert.NotNull(traceparent);
+        Assert.EndsWith("-00", traceparent);
     }
 
     [Fact]
