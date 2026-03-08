@@ -23,17 +23,13 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
                 case IInputObjectTypeDefinition inputObjectType:
                     foreach (var field in inputObjectType.Fields)
                     {
-                        if (field.Type.IsNonNullType() && field.DefaultValue is null)
+                        if (field.Type.IsNonNullType()
+                            && field.DefaultValue is null
+                            && field.Directives.Any(d => d.Definition is RequiresOptInDirectiveType))
                         {
-                            var requiresOptInDirectives = field.Directives
-                                .Where(d => d.Definition is RequiresOptInDirectiveType);
-
-                            foreach (var _ in requiresOptInDirectives)
-                            {
-                                errors.Add(RequiresOptInOnRequiredInputField(
-                                    inputObjectType,
-                                    field));
-                            }
+                            errors.Add(RequiresOptInOnRequiredInputField(
+                                inputObjectType,
+                                field));
                         }
                     }
 
@@ -44,18 +40,14 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
                     {
                         foreach (var argument in field.Arguments)
                         {
-                            if (argument.Type.IsNonNullType() && argument.DefaultValue is null)
+                            if (argument.Type.IsNonNullType()
+                                && argument.DefaultValue is null
+                                && argument.Directives.Any(d => d.Definition is RequiresOptInDirectiveType))
                             {
-                                var requiresOptInDirectives = argument.Directives
-                                    .Where(d => d.Definition is RequiresOptInDirectiveType);
-
-                                foreach (var _ in requiresOptInDirectives)
-                                {
-                                    errors.Add(RequiresOptInOnRequiredArgument(
-                                        complexType,
-                                        field,
-                                        argument));
-                                }
+                                errors.Add(RequiresOptInOnRequiredArgument(
+                                    complexType,
+                                    field,
+                                    argument));
                             }
                         }
                     }
