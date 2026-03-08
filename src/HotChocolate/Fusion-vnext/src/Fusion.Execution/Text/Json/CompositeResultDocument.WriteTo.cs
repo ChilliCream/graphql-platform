@@ -119,6 +119,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         private void WriteObject(Cursor start, DbRow startRow)
         {
             Debug.Assert(startRow.TokenType is ElementTokenType.StartObject);
+            const ElementFlags skipFlags = ElementFlags.IsInternal | ElementFlags.IsExcluded;
 
             var current = start + 1;
             var end = start + startRow.NumberOfRows;
@@ -130,8 +131,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 var row = document._metaDb.Get(current);
                 Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
 
-                if ((ElementFlags.IsInternal & row.Flags) == ElementFlags.IsInternal
-                    || (ElementFlags.IsExcluded & row.Flags) == ElementFlags.IsExcluded)
+                if ((row.Flags & skipFlags) != 0)
                 {
                     // skip name+value
                     current += 2;
