@@ -777,6 +777,9 @@ public static class SymbolExtensions
         => parameter.Type is INamedTypeSymbol namedTypeSymbol
             && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments);
 
+    public static bool IsSelection(this IParameterSymbol parameter)
+        => parameter.Type.ToDisplayString() == WellKnownTypes.ISelection;
+
     public static bool IsGlobalState(
         this IParameterSymbol parameter,
         [NotNullWhen(true)] out string? key)
