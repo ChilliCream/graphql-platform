@@ -110,6 +110,7 @@ public static class WellKnownTypes
     public const string ImmutableArrayOfMiddlewareContext = "System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext>";
     public const string IList = "System.Collections.IList";
     public const string MiddlewareContext = "HotChocolate.Resolvers.IMiddlewareContext";
+    public const string ISelection = "HotChocolate.Execution.ISelection";
 
     public static HashSet<string> TypeClass { get; } =
     [

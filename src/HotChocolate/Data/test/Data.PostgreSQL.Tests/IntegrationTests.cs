@@ -126,6 +126,33 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Query_Brands_With_BatchResolver_Supplier()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(first: 5) {
+                    nodes {
+                        id
+                        name
+                        supplier {
+                            name
+                            website
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
     public async Task Query_Brands_First_2_And_Products_First_2_Name_Desc()
     {
         // arrange
