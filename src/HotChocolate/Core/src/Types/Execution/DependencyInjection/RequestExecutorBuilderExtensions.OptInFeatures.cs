@@ -42,6 +42,6 @@ public static partial class RequestExecutorBuilderExtensions
 
         return builder.Configure(options => options.OnConfigureSchemaServicesHooks.Add(
             (ctx, _) => ctx.SchemaBuilder.AddSchemaConfiguration(
-                d => d.Directive(new OptInFeatureStabilityDirective(feature, stability)))));
+                d => d.Directive(new OptInFeatureStability(feature, stability)))));
     }
 }

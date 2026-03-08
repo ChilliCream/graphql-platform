@@ -16,7 +16,7 @@ public sealed class OptInFeatureStabilityDirectiveTests
         string? feature)
     {
         // arrange & act
-        void Action() => _ = new OptInFeatureStabilityDirective(feature!, "stability");
+        void Action() => _ = new OptInFeatureStability(feature!, "stability");
 
         // assert
         Assert.Throws<ArgumentException>(Action);
@@ -33,7 +33,7 @@ public sealed class OptInFeatureStabilityDirectiveTests
         string? stability)
     {
         // arrange & act
-        void Action() => _ = new OptInFeatureStabilityDirective("feature", stability!);
+        void Action() => _ = new OptInFeatureStability("feature", stability!);
 
         // assert
         Assert.Throws<ArgumentException>(Action);

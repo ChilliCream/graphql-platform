@@ -97,7 +97,7 @@ internal sealed class __InputValue : ObjectType
             => context.Parent<IInputValueDefinition>()
                 .Directives
                 .Where(t => t.Definition is RequiresOptInDirectiveType)
-                .Select(d => d.ToValue<RequiresOptInDirective>().Feature);
+                .Select(d => d.ToValue<RequiresOptIn>().Feature);
     }
 
     public static class Names

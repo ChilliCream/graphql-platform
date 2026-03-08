@@ -16,10 +16,10 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public sealed class RequiresOptInDirectiveType : DirectiveType<RequiresOptInDirective>
+public sealed class RequiresOptInDirectiveType : DirectiveType<RequiresOptIn>
 {
     protected override void Configure(
-        IDirectiveTypeDescriptor<RequiresOptInDirective> descriptor)
+        IDirectiveTypeDescriptor<RequiresOptIn> descriptor)
     {
         descriptor
             .Name(DirectiveNames.RequiresOptIn.Name)

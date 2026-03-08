@@ -6,10 +6,10 @@ namespace HotChocolate.Types;
 /// Sets the stability level of an opt-in feature.
 /// </summary>
 public sealed class OptInFeatureStabilityDirectiveType
-    : DirectiveType<OptInFeatureStabilityDirective>
+    : DirectiveType<OptInFeatureStability>
 {
     protected override void Configure(
-        IDirectiveTypeDescriptor<OptInFeatureStabilityDirective> descriptor)
+        IDirectiveTypeDescriptor<OptInFeatureStability> descriptor)
     {
         descriptor
             .Name(DirectiveNames.OptInFeatureStability.Name)

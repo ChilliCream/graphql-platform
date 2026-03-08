@@ -63,7 +63,7 @@ file static class Extensions
     {
         return configuration.Directives
             .Select(d => d.Value)
-            .OfType<RequiresOptInDirective>()
+            .OfType<RequiresOptIn>()
             .Select(r => r.Feature);
     }
 }
