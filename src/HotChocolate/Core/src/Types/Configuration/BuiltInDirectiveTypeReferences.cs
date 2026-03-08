@@ -32,6 +32,12 @@ internal static class BuiltInDirectiveTypeReferences
             EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(Tag)), nextIndex++);
         }
 
+        if (context.Options.EnableOptInFeatures)
+        {
+            EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(OptInFeatureStabilityDirectiveType)), nextIndex++);
+            EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(RequiresOptInDirectiveType)), nextIndex++);
+        }
+
         EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(SkipDirectiveType)), nextIndex++);
         EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(IncludeDirectiveType)), nextIndex++);
         EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)), nextIndex++);

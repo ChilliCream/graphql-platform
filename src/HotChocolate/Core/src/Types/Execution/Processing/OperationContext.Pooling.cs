@@ -15,6 +15,7 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class OperationContext
 {
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
+    private readonly IFactory<BatchResolverTask> _batchResolverTaskFactory;
     private readonly BranchTracker _branchTracker = new();
     private readonly WorkScheduler _workScheduler;
     private readonly DeferExecutionCoordinator _deferExecutionCoordinator = new();
@@ -42,10 +43,12 @@ internal sealed partial class OperationContext
 
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
+        IFactory<BatchResolverTask> batchResolverTaskFactory,
         ITypeConverter typeConverter,
         AggregateServiceScopeInitializer serviceScopeInitializer)
     {
         _resolverTaskFactory = resolverTaskFactory;
+        _batchResolverTaskFactory = batchResolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
         _currentWorkScheduler = _workScheduler;
         _currentBranchTracker = _branchTracker;

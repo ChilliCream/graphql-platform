@@ -1,4 +1,4 @@
-using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
