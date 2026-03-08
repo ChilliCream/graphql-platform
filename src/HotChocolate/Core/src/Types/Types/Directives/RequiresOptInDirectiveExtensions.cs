@@ -121,19 +121,19 @@ public static class RequiresOptInDirectiveExtensions
         switch (descriptor)
         {
             case IObjectFieldDescriptor desc:
-                desc.Directive(new RequiresOptInDirective(feature));
+                desc.Directive(new RequiresOptIn(feature));
                 break;
 
             case IInputFieldDescriptor desc:
-                desc.Directive(new RequiresOptInDirective(feature));
+                desc.Directive(new RequiresOptIn(feature));
                 break;
 
             case IArgumentDescriptor desc:
-                desc.Directive(new RequiresOptInDirective(feature));
+                desc.Directive(new RequiresOptIn(feature));
                 break;
 
             case IEnumValueDescriptor desc:
-                desc.Directive(new RequiresOptInDirective(feature));
+                desc.Directive(new RequiresOptIn(feature));
                 break;
 
             default:

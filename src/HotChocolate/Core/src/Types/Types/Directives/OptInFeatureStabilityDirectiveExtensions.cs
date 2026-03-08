@@ -23,6 +23,6 @@ public static class OptInFeatureStabilityDirectiveExtensions
         string feature,
         string stability)
     {
-        return descriptor.Directive(new OptInFeatureStabilityDirective(feature, stability));
+        return descriptor.Directive(new OptInFeatureStability(feature, stability));
     }
 }

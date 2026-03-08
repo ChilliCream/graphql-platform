@@ -76,7 +76,7 @@ internal sealed class __EnumValue : ObjectType<EnumValue>
         public static object RequiresOptIn(IResolverContext context)
             => context.Parent<IEnumValue>().Directives
                 .Where(t => t.Definition is RequiresOptInDirectiveType)
-                .Select(d => d.ToValue<RequiresOptInDirective>().Feature);
+                .Select(d => d.ToValue<RequiresOptIn>().Feature);
     }
 
     public static class Names

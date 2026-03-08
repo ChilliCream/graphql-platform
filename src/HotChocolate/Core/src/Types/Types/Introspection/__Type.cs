@@ -158,7 +158,7 @@ internal sealed class __Type : ObjectType
                         var requiredFeatures = f
                             .Directives
                             .Where(d => d.Definition is RequiresOptInDirectiveType)
-                            .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
+                            .Select(d => d.ToValue<RequiresOptIn>().Feature)
                             .ToList();
 
                         return requiredFeatures.Count == 0
@@ -220,7 +220,7 @@ internal sealed class __Type : ObjectType
                         var requiredFeatures = v
                             .Directives
                             .Where(d => d.Definition is RequiresOptInDirectiveType)
-                            .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
+                            .Select(d => d.ToValue<RequiresOptIn>().Feature)
                             .ToList();
 
                         return requiredFeatures.Count == 0
@@ -263,7 +263,7 @@ internal sealed class __Type : ObjectType
                         var requiredFeatures = f
                             .Directives
                             .Where(d => d.Definition is RequiresOptInDirectiveType)
-                            .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
+                            .Select(d => d.ToValue<RequiresOptIn>().Feature)
                             .ToList();
 
                         return requiredFeatures.Count == 0

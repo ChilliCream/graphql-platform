@@ -15,7 +15,7 @@ public sealed class RequiresOptInDirectiveTests
     public void RequiresOptInDirective_InvalidFeatureName_ThrowsArgumentException(string? feature)
     {
         // arrange & act
-        void Action() => _ = new RequiresOptInDirective(feature!);
+        void Action() => _ = new RequiresOptIn(feature!);
 
         // assert
         Assert.Throws<ArgumentException>(Action);

@@ -7,10 +7,10 @@ namespace HotChocolate.Types;
 /// Represents the opt-in feature stability directive that allows
 /// specifying the stability level of a feature in the GraphQL schema.
 /// </summary>
-public sealed class OptInFeatureStabilityDirective
+public sealed class OptInFeatureStability
 {
     /// <summary>
-    /// Creates a new instance of <see cref="OptInFeatureStabilityDirective"/>.
+    /// Creates a new instance of <see cref="OptInFeatureStability"/>.
     /// </summary>
     /// <param name="feature">
     /// The name of the feature for which to set the stability.
@@ -24,7 +24,7 @@ public sealed class OptInFeatureStabilityDirective
     /// <exception cref="ArgumentException">
     /// <paramref name="stability"/> is not a valid name.
     /// </exception>
-    public OptInFeatureStabilityDirective(string feature, string stability)
+    public OptInFeatureStability(string feature, string stability)
     {
         if (!feature.IsValidGraphQLName())
         {
@@ -47,12 +47,10 @@ public sealed class OptInFeatureStabilityDirective
     /// <summary>
     /// The name of the feature for which to set the stability.
     /// </summary>
-    [GraphQLDescription("The name of the feature for which to set the stability.")]
     public string Feature { get; }
 
     /// <summary>
     /// The stability level of the feature.
     /// </summary>
-    [GraphQLDescription("The stability level of the feature.")]
     public string Stability { get; }
 }
