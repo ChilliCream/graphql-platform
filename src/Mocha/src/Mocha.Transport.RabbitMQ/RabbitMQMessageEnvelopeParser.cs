@@ -57,7 +57,7 @@ internal sealed class RabbitMQMessageEnvelopeParser
             && headers.TryGetValue("x-delivery-count", out var value)
             && value is long count)
         {
-            return (int)count;
+            return count > int.MaxValue ? int.MaxValue : (int)count;
         }
 
         return redelivered ? 1 : 0;

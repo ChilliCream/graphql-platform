@@ -247,7 +247,7 @@ Available exchange defaults:
 | `AutoDelete` | `bool?`                      | Whether exchanges are auto-deleted when unused (default: `false`)                |
 | `Arguments`  | `Dictionary<string, object>` | Additional arguments (e.g., `alternate-exchange`)                                |
 
-Defaults never override explicitly configured values. If you declare a queue with a specific queue type, that setting takes precedence over the transport default. You can call `ConfigureDefaults` multiple times — each call accumulates settings on the same defaults object.
+Defaults never override explicitly configured values. If you declare a queue with a specific queue type, that setting takes precedence over the transport default. You can call `ConfigureDefaults` multiple times - each call accumulates settings on the same defaults object.
 
 # Declare custom topology
 

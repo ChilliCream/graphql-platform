@@ -31,7 +31,7 @@ public sealed class RabbitMQMessagingTopology(
     public IReadOnlyList<RabbitMQBinding> Bindings => _bindings;
 
     /// <summary>
-    /// Gets or sets the bus-level defaults applied to all auto-provisioned queues and exchanges.
+    /// Gets the bus-level defaults applied to all auto-provisioned queues and exchanges.
     /// </summary>
     public RabbitMQBusDefaults Defaults => defaults;
 
