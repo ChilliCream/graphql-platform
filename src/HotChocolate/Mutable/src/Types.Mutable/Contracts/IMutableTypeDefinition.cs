@@ -27,4 +27,7 @@ public interface IMutableTypeDefinition : ITypeDefinition
     /// Gets the directives that are annotated to this type as mutable collection.
     /// </summary>
     new DirectiveCollection Directives { get; }
+
+    /// <inheritdoc cref="ITypeDefinition.IsIntrospectionType" />
+    new bool IsIntrospectionType { get; set; }
 }

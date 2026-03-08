@@ -3,8 +3,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -99,7 +97,7 @@ public partial class ObjectType
 
     /// <summary>
     /// Defines if this type is implementing the
-    /// the given <paramref name="interfaceType" />.
+    /// given <paramref name="interfaceType" />.
     /// </summary>
     /// <param name="interfaceType">
     /// The interface type.

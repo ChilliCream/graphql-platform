@@ -15,14 +15,19 @@ namespace CookieCrumble;
 
 public class Snapshot
 {
+#if NET10_0_OR_GREATER
+    private static readonly Lock s_sync = new();
+#else
     private static readonly object s_sync = new();
-    private static readonly UTF8Encoding s_encoding = new();
+#endif
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
     private static ImmutableStack<ISnapshotValueFormatter> s_formatters =
         CreateRange(new ISnapshotValueFormatter[]
         {
             new PlainTextSnapshotValueFormatter(),
             new ExceptionSnapshotValueFormatter(),
             new HttpResponseSnapshotValueFormatter(),
+            new JsonDocumentSnapshotValueFormatter(),
             new JsonElementSnapshotValueFormatter()
         });
     private static readonly JsonSnapshotValueFormatter s_defaultFormatter = new();
@@ -47,6 +52,8 @@ public class Snapshot
         _postFix = postFix;
         _extension = extension ?? ".snap";
     }
+
+    public string Title => _title;
 
     public static Snapshot Create(string? postFix = null, string? extension = null)
         => new(postFix, extension);
@@ -235,7 +242,7 @@ public class Snapshot
             EnsureFileDoesNotExist(mismatchFile);
 
             var before = await File.ReadAllTextAsync(snapshotFile, cancellationToken);
-            var after = s_encoding.GetString(writer.WrittenSpan);
+            var after = s_utf8.GetString(writer.WrittenSpan);
 
             if (!MatchSnapshot(before, after, false, out var diff))
             {
@@ -247,7 +254,7 @@ public class Snapshot
         }
     }
 
-    public void Match()
+    public string Match()
     {
         var writer = new ArrayBufferWriter<byte>();
         WriteSegments(writer);
@@ -267,7 +274,7 @@ public class Snapshot
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
             EnsureFileDoesNotExist(mismatchFile);
             var before = File.ReadAllText(snapshotFile);
-            var after = s_encoding.GetString(writer.WrittenSpan);
+            var after = s_utf8.GetString(writer.WrittenSpan);
 
             if (!MatchSnapshot(before, after, false, out var diff))
             {
@@ -277,6 +284,8 @@ public class Snapshot
                 s_testFramework.ThrowTestException(diff);
             }
         }
+
+        return s_utf8.GetString(writer.WrittenSpan);
     }
 
     public async ValueTask MatchMarkdownAsync(CancellationToken cancellationToken = default)
@@ -303,7 +312,7 @@ public class Snapshot
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateMarkdownSnapshotFileName());
             EnsureFileDoesNotExist(mismatchFile);
             var before = await File.ReadAllTextAsync(snapshotFile, cancellationToken);
-            var after = s_encoding.GetString(writer.WrittenSpan);
+            var after = s_utf8.GetString(writer.WrittenSpan);
 
             if (MatchSnapshot(before, after, false, out var diff))
             {
@@ -341,7 +350,7 @@ public class Snapshot
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateMarkdownSnapshotFileName());
             EnsureFileDoesNotExist(mismatchFile);
             var before = File.ReadAllText(snapshotFile);
-            var after = s_encoding.GetString(writer.WrittenSpan);
+            var after = s_utf8.GetString(writer.WrittenSpan);
 
             if (MatchSnapshot(before, after, false, out var diff))
             {
@@ -360,7 +369,7 @@ public class Snapshot
         var writer = new ArrayBufferWriter<byte>();
         WriteSegments(writer);
 
-        var after = s_encoding.GetString(writer.WrittenSpan);
+        var after = s_utf8.GetString(writer.WrittenSpan);
 
         if (!MatchSnapshot(expected, after, true, out var diff))
         {
@@ -460,6 +469,12 @@ public class Snapshot
         foreach (var segment in _segments)
         {
             i++;
+
+            if (i > 1)
+            {
+                writer.AppendLine();
+            }
+
             writer.Append(
                 string.IsNullOrEmpty(segment.Name)
                     ? $"## Result {i}"
@@ -490,8 +505,6 @@ public class Snapshot
                 default:
                     throw new NotSupportedException();
             }
-
-            writer.AppendLine();
         }
     }
 
@@ -503,8 +516,11 @@ public class Snapshot
     {
         if (OperatingSystem.IsWindows())
         {
-            // Normalize escaped line endings
-            after = after.Replace("\\r\\n", "\\n");
+            // Normalize escaped line endings if the expected value does not explicitly contain them.
+            if (!before.Contains(@"\r\n", StringComparison.Ordinal))
+            {
+                after = after.Replace(@"\r\n", @"\n");
+            }
         }
 
         var diff = InlineDiffBuilder.Diff(before, after);
@@ -624,30 +640,30 @@ public class Snapshot
             var method = stackFrame.GetMethod();
             var fileName = stackFrame.GetFileName();
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                s_testFramework.IsValidTestMethod(method))
+            if (method is not null
+                && !string.IsNullOrEmpty(fileName)
+                && s_testFramework.IsValidTestMethod(method))
             {
                 return Combine(GetDirectoryName(fileName)!, method.ToName());
             }
 
             method = EvaluateAsynchronousMethodBase(method);
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                s_testFramework.IsValidTestMethod(method))
+            if (method is not null
+                && !string.IsNullOrEmpty(fileName)
+                && s_testFramework.IsValidTestMethod(method))
             {
                 return Combine(GetDirectoryName(fileName)!, method.ToName());
             }
         }
 
         throw new Exception(
-            "The snapshot full name could not be evaluated. " +
-            "This error can occur, if you use the snapshot match " +
-            "within an async test helper child method. To solve this issue, " +
-            "use the Snapshot.FullName directly in the unit test to " +
-            "get the snapshot name, then reach this name to your " +
-            "Snapshot.Match method.");
+            "The snapshot full name could not be evaluated. "
+            + "This error can occur, if you use the snapshot match "
+            + "within an async test helper child method. To solve this issue, "
+            + "use the Snapshot.FullName directly in the unit test to "
+            + "get the snapshot name, then reach this name to your "
+            + "Snapshot.Match method.");
     }
 
     private static string CreateMarkdownTitle(StackFrame[] frames)
@@ -657,30 +673,30 @@ public class Snapshot
             var method = stackFrame.GetMethod();
             var fileName = stackFrame.GetFileName();
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                s_testFramework.IsValidTestMethod(method))
+            if (method is not null
+                && !string.IsNullOrEmpty(fileName)
+                && s_testFramework.IsValidTestMethod(method))
             {
                 return method.Name;
             }
 
             method = EvaluateAsynchronousMethodBase(method);
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                s_testFramework.IsValidTestMethod(method))
+            if (method is not null
+                && !string.IsNullOrEmpty(fileName)
+                && s_testFramework.IsValidTestMethod(method))
             {
                 return method.Name;
             }
         }
 
         throw new Exception(
-            "The snapshot full name could not be evaluated. " +
-            "This error can occur, if you use the snapshot match " +
-            "within an async test helper child method. To solve this issue, " +
-            "use the Snapshot.FullName directly in the unit test to " +
-            "get the snapshot name, then reach this name to your " +
-            "Snapshot.Match method.");
+            "The snapshot full name could not be evaluated. "
+            + "This error can occur, if you use the snapshot match "
+            + "within an async test helper child method. To solve this issue, "
+            + "use the Snapshot.FullName directly in the unit test to "
+            + "get the snapshot name, then reach this name to your "
+            + "Snapshot.Match method.");
     }
 
     private static MethodInfo? EvaluateAsynchronousMethodBase(MemberInfo? method)
@@ -696,8 +712,8 @@ public class Snapshot
                 from methodInfo in classDeclaringType.GetMethods()
                 let stateMachineAttribute = methodInfo
                     .GetCustomAttribute<AsyncStateMachineAttribute>()
-                where stateMachineAttribute != null &&
-                    stateMachineAttribute.StateMachineType == methodDeclaringType
+                where stateMachineAttribute != null
+                    && stateMachineAttribute.StateMachineType == methodDeclaringType
                 select methodInfo;
 
             actualMethodInfo = selectedMethodInfos.SingleOrDefault();
@@ -714,9 +730,9 @@ public class Snapshot
             || (bool.TryParse(value, out var b) && b))
         {
             s_testFramework.ThrowTestException(
-                "Strict mode is enabled and no snapshot has been found " +
-                "for the current test. Create a new snapshot locally and " +
-                "rerun your tests.");
+                "Strict mode is enabled and no snapshot has been found "
+                + "for the current test. Create a new snapshot locally and "
+                + "rerun your tests.");
         }
     }
 

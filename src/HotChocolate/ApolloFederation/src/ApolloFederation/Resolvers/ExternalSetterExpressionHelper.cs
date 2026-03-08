@@ -30,8 +30,8 @@ internal static class ExternalSetterExpressionHelper
 
         foreach (var field in type.Fields)
         {
-            if (field.Directives.ContainsDirective<ExternalDirective>() &&
-                field.Member is PropertyInfo { SetMethod: not null } property)
+            if (field.Directives.ContainsDirective<ExternalDirective>()
+                && field.Member is PropertyInfo { SetMethod: not null } property)
             {
                 var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
                 (block ??= []).Add(expression);
@@ -44,6 +44,30 @@ internal static class ExternalSetterExpressionHelper
                 Lambda<Action<ObjectType, IValueNode, object>>(
                     Block(block), s_type, s_data, s_entity)
                         .Compile()));
+        }
+    }
+
+    public static void TryAddExternalSetter(InterfaceType type, InterfaceTypeConfiguration typeDef)
+    {
+        List<Expression>? block = null;
+
+        foreach (var field in type.Fields)
+        {
+            if (field.Directives.ContainsDirective<ExternalDirective>()
+                && typeDef.Fields.FirstOrDefault(f => f.Name == field.Name) is
+                { Member: PropertyInfo { SetMethod: not null } property })
+            {
+                var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
+                (block ??= []).Add(expression);
+            }
+        }
+
+        if (block is not null)
+        {
+            typeDef.Features.Set(new ExternalSetter(
+                Lambda<Action<ObjectType, IValueNode, object>>(
+                        Block(block), s_type, s_data, s_entity)
+                    .Compile()));
         }
     }
 

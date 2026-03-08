@@ -329,8 +329,8 @@ public class DataLoaderTests(ITestOutputHelper output)
     }
 
     [Fact(DisplayName =
-        "LoadAsync: Should result in a list of error results and cleaning up the " +
-        "cache because the key and value list count are not equal")]
+        "LoadAsync: Should result in a list of error results and cleaning up the "
+        + "cache because the key and value list count are not equal")]
     public async Task LoadKeyAndValueCountNotEqual()
     {
         // arrange

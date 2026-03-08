@@ -1,12 +1,11 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
-#if NET9_0_OR_GREATER
 using System.Runtime.InteropServices;
-#endif
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.MessageProperties;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
@@ -14,19 +13,13 @@ using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
-internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocketProtocolHandler
+internal sealed class GraphQLOverWebSocketProtocolHandler(
+    ISocketSessionInterceptor interceptor,
+    IWebSocketPayloadFormatter formatter,
+    IDocumentCache documentCache,
+    IDocumentHashProvider documentHashProvider)
+    : IGraphQLOverWebSocketProtocolHandler
 {
-    private readonly ISocketSessionInterceptor _interceptor;
-    private readonly IWebSocketPayloadFormatter _formatter;
-
-    public GraphQLOverWebSocketProtocolHandler(
-        ISocketSessionInterceptor interceptor,
-        IWebSocketPayloadFormatter formatter)
-    {
-        _interceptor = interceptor;
-        _formatter = formatter;
-    }
-
     public string Name => GraphQL_Transport_WS;
 
     public async ValueTask OnReceiveAsync(
@@ -77,7 +70,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     : PingMessage.Default;
 
             var responsePayload =
-                await _interceptor.OnPingAsync(session, operationMessageObj, cancellationToken);
+                await interceptor.OnPingAsync(session, operationMessageObj, cancellationToken);
 
             await SendPongMessageAsync(session, responsePayload, cancellationToken);
             return;
@@ -90,7 +83,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     ? new PongMessage(payload)
                     : PongMessage.Default;
 
-            await _interceptor.OnPongAsync(session, operationMessageObj, cancellationToken);
+            await interceptor.OnPongAsync(session, operationMessageObj, cancellationToken);
             return;
         }
 
@@ -108,7 +101,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     : ConnectionInitMessage.Default;
 
             var connectionStatus =
-                await _interceptor.OnConnectAsync(
+                await interceptor.OnConnectAsync(
                     session,
                     operationMessageObj,
                     cancellationToken);
@@ -211,18 +204,19 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
     public async ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationResult result,
+        OperationResult result,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new PooledArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        var jsonWriter = new JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(Id, operationSessionId);
-        jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Next);
+        jsonWriter.WritePropertyName(Id);
+        jsonWriter.WriteStringValue(operationSessionId);
+        jsonWriter.WritePropertyName(MessageProperties.Type);
+        jsonWriter.WriteStringValue(Utf8Messages.Next);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Format(result, jsonWriter);
+        formatter.Format(result, jsonWriter);
         jsonWriter.WriteEndObject();
-        await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
 
@@ -233,14 +227,15 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new PooledArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        var jsonWriter = new JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(Id, operationSessionId);
-        jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
+        jsonWriter.WritePropertyName(Id);
+        jsonWriter.WriteStringValue(operationSessionId);
+        jsonWriter.WritePropertyName(MessageProperties.Type);
+        jsonWriter.WriteStringValue(Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Format(errors, jsonWriter);
+        formatter.Format(errors, jsonWriter);
         jsonWriter.WriteEndObject();
-        await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
 
@@ -250,7 +245,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        SerializeMessage(writer, _formatter, Utf8Messages.Complete, id: operationSessionId);
+        SerializeMessage(writer, formatter, Utf8Messages.Complete, id: operationSessionId);
         await session.Connection.SendAsync(writer.WrittenMemory, cancellationToken);
     }
 
@@ -266,7 +261,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         else
         {
             using var writer = new PooledArrayWriter();
-            SerializeMessage(writer, _formatter, Utf8Messages.Ping, payload);
+            SerializeMessage(writer, formatter, Utf8Messages.Ping, payload);
             await session.Connection.SendAsync(writer.WrittenMemory, cancellationToken);
         }
     }
@@ -283,7 +278,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         else
         {
             using var writer = new PooledArrayWriter();
-            SerializeMessage(writer, _formatter, Utf8Messages.Pong, payload);
+            SerializeMessage(writer, formatter, Utf8Messages.Pong, payload);
             await session.Connection.SendAsync(writer.WrittenMemory, cancellationToken);
         }
     }
@@ -294,7 +289,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        SerializeMessage(writer, _formatter, Utf8Messages.ConnectionAccept, payload);
+        SerializeMessage(writer, formatter, Utf8Messages.ConnectionAccept, payload);
         await session.Connection.SendAsync(writer.WrittenMemory, cancellationToken);
     }
 
@@ -303,7 +298,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         CancellationToken cancellationToken)
         => session.Connection.CloseConnectionInitTimeoutAsync(cancellationToken);
 
-    private static bool TryParseSubscribeMessage(
+    private bool TryParseSubscribeMessage(
         JsonElement messageElement,
         [NotNullWhen(true)] out SubscribeMessage? message)
     {
@@ -323,15 +318,13 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         }
 
         var id = idProp.GetString()!;
-#if NET9_0_OR_GREATER
         var requestData = JsonMarshal.GetRawUtf8Value(payloadProp);
-        var request = Parse(requestData);
-#else
-        var requestData = payloadProp.GetRawText();
-        var request = Parse(requestData);
-#endif
+        var request = Parse(
+            requestData,
+            cache: documentCache,
+            hashProvider: documentHashProvider);
 
-        if (request.Count == 0)
+        if (request.Length == 0)
         {
             message = null;
             return false;

@@ -115,9 +115,9 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             return null;
         }
 
-        if (fieldConfiguration.Expression is not LambdaExpression lambda ||
-            lambda.Parameters.Count != 1 ||
-            lambda.Parameters[0].Type != typeConfiguration.EntityType)
+        if (fieldConfiguration.Expression is not LambdaExpression lambda
+            || lambda.Parameters.Count != 1
+            || lambda.Parameters[0].Type != typeConfiguration.EntityType)
         {
             throw ThrowHelper.QueryableFilterProvider_ExpressionParameterInvalid(
                 context.Type,

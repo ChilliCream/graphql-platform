@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -41,24 +43,138 @@ public class SortInputTypeDescriptor<T>
         IDictionary<string, SortFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
-        if (Configuration.Fields.IsImplicitBinding() &&
-            Configuration.EntityType is { })
+        if (Configuration.Fields.IsImplicitBinding()
+            && Configuration.EntityType is { })
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
                 Configuration.EntityType,
-                p => SortFieldDescriptor
-                    .New(Context, Configuration.Scope, p)
-                    .CreateConfiguration(),
+                p =>
+                {
+                    var config = SortFieldDescriptor
+                        .New(Context, Configuration.Scope, p)
+                        .CreateConfiguration();
+                    config.IsImplicit = true;
+                    return config;
+                },
                 fields,
                 handledProperties,
-                include: (_, member) => member is PropertyInfo p &&
-                    !handledProperties.Contains(member) &&
-                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList &&
-                    !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
+                include: (_, member) => member is PropertyInfo p
+                && !handledProperties.Contains(member)
+                && IsSortableProperty(p));
         }
 
         base.OnCompleteFields(fields, handledProperties);
+    }
+
+    private bool IsSortableProperty(PropertyInfo property)
+    {
+        ArgumentNullException.ThrowIfNull(property);
+
+        if (property.GetIndexParameters().Length > 0)
+        {
+            return false;
+        }
+
+        if (!property.CanRead)
+        {
+            return false;
+        }
+
+        if (typeof(IFieldResult).IsAssignableFrom(property.PropertyType))
+        {
+            return false;
+        }
+
+        var runtimeType = Context.TypeInspector.GetReturnType(property, ignoreAttributes: true);
+
+        if (runtimeType.IsArrayOrList)
+        {
+            return false;
+        }
+
+        return IsSortableType(runtimeType, []);
+    }
+
+    private bool IsSortableType(IExtendedType runtimeType, HashSet<Type> inspectedTypes)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(inspectedTypes);
+
+        TypeReference fieldType;
+
+        try
+        {
+            fieldType = Convention.GetFieldType(runtimeType.Source);
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (fieldType is not ExtendedTypeReference { Type.Source: { } sourceType })
+        {
+            return false;
+        }
+
+        if (!TryGetRuntimeTypeFromSortInput(sourceType, out var entityType))
+        {
+            return true;
+        }
+
+        if (!inspectedTypes.Add(entityType))
+        {
+            return false;
+        }
+
+        foreach (var member in Context.TypeInspector.GetMembers(entityType))
+        {
+            if (member is not PropertyInfo property
+                || !IsSortablePropertyCandidate(property))
+            {
+                continue;
+            }
+
+            var propertyType = Context.TypeInspector.GetReturnType(property, ignoreAttributes: true);
+
+            if (propertyType.IsArrayOrList)
+            {
+                continue;
+            }
+
+            if (IsSortableType(propertyType, inspectedTypes))
+            {
+                inspectedTypes.Remove(entityType);
+                return true;
+            }
+        }
+
+        inspectedTypes.Remove(entityType);
+        return false;
+    }
+
+    private static bool IsSortablePropertyCandidate(PropertyInfo property)
+    {
+        ArgumentNullException.ThrowIfNull(property);
+
+        return property.GetIndexParameters().Length == 0
+            && property.CanRead
+            && !typeof(IFieldResult).IsAssignableFrom(property.PropertyType);
+    }
+
+    private static bool TryGetRuntimeTypeFromSortInput(
+        Type sourceType,
+        [NotNullWhen(true)] out Type? entityType)
+    {
+        if (sourceType.IsGenericType
+            && sourceType.GetGenericTypeDefinition() == typeof(SortInputType<>))
+        {
+            entityType = sourceType.GenericTypeArguments[0];
+            return true;
+        }
+
+        entityType = null;
+        return false;
     }
 
     /// <inheritdoc />
@@ -99,6 +215,17 @@ public class SortInputTypeDescriptor<T>
     /// <inheritdoc />
     public ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
+        if (propertyOrMember.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
+        {
+            var arrayLengthFieldDescriptor =
+                SortFieldDescriptor.New(
+                    Context,
+                    Configuration.Scope,
+                    propertyOrMember);
+            Fields.Add(arrayLengthFieldDescriptor);
+            return arrayLengthFieldDescriptor;
+        }
+
         switch (propertyOrMember.TryExtractMember())
         {
             case PropertyInfo m:

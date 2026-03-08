@@ -12,6 +12,14 @@ public abstract class ExecutionTask : IExecutionTask
     private Task? _task;
 
     /// <summary>
+    /// Gets or sets the internal execution identifier.
+    /// </summary>
+    public uint Id { get; set; }
+
+    /// <inheritdoc />
+    public abstract int BranchId { get; }
+
+    /// <summary>
     /// Gets the execution engine task context.
     /// </summary>
     protected abstract IExecutionTaskContext Context { get; }
@@ -38,17 +46,20 @@ public abstract class ExecutionTask : IExecutionTask
     public bool IsRegistered { get; set; }
 
     /// <inheritdoc />
+    public abstract bool IsDeferred { get; }
+
+    /// <inheritdoc />
     public void BeginExecute(CancellationToken cancellationToken)
     {
         Status = ExecutionTaskStatus.Running;
-        _task = ExecuteInternalAsync(cancellationToken).AsTask();
+        _task = ExecuteInternalAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public Task WaitForCompletionAsync(CancellationToken cancellationToken)
         => _task ?? Task.CompletedTask;
 
-    private async ValueTask ExecuteInternalAsync(CancellationToken cancellationToken)
+    private async Task ExecuteInternalAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -73,9 +84,13 @@ public abstract class ExecutionTask : IExecutionTask
                 Context.ReportError(this, ex);
             }
         }
+        finally
+        {
+            Status = _completionStatus;
+            Context.Completed(this);
 
-        Status = _completionStatus;
-        Context.Completed(this);
+            await OnAfterCompletedAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -85,6 +100,17 @@ public abstract class ExecutionTask : IExecutionTask
     /// The cancellation token.
     /// </param>
     protected abstract ValueTask ExecuteAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Called after the task has completed, regardless of whether it succeeded or faulted.
+    /// Override this method to perform post-completion logic such as cleanup or notifications.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    protected virtual ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
 
     /// <summary>
     /// Completes the task as faulted.

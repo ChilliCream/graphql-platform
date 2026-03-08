@@ -75,7 +75,7 @@ public static class SchemaDebugFormatter
                 : new StringValueNode(directiveDefinition.Description),
             directiveDefinition.IsRepeatable,
             directiveDefinition.Arguments.Select(Format).ToArray(),
-            directiveDefinition.Locations.AsEnumerable().Select(Format).ToArray());
+            DirectiveLocationUtils.AsEnumerable(directiveDefinition.Locations).Select(Format).ToArray());
 
     public static FieldDefinitionNode Format(IOutputFieldDefinition field)
     {

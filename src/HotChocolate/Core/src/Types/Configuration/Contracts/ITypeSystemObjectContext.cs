@@ -2,8 +2,6 @@ using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 /// <summary>
@@ -60,7 +58,7 @@ public interface ITypeSystemObjectContext : IHasScope, IFeatureProvider
 
     /// <summary>
     /// The type initialization interceptor that allows to intercept
-    /// objects that er being initialized.
+    /// objects that are being initialized.
     /// </summary>
     TypeInterceptor TypeInterceptor { get; }
 

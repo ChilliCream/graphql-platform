@@ -10,8 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static HotChocolate.Types.FieldBindingFlags;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class ObjectTypeExtensionTests
@@ -1067,7 +1065,7 @@ public class ObjectTypeExtensionTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Use(_ => ctx =>
             {

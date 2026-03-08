@@ -1,7 +1,5 @@
 using System.Buffers;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 internal class GlobalIdInputValueFormatter(
@@ -31,10 +29,8 @@ internal class GlobalIdInputValueFormatter(
         switch (originalValue)
         {
             case NodeId nodeId:
-            {
                 ValidateTypeName(nodeId.TypeName);
                 return nodeId.InternalId;
-            }
 
             case string formattedId:
             {

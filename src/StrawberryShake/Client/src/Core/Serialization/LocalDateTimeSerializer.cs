@@ -8,7 +8,7 @@ namespace StrawberryShake.Serialization;
 /// </summary>
 public class LocalDateTimeSerializer : ScalarSerializer<string, DateTime>
 {
-    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss";
+    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFF";
 
     public LocalDateTimeSerializer(string typeName = BuiltInScalarNames.LocalDateTime)
         : base(typeName)
@@ -37,9 +37,8 @@ public class LocalDateTimeSerializer : ScalarSerializer<string, DateTime>
         [NotNullWhen(true)] out DateTime? value)
     {
         if (serialized is not null
-            && DateTime.TryParseExact(
+            && DateTime.TryParse(
                 serialized,
-                LocalFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var dt))

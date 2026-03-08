@@ -3,8 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class ObjectTypeAttributeTests
@@ -134,10 +132,9 @@ public class ObjectTypeAttributeTests
 
         public object DefaultValue { get; }
 
-        protected override void OnConfigure(
-            IDescriptorContext context,
+        protected override void OnConfigure(IDescriptorContext context,
             IArgumentDescriptor descriptor,
-            ParameterInfo parameterInfo)
+            ParameterInfo? parameterInfo)
         {
             descriptor.DefaultValue(DefaultValue);
         }
@@ -158,7 +155,7 @@ public class ObjectTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Extend().OnBeforeCompletion(
                 (c, d) => d.Features.Set(new CustomFeature()));
@@ -180,14 +177,14 @@ public class ObjectTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Field("abc").Resolve("def");
         }
     }
 
     [ObjectType("Query")]
-    public struct StructQuery
+    public readonly struct StructQuery
     {
         public string? Foo { get; }
     }

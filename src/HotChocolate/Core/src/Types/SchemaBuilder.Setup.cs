@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
@@ -14,7 +12,6 @@ using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
-using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate;
@@ -263,9 +260,12 @@ public partial class SchemaBuilder
             {
                 foreach (var binding in bindings.Values)
                 {
+                    var runtimeTypeRef = binding.GetRuntimeTypeReference(context.TypeInspector);
+
                     typeRegistry.TryRegister(
-                        binding.GetRuntimeTypeReference(context.TypeInspector),
-                        binding.GetSchemaTypeReference(context.TypeInspector));
+                        runtimeTypeRef,
+                        binding.GetSchemaTypeReference(context.TypeInspector),
+                        explicitBinding: RuntimeTypeBindingHelper.RequiresExactBinding(runtimeTypeRef.Type));
                 }
             }
 

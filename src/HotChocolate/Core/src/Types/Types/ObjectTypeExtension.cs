@@ -5,8 +5,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -139,8 +137,8 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
 
                     case ObjectFieldBindingType.Property:
                         if (typeDef.Fields.FirstOrDefault(
-                            t => t.Member != null &&
-                                binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
+                            t => t.Member != null
+                                && binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
                         {
                             fields.Add(p);
                         }

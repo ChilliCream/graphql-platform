@@ -11,7 +11,6 @@ namespace HotChocolate.Types.Mutable;
 public class MutableSchemaDefinition
     : INamedTypeSystemMemberDefinition<MutableSchemaDefinition>
     , ISchemaDefinition
-    , IFeatureProvider
 {
     private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
 

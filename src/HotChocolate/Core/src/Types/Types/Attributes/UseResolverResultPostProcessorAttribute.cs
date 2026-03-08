@@ -11,7 +11,7 @@ public class UseResolverResultPostProcessorAttribute<T>
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         var services = context.Services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         var postProcessor = ActivatorUtilities.GetServiceOrCreateInstance<T>(services);

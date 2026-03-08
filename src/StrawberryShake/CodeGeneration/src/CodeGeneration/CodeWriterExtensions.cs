@@ -6,16 +6,16 @@ public static class CodeWriterExtensions
     {
         ArgumentNullException.ThrowIfNull(writer);
 
-        var version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
-
 #if DEBUG
         writer.WriteIndentedLine(
-            "[global::System.CodeDom.Compiler.GeneratedCode(" +
-            "\"StrawberryShake\", \"11.0.0\")]");
+            "[global::System.CodeDom.Compiler.GeneratedCode("
+            + "\"StrawberryShake\", \"11.0.0\")]");
 #else
-            writer.WriteIndentedLine(
-                "[global::System.CodeDom.Compiler.GeneratedCode(" +
-                $"\"StrawberryShake\", \"{version}\")]");
+        var version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
+
+        writer.WriteIndentedLine(
+            "[global::System.CodeDom.Compiler.GeneratedCode("
+            + $"\"StrawberryShake\", \"{version}\")]");
 #endif
     }
 

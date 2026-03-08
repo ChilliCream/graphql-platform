@@ -41,8 +41,8 @@ public class SortingInfo : SortingValueNode, ISortingInfo
             type = nonNullType.NullableType;
         }
 
-        if (ValueNode is ObjectValueNode valueNode &&
-            type is SortInputType sortingInputType)
+        if (ValueNode is ObjectValueNode valueNode
+            && type is SortInputType sortingInputType)
         {
             List<ISortingFieldInfo>? fieldInfos = null;
             foreach (var fieldValue in valueNode.Fields)
@@ -72,9 +72,9 @@ public class SortingInfo : SortingValueNode, ISortingInfo
             normalizedType = nonNullType.NullableType;
         }
 
-        if (valueNode is ListValueNode listValueNode &&
-            normalizedType.IsListType() &&
-            normalizedType.NamedType() is ISortInputType)
+        if (valueNode is ListValueNode listValueNode
+            && normalizedType.IsListType()
+            && normalizedType.NamedType() is ISortInputType)
         {
             List<ISortingValueNode> values = new(listValueNode.Items.Count);
 

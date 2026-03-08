@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -22,7 +20,7 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
 
         foreach (var pattern in feature.Patterns)
         {
-            var objectField = schema.QueryType.Fields[pattern.FieldName];
+            var objectField = pattern.Type.Fields[pattern.FieldName];
             var validationContext = new ValidateIsSelectedPatternContext(schema, objectField, pattern.Pattern);
             ValidateIsSelectedPatternVisitor.Instance.Visit(pattern.Pattern, validationContext);
 

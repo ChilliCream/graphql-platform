@@ -129,10 +129,10 @@ public class SchemaFirstTests
     public async Task SchemaDescription()
     {
         // arrange
-        const string sourceText = "\"\"\"\nMy Schema Description\n\"\"\"" +
-            "schema" +
-            "{ query: Foo }" +
-            "type Foo { bar: String }";
+        const string sourceText = "\"\"\"\nMy Schema Description\n\"\"\""
+            + "schema"
+            + "{ query: Foo }"
+            + "type Foo { bar: String }";
 
         // act
         var schema = SchemaBuilder.New()
@@ -278,13 +278,14 @@ public class SchemaFirstTests
         const string sourceText = "type Query { hello: Any }";
 
         // act
-        var schema = SchemaBuilder.New()
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
             .AddDocumentFromString(sourceText)
             .AddResolver<Query>()
-            .Create();
+            .AddJsonTypeConverter()
+            .BuildRequestExecutorAsync();
 
         // assert
-        var executor = schema.MakeExecutable();
         var result = await executor.ExecuteAsync("{ hello }");
         result.ToJson().MatchSnapshot();
     }
@@ -479,12 +480,14 @@ public class SchemaFirstTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
-                    type Query {
-                        book(input: Foo): String
-                    }
+            .AddDocumentFromString(
+                """
+                type Query {
+                    book(input: Foo): String
+                }
 
-                    input Foo { bar: String = ""baz"" }")
+                input Foo { bar: String = "baz" }
+                """)
             .AddResolver<QueryWithFooInput>("Query")
             .ExecuteRequestAsync("{ book(input: { bar: \"baz123\" }) }")
             .MatchSnapshotAsync();
@@ -544,7 +547,7 @@ public class SchemaFirstTests
 
     public class Person
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class CustomDescriptionDirective : ISchemaDirective
@@ -559,7 +562,7 @@ public class SchemaFirstTests
         {
             if (definition is ObjectFieldConfiguration objectField)
             {
-                objectField.Description = (string)directiveNode.Arguments.First().Value.Value;
+                objectField.Description = (string?)directiveNode.Arguments.First().Value.Value;
             }
         }
     }

@@ -35,8 +35,8 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
         if (context.Types.TryPeek(out var type))
         {
             var namedType = type.NamedType();
-            if (context.Schema.QueryType == namedType &&
-                (IntrospectionFieldNames.Schema.Equals(node.Name.Value, StringComparison.Ordinal)
+            if (context.Schema.QueryType == namedType
+                && (IntrospectionFieldNames.Schema.Equals(node.Name.Value, StringComparison.Ordinal)
                 || IntrospectionFieldNames.Type.Equals(node.Name.Value, StringComparison.Ordinal)))
             {
                 context.ReportError(

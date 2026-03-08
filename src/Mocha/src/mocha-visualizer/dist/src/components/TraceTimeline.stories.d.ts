@@ -1,0 +1,10 @@
+import { Meta, StoryObj } from "@storybook/react";
+import { TraceTimeline } from "./TraceTimeline";
+declare const meta: Meta<typeof TraceTimeline>;
+export default meta;
+type Story = StoryObj<typeof TraceTimeline>;
+export declare const Default: Story;
+export declare const WithErrors: Story;
+export declare const EmptyTrace: Story;
+export declare const SingleActivity: Story;
+export declare const RequestReplySaga: Story;

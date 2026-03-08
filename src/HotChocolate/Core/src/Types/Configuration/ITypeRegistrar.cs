@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal interface ITypeRegistrar
@@ -20,6 +18,8 @@ internal interface ITypeRegistrar
     void MarkResolved(TypeReference typeReference);
 
     bool IsResolved(TypeReference typeReference);
+
+    bool HasRuntimeTypeBinding(ExtendedTypeReference typeReference);
 
     TypeSystemObject CreateInstance(Type namedSchemaType);
 

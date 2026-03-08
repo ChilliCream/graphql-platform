@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -130,9 +128,9 @@ internal static class DirectiveClassMiddlewareFactory
         }
 
         public bool CanHandle(ParameterInfo parameter)
-            => parameter.ParameterType == typeof(Directive) ||
-                parameter.ParameterType == typeof(DirectiveNode) ||
-                (_runtimeType != typeof(object) && _runtimeType == parameter.ParameterType);
+            => parameter.ParameterType == typeof(Directive)
+                || parameter.ParameterType == typeof(DirectiveNode)
+                || (_runtimeType != typeof(object) && _runtimeType == parameter.ParameterType);
 
         public Expression CreateExpression(ParameterInfo parameter)
         {

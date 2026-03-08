@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: QueryType
   mutation: Mutation2
 }
@@ -17,8 +17,8 @@ type BazPayload {
 }
 
 type Mutation2 {
-  baz: BazPayload
-  bar: BarResult
+  baz: BazPayload!
+  bar: BarResult!
 }
 
 type QueryType {

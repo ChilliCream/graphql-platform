@@ -17,15 +17,15 @@ public class CollectionSegmentInfoType : ObjectType<CollectionSegmentInfo>
             .Type<NonNullType<BooleanType>>()
             .Name("hasNextPage")
             .Description(
-                "Indicates whether more items exist following " +
-                "the set defined by the clients arguments.");
+                "Indicates whether more items exist following "
+                + "the set defined by the clients arguments.");
 
         descriptor
             .Field(t => t.HasPreviousPage)
             .Type<NonNullType<BooleanType>>()
             .Name("hasPreviousPage")
             .Description(
-                "Indicates whether more items exist prior " +
-                "the set defined by the clients arguments.");
+                "Indicates whether more items exist prior "
+                + "the set defined by the clients arguments.");
     }
 }

@@ -6,8 +6,6 @@ using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public abstract class OutputField : FieldBase, IOutputFieldDefinition

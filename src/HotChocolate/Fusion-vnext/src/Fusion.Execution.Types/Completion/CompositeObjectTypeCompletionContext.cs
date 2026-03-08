@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Types.Collections;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-internal ref struct CompositeObjectTypeCompletionContext(
+internal readonly ref struct CompositeObjectTypeCompletionContext(
     FusionDirectiveCollection directives,
     FusionInterfaceTypeDefinitionCollection interfaces,
     SourceObjectTypeCollection sources,

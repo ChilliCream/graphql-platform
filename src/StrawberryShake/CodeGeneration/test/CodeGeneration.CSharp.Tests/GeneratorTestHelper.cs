@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -35,19 +36,19 @@ public static class GeneratorTestHelper
         return result.Errors;
     }
 
-    public static void AssertResult(params string[] sourceTexts) =>
+    public static void AssertResult([StringSyntax("graphql")] params string[] sourceTexts) =>
         AssertResult(true, sourceTexts);
 
     public static void AssertResult(
         bool strictValidation,
-        params string[] sourceTexts) =>
+        [StringSyntax("graphql")] params string[] sourceTexts) =>
         AssertResult(
             new AssertSettings { StrictValidation = strictValidation },
             sourceTexts);
 
     public static void AssertResult(
         AssertSettings settings,
-        params string[] sourceTexts)
+        [StringSyntax("graphql")] params string[] sourceTexts)
     {
         AssertResult(settings, false, sourceTexts);
     }
@@ -73,6 +74,7 @@ public static class GeneratorTestHelper
         documents.AppendLine("// ReSharper disable UnusedMember.Global");
         documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
         documents.AppendLine("// ReSharper disable UnusedType.Global");
+        documents.AppendLine("// ReSharper disable UnusedVariable");
         documents.AppendLine();
 
         if (settings.Profiles.Count == 0)
@@ -160,23 +162,23 @@ public static class GeneratorTestHelper
 
         if (diagnostics.Any())
         {
-            Assert.Fail("Diagnostic Errors: \n" +
-                diagnostics
+            Assert.Fail("Diagnostic Errors: \n"
+                + diagnostics
                     .Select(x =>
-                        $"{x.GetMessage()}" +
-                        $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
+                        $"{x.GetMessage()}"
+                        + $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
                     .Aggregate((acc, val) => acc + "\n" + val));
         }
     }
 
-    public static void AssertStarWarsResult(params string[] sourceTexts) =>
+    public static void AssertStarWarsResult([StringSyntax("graphql")] params string[] sourceTexts) =>
         AssertStarWarsResult(
             new AssertSettings { StrictValidation = true },
             sourceTexts);
 
     public static void AssertStarWarsResult(
         AssertSettings settings,
-        params string[] sourceTexts)
+        [StringSyntax("graphql")] params string[] sourceTexts)
     {
         var source = new string[sourceTexts.Length + 2];
 

@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -39,7 +41,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -82,7 +84,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -126,7 +128,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.ConvertAll(r => r.ToString())
@@ -171,7 +173,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -262,14 +264,14 @@ public class TypeDiscovererTests
 
     public class BarType : ObjectType<Bar>;
 
-    public class Foo
+    public class Foo(Bar bar)
     {
-        public Bar Bar { get; }
+        public Bar Bar { get; } = bar;
     }
 
-    public class Bar
+    public class Bar(string baz)
     {
-        public string Baz { get; }
+        public string Baz { get; } = baz;
     }
 
     public class QueryWithInferError

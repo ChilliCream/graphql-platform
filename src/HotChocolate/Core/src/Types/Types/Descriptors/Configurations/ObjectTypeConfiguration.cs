@@ -1,8 +1,5 @@
-using System.Collections.Immutable;
 using System.Reflection;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors.Configurations;
 
@@ -54,11 +51,6 @@ public class ObjectTypeConfiguration
     /// The type that shall be used to infer fields from.
     /// </summary>
     public Type? FieldBindingType { get; set; }
-
-    /// <summary>
-    /// Gets the type that can provide attributes to this type.
-    /// </summary>
-    public ImmutableArray<Type> AttributeBindingTypes { get; set; } = [];
 
     /// <summary>
     /// Runtime types that also represent this GraphQL type.
@@ -208,11 +200,6 @@ public class ObjectTypeConfiguration
             }
         }
 
-        if (AttributeBindingTypes.Length > 0)
-        {
-            target.AttributeBindingTypes = AttributeBindingTypes;
-        }
-
         target.FieldBindingType = FieldBindingType;
         target.IsOfType = IsOfType;
         target.IsExtension = IsExtension;
@@ -240,11 +227,6 @@ public class ObjectTypeConfiguration
             target._fieldIgnores.AddRange(_fieldIgnores);
         }
 
-        if (AttributeBindingTypes.Length > 0)
-        {
-            target.AttributeBindingTypes = target.AttributeBindingTypes.AddRange(AttributeBindingTypes);
-        }
-
         foreach (var field in Fields)
         {
             var targetField = field switch
@@ -260,14 +242,10 @@ public class ObjectTypeConfiguration
             var removeField = field.Ignore;
 
             // we skip fields that have an incompatible parent.
-            if (field.Member is MethodInfo p &&
-                p.GetParameters() is { Length: > 0 } parameters)
+            if (field.Member is MethodInfo p && p.GetParameters() is { Length: > 0 } parameters)
             {
-                var parent = parameters.FirstOrDefault(
-                    t => t.IsDefined(typeof(ParentAttribute), true));
-                if (parent is not null &&
-                    !parent.ParameterType.IsAssignableFrom(target.RuntimeType) &&
-                    !target.RuntimeType.IsAssignableFrom(parent.ParameterType))
+                var parent = parameters.FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute), true));
+                if (parent is not null && !IsParentCompatible(parent.ParameterType, target.RuntimeType, field.Flags))
                 {
                     continue;
                 }
@@ -317,5 +295,28 @@ public class ObjectTypeConfiguration
             sourceField.ResolverMember = sourceField.Member;
             sourceField.Member = targetField?.Member;
         }
+    }
+
+    private static bool IsParentCompatible(Type parentType, Type targetType, CoreFieldFlags flags)
+    {
+        if (parentType.IsAssignableFrom(targetType)
+            || targetType.IsAssignableFrom(parentType))
+        {
+            return true;
+        }
+
+        // For batch resolvers, the parent parameter is a list of the target type.
+        if ((flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver)
+        {
+            var elementType = Resolvers.BatchResolverCompiler.GetListElementType(parentType);
+            if (elementType is not null
+                && (elementType.IsAssignableFrom(targetType)
+                    || targetType.IsAssignableFrom(elementType)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

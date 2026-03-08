@@ -76,8 +76,8 @@ public class IntrospectionTests
     {
         // arrange
         const string query =
-            "{ __type (name: \"Foo\") " +
-            "{ name fields { name type { name } } } }";
+            "{ __type (name: \"Foo\") "
+            + "{ name fields { name type { name } } } }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
@@ -214,13 +214,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -230,7 +231,8 @@ public class IntrospectionTests
 
                     directive @foo on FIELD_DEFINITION
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .ExecuteRequestAsync(
@@ -260,13 +262,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -276,7 +279,8 @@ public class IntrospectionTests
 
                     directive @foo on FIELD_DEFINITION
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
@@ -307,13 +311,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -321,7 +326,8 @@ public class IntrospectionTests
                         a: String!
                     }
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .AddDirectiveType(new DirectiveType(d =>

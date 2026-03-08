@@ -1,8 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public abstract class DescriptorBase<T>(IDescriptorContext context)
@@ -49,20 +47,20 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         if (Configuration.HasTasks)
         {
             var i = 0;
-            var configurations = Configuration.Tasks;
+            var tasks = Configuration.Tasks;
 
             do
             {
-                if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
+                if (tasks[i] is { On: ApplyConfigurationOn.Create } config)
                 {
-                    configurations.RemoveAt(i);
+                    tasks.RemoveAt(i);
                     ((OnCreateTypeSystemConfigurationTask)config).Configure(Context);
                 }
                 else
                 {
                     i++;
                 }
-            } while (i < configurations.Count);
+            } while (i < tasks.Count);
         }
 
         return Configuration;

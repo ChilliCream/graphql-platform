@@ -1,9 +1,11 @@
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.ParameterExpressionBuilders;
 using HotChocolate.AspNetCore.Parsers;
+using HotChocolate.AspNetCore.Warmup;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -19,53 +21,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 {
-    private static IRequestExecutorBuilder AddGraphQLServerCore(
-        this IRequestExecutorBuilder builder,
-        int maxAllowedRequestSize = MaxAllowedRequestSize)
-    {
-        builder.ConfigureSchemaServices(s =>
-        {
-            s.TryAddSingleton<IHttpResponseFormatter>(
-                sp => DefaultHttpResponseFormatter.Create(
-                    new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
-                    sp.GetRequiredService<ITimeProvider>()));
-            s.TryAddSingleton<IHttpRequestParser>(
-                sp => new DefaultHttpRequestParser(
-                    sp.GetRequiredService<IDocumentCache>(),
-                    sp.GetRequiredService<IDocumentHashProvider>(),
-                    maxAllowedRequestSize,
-                    sp.GetRequiredService<ParserOptions>()));
-
-            s.TryAddSingleton<IServerDiagnosticEvents>(sp =>
-            {
-                var listeners = sp.GetServices<IServerDiagnosticEventListener>().ToArray();
-                return listeners.Length switch
-                {
-                    0 => new NoopServerDiagnosticEventListener(),
-                    1 => listeners[0],
-                    _ => new AggregateServerDiagnosticEventListener(listeners)
-                };
-            });
-        });
-
-        if (!builder.Services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
-        {
-            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpContextParameterExpressionBuilder>();
-        }
-
-        if (!builder.Services.IsImplementationTypeRegistered<HttpRequestParameterExpressionBuilder>())
-        {
-            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpRequestParameterExpressionBuilder>();
-        }
-
-        if (!builder.Services.IsImplementationTypeRegistered<HttpResponseParameterExpressionBuilder>())
-        {
-            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpResponseParameterExpressionBuilder>();
-        }
-
-        return builder;
-    }
-
     /// <summary>
     /// Adds a GraphQL server configuration to the DI.
     /// </summary>
@@ -95,6 +50,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         var builder = services
             .AddGraphQL(schemaName)
             .AddGraphQLServerCore(maxAllowedRequestSize)
+            .AddStartupInitialization()
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
 
@@ -158,6 +114,76 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddType<UploadType>();
+        return builder;
+    }
+
+    private static IRequestExecutorBuilder AddGraphQLServerCore(
+        this IRequestExecutorBuilder builder,
+        int maxAllowedRequestSize = MaxAllowedRequestSize)
+    {
+        builder.ConfigureSchemaServices(s =>
+        {
+            s.TryAddSingleton(sp =>
+            {
+                var options = new GraphQLServerOptions();
+                foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
+                {
+                    configure(options);
+                }
+                return options;
+            });
+            s.TryAddSingleton<IHttpResponseFormatter>(
+                sp => DefaultHttpResponseFormatter.Create(
+                    new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
+                    sp.GetRequiredService<ITimeProvider>(),
+                    IncrementalDeliveryFormat.Version_0_2));
+            s.TryAddSingleton<IHttpRequestParser>(
+                sp => new DefaultHttpRequestParser(
+                    sp.GetRequiredService<IDocumentCache>(),
+                    sp.GetRequiredService<IDocumentHashProvider>(),
+                    maxAllowedRequestSize,
+                    sp.GetRequiredService<ParserOptions>()));
+
+            s.TryAddSingleton<IServerDiagnosticEvents>(sp =>
+            {
+                var listeners = sp.GetServices<IServerDiagnosticEventListener>().ToArray();
+                return listeners.Length switch
+                {
+                    0 => new NoopServerDiagnosticEventListener(),
+                    1 => listeners[0],
+                    _ => new AggregateServerDiagnosticEventListener(listeners)
+                };
+            });
+        });
+
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<
+                IPostConfigureOptions<GraphQLServerOptions>,
+                SourceSchemaServerOptionsPostConfigure>());
+
+        if (!builder.Services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
+        {
+            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpContextParameterExpressionBuilder>();
+        }
+
+        if (!builder.Services.IsImplementationTypeRegistered<HttpRequestParameterExpressionBuilder>())
+        {
+            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpRequestParameterExpressionBuilder>();
+        }
+
+        if (!builder.Services.IsImplementationTypeRegistered<HttpResponseParameterExpressionBuilder>())
+        {
+            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpResponseParameterExpressionBuilder>();
+        }
+
+        return builder;
+    }
+
+    private static IRequestExecutorBuilder AddStartupInitialization(
+        this IRequestExecutorBuilder builder)
+    {
+        builder.Services.AddHostedService<RequestExecutorWarmupService>();
+
         return builder;
     }
 }

@@ -62,7 +62,7 @@ public static class TestServerExtensions
             {
                 await using (section.Body)
                 {
-                    using var mem = new MemoryStream();
+                    await using var mem = new MemoryStream();
                     await section.Body.CopyToAsync(mem);
 
                     var item =
@@ -114,7 +114,7 @@ public static class TestServerExtensions
                 {
                     await using (section.Body)
                     {
-                        using var mem = new MemoryStream();
+                        await using var mem = new MemoryStream();
                         await section.Body.CopyToAsync(mem);
 
                         var item =
@@ -275,9 +275,9 @@ public static class TestServerExtensions
         var response =
             await SendGetRequestAsync(
                 testServer,
-                $"query={query}&" +
-                "extensions={\"persistedQuery\":{\"version\":1," +
-                $"\"{hashName}\":\"{hash}\"}}}}",
+                $"query={query}&"
+                + "extensions={\"persistedQuery\":{\"version\":1,"
+                + $"\"{hashName}\":\"{hash}\"}}}}",
                 path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -334,7 +334,7 @@ public static class TestServerExtensions
 
         if (includeQueryPlan)
         {
-            content.Headers.Add(HttpHeaderKeys.QueryPlan, HttpHeaderValues.IncludeQueryPlan);
+            content.Headers.Add(HttpHeaderKeys.OperationPlan, HttpHeaderValues.IncludeOperationPlan);
         }
 
         return testServer.CreateClient().PostAsync(CreateUrl(path), content);

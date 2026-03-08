@@ -29,17 +29,19 @@ internal sealed class NonNullInputFieldIsInaccessibleRule : IEventHandler<Schema
                 .SelectMany(
                     s => s.Types
                         .OfType<MutableInputObjectTypeDefinition>()
+                        // Filter out input object types that do not exist in the composed schema.
+                        .Where(t => schema.Types.ContainsName(t.Name))
                         .SelectMany(
                             t => t.Fields.AsEnumerable().Select(f => new InputFieldInfo(f, t, s))));
 
-        foreach (var (sourceField, sourceType, sourceSchema) in inputFieldGroup)
+        foreach (var (sourceField, _, sourceSchema) in inputFieldGroup)
         {
             if (sourceField.Type is not NonNullType)
             {
                 continue;
             }
 
-            var coordinate = new SchemaCoordinate(sourceType.Name, sourceField.Name);
+            var coordinate = sourceField.Coordinate;
 
             if (!schema.TryGetMember(coordinate, out var member)
                 || member is not MutableInputFieldDefinition inputField

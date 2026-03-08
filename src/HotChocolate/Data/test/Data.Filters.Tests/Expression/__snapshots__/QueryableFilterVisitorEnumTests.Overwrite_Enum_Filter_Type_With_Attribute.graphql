@@ -27,5 +27,8 @@ input ShortOperationFilterInput {
   nlte: Short
 }
 
-"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
-scalar Short
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+"The `Short` scalar type represents a signed 16-bit integer."
+scalar Short @specifiedBy(url: "https://scalars.graphql.org/chillicream/short.html")

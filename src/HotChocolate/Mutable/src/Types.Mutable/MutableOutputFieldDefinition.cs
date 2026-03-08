@@ -84,6 +84,9 @@ public class MutableOutputFieldDefinition(string name, IOutputType? type = null)
         }
     }
 
+    /// <inheritdoc cref="IMutableFieldDefinition.IsIntrospectionField" />
+    public bool IsIntrospectionField { get; set; }
+
     public DirectiveCollection Directives
         => _directives ??= [];
 

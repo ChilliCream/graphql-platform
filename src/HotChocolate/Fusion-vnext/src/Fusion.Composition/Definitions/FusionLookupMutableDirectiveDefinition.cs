@@ -1,8 +1,10 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Definitions;
 
@@ -17,7 +19,8 @@ internal sealed class FusionLookupMutableDirectiveDefinition : MutableDirectiveD
         MutableScalarTypeDefinition fieldSelectionSetType,
         MutableScalarTypeDefinition fieldDefinitionType,
         MutableScalarTypeDefinition fieldSelectionMapType,
-        MutableScalarTypeDefinition fieldSelectionPathType)
+        MutableScalarTypeDefinition fieldSelectionPathType,
+        MutableScalarTypeDefinition booleanType)
         : base(FusionLookup)
     {
         Description = FusionLookupMutableDirectiveDefinition_Description;
@@ -58,6 +61,12 @@ internal sealed class FusionLookupMutableDirectiveDefinition : MutableDirectiveD
         Arguments.Add(new MutableInputFieldDefinition(ArgumentNames.Path, fieldSelectionPathType)
         {
             Description = FusionLookupMutableDirectiveDefinition_Argument_Path_Description
+        });
+
+        Arguments.Add(new MutableInputFieldDefinition(ArgumentNames.Internal, new NonNullType(booleanType))
+        {
+            DefaultValue = new BooleanValueNode(false),
+            Description = FusionLookupMutableDirectiveDefinition_Argument_Internal_Description
         });
 
         IsRepeatable = true;

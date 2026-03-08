@@ -1,23 +1,34 @@
-import { Link as GatsbyLink, GatsbyLinkProps } from "gatsby";
+import NextLink from "next/link";
 import React, { FC } from "react";
 
-export const Link: FC<
-  Pick<
-    GatsbyLinkProps<unknown>,
-    "className" | "download" | "to" | "onClick"
-  > & {
-    prefetch?: false;
-  }
-> = ({ to, prefetch = true, ...rest }) => {
-  const internal = /^\/(?!\/)/.test(to);
+export const Link: FC<{
+  className?: string;
+  download?: any;
+  to: string;
+  onClick?: React.MouseEventHandler;
+  prefetch?: false;
+  children?: React.ReactNode;
+}> = ({ to, prefetch, children, ...rest }) => {
+  const isHash = to.startsWith("#");
+  const internal = isHash || /^\/(?!\/)/.test(to);
 
-  return internal ? (
-    prefetch ? (
-      <GatsbyLink to={to} {...rest} />
+  return isHash ? (
+    <a href={to} {...rest}>
+      {children}
+    </a>
+  ) : internal ? (
+    prefetch === false ? (
+      <a href={to} {...rest}>
+        {children}
+      </a>
     ) : (
-      <a href={to} {...rest} />
+      <NextLink href={to} {...rest}>
+        {children}
+      </NextLink>
     )
   ) : (
-    <a href={to} target="_blank" rel="noopener noreferrer" {...rest} />
+    <a href={to} target="_blank" rel="noopener noreferrer" {...rest}>
+      {children}
+    </a>
   );
 };

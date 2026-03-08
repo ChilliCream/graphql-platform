@@ -172,8 +172,7 @@ public static partial class TypeDescriptorMapper
                         fallbackKind = TypeKind.EntityOrData;
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;
-                    case InterfaceType when implementedBy is not null &&
-                        implementedBy.Any(t => t.IsEntity()):
+                    case InterfaceType when (implementedBy?.Any(t => t.IsEntity()) == true):
                         fallbackKind = TypeKind.EntityOrData;
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;
@@ -376,8 +375,9 @@ public static partial class TypeDescriptorMapper
 
     private static bool IncludeOrSkipDirective(OutputFieldModel field)
     {
-        return field.SyntaxNode.Directives.GetIncludeDirectiveNode() is not null ||
-            field.SyntaxNode.Directives.GetSkipDirectiveNode() is not null;
+        return field.SyntaxNode.Directives.Any(
+            t => t.Name.Value.Equals(DirectiveNames.Include.Name)
+                || t.Name.Value.Equals(DirectiveNames.Skip.Name));
     }
 
     private static void AddProperties(

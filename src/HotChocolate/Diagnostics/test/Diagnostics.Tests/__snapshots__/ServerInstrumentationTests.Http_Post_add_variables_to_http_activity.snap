@@ -15,7 +15,7 @@
         },
         {
           "Key": "graphql.http.request.variables",
-          "Value": "{ episode: \"NEW_HOPE\" }"
+          "Value": "{\"episode\":\"NEW_HOPE\"}"
         }
       ],
       "event": [],

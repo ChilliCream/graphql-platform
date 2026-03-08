@@ -121,11 +121,11 @@ public static class TypeNames
     public const string IInMemoryClientFactory =
         StrawberryShakeNamespace + "Transport.InMemory.IInMemoryClientFactory";
 
-    public const string AddProtocol = GlobalDependencyInjectionNamespace +
-                                      "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
+    public const string AddProtocol = GlobalDependencyInjectionNamespace
+        + "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
 
-    public const string GraphQLWebSocketProtocolFactory = StrawberryShakeNamespace +
-                                                          "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
+    public const string GraphQLWebSocketProtocolFactory = StrawberryShakeNamespace
+        + "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
 
     public const string SequenceEqual =
         StrawberryShakeNamespace + "Internal.ComparisonHelper.SequenceEqual";
@@ -144,6 +144,7 @@ public static class TypeNames
 
     public const string String = "global::System.String";
     public const string Byte = "global::System.Byte";
+    public const string SByte = "global::System.SByte";
     public const string ByteArray = "global::System.Byte[]";
     public const string Array = "global::System.Array";
     public const string Int16 = "global::System.Int16";
@@ -203,16 +204,16 @@ public static class TypeNames
         GlobalDependencyInjectionNamespace + "ServiceCollection";
 
     public const string GetRequiredService =
-        GlobalDependencyInjectionNamespace +
-        "ServiceProviderServiceExtensions.GetRequiredService";
+        GlobalDependencyInjectionNamespace
+        + "ServiceProviderServiceExtensions.GetRequiredService";
 
     public const string AddSingleton =
-        GlobalDependencyInjectionNamespace +
-        "ServiceCollectionServiceExtensions.AddSingleton";
+        GlobalDependencyInjectionNamespace
+        + "ServiceCollectionServiceExtensions.AddSingleton";
 
     public const string BuildServiceProvider =
-        GlobalDependencyInjectionNamespace +
-        "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
+        GlobalDependencyInjectionNamespace
+        + "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
 
     public const string InjectAttribute =
         "global::Microsoft.AspNetCore.Components.InjectAttribute";
@@ -234,8 +235,8 @@ public static class TypeNames
         "Microsoft.Extensions.DependencyInjection";
 
     public const string DependencyInjectionExtensions =
-        GlobalDependencyInjectionNamespace +
-        "Extensions.ServiceCollectionDescriptorExtensions.";
+        GlobalDependencyInjectionNamespace
+        + "Extensions.ServiceCollectionDescriptorExtensions.";
 
     public const string UseQuery = StrawberryShakeNamespace + "Razor." + nameof(UseQuery);
 
@@ -268,6 +269,9 @@ public static class TypeNames
     public const string DecimalSerializer =
         StrawberryShakeNamespace + "Serialization.DecimalSerializer";
 
+    public const string UriSerializer =
+        StrawberryShakeNamespace + "Serialization.UriSerializer";
+
     public const string UrlSerializer =
         StrawberryShakeNamespace + "Serialization.UrlSerializer";
 
@@ -291,14 +295,29 @@ public static class TypeNames
     public const string LocalTimeSerializer =
         StrawberryShakeNamespace + "Serialization.LocalTimeSerializer";
 
+    public const string Base64StringSerializer =
+        StrawberryShakeNamespace + "Serialization.Base64StringSerializer";
+
     public const string ByteArraySerializer =
         StrawberryShakeNamespace + "Serialization.ByteArraySerializer";
 
     public const string TimeSpanSerializer =
         StrawberryShakeNamespace + "Serialization.TimeSpanSerializer";
 
-    public const string JsonSerializer =
-        StrawberryShakeNamespace + "Serialization.JsonSerializer";
+    public const string UnsignedByteSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedByteSerializer";
+
+    public const string UnsignedIntSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedIntSerializer";
+
+    public const string UnsignedLongSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedLongSerializer";
+
+    public const string UnsignedShortSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedShortSerializer";
+
+    public const string AnySerializer =
+        StrawberryShakeNamespace + "Serialization.AnySerializer";
 
     public const string UploadSerializer =
         StrawberryShakeNamespace + "Serialization.UploadSerializer";

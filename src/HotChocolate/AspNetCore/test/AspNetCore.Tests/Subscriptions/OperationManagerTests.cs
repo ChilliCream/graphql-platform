@@ -325,7 +325,7 @@ public class OperationManagerTests
         public ValueTask SendResultMessageAsync(
             ISocketSession session,
             string operationSessionId,
-            IOperationResult result,
+            OperationResult result,
             CancellationToken cancellationToken)
             => default;
 

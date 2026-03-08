@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -31,6 +32,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo _eventStreamFormat;
     private readonly FormatInfo _jsonLinesFormat;
     private readonly FormatInfo _legacyFormat;
+    private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -48,10 +50,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// <param name="timeProvider">
     /// The time provider.
     /// </param>
+    /// <param name="incrementalDeliveryFormat">
+    /// The default incremental delivery format to use when the Accept header does not specify one.
+    /// </param>
     public DefaultHttpResponseFormatter(
         bool indented = false,
         JavaScriptEncoder? encoder = null,
-        ITimeProvider? timeProvider = null)
+        ITimeProvider? timeProvider = null,
+        IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
         : this(
             new HttpResponseFormatterOptions
             {
@@ -61,7 +67,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     Encoder = encoder
                 }
             },
-            timeProvider)
+            timeProvider,
+            incrementalDeliveryFormat)
     {
     }
 
@@ -74,7 +81,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// <param name="timeProvider">
     /// The time provider.
     /// </param>
-    public DefaultHttpResponseFormatter(HttpResponseFormatterOptions options, ITimeProvider? timeProvider = null)
+    /// <param name="incrementalDeliveryFormat">
+    /// The default incremental delivery format to use when the Accept header does not specify one.
+    /// </param>
+    public DefaultHttpResponseFormatter(
+        HttpResponseFormatterOptions options,
+        ITimeProvider? timeProvider = null,
+        IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
     {
         _timeProvider = timeProvider ?? new DefaultTimeProvider();
 
@@ -110,6 +123,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         _defaultFormat = options.HttpTransportVersion is HttpTransportVersion.Legacy
             ? _legacyFormat
             : _graphqlResponseFormat;
+
+        _incrementalDeliveryDefaultFormat = incrementalDeliveryFormat is IncrementalDeliveryFormat.Undefined
+            ? IncrementalDeliveryFormat.Version_0_2
+            : incrementalDeliveryFormat;
     }
 
     public RequestFlags CreateRequestFlags(
@@ -157,7 +174,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             flags |= RequestFlags.AllowStreams;
         }
 
-        if (acceptMediaType.Kind is EventStream or All)
+        if (acceptMediaType.Kind is ApplicationGraphQLStream or EventStream or ApplicationJsonLines or All)
         {
             flags = RequestFlags.AllowAll;
         }
@@ -172,9 +189,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         HttpStatusCode? proposedStatusCode,
         CancellationToken cancellationToken)
     {
-        var format = TryGetFormatter(result, acceptMediaTypes);
-
-        if (format is null)
+        if (!TryGetFormatter(result, acceptMediaTypes, out var selectedAcceptMediaType, out var format))
         {
             // we should not hit this point except if middleware did not validate the
             // GraphQL request flags which would indicate that there is no way to execute
@@ -184,7 +199,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         try
         {
-            await FormatInternalAsync(response, result, proposedStatusCode, format, cancellationToken);
+            await FormatInternalAsync(
+                response,
+                result,
+                proposedStatusCode,
+                format,
+                selectedAcceptMediaType,
+                cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -197,26 +218,27 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         IExecutionResult result,
         HttpStatusCode? proposedStatusCode,
         FormatInfo format,
+        AcceptMediaType acceptMediaType,
         CancellationToken cancellationToken)
     {
+        var formatFlags = ResolveResultFormatFlags(acceptMediaType);
+
         switch (result)
         {
-            case IOperationResult operationResult:
+            case OperationResult operationResult:
             {
                 var statusCode = (int)OnDetermineStatusCode(operationResult, format, proposedStatusCode);
 
                 response.ContentType = format.ContentType;
                 response.StatusCode = statusCode;
 
-                if (result.ContextData is not null
-                    && result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
+                if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
                     && value is CacheControlHeaderValue cacheControlHeaderValue)
                 {
                     response.GetTypedHeaders().CacheControl = cacheControlHeaderValue;
                 }
 
-                if (result.ContextData is not null
-                    && result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
+                if (result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
                     && varyValue is string varyHeaderValue)
                 {
                     response.Headers.Vary = varyHeaderValue;
@@ -224,7 +246,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(
+                    result,
+                    response.BodyWriter,
+                    formatFlags,
+                    cancellationToken: cancellationToken);
                 break;
             }
 
@@ -238,7 +264,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 OnWriteResponseHeaders(resultBatch, format, response.Headers);
                 await response.Body.FlushAsync(cancellationToken);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(
+                    result,
+                    response.BodyWriter,
+                    formatFlags,
+                    cancellationToken: cancellationToken);
                 break;
             }
 
@@ -252,7 +282,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 OnWriteResponseHeaders(responseStream, format, response.Headers);
                 await response.Body.FlushAsync(cancellationToken);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(
+                    result,
+                    response.BodyWriter,
+                    formatFlags,
+                    cancellationToken: cancellationToken);
                 break;
             }
 
@@ -261,6 +295,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 // ExecutionResultKind and forget to update this method.
                 throw ThrowHelper.Formatter_ResultKindNotSupported();
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ExecutionResultFormatFlags ResolveResultFormatFlags(
+        AcceptMediaType acceptMediaType)
+    {
+        var format = acceptMediaType.IncrementalDeliveryFormat is IncrementalDeliveryFormat.Undefined
+            ? _incrementalDeliveryDefaultFormat
+            : acceptMediaType.IncrementalDeliveryFormat;
+
+        return format is IncrementalDeliveryFormat.Version_0_1
+            ? ExecutionResultFormatFlags.IncrementalRfc1
+            : ExecutionResultFormatFlags.None;
     }
 
     public async ValueTask FormatAsync(
@@ -287,7 +334,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         response.ContentType = ContentType.GraphQL;
         response.Headers.SetContentDisposition(output.FileName);
         response.Headers.ETag = output.ETag;
-        response.Headers.LastModified = output.LastModifiedTime.ToString("R");
+        response.Headers.LastModified = output.LastModified;
         response.Headers.CacheControl = "public, max-age=3600, must-revalidate";
         response.Headers.ContentLength = memory.Length;
         await response.Body.WriteAsync(memory, cancellationToken);
@@ -301,7 +348,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// Determines which status code shall be returned for this result.
     /// </summary>
     /// <param name="result">
-    /// The <see cref="IOperationResult"/>.
+    /// The <see cref="OperationResult"/>.
     /// </param>
     /// <param name="format">
     /// Provides information about the transport format that is applied.
@@ -313,7 +360,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// Returns the <see cref="HttpStatusCode"/> that the formatter must use.
     /// </returns>
     protected virtual HttpStatusCode OnDetermineStatusCode(
-        IOperationResult result,
+        OperationResult result,
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
@@ -346,10 +393,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             // if the GraphQL result has context data, we will check if some middleware provided
             // a status code or indicated an error that should be interpreted as a status code.
-            if (result.ContextData is not null)
+            if (result.ContextData is { Count: > 0 } contextData)
             {
-                var contextData = result.ContextData;
-
                 // First, we check if there is an explicit HTTP status code override by the user.
                 if (contextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value))
                 {
@@ -371,7 +416,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     return HttpStatusCode.BadRequest;
                 }
 
-                if (result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
+                if (contextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
                 {
                     return HttpStatusCode.MethodNotAllowed;
                 }
@@ -384,7 +429,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             // server is still able to produce a well-formed response.
             // Even null represents a valid response, in this case of a non-null propagation
             // that erased the result.
-            if (result.IsDataSet)
+            if (result.Data.HasValue)
             {
                 return HttpStatusCode.OK;
             }
@@ -405,7 +450,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// the formatter starts writing the response body.
     /// </summary>
     /// <param name="result">
-    /// The <see cref="IOperationResult"/>.
+    /// The <see cref="OperationResult"/>.
     /// </param>
     /// <param name="format">
     /// Provides information about the transport format that is applied.
@@ -414,7 +459,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// The header dictionary.
     /// </param>
     protected virtual void OnWriteResponseHeaders(
-        IOperationResult result,
+        OperationResult result,
         FormatInfo format,
         IHeaderDictionary headers)
     {
@@ -443,7 +488,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         // if we are sending a response stream with the multipart/mixed header or
         // with a text/event-stream response content-type, we as well will just
         // respond with an OK status code.
-        if (format.Kind is ResponseContentType.MultiPartMixed or ResponseContentType.EventStream)
+        if (format.Kind is ResponseContentType.MultiPartMixed
+            or ResponseContentType.EventStream
+            or ResponseContentType.GraphQLResponseStream
+            or ResponseContentType.JsonLines)
         {
             return HttpStatusCode.OK;
         }
@@ -515,10 +563,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
     }
 
-    private FormatInfo? TryGetFormatter(
+    private bool TryGetFormatter(
         IExecutionResult result,
-        AcceptMediaType[] acceptMediaTypes)
+        AcceptMediaType[] acceptMediaTypes,
+        out AcceptMediaType selectedAcceptMediaType,
+        [NotNullWhen(true)] out FormatInfo? format)
     {
+        selectedAcceptMediaType = default;
+        format = null;
         var length = acceptMediaTypes.Length;
 
         // There is no Accept header present, so the server is allowed
@@ -527,20 +579,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             if (result.Kind is SingleResult)
             {
-                return _defaultFormat;
+                format = _defaultFormat;
+                return true;
             }
 
             if (result.Kind is DeferredResult or BatchResult)
             {
-                return _multiPartFormat;
+                format = _multiPartFormat;
+                return true;
             }
 
             if (result.Kind is SubscriptionResult)
             {
-                return _eventStreamFormat;
+                format = _eventStreamFormat;
+                return true;
             }
 
-            return null;
+            return false;
         }
 
         // If the request specifies at least one accept media-type, we will
@@ -563,54 +618,71 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationGraphQL)
             {
-                return _graphqlResponseFormat;
+                selectedAcceptMediaType = mediaType;
+                format = _graphqlResponseFormat;
+                return true;
             }
 
             if (mediaType.Kind is ApplicationGraphQLStream)
             {
-                return _graphqlResponseStreamFormat;
+                selectedAcceptMediaType = mediaType;
+                format = _graphqlResponseStreamFormat;
+                return true;
             }
 
             if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationJson)
             {
-                return _legacyFormat;
+                selectedAcceptMediaType = mediaType;
+                format = _legacyFormat;
+                return true;
             }
 
             if (resultKind is ResultKind.Single && mediaType.Kind is AllApplication or All)
             {
-                return _defaultFormat;
+                selectedAcceptMediaType = mediaType;
+                format = _defaultFormat;
+                return true;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single
                 && mediaType.Kind is MultiPartMixed or AllMultiPart or All)
             {
-                return _multiPartFormat;
+                selectedAcceptMediaType = mediaType;
+                format = _multiPartFormat;
+                return true;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Subscription
                 && mediaType.Kind is ApplicationJsonLines)
             {
-                return _jsonLinesFormat;
+                selectedAcceptMediaType = mediaType;
+                format = _jsonLinesFormat;
+                return true;
             }
 
             if (mediaType.Kind is EventStream or All)
             {
-                return _eventStreamFormat;
+                selectedAcceptMediaType = mediaType;
+                format = _eventStreamFormat;
+                return true;
             }
 
-            return null;
+            return false;
         }
 
         // If we have more than one specified accept-header value, we will try to find the best for
         // our GraphQL result.
         ref var end = ref Unsafe.Add(ref start, length);
         FormatInfo? possibleFormat = null;
+        AcceptMediaType possibleMediaType = default;
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
             if (resultKind is ResultKind.Single && start.Kind is AllApplication or All)
             {
-                return _defaultFormat;
+                selectedAcceptMediaType = start;
+                format = _defaultFormat;
+                return true;
             }
 
             if (resultKind is ResultKind.Single && start.Kind is ApplicationJson)
@@ -619,21 +691,28 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 // We will create a formatInfo but keep on validating for
                 // a better suited format.
                 possibleFormat = _legacyFormat;
+                possibleMediaType = start;
             }
 
             if (resultKind is ResultKind.Single && start.Kind is ApplicationGraphQL)
             {
-                return _graphqlResponseFormat;
+                selectedAcceptMediaType = start;
+                format = _graphqlResponseFormat;
+                return true;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Subscription && start.Kind is ApplicationGraphQLStream)
             {
-                return _graphqlResponseStreamFormat;
+                selectedAcceptMediaType = start;
+                format = _graphqlResponseStreamFormat;
+                return true;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Subscription && start.Kind is ApplicationJsonLines)
             {
-                return _jsonLinesFormat;
+                selectedAcceptMediaType = start;
+                format = _jsonLinesFormat;
+                return true;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single
@@ -644,6 +723,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 if (resultKind is ResultKind.Stream)
                 {
                     possibleFormat = _multiPartFormat;
+                    possibleMediaType = start;
                 }
 
                 // if the format is an event-stream or not set, we will create a
@@ -652,6 +732,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 if (possibleFormat?.Kind is not ResponseContentType.Json)
                 {
                     possibleFormat = _multiPartFormat;
+                    possibleMediaType = start;
                 }
             }
 
@@ -662,6 +743,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 if (resultKind is ResultKind.Subscription or ResultKind.Stream)
                 {
                     possibleFormat = _eventStreamFormat;
+                    possibleMediaType = start;
                 }
 
                 // if the result is stream, it means that we did not yet validate a
@@ -673,21 +755,30 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 if (possibleFormat?.Kind is ResponseContentType.Unknown)
                 {
                     possibleFormat = _multiPartFormat;
+                    possibleMediaType = start;
                 }
             }
 
             start = ref Unsafe.Add(ref start, 1);
         }
 
-        return possibleFormat;
+        if (possibleFormat is not null)
+        {
+            selectedAcceptMediaType = possibleMediaType;
+            format = possibleFormat;
+            return true;
+        }
+
+        return false;
     }
 
     internal static DefaultHttpResponseFormatter Create(
         HttpResponseFormatterOptions options,
-        ITimeProvider timeProvider)
+        ITimeProvider timeProvider,
+        IncrementalDeliveryFormat incrementalDeliveryFormat)
     {
         ArgumentNullException.ThrowIfNull(timeProvider);
-        return new SealedDefaultHttpResponseFormatter(options, timeProvider);
+        return new SealedDefaultHttpResponseFormatter(options, timeProvider, incrementalDeliveryFormat);
     }
 
     /// <summary>
@@ -734,8 +825,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     private sealed class SealedDefaultHttpResponseFormatter(
         HttpResponseFormatterOptions options,
-        ITimeProvider timeProvider)
-        : DefaultHttpResponseFormatter(options, timeProvider);
+        ITimeProvider timeProvider,
+        IncrementalDeliveryFormat incrementalDeliveryFormat)
+        : DefaultHttpResponseFormatter(options, timeProvider, incrementalDeliveryFormat);
 
     private sealed class CachedSchemaOutput
     {
@@ -746,7 +838,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             _schema = Encoding.UTF8.GetBytes(schema.ToString());
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
-            LastModifiedTime = lastModifiedTime;
+            LastModified = lastModifiedTime.ToString("R");
             Version = version;
         }
 
@@ -756,14 +848,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public ulong Version { get; }
 
-        public DateTimeOffset LastModifiedTime { get; }
+        public string LastModified { get; }
 
         public ReadOnlyMemory<byte> AsMemory() => _schema;
 
         private static string CreateETag(byte[] schema, ulong version)
         {
-            using var sha256 = SHA256.Create();
-            var hashBytes = sha256.ComputeHash(schema);
+            Span<byte> hashBytes = stackalloc byte[32];
+            SHA256.HashData(schema, hashBytes);
             var hash = Convert.ToBase64String(hashBytes);
             return $"\"{version}-{hash}\"";
         }

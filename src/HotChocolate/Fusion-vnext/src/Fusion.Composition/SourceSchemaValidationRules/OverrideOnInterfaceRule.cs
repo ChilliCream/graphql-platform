@@ -23,9 +23,9 @@ internal sealed class OverrideOnInterfaceRule : IEventHandler<OutputFieldEvent>
     {
         var (field, type, schema) = @event;
 
-        if (type is MutableInterfaceTypeDefinition && field.HasOverrideDirective())
+        if (type is MutableInterfaceTypeDefinition && field.HasOverrideDirective)
         {
-            context.Log.Write(OverrideOnInterface(field, type, schema));
+            context.Log.Write(OverrideOnInterface(field, schema));
         }
     }
 }

@@ -7,8 +7,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public class ResolverContextStateExtensionTests

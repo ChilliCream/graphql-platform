@@ -82,7 +82,7 @@ public ref partial struct Utf8GraphQLParser
               location,
               name,
               TakeDescription(),
-              Array.Empty<VariableDefinitionNode>(),
+              [],
               typeCondition,
               directives,
               selectionSet

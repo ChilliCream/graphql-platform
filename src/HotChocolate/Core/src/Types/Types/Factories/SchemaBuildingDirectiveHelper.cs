@@ -2,8 +2,6 @@ using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types.Factories;
 
 internal static class SchemaBuildingDirectiveHelper

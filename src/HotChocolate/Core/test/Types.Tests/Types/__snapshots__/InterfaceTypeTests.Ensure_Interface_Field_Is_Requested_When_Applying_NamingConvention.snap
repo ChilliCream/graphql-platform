@@ -1,9 +1,9 @@
-﻿schema {
+schema {
   query: Query
 }
 
 interface IFooNaming {
-  foo_bar_baz: String
+  foo_bar_baz: String!
 }
 
 type Query {

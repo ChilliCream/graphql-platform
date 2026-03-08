@@ -47,4 +47,7 @@ Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "
   <data name="ThrowHelper_UnknownDirectiveArgument" xml:space="preserve">
     <value>`{0}` is not a valid argument of the directive `@mutation`.</value>
   </data>
+  <data name="ThrowHelper_MutationMustReturnValue" xml:space="preserve">
+    <value>The mutation field '{0}' must return a value.</value>
+  </data>
 </root>

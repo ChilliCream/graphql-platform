@@ -46,8 +46,8 @@ public class QueryableDefaultSortFieldHandler
         Expression nextSelector;
         if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression })
         {
-            if (expression.Parameters.Count != 1 ||
-                expression.Parameters[0].Type != context.RuntimeTypes.Peek().Source)
+            if (expression.Parameters.Count != 1
+                || expression.Parameters[0].Type != context.RuntimeTypes.Peek().Source)
             {
                 throw ThrowHelper.QueryableSorting_ExpressionParameterInvalid(
                     field.RuntimeType.Source,
@@ -101,6 +101,8 @@ public class QueryableDefaultSortFieldHandler
         action = SyntaxVisitor.Continue;
         return true;
     }
+
+    public static QueryableDefaultSortFieldHandler Create(SortProviderContext context) => new();
 
     private sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
     {

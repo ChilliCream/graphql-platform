@@ -1,9 +1,9 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -15,8 +15,12 @@ internal sealed class ObjectTypeParameterExpressionBuilder()
     public override ArgumentKind Kind => ArgumentKind.ObjectType;
 
     public override bool CanHandle(ParameterInfo parameter)
-        => typeof(ObjectType) == parameter.ParameterType ||
-           typeof(IObjectTypeDefinition) == parameter.ParameterType;
+        => typeof(ObjectType) == parameter.ParameterType
+            || typeof(IObjectTypeDefinition) == parameter.ParameterType;
+
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(ObjectType) == parameter.Type
+            || typeof(IObjectTypeDefinition) == parameter.Type;
 
     public override Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -27,9 +31,13 @@ internal sealed class ObjectTypeParameterExpressionBuilder()
             : expression;
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.ObjectType;
+    {
+        Debug.Assert(typeof(T) == typeof(ObjectType) || typeof(T) == typeof(IObjectTypeDefinition));
+        var objectType = context.ObjectType;
+        return Unsafe.As<ObjectType, T>(ref objectType);
+    }
 }

@@ -4,25 +4,42 @@ using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.Satisfiability;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
+using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, ICompositionLog log)
+internal sealed class SatisfiabilityValidator
 {
-    private readonly RequirementsValidator _requirementsValidator = new(schema);
+    private readonly SatisfiabilityOptions _options;
+    private readonly RequirementsValidator _requirementsValidator;
+    private readonly MutableSchemaDefinition _schema;
+    private readonly ICompositionLog _log;
+
+    public SatisfiabilityValidator(
+        MutableSchemaDefinition schema,
+        ICompositionLog log,
+        SatisfiabilityOptions? options = null)
+    {
+        _schema = schema;
+        _log = log;
+        _options = options ?? new SatisfiabilityOptions();
+        _requirementsValidator = new RequirementsValidator(schema, _options.IncludeSatisfiabilityPaths);
+    }
 
     public CompositionResult Validate()
     {
         var context = new SatisfiabilityValidatorContext();
 
         MutableObjectTypeDefinition?[] rootTypes =
-            [schema.QueryType, schema.MutationType, schema.SubscriptionType];
+            [_schema.QueryType, _schema.MutationType, _schema.SubscriptionType];
 
         foreach (var rootType in rootTypes)
         {
@@ -32,7 +49,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
             }
         }
 
-        return log.HasErrors
+        return _log.HasErrors
             ? ErrorHelper.SatisfiabilityValidationFailed()
             : CompositionResult.Success();
     }
@@ -47,6 +64,25 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         {
             if (field.HasFusionInaccessibleDirective())
             {
+                continue;
+            }
+
+            // The node and nodes fields are "virtual" fields that might not directly map
+            // to an underlying source schema, so we have to validate them differently.
+            if (field.Name is FieldNames.Node or FieldNames.Nodes
+                && objectType == _schema.QueryType
+                && _schema.Types.TryGetType<IInterfaceTypeDefinition>(WellKnownTypeNames.Node, out var nodeType)
+                && field.Type.NamedType() == nodeType)
+            {
+                if (field.Name == FieldNames.Nodes)
+                {
+                    // The node and nodes fields always appear in pairs, so we can skip nodes entirely
+                    // and only do the validation once for the node field.
+                    continue;
+                }
+
+                VisitNodeField(objectType, field, nodeType, context);
+
                 continue;
             }
 
@@ -81,7 +117,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
             // If the field is marked as partial, it must be provided by the current schema for it
             // to be an option.
             if (field.IsPartial(schemaName)
-                && previousPathItem?.Provides(field, type, schemaName, schema) != true)
+                && previousPathItem?.Provides(field, type, schemaName, _schema) != true)
             {
                 continue;
             }
@@ -126,7 +162,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                     _requirementsValidator.Validate(
                         requirements,
                         type,
-                        context.Path.Peek(),
+                        previousPathItem,
                         excludeSchemaName: schemaName);
 
                 if (requirementErrors.Length != 0)
@@ -152,7 +188,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
             // Visit each of the possible types that the field may return.
             if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
             {
-                var possibleTypes = fieldType.GetPossibleTypes(schemaName, schema);
+                var possibleTypes = fieldType.GetPossibleTypes(schemaName, _schema);
 
                 foreach (var possibleType in possibleTypes)
                 {
@@ -177,16 +213,98 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         // (f.e. relatedProduct.relatedProduct.relatedProduct)
         if (optionCount == 0 && !cycle)
         {
-            var error = new SatisfiabilityError(
-                string.Format(
-                    SatisfiabilityValidator_UnableToAccessFieldOnPath,
-                    type.Name,
-                    field.Name,
-                    context.Path),
-                [.. errors]);
+            var qualifiedFieldName = $"{type.Name}.{field.Name}";
 
-            log.Write(
-                new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
+            if (_options.IgnoredNonAccessibleFields.TryGetValue(qualifiedFieldName, out var ignoredPaths)
+                && ignoredPaths.Contains(context.Path.ToString()))
+            {
+                return;
+            }
+
+            var message =
+                _options.IncludeSatisfiabilityPaths
+                    ? string.Format(
+                        SatisfiabilityValidator_UnableToAccessFieldOnPath,
+                        type.Name,
+                        field.Name,
+                        context.Path)
+                    : string.Format(
+                        SatisfiabilityValidator_UnableToAccessField,
+                        type.Name,
+                        field.Name);
+
+            var error = new SatisfiabilityError(message, [.. errors]);
+
+            _log.Write(
+                LogEntryBuilder.New()
+                    .SetMessage(error.ToString())
+                    .SetCode(LogEntryCodes.Unsatisfiable)
+                    .SetSeverity(LogSeverity.Error)
+                    .SetExtension("error", error)
+                    .Build());
+        }
+    }
+
+    private void VisitNodeField(
+        MutableObjectTypeDefinition queryType,
+        MutableOutputFieldDefinition nodeField,
+        IInterfaceTypeDefinition nodeType,
+        SatisfiabilityValidatorContext context)
+    {
+        foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
+        {
+            var byIdLookups = _schema
+                .GetPossibleFusionLookupDirectivesById(possibleType);
+
+            var hasNodeLookup = false;
+
+            var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
+            context.Path.Push(nodePathItem);
+
+            foreach (var lookup in byIdLookups)
+            {
+                var schemaName = (string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!;
+                var fieldDirectiveArgument = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
+                var lookupFieldDefinition = ParseFieldDefinition(fieldDirectiveArgument);
+                var lookupFieldTypeName = lookupFieldDefinition.Type.NamedType().Name.Value;
+
+                if (!_schema.Types.TryGetType(lookupFieldTypeName, out var lookupFieldNamedType))
+                {
+                    continue;
+                }
+
+                var lookupFieldType = CreateType(lookupFieldDefinition.Type, lookupFieldNamedType).ExpectOutputType();
+
+                if (lookupFieldType is IInterfaceTypeDefinition { Name: "Node" })
+                {
+                    hasNodeLookup = true;
+                }
+
+                var lookupField = new MutableOutputFieldDefinition(lookupFieldDefinition.Name.Value, lookupFieldType);
+
+                var lookupPathItem = new SatisfiabilityPathItem(lookupField, queryType, schemaName);
+                context.Path.Push(lookupPathItem);
+
+                VisitObjectType(possibleType, context);
+
+                context.Path.Pop();
+            }
+
+            if (!hasNodeLookup)
+            {
+                var error = new SatisfiabilityError(
+                    string.Format(SatisfiabilityValidator_NodeTypeHasNoNodeLookup, possibleType.Name));
+
+                _log.Write(
+                    LogEntryBuilder.New()
+                        .SetMessage(error.ToString())
+                        .SetCode(LogEntryCodes.Unsatisfiable)
+                        .SetSeverity(LogSeverity.Error)
+                        .SetExtension("error", error)
+                        .Build());
+            }
+
+            context.Path.Pop();
         }
     }
 
@@ -197,15 +315,10 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
     {
         var errors = new List<SatisfiabilityError>();
 
-        // Get the list of union types that contain the current type.
-        var unionTypes =
-            schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
-
-        // Get the list of lookups for the current type in the destination schema.
         var lookupDirectives =
-            type.GetFusionLookupDirectives(transitionToSchemaName, unionTypes).ToImmutableArray();
+            _schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
-        if (!lookupDirectives.Any())
+        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
         {
             errors.Add(
                 new SatisfiabilityError(
@@ -254,6 +367,54 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         }
 
         return [.. errors];
+    }
+
+    /// <summary>
+    /// We check whether the path we're currently on exists one-to-one
+    /// on the given schema or whether a type on the path has a lookup
+    /// on the given schema.
+    /// </summary>
+    private bool CanTransitionToSchemaThroughPath(
+        SatisfiabilityPath path,
+        string schemaName)
+    {
+        foreach (var pathItem in path)
+        {
+            var lookupDirectives =
+                _schema.GetPossibleFusionLookupDirectives(
+                    pathItem.Type,
+                    schemaName);
+
+            var hasLookups = lookupDirectives.Count > 0;
+            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
+
+            if (hasLookups && fieldExists)
+            {
+                return true;
+            }
+
+            if (!fieldExists)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)
+    {
+        if (typeNode is NonNullTypeNode nonNullType)
+        {
+            return new NonNullType(CreateType(nonNullType.InnerType(), namedType));
+        }
+
+        if (typeNode is ListTypeNode listType)
+        {
+            return new ListType(CreateType(listType.Type, namedType));
+        }
+
+        return namedType;
     }
 }
 

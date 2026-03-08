@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed class TypeCache
@@ -76,6 +74,7 @@ internal sealed class TypeCache
                 return true;
             }
         }
+
         return false;
     }
 
@@ -92,6 +91,7 @@ internal sealed class TypeCache
                 typeInfo = create();
                 _typeInfos.Add(id, typeInfo);
             }
+
             return typeInfo;
         }
     }

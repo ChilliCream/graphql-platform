@@ -77,7 +77,7 @@ public sealed class SelectionSetValidator(ISchemaDefinition schema)
                         node.Name.Value,
                         complexType.Name));
 
-                return Break;
+                return Skip;
             }
         }
 

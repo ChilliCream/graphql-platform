@@ -95,7 +95,7 @@ public class SchemaSerializerTests
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", "bar")
             .Create();
-        using var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
 
         // act
         await SchemaPrinter.PrintAsync(schema, stream);
@@ -150,7 +150,7 @@ public class SchemaSerializerTests
             .Create();
 
         // act
-        using var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
         await SchemaPrinter.PrintAsync(
             new ITypeDefinition[] { schema.QueryType },
             stream,
@@ -163,14 +163,8 @@ public class SchemaSerializerTests
     [Fact]
     public async Task SerializeTypes_Types_Is_Null()
     {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddDocumentFromString(FileResource.Open("serialize_schema_with_mutation.graphql"))
-            .Use(next => next)
-            .Create();
-
-        // act
-        using var stream = new MemoryStream();
+        // arrange & act
+        await using var stream = new MemoryStream();
         async Task Fail() => await SchemaPrinter.PrintAsync(
             default(IEnumerable<ITypeDefinition>),
             stream,
@@ -190,7 +184,7 @@ public class SchemaSerializerTests
             .Create();
 
         // act
-        using var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
         async Task Fail() => await SchemaPrinter.PrintAsync(
             [schema.QueryType],
             null,
@@ -202,6 +196,6 @@ public class SchemaSerializerTests
 
     public class Query
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 }

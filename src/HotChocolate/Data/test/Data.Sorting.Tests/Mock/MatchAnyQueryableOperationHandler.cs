@@ -11,4 +11,6 @@ public class MatchAnyQueryableOperationHandler
         ITypeCompletionContext context,
         EnumTypeConfiguration typeDefinition,
         SortEnumValueConfiguration valueConfiguration) => true;
+
+    public static MatchAnyQueryableOperationHandler Create(SortProviderContext context) => new();
 }

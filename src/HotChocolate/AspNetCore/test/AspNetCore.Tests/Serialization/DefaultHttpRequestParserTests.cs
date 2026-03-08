@@ -1,4 +1,5 @@
 using System.Collections;
+using System.IO.Pipelines;
 using System.Text;
 using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.Execution.Caching;
@@ -21,7 +22,7 @@ public sealed class DefaultHttpRequestParserTests
             }
             """;
 
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
         // act
         var parser = new DefaultHttpRequestParser(
@@ -29,7 +30,7 @@ public sealed class DefaultHttpRequestParserTests
             new Sha256DocumentHashProvider(),
             256,
             ParserOptions.Default);
-        var request = await parser.ParseRequestAsync(stream, CancellationToken.None);
+        var request = await parser.ParseRequestAsync(PipeReader.Create(stream), CancellationToken.None);
 
         // assert
         Assert.Collection(
@@ -59,7 +60,7 @@ public sealed class DefaultHttpRequestParserTests
                 256,
                 ParserOptions.Default);
 
-            await parser.ParseRequestAsync(stream, CancellationToken.None);
+            await parser.ParseRequestAsync(PipeReader.Create(stream), CancellationToken.None);
         }
 
         // assert

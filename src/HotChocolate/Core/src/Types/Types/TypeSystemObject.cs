@@ -4,8 +4,6 @@ using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -48,9 +46,13 @@ public abstract class TypeSystemObject : ITypeSystemMember, IFeatureProvider
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObject_NameImmutable);
             }
-            _name = value.EnsureGraphQLName();
+
+            _name = ValidateName(value);
         }
     }
+
+    private protected virtual string ValidateName(string name)
+        => name.EnsureGraphQLName();
 
     /// <summary>
     /// Gets the optional description of this scalar type.

@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Data.Projections.Optimizers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -26,8 +27,8 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (ReferenceEquals(completionContext, _queryContext) &&
-            completionContext.Type is ObjectType { Fields: var fields })
+        if (ReferenceEquals(completionContext, _queryContext)
+            && completionContext.Type is ObjectType { Fields: var fields })
         {
             var foundNode = false;
             var foundNodes = false;
@@ -79,8 +80,8 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             foreach (var field in objectTypeDefinition.Fields)
             {
                 alwaysProjected ??= [];
-                if (field.GetFeatures().TryGet(out ProjectionFeature? feature) &&
-                    feature.AlwaysProjected is true)
+                if (field.GetFeatures().TryGet(out ProjectionFeature? feature)
+                    && feature.AlwaysProjected)
                 {
                     alwaysProjected.Add(field.Name);
                 }

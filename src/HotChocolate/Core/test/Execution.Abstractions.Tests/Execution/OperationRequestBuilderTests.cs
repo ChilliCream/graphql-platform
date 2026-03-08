@@ -1,5 +1,6 @@
+using System.Text.Json;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
@@ -16,7 +17,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -79,7 +80,7 @@ public class OperationRequestBuilderTests
 
         // assert
         // one should be bar
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -91,12 +92,12 @@ public class OperationRequestBuilderTests
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar" })
-                .SetVariableValues(null)
+                .SetVariableValues(default(JsonDocument))
                 .Build();
 
         // assert
         // no variable should be in the request
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -112,7 +113,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -134,7 +135,7 @@ public class OperationRequestBuilderTests
 
         // assert
         // only three should exist
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -151,7 +152,7 @@ public class OperationRequestBuilderTests
 
         // assert
         // one should be bar
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -167,7 +168,7 @@ public class OperationRequestBuilderTests
 
         // assert
         // one should be bar
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -185,7 +186,7 @@ public class OperationRequestBuilderTests
 
         // assert
         // no property should be in the request
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -200,7 +201,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -215,7 +216,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -232,7 +233,7 @@ public class OperationRequestBuilderTests
 
         // assert
         // the operation should be null
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -246,13 +247,13 @@ public class OperationRequestBuilderTests
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetServices(
-                    new DictionaryServiceProvider(
-                        service.GetType(),
-                        service))
+                    new ServiceCollection()
+                        .AddSingleton(service.GetType(), service)
+                        .BuildServiceProvider())
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -268,11 +269,11 @@ public class OperationRequestBuilderTests
                 .SetOperationName("bar")
                 .AddGlobalState("one", "foo")
                 .SetVariableValues(new Dictionary<string, object?> { { "two", "bar" } })
-                .SetServices(new DictionaryServiceProvider(service.GetType(), service))
+                .SetServices(new ServiceCollection().AddSingleton(service.GetType(), service).BuildServiceProvider())
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -287,7 +288,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -303,6 +304,94 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_SetErrorHandlingMode()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_SetErrorHandlingMode_VariableBatchRequest()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .SetVariableValues([new Dictionary<string, object?> { ["one"] = "foo" }])
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndSetNewVariableJson_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                {
+                    foo
+                }
+                """)
+                .SetVariableValues(
+                    """
+                {
+                    "one": "bar"
+                }
+                """)
+                .Build();
+
+        // assert
+        // one should be bar
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndSetNewVariableSetJson_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                      foo
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    [
+                      {
+                        "one": "bar"
+                      },
+                      {
+                        "one": "baz"
+                      }
+                    ]
+                    """)
+                .Build();
+
+        // assert
+        // one should be bar
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 }

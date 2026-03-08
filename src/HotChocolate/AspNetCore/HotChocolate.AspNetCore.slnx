@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/benchmarks/" />
+  <Folder Name="/benchmarks/k6/">
+    <Project Path="benchmarks/k6/Catalog.API/eShop.Catalog.API.csproj" />
+    <Project Path="benchmarks/k6/Catalog.ServiceDefaults/eShop.Catalog.ServiceDefaults.csproj" />
+    <Project Path="benchmarks/k6/Catalog.AppHost/eShop.Catalog.AppHost.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
     <Project Path="src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />
@@ -9,8 +15,6 @@
     <Project Path="src/Transport.Http/HotChocolate.Transport.Http.csproj" />
     <Project Path="src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
     <Project Path="src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
-  </Folder>
-  <Folder Name="/src/Transport.Formatters/">
     <Project Path="src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj" />
   </Folder>
   <Folder Name="/test/">

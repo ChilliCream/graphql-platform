@@ -104,7 +104,7 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
                 .SetPublic()
                 .AddBody()
                 .AddLine($"data = {fieldName};")
-                .AddLine($"return data != null;");
+                .AddLine("return data != null;");
 
             // Add initialization of property to the constructor
             constructorBuilder

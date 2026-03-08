@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 public static class TypeExtensionHelper
@@ -174,8 +172,8 @@ public static class TypeExtensionHelper
             }
         }
 
-        if (extension.FieldBindingType != null &&
-            extension.FieldBindingType != typeof(object))
+        if (extension.FieldBindingType != null
+            && extension.FieldBindingType != typeof(object))
         {
             type.KnownRuntimeTypes.Add(extension.FieldBindingType);
         }

@@ -1,5 +1,4 @@
 using System.Drawing;
-using System.Text.RegularExpressions;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -34,7 +33,8 @@ public class XmlDocumentationProviderTests
                 .GetProperty(nameof(WithMultilineXmlDoc.Foo))!);
 
         // assert
-        Assert.Matches(new Regex(@"\n[ \t]*\n"), description);
+        Assert.NotNull(description);
+        Assert.Matches(@"\n[ \t]*\n", description);
         Assert.Contains("    * Users", description);
         Assert.Equal(description.Trim(), description);
     }
@@ -54,8 +54,8 @@ public class XmlDocumentationProviderTests
 
         // asssert
         Assert.Equal(
-            "null for the default Record.\nSee this and\nthis" +
-            " at\nhttps://foo.com/bar/baz.",
+            "null for the default Record.\nSee this and\nthis"
+            + " at\nhttps://foo.com/bar/baz.",
             description);
     }
 

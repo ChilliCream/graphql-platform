@@ -68,8 +68,8 @@ public class FilterInputType
     {
         base.OnCompleteType(context, configuration);
 
-        if (configuration is FilterInputTypeConfiguration ft &&
-            ft.EntityType is { })
+        if (configuration is FilterInputTypeConfiguration ft
+            && ft.EntityType is { })
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }

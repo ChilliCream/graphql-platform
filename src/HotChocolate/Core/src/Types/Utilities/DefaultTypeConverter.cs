@@ -2,8 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 public partial class DefaultTypeConverter : ITypeConverter
@@ -27,22 +25,24 @@ public partial class DefaultTypeConverter : ITypeConverter
 
     public object? Convert(Type from, Type to, object? source)
     {
-        if (!TryConvert(from, to, source, out var converted))
+        if (!TryConvert(from, to, source, out var converted, out var conversionException))
         {
             throw new NotSupportedException(
                 string.Format(
                     TypeResources.TypeConversion_ConvertNotSupported,
                     from.Name,
-                    to.Name));
+                    to.Name),
+                    conversionException);
         }
         return converted;
     }
 
-    public bool TryConvert(Type from, Type to, object? source, out object? converted)
+    public bool TryConvert(Type from, Type to, object? source, out object? converted, out Exception? conversionException)
     {
         ArgumentNullException.ThrowIfNull(from);
         ArgumentNullException.ThrowIfNull(to);
 
+        conversionException = null;
         if (from == to)
         {
             converted = source;
@@ -65,8 +65,9 @@ public partial class DefaultTypeConverter : ITypeConverter
                 fromInternal, to, source,
                 out converted);
         }
-        catch
+        catch (Exception convertException)
         {
+            conversionException = convertException;
             converted = null;
             return false;
         }

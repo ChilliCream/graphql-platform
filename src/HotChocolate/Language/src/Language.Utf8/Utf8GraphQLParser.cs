@@ -1,6 +1,7 @@
 using System.Buffers;
-using HotChocolate.Buffers;
+#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -18,12 +19,12 @@ public ref partial struct Utf8GraphQLParser
     private Utf8MemoryBuilder? _memory;
 
     public Utf8GraphQLParser(
-        ReadOnlySpan<byte> graphQLData,
+        ReadOnlySpan<byte> sourceText,
         ParserOptions? options = null)
     {
-        if (graphQLData.Length == 0)
+        if (sourceText.Length == 0)
         {
-            throw new ArgumentException(GraphQLData_Empty, nameof(graphQLData));
+            throw new ArgumentException(GraphQLData_Empty, nameof(sourceText));
         }
 
         options ??= ParserOptions.Default;
@@ -31,7 +32,25 @@ public ref partial struct Utf8GraphQLParser
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
         _maxAllowedFields = options.MaxAllowedFields;
-        _reader = new Utf8GraphQLReader(graphQLData, options.MaxAllowedTokens);
+        _reader = new Utf8GraphQLReader(sourceText, options.MaxAllowedTokens);
+        _description = null;
+    }
+
+    public Utf8GraphQLParser(
+        ReadOnlySequence<byte> sourceText,
+        ParserOptions? options = null)
+    {
+        if (sourceText.Length == 0)
+        {
+            throw new ArgumentException(GraphQLData_Empty, nameof(sourceText));
+        }
+
+        options ??= ParserOptions.Default;
+        _createLocation = !options.NoLocations;
+        _allowFragmentVars = options.Experimental.AllowFragmentVariables;
+        _maxAllowedNodes = options.MaxAllowedNodes;
+        _maxAllowedFields = options.MaxAllowedFields;
+        _reader = new Utf8GraphQLReader(sourceText, options.MaxAllowedTokens);
         _description = null;
     }
 
@@ -68,7 +87,7 @@ public ref partial struct Utf8GraphQLParser
         try
         {
             _parsedNodes = 0;
-            var definitions = new List<IDefinitionNode>();
+            var definitions = new List<IDefinitionNode>(16);
 
             var start = Start();
 
@@ -106,61 +125,89 @@ public ref partial struct Utf8GraphQLParser
 
         if (_reader.Kind == TokenKind.Name)
         {
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Query) ||
-                _reader.Value.SequenceEqual(GraphQLKeywords.Mutation) ||
-                _reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
+            if (_reader.Value.Length > 0)
             {
-                return ParseOperationDefinition();
-            }
+                switch (_reader.Value[0])
+                {
+                    case (byte)'q':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Query))
+                        {
+                            return ParseOperationDefinition(OperationType.Query);
+                        }
+                        break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Fragment))
-            {
-                return ParseFragmentDefinition();
-            }
+                    case (byte)'m':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Mutation))
+                        {
+                            return ParseOperationDefinition(OperationType.Mutation);
+                        }
+                        break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Schema))
-            {
-                return ParseSchemaDefinition();
-            }
+                    case (byte)'s':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
+                        {
+                            return ParseOperationDefinition(OperationType.Subscription);
+                        }
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Schema))
+                        {
+                            return ParseSchemaDefinition();
+                        }
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
+                        {
+                            return ParseScalarTypeDefinition();
+                        }
+                        break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
-            {
-                return ParseScalarTypeDefinition();
-            }
+                    case (byte)'f':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Fragment))
+                        {
+                            return ParseFragmentDefinition();
+                        }
+                        break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Type))
-            {
-                return ParseObjectTypeDefinition();
-            }
+                    case (byte)'t':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Type))
+                        {
+                            return ParseObjectTypeDefinition();
+                        }
+                        break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Interface))
-            {
-                return ParseInterfaceTypeDefinition();
-            }
+                    case (byte)'i':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Interface))
+                        {
+                            return ParseInterfaceTypeDefinition();
+                        }
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Input))
+                        {
+                            return ParseInputObjectTypeDefinition();
+                        }
+                        break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
-            {
-                return ParseUnionTypeDefinition();
-            }
+                    case (byte)'u':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
+                        {
+                            return ParseUnionTypeDefinition();
+                        }
+                        break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Enum))
-            {
-                return ParseEnumTypeDefinition();
-            }
+                    case (byte)'e':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Enum))
+                        {
+                            return ParseEnumTypeDefinition();
+                        }
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Extend))
+                        {
+                            return ParseTypeExtension();
+                        }
+                        break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Input))
-            {
-                return ParseInputObjectTypeDefinition();
-            }
-
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Extend))
-            {
-                return ParseTypeExtension();
-            }
-
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Directive))
-            {
-                return ParseDirectiveDefinition();
+                    case (byte)'d':
+                        if (_reader.Value.SequenceEqual(GraphQLKeywords.Directive))
+                        {
+                            return ParseDirectiveDefinition();
+                        }
+                        break;
+                }
             }
         }
         else if (_reader.Kind == TokenKind.LeftBrace)
@@ -172,26 +219,65 @@ public ref partial struct Utf8GraphQLParser
     }
 
     public static DocumentNode Parse(
-        ReadOnlySpan<byte> graphQLData)
+        ReadOnlySpan<byte> sourceText)
     {
-        if (graphQLData.Length == 0)
+        if (sourceText.Length == 0)
         {
-            return new DocumentNode(Array.Empty<IDefinitionNode>());
+            return new DocumentNode([]);
         }
 
-        return new Utf8GraphQLParser(graphQLData).Parse();
+        return new Utf8GraphQLParser(sourceText).Parse();
     }
 
     public static DocumentNode Parse(
-        ReadOnlySpan<byte> graphQLData,
+        ReadOnlySpan<byte> sourceText,
         ParserOptions options)
     {
-        if (graphQLData.Length == 0)
+        if (sourceText.Length == 0)
         {
-            return new DocumentNode(Array.Empty<IDefinitionNode>());
+            return new DocumentNode([]);
         }
 
-        return new Utf8GraphQLParser(graphQLData, options).Parse();
+        return new Utf8GraphQLParser(sourceText, options).Parse();
+    }
+
+    public static DocumentNode Parse(
+        ReadOnlySequence<byte> sourceText)
+    {
+        if (sourceText.Length == 0)
+        {
+            return new DocumentNode([]);
+        }
+
+        var parser = new Utf8GraphQLParser(sourceText);
+        try
+        {
+            return parser.Parse();
+        }
+        finally
+        {
+            parser._reader.Dispose();
+        }
+    }
+
+    public static DocumentNode Parse(
+        ReadOnlySequence<byte> sourceText,
+        ParserOptions options)
+    {
+        if (sourceText.Length == 0)
+        {
+            return new DocumentNode([]);
+        }
+
+        var parser = new Utf8GraphQLParser(sourceText, options);
+        try
+        {
+            return parser.Parse();
+        }
+        finally
+        {
+            parser._reader.Dispose();
+        }
     }
 
     public static DocumentNode Parse(
@@ -223,7 +309,7 @@ public ref partial struct Utf8GraphQLParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -233,7 +319,7 @@ public ref partial struct Utf8GraphQLParser
 
             if (sourceSpan.Length == 0)
             {
-                return new DocumentNode(Array.Empty<IDefinitionNode>());
+                return new DocumentNode([]);
             }
 
             var parser = new Utf8GraphQLParser(sourceSpan, options);
@@ -263,140 +349,5 @@ public ref partial struct Utf8GraphQLParser
                 buffer = buffer.Slice(0, length);
             }
         }
-    }
-}
-
-internal sealed class Utf8MemoryBuilder : IMemoryOwner<byte>, IBufferWriter<byte>
-{
-    private byte[] _buffer = [];
-    private int _written;
-
-    public int NextIndex
-    {
-        get
-        {
-            if (_written == -1)
-            {
-                throw new InvalidOperationException("Memory is sealed.");
-            }
-
-            return _written;
-        }
-    }
-
-    public Memory<byte> Memory => _buffer.AsMemory();
-
-    public ReadOnlySpan<byte> Read(int start, int length)
-        => _buffer.AsSpan().Slice(start, length);
-
-    public ReadOnlyMemorySegment Write(ReadOnlySpan<byte> value)
-    {
-        if (_written == -1)
-        {
-            throw new InvalidOperationException("Memory is sealed.");
-        }
-
-        EnsureCapacity(value.Length);
-        var start = _written;
-        var destination = _buffer.AsSpan().Slice(start);
-        _written += value.Length;
-        value.CopyTo(destination);
-        return new ReadOnlyMemorySegment(this, start, value.Length);
-    }
-
-    public ReadOnlyMemorySegment GetMemorySegment(int start, int length)
-    {
-        return new ReadOnlyMemorySegment(this, start, length);
-    }
-
-    public Memory<byte> GetMemory(int sizeHint = 0)
-    {
-        if (_written == -1)
-        {
-            throw new InvalidOperationException("Memory is sealed.");
-        }
-
-        if (sizeHint == 0)
-        {
-            sizeHint = 128;
-        }
-
-        EnsureCapacity(sizeHint);
-        return _buffer.AsMemory().Slice(_written, sizeHint);
-    }
-
-    public Span<byte> GetSpan(int sizeHint = 0)
-    {
-        if (_written == -1)
-        {
-            throw new InvalidOperationException("Memory is sealed.");
-        }
-
-        if (sizeHint == 0)
-        {
-            sizeHint = 128;
-        }
-
-        EnsureCapacity(sizeHint);
-        return _buffer.AsSpan().Slice(_written, sizeHint);
-    }
-
-    public void Advance(int count)
-    {
-        if (_written == -1)
-        {
-            throw new InvalidOperationException("Memory is sealed.");
-        }
-
-        _written += count;
-    }
-
-    public void Seal()
-    {
-        if (_written == -1)
-        {
-            throw new InvalidOperationException("Memory is sealed.");
-        }
-
-        var finalArray = _buffer.AsSpan().Slice(0, _written).ToArray();
-        ArrayPool<byte>.Shared.Return(_buffer);
-        _buffer = finalArray;
-    }
-
-    public void Abandon()
-    {
-        if (_written == -1)
-        {
-            throw new InvalidOperationException("Memory is sealed.");
-        }
-
-        ArrayPool<byte>.Shared.Return(_buffer);
-        _buffer = [];
-    }
-
-    private void EnsureCapacity(int length)
-    {
-        var requiredCapacity = _written + length;
-
-        if (_buffer.Length >= requiredCapacity)
-        {
-            return;
-        }
-
-        var newCapacity = _buffer.Length == 0 ? 1024 : _buffer.Length * 2;
-        if (newCapacity < requiredCapacity)
-        {
-            newCapacity = requiredCapacity;
-        }
-
-        var newBuffer = ArrayPool<byte>.Shared.Rent(newCapacity);
-        _buffer.AsSpan(0, _written).CopyTo(newBuffer);
-        ArrayPool<byte>.Shared.Return(_buffer);
-        _buffer = newBuffer;
-    }
-
-    public void Dispose()
-    {
-        // TODO release managed resources here
     }
 }

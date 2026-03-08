@@ -12,6 +12,7 @@ public sealed class FusionDirectiveCollection
 
     public FusionDirectiveCollection(FusionDirective[] directives)
     {
+        ArgumentNullException.ThrowIfNull(directives);
         _directives = directives;
     }
 
@@ -113,7 +114,7 @@ public sealed class FusionDirectiveCollection
     {
         var nodes = new List<DirectiveNode>();
 
-        foreach (FusionDirective directive in _directives)
+        foreach (var directive in _directives)
         {
             nodes.Add(directive.ToSyntaxNode());
         }

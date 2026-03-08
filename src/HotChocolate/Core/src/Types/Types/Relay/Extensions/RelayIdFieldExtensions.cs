@@ -1,7 +1,5 @@
 using HotChocolate.Types.Relay;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -69,24 +67,17 @@ public static class RelayIdFieldExtensions
         this IInputFieldDescriptor descriptor,
         string? typeName = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
-
         return descriptor;
     }
 
-    /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the descriptor</param>
+    /// <inheritdoc cref="ID(IInputFieldDescriptor,string?)"/>
     /// <typeparam name="T">
     /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
     /// </typeparam>
     public static IInputFieldDescriptor ID<T>(this IInputFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
-        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
-
+        RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
         return descriptor;
     }
 
@@ -99,24 +90,17 @@ public static class RelayIdFieldExtensions
         this IArgumentDescriptor descriptor,
         string? typeName = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
-
         return descriptor;
     }
 
-    /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the descriptor</param>
+    /// <inheritdoc cref="ID(IInputFieldDescriptor,string?)"/>
     /// <typeparam name="T">
     /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
     /// </typeparam>
     public static IArgumentDescriptor ID<T>(this IArgumentDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
-        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
-
+        RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
         return descriptor;
     }
 
@@ -129,24 +113,17 @@ public static class RelayIdFieldExtensions
         this IObjectFieldDescriptor descriptor,
         string? typeName = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
-
         return descriptor;
     }
 
-    /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the descriptor</param>
+    /// <inheritdoc cref="ID(IInputFieldDescriptor,string?)"/>
     /// <typeparam name="T">
     /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
     /// </typeparam>
     public static IObjectFieldDescriptor ID<T>(this IObjectFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
-        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
-
+        RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
         return descriptor;
     }
 
@@ -154,10 +131,7 @@ public static class RelayIdFieldExtensions
     /// <param name="descriptor">the descriptor</param>
     public static IInterfaceFieldDescriptor ID(this IInterfaceFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField(descriptor);
-
         return descriptor;
     }
 }

@@ -1,4 +1,6 @@
 using System.Collections;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -13,6 +15,46 @@ internal class GeoJsonMultiPointSerializer
     {
     }
 
+    public override void CoerceOutputCoordinates(
+        IType type,
+        object runtimeValue,
+        ResultElement resultElement)
+    {
+        if (runtimeValue is MultiPoint multiPoint)
+        {
+            var coords = multiPoint.Coordinates;
+            resultElement.SetArrayValue(coords.Length);
+
+            var index = 0;
+            foreach (var element in resultElement.EnumerateArray())
+            {
+                GeoJsonPositionSerializer.Default.CoerceOutputCoordinates(type, coords[index++], element);
+            }
+
+            return;
+        }
+
+        throw Serializer_CouldNotParseValue(type);
+    }
+
+    public override IValueNode CoordinateToLiteral(IType type, object? runtimeValue)
+    {
+        if (runtimeValue is MultiPoint multiPoint)
+        {
+            var coords = multiPoint.Coordinates;
+            var result = new IValueNode[coords.Length];
+
+            for (var i = 0; i < coords.Length; i++)
+            {
+                result[i] = GeoJsonPositionSerializer.Default.ValueToLiteral(type, coords[i]);
+            }
+
+            return new ListValueNode(result);
+        }
+
+        throw Serializer_CouldNotParseValue(type);
+    }
+
     public override MultiPoint CreateGeometry(
         IType type,
         object? coordinates,
@@ -22,8 +64,8 @@ internal class GeoJsonMultiPointSerializer
 
         Point[]? geometries;
 
-        if (coordinates is IList { Count: > 0 } listObjects &&
-            listObjects.TryConvertToCoordinates(out var list))
+        if (coordinates is IList { Count: > 0 } listObjects
+            && listObjects.TryConvertToCoordinates(out var list))
         {
             geometries = new Point[list.Length];
 

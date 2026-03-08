@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
@@ -9,8 +11,8 @@ public static class FieldClassMiddlewareFactory
     private static readonly MethodInfo s_createGeneric =
         typeof(FieldClassMiddlewareFactory)
         .GetTypeInfo().DeclaredMethods.First(t =>
-            t.Name.EqualsOrdinal(nameof(Create)) &&
-            t.IsGenericMethod);
+            t.Name.EqualsOrdinal(nameof(Create))
+            && t.IsGenericMethod);
 
     private static readonly PropertyInfo s_services =
         typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));

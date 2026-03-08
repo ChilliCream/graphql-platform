@@ -4,8 +4,6 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 internal abstract class DependencyDescriptorBase

@@ -1,0 +1,1608 @@
+{
+  "host": {
+    "serviceName": "catalog",
+    "assemblyName": "Demo.Catalog",
+    "instanceId": "019bf38b-b884-7127-babc-837f8bb39758"
+  },
+  "messageTypes": [
+    {
+      "identity": "urn:message:chilli-cream.message-bus.events:not-acknowledged-event",
+      "runtimeType": "NotAcknowledgedEvent",
+      "runtimeTypeFullName": "Mocha.Events.NotAcknowledgedEvent",
+      "isInterface": false,
+      "isInternal": true,
+      "enclosedMessageIdentities": [
+        "urn:message:chilli-cream.message-bus.events:not-acknowledged-event",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:chilli-cream.message-bus.events:acknowledged-event",
+      "runtimeType": "AcknowledgedEvent",
+      "runtimeTypeFullName": "Mocha.Events.AcknowledgedEvent",
+      "isInterface": false,
+      "isInternal": true,
+      "enclosedMessageIdentities": [
+        "urn:message:chilli-cream.message-bus.events:acknowledged-event",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.events:payment-completed-event",
+      "runtimeType": "PaymentCompletedEvent",
+      "runtimeTypeFullName": "Demo.Contracts.Events.PaymentCompletedEvent",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.events:payment-completed-event",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:chilli-cream.message-bus:i-event",
+      "runtimeType": "IEvent",
+      "runtimeTypeFullName": "Mocha.IEvent",
+      "isInterface": true,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.events:shipment-created-event",
+      "runtimeType": "ShipmentCreatedEvent",
+      "runtimeTypeFullName": "Demo.Contracts.Events.ShipmentCreatedEvent",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.events:shipment-created-event",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.requests:get-product-request",
+      "runtimeType": "GetProductRequest",
+      "runtimeTypeFullName": "Demo.Contracts.Requests.GetProductRequest",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.requests:get-product-request",
+        "urn:message:chilli-cream.message-bus:i-event-request[get-product-response]",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:chilli-cream.message-bus:i-event-request[get-product-response]",
+      "runtimeType": "IEventRequest\u003CGetProductResponse\u003E",
+      "runtimeTypeFullName": "Mocha.IEventRequest\u00601[[Demo.Contracts.Requests.GetProductResponse, Demo.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+      "isInterface": true,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:chilli-cream.message-bus:i-event-request[get-product-response]",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:chilli-cream.message-bus:i-event-request",
+      "runtimeType": "IEventRequest",
+      "runtimeTypeFullName": "Mocha.IEventRequest",
+      "isInterface": true,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.requests:get-product-response",
+      "runtimeType": "GetProductResponse",
+      "runtimeTypeFullName": "Demo.Contracts.Requests.GetProductResponse",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.requests:get-product-response",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.commands:reserve-inventory-command",
+      "runtimeType": "ReserveInventoryCommand",
+      "runtimeTypeFullName": "Demo.Contracts.Commands.ReserveInventoryCommand",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.commands:reserve-inventory-command",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.commands:inspect-return-command",
+      "runtimeType": "InspectReturnCommand",
+      "runtimeTypeFullName": "Demo.Contracts.Commands.InspectReturnCommand",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.commands:inspect-return-command",
+        "urn:message:chilli-cream.message-bus:i-event-request[inspect-return-response]",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:chilli-cream.message-bus:i-event-request[inspect-return-response]",
+      "runtimeType": "IEventRequest\u003CInspectReturnResponse\u003E",
+      "runtimeTypeFullName": "Mocha.IEventRequest\u00601[[Demo.Contracts.Commands.InspectReturnResponse, Demo.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+      "isInterface": true,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:chilli-cream.message-bus:i-event-request[inspect-return-response]",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.commands:inspect-return-response",
+      "runtimeType": "InspectReturnResponse",
+      "runtimeTypeFullName": "Demo.Contracts.Commands.InspectReturnResponse",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.commands:inspect-return-response",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.commands:restock-inventory-command",
+      "runtimeType": "RestockInventoryCommand",
+      "runtimeTypeFullName": "Demo.Contracts.Commands.RestockInventoryCommand",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.commands:restock-inventory-command",
+        "urn:message:chilli-cream.message-bus:i-event-request[restock-inventory-response]",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:chilli-cream.message-bus:i-event-request[restock-inventory-response]",
+      "runtimeType": "IEventRequest\u003CRestockInventoryResponse\u003E",
+      "runtimeTypeFullName": "Mocha.IEventRequest\u00601[[Demo.Contracts.Commands.RestockInventoryResponse, Demo.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+      "isInterface": true,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:chilli-cream.message-bus:i-event-request[restock-inventory-response]",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.commands:restock-inventory-response",
+      "runtimeType": "RestockInventoryResponse",
+      "runtimeTypeFullName": "Demo.Contracts.Commands.RestockInventoryResponse",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.commands:restock-inventory-response",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.saga:request-quick-refund-request",
+      "runtimeType": "RequestQuickRefundRequest",
+      "runtimeTypeFullName": "Demo.Contracts.Saga.RequestQuickRefundRequest",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.saga:request-quick-refund-request",
+        "urn:message:chilli-cream.message-bus:i-event-request[quick-refund-response]",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:chilli-cream.message-bus:i-event-request[quick-refund-response]",
+      "runtimeType": "IEventRequest\u003CQuickRefundResponse\u003E",
+      "runtimeTypeFullName": "Mocha.IEventRequest\u00601[[Demo.Contracts.Saga.QuickRefundResponse, Demo.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+      "isInterface": true,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:chilli-cream.message-bus:i-event-request[quick-refund-response]",
+        "urn:message:chilli-cream.message-bus:i-event-request",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.saga:quick-refund-response",
+      "runtimeType": "QuickRefundResponse",
+      "runtimeTypeFullName": "Demo.Contracts.Saga.QuickRefundResponse",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.saga:quick-refund-response",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.commands:process-refund-response",
+      "runtimeType": "ProcessRefundResponse",
+      "runtimeTypeFullName": "Demo.Contracts.Commands.ProcessRefundResponse",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.commands:process-refund-response",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:demo.contracts.events:return-package-received-event",
+      "runtimeType": "ReturnPackageReceivedEvent",
+      "runtimeTypeFullName": "Demo.Contracts.Events.ReturnPackageReceivedEvent",
+      "isInterface": false,
+      "isInternal": false,
+      "enclosedMessageIdentities": [
+        "urn:message:demo.contracts.events:return-package-received-event",
+        "urn:message:chilli-cream.message-bus:i-event"
+      ]
+    },
+    {
+      "identity": "urn:message:system:object",
+      "runtimeType": "Object",
+      "runtimeTypeFullName": "System.Object",
+      "isInterface": false,
+      "isInternal": false
+    }
+  ],
+  "consumers": [
+    {
+      "name": "return-processing-saga",
+      "identityType": "ReturnProcessingSaga",
+      "identityTypeFullName": "Demo.Catalog.Sagas.ReturnProcessingSaga",
+      "sagaName": "return-processing-saga"
+    },
+    {
+      "name": "PaymentCompletedEventHandler",
+      "identityType": "PaymentCompletedEventHandler",
+      "identityTypeFullName": "Demo.Catalog.Handlers.PaymentCompletedEventHandler"
+    },
+    {
+      "name": "GetProductRequestHandler",
+      "identityType": "GetProductRequestHandler",
+      "identityTypeFullName": "Demo.Catalog.Handlers.GetProductRequestHandler"
+    },
+    {
+      "name": "quick-refund-saga",
+      "identityType": "QuickRefundSaga",
+      "identityTypeFullName": "Demo.Catalog.Sagas.QuickRefundSaga",
+      "sagaName": "quick-refund-saga"
+    },
+    {
+      "name": "ShipmentCreatedEventHandler",
+      "identityType": "ShipmentCreatedEventHandler",
+      "identityTypeFullName": "Demo.Catalog.Handlers.ShipmentCreatedEventHandler"
+    },
+    {
+      "name": "InspectReturnCommandHandler",
+      "identityType": "InspectReturnCommandHandler",
+      "identityTypeFullName": "Demo.Catalog.Handlers.InspectReturnCommandHandler"
+    },
+    {
+      "name": "RestockInventoryCommandHandler",
+      "identityType": "RestockInventoryCommandHandler",
+      "identityTypeFullName": "Demo.Catalog.Handlers.RestockInventoryCommandHandler"
+    },
+    {
+      "name": "ReserveInventoryCommandHandler",
+      "identityType": "ReserveInventoryCommandHandler",
+      "identityTypeFullName": "Demo.Catalog.Handlers.ReserveInventoryCommandHandler"
+    },
+    {
+      "name": "Reply",
+      "identityType": "ReplyConsumer",
+      "identityTypeFullName": "Mocha.ReplyConsumer"
+    }
+  ],
+  "routes": {
+    "inbound": [
+      {
+        "kind": "subscribe",
+        "messageTypeIdentity": "urn:message:demo.contracts.events:payment-completed-event",
+        "consumerName": "PaymentCompletedEventHandler",
+        "endpoint": {
+          "name": "catalog.payment-completed-event",
+          "address": "rabbitmq://localhost/catalog.payment-completed-event",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "subscribe",
+        "messageTypeIdentity": "urn:message:demo.contracts.events:shipment-created-event",
+        "consumerName": "ShipmentCreatedEventHandler",
+        "endpoint": {
+          "name": "catalog.shipment-created-event",
+          "address": "rabbitmq://localhost/catalog.shipment-created-event",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "request",
+        "messageTypeIdentity": "urn:message:demo.contracts.requests:get-product-request",
+        "consumerName": "GetProductRequestHandler",
+        "endpoint": {
+          "name": "get-product-request",
+          "address": "rabbitmq://localhost/get-product-request",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "send",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:reserve-inventory-command",
+        "consumerName": "ReserveInventoryCommandHandler",
+        "endpoint": {
+          "name": "reserve-inventory",
+          "address": "rabbitmq://localhost/reserve-inventory",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "request",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:inspect-return-command",
+        "consumerName": "InspectReturnCommandHandler",
+        "endpoint": {
+          "name": "inspect-return",
+          "address": "rabbitmq://localhost/inspect-return",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "request",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:restock-inventory-command",
+        "consumerName": "RestockInventoryCommandHandler",
+        "endpoint": {
+          "name": "restock-inventory",
+          "address": "rabbitmq://localhost/restock-inventory",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "request",
+        "messageTypeIdentity": "urn:message:demo.contracts.saga:request-quick-refund-request",
+        "consumerName": "quick-refund-saga",
+        "endpoint": {
+          "name": "request-quick-refund-request",
+          "address": "rabbitmq://localhost/request-quick-refund-request",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "reply",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:process-refund-response",
+        "consumerName": "quick-refund-saga",
+        "endpoint": {
+          "name": "Replies",
+          "address": "rabbitmq://localhost/Replies",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "subscribe",
+        "messageTypeIdentity": "urn:message:demo.contracts.events:return-package-received-event",
+        "consumerName": "return-processing-saga",
+        "endpoint": {
+          "name": "catalog.return-processing-saga",
+          "address": "rabbitmq://localhost/catalog.return-processing-saga",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "reply",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:inspect-return-response",
+        "consumerName": "return-processing-saga",
+        "endpoint": {
+          "name": "Replies",
+          "address": "rabbitmq://localhost/Replies",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "reply",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:restock-inventory-response",
+        "consumerName": "return-processing-saga",
+        "endpoint": {
+          "name": "Replies",
+          "address": "rabbitmq://localhost/Replies",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "reply",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:process-refund-response",
+        "consumerName": "return-processing-saga",
+        "endpoint": {
+          "name": "Replies",
+          "address": "rabbitmq://localhost/Replies",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "reply",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:process-refund-response",
+        "consumerName": "return-processing-saga",
+        "endpoint": {
+          "name": "Replies",
+          "address": "rabbitmq://localhost/Replies",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "reply",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:restock-inventory-response",
+        "consumerName": "return-processing-saga",
+        "endpoint": {
+          "name": "Replies",
+          "address": "rabbitmq://localhost/Replies",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "reply",
+        "messageTypeIdentity": "urn:message:system:object",
+        "consumerName": "Reply",
+        "endpoint": {
+          "name": "Replies",
+          "address": "rabbitmq://localhost/Replies",
+          "transportName": "rabbitmq"
+        }
+      }
+    ],
+    "outbound": [
+      {
+        "kind": "publish",
+        "messageTypeIdentity": "urn:message:demo.contracts.events:payment-completed-event",
+        "endpoint": {
+          "name": "e/demo.contracts.events.payment-completed",
+          "address": "rabbitmq://localhost/e/demo.contracts.events.payment-completed",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "publish",
+        "messageTypeIdentity": "urn:message:demo.contracts.events:shipment-created-event",
+        "endpoint": {
+          "name": "e/demo.contracts.events.shipment-created",
+          "address": "rabbitmq://localhost/e/demo.contracts.events.shipment-created",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "send",
+        "messageTypeIdentity": "urn:message:demo.contracts.requests:get-product-request",
+        "endpoint": {
+          "name": "q/get-product-request",
+          "address": "rabbitmq://localhost/q/get-product-request",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "send",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:reserve-inventory-command",
+        "endpoint": {
+          "name": "q/reserve-inventory",
+          "address": "rabbitmq://localhost/q/reserve-inventory",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "send",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:inspect-return-command",
+        "endpoint": {
+          "name": "q/inspect-return",
+          "address": "rabbitmq://localhost/q/inspect-return",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "send",
+        "messageTypeIdentity": "urn:message:demo.contracts.commands:restock-inventory-command",
+        "endpoint": {
+          "name": "q/restock-inventory",
+          "address": "rabbitmq://localhost/q/restock-inventory",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "send",
+        "messageTypeIdentity": "urn:message:demo.contracts.saga:request-quick-refund-request",
+        "endpoint": {
+          "name": "q/request-quick-refund-request",
+          "address": "rabbitmq://localhost/q/request-quick-refund-request",
+          "transportName": "rabbitmq"
+        }
+      },
+      {
+        "kind": "publish",
+        "messageTypeIdentity": "urn:message:demo.contracts.events:return-package-received-event",
+        "endpoint": {
+          "name": "e/demo.contracts.events.return-package-received",
+          "address": "rabbitmq://localhost/e/demo.contracts.events.return-package-received",
+          "transportName": "rabbitmq"
+        }
+      }
+    ]
+  },
+  "transports": [
+    {
+      "identifier": "rabbitmq://localhost:63198/",
+      "name": "rabbitmq",
+      "schema": "rabbitmq",
+      "transportType": "RabbitMQMessagingTransport",
+      "receiveEndpoints": [
+        {
+          "name": "Replies",
+          "kind": "reply",
+          "address": "rabbitmq://localhost/Replies",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/response-019bf38bb8847127babc837f8bb39758"
+          }
+        },
+        {
+          "name": "catalog.payment-completed-event",
+          "kind": "default",
+          "address": "rabbitmq://localhost/catalog.payment-completed-event",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/catalog.payment-completed-event"
+          }
+        },
+        {
+          "name": "catalog.shipment-created-event",
+          "kind": "default",
+          "address": "rabbitmq://localhost/catalog.shipment-created-event",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/catalog.shipment-created-event"
+          }
+        },
+        {
+          "name": "get-product-request",
+          "kind": "default",
+          "address": "rabbitmq://localhost/get-product-request",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/get-product-request"
+          }
+        },
+        {
+          "name": "reserve-inventory",
+          "kind": "default",
+          "address": "rabbitmq://localhost/reserve-inventory",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/reserve-inventory"
+          }
+        },
+        {
+          "name": "inspect-return",
+          "kind": "default",
+          "address": "rabbitmq://localhost/inspect-return",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/inspect-return"
+          }
+        },
+        {
+          "name": "restock-inventory",
+          "kind": "default",
+          "address": "rabbitmq://localhost/restock-inventory",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/restock-inventory"
+          }
+        },
+        {
+          "name": "request-quick-refund-request",
+          "kind": "default",
+          "address": "rabbitmq://localhost/request-quick-refund-request",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/request-quick-refund-request"
+          }
+        },
+        {
+          "name": "catalog.return-processing-saga",
+          "kind": "default",
+          "address": "rabbitmq://localhost/catalog.return-processing-saga",
+          "source": {
+            "address": "rabbitmq://localhost:63198/q/catalog.return-processing-saga"
+          }
+        }
+      ],
+      "dispatchEndpoints": [
+        {
+          "name": "Replies",
+          "kind": "reply",
+          "address": "rabbitmq://localhost/Replies",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/response-019bf38bb8847127babc837f8bb39758"
+          }
+        },
+        {
+          "name": "e/demo.contracts.events.payment-completed",
+          "kind": "default",
+          "address": "rabbitmq://localhost/e/demo.contracts.events.payment-completed",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.events.payment-completed"
+          }
+        },
+        {
+          "name": "e/demo.contracts.events.shipment-created",
+          "kind": "default",
+          "address": "rabbitmq://localhost/e/demo.contracts.events.shipment-created",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.events.shipment-created"
+          }
+        },
+        {
+          "name": "q/get-product-request",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/get-product-request",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/get-product-request"
+          }
+        },
+        {
+          "name": "q/reserve-inventory",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/reserve-inventory",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/reserve-inventory"
+          }
+        },
+        {
+          "name": "q/inspect-return",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/inspect-return",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/inspect-return"
+          }
+        },
+        {
+          "name": "q/restock-inventory",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/restock-inventory",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/restock-inventory"
+          }
+        },
+        {
+          "name": "q/request-quick-refund-request",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/request-quick-refund-request",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/request-quick-refund-request"
+          }
+        },
+        {
+          "name": "e/demo.contracts.events.return-package-received",
+          "kind": "default",
+          "address": "rabbitmq://localhost/e/demo.contracts.events.return-package-received",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.events.return-package-received"
+          }
+        },
+        {
+          "name": "q/catalog.payment-completed-event_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/catalog.payment-completed-event_error",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/catalog.payment-completed-event_error"
+          }
+        },
+        {
+          "name": "q/catalog.payment-completed-event_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/catalog.payment-completed-event_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/catalog.payment-completed-event_skipped"
+          }
+        },
+        {
+          "name": "q/catalog.shipment-created-event_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/catalog.shipment-created-event_error",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/catalog.shipment-created-event_error"
+          }
+        },
+        {
+          "name": "q/catalog.shipment-created-event_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/catalog.shipment-created-event_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/catalog.shipment-created-event_skipped"
+          }
+        },
+        {
+          "name": "q/get-product-request_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/get-product-request_error",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/get-product-request_error"
+          }
+        },
+        {
+          "name": "q/get-product-request_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/get-product-request_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/get-product-request_skipped"
+          }
+        },
+        {
+          "name": "q/reserve-inventory_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/reserve-inventory_error",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/reserve-inventory_error"
+          }
+        },
+        {
+          "name": "q/reserve-inventory_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/reserve-inventory_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/reserve-inventory_skipped"
+          }
+        },
+        {
+          "name": "q/inspect-return_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/inspect-return_error",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/inspect-return_error"
+          }
+        },
+        {
+          "name": "q/inspect-return_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/inspect-return_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/inspect-return_skipped"
+          }
+        },
+        {
+          "name": "q/restock-inventory_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/restock-inventory_error",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/restock-inventory_error"
+          }
+        },
+        {
+          "name": "q/restock-inventory_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/restock-inventory_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/restock-inventory_skipped"
+          }
+        },
+        {
+          "name": "q/request-quick-refund-request_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/request-quick-refund-request_error",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/request-quick-refund-request_error"
+          }
+        },
+        {
+          "name": "q/request-quick-refund-request_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/request-quick-refund-request_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/request-quick-refund-request_skipped"
+          }
+        },
+        {
+          "name": "q/catalog.return-processing-saga_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/catalog.return-processing-saga_error",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/catalog.return-processing-saga_error"
+          }
+        },
+        {
+          "name": "q/catalog.return-processing-saga_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/catalog.return-processing-saga_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:63198/q/catalog.return-processing-saga_skipped"
+          }
+        }
+      ],
+      "topology": {
+        "address": "rabbitmq://localhost:63198/",
+        "entities": [
+          {
+            "kind": "exchange",
+            "name": "demo.contracts.events.payment-completed",
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.events.payment-completed",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "payment-completed",
+            "address": "rabbitmq://localhost:63198/e/payment-completed",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "demo.contracts.events.shipment-created",
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.events.shipment-created",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "shipment-created",
+            "address": "rabbitmq://localhost:63198/e/shipment-created",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "demo.contracts.requests.get-product-request",
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.requests.get-product-request",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "get-product-request",
+            "address": "rabbitmq://localhost:63198/e/get-product-request",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "demo.contracts.commands.reserve-inventory",
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.commands.reserve-inventory",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "reserve-inventory",
+            "address": "rabbitmq://localhost:63198/e/reserve-inventory",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "demo.contracts.commands.inspect-return",
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.commands.inspect-return",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "inspect-return",
+            "address": "rabbitmq://localhost:63198/e/inspect-return",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "demo.contracts.commands.restock-inventory",
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.commands.restock-inventory",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "restock-inventory",
+            "address": "rabbitmq://localhost:63198/e/restock-inventory",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "demo.contracts.saga.request-quick-refund-request",
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.saga.request-quick-refund-request",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "request-quick-refund-request",
+            "address": "rabbitmq://localhost:63198/e/request-quick-refund-request",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "demo.contracts.events.return-package-received",
+            "address": "rabbitmq://localhost:63198/e/demo.contracts.events.return-package-received",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "return-package-received",
+            "address": "rabbitmq://localhost:63198/e/return-package-received",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "response-019bf38bb8847127babc837f8bb39758",
+            "address": "rabbitmq://localhost:63198/q/response-019bf38bb8847127babc837f8bb39758",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": true,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.payment-completed-event",
+            "address": "rabbitmq://localhost:63198/q/catalog.payment-completed-event",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.shipment-created-event",
+            "address": "rabbitmq://localhost:63198/q/catalog.shipment-created-event",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "get-product-request",
+            "address": "rabbitmq://localhost:63198/q/get-product-request",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "reserve-inventory",
+            "address": "rabbitmq://localhost:63198/q/reserve-inventory",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "inspect-return",
+            "address": "rabbitmq://localhost:63198/q/inspect-return",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "restock-inventory",
+            "address": "rabbitmq://localhost:63198/q/restock-inventory",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "request-quick-refund-request",
+            "address": "rabbitmq://localhost:63198/q/request-quick-refund-request",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.return-processing-saga",
+            "address": "rabbitmq://localhost:63198/q/catalog.return-processing-saga",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.payment-completed-event_error",
+            "address": "rabbitmq://localhost:63198/q/catalog.payment-completed-event_error",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.payment-completed-event_skipped",
+            "address": "rabbitmq://localhost:63198/q/catalog.payment-completed-event_skipped",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.shipment-created-event_error",
+            "address": "rabbitmq://localhost:63198/q/catalog.shipment-created-event_error",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.shipment-created-event_skipped",
+            "address": "rabbitmq://localhost:63198/q/catalog.shipment-created-event_skipped",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "get-product-request_error",
+            "address": "rabbitmq://localhost:63198/q/get-product-request_error",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "get-product-request_skipped",
+            "address": "rabbitmq://localhost:63198/q/get-product-request_skipped",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "reserve-inventory_error",
+            "address": "rabbitmq://localhost:63198/q/reserve-inventory_error",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "reserve-inventory_skipped",
+            "address": "rabbitmq://localhost:63198/q/reserve-inventory_skipped",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "inspect-return_error",
+            "address": "rabbitmq://localhost:63198/q/inspect-return_error",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "inspect-return_skipped",
+            "address": "rabbitmq://localhost:63198/q/inspect-return_skipped",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "restock-inventory_error",
+            "address": "rabbitmq://localhost:63198/q/restock-inventory_error",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "restock-inventory_skipped",
+            "address": "rabbitmq://localhost:63198/q/restock-inventory_skipped",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "request-quick-refund-request_error",
+            "address": "rabbitmq://localhost:63198/q/request-quick-refund-request_error",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "request-quick-refund-request_skipped",
+            "address": "rabbitmq://localhost:63198/q/request-quick-refund-request_skipped",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.return-processing-saga_error",
+            "address": "rabbitmq://localhost:63198/q/catalog.return-processing-saga_error",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "catalog.return-processing-saga_skipped",
+            "address": "rabbitmq://localhost:63198/q/catalog.return-processing-saga_skipped",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          }
+        ],
+        "links": [
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/demo.contracts.events.payment-completed/e/payment-completed",
+            "source": "rabbitmq://localhost:63198/e/demo.contracts.events.payment-completed",
+            "target": "rabbitmq://localhost:63198/e/payment-completed",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/payment-completed/q/catalog.payment-completed-event",
+            "source": "rabbitmq://localhost:63198/e/payment-completed",
+            "target": "rabbitmq://localhost:63198/q/catalog.payment-completed-event",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/demo.contracts.events.shipment-created/e/shipment-created",
+            "source": "rabbitmq://localhost:63198/e/demo.contracts.events.shipment-created",
+            "target": "rabbitmq://localhost:63198/e/shipment-created",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/shipment-created/q/catalog.shipment-created-event",
+            "source": "rabbitmq://localhost:63198/e/shipment-created",
+            "target": "rabbitmq://localhost:63198/q/catalog.shipment-created-event",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/demo.contracts.requests.get-product-request/e/get-product-request",
+            "source": "rabbitmq://localhost:63198/e/demo.contracts.requests.get-product-request",
+            "target": "rabbitmq://localhost:63198/e/get-product-request",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/get-product-request/q/get-product-request",
+            "source": "rabbitmq://localhost:63198/e/get-product-request",
+            "target": "rabbitmq://localhost:63198/q/get-product-request",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/demo.contracts.commands.reserve-inventory/e/reserve-inventory",
+            "source": "rabbitmq://localhost:63198/e/demo.contracts.commands.reserve-inventory",
+            "target": "rabbitmq://localhost:63198/e/reserve-inventory",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/reserve-inventory/q/reserve-inventory",
+            "source": "rabbitmq://localhost:63198/e/reserve-inventory",
+            "target": "rabbitmq://localhost:63198/q/reserve-inventory",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/demo.contracts.commands.inspect-return/e/inspect-return",
+            "source": "rabbitmq://localhost:63198/e/demo.contracts.commands.inspect-return",
+            "target": "rabbitmq://localhost:63198/e/inspect-return",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/inspect-return/q/inspect-return",
+            "source": "rabbitmq://localhost:63198/e/inspect-return",
+            "target": "rabbitmq://localhost:63198/q/inspect-return",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/demo.contracts.commands.restock-inventory/e/restock-inventory",
+            "source": "rabbitmq://localhost:63198/e/demo.contracts.commands.restock-inventory",
+            "target": "rabbitmq://localhost:63198/e/restock-inventory",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/restock-inventory/q/restock-inventory",
+            "source": "rabbitmq://localhost:63198/e/restock-inventory",
+            "target": "rabbitmq://localhost:63198/q/restock-inventory",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/demo.contracts.saga.request-quick-refund-request/e/request-quick-refund-request",
+            "source": "rabbitmq://localhost:63198/e/demo.contracts.saga.request-quick-refund-request",
+            "target": "rabbitmq://localhost:63198/e/request-quick-refund-request",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/request-quick-refund-request/q/request-quick-refund-request",
+            "source": "rabbitmq://localhost:63198/e/request-quick-refund-request",
+            "target": "rabbitmq://localhost:63198/q/request-quick-refund-request",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/demo.contracts.events.return-package-received/e/return-package-received",
+            "source": "rabbitmq://localhost:63198/e/demo.contracts.events.return-package-received",
+            "target": "rabbitmq://localhost:63198/e/return-package-received",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:63198/b/e/return-package-received/q/catalog.return-processing-saga",
+            "source": "rabbitmq://localhost:63198/e/return-package-received",
+            "target": "rabbitmq://localhost:63198/q/catalog.return-processing-saga",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sagas": [
+    {
+      "name": "return-processing-saga",
+      "stateType": "RefundSagaState",
+      "stateTypeFullName": "Demo.Catalog.Sagas.RefundSagaState",
+      "consumerName": "return-processing-saga",
+      "states": [
+        {
+          "name": "__Initial",
+          "isInitial": true,
+          "isFinal": false,
+          "onEntry": {},
+          "transitions": [
+            {
+              "eventType": "ReturnPackageReceivedEvent",
+              "eventTypeFullName": "Demo.Contracts.Events.ReturnPackageReceivedEvent",
+              "transitionTo": "AwaitingInspection",
+              "transitionKind": "event",
+              "autoProvision": true,
+              "send": [
+                {
+                  "messageType": "InspectReturnCommand",
+                  "messageTypeFullName": "Demo.Contracts.Commands.InspectReturnCommand"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AwaitingInspection",
+          "isInitial": false,
+          "isFinal": false,
+          "onEntry": {},
+          "transitions": [
+            {
+              "eventType": "InspectReturnResponse",
+              "eventTypeFullName": "Demo.Contracts.Commands.InspectReturnResponse",
+              "transitionTo": "AwaitingBothReplies",
+              "transitionKind": "reply",
+              "autoProvision": true,
+              "send": [
+                {
+                  "messageType": "RestockInventoryCommand",
+                  "messageTypeFullName": "Demo.Contracts.Commands.RestockInventoryCommand"
+                },
+                {
+                  "messageType": "ProcessRefundCommand",
+                  "messageTypeFullName": "Demo.Contracts.Commands.ProcessRefundCommand"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AwaitingBothReplies",
+          "isInitial": false,
+          "isFinal": false,
+          "onEntry": {},
+          "transitions": [
+            {
+              "eventType": "RestockInventoryResponse",
+              "eventTypeFullName": "Demo.Contracts.Commands.RestockInventoryResponse",
+              "transitionTo": "RestockDoneAwaitingRefund",
+              "transitionKind": "reply",
+              "autoProvision": true
+            },
+            {
+              "eventType": "ProcessRefundResponse",
+              "eventTypeFullName": "Demo.Contracts.Commands.ProcessRefundResponse",
+              "transitionTo": "RefundDoneAwaitingRestock",
+              "transitionKind": "reply",
+              "autoProvision": true
+            }
+          ]
+        },
+        {
+          "name": "RestockDoneAwaitingRefund",
+          "isInitial": false,
+          "isFinal": false,
+          "onEntry": {},
+          "transitions": [
+            {
+              "eventType": "ProcessRefundResponse",
+              "eventTypeFullName": "Demo.Contracts.Commands.ProcessRefundResponse",
+              "transitionTo": "Completed",
+              "transitionKind": "reply",
+              "autoProvision": true
+            }
+          ]
+        },
+        {
+          "name": "RefundDoneAwaitingRestock",
+          "isInitial": false,
+          "isFinal": false,
+          "onEntry": {},
+          "transitions": [
+            {
+              "eventType": "RestockInventoryResponse",
+              "eventTypeFullName": "Demo.Contracts.Commands.RestockInventoryResponse",
+              "transitionTo": "Completed",
+              "transitionKind": "reply",
+              "autoProvision": true
+            }
+          ]
+        },
+        {
+          "name": "Completed",
+          "isInitial": false,
+          "isFinal": true,
+          "onEntry": {},
+          "transitions": []
+        }
+      ]
+    },
+    {
+      "name": "quick-refund-saga",
+      "stateType": "RefundSagaState",
+      "stateTypeFullName": "Demo.Catalog.Sagas.RefundSagaState",
+      "consumerName": "quick-refund-saga",
+      "states": [
+        {
+          "name": "__Initial",
+          "isInitial": true,
+          "isFinal": false,
+          "onEntry": {},
+          "transitions": [
+            {
+              "eventType": "RequestQuickRefundRequest",
+              "eventTypeFullName": "Demo.Contracts.Saga.RequestQuickRefundRequest",
+              "transitionTo": "AwaitingRefund",
+              "transitionKind": "request",
+              "autoProvision": true,
+              "send": [
+                {
+                  "messageType": "ProcessRefundCommand",
+                  "messageTypeFullName": "Demo.Contracts.Commands.ProcessRefundCommand"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AwaitingRefund",
+          "isInitial": false,
+          "isFinal": false,
+          "onEntry": {},
+          "transitions": [
+            {
+              "eventType": "ProcessRefundResponse",
+              "eventTypeFullName": "Demo.Contracts.Commands.ProcessRefundResponse",
+              "transitionTo": "Completed",
+              "transitionKind": "reply",
+              "autoProvision": true
+            }
+          ]
+        },
+        {
+          "name": "Completed",
+          "isInitial": false,
+          "isFinal": true,
+          "onEntry": {},
+          "response": {
+            "eventType": "QuickRefundResponse",
+            "eventTypeFullName": "Demo.Contracts.Saga.QuickRefundResponse"
+          },
+          "transitions": []
+        }
+      ]
+    }
+  ]
+}

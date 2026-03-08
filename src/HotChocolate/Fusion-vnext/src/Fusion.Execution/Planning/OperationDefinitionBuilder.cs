@@ -1,5 +1,7 @@
-using HotChocolate.Fusion.Types;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -10,9 +12,10 @@ internal sealed class OperationDefinitionBuilder
 {
     private OperationType _type = OperationType.Query;
     private string? _name;
-    private string? _description;
     private Lookup? _lookup;
-    private string? _requirementKey;
+    private List<ArgumentNode>? _lookupArguments;
+    private ITypeDefinition? _typeToLookup;
+    private string? _lookupAlias;
     private SelectionSetNode? _selectionSet;
 
     private OperationDefinitionBuilder()
@@ -34,16 +37,16 @@ internal sealed class OperationDefinitionBuilder
         return this;
     }
 
-    public OperationDefinitionBuilder SetDescription(string? description)
-    {
-        _description = description;
-        return this;
-    }
-
-    public OperationDefinitionBuilder SetLookup(Lookup? lookup, string? requirementKey)
+    public OperationDefinitionBuilder SetLookup(
+        Lookup lookup,
+        List<ArgumentNode> arguments,
+        ITypeDefinition typeToLookup,
+        string? alias = null)
     {
         _lookup = lookup;
-        _requirementKey = requirementKey;
+        _lookupArguments = arguments;
+        _typeToLookup = typeToLookup;
+        _lookupAlias = alias;
         return this;
     }
 
@@ -61,44 +64,80 @@ internal sealed class OperationDefinitionBuilder
         }
 
         var selectionSet = _selectionSet;
-        var selectionPath = SelectionPath.Root;
+        var selectionPathBuilder = SelectionPath.CreateBuilder();
+        var indexBuilder = index.ToBuilder();
 
-        if (_lookup is not null)
+        if (_lookup is not null && _lookupArguments is not null && _typeToLookup is not null)
         {
-            var arguments = new List<ArgumentNode>();
-
-            foreach (var argument in _lookup.Arguments)
+            if (!_lookup.Path.IsEmpty)
             {
-                arguments.Add(
-                    new ArgumentNode(
-                        new NameNode(argument.Name),
-                        new VariableNode(new NameNode($"{_requirementKey}_{argument.Name}"))));
+                foreach (var fieldName in _lookup.Path)
+                {
+                    selectionPathBuilder.AppendField(fieldName);
+                }
             }
 
+            selectionPathBuilder.AppendField(_lookup.FieldName);
+
+            var lookupSelectionSet = selectionSet;
+            if (_typeToLookup != _lookup.FieldType
+                && !selectionSet.Selections.All(s => s is InlineFragmentNode inlineFragment
+                    && inlineFragment.TypeCondition?.Name.Value == _typeToLookup.Name))
+            {
+                var typeRefinement =
+                    new InlineFragmentNode(
+                        null,
+                        new NamedTypeNode(_typeToLookup.Name),
+                        [],
+                        selectionSet);
+
+                lookupSelectionSet = new SelectionSetNode([
+                    new FieldNode(IntrospectionFieldNames.TypeName),
+                    typeRefinement
+                ]);
+
+                indexBuilder.Register(lookupSelectionSet);
+
+                selectionPathBuilder.AppendFragment(_typeToLookup.Name);
+            }
+
+            var alias = _lookupAlias is not null && _lookupAlias != _lookup.FieldName
+                ? new NameNode(_lookupAlias)
+                : null;
+
             var lookupField = new FieldNode(
-                new NameNode(_lookup.Name),
-                null,
+                new NameNode(_lookup.FieldName),
+                alias,
                 [],
-                arguments,
-                selectionSet);
+                _lookupArguments,
+                lookupSelectionSet);
+
+            if (!_lookup.Path.IsEmpty)
+            {
+                for (var i = _lookup.Path.Length - 1; i >= 0; i--)
+                {
+                    var fieldName = _lookup.Path[i];
+                    var fieldSelectionSet = new SelectionSetNode(null, [lookupField]);
+                    lookupField = new FieldNode(fieldName, fieldSelectionSet);
+                    indexBuilder.Register(fieldSelectionSet);
+                }
+            }
 
             selectionSet = new SelectionSetNode(null, [lookupField]);
-
-            var indexBuilder = index.ToBuilder();
-            indexBuilder.Register(selectionSet);
-            index = indexBuilder;
-            selectionPath = selectionPath.AppendField(_lookup.Name);
         }
+
+        indexBuilder.Register(selectionSet);
+        index = indexBuilder;
 
         var definition = new OperationDefinitionNode(
             null,
             string.IsNullOrEmpty(_name) ? null : new NameNode(_name),
-            string.IsNullOrEmpty(_description) ? null : new StringValueNode(_description),
+            null,
             _type,
             [],
             [],
             selectionSet);
 
-        return (definition, index, selectionPath);
+        return (definition, index, selectionPathBuilder.Build());
     }
 }

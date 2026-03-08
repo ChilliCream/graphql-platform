@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Types.Metadata;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
@@ -17,12 +18,9 @@ public class SourceObjectTypeCollection(IEnumerable<SourceObjectType> members)
     ImmutableArray<ISourceComplexType> ISourceComplexTypeCollection<ISourceComplexType>.Types
         => [.. Members];
 
-    public bool TryGetType(string schemaName, [NotNullWhen(true)] out SourceObjectType? type)
-        => TryGetMember(schemaName, out type);
-
-    public bool TryGetType(string schemaName, [NotNullWhen(true)] out ISourceComplexType? type)
+    public bool TryGetMember(string schemaName, [NotNullWhen(true)] out ISourceComplexType? type)
     {
-        if (TryGetMember(schemaName, out var member))
+        if (base.TryGetMember(schemaName, out var member))
         {
             type = member;
             return true;

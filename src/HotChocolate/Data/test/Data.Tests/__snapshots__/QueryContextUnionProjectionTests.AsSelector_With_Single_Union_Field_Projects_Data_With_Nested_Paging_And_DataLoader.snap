@@ -1,0 +1,25 @@
+{
+  "data": {
+    "pagedInspectionGroups": {
+      "nodes": [
+        {
+          "id": 1,
+          "definitions": {
+            "nodes": [
+              {
+                "trigger": {
+                  "fieldModelKey": "field-1"
+                }
+              },
+              {
+                "trigger": {
+                  "fieldModelKey": "field-2"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

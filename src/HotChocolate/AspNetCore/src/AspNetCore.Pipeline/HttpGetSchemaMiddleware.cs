@@ -24,9 +24,10 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
         HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions,
         PathString path,
         MiddlewareRoutingType routing)
-        : base(next, executor)
+        : base(next, executor, baseOptions)
     {
         _path = path;
         _routing = routing;
@@ -34,29 +35,30 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var handle = _routing == MiddlewareRoutingType.Integrated
+        var isCandidate = _routing == MiddlewareRoutingType.Integrated
             ? HttpMethods.IsGet(context.Request.Method)
                 && (context.Request.Query.ContainsKey("SDL") || IsSchemaPath(context.Request))
-                && GetOptions(context).EnableSchemaRequests
-            : HttpMethods.IsGet(context.Request.Method)
-                && GetOptions(context).EnableSchemaRequests;
+            : HttpMethods.IsGet(context.Request.Method);
 
-        if (handle)
+        if (isCandidate)
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
             var options = GetOptions(context);
 
-            using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
+            if (options.EnableSchemaRequests)
             {
-                await HandleRequestAsync(context, session, options);
+                using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
+                {
+                    await HandleRequestAsync(context, session, options);
+                }
+
+                return;
             }
         }
-        else
-        {
-            // if the request is not a get request or if the content type is not correct
-            // we will just invoke the next middleware and do nothing.
-            await NextAsync(context);
-        }
+
+        // if the request is not a get request or if the content type is not correct
+        // we will just invoke the next middleware and do nothing.
+        await NextAsync(context);
     }
 
     private bool IsSchemaPath(HttpRequest request)
@@ -71,7 +73,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         return false;
     }
 
-    private async Task HandleRequestAsync(HttpContext context, ExecutorSession session, GraphQLServerOptions options)
+    private static async Task HandleRequestAsync(HttpContext context, ExecutorSession session, GraphQLServerOptions options)
     {
         if (!options.EnableSchemaFileSupport)
         {
@@ -101,7 +103,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         }
     }
 
-    private async Task WriteTypesAsync(
+    private static async Task WriteTypesAsync(
         HttpContext context,
         ExecutorSession session,
         string typeNames,
@@ -141,7 +143,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         await PrintTypesAsync(types, context.Response.Body, indent, context.RequestAborted);
     }
 
-    private string GetTypesFileName(List<ITypeDefinition> types)
+    private static string GetTypesFileName(List<ITypeDefinition> types)
         => types.Count == 1
             ? $"{types[0].Name}.graphql"
             : "types.graphql";

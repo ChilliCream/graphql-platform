@@ -86,7 +86,7 @@ public class SortInputType
             }
         }
 
-        if (fields.Length < index)
+        if (fields.Length > index)
         {
             Array.Resize(ref fields, index);
         }

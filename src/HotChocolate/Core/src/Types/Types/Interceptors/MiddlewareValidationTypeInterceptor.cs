@@ -3,8 +3,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Interceptors;
 
 internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
@@ -21,8 +19,8 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
-            configuration is ObjectTypeConfiguration objectTypeDef)
+        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder
+            && configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {

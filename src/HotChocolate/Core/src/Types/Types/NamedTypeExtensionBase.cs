@@ -2,8 +2,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -30,6 +28,8 @@ public abstract class NamedTypeExtensionBase<TConfiguration>
 
     SchemaCoordinate ISchemaCoordinateProvider.Coordinate
         => throw new NotSupportedException();
+
+    public Type RuntimeType => ExtendsType ?? typeof(object);
 
     protected abstract void Merge(
         ITypeCompletionContext context,

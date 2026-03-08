@@ -7,19 +7,22 @@ namespace HotChocolate.Data;
 public static class SpatialFilterProviderDescriptorQueryableExtensions
 {
     public static IFilterProviderDescriptor<QueryableFilterContext> AddSpatialHandlers(
-        this IFilterProviderDescriptor<QueryableFilterContext> descriptor) =>
-        descriptor
-            .AddFieldHandler<QueryableSpatialGeometryDataHandler>()
-            .AddFieldHandler<QueryableSpatialBufferDataHandler>()
-            .AddFieldHandler<QueryableSpatialContainsOperationHandler>()
-            .AddFieldHandler<QueryableSpatialNotContainsOperationHandler>()
-            .AddFieldHandler<QueryableSpatialDistanceOperationHandler>()
-            .AddFieldHandler<QueryableSpatialIntersectsOperationHandler>()
-            .AddFieldHandler<QueryableSpatialNotIntersectsOperationHandler>()
-            .AddFieldHandler<QueryableSpatialOverlapsOperationHandler>()
-            .AddFieldHandler<QueryableSpatialNotOverlapsOperationHandler>()
-            .AddFieldHandler<QueryableSpatialTouchesOperationHandler>()
-            .AddFieldHandler<QueryableSpatialNotTouchesOperationHandler>()
-            .AddFieldHandler<QueryableSpatialWithinOperationHandler>()
-            .AddFieldHandler<QueryableSpatialNotWithinOperationHandler>();
+        this IFilterProviderDescriptor<QueryableFilterContext> descriptor)
+    {
+        descriptor.AddFieldHandler(QueryableSpatialGeometryDataHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialBufferDataHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialContainsOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialNotContainsOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialDistanceOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialIntersectsOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialNotIntersectsOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialOverlapsOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialNotOverlapsOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialTouchesOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialNotTouchesOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialWithinOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableSpatialNotWithinOperationHandler.Create);
+
+        return descriptor;
+    }
 }

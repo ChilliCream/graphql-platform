@@ -8,9 +8,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -38,6 +35,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeInterceptors.TryAdd(new MiddlewareValidationTypeInterceptor());
         typeInterceptors.TryAdd(new SemanticNonNullTypeInterceptor());
         typeInterceptors.TryAdd(new StoreGlobalPagingOptionsTypeInterceptor());
+        typeInterceptors.TryAdd(new StoreGlobalSchemaOptionsTypeInterceptor());
 
         Features.Set(typeInterceptors);
     }
@@ -229,7 +227,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        _services = _services is null ? services : new CombinedServiceProvider(_services, services);
+        _services = services;
 
         return this;
     }

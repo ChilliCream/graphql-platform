@@ -20,8 +20,8 @@ public static class StringFieldDefinitionHelper
         resolvedFieldSerializer = null;
 
         var documentSerializer = serializer as IBsonDocumentSerializer;
-        if (serializer is IBsonArraySerializer bsonArraySerializer &&
-            bsonArraySerializer.TryGetItemSerializationInfo(out serializationInfo))
+        if (serializer is IBsonArraySerializer bsonArraySerializer
+            && bsonArraySerializer.TryGetItemSerializationInfo(out serializationInfo))
         {
             resolvedFieldSerializer = serializationInfo.Serializer;
             documentSerializer = serializationInfo.Serializer as IBsonDocumentSerializer;
@@ -62,9 +62,9 @@ public static class StringFieldDefinitionHelper
             if (nameParts[i] == "$" || nameParts[i].All(char.IsDigit))
             {
                 arraySerializer = resolvedFieldSerializer as IBsonArraySerializer;
-                if (resolvedFieldSerializer is IBsonArraySerializer &&
-                    arraySerializer is { } &&
-                    arraySerializer.TryGetItemSerializationInfo(out serializationInfo))
+                if (resolvedFieldSerializer is IBsonArraySerializer
+                    && arraySerializer is { }
+                    && arraySerializer.TryGetItemSerializationInfo(out serializationInfo))
                 {
                     resolvedFieldSerializer = serializationInfo.Serializer;
                     continue;
@@ -75,20 +75,20 @@ public static class StringFieldDefinitionHelper
             }
 
             documentSerializer = resolvedFieldSerializer as IBsonDocumentSerializer;
-            if (documentSerializer == null ||
-                !documentSerializer.TryGetMemberSerializationInfo(
+            if (documentSerializer == null
+                || !documentSerializer.TryGetMemberSerializationInfo(
                     nameParts[i],
                     out serializationInfo))
             {
                 // need to check if this is an any element array match
                 arraySerializer = resolvedFieldSerializer as IBsonArraySerializer;
-                if (arraySerializer != null &&
-                    arraySerializer.TryGetItemSerializationInfo(out serializationInfo))
+                if (arraySerializer != null
+                    && arraySerializer.TryGetItemSerializationInfo(out serializationInfo))
                 {
                     documentSerializer =
                         serializationInfo.Serializer as IBsonDocumentSerializer;
-                    if (documentSerializer == null ||
-                        !documentSerializer.TryGetMemberSerializationInfo(
+                    if (documentSerializer == null
+                        || !documentSerializer.TryGetMemberSerializationInfo(
                             nameParts[i],
                             out serializationInfo))
                     {

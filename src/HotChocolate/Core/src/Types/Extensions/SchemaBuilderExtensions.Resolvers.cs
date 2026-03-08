@@ -5,8 +5,6 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Interceptors;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public static partial class SchemaBuilderExtensions
@@ -35,9 +33,7 @@ public static partial class SchemaBuilderExtensions
         FieldResolverDelegate resolver,
         Type? resultType = null)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverConfigInternal(builder, fieldCoordinate, resolver, resultType);
     }
 
@@ -65,9 +61,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, object?> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(
             builder,
             typeName,
@@ -99,11 +93,8 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, ValueTask<object?>> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
-        return AddResolverInternal(builder, typeName, fieldName,
-            ctx => resolver(ctx));
+        return AddResolverInternal(builder, typeName, fieldName, ctx => resolver(ctx));
     }
 
     /// <summary>
@@ -130,9 +121,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, TResult> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(builder, typeName, fieldName,
             ctx => new ValueTask<object?>(resolver(ctx)));
     }
@@ -161,9 +150,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, ValueTask<TResult>> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(builder, typeName, fieldName,
             async ctx => await resolver(ctx).ConfigureAwait(false));
     }
@@ -192,9 +179,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<object?> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(builder, typeName, fieldName,
             _ => new ValueTask<object?>(resolver()));
     }
@@ -223,9 +208,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<ValueTask<object?>> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(builder, typeName, fieldName, _ => resolver());
     }
 
@@ -253,9 +236,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<TResult> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(builder, typeName, fieldName,
             _ => new ValueTask<object?>(resolver()));
     }
@@ -284,9 +265,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<ValueTask<TResult>> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(
             builder,
             typeName,
@@ -320,9 +299,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, object?> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(builder, typeName, fieldName,
             ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
     }
@@ -351,9 +328,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, TResult> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(builder, typeName, fieldName,
             ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
     }
@@ -382,9 +357,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolver);
-
         return AddResolverInternal(
             builder,
             typeName,
@@ -417,12 +390,8 @@ public static partial class SchemaBuilderExtensions
         string typeName,
         string fieldName,
         object? constantResult)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        return AddResolverInternal(builder, typeName, fieldName,
+        => AddResolverInternal(builder, typeName, fieldName,
             _ => new ValueTask<object?>(constantResult));
-    }
 
     /// <summary>
     /// Adds a resolver delegate that returns a constant result.
@@ -447,12 +416,8 @@ public static partial class SchemaBuilderExtensions
         string typeName,
         string fieldName,
         TResult constantResult)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        return AddResolverInternal(builder, typeName, fieldName,
+        => AddResolverInternal(builder, typeName, fieldName,
             _ => new ValueTask<object?>(constantResult));
-    }
 
     /// <summary>
     /// Adds a resolver delegate for a specific field.
@@ -475,7 +440,6 @@ public static partial class SchemaBuilderExtensions
         Type resolverType,
         string? typeName = null)
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(resolverType);
 
         if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true } or
@@ -521,8 +485,6 @@ public static partial class SchemaBuilderExtensions
 
     public static ISchemaBuilder AddRootResolver(this ISchemaBuilder builder, Type resolverType)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-
         if (resolverType is { IsClass: true } or { IsInterface: true })
         {
             foreach (var property in resolverType.GetProperties())
@@ -544,9 +506,7 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddRootResolver<T>(this ISchemaBuilder builder, T root)
         where T : class
     {
-        ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(root);
-
         InitializeResolverTypeInterceptor(builder);
         var feature = builder.Features.GetRequired<ResolverFeature>();
         feature.RootInstance = root;

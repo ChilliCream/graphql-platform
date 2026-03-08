@@ -3,8 +3,6 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types.Helpers;
 
 public static class FieldDescriptorUtilities
@@ -37,7 +35,7 @@ public static class FieldDescriptorUtilities
         Func<TMember, TField> createdFieldDefinition,
         IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
-        where TDescriptor : IHasRuntimeType, IHasDescriptorContext
+        where TDescriptor : IRuntimeTypeProvider, IHasDescriptorContext
         where TMember : MemberInfo
         where TField : FieldConfiguration
     {
@@ -80,10 +78,10 @@ public static class FieldDescriptorUtilities
                 {
                     var fieldDefinition = createdFieldDefinition(member);
 
-                    if (!string.IsNullOrEmpty(fieldDefinition.Name) &&
-                        !handledMembers.Contains(member) &&
-                        !fields.ContainsKey(fieldDefinition.Name) &&
-                        (includeIgnoredMembers || !fieldDefinition.Ignore))
+                    if (!string.IsNullOrEmpty(fieldDefinition.Name)
+                        && !handledMembers.Contains(member)
+                        && !fields.ContainsKey(fieldDefinition.Name)
+                        && (includeIgnoredMembers || !fieldDefinition.Ignore))
                     {
                         handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
@@ -98,7 +96,8 @@ public static class FieldDescriptorUtilities
         ICollection<ArgumentConfiguration> arguments,
         MemberInfo? member,
         ParameterInfo[] parameters,
-        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders,
+        bool isBatchResolver = false)
     {
         ArgumentNullException.ThrowIfNull(arguments);
 
@@ -123,11 +122,11 @@ public static class FieldDescriptorUtilities
                 {
                     var argumentDefinition =
                         ArgumentDescriptor
-                            .New(context, parameter)
+                            .New(context, parameter, isBatchResolver)
                             .CreateConfiguration();
 
-                    if (!string.IsNullOrEmpty(argumentDefinition.Name) &&
-                        processedNames.Add(argumentDefinition.Name))
+                    if (!string.IsNullOrEmpty(argumentDefinition.Name)
+                        && processedNames.Add(argumentDefinition.Name))
                     {
                         arguments.Add(argumentDefinition);
                     }
