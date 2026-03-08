@@ -251,6 +251,30 @@ Most of the properties you'd want to modify are now immutable data structures th
 
 `OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
 
+## Page
+
+`Page<T>` is now abstract.
+
+If you previously created a page directly with `new Page<T>(...)`, switch to one of the following:
+
+- Use `Page<T>.Empty` when you just need to return an empty page.
+- Use `Page<T>.Create(...)` when you need to construct a page yourself.
+
+```diff
+-return new Page<Product>(
+-    items,
+-    hasNextPage: hasNext,
+-    hasPreviousPage: false,
+-    createCursor: product => CreateCursor(product),
+-    totalCount: totalCount);
++return Page<Product>.Create(
++    items,
++    hasNextPage: hasNext,
++    hasPreviousPage: false,
++    createCursor: product => CreateCursor(product),
++    totalCount: totalCount);
+```
+
 ## OperationResult changes
 
 We've removed the `IOperationResult` abstraction. If you've previously pattern-matched on this, you can simply replace it with `OperationResult`. To assert that an `IExecutionResult` is an `OperationResult` in tests, use `result.ExpectOperationResult();`.

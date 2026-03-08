@@ -884,6 +884,36 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task BatchPaging_With_ValueSelector_ToConnectionAsync()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        var brandId = await SeedMinimalAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments { First = 2 };
+
+        var results = await context.Products
+            .Where(t => t.BrandId == brandId)
+            .Select(t => new { t.BrandId, Product = t })
+            .OrderBy(t => t.Product.Name)
+            .ThenBy(t => t.Product.Id)
+            .ToBatchPageAsync(
+                keySelector: t => t.BrandId,
+                valueSelector: t => t.Product,
+                pagingArgs);
+
+        // Assert
+        Assert.True(results.TryGetValue(brandId, out var page));
+
+        var connection = await new ValueTask<Page<Product>>(page!).ToConnectionAsync();
+        Assert.Equal(2, connection.Edges.Count);
+        Assert.All(connection.Edges, edge => Assert.False(string.IsNullOrEmpty(edge.Cursor)));
+    }
+
+    [Fact]
     public async Task Map_Page_To_Connection_With_Dto()
     {
         // Arrange
@@ -1125,6 +1155,28 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         }
 
         await context.SaveChangesAsync();
+    }
+
+    private static async Task<int> SeedMinimalAsync(string connectionString)
+    {
+        await using var context = new CatalogContext(connectionString);
+        await context.Database.EnsureCreatedAsync();
+
+        var type = new ProductType { Name = "T-Shirt" };
+        var brand = new Brand
+        {
+            Name = "Brand:0",
+            BrandDetails = new() { Country = new() { Name = "Country0" } }
+        };
+
+        context.ProductTypes.Add(type);
+        context.Brands.Add(brand);
+        context.Products.AddRange(
+            new Product { Name = "Product 0-0", Type = type, Brand = brand },
+            new Product { Name = "Product 0-1", Type = type, Brand = brand });
+
+        await context.SaveChangesAsync();
+        return brand.Id;
     }
 
     private static async Task SeedFooAsync(string connectionString)
