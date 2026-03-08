@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -60,6 +61,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             var compiledSelection = new Selection(
                 context.NewSelectionId(),
                 alias,
+                SelectionPath.Root,
                 field,
                 [new FieldSelectionNode(fieldNode, 0)],
                 [],

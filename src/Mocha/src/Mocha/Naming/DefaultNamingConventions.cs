@@ -9,10 +9,10 @@ namespace Mocha;
 /// metadata into kebab-case endpoint names and URN-based message identities.
 /// </summary>
 /// <param name="host">The host information used to derive service-scoped endpoint names.</param>
-public sealed class DefaultNamingConventions(IHostInfo host) : IBusNamingConventions
+public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamingConventions
 {
     // Source gen
-    private static readonly Regex s_kebabCaseRegex = new("(?<!^)(?=[A-Z])|(?<=[a-z])(?=[0-9])", RegexOptions.Compiled);
+    private static readonly Regex s_kebabCaseRegex = KebabCaseRegex();
 
     private static readonly string[] s_handlerSuffixes = ["Handler", "Consumer", "Consumer`1", "Handler`1"];
 
@@ -327,4 +327,7 @@ public sealed class DefaultNamingConventions(IHostInfo host) : IBusNamingConvent
         var result = s_kebabCaseRegex.Replace(input, "-");
         return result.ToLowerInvariant();
     }
+
+    [GeneratedRegex("(?<!^)(?=[A-Z])|(?<=[a-z])(?=[0-9])")]
+    private static partial Regex KebabCaseRegex();
 }

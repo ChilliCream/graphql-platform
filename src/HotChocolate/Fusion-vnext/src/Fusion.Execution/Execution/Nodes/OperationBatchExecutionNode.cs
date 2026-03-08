@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 
 namespace HotChocolate.Fusion.Execution.Nodes;

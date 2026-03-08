@@ -48,6 +48,8 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _serial.Clear();
         _completed.Clear();
         _activeBranches.Clear();
+        _activePaths.Clear();
+        _pendingBatches.Clear();
         _signal.Reset();
 
         _result = null!;

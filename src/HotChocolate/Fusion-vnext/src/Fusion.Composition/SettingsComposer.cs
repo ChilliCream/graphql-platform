@@ -7,9 +7,9 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Composes source schema settings into gateway settings for a specific environment
 /// </summary>
-public sealed class SettingsComposer
+public sealed partial class SettingsComposer
 {
-    private static readonly Regex s_variablePattern = new(@"\{\{([a-zA-Z0-9_-]+)\}\}", RegexOptions.Compiled);
+    private static readonly Regex s_variablePattern = VariablePatternRegex();
 
     /// <summary>
     /// Composes multiple source schema settings into gateway settings for the specified environment
@@ -233,4 +233,7 @@ public sealed class SettingsComposer
             throw new InvalidOperationException($"Variable '{variableName}' not found in environment");
         });
     }
+
+    [GeneratedRegex(@"\{\{([a-zA-Z0-9_-]+)\}\}")]
+    private static partial Regex VariablePatternRegex();
 }

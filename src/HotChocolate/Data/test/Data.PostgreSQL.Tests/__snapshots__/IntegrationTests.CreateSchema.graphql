@@ -18,6 +18,7 @@ type BillingStatementTransaction implements StatementTransaction {
 
 type Brand implements Node {
   products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): BrandProductsConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
+  productCount: Int! @cost(weight: "10")
   id: ID!
   name: String!
 }
