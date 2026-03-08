@@ -252,26 +252,33 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     public bool EnqueueNextNodes(OperationPlanContext context, CancellationToken cancellationToken)
     {
-        if (_ready.Count == 0)
+        var ready = _ready;
+        var readyCount = ready.Count;
+
+        if (readyCount == 0)
         {
             return false;
         }
 
+        var remainingDependencies = _remainingDependencies;
         var isSorted = true;
         var previousId = int.MinValue;
-        var readyCount = _ready.Count;
 
-        foreach (var node in _ready)
+        for (var i = 0; i < readyCount; i++)
         {
-            if ((uint)node.Id < (uint)_remainingDependencies.Length
-                && _remainingDependencies[node.Id] == 0)
+            var node = ready[i];
+            var nodeId = node.Id;
+
+            if ((uint)nodeId < (uint)remainingDependencies.Length
+                && remainingDependencies[nodeId] == 0)
             {
-                if (node.Id < previousId)
+                if (nodeId < previousId)
                 {
                     isSorted = false;
+                    break;
                 }
 
-                previousId = node.Id;
+                previousId = nodeId;
             }
         }
 
@@ -281,7 +288,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
             for (var i = 0; i < readyCount; i++)
             {
-                var node = _ready[i];
+                var node = ready[i];
 
                 if ((uint)node.Id < (uint)_remainingDependencies.Length
                     && _remainingDependencies[node.Id] == 0)
@@ -299,7 +306,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         for (var i = 0; i < readyCount; i++)
         {
-            var node = _ready[i];
+            var node = ready[i];
 
             if ((uint)node.Id < (uint)_remainingDependencies.Length
                 && _remainingDependencies[node.Id] == 0)
