@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Requirements;
 using HotChocolate.Language;
@@ -89,6 +90,7 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
                     new Selection(
                         existingSelection.Id,
                         responseName,
+                        SelectionPath.Root,
                         field,
                         [new FieldSelectionNode(fieldNode, 0)],
                         [],
@@ -103,6 +105,7 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
             new Selection(
                 context.NewSelectionId(),
                 responseName,
+                SelectionPath.Root,
                 field,
                 [new FieldSelectionNode(fieldNode, 0)],
                 [],

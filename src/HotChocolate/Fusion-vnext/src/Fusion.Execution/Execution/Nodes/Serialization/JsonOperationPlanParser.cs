@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 

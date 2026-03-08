@@ -63,7 +63,7 @@ In the Aspire Dashboard, you will see the `publish` span from the publishing ser
 
 # How trace context propagates
 
-When the dispatch instrumentation middleware runs, it writes the current `Activity`'s trace context into the outgoing message headers. The receive instrumentation middleware on the other side reads those headers and restores the parent context, linking the two spans into a single trace.
+When the dispatch instrumentation middleware runs, it writes the current `Activity`'s trace context into the outgoing message headers using the [W3C Trace Context](https://www.w3.org/TR/trace-context/) standard (`traceparent` and `tracestate`). The receive instrumentation middleware on the other side reads those headers and restores the parent context, linking the two spans into a single trace. This is the same propagation format used by ASP.NET Core, HttpClient, and the broader OpenTelemetry ecosystem, so Mocha traces connect seamlessly with spans from other frameworks.
 
 ```mermaid
 sequenceDiagram
@@ -72,8 +72,8 @@ sequenceDiagram
     participant B as Service B
 
     A->>A: dispatch span (Producer)
-    Note over A: Writes trace-id, span-id to headers
-    A->>Broker: Message + trace headers
+    Note over A: Writes traceparent, tracestate to headers
+    A->>Broker: Message + W3C trace headers
     Broker->>B: Deliver message
     B->>B: receive span (Client, linked to parent)
     B->>B: consumer span (Consumer)

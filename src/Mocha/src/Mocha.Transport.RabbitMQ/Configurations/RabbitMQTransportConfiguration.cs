@@ -57,6 +57,10 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     /// Individual resources can override this setting.
     /// </summary>
     public bool? AutoProvision { get; set; }
+
+    /// Gets or sets the bus-level defaults applied to all auto-provisioned queues and exchanges.
+    /// </summary>
+    public RabbitMQBusDefaults Defaults { get; set; } = new();
 }
 
 /// <summary>

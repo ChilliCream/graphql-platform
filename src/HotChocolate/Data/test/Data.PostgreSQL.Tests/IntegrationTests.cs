@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 namespace HotChocolate.Data;
 
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
-public sealed class IntegrationTests(PostgreSqlResource resource)
+public sealed partial class IntegrationTests(PostgreSqlResource resource)
 {
     [Fact]
     public async Task CreateSchema()
@@ -91,6 +91,57 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                                 id
                                 name
                             }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Query_Brands_With_BatchResolver_ProductCount()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(first: 5) {
+                    nodes {
+                        id
+                        name
+                        productCount
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Query_Brands_With_BatchResolver_Supplier()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(first: 5) {
+                    nodes {
+                        id
+                        name
+                        supplier {
+                            name
+                            website
                         }
                     }
                 }
@@ -666,11 +717,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         }
 
         var orderedIds = ids.OrderBy(t => t).Select(t => $"'{t}'");
-        var merged = Regex.Replace(
-            queries[indices[0]],
-            @"\{[^}]*\}",
-            "{ " + string.Join(", ", orderedIds) + " }",
-            RegexOptions.CultureInvariant);
+        var merged = CurlyBraceBlockRegex().Replace(queries[indices[0]], "{ " + string.Join(", ", orderedIds) + " }");
 
         var normalized = new List<string>(queries.Count - indices.Count + 1);
         var first = indices[0];
@@ -716,7 +763,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             return false;
         }
 
-        var matches = Regex.Matches(lines[0], @"'(?<id>\d+)'", RegexOptions.CultureInvariant);
+        var matches = QuotedNumericIdRegex().Matches(lines[0]);
         if (matches.Count == 0)
         {
             return false;
@@ -761,4 +808,10 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             return true;
         }
     }
+
+    [GeneratedRegex(@"\{[^}]*\}", RegexOptions.CultureInvariant)]
+    private static partial Regex CurlyBraceBlockRegex();
+
+    [GeneratedRegex(@"'(?<id>\d+)'", RegexOptions.CultureInvariant)]
+    private static partial Regex QuotedNumericIdRegex();
 }

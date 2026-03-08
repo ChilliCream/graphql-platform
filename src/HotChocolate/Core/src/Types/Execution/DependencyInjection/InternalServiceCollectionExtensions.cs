@@ -6,6 +6,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -34,6 +35,25 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton<IFactory<ResolverTask>>(
             sp => new PooledServiceFactory<ResolverTask>(
                 sp.GetRequiredService<ObjectPool<ResolverTask>>()));
+        return services;
+    }
+
+    internal static IServiceCollection TryAddBatchResolverTaskPool(
+        this IServiceCollection services,
+        int maximumRetained = 64)
+    {
+        services.TryAddSingleton<ObjectPool<Dictionary<string, ArgumentValue>>>(
+            _ => new DefaultObjectPool<Dictionary<string, ArgumentValue>>(
+                new ArgumentMapPoolPolicy()));
+        services.TryAddSingleton<ObjectPool<BatchResolverTask>>(
+            sp => new ExecutionTaskPool<BatchResolverTask, BatchResolverTaskPoolPolicy>(
+                new BatchResolverTaskPoolPolicy(
+                    sp.GetRequiredService<ObjectPool<ResolverTask>>(),
+                    sp.GetRequiredService<ObjectPool<Dictionary<string, ArgumentValue>>>()),
+                maximumRetained));
+        services.TryAddSingleton<IFactory<BatchResolverTask>>(
+            sp => new PooledServiceFactory<BatchResolverTask>(
+                sp.GetRequiredService<ObjectPool<BatchResolverTask>>()));
         return services;
     }
 

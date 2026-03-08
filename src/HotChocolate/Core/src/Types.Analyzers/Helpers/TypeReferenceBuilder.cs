@@ -14,7 +14,10 @@ public static class TypeReferenceBuilder
         "HotChocolate.Optional<T>"
     ];
 
-    public static SchemaTypeReference CreateTypeReference(this Compilation compilation, ISymbol member)
+    public static SchemaTypeReference CreateTypeReference(
+        this Compilation compilation,
+        ISymbol member,
+        bool isBatchResolver = false)
     {
         var typeAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLTypeAttribute);
         var genericTypeAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLTypeAttribute + "`1");
@@ -71,6 +74,13 @@ public static class TypeReferenceBuilder
 
         // First, we unwrap any non-essential wrapper types and IFieldResult implementations.
         var unwrapped = UnwrapNonEssentialTypes(member.GetReturnType()!, compilation);
+
+        // For batch resolvers, the return type is a list (e.g. List<string>) and we need
+        // to unwrap to the element type (e.g. string) for the GraphQL field type.
+        if (isBatchResolver)
+        {
+            unwrapped = UnwrapListElementType(unwrapped) ?? unwrapped;
+        }
 
         // Next, we create a key that describes the type and ensures we are only executing the type factory once.
         var (typeStructure, typeDefinition, isSimpleType) = CreateTypeKey(unwrapped);
@@ -181,6 +191,21 @@ public static class TypeReferenceBuilder
                 compliantTypeName);
             return (typeStructure, typeName, IsSimpleType: false);
         }
+    }
+
+    private static ITypeSymbol? UnwrapListElementType(ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType;
+        }
+
+        if (typeSymbol is INamedTypeSymbol namedType && TryGetListElementType(namedType, out var elementType))
+        {
+            return elementType;
+        }
+
+        return null;
     }
 
     private static ITypeSymbol UnwrapNonEssentialTypes(ITypeSymbol typeSymbol, Compilation compilation)

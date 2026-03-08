@@ -1,4 +1,4 @@
-using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 

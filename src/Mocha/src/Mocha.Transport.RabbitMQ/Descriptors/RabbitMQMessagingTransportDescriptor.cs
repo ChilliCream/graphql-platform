@@ -153,6 +153,14 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public IRabbitMQMessagingTransportDescriptor ConfigureDefaults(Action<RabbitMQBusDefaults> configure)
+    {
+        configure(Configuration.Defaults);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IRabbitMQReceiveEndpointDescriptor Endpoint(string name)
     {
         var endpoint = _receiveEndpoints.FirstOrDefault(e =>

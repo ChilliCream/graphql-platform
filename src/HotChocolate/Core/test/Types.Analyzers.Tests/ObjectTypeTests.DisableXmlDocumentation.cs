@@ -101,6 +101,6 @@ public partial class ObjectTypeDisableXmlDocumentationTests
         Assert.Equal("User description from XML doc.", emitted[1].Value);
     }
 
-    [GeneratedRegex("configuration.Description = \"(.*)\";")]
+    [GeneratedRegex("configuration\\.Description = GetDescription\\(\"(.*?)\",")]
     private static partial Regex DescriptionExtractorRegex();
 }
