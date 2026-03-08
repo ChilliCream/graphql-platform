@@ -29,6 +29,7 @@ jobs:
             8.x
             9.x
             10.x
+            11.x
 
       - name: 🏷 Get the version from tag
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
@@ -110,7 +111,7 @@ jobs:
       - name: 🛠 Install .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 10.x
+          dotnet-version: 11.x
 
       - name: 🏷 Get the version from tag (Windows)
         if: runner.os == 'Windows'
