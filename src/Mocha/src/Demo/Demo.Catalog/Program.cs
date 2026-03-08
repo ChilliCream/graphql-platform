@@ -41,11 +41,15 @@ builder
     .AddSaga<ReturnProcessingSaga>()
     .AddEntityFramework<CatalogDbContext>(p =>
     {
-        p.AddPostgresOutbox();
-        p.UsePostgresInbox();
         p.AddPostgresSagas();
+
+        // dispatch
+        p.UsePostgresOutbox();
+
+        // receive
         p.UseResilience();
         p.UseTransaction();
+        p.UsePostgresInbox();
     })
     .AddRabbitMQ();
 

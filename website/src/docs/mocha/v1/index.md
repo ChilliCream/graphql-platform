@@ -129,7 +129,7 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UseTransaction();
         p.UsePostgresInbox();
     })

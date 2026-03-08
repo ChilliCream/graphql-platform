@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Demo.Shipping.Migrations
+namespace HotChocolate.Demo.Shipping.Migrations
 {
     [DbContext(typeof(ShippingDbContext))]
     partial class ShippingDbContextModelSnapshot : ModelSnapshot
@@ -167,6 +167,11 @@ namespace Demo.Shipping.Migrations
                         .HasColumnType("character varying(512)")
                         .HasColumnName("message_id");
 
+                    b.Property<string>("ConsumerType")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("consumer_type");
+
                     b.Property<string>("MessageType")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)")
@@ -178,7 +183,7 @@ namespace Demo.Shipping.Migrations
                         .HasColumnName("processed_at")
                         .HasDefaultValueSql("NOW()");
 
-                    b.HasKey("MessageId")
+                    b.HasKey("MessageId", "ConsumerType")
                         .HasName("ix_inbox_messages_primary_key");
 
                     b.HasIndex("ProcessedAt")

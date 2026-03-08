@@ -147,7 +147,7 @@ public class OutboxIntegrationTests
         services.AddSingleton<IMessageOutbox>(outbox);
 
         var builder = services.AddMessageBus();
-        builder.AddOutboxCore();
+        builder.UseOutboxCore();
 
         // Add a middleware before outbox that checks for the skip header
         builder.ConfigureMessageBus(h =>

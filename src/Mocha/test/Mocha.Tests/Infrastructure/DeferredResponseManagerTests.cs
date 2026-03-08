@@ -140,9 +140,8 @@ public class DeferredResponseManagerTests
         var correlationId = Guid.NewGuid().ToString();
         manager.AddPromise(correlationId, TimeSpan.FromSeconds(30));
 
-        // act - start getting promise, complete it from another task
-        var getTask = Task.Run(() => manager.GetPromise(correlationId));
-        await Task.Delay(50, default); // ensure GetPromise is waiting
+        // act - GetPromise synchronously looks up the TCS then returns a task awaiting it
+        var getTask = manager.GetPromise(correlationId);
         manager.CompletePromise(correlationId, "delayed-result");
 
         // assert

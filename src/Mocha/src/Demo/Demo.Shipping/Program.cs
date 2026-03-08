@@ -30,7 +30,7 @@ builder
     .AddRequestHandler<CreateReturnLabelCommandHandler>()
     .AddEntityFramework<ShippingDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UsePostgresInbox();
     })
     .AddRabbitMQ();

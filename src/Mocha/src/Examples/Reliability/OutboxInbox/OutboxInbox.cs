@@ -40,7 +40,7 @@ builder.Services
     {
         // Persist outbound messages to the outbox table in the same transaction
         // as your business data. A background processor dispatches them after commit.
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
 
         // Record processed message IDs in the inbox table so that duplicate
         // deliveries are silently skipped, guaranteeing exactly-once processing.
@@ -113,7 +113,7 @@ public class Order
 // --- Handlers ---
 
 // With UseTransaction() active, this handler runs inside a database transaction.
-// With AddPostgresOutbox() active, calls to bus.PublishAsync() write to the outbox
+// With UsePostgresOutbox() active, calls to bus.PublishAsync() write to the outbox
 // table rather than directly to RabbitMQ — within the same transaction.
 // With UsePostgresInbox() active, the inbox middleware checks whether this message
 // has already been processed before invoking the handler, preventing duplicates.
@@ -136,7 +136,7 @@ public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
         db.Orders.Add(order);
 
         // This write goes to the outbox table (not directly to RabbitMQ) because
-        // AddPostgresOutbox() intercepts IMessageBus calls inside a transaction.
+        // UsePostgresOutbox() intercepts IMessageBus calls inside a transaction.
         await bus.PublishAsync(
             new InvoiceCreated(Guid.NewGuid(), order.Id, order.Amount),
             cancellationToken);

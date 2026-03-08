@@ -289,7 +289,7 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
         }
 
         var queries = PostgresMessageInboxQueries.From(new InboxTableInfo());
-        var inbox = new PostgresMessageInbox(context, connection, queries, timeProvider);
+        var inbox = new PostgresMessageInbox(context, connection, queries, timeProvider ?? TimeProvider.System);
         return (context, inbox);
     }
 

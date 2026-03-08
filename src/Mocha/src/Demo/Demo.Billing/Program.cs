@@ -42,10 +42,11 @@ builder
     .AddRequestHandler<ProcessPartialRefundCommandHandler>()
     .AddEntityFramework<BillingDbContext>(p =>
     {
-        p.AddPostgresOutbox();
-        p.UsePostgresInbox();
+        p.UsePostgresOutbox();
+
         p.UseResilience();
         p.UseTransaction();
+        p.UsePostgresInbox();
     })
     .AddRabbitMQ();
 

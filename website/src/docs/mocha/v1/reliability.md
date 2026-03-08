@@ -17,7 +17,7 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UseTransaction();
         p.UsePostgresInbox();
     })
@@ -295,7 +295,7 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UseTransaction();
     })
     .AddRabbitMQ();
@@ -304,7 +304,7 @@ builder.Services
 | Call                             | Purpose                                                                                            |
 | -------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `AddEntityFramework<TContext>()` | Registers your DbContext with the bus for persistence features.                                    |
-| `AddPostgresOutbox()`            | Registers the Postgres outbox processor, background worker, and `IMessageOutbox`.                  |
+| `UsePostgresOutbox()`            | Registers the Postgres outbox processor, background worker, and `IMessageOutbox`.                  |
 | `UseTransaction()`               | Wraps each consumer invocation in a database transaction (commit on success, rollback on failure). |
 
 **4. Publish inside a transaction.**
@@ -349,7 +349,7 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UseResilience(); // Wraps consumer execution with the EF Core execution strategy
         p.UseTransaction();
     })
@@ -438,7 +438,7 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.UsePostgresInbox();
+        modelBuilder.AddPostgresInbox();
     }
 }
 ```
@@ -475,7 +475,7 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UseTransaction();
         p.UsePostgresInbox();
     })
