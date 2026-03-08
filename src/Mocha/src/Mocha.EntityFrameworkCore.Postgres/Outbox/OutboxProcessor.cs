@@ -262,24 +262,20 @@ public sealed class PostgresOutboxProcessor
         CancellationToken cancellationToken)
     {
         Activity? activity = null;
-        var traceId = envelope.Headers?.Get(MessageHeaders.TraceId);
-        var traceState = envelope.Headers?.Get(MessageHeaders.TraceState);
-        var spanId = envelope.Headers?.Get(MessageHeaders.SpanId);
+        var traceparent = envelope.Headers?.Get(MessageHeaders.Traceparent);
 
-        if (!string.IsNullOrEmpty(traceId) && !string.IsNullOrEmpty(spanId))
+        if (!string.IsNullOrEmpty(traceparent))
         {
-            var parentContext = new ActivityContext(
-                ActivityTraceId.CreateFromString(traceId),
-                ActivitySpanId.CreateFromString(spanId),
-                ActivityTraceFlags.Recorded,
-                traceState);
+            var tracestate = envelope.Headers?.Get(MessageHeaders.Tracestate);
+            if (ActivityContext.TryParse(traceparent, tracestate, out var parentContext))
+            {
+                activity = OpenTelemetry.Source.CreateActivity(
+                    $"outbox send {envelope.MessageId}",
+                    ActivityKind.Client,
+                    parentContext);
 
-            activity = OpenTelemetry.Source.CreateActivity(
-                $"outbox send {envelope.MessageId}",
-                ActivityKind.Client,
-                parentContext);
-
-            activity?.Start();
+                activity?.Start();
+            }
         }
 
         var context = _contextPool.Get();
