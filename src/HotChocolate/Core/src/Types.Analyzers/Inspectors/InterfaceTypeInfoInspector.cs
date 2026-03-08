@@ -167,13 +167,15 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             var parameter = parameters[i];
             var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
+            var paramDesc = compilation.GetDescription(parameter);
             buffer[i] = new ResolverParameter(
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                compilation.GetDescription(parameter)?.Description,
+                paramDesc?.Description,
                 compilation.GetDeprecationReason(parameter),
-                key);
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
         }
 
         return new Resolver(

@@ -296,13 +296,15 @@ public class ObjectTypeInspector : ISyntaxInspector
             var parameter = parameters[i];
             var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
+            var paramDesc = compilation.GetDescription(parameter);
             buffer[i] = new ResolverParameter(
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter, isBatchResolver),
-                compilation.GetDescription(parameter)?.Description,
+                paramDesc?.Description,
                 compilation.GetDeprecationReason(parameter),
-                key);
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
         }
 
         resolverTypeName ??= resolverType.Name;
@@ -342,13 +344,15 @@ public class ObjectTypeInspector : ISyntaxInspector
             var parameter = parameters[i];
             var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
+            var paramDesc = compilation.GetDescription(parameter);
             var resolverParameter = new ResolverParameter(
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                compilation.GetDescription(parameter)?.Description,
+                paramDesc?.Description,
                 compilation.GetDeprecationReason(parameter),
-                key);
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
 
             if (resolverParameter.Kind == ResolverParameterKind.Argument)
             {
@@ -370,9 +374,10 @@ public class ObjectTypeInspector : ISyntaxInspector
                     parameter,
                     ResolverParameterKind.Argument,
                     compilation.CreateTypeReference(parameter),
-                    compilation.GetDescription(parameter)?.Description,
+                    paramDesc?.Description,
                     compilation.GetDeprecationReason(parameter),
-                    key);
+                    key,
+                    paramDesc?.IsDescriptionFromAttribute ?? false);
             }
 
             buffer[i] = resolverParameter;
