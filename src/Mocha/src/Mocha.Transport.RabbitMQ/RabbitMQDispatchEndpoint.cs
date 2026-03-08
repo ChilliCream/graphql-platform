@@ -147,14 +147,14 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
         var autoProvision = ((RabbitMQMessagingTopology)transport.Topology).AutoProvision;
 
-        if (Queue?.AutoProvision ?? autoProvision)
+        if (Queue is not null && (Queue.AutoProvision ?? autoProvision))
         {
-            await Queue!.ProvisionAsync(channel, cancellationToken);
+            await Queue.ProvisionAsync(channel, cancellationToken);
         }
 
-        if (Exchange?.AutoProvision ?? autoProvision)
+        if (Exchange is not null && (Exchange.AutoProvision ?? autoProvision))
         {
-            await Exchange!.ProvisionAsync(channel, cancellationToken);
+            await Exchange.ProvisionAsync(channel, cancellationToken);
         }
 
         _isProvisioned = true;
