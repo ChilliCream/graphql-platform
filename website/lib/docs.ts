@@ -85,8 +85,12 @@ export function getDocsConfig(): DocsProduct[] {
   return docsConfig as unknown as DocsProduct[];
 }
 
-export function getAllDocPages(): DocPage[] {
-  if (_globalCache.__docPagesCache) return _globalCache.__docPagesCache;
+export function getAllDocPages(options?: {
+  skipGitMetadata?: boolean;
+}): DocPage[] {
+  if (!options?.skipGitMetadata && _globalCache.__docPagesCache) {
+    return _globalCache.__docPagesCache;
+  }
 
   const files = getFilesRecursively(DOCS_DIR, ".md");
   const pages: DocPage[] = [];
@@ -112,7 +116,9 @@ export function getAllDocPages(): DocPage[] {
       version = parts[1];
     }
 
-    const gitMeta = getGitMetadata(file);
+    const gitMeta = options?.skipGitMetadata
+      ? { lastUpdated: "", lastAuthorName: "" }
+      : getGitMetadata(file);
 
     pages.push({
       slug,
@@ -126,7 +132,9 @@ export function getAllDocPages(): DocPage[] {
     });
   }
 
-  _globalCache.__docPagesCache = pages;
+  if (!options?.skipGitMetadata) {
+    _globalCache.__docPagesCache = pages;
+  }
   return pages;
 }
 

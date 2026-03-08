@@ -14,7 +14,7 @@
   },
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
-    "build": "next build",
+    "build": "next build && npx tsx scripts/generate-llms-txt.ts",
     "optimize-images": "npx tsx -e \"import { optimizeDirectory } from './lib/image-optimization'; (async () => { await optimizeDirectory(['./public/images', './public/docs']); })();\"",
     "start": "next start",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
