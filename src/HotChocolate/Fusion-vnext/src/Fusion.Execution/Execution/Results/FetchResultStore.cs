@@ -677,6 +677,8 @@ AddErrors_Next:
         Dictionary<IValueNode, int>? seen = null;
         Dictionary<string, int>? seenStrings = null;
         List<Path>?[]? additionalPaths = null;
+        string? firstStringValue = null;
+        IValueNode? firstMappedValue = null;
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
 
@@ -708,32 +710,50 @@ AddErrors_Next:
             {
                 var stringValue = value.AssertString();
 
-                if (seenStrings is not null
-                    && seenStrings.TryGetValue(stringValue, out var existingIndex))
+                if (nextIndex > 0)
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
+                    seenStrings ??= CreateSeenStrings(elements.Count, firstStringValue);
+
+                    if (seenStrings.TryGetValue(stringValue, out var existingIndex))
+                    {
+                        additionalPaths ??= new List<Path>?[elements.Count];
+                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                        continue;
+                    }
                 }
 
                 mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                seenStrings ??= new Dictionary<string, int>(elements.Count, StringComparer.Ordinal);
-                seenStrings[stringValue] = nextIndex;
+
+                if (nextIndex == 0)
+                {
+                    firstStringValue = stringValue;
+                }
+                else
+                {
+                    seenStrings![stringValue] = nextIndex;
+                }
             }
             else
             {
                 mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
 
-                if (seen is not null
-                    && seen.TryGetValue(mappedValue, out var existingIndex))
+                if (nextIndex > 0)
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
+                    seen ??= CreateSeenValues(elements.Count, firstMappedValue);
 
-                seen ??= new Dictionary<IValueNode, int>(elements.Count, SingleValueNodeComparer.Instance);
-                seen[mappedValue] = nextIndex;
+                    if (seen.TryGetValue(mappedValue, out var existingIndex))
+                    {
+                        additionalPaths ??= new List<Path>?[elements.Count];
+                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                        continue;
+                    }
+
+                    seen[mappedValue] = nextIndex;
+                }
+                else
+                {
+                    firstMappedValue = mappedValue;
+                }
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
@@ -746,6 +766,32 @@ AddErrors_Next:
         }
 
         return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Dictionary<string, int> CreateSeenStrings(int capacity, string? firstStringValue)
+    {
+        var seen = new Dictionary<string, int>(capacity, StringComparer.Ordinal);
+
+        if (firstStringValue is not null)
+        {
+            seen[firstStringValue] = 0;
+        }
+
+        return seen;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Dictionary<IValueNode, int> CreateSeenValues(int capacity, IValueNode? firstMappedValue)
+    {
+        var seen = new Dictionary<IValueNode, int>(capacity, SingleValueNodeComparer.Instance);
+
+        if (firstMappedValue is not null)
+        {
+            seen[firstMappedValue] = 0;
+        }
+
+        return seen;
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
