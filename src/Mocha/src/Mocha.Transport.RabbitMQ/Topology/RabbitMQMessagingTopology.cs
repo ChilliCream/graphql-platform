@@ -4,7 +4,10 @@ namespace Mocha.Transport.RabbitMQ;
 /// Manages the RabbitMQ topology model (exchanges, queues, and bindings) for a transport instance,
 /// providing thread-safe mutation and lookup of topology resources.
 /// </summary>
-public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transport, Uri baseAddress)
+public sealed class RabbitMQMessagingTopology(
+    RabbitMQMessagingTransport transport,
+    Uri baseAddress,
+    RabbitMQBusDefaults defaults)
     : MessagingTopology<RabbitMQMessagingTransport>(transport, baseAddress)
 {
     private readonly object _lock = new();
@@ -28,6 +31,11 @@ public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transpo
     public IReadOnlyList<RabbitMQBinding> Bindings => _bindings;
 
     /// <summary>
+    /// Gets the bus-level defaults applied to all auto-provisioned queues and exchanges.
+    /// </summary>
+    public RabbitMQBusDefaults Defaults => defaults;
+
+    /// <summary>
     /// Adds a new exchange to the topology, initializing it from the given configuration.
     /// </summary>
     /// <param name="configuration">The exchange configuration specifying name, type, durability, and arguments.</param>
@@ -46,6 +54,7 @@ public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transpo
             exchange = new RabbitMQExchange();
 
             configuration.Topology = this;
+            defaults.Exchange.ApplyTo(configuration);
             exchange.Initialize(configuration);
 
             _exchanges.Add(exchange);
@@ -75,6 +84,9 @@ public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transpo
             }
 
             configuration.Topology = this;
+
+            defaults.Queue.ApplyTo(configuration);
+
             queue = new RabbitMQQueue();
             queue.Initialize(configuration);
 
