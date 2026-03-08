@@ -22,7 +22,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     private int[] _remainingDependencies = [];
     private int _backlogCount;
     private int _activeNodes;
-    private bool _readyIsSorted = true;
 
     public readonly OrderedDictionary<int, ExecutionNodeTrace> Traces = [];
     public readonly AsyncAutoResetEvent Signal = new();
@@ -30,7 +29,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     public void FillBacklog(OperationPlan plan)
     {
         _ready.Clear();
-        _readyIsSorted = true;
         _backlogCount = 0;
 
         ResetNodeStates();
@@ -84,7 +82,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     {
         _stack.Clear();
         _ready.Clear();
-        _readyIsSorted = true;
         _backlogCount = 0;
 
         ResetNodeStates();
@@ -193,7 +190,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                 if (remainingDependencies == 1)
                 {
                     _remainingDependencies[dependent.Id] = 0;
-                    AddReadyNode(dependent);
+                    _ready.Add(dependent);
                 }
                 else if (remainingDependencies > 1)
                 {
@@ -255,14 +252,30 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     public bool EnqueueNextNodes(OperationPlanContext context, CancellationToken cancellationToken)
     {
-        var readyCount = _ready.Count;
-
-        if (readyCount == 0)
+        if (_ready.Count == 0)
         {
             return false;
         }
 
-        if (_readyIsSorted)
+        var isSorted = true;
+        var previousId = int.MinValue;
+        var readyCount = _ready.Count;
+
+        foreach (var node in _ready)
+        {
+            if ((uint)node.Id < (uint)_remainingDependencies.Length
+                && _remainingDependencies[node.Id] == 0)
+            {
+                if (node.Id < previousId)
+                {
+                    isSorted = false;
+                }
+
+                previousId = node.Id;
+            }
+        }
+
+        if (isSorted)
         {
             var enqueuedAny = false;
 
@@ -279,7 +292,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             }
 
             _ready.Clear();
-            _readyIsSorted = true;
             return enqueuedAny;
         }
 
@@ -297,7 +309,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         }
 
         _ready.Clear();
-        _readyIsSorted = true;
 
         if (_stack.Count == 0)
         {
@@ -376,23 +387,8 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         if (remainingDependencies == 0)
         {
-            AddReadyNode(node);
+            _ready.Add(node);
         }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void AddReadyNode(ExecutionNode node)
-    {
-        var readyCount = _ready.Count;
-
-        if (_readyIsSorted
-            && readyCount > 0
-            && _ready[readyCount - 1].Id > node.Id)
-        {
-            _readyIsSorted = false;
-        }
-
-        _ready.Add(node);
     }
 
     private bool RemoveFromBacklog(int nodeId, byte targetState)
