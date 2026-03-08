@@ -122,9 +122,9 @@ internal sealed class SelectionLookup
     {
         var hash = (uint)seed;
 
-        foreach (var b in bytes)
+        for (var i = 0; i < bytes.Length; i++)
         {
-            hash = hash * 31 + b;
+            hash = hash * 31 + bytes[i];
         }
 
         return (int)(hash & 0x7FFFFFFF);
