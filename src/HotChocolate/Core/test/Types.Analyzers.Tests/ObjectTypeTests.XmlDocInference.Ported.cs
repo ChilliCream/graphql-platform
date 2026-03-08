@@ -460,14 +460,14 @@ public partial class ObjectTypeXmlDocInferenceTests
             for (var index = 0; index < paramDescriptions.Length; index++)
             {
                 var paramDescription = paramDescriptions[index];
-                Assert.Equal(parameterDocs[index], paramDescription.Groups[2].Value);
+                Assert.Equal(parameterDocs[index], paramDescription.Groups[1].Value);
             }
         }
     }
 
-    [System.Text.RegularExpressions.GeneratedRegex("configuration.Description = \"(.*)\";")]
+    [System.Text.RegularExpressions.GeneratedRegex("configuration\\.Description = GetDescription\\(\"(.*?)\",")]
     private static partial System.Text.RegularExpressions.Regex DescriptionExtractorRegex();
 
-    [System.Text.RegularExpressions.GeneratedRegex("(\\s+)Description = \"(.*)\",")]
+    [System.Text.RegularExpressions.GeneratedRegex("(?<![\\w.])Description = GetDescription\\(\"(.*?)\",")]
     private static partial System.Text.RegularExpressions.Regex ParameterDescriptionExtractorRegex();
 }
