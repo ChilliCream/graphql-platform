@@ -62,3 +62,12 @@ FROM "Brands" AS b
 ORDER BY b."Name" DESC, b."Id"
 LIMIT @__p_0
 ```
+
+## Query 2
+
+```sql
+-- @__supplierIds_0={ '2', '1', '3' } (DbType = Object)
+SELECT s."Name", s."Website", s."Id"
+FROM "Suppliers" AS s
+WHERE s."Id" = ANY (@__supplierIds_0)
+```
