@@ -214,3 +214,5 @@ Wilhuff
 Wunder
 xunit
 Expando
+traceparent
+tracestate
