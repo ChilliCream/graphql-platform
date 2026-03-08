@@ -219,7 +219,7 @@ RESTART:
             }
             else
             {
-                if (!hasWork)
+                if (!hasWork && _pendingBatches.Count == 0)
                 {
                     _isCompleted = true;
                 }

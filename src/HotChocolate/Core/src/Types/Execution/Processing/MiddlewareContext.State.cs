@@ -17,7 +17,6 @@ internal partial class MiddlewareContext
 
     public IImmutableDictionary<string, object?> LocalContextData { get; set; } = null!;
 
-    // TODO : Remove?
     public IType? ValueType { get; set; }
 
     public ResultElement ResultValue { get; private set; }

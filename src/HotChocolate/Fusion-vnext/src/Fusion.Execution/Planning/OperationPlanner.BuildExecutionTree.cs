@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -820,9 +821,9 @@ public sealed partial class OperationPlanner
             return current;
         }
 
-        for (var i = 0; i < path.Segments.Length; i++)
+        for (var i = 0; i < path.Length; i++)
         {
-            var segment = path.Segments[i];
+            var segment = path[i];
 
             switch (segment.Kind)
             {

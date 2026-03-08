@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Text.Json;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -69,6 +70,19 @@ internal sealed partial class OperationContext
             deferUsage);
 
         return resolverTask;
+    }
+
+    public BatchResolverTask CreateBatchResolverTask(
+        ObjectField field,
+        SelectionPath selectionPath,
+        int branchId,
+        DeferUsage? deferUsage = null)
+    {
+        AssertInitialized();
+
+        var batchTask = _batchResolverTaskFactory.Create();
+        batchTask.Initialize(this, field, selectionPath, branchId, deferUsage);
+        return batchTask;
     }
 
     public DeferTask CreateDeferTask(

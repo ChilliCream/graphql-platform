@@ -289,19 +289,22 @@ public class ObjectTypeInspector : ISyntaxInspector
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
         var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
+        var isBatchResolver = resolverMethod.IsBatchResolver();
 
         for (var i = 0; i < parameters.Length; i++)
         {
             var parameter = parameters[i];
             var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
+            var paramDesc = compilation.GetDescription(parameter);
             buffer[i] = new ResolverParameter(
                 parameter,
                 parameterKind,
-                compilation.CreateTypeReference(parameter),
-                compilation.GetDescription(parameter)?.Description,
+                compilation.CreateTypeReference(parameter, isBatchResolver),
+                paramDesc?.Description,
                 compilation.GetDeprecationReason(parameter),
-                key);
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
         }
 
         resolverTypeName ??= resolverType.Name;
@@ -314,10 +317,14 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             resolverParameters,
             resolverMethod.GetMemberBindings(),
-            compilation.CreateTypeReference(resolverMethod),
-            kind: compilation.IsConnectionType(resolverMethod.ReturnType)
-                ? ResolverKind.ConnectionResolver
-                : ResolverKind.Default);
+            isBatchResolver
+                ? compilation.CreateTypeReference(resolverMethod, isBatchResolver: true)
+                : compilation.CreateTypeReference(resolverMethod),
+            kind: isBatchResolver
+                ? ResolverKind.BatchResolver
+                : compilation.IsConnectionType(resolverMethod.ReturnType)
+                    ? ResolverKind.ConnectionResolver
+                    : ResolverKind.Default);
     }
 
     private static Resolver CreateNodeResolver(
@@ -337,13 +344,15 @@ public class ObjectTypeInspector : ISyntaxInspector
             var parameter = parameters[i];
             var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
+            var paramDesc = compilation.GetDescription(parameter);
             var resolverParameter = new ResolverParameter(
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                compilation.GetDescription(parameter)?.Description,
+                paramDesc?.Description,
                 compilation.GetDeprecationReason(parameter),
-                key);
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
 
             if (resolverParameter.Kind == ResolverParameterKind.Argument)
             {
@@ -365,9 +374,10 @@ public class ObjectTypeInspector : ISyntaxInspector
                     parameter,
                     ResolverParameterKind.Argument,
                     compilation.CreateTypeReference(parameter),
-                    compilation.GetDescription(parameter)?.Description,
+                    paramDesc?.Description,
                     compilation.GetDeprecationReason(parameter),
-                    key);
+                    key,
+                    paramDesc?.IsDescriptionFromAttribute ?? false);
             }
 
             buffer[i] = resolverParameter;
@@ -476,6 +486,19 @@ file static class Extensions
         foreach (var attribute in methodSymbol.GetAttributes())
         {
             if (attribute.AttributeClass.IsOrInheritsFrom(NodeResolverAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsBatchResolver(this IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == BatchResolverAttribute)
             {
                 return true;
             }

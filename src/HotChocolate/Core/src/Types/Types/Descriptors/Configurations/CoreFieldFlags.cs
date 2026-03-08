@@ -45,5 +45,6 @@ internal enum CoreFieldFlags : long
     MutationQueryField = 1 << 29,
     WithRequirements = 1 << 30,
     UsesProjections = 1L << 31,
-    ImplicitField = 1L << 32
+    ImplicitField = 1L << 32,
+    BatchResolver = 1L << 33
 }
