@@ -84,27 +84,36 @@ internal sealed class SelectionLookup
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetSelection(ReadOnlySpan<byte> name, [NotNullWhen(true)] out Selection? selection)
     {
-        var table = _table;
-        var mask = _mask;
-        var hashCode = ComputeHash(name, _seed);
+        var table = _table.AsSpan();
 
-        for (var index = hashCode & mask; ; index = (index + 1) & mask)
+        if (table.Length == 0)
+        {
+            selection = default!;
+            return false;
+        }
+
+        var hashCode = ComputeHash(name, _seed);
+        var index = hashCode & _mask;
+
+        while (true)
         {
             ref var entry = ref table[index];
-            var foundSelection = entry.Selection;
 
             // if we hit an empty slot, then there is no selection with the specified name.
-            if (foundSelection is null)
+            if (entry.Selection is null)
             {
                 selection = default;
                 return false;
             }
 
-            if (entry.HashCode == hashCode && name.SequenceEqual(foundSelection.Utf8ResponseName))
+            if (entry.HashCode == hashCode && name.SequenceEqual(entry.Selection.Utf8ResponseName))
             {
-                selection = foundSelection;
+                selection = entry.Selection;
                 return true;
             }
+
+            // we had a hash collision need to find the next slot.
+            index = (index + 1) & _mask;
         }
     }
 
