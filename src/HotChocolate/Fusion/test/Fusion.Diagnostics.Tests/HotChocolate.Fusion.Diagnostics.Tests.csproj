@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Fusion-vnext\test\Fusion.AspNetCore.Tests\HotChocolate.Fusion.AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\..\Fusion\test\Fusion.AspNetCore.Tests\HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Diagnostics\HotChocolate.Fusion.Diagnostics.csproj" />
   </ItemGroup>
 
