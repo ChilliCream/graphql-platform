@@ -5,7 +5,6 @@ using Xunit.Abstractions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
 public class BusDefaultsIntegrationTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);

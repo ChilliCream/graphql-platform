@@ -3,7 +3,6 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
 public class SendTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);

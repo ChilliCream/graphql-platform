@@ -3,7 +3,6 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
 public class ConcurrencyLimiterTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(60);
