@@ -12,7 +12,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     private readonly string[] _forwardedVariables;
     private readonly string[] _responseNames;
     private readonly ExecutionNodeCondition[] _conditions;
-    private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
     private readonly int? _batchingGroupId;
     private readonly string? _schemaName;
@@ -29,8 +28,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         string[] forwardedVariables,
         string[] responseNames,
         ExecutionNodeCondition[] conditions,
-        int? batchingGroupId,
-        bool requiresFileUpload)
+        int? batchingGroupId)
     {
         Id = id;
         _operation = operation;
@@ -42,7 +40,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         _forwardedVariables = forwardedVariables;
         _responseNames = responseNames;
         _conditions = conditions;
-        _requiresFileUpload = requiresFileUpload;
     }
 
     /// <inheritdoc />
@@ -93,12 +90,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
-    /// <summary>
-    /// Gets whether this operation contains one or more variables
-    /// that contain the Upload scalar.
-    /// </summary>
-    public bool RequiresFileUpload => _requiresFileUpload;
-
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
@@ -122,8 +113,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             BatchingGroupId = _batchingGroupId,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
-            Variables = variables,
-            RequiresFileUpload = _requiresFileUpload
+            Variables = variables
         };
 
         var index = 0;

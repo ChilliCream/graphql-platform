@@ -316,11 +316,6 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        if (node.RequiresFileUpload)
-        {
-            jsonWriter.WriteBoolean("requiresFileUpload", true);
-        }
-
         if (node.Dependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
