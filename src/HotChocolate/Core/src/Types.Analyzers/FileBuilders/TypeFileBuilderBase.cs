@@ -1741,11 +1741,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             case SchemaTypeReferenceKind.ExtendedTypeReference:
                 Writer.WriteIndentedLine(
-                    "{0} = typeInspector.GetTypeRef(typeof({1}), {2}.{3}){4}",
+                    "{0} = {1}{2}",
                     propertyName,
-                    typeReference.TypeString,
-                    WellKnownTypes.TypeContext,
-                    context,
+                    CreateTypeDefinitionReferenceExpression(typeReference, context),
                     lineEnd);
                 break;
 
@@ -1768,10 +1766,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 using (Writer.IncreaseIndent())
                 {
                     Writer.WriteIndentedLine(
-                        "typeInspector.GetTypeRef(typeof({0}), {1}.{2}),",
-                        typeReference.TypeString,
-                        WellKnownTypes.TypeContext,
-                        context);
+                        "{0},",
+                        CreateTypeDefinitionReferenceExpression(typeReference, context));
                     Writer.WriteIndentedLine(
                         "{0}){1}",
                         typeReference.TypeStructure,
@@ -1782,6 +1778,28 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             default:
                 throw new NotSupportedException();
         }
+    }
+
+    private static string CreateTypeDefinitionReferenceExpression(
+        SchemaTypeReference typeReference,
+        string context)
+    {
+        if (typeReference.Nullability is { } nullability)
+        {
+            return string.Format(
+                "global::{0}.Create(typeInspector.GetType(typeof({1}), {2}), {3}.{4})",
+                WellKnownTypes.TypeReference,
+                typeReference.TypeString,
+                nullability,
+                WellKnownTypes.TypeContext,
+                context);
+        }
+
+        return string.Format(
+            "typeInspector.GetTypeRef(typeof({0}), {1}.{2})",
+            typeReference.TypeString,
+            WellKnownTypes.TypeContext,
+            context);
     }
 
     private static string GetResolverArgumentAssignments(int parameterCount)
