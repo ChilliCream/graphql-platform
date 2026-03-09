@@ -7,24 +7,24 @@ using System.Reflection;
 
 namespace HotChocolate.Types;
 
-public class TimeSpanTypeTests
+public class DurationTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
         // act
-        var type = new TimeSpanType();
+        var type = new DurationType();
 
         // assert
-        Assert.Equal("TimeSpan", type.Name);
+        Assert.Equal("Duration", type.Name);
     }
 
     [Fact]
     public void CoerceInputLiteral()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var literal = new StringValueNode("PT5M");
         var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
@@ -36,12 +36,12 @@ public class TimeSpanTypeTests
     }
 
     [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
-    [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
-    public void CoerceInputLiteral_WithFormat(TimeSpanFormat format, string literalValue)
+    [InlineData(DurationFormat.Iso8601, "PT5M")]
+    [InlineData(DurationFormat.DotNet, "00:05:00")]
+    public void CoerceInputLiteral_WithFormat(DurationFormat format, string literalValue)
     {
         // arrange
-        var type = new TimeSpanType(format);
+        var type = new DurationType(format);
         var literal = new StringValueNode(literalValue);
         var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
@@ -53,12 +53,12 @@ public class TimeSpanTypeTests
     }
 
     [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
-    [InlineData(TimeSpanFormat.DotNet, "10675199.02:48:05.4775807")]
-    public void CoerceInputLiteral_MaxValue(TimeSpanFormat format, string literalValue)
+    [InlineData(DurationFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
+    [InlineData(DurationFormat.DotNet, "10675199.02:48:05.4775807")]
+    public void CoerceInputLiteral_MaxValue(DurationFormat format, string literalValue)
     {
         // arrange
-        var type = new TimeSpanType(format);
+        var type = new DurationType(format);
         var literal = new StringValueNode(literalValue);
 
         // act
@@ -69,12 +69,12 @@ public class TimeSpanTypeTests
     }
 
     [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
-    [InlineData(TimeSpanFormat.DotNet, "-10675199.02:48:05.4775808")]
-    public void CoerceInputLiteral_MinValue(TimeSpanFormat format, string literalValue)
+    [InlineData(DurationFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
+    [InlineData(DurationFormat.DotNet, "-10675199.02:48:05.4775808")]
+    public void CoerceInputLiteral_MinValue(DurationFormat format, string literalValue)
     {
         // arrange
-        var type = new TimeSpanType(format);
+        var type = new DurationType(format);
         var literal = new StringValueNode(literalValue);
 
         // act
@@ -88,7 +88,7 @@ public class TimeSpanTypeTests
     public void CoerceInputLiteral_Weeks()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var literal = new StringValueNode("P2M2W5D");
         var expectedTimeSpan = TimeSpan.FromDays(79);
 
@@ -103,7 +103,7 @@ public class TimeSpanTypeTests
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var literal = new StringValueNode("bad");
 
         // act
@@ -117,7 +117,7 @@ public class TimeSpanTypeTests
     public void CoerceInputLiteral_CannotEndWithDigits()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var literal = new StringValueNode("PT5");
 
         // act
@@ -131,7 +131,7 @@ public class TimeSpanTypeTests
     public void CoerceInputValue()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var inputValue = JsonDocument.Parse("\"PT5M\"").RootElement;
         var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
@@ -143,12 +143,12 @@ public class TimeSpanTypeTests
     }
 
     [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
-    [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
-    public void CoerceInputValue_WithFormat(TimeSpanFormat format, string value)
+    [InlineData(DurationFormat.Iso8601, "PT5M")]
+    [InlineData(DurationFormat.DotNet, "00:05:00")]
+    public void CoerceInputValue_WithFormat(DurationFormat format, string value)
     {
         // arrange
-        var type = new TimeSpanType(format);
+        var type = new DurationType(format);
         var inputValue = JsonDocument.Parse($"\"{value}\"").RootElement;
         var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
@@ -163,7 +163,7 @@ public class TimeSpanTypeTests
     public void CoerceInputValue_Invalid_Format()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var inputValue = JsonDocument.Parse("\"bad\"").RootElement;
 
         // act
@@ -177,7 +177,7 @@ public class TimeSpanTypeTests
     public void CoerceOutputValue()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var runtimeValue = TimeSpan.FromMinutes(5);
 
         // act
@@ -194,7 +194,7 @@ public class TimeSpanTypeTests
     public void CoerceOutputValue_WithFormat_Iso8601()
     {
         // arrange
-        var type = new TimeSpanType(TimeSpanFormat.Iso8601);
+        var type = new DurationType(DurationFormat.Iso8601);
         var runtimeValue = TimeSpan.FromMinutes(5);
 
         // act
@@ -211,7 +211,7 @@ public class TimeSpanTypeTests
     public void CoerceOutputValue_WithFormat_DotNet()
     {
         // arrange
-        var type = new TimeSpanType(TimeSpanFormat.DotNet);
+        var type = new DurationType(DurationFormat.DotNet);
         var runtimeValue = TimeSpan.FromMinutes(5);
 
         // act
@@ -228,7 +228,7 @@ public class TimeSpanTypeTests
     public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -244,7 +244,7 @@ public class TimeSpanTypeTests
     public void ValueToLiteral()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var runtimeValue = TimeSpan.FromMinutes(5);
 
         // act
@@ -255,12 +255,12 @@ public class TimeSpanTypeTests
     }
 
     [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
-    [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
-    public void ValueToLiteral_WithFormat(TimeSpanFormat format, string expectedValue)
+    [InlineData(DurationFormat.Iso8601, "PT5M")]
+    [InlineData(DurationFormat.DotNet, "00:05:00")]
+    public void ValueToLiteral_WithFormat(DurationFormat format, string expectedValue)
     {
         // arrange
-        var type = new TimeSpanType(format);
+        var type = new DurationType(format);
         var runtimeValue = TimeSpan.FromMinutes(5);
 
         // act
@@ -271,12 +271,12 @@ public class TimeSpanTypeTests
     }
 
     [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
-    [InlineData(TimeSpanFormat.DotNet, "10675199.02:48:05.4775807")]
-    public void ValueToLiteral_MaxValue(TimeSpanFormat format, string expectedValue)
+    [InlineData(DurationFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
+    [InlineData(DurationFormat.DotNet, "10675199.02:48:05.4775807")]
+    public void ValueToLiteral_MaxValue(DurationFormat format, string expectedValue)
     {
         // arrange
-        var type = new TimeSpanType(format);
+        var type = new DurationType(format);
         var runtimeValue = TimeSpan.MaxValue;
 
         // act
@@ -287,12 +287,12 @@ public class TimeSpanTypeTests
     }
 
     [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
-    [InlineData(TimeSpanFormat.DotNet, "-10675199.02:48:05.4775808")]
-    public void ValueToLiteral_MinValue(TimeSpanFormat format, string expectedValue)
+    [InlineData(DurationFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
+    [InlineData(DurationFormat.DotNet, "-10675199.02:48:05.4775808")]
+    public void ValueToLiteral_MinValue(DurationFormat format, string expectedValue)
     {
         // arrange
-        var type = new TimeSpanType(format);
+        var type = new DurationType(format);
         var runtimeValue = TimeSpan.MinValue;
 
         // act
@@ -306,7 +306,7 @@ public class TimeSpanTypeTests
     public void ParseLiteral()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
         var literal = new StringValueNode("PT5M");
         var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
@@ -321,7 +321,7 @@ public class TimeSpanTypeTests
     public void ParseLiteral_InvalidValue()
     {
         // arrange
-        var type = new TimeSpanType();
+        var type = new DurationType();
 
         // act
         void Action() => type.CoerceInputLiteral(new IntValueNode(123));
@@ -340,15 +340,15 @@ public class TimeSpanTypeTests
             .MatchSnapshot();
     }
 
-    [InlineData(TimeSpanFormat.Iso8601)]
-    [InlineData(TimeSpanFormat.DotNet)]
+    [InlineData(DurationFormat.Iso8601)]
+    [InlineData(DurationFormat.DotNet)]
     [Theory]
     public void PureCodeFirst_AutomaticallyBinds_TimeSpan_With_Format(
-        TimeSpanFormat format)
+        DurationFormat format)
     {
         SchemaBuilder.New()
             .AddQueryType<Query>()
-            .AddType(new TimeSpanType(format: format))
+            .AddType(new DurationType(format: format))
             .Create()
             .MakeExecutable()
             .Execute("{ duration }")
@@ -361,10 +361,10 @@ public class TimeSpanTypeTests
     {
         SchemaBuilder.New()
             .AddQueryType<QueryWithTwoDurations>()
-            .AddType(new TimeSpanType(format: TimeSpanFormat.DotNet))
-            .AddType(new TimeSpanType(
+            .AddType(new DurationType(format: DurationFormat.DotNet))
+            .AddType(new DurationType(
                 "IsoTimeSpan",
-                format: TimeSpanFormat.Iso8601,
+                format: DurationFormat.Iso8601,
                 bind: BindingBehavior.Explicit))
             .Create()
             .MakeExecutable()

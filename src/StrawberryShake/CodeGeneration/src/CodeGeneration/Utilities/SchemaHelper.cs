@@ -260,6 +260,10 @@ public static class SchemaHelper
             serializationType: TypeNames.Decimal);
         TryAddLeafType(
             leafTypes,
+            typeName: ScalarNames.Duration,
+            runtimeType: TypeNames.TimeSpan);
+        TryAddLeafType(
+            leafTypes,
             typeName: ScalarNames.Float,
             runtimeType: TypeNames.Double,
             serializationType: TypeNames.Double);
@@ -313,10 +317,6 @@ public static class SchemaHelper
             leafTypes,
             typeName: ScalarNames.String,
             runtimeType: TypeNames.String);
-        TryAddLeafType(
-            leafTypes,
-            typeName: ScalarNames.TimeSpan,
-            runtimeType: TypeNames.TimeSpan);
         TryAddLeafType(
             leafTypes,
             typeName: ScalarNames.UnsignedByte,
