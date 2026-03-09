@@ -41,7 +41,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
-        arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(2, after: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -61,7 +61,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
-        var cursor = page.CreateCursor(page.Last!, 2);
+        var cursor = page.CreateCursor(page.LastIndex!.Value, 2);
         arguments = new PagingArguments(2, after: cursor);
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -83,12 +83,12 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var first = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // -> get second page
-        var cursor = first.CreateCursor(first.Last!, 0);
+        var cursor = first.CreateCursor(first.LastIndex!.Value, 0);
         arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // -> get third page
-        cursor = page.CreateCursor(page.Last!, 0);
+        cursor = page.CreateCursor(page.LastIndex!.Value, 0);
         arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -105,7 +105,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         17  Product 0-16
         18  Product 0-17
         */
-        cursor = page.CreateCursor(page.Last!, -1);
+        cursor = page.CreateCursor(page.LastIndex!.Value, -1);
         arguments = new PagingArguments(last: 2, before: cursor);
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -143,11 +143,11 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(2, after: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
-        arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(2, after: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -168,7 +168,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Act
-        arguments = new PagingArguments(2, after: page.CreateCursor(page.First!), before: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(2, after: page.CreateStartCursor(), before: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -328,7 +328,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Act
-        arguments = arguments with { Before = page.CreateCursor(page.First!) };
+        arguments = arguments with { Before = page.CreateStartCursor() };
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -351,7 +351,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Act
-        arguments = new PagingArguments(after: page.CreateCursor(page.First!), last: 2, before: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(after: page.CreateStartCursor(), last: 2, before: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -382,8 +382,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             snapshot.Add(
                 new
                 {
-                    First = page.Value.CreateCursor(page.Value.First!),
-                    Last = page.Value.CreateCursor(page.Value.Last!),
+                    First = page.Value.CreateStartCursor(),
+                    Last = page.Value.CreateEndCursor(),
                     page.Value.Items
                 },
                 name: page.Key.ToString());
@@ -430,7 +430,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             var page = await query.ThenByDescending(t => t.Id).ToPageAsync(arguments);
 
             // Get 2nd page.
-            arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+            arguments = new PagingArguments(2, after: page.CreateEndCursor());
             pages.Add(label, await query.ThenByDescending(t => t.Id).ToPageAsync(arguments));
         }
 

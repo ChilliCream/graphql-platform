@@ -626,7 +626,7 @@ public class PagingTests
                     public int TotalCount => 0;
                 }
 
-                public class AuthorEdge(GreenDonut.Data.Page<Author> page, Author author) : PageEdge<Author>(page, author)
+                public class AuthorEdge(GreenDonut.Data.Page<Author> page, int index) : PageEdge<Author>(page, index)
                 {
                     public Author Author => Node;
                 }
@@ -682,7 +682,7 @@ public class PagingTests
                     public int TotalCount => 0;
                 }
 
-                public class AuthorEdge(GreenDonut.Data.Page<Author> page, Author author) : PageEdge<Author>(page, author)
+                public class AuthorEdge(GreenDonut.Data.Page<Author> page, int index) : PageEdge<Author>(page, index)
                 {
                     public Author Author => Node;
                 }

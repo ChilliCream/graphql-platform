@@ -52,28 +52,8 @@ internal sealed class ElementCursorPage<TElement, TValue> : Page<TValue>
         _createCursor = createCursor;
     }
 
-    protected override string CreateCursor(TValue item, int offset, int pageIndex, int totalCount)
-        => _createCursor(GetElement(item), offset, pageIndex, totalCount);
-
-    private TElement GetElement(TValue item)
-    {
-        for (var i = 0; i < Items.Length; i++)
-        {
-            if (ReferenceEquals(Items[i], item))
-            {
-                return _elements[i];
-            }
-        }
-
-        var index = Items.IndexOf(item);
-
-        if (index < 0)
-        {
-            throw new ArgumentException("The specified item does not belong to this page.", nameof(item));
-        }
-
-        return _elements[index];
-    }
+    protected override string CreateCursor(int index, int offset, int pageIndex, int totalCount)
+        => _createCursor(_elements[index], offset, pageIndex, totalCount);
 
     private static void EnsureEqualLength(ImmutableArray<TValue> items, ImmutableArray<TElement> elements)
     {

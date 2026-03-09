@@ -301,6 +301,7 @@ public static class PagingQueryableExtensions
             keySelector,
             null,
             arguments,
+            includeTotalCount: arguments.IncludeTotalCount,
             cancellationToken);
 
     /// <summary>
@@ -368,7 +369,7 @@ public static class PagingQueryableExtensions
     /// The type of the parent key.
     /// </typeparam>
     /// <typeparam name="TValue">
-    /// The type of the items in the queryable.
+    /// The type of the value selected from the items in the queryable.
     /// </typeparam>
     /// <typeparam name="TElement">
     /// The type of the items in the queryable.
@@ -380,7 +381,7 @@ public static class PagingQueryableExtensions
     public static ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue, TElement>(
         this IQueryable<TElement> source,
         Expression<Func<TElement, TKey>> keySelector,
-        Func<TElement, TValue>? valueSelector,
+        Func<TElement, TValue> valueSelector,
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
