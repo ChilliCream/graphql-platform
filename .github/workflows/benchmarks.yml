@@ -7,13 +7,13 @@ on:
       - main
       - main-version-*
     paths:
-      - 'src/HotChocolate/Fusion-vnext/**'
+      - 'src/HotChocolate/Fusion/**'
       - '.github/workflows/benchmarks.yml'
   push:
     branches:
       - main
     paths:
-      - 'src/HotChocolate/Fusion-vnext/**'
+      - 'src/HotChocolate/Fusion/**'
       - '.github/workflows/benchmarks.yml'
 
 concurrency:
@@ -181,11 +181,11 @@ jobs:
           fi
 
       - name: Make scripts executable
-        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion/benchmarks/k6
         run: chmod +x *.sh
 
       - name: Run benchmark
-        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion/benchmarks/k6
         run: |
           ./run-single-benchmark.sh \
             "${{ matrix.test }}" \
@@ -199,7 +199,7 @@ jobs:
         if: always()
         with:
           name: benchmark-${{ matrix.test }}-${{ matrix.mode }}-${{ matrix.runner-group }}
-          path: src/HotChocolate/Fusion-vnext/benchmarks/k6/result.json
+          path: src/HotChocolate/Fusion/benchmarks/k6/result.json
           retention-days: 30
 
       # Lightweight progressive PR update — reads only the local result.json
@@ -217,7 +217,7 @@ jobs:
             let result;
             try {
               result = JSON.parse(fs.readFileSync(
-                'src/HotChocolate/Fusion-vnext/benchmarks/k6/result.json', 'utf8'));
+                'src/HotChocolate/Fusion/benchmarks/k6/result.json', 'utf8'));
             } catch (e) {
               console.log('No result.json found, skipping comment update');
               return;
