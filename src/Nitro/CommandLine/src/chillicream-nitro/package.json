@@ -5,7 +5,7 @@
   "homepage": "https://chillicream.com",
   "repository": {
     "type": "git",
-    "url": "git+chttps://github.com/ChilliCream/graphql-platform.git",
+    "url": "https://github.com/ChilliCream/graphql-platform",
     "directory": "src/Nitro/CommandLine/src/chillicream-nitro"
   },
   "bugs": {

@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 internal static class GeneratorUtils
 {
     private static readonly Regex s_invalidCharsRegex = new("[^a-zA-Z0-9]", RegexOptions.Compiled);
-    private static readonly Regex s_xmlWhitespaceRegex = new(@"(\n[ \t]*)", RegexOptions.Compiled);
+    private static readonly Regex s_xmlWhitespaceRegex = new(@"\n[ \t]*", RegexOptions.Compiled);
 
     public static ModuleInfo GetModuleInfo(
         this ImmutableArray<SyntaxInfo> syntaxInfos,

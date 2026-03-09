@@ -3,7 +3,7 @@ schema {
 }
 
 type Query {
-  foo: String @authorize(roles: [ "MyRole" ])
+  foo: String @authorize(roles: ["MyRole"])
 }
 
 "Defines when a policy shall be executed."

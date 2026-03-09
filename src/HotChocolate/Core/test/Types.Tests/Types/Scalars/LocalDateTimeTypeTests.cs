@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+using HotChocolate.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -9,192 +11,61 @@ namespace HotChocolate.Types;
 public class LocalDateTimeTypeTests
 {
     [Fact]
-    public void Serialize_DateTime()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        const string expectedValue = "2018-06-11T08:46:14";
-
         // act
-        var serializedValue = (string?)localDateTimeType.Serialize(dateTime);
+        var type = new LocalDateTimeType();
 
         // assert
-        Assert.Equal(expectedValue, serializedValue);
+        Assert.Equal("LocalDateTime", type.Name);
     }
 
     [Fact]
-    public void Serialize_DateTimeOffset()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 2, 46, 14),
-            new TimeSpan(4, 0, 0));
-        const string expectedValue = "2018-06-11T02:46:14";
-
-        // act
-        var serializedValue = (string?)localDateTimeType.Serialize(dateTime);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-
-        // act
-        var serializedValue = localDateTimeType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_String_Exception()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-
-        // act
-        void Action() => localDateTimeType.Serialize("foo");
-
-        // assert
-        Assert.Throws<SerializationException>(Action);
-    }
-
-    [Fact]
-    public void Deserialize_IsoString_DateTime()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-
-        // act
-        var result = (DateTime)localDateTimeType.Deserialize("2018-06-11T08:46:14")!;
-
-        // assert
-        Assert.Equal(dateTime, result);
-    }
-
-    [Fact]
-    public void Deserialize_InvalidFormat_To_DateTime()
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new LocalDateTimeType();
-
-        // act
-        var success = type.TryDeserialize("2018/06/11T08:46:14 pm", out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void Deserialize_InvalidString_To_DateTime()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-
-        // act
-        var success = type.TryDeserialize("abc", out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void Deserialize_DateTime_To_DateTime()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-
-        // act
-        var success = type.TryDeserialize(dateTime, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(dateTime, deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_DateTimeOffset_To_DateTime()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 2, 46, 14),
-            new TimeSpan(4, 0, 0));
-
-        // act
-        var success = type.TryDeserialize(dateTime, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(dateTime.DateTime, Assert.IsType<DateTime>(deserialized));
-    }
-
-    [Fact]
-    public void Deserialize_NullableDateTime_To_DateTime()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-        DateTime? dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-
-        // act
-        var success = type.TryDeserialize(dateTime, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(dateTime, Assert.IsType<DateTime>(deserialized));
-    }
-
-    [Fact]
-    public void Deserialize_NullableDateTime_To_DateTime_2()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-        DateTime? dateTime = null;
-
-        // act
-        var success = type.TryDeserialize(dateTime, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_Null_To_Null()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-
-        // act
-        var success = type.TryDeserialize(null, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void ParseLiteral_StringValueNode()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
         var literal = new StringValueNode("2018-06-29T08:46:14");
         var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
 
         // act
-        var dateTime = (DateTime)localDateTimeType.ParseLiteral(literal)!;
+        var dateTime = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidInput))]
+    public void CoerceInputLiteral_Valid(byte precision, string dateTimeString, DateTime result)
+    {
+        // arrange
+        var type = new LocalDateTimeType(new DateTimeOptions { InputPrecision = precision });
+        var literal = new StringValueNode(dateTimeString);
+
+        // act
+        var dateTime = (DateTime?)type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(result, dateTime);
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidInput))]
+    public void CoerceInputLiteral_Invalid(byte precision, string dateTime)
+    {
+        // arrange
+        var type = new LocalDateTimeType(new DateTimeOptions { InputPrecision = precision });
+        var literal = new StringValueNode(dateTime);
+
+        // act
+        void Action() => type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(
+            "LocalDateTime cannot coerce the given literal of type `StringValue` to a runtime value.",
+            Assert.Throws<LeafCoercionException>(Action).Message);
     }
 
     [InlineData("en-US")]
@@ -203,153 +74,157 @@ public class LocalDateTimeTypeTests
     [InlineData("de-CH")]
     [InlineData("de-de")]
     [Theory]
-    public void ParseLiteral_StringValueNode_DifferentCulture(
-        string cultureName)
+    public void CoerceInputLiteral_DifferentCulture(string cultureName)
     {
         // arrange
         Thread.CurrentThread.CurrentCulture =
             CultureInfo.GetCultureInfo(cultureName);
 
-        var localDateTimeType = new LocalDateTimeType();
+        var type = new LocalDateTimeType();
         var literal = new StringValueNode("2018-06-29T08:46:14");
         var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
 
         // act
-        var dateTime = (DateTime)localDateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTime)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var literal = NullValueNode.Default;
+        var type = new LocalDateTimeType();
+        var literal = new StringValueNode("abc");
 
         // act
-        var value = localDateTimeType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Null(value);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_DateTime()
+    public void CoerceInputValue()
     {
         // arrange
-        var localDateTimeType = new LocalDateTimeType();
+        var type = new LocalDateTimeType();
+        var inputValue = JsonDocument.Parse("\"2018-06-11T08:46:14\"").RootElement;
+        var expectedDateTime = new DateTime(2018, 6, 11, 8, 46, 14);
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(expectedDateTime, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
+        var inputValue = JsonDocument.Parse("\"abc\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidOutput))]
+    public void CoerceOutputValue_Valid(byte precision, DateTime dateTime, string result)
+    {
+        // arrange
+        var type = new LocalDateTimeType(new DateTimeOptions { OutputPrecision = precision });
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot($"\"{result}\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
         var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-        const string expectedLiteralValue = "2018-06-11T08:46:14";
 
         // act
-        var stringLiteral =
-            (StringValueNode)localDateTimeType.ParseValue(dateTime);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        Assert.Equal(expectedLiteralValue, stringLiteral.Value);
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14\"");
     }
 
     [Fact]
-    public void ParseValue_Null()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-
-        // act
-        var literal = localDateTimeType.ParseValue(null);
-
-        // assert
-        Assert.Equal(NullValueNode.Default, literal);
-    }
-
-    [Fact]
-    public void ParseResult_DateTime()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var resultValue = new DateTime(2023, 6, 19, 11, 24, 0, DateTimeKind.Utc);
-        const string expectedLiteralValue = "2023-06-19T11:24:00";
-
-        // act
-        var literal = localDateTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_DateTimeOffset()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var resultValue = new DateTimeOffset(2023, 6, 19, 11, 24, 0, new TimeSpan(6, 0, 0));
-        const string expectedLiteralValue = "2023-06-19T11:24:00";
-
-        // act
-        var literal = localDateTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_String()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        const string resultValue = "2023-06-19T11:24:00";
-        const string expectedLiteralValue = "2023-06-19T11:24:00";
-
-        // act
-        var literal = localDateTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_Null()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-
-        // act
-        var literal = localDateTimeType.ParseResult(null);
-
-        // assert
-        Assert.Equal(NullValueNode.Default, literal);
-    }
-
-    [Fact]
-    public void ParseResult_SerializationException()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        const int resultValue = 1;
-
-        // act
-        var exception = Record.Exception(() => localDateTimeType.ParseResult(resultValue));
-
-        // assert
-        Assert.IsType<SerializationException>(exception);
-    }
-
-    [Fact]
-    public void EnsureLocalDateTimeTypeKindIsCorrect()
+    public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
         var type = new LocalDateTimeType();
 
         // act
-        var kind = type.Kind;
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(123, resultValue);
 
         // assert
-        Assert.Equal(TypeKind.Scalar, kind);
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
+        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
+        const string expectedLiteralValue = "2018-06-11T08:46:14";
+
+        // act
+        var stringLiteral = type.ValueToLiteral(dateTime);
+
+        // assert
+        Assert.Equal(expectedLiteralValue, Assert.IsType<StringValueNode>(stringLiteral).Value);
+    }
+
+    [Fact]
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14");
+        var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
+
+        // act
+        var dateTime = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedDateTime, Assert.IsType<DateTime>(dateTime));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -424,6 +299,39 @@ public class LocalDateTimeTypeTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public void LocalDateTime_Relaxed_Format_Check()
+    {
+        // arrange
+        const string s = "2011-08-30";
+
+        // act
+        var type = new LocalDateTimeType(new DateTimeOptions { ValidateInputFormat = false });
+        var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
+        var result = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.IsType<DateTime>(result);
+    }
+
+    [Theory]
+    [InlineData(0, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}$")]
+    [InlineData(1, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,1})?$")]
+    [InlineData(2, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,2})?$")]
+    [InlineData(3, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?$")]
+    [InlineData(4, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,4})?$")]
+    [InlineData(5, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,5})?$")]
+    [InlineData(6, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?$")]
+    [InlineData(7, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?$")]
+    public void Pattern_Should_Match_InputPrecision(byte precision, string expectedPattern)
+    {
+        // arrange & act
+        var type = new LocalDateTimeType(new DateTimeOptions { InputPrecision = precision });
+
+        // assert
+        Assert.Equal(expectedPattern, type.Pattern);
+    }
+
     public class Query
     {
         [GraphQLType<LocalDateTimeType>]
@@ -453,5 +361,116 @@ public class LocalDateTimeTypeTests
     {
         [GraphQLType<LocalDateTimeType>]
         public DateTime GetLocalDateTime() => DateTime.MaxValue;
+    }
+
+    public static TheoryData<byte, string, DateTime> ValidInput()
+    {
+        return new TheoryData<byte, string, DateTime>
+        {
+            // https://scalars.graphql.org/chillicream/local-date-time.html#sec-Input-spec.Examples (Valid input values)
+            {
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24T15:30:00",
+                new DateTime(2023, 12, 24, 15, 30, 0, 0)
+            },
+            {
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24t15:30:00.1234567",
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7)
+            }
+        };
+    }
+
+    public static TheoryData<byte, string> InvalidInput()
+    {
+        return new TheoryData<byte, string>
+        {
+            // https://scalars.graphql.org/chillicream/local-date-time.html#sec-Input-spec.Examples (Invalid input values)
+            // Contains time zone indicator Z.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00Z" },
+            // Contains time zone offset.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00+05:30" },
+            // Invalid separator (space instead of T or t).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24 15:30:00" },
+            // Invalid hour (25).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T25:00:00" },
+            // Invalid minute (60).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:60:00" },
+            // ReSharper disable once GrammarMistakeInComment
+            // Invalid date (February 30th).
+            { DateTimeOptions.DefaultInputPrecision, "2023-02-30T15:30:00" },
+            // More than 7 fractional second digits.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.12345678" },
+            // Additional cases.
+            // More than 6 fractional second digits with precision set to 6.
+            { 6, "2023-12-24T15:30:00.1234567" },
+            // More than 5 fractional second digits with precision set to 5.
+            { 5, "2023-12-24T15:30:00.123456" },
+            // More than 4 fractional second digits with precision set to 4.
+            { 4, "2023-12-24T15:30:00.12345" },
+            // More than 3 fractional second digits with precision set to 3.
+            { 3, "2023-12-24T15:30:00.1234" },
+            // More than 2 fractional second digits with precision set to 2.
+            { 2, "2023-12-24T15:30:00.123" },
+            // More than 1 fractional second digit with precision set to 1.
+            { 1, "2023-12-24T15:30:00.12" },
+            // Fractional second digits with precision set to 0.
+            { 0, "2023-12-24T15:30:00.1" }
+        };
+    }
+
+    public static TheoryData<byte, DateTime, string> ValidOutput()
+    {
+        return new TheoryData<byte, DateTime, string>
+        {
+            // Up to 7 fractional second digits with default precision.
+            {
+                DateTimeOptions.DefaultOutputPrecision,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.1234567"
+            },
+            // Up to 6 fractional second digits with precision set to 6.
+            {
+                6,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.123456"
+            },
+            // Up to 5 fractional second digits with precision set to 5.
+            {
+                5,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.12345"
+            },
+            // Up to 4 fractional second digits with precision set to 4.
+            {
+                4,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.1234"
+            },
+            // Up to 3 fractional second digits with precision set to 3.
+            {
+                3,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.123"
+            },
+            // Up to 2 fractional second digits with precision set to 2.
+            {
+                2,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.12"
+            },
+            // Up to 1 fractional second digit with precision set to 1.
+            {
+                1,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.1"
+            },
+            // No fractional second digits with precision set to 0.
+            {
+                0,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00"
+            }
+        };
     }
 }

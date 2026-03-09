@@ -300,9 +300,9 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
                 "any": {
                   "key": "value"
                 },
+                "base64String": "dGVzdA==",
                 "boolean": true,
                 "byte": 1,
-                "byteArray": "dGVzdA==",
                 "date": "2000-01-01",
                 "dateTime": "2000-01-01T12:00:00.000Z",
                 "decimal": 79228162514264337593543950335,
@@ -331,6 +331,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
                 "string": "test",
                 "timeSpan": "PT5M",
                 "unknown": "test",
+                "uri": "https://example.com/",
                 "url": "https://example.com/",
                 "uuid": "00000000-0000-0000-0000-000000000000"
             }
@@ -377,7 +378,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
-            query TestQuery($input: JSON! @body) @http(method: POST, route: "/example") {
+            query TestQuery($input: Any! @body) @http(method: POST, route: "/example") {
               json(input: $input)
             }
             """);

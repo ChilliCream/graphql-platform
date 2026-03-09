@@ -1,7 +1,9 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Unicode;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -21,7 +23,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(expectedType, rowTokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         return row.HasComplexChildren
             ? JsonReaderHelper.GetUnescapedString(segment)
@@ -81,7 +83,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(isPropertyName ? JsonTokenType.PropertyName : JsonTokenType.String, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (otherUtf8Text.Length > segment.Length || (!shouldUnescape && otherUtf8Text.Length != segment.Length))
         {
@@ -120,7 +122,7 @@ public sealed partial class SourceResultDocument
         var row = _parsedData.Get(valueCursor - 1);
         Debug.Assert(row.TokenType is JsonTokenType.PropertyName);
 
-        return ReadRawValue(row);
+        return ReadRawValue(row, includeQuotes: false);
     }
 
     internal string GetRawValueAsString(Cursor cursor)
@@ -150,18 +152,13 @@ public sealed partial class SourceResultDocument
                 return ReadRawValue(row.Location - 1, row.SizeOrLength + 2);
             }
 
-            return ReadRawValue(row);
+            return ReadRawValue(row, includeQuotes: false);
         }
 
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endRowLength = endRow.SizeOrLength;
-
-        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
-        {
-            endRowLength = 1;
-        }
+        var endRowLength = GetEndRowLength(endRow);
 
         return ReadRawValue(start, endRow.Location - start + endRowLength);
     }
@@ -187,12 +184,7 @@ public sealed partial class SourceResultDocument
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endRowLength = endRow.SizeOrLength;
-
-        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
-        {
-            endRowLength = 1;
-        }
+        var endRowLength = GetEndRowLength(endRow);
 
         return ReadRawValueAsMemory(start, endRow.Location - start + endRowLength);
     }
@@ -218,12 +210,7 @@ public sealed partial class SourceResultDocument
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endRowLength = endRow.SizeOrLength;
-
-        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
-        {
-            endRowLength = 1;
-        }
+        var endRowLength = GetEndRowLength(endRow);
 
         return new ValueRange(start, endRow.Location - start + endRowLength);
     }
@@ -255,7 +242,7 @@ public sealed partial class SourceResultDocument
 
         var endCursor = GetEndIndex(valueCursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endOffset = endRow.Location + endRow.SizeOrLength;
+        var endOffset = endRow.Location + GetEndRowLength(endRow);
         return ReadRawValue(start, endOffset - start);
     }
 
@@ -281,4 +268,10 @@ public sealed partial class SourceResultDocument
 
         return endId;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetEndRowLength(DbRow endRow)
+        => endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.EndArray
+            ? 1
+            : endRow.SizeOrLength;
 }

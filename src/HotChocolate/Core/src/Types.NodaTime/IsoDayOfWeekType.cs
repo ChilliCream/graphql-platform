@@ -17,11 +17,25 @@ public class IsoDayOfWeekType : IntToStructBaseType<IsoDayOfWeek>
     public IsoDayOfWeekType() : base("IsoDayOfWeek")
     {
         Description = NodaTimeResources.IsoDayOfWeekType_Description;
-        SerializationType = ScalarSerializationType.Int;
     }
 
     /// <inheritdoc />
-    protected override bool TrySerialize(
+    protected override bool TryCoerceRuntimeValue(
+        int resultValue,
+        [NotNullWhen(true)] out IsoDayOfWeek? runtimeValue)
+    {
+        if (resultValue is < 1 or > 7)
+        {
+            runtimeValue = null;
+            return false;
+        }
+
+        runtimeValue = (IsoDayOfWeek)resultValue;
+        return true;
+    }
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
         IsoDayOfWeek runtimeValue,
         [NotNullWhen(true)] out int? resultValue)
     {
@@ -32,21 +46,6 @@ public class IsoDayOfWeekType : IntToStructBaseType<IsoDayOfWeek>
         }
 
         resultValue = (int)runtimeValue;
-        return true;
-    }
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
-        int resultValue,
-        [NotNullWhen(true)] out IsoDayOfWeek? runtimeValue)
-    {
-        if (resultValue < 1 || resultValue > 7)
-        {
-            runtimeValue = null;
-            return false;
-        }
-
-        runtimeValue = (IsoDayOfWeek)resultValue;
         return true;
     }
 }

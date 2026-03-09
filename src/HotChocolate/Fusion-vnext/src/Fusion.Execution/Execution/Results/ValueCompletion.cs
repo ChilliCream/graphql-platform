@@ -12,25 +12,29 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed class ValueCompletion
 {
+    private readonly FetchResultStore _store;
     private readonly ISchemaDefinition _schema;
-    private readonly CompositeResultDocument _result;
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
+    private readonly bool _haltOnError;
+    private readonly bool _haltOnNullViolation;
     private readonly int _maxDepth;
 
     public ValueCompletion(
+        FetchResultStore store,
         ISchemaDefinition schema,
-        CompositeResultDocument result,
         IErrorHandler errorHandler,
         ErrorHandlingMode errorHandlingMode,
         int maxDepth)
     {
         ArgumentNullException.ThrowIfNull(schema);
 
+        _store = store;
         _schema = schema;
-        _result = result;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
+        _haltOnError = errorHandlingMode is ErrorHandlingMode.Halt;
+        _haltOnNullViolation = errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt;
         _maxDepth = maxDepth;
     }
 
@@ -115,8 +119,7 @@ internal sealed class ValueCompletion
                 .Build();
             errorWithPath = _errorHandler.Handle(errorWithPath);
 
-            _result.Errors ??= [];
-            _result.Errors.Add(errorWithPath);
+            _store.AddError(errorWithPath);
 
             switch (_errorHandlingMode)
             {
@@ -193,10 +196,9 @@ internal sealed class ValueCompletion
 
                 error = _errorHandler.Handle(error);
 
-                _result.Errors ??= [];
-                _result.Errors.Add(error);
+                _store.AddError(error);
 
-                if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (_haltOnNullViolation)
                 {
                     return false;
                 }
@@ -221,10 +223,9 @@ internal sealed class ValueCompletion
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
-                _result.Errors ??= [];
-                _result.Errors.Add(errorWithPath);
+                _store.AddError(errorWithPath);
 
-                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                if (_haltOnError)
                 {
                     return false;
                 }
@@ -271,6 +272,7 @@ internal sealed class ValueCompletion
         var isNullable = elementType.IsNullableType();
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
+        var isAbstract = elementType.IsAbstractType();
 
         target.SetArrayValue(source.GetArrayLength());
 
@@ -292,10 +294,9 @@ internal sealed class ValueCompletion
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
-                _result.Errors ??= [];
-                _result.Errors.Add(errorWithPath);
+                _store.AddError(errorWithPath);
 
-                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                if (_haltOnError)
                 {
                     return false;
                 }
@@ -303,7 +304,7 @@ internal sealed class ValueCompletion
 
             if (element.IsNullOrUndefined())
             {
-                if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (!isNullable && _haltOnNullViolation)
                 {
                     return false;
                 }
@@ -312,14 +313,53 @@ internal sealed class ValueCompletion
                 goto TryCompleteList_MoveNext;
             }
 
-            if (!HandleElement(element, enumerator.Current, errorTrieForIndex))
+            var targetElement = enumerator.Current;
+            bool completed;
+
+            if (isNested)
+            {
+                completed = TryCompleteList(
+                    element,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    elementType,
+                    depth);
+            }
+            else if (isLeaf)
+            {
+                targetElement.SetLeafValue(element);
+                completed = true;
+            }
+            else if (isAbstract)
+            {
+                completed = TryCompleteAbstractValue(
+                    element,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    elementType,
+                    depth);
+            }
+            else
+            {
+                completed = TryCompleteObjectValue(
+                    selection,
+                    elementType,
+                    element,
+                    errorTrieForIndex,
+                    depth,
+                    targetElement);
+            }
+
+            if (!completed)
             {
                 if (!isNullable)
                 {
                     return false;
                 }
 
-                enumerator.Current.SetNullValue();
+                targetElement.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
@@ -328,43 +368,6 @@ TryCompleteList_MoveNext:
         }
 
         return true;
-
-        bool HandleElement(
-            SourceResultElement sourceElement,
-            CompositeResultElement targetElement,
-            ErrorTrie? errorTrieForIndex)
-        {
-            if (isNested)
-            {
-                return TryCompleteList(
-                    sourceElement,
-                    targetElement,
-                    errorTrieForIndex,
-                    selection,
-                    elementType,
-                    depth);
-            }
-
-            if (isLeaf)
-            {
-                targetElement.SetLeafValue(sourceElement);
-                return true;
-            }
-
-            if (elementType.IsAbstractType())
-            {
-                return TryCompleteAbstractValue(sourceElement,
-                    targetElement, errorTrieForIndex, selection, elementType, depth);
-            }
-
-            return TryCompleteObjectValue(
-                selection,
-                elementType,
-                sourceElement,
-                errorTrieForIndex,
-                depth,
-                targetElement);
-        }
     }
 
     private bool TryCompleteObjectValue(

@@ -88,13 +88,13 @@ internal sealed class ValidateSchemaCommand : Command
                 if (x.Errors is { Count: > 0 } errors)
                 {
                     console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
+                    throw Exit("No request ID returned");
                 }
 
                 switch (x.Data?.OnSchemaVersionValidationUpdate)
                 {
                     case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        console.Error.WriteLine("The schema is invalid:");
+                        console.WriteLine("The schema is invalid:");
                         console.PrintErrorsAndExit(schemaErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

@@ -93,9 +93,9 @@ public sealed partial class OperationToolDefinition
     public bool? OpenWorldHint { get; init; }
 
     /// <summary>
-    /// Gets the optional OpenAI component configuration for this tool.
+    /// Gets the optional view configuration for this tool.
     /// </summary>
-    public OpenAiComponent? OpenAiComponent
+    public McpAppView? View
     {
         get;
         init
@@ -104,24 +104,45 @@ public sealed partial class OperationToolDefinition
 
             if (value is null)
             {
-                OpenAiComponentOutputTemplate = null;
+                ViewResourceUri = null;
             }
             else
             {
                 var name = Name.ToKebabCase();
-                var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value.HtmlTemplateText)));
-                OpenAiComponentOutputTemplate = $"ui://open-ai-components/{name}-{hash}.html";
+                var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value.Html)));
+                ViewResourceUri = $"ui://views/{name}-{hash}.html";
             }
         }
     }
 
-    public string? OpenAiComponentOutputTemplate { get; private set; }
+    public string? ViewResourceUri { get; private set; }
+
+    /// <summary>
+    /// <para>
+    /// Who can access this tool.
+    /// </para>
+    /// <list type="table">
+    ///     <listheader>
+    ///         <term>Value</term>
+    ///         <description>Description</description>
+    ///     </listheader>
+    ///     <item>
+    ///         <term>Model</term>
+    ///         <description>Tool visible to and callable by the agent.</description>
+    ///     </item>
+    ///     <item>
+    ///         <term>App</term>
+    ///         <description>Tool callable by the app from this server only.</description>
+    ///     </item>
+    /// </list>
+    /// </summary>
+    public ImmutableArray<McpAppViewVisibility>? Visibility { get; init; }
 
     public static OperationToolDefinition From(
         DocumentNode document,
         string name,
         McpToolSettingsDto? settings,
-        string? openAiComponentHtml)
+        string? viewHtml)
     {
         return new OperationToolDefinition(document)
         {
@@ -138,18 +159,32 @@ public sealed partial class OperationToolDefinition
             DestructiveHint = settings?.Annotations?.DestructiveHint,
             IdempotentHint = settings?.Annotations?.IdempotentHint,
             OpenWorldHint = settings?.Annotations?.OpenWorldHint,
-            OpenAiComponent = openAiComponentHtml is null ? null : new OpenAiComponent(openAiComponentHtml)
+            View = viewHtml is null ? null : new McpAppView(viewHtml)
             {
-                Csp = settings?.OpenAiComponent?.Csp is { } csp
-                    ? new OpenAiComponentCsp(csp.ConnectDomains, csp.ResourceDomains)
+                Csp = settings?.View?.Csp is { } csp
+                    ? new McpAppViewCsp
+                    {
+                        BaseUriDomains = csp.BaseUriDomains?.ToImmutableArray(),
+                        ConnectDomains = csp.ConnectDomains?.ToImmutableArray(),
+                        FrameDomains = csp.FrameDomains?.ToImmutableArray(),
+                        ResourceDomains = csp.ResourceDomains?.ToImmutableArray()
+                    }
                     : null,
-                Description = settings?.OpenAiComponent?.Description,
-                Domain = settings?.OpenAiComponent?.Domain,
-                PrefersBorder = settings?.OpenAiComponent?.PrefersBorder,
-                ToolInvokingStatusText = settings?.OpenAiComponent?.ToolInvokingStatusText,
-                ToolInvokedStatusText = settings?.OpenAiComponent?.ToolInvokedStatusText,
-                AllowToolCalls = settings?.OpenAiComponent?.AllowToolCalls ?? false
-            }
+                Domain = settings?.View?.Domain,
+                Permissions = settings?.View?.Permissions is { } permissions
+                    ? new McpAppViewPermissions
+                    {
+                        Camera = permissions.Camera,
+                        ClipboardWrite = permissions.ClipboardWrite,
+                        Geolocation = permissions.Geolocation,
+                        Microphone = permissions.Microphone
+                    }
+                    : null,
+                PrefersBorder = settings?.View?.PrefersBorder
+            },
+            Visibility = settings?.Visibility is { } visibility
+                ? visibility.ToImmutableArray()
+                : null
         };
     }
 

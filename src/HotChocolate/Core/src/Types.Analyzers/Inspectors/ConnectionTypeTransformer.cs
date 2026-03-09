@@ -49,11 +49,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
             {
                 if (syntaxInfo is IOutputTypeInfo { HasRuntimeType: true } typeInfo)
                 {
-#if NET8_0_OR_GREATER
-                    connectionTypeLookup[typeInfo.RuntimeTypeName.FullName] = typeInfo;
-#else
-                    connectionTypeLookup[typeInfo.RuntimeTypeName!.FullName] = typeInfo;
-#endif
+                    connectionTypeLookup[GetTypeLookupKey(typeInfo)] = typeInfo;
                 }
             }
 
@@ -161,8 +157,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connection.Name,
                                 connection.NameFormat ?? connection.Name);
 
-                    var connectionTypeName = "global::" + connectionTypeInfo.Namespace + "." + connectionTypeInfo.Name;
-                    var edgeTypeName = "global::" + edgeTypeInfo.Namespace + "." + edgeTypeInfo.Name;
+                    var connectionTypeName = GetTypeLookupKey(connectionTypeInfo);
+                    var edgeTypeName = GetTypeLookupKey(edgeTypeInfo);
 
                     if (!connectionTypeLookup.ContainsKey(connectionTypeName))
                     {
@@ -240,8 +236,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connectionName,
                                 connectionName);
 
-                    var connectionTypeName = "global::" + connectionTypeInfo.Namespace + "." + connectionTypeInfo.Name;
-                    var edgeTypeName = "global::" + edgeTypeInfo.Namespace + "." + edgeTypeInfo.Name;
+                    var connectionTypeName = GetTypeLookupKey(connectionTypeInfo);
+                    var edgeTypeName = GetTypeLookupKey(edgeTypeInfo);
 
                     if (!connectionTypeLookup.ContainsKey(connectionTypeName))
                     {
@@ -306,6 +302,12 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         [DoesNotReturn]
         static void Throw() => throw new InvalidOperationException("Could not resolve connection base type.");
     }
+
+    private static string GetTypeLookupKey(IOutputTypeInfo typeInfo)
+        => GetTypeLookupKey(typeInfo.Namespace, typeInfo.Name);
+
+    private static string GetTypeLookupKey(string typeNamespace, string typeName)
+        => $"global::{typeNamespace}.{typeName}";
 
     private static GenericTypeInfo? CreateGenericTypeInfo(
         INamedTypeSymbol genericType,

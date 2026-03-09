@@ -32,6 +32,7 @@ internal static class WellKnownArgumentNames
     public const string SlicingArguments = "slicingArguments";
     public const string SourceType = "sourceType";
     public const string Type = "type";
+    public const string Url = "url";
     public const string Vary = "vary";
     public const string Weight = "weight";
 }

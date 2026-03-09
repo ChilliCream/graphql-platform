@@ -11,7 +11,7 @@ internal sealed class OutputFormatOption : Option<OutputFormat?>
 
         IsRequired = false;
 
-        this.FromAmong("json");
+        ArgumentHelpName = "json";
 
         this.DefaultFromEnvironmentValue("OUTPUT_FORMAT");
     }

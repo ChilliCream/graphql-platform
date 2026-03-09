@@ -16,6 +16,9 @@ public sealed class FusionComposeCommandTests : IDisposable
     private static readonly string s_invalidExample1CompositeSchema =
         File.ReadAllText("__resources__/invalid-example-1-result/composite-schema.graphqls");
 
+    private static readonly string s_validExcludeByTagCompositeSchema =
+        File.ReadAllText("__resources__/valid-exclude-by-tag-result/composite-schema.graphqls");
+
     [Fact]
     public async Task Compose_ValidExample1_FromSpecified_ToStdOut()
     {
@@ -31,7 +34,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--fusion-archive",
+            "--archive",
             archiveFileName
         ];
         var testConsole = new TestConsole();
@@ -61,7 +64,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             "__resources__/valid-example-1",
-            "--fusion-archive",
+            "--archive",
             archiveFileName
         ];
         var testConsole = new TestConsole();
@@ -93,7 +96,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--fusion-archive",
+            "--archive",
             archiveFileName
         ];
 
@@ -128,7 +131,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--fusion-archive",
+            "--archive",
             fileName
         ];
 
@@ -161,7 +164,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             workingDirectory,
-            "--fusion-archive",
+            "--archive",
             fileName
         ];
 
@@ -194,7 +197,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             workingDirectory,
-            "--fusion-archive",
+            "--archive",
             fileName
         ];
 
@@ -226,7 +229,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             workingDirectory,
-            "--fusion-archive",
+            "--archive",
             filePath
         ];
 
@@ -286,7 +289,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--fusion-archive",
+            "--archive",
             archiveFileName
         ];
 
@@ -321,7 +324,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         Assert.Equal(1, exitCode);
         Assert.Matches(
             "^❌ Source schema file '[^']*non-existent-1.graphqls' does not exist.$",
-            testConsole.Error.ToString()!.ReplaceLineEndings("\n"));
+            testConsole.Out.ToString()!.ReplaceLineEndings("\n"));
     }
 
     [Fact]
@@ -336,7 +339,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             "__resources__/invalid-example-1",
-            "--fusion-archive",
+            "--archive",
             archiveFileName,
             "--print"
         ];
@@ -370,7 +373,7 @@ public sealed class FusionComposeCommandTests : IDisposable
 
         // assert
         Assert.Equal(1, exitCode);
-        testConsole.Error.ToString()!.ReplaceLineEndings("\n").MatchSnapshot();
+        testConsole.Out.ToString()!.ReplaceLineEndings("\n").MatchSnapshot();
     }
 
     [Fact]
@@ -388,7 +391,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-2/source-schema-a.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-2/source-schema-b.graphqls",
-            "--fusion-archive",
+            "--archive",
             archiveFileName,
             "--include-satisfiability-paths"
         ];
@@ -399,6 +402,43 @@ public sealed class FusionComposeCommandTests : IDisposable
 
         // assert
         Assert.Equal(0, exitCode);
+    }
+
+    [Fact]
+    public async Task Compose_Valid_ExcludeTag()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        var builder = GetCommandLineBuilder();
+
+        string[] args =
+        [
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            "__resources__/valid-exclude-by-tag/source-schema-1.graphqls",
+            "--source-schema-file",
+            "__resources__/valid-exclude-by-tag/source-schema-2.graphqls",
+            "--exclude-by-tag",
+            "exclude-1",
+            "--exclude-by-tag",
+            "exclude-2",
+            "--archive",
+            archiveFileName
+        ];
+        var testConsole = new TestConsole();
+
+        // act
+        var exitCode = await builder.Build().InvokeAsync(args, testConsole);
+
+        // assert
+        Assert.Equal(0, exitCode);
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExcludeByTagCompositeSchema);
     }
 
     private static CommandLineBuilder GetCommandLineBuilder()

@@ -13,7 +13,7 @@ internal sealed class McpFeatureRegistry
     private FrozenDictionary<string, OperationTool> _tools
         = FrozenDictionary<string, OperationTool>.Empty;
 
-    private FrozenDictionary<string, OperationTool> _toolsByOpenAiComponentResourceUri
+    private FrozenDictionary<string, OperationTool> _toolsByMcpAppViewResourceUri
         = FrozenDictionary<string, OperationTool>.Empty;
 
     public void UpdatePrompts(ImmutableDictionary<string, (Prompt, ImmutableArray<PromptMessage>)> prompts)
@@ -24,10 +24,10 @@ internal sealed class McpFeatureRegistry
     public void UpdateTools(ImmutableDictionary<string, OperationTool> tools)
     {
         _tools = tools.ToFrozenDictionary();
-        _toolsByOpenAiComponentResourceUri =
+        _toolsByMcpAppViewResourceUri =
             tools.Values
-                .Where(t => t.OpenAiComponentResource is not null)
-                .ToFrozenDictionary(t => t.OpenAiComponentResource!.Uri);
+                .Where(t => t.ViewResource is not null)
+                .ToFrozenDictionary(t => t.ViewResource!.Uri);
     }
 
     public IEnumerable<(Prompt, ImmutableArray<PromptMessage>)> GetPrompts()
@@ -53,8 +53,8 @@ internal sealed class McpFeatureRegistry
     public bool TryGetTool(string name, [NotNullWhen(true)] out OperationTool? tool)
         => _tools.TryGetValue(name, out tool);
 
-    public bool TryGetToolByOpenAiComponentResourceUri(
+    public bool TryGetToolByViewResourceUri(
         string uri,
         [NotNullWhen(true)] out OperationTool? tool)
-        => _toolsByOpenAiComponentResourceUri.TryGetValue(uri, out tool);
+        => _toolsByMcpAppViewResourceUri.TryGetValue(uri, out tool);
 }

@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Logout;

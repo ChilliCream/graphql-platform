@@ -99,7 +99,7 @@ internal sealed class PublishClientCommand : Command
                 if (x.Errors is { Count: > 0 } errors)
                 {
                     console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
+                    throw Exit("No request ID returned");
                 }
 
                 switch (x.Data?.OnClientVersionPublishingUpdate)
@@ -110,7 +110,7 @@ internal sealed class PublishClientCommand : Command
                         break;
 
                     case IClientVersionPublishFailed { Errors: var clientErrors }:
-                        console.Error.WriteLine("Client publish failed");
+                        console.WriteLine("Client publish failed");
                         console.PrintErrorsAndExit(clientErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

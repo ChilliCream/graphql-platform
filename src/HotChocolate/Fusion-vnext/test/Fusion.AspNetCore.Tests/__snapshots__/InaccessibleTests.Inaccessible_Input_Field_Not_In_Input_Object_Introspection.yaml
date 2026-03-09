@@ -81,6 +81,7 @@ operationPlan:
         }
       hash: 629c8c531dafc21b2bfa2349088f6933
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

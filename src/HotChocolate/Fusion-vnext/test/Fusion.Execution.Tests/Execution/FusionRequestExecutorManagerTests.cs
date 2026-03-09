@@ -1,3 +1,4 @@
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -81,29 +82,20 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .AddGraphQLGateway()
                 .AddInMemoryConfiguration(schemaDocument)
                 .UseDefaultPipeline()
-                .InsertUseRequest(
-                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                .UseRequest(
                     (_, _) =>
                     {
                         return context =>
                         {
                             var plan = context.GetOperationPlan();
                             context.Result =
-                                OperationResultBuilder.New()
-                                    .SetData(
-                                        new Dictionary<string, object?>
-                                        {
-                                            { "foo", null }
-                                        })
-                                    .SetContextData(
-                                        new Dictionary<string, object?>
-                                        {
-                                            { "operationPlan", plan }
-                                        })
-                                        .Build();
+                                new OperationResult(
+                                    ImmutableOrderedDictionary<string, object?>.Empty.Add("operationPlan", plan));
                             return ValueTask.CompletedTask;
                         };
-                    })
+                    },
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                    allowMultiple: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -122,8 +114,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .Build());
 
         // assert
-        Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData.TryGetValue("operationPlan", out var operationPlan));
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Extensions.TryGetValue("operationPlan", out var operationPlan));
         Assert.NotNull(operationPlan);
         Assert.Equal("Test", Assert.IsType<OperationPlan>(operationPlan).OperationName);
     }

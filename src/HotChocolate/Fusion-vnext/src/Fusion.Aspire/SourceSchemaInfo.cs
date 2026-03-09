@@ -8,5 +8,5 @@ internal sealed record SourceSchemaInfo
     public string? ResourceName { get; init; }
     public Uri? HttpEndpointUrl { get; init; }
     public required SourceSchemaText Schema { get; init; }
-    public required JsonElement SchemaSettings { get; init; }
+    public required JsonDocument SchemaSettings { get; init; }
 }

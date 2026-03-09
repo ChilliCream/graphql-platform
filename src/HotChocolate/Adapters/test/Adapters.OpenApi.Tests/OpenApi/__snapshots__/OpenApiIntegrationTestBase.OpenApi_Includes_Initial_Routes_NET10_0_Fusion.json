@@ -19,9 +19,9 @@
               "schema": {
                 "required": [
                   "any",
+                  "base64String",
                   "boolean",
                   "byte",
-                  "byteArray",
                   "date",
                   "dateTime",
                   "decimal",
@@ -40,35 +40,64 @@
                   "string",
                   "timeSpan",
                   "unknown",
+                  "uri",
                   "url",
                   "uuid"
                 ],
                 "type": "object",
                 "properties": {
                   "any": {
-                    "type": "string"
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "array"
+                      }
+                    ],
+                    "description": "The `Any` scalar type represents any valid GraphQL value."
+                  },
+                  "base64String": {
+                    "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
+                    "type": "string",
+                    "description": "The `Base64String` scalar type represents an array of bytes encoded as a Base64 string."
                   },
                   "boolean": {
                     "type": "boolean"
                   },
                   "byte": {
-                    "type": "string",
-                    "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
-                  },
-                  "byteArray": {
-                    "type": "string"
+                    "type": "integer",
+                    "description": "The `Byte` scalar type represents a signed 8-bit integer.",
+                    "format": "int32"
                   },
                   "date": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                     "type": "string",
-                    "description": "The `Date` scalar represents an ISO-8601 compliant date type."
+                    "description": "The `Date` scalar type represents a date in UTC.",
+                    "format": "date"
                   },
                   "dateTime": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
                     "type": "string",
-                    "description": "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
+                    "description": "The `DateTime` scalar type represents a date and time with time zone offset information.",
+                    "format": "date-time"
                   },
                   "decimal": {
-                    "type": "string",
-                    "description": "The `Decimal` scalar type represents a decimal floating-point number."
+                    "type": "number",
+                    "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision.",
+                    "format": "float"
                   },
                   "enum": {
                     "enum": [
@@ -96,7 +125,27 @@
                     "format": "int32"
                   },
                   "json": {
-                    "type": "string"
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "array"
+                      }
+                    ],
+                    "description": "The `Any` scalar type represents any valid GraphQL value."
                   },
                   "list": {
                     "type": "array",
@@ -105,20 +154,25 @@
                     }
                   },
                   "localDate": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                     "type": "string",
-                    "description": "The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system."
+                    "description": "The `LocalDate` scalar type represents a date without time or time zone information.",
+                    "format": "date"
                   },
                   "localDateTime": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                     "type": "string",
-                    "description": "The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`."
+                    "description": "The `LocalDateTime` scalar type represents a date and time without time zone information."
                   },
                   "localTime": {
+                    "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                     "type": "string",
-                    "description": "The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
+                    "description": "The `LocalTime` scalar type represents a time of day without date or time zone information."
                   },
                   "long": {
-                    "type": "string",
-                    "description": "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+                    "type": "integer",
+                    "description": "The `Long` scalar type represents a signed 64-bit integer.",
+                    "format": "int32"
                   },
                   "object": {
                     "required": [
@@ -139,6 +193,7 @@
                             "type": "object",
                             "properties": {
                               "field1C": {
+                                "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                                 "type": "string",
                                 "description": "field1C description"
                               }
@@ -151,24 +206,37 @@
                     }
                   },
                   "short": {
-                    "type": "string",
-                    "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+                    "type": "integer",
+                    "description": "The `Short` scalar type represents a signed 16-bit integer.",
+                    "format": "int32"
                   },
                   "string": {
                     "type": "string"
                   },
                   "timeSpan": {
+                    "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
                     "type": "string",
-                    "description": "The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
+                    "description": "The `TimeSpan` scalar type represents a duration of time.",
+                    "format": "duration"
                   },
                   "unknown": {
                     "type": "string"
                   },
+                  "uri": {
+                    "type": "string",
+                    "description": "The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.",
+                    "format": "uri"
+                  },
                   "url": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.",
+                    "format": "uri"
                   },
                   "uuid": {
-                    "type": "string"
+                    "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
+                    "type": "string",
+                    "description": "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.",
+                    "format": "uuid"
                   }
                 }
               }
@@ -184,9 +252,9 @@
                 "schema": {
                   "required": [
                     "any",
+                    "base64String",
                     "boolean",
                     "byte",
-                    "byteArray",
                     "date",
                     "dateTime",
                     "decimal",
@@ -211,10 +279,35 @@
                   "type": "object",
                   "properties": {
                     "any": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "array"
+                        }
+                      ],
+                      "description": "The `Any` scalar type represents any valid GraphQL value."
+                    },
+                    "base64String": {
+                      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
                       "type": [
                         "null",
                         "string"
-                      ]
+                      ],
+                      "description": "The `Base64String` scalar type represents an array of bytes encoded as a Base64 string."
                     },
                     "boolean": {
                       "type": [
@@ -225,36 +318,36 @@
                     "byte": {
                       "type": [
                         "null",
-                        "string"
+                        "integer"
                       ],
-                      "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
-                    },
-                    "byteArray": {
-                      "type": [
-                        "null",
-                        "string"
-                      ]
+                      "description": "The `Byte` scalar type represents a signed 8-bit integer.",
+                      "format": "int32"
                     },
                     "date": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                       "type": [
                         "null",
                         "string"
                       ],
-                      "description": "The `Date` scalar represents an ISO-8601 compliant date type."
+                      "description": "The `Date` scalar type represents a date in UTC.",
+                      "format": "date"
                     },
                     "dateTime": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
                       "type": [
                         "null",
                         "string"
                       ],
-                      "description": "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
+                      "description": "The `DateTime` scalar type represents a date and time with time zone offset information.",
+                      "format": "date-time"
                     },
                     "decimal": {
                       "type": [
                         "null",
-                        "string"
+                        "number"
                       ],
-                      "description": "The `Decimal` scalar type represents a decimal floating-point number."
+                      "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision.",
+                      "format": "float"
                     },
                     "enum": {
                       "enum": [
@@ -291,10 +384,27 @@
                       "format": "int32"
                     },
                     "json": {
-                      "type": [
-                        "null",
-                        "string"
-                      ]
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "array"
+                        }
+                      ],
+                      "description": "The `Any` scalar type represents any valid GraphQL value."
                     },
                     "list": {
                       "type": [
@@ -309,32 +419,37 @@
                       }
                     },
                     "localDate": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                       "type": [
                         "null",
                         "string"
                       ],
-                      "description": "The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system."
+                      "description": "The `LocalDate` scalar type represents a date without time or time zone information.",
+                      "format": "date"
                     },
                     "localDateTime": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                       "type": [
                         "null",
                         "string"
                       ],
-                      "description": "The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`."
+                      "description": "The `LocalDateTime` scalar type represents a date and time without time zone information."
                     },
                     "localTime": {
+                      "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                       "type": [
                         "null",
                         "string"
                       ],
-                      "description": "The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
+                      "description": "The `LocalTime` scalar type represents a time of day without date or time zone information."
                     },
                     "long": {
                       "type": [
                         "null",
-                        "string"
+                        "integer"
                       ],
-                      "description": "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+                      "description": "The `Long` scalar type represents a signed 64-bit integer.",
+                      "format": "int32"
                     },
                     "object": {
                       "required": [
@@ -364,11 +479,12 @@
                               ],
                               "properties": {
                                 "field1C": {
+                                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                                   "type": [
                                     "null",
                                     "string"
                                   ],
-                                  "description": "The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
+                                  "description": "The `LocalTime` scalar type represents a time of day without date or time zone information."
                                 }
                               }
                             }
@@ -379,9 +495,10 @@
                     "short": {
                       "type": [
                         "null",
-                        "string"
+                        "integer"
                       ],
-                      "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+                      "description": "The `Short` scalar type represents a signed 16-bit integer.",
+                      "format": "int32"
                     },
                     "string": {
                       "type": [
@@ -390,11 +507,13 @@
                       ]
                     },
                     "timeSpan": {
+                      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
                       "type": [
                         "null",
                         "string"
                       ],
-                      "description": "The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
+                      "description": "The `TimeSpan` scalar type represents a duration of time.",
+                      "format": "duration"
                     },
                     "unknown": {
                       "type": [
@@ -406,13 +525,18 @@
                       "type": [
                         "null",
                         "string"
-                      ]
+                      ],
+                      "description": "The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.",
+                      "format": "uri"
                     },
                     "uuid": {
+                      "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
                       "type": [
                         "null",
                         "string"
-                      ]
+                      ],
+                      "description": "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.",
+                      "format": "uuid"
                     }
                   }
                 }

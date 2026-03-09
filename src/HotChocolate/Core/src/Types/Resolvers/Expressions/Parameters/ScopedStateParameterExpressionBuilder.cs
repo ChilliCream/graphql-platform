@@ -155,7 +155,7 @@ internal class ScopedStateParameterExpressionBuilder
 
         public ArgumentKind Kind => _parent.Kind;
 
-        public bool IsPure => _parent.IsPure;
+        public bool IsPure => true;
 
         public T Execute<T>(IResolverContext context)
             => context.GetScopedStateOrDefault<T>(_key, default!);

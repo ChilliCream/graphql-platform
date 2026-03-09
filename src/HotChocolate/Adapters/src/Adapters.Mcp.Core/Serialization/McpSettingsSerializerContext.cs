@@ -6,5 +6,6 @@ namespace HotChocolate.Adapters.Mcp.Serialization;
 [JsonSerializable(typeof(McpToolSettingsDto))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    AllowOutOfOrderMetadataProperties = true)]
 internal partial class McpSettingsSerializerContext : JsonSerializerContext;

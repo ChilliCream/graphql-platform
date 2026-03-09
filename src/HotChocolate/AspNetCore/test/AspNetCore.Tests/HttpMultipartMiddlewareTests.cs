@@ -67,10 +67,10 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
 
         // act
         var form = new MultipartFormDataContent
-            {
-                { new StringContent("{}"), "operations" },
-                { new StringContent("{}"), "map" }
-            };
+        {
+            { new StringContent("{}"), "operations" },
+            { new StringContent("{}"), "map" }
+        };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
 

@@ -125,6 +125,7 @@ operationPlan:
       name: testQuery
       hash: 7ae73f43cd702c36dfd5051c12bf0ce7
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Node
@@ -182,5 +183,8 @@ operationPlan:
         - name: __fusion_1_id
           selectionMap: >-
             id
+      conditions:
+        - variable: $skip
+          passingValue: false
       dependencies:
         - id: 3

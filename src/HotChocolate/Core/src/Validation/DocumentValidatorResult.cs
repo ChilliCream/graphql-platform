@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Validation;
 
 public class DocumentValidatorResult
@@ -18,7 +20,7 @@ public class DocumentValidatorResult
 
     public bool HasErrors { get; }
 
-    public IReadOnlyList<IError> Errors { get; }
+    public ImmutableList<IError> Errors { get; }
 
     public static DocumentValidatorResult OK { get; } = new();
 }

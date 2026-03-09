@@ -167,19 +167,52 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          document: |
-            query Op_b3a5d887_2(
-              $__fusion_1_id: Int!
-            ) {
-              product(id: $__fusion_1_id) {
-                schema2
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": 1
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_b3a5d887_2(
+                  $__fusion_1_id: Int!
+                ) {
+                  product(id: $__fusion_1_id) {
+                    schema2
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": 1
+                }
+            - document: |
+                query Op_b3a5d887_3(
+                  $__fusion_2_id: Int!
+                ) {
+                  product(id: $__fusion_2_id) {
+                    shared {
+                      schema2
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": 1
+                }
+            - document: |
+                query Op_b3a5d887_4(
+                  $__fusion_3_id: Int!
+                ) {
+                  product(id: $__fusion_3_id) {
+                    shared {
+                      shared2 {
+                        schema2
+                      }
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_3_id": 1
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -189,23 +222,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_b3a5d887_3(
-              $__fusion_2_id: Int!
-            ) {
-              product(id: $__fusion_2_id) {
-                shared {
-                  schema2
-                }
-              }
-            }
-          variables: |
-            {
-              "__fusion_2_id": 1
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -216,25 +232,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_b3a5d887_4(
-              $__fusion_3_id: Int!
-            ) {
-              product(id: $__fusion_3_id) {
-                shared {
-                  shared2 {
-                    schema2
-                  }
-                }
-              }
-            }
-          variables: |
-            {
-              "__fusion_3_id": 1
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -267,6 +264,7 @@ operationPlan:
         }
       hash: b3a5d88765decf48c20c2d5df3526f8d
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -297,6 +295,7 @@ operationPlan:
         }
       source: $.product
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -318,6 +317,7 @@ operationPlan:
         }
       source: $.product
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
@@ -341,6 +341,7 @@ operationPlan:
         }
       source: $.product
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_3_id
           selectionMap: >-

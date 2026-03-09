@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
-public class InterfaceTypeTests : TypeTestBase
+public partial class InterfaceTypeTests : TypeTestBase
 {
     [Fact]
     public void InterfaceType_DynamicName()
@@ -439,7 +439,7 @@ public class InterfaceTypeTests : TypeTestBase
         void Action() => InterfaceTypeDescriptorExtensions.Ignore<IFoo>(null!, t => t.Bar);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]
@@ -759,19 +759,21 @@ public class InterfaceTypeTests : TypeTestBase
             .MatchSnapshotAsync();
     }
 
-    private sealed class SnakeCaseNamingConventions : DefaultNamingConventions
+    private sealed partial class SnakeCaseNamingConventions : DefaultNamingConventions
     {
         public override string GetMemberName(MemberInfo member, MemberKind kind)
         {
             if (kind == MemberKind.InterfaceField)
             {
-                var pattern = new Regex(
-                    @"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+");
+                var pattern = SnakeCasePatternRegex();
                 return string.Join("_", pattern.Matches(member.Name)).ToLower();
             }
 
             return base.GetMemberName(member, kind);
         }
+
+        [GeneratedRegex(@"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+")]
+        private static partial Regex SnakeCasePatternRegex();
     }
 
     private interface IFooNaming

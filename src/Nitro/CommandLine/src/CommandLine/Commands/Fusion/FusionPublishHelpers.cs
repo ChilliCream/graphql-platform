@@ -1,8 +1,15 @@
+using System.CommandLine.IO;
+using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using HotChocolate.Fusion;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.SourceSchema.Packaging;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -41,7 +48,7 @@ internal static class FusionPublishHelpers
             throw Exit("Failed to request deployment slot.");
         }
 
-        console.MarkupLine($"Your request id is [blue]{requestId}[/]");
+        console.MarkupLine($"Your request ID is [blue]{requestId}[/]");
 
         using var stopSignal = new Subject<Unit>();
         var subscription = client.OnFusionConfigurationPublishingTaskChanged
@@ -129,34 +136,79 @@ internal static class FusionPublishHelpers
         console.PrintErrorsAndExit(data.CancelFusionConfigurationComposition.Errors);
     }
 
-    public static async Task<Stream?> DownloadConfigurationAsync(
+    public static async Task<Stream?> DownloadLatestFusionArchiveAsync(
         string apiId,
         string stageName,
-        IApiClient client,
+        bool isFgp,
         IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
-        var result =
-            await client.FetchConfiguration.ExecuteAsync(apiId, stageName, cancellationToken);
+        using var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
 
-        result.EnsureNoErrors();
+        var request = CreateDownloadLatestConfigurationRequest(apiId, stageName, isFgp);
 
-        var downloadUrl = result.Data?.FusionConfigurationByApiId?.DownloadUrl;
+        var response = await httpClient.SendAsync(request, cancellationToken);
 
-        if (string.IsNullOrEmpty(downloadUrl))
+        if (response.StatusCode is HttpStatusCode.NotFound)
         {
             return null;
         }
 
-        var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
-        var downloadResult = await httpClient.GetAsync(downloadUrl, cancellationToken);
+        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            throw new ExitException(
+                $"Got a HTTP {response.StatusCode} while attempting to download the latest fusion configuration. "
+                + "Make sure that you have the proper credentials / permissions to execute this command.");
+        }
 
-        downloadResult.EnsureSuccessStatusCode();
+        response.EnsureSuccessStatusCode();
 
-        return await downloadResult.Content.ReadAsStreamAsync(cancellationToken);
+        var memoryStream = new MemoryStream();
+        await response.Content.CopyToAsync(memoryStream, cancellationToken);
+
+        memoryStream.Position = 0;
+
+        return memoryStream;
     }
 
-    public static async Task<bool> UploadConfigurationAsync(
+    public static async Task<FusionSourceSchemaArchive> DownloadSourceSchemaArchiveAsync(
+        string apiId,
+        string sourceSchemaName,
+        string sourceSchemaVersion,
+        IHttpClientFactory httpClientFactory,
+        CancellationToken cancellationToken)
+    {
+        using var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
+
+        var request = CreateDownloadSourceSchemaVersionRequest(apiId, sourceSchemaName, sourceSchemaVersion);
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+
+        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            throw new ExitException(
+                $"Got a HTTP {response.StatusCode} while attempting to download source schema '{sourceSchemaName}' in version '{sourceSchemaVersion}'. "
+                + "Make sure that you have the proper credentials / permissions to execute this command.");
+        }
+
+        if (response.StatusCode is HttpStatusCode.NotFound)
+        {
+            throw new ExitException(
+                $"Got a HTTP {HttpStatusCode.NotFound} while attempting to download source schema '{sourceSchemaName}' in version '{sourceSchemaVersion}'. "
+                + "Make sure you've properly uploaded a source schema version before running this command.");
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        var memoryStream = new MemoryStream();
+        await response.Content.CopyToAsync(memoryStream, cancellationToken);
+
+        memoryStream.Position = 0;
+
+        return FusionSourceSchemaArchive.Open(memoryStream);
+    }
+
+    public static async Task<bool> UploadFusionArchiveAsync(
         string requestId,
         Stream stream,
         StatusContext? statusContext,
@@ -191,7 +243,7 @@ internal static class FusionPublishHelpers
             if (x.Errors is { Count: > 0 } errors)
             {
                 console.PrintErrorsAndExit(errors);
-                throw Exit("No request id returned");
+                throw Exit("No request ID returned");
             }
 
             switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)
@@ -257,5 +309,126 @@ internal static class FusionPublishHelpers
         }
 
         return committed;
+    }
+
+    public static async Task<bool> ComposeAsync(
+        Stream archiveStream,
+        Stream? existingArchiveStream,
+        string environment,
+        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        CompositionSettings? compositionSettings,
+        IAnsiConsole console,
+        CancellationToken cancellationToken)
+    {
+        FusionArchive archive;
+
+        if (existingArchiveStream is not null)
+        {
+            await existingArchiveStream.CopyToAsync(archiveStream, cancellationToken);
+            await existingArchiveStream.DisposeAsync();
+
+            archiveStream.Seek(0, SeekOrigin.Begin);
+
+            archive = FusionArchive.Open(
+                archiveStream,
+                mode: FusionArchiveMode.Update,
+                leaveOpen: true);
+        }
+        else
+        {
+            archive = FusionArchive.Create(archiveStream, leaveOpen: true);
+        }
+
+        var result = await ComposeAsync(
+            archive,
+            environment,
+            newSourceSchemas,
+            compositionSettings,
+            console,
+            cancellationToken);
+
+        archiveStream.Seek(0, SeekOrigin.Begin);
+
+        return result;
+    }
+
+    public static async Task<bool> ComposeAsync(
+        FusionArchive archive,
+        string environment,
+        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        CompositionSettings? compositionSettings,
+        IAnsiConsole console,
+        CancellationToken cancellationToken)
+    {
+        var compositionLog = new CompositionLog();
+
+        var result = await CompositionHelper.ComposeAsync(
+            compositionLog,
+            newSourceSchemas,
+            archive,
+            environment,
+            compositionSettings,
+            cancellationToken);
+
+        FusionComposeCommand.WriteCompositionLog(
+            compositionLog,
+            new AnsiStreamWriter(Console.Out),
+            false);
+
+        if (result.IsFailure)
+        {
+            foreach (var error in result.Errors)
+            {
+                console.WriteLine(error.Message);
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private static HttpRequestMessage CreateDownloadLatestConfigurationRequest(
+        string apiId,
+        string stageName,
+        bool isFgp)
+    {
+        var escapedApiId = Uri.EscapeDataString(apiId);
+        var escapedStageName = Uri.EscapeDataString(stageName);
+
+        var requestUri = $"/api/v1/apis/{escapedApiId}/fusion/configurations/latest/download"
+            + $"?stageName={escapedStageName}";
+
+        if (!isFgp)
+        {
+            requestUri += "&format=far"
+                + $"&fusionVersion={Uri.EscapeDataString(WellKnownVersions.LatestGatewayFormatVersion.ToString())}";
+        }
+
+        return new HttpRequestMessage(HttpMethod.Get, requestUri);
+    }
+
+    private static HttpRequestMessage CreateDownloadSourceSchemaVersionRequest(
+        string apiId,
+        string sourceSchemaName,
+        string sourceSchemaVersion)
+    {
+        const string path = "/api/v1/apis/{0}/fusion-subgraphs/{1}/versions/{2}/download";
+
+        var escapedApiId = Uri.EscapeDataString(apiId);
+        var requestUri = string.Format(path, escapedApiId, sourceSchemaName, sourceSchemaVersion);
+
+        return new HttpRequestMessage(HttpMethod.Get, requestUri);
+    }
+
+    private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
+    {
+        public void Write(string? value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                textWriter.Write(value);
+            }
+        }
     }
 }

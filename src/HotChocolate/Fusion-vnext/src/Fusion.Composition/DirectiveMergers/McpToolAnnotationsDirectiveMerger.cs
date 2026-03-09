@@ -16,7 +16,7 @@ internal class McpToolAnnotationsDirectiveMerger(DirectiveMergeBehavior mergeBeh
 {
     public override string DirectiveName => DirectiveNames.McpToolAnnotations;
 
-    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
+    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
         return McpToolAnnotationsMutableDirectiveDefinition.Create(schema);
     }

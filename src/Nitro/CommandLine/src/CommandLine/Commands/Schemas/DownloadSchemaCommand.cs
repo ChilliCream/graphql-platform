@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;

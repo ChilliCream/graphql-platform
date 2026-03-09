@@ -24,7 +24,8 @@ public sealed class MergeSelectionSetRewriter(
         CopyTo(selectionSet1.Selections, selections, 0);
         CopyTo(selectionSet2.Selections, selections, selectionSet1.Selections.Count);
 
-        var context = new InlineFragmentOperationRewriter.Context(type, [], mergeObserver);
+        var hasIncrementalParts = false;
+        var context = new InlineFragmentOperationRewriter.Context(type, [], ref hasIncrementalParts, mergeObserver);
         var merged = new SelectionSetNode(null, selections);
 
         mergeObserver.OnMerge(selectionSet1, selectionSet2);
@@ -43,7 +44,8 @@ public sealed class MergeSelectionSetRewriter(
     {
         mergeObserver ??= NoopSelectionSetMergeObserver.Instance;
 
-        var context = new InlineFragmentOperationRewriter.Context(type, [], mergeObserver);
+        var hasIncrementalParts = false;
+        var context = new InlineFragmentOperationRewriter.Context(type, [], ref hasIncrementalParts, mergeObserver);
         var merged = new SelectionSetNode(null, [.. selectionSets.SelectMany(t => t.Selections)]);
 
         mergeObserver.OnMerge(selectionSets);

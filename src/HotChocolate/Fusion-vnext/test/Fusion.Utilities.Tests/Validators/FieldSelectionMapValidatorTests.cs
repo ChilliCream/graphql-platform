@@ -55,7 +55,7 @@ public sealed class FieldSelectionMapValidatorTests
 
         // act
         var errors =
-            new FieldSelectionMapValidator(s_schema1).Validate(
+            new FieldSelectionMapValidator(s_schema1, true).Validate(
                 selectedValue,
                 inputType,
                 outputType);
@@ -256,7 +256,7 @@ public sealed class FieldSelectionMapValidatorTests
                 type Person {
                     id: ID!
                     name: String
-                    address: Address
+                    address: Address!
                 }
 
                 type Address {
@@ -350,6 +350,12 @@ public sealed class FieldSelectionMapValidatorTests
                 "id",
                 ["The field 'id' is of type 'ID!' instead of the expected input type 'String'."]
             },
+            {
+                "ID!",
+                "Book",
+                "nullableAuthor.id",
+                ["The input type 'ID!' is non-null, but one of the fields on the path 'nullableAuthor' returns a nullable type."]
+            },
             // TODO: 6.3.5 Selected Object Field Names examples.
             // TODO: 6.3.6 Selected Object Field Uniqueness examples.
             // Blocked by https://github.com/graphql/composite-schemas-spec/issues/171.
@@ -441,6 +447,7 @@ public sealed class FieldSelectionMapValidatorTests
                 title: String!
                 isbn: String!
                 author: Author!
+                nullableAuthor: Author # Added
             }
 
             type Movie implements Media {

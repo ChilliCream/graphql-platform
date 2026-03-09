@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 
@@ -20,14 +21,20 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         using var document = JsonDocument.Parse(planSourceText);
         var rootElement = document.RootElement;
-        uint searchSpace = 0;
+        var searchSpace = 0;
+        var expandedNodes = 0;
 
         var id = rootElement.GetProperty("id").GetString()!;
         var operation = ParseOperation(rootElement.GetProperty("operation"));
 
         if (rootElement.TryGetProperty("searchSpace", out var searchSpaceElement))
         {
-            searchSpace = searchSpaceElement.GetUInt32();
+            searchSpace = searchSpaceElement.GetInt32();
+        }
+
+        if (rootElement.TryGetProperty("expandedNodes", out var expandedNodesElement))
+        {
+            expandedNodes = expandedNodesElement.GetInt32();
         }
 
         var nodes = ParseNodes(rootElement.GetProperty("nodes"), operation);
@@ -37,7 +44,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             operation,
             [.. nodes.Where(n => n.Dependencies.Length == 0)],
             nodes,
-            searchSpace);
+            searchSpace,
+            expandedNodes);
     }
 
     private Operation ParseOperation(JsonElement operationElement)
@@ -71,6 +79,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             (ExecutionNode, int[]?, Dictionary<string, int>?, int?) node = nodeType switch
             {
                 "Operation" => ParseOperationNode(nodeElement, id),
+                "OperationBatch" => ParseOperationBatchNode(nodeElement, id),
                 "Introspection" => ParseIntrospectionNode(nodeElement, id, operation),
                 "Node" => ParseNodeFieldNode(nodeElement, id, operation),
                 _ => throw new NotSupportedException($"Unsupported node type: {nodeType}")
@@ -162,6 +171,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         string[]? forwardedVariables = null;
         string[]? responseNames = null;
         int[]? dependencies = null;
+        int? batchingGroupId = null;
 
         if (nodeElement.TryGetProperty("source", out var sourceElement))
         {
@@ -216,6 +226,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
+        if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
+        {
+            batchingGroupId = batchingGroupIdElement.GetInt32();
+        }
+
         var conditions = TryParseConditions(nodeElement);
 
         var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
@@ -235,6 +250,111 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             forwardedVariables ?? [],
             responseNames ?? [],
             conditions,
+            batchingGroupId,
+            requiresFileUpload);
+
+        return (node, dependencies, null, null);
+    }
+
+    private static (OperationBatchExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationBatchNode(
+        JsonElement nodeElement, int id)
+    {
+        string? schemaName = null;
+        if (nodeElement.TryGetProperty("schema", out var schemaElement))
+        {
+            schemaName = schemaElement.GetString()!;
+        }
+
+        var operationElement = nodeElement.GetProperty("operation");
+        var operationName = operationElement.GetProperty("name").GetString()!;
+        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("kind").GetString()!);
+        var document = operationElement.GetProperty("document").GetString()!;
+        var hash = operationElement.GetProperty("hash").GetString()!;
+
+        SelectionPath? source = null;
+        List<OperationRequirement>? requirements = null;
+        string[]? forwardedVariables = null;
+        string[]? responseNames = null;
+        int[]? dependencies = null;
+        int? batchingGroupId = null;
+
+        if (nodeElement.TryGetProperty("source", out var sourceElement))
+        {
+            source = SelectionPath.Parse(sourceElement.GetString()!);
+        }
+
+        var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
+            ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
+            : [];
+
+        if (nodeElement.TryGetProperty("requirements", out var requirementsElement))
+        {
+            requirements = [];
+
+            foreach (var requirementElement in requirementsElement.EnumerateArray())
+            {
+                var requirementName = requirementElement.GetProperty("name").GetString()!;
+                var requirementType = requirementElement.GetProperty("type").GetString()!;
+                var requirementPath = requirementElement.GetProperty("path").GetString()!;
+                var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
+
+                requirements.Add(new OperationRequirement(
+                    requirementName,
+                    Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
+                    SelectionPath.Parse(requirementPath),
+                    FieldSelectionMapParser.Parse(selectionMap)));
+            }
+        }
+
+        if (nodeElement.TryGetProperty("forwardedVariables", out var forwardedVariablesElement))
+        {
+            forwardedVariables = forwardedVariablesElement
+                .EnumerateArray()
+                .Select(e => e.GetString()!)
+                .ToArray();
+        }
+
+        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
+        {
+            responseNames = responseNamesElement
+                .EnumerateArray()
+                .Select(e => e.GetString()!)
+                .ToArray();
+        }
+
+        if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
+        {
+            dependencies = dependenciesElement
+                .EnumerateArray()
+                .Select(e => e.GetInt32())
+                .ToArray();
+        }
+
+        if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
+        {
+            batchingGroupId = batchingGroupIdElement.GetInt32();
+        }
+
+        var conditions = TryParseConditions(nodeElement);
+
+        var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
+            && requiresFileUploadElement.ValueKind == JsonValueKind.True;
+
+        var node = new OperationBatchExecutionNode(
+            id,
+            new OperationSourceText(
+                operationName,
+                operationType,
+                document,
+                hash),
+            schemaName,
+            targets,
+            source ?? SelectionPath.Root,
+            requirements?.ToArray() ?? [],
+            forwardedVariables ?? [],
+            responseNames ?? [],
+            conditions,
+            batchingGroupId,
             requiresFileUpload);
 
         return (node, dependencies, null, null);

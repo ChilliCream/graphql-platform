@@ -472,9 +472,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return false;
         }
 
-        if (inputType.IsScalarType())
+        if (inputType is IScalarTypeDefinition scalarType)
         {
-            return ((IScalarTypeDefinition)inputType).IsInstanceOfType(value);
+            return scalarType.IsValueCompatible(value);
         }
 
         return value.Kind is SyntaxKind.ObjectValue;

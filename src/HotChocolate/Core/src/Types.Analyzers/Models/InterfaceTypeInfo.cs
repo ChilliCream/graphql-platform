@@ -10,6 +10,7 @@ public sealed class InterfaceTypeInfo
     , IOutputTypeInfo
 {
     public InterfaceTypeInfo(
+        Compilation compilation,
         INamedTypeSymbol schemaType,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax classDeclarationSyntax,
@@ -21,10 +22,10 @@ public sealed class InterfaceTypeInfo
         RuntimeTypeName = TypeNameInfo.Create(runtimeType);
         RegistrationKey = schemaType.ToAssemblyQualified();
         Namespace = schemaType.ContainingNamespace.ToDisplayString();
-        Description = schemaType.GetDescription();
         IsPublic = schemaType.DeclaredAccessibility == Accessibility.Public;
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
+        Description = compilation.GetDescription(schemaType);
         // sharable directives are only allowed on object types and field definitions
         Shareable = DirectiveScope.None;
         Inaccessible = attributes.GetInaccessibleScope();

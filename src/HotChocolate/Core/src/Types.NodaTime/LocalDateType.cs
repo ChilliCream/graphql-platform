@@ -31,7 +31,6 @@ public class LocalDateType : StringToStructBaseType<LocalDate>
             allowedPatterns,
             NodaTimeResources.LocalDateType_Description,
             NodaTimeResources.LocalDateType_Description_Extended);
-        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>
@@ -43,15 +42,19 @@ public class LocalDateType : StringToStructBaseType<LocalDate>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(LocalDate runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out LocalDate? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        LocalDate runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
 
     protected override Dictionary<IPattern<LocalDate>, string> PatternMap => new()
     {

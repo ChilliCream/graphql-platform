@@ -42,12 +42,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "person"
                       ],
@@ -189,12 +183,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "person"
                       ],
@@ -284,12 +272,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "cityOrStreet"
                       ],
@@ -333,12 +315,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "thisIsAuthorized"
                       ],
@@ -606,12 +582,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "node"
                       ],
@@ -664,12 +634,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "node"
                       ],
@@ -723,12 +687,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "node"
                       ],
@@ -838,12 +796,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "nodes",
                         1
@@ -966,12 +918,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The node ID string has an invalid format.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "nodes"
                       ],

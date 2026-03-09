@@ -113,4 +113,26 @@ public sealed class SourceSchemaMergerScalarTests : SourceSchemaMergerTestBase
             ],
             "");
     }
+
+    [Fact]
+    public void Merge_ScalarsWithSpecifiedBy_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                scalar Date
+                """,
+                """
+                # Schema B
+                scalar Date @specifiedBy(url: "https://example.com/date-spec")
+                """
+            ],
+            """
+            scalar Date
+                @specifiedBy(url: "https://example.com/date-spec")
+                @fusion__type(schema: A)
+                @fusion__type(schema: B)
+            """);
+    }
 }

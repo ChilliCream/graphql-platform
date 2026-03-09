@@ -7,8 +7,19 @@ interface Node {
   id: ID!
 }
 
+interface StatementTransaction {
+  id: Int!
+}
+
+type BillingStatementTransaction implements StatementTransaction {
+  feeAndChargeAmount: Int!
+  id: Int!
+}
+
 type Brand implements Node {
-  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): BrandProductsConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): BrandProductsConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
+  productCount: Int! @cost(weight: "10")
+  supplier: Supplier @cost(weight: "10")
   id: ID!
   name: String!
 }
@@ -44,6 +55,12 @@ type BrandProductsEdge @shareable {
   cursor: String!
 }
 
+type CardReader {
+  cardReaderUidLength: Int! @cost(weight: "10")
+  id: Int!
+  cardReaderUid: [UnsignedByte!]!
+}
+
 """
 Represents the connection page info.
 This class provides additional information about pagination in a connection.
@@ -63,6 +80,18 @@ type ConnectionPageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
+}
+
+type DepositStatementTransaction implements StatementTransaction {
+  collectionAmount: Int!
+  id: Int!
+}
+
+type ExpressionPerson {
+  fullName: String @cost(weight: "10")
+  id: Int!
+  firstName: String!
+  lastName: String!
 }
 
 "A cursor that points to a specific page."
@@ -119,26 +148,47 @@ type ProductEdge @shareable {
 
 type ProductType {
   id: Int!
-  name: String!
   products: [Product!]!
+}
+
+type ProductTypeConnection @shareable {
+  edges: [ProductTypeEdge!]!
+  nodes: [ProductType!]!
+  pageInfo: ConnectionPageInfo!
+  totalCount: Int! @cost(weight: "10")
+}
+
+type ProductTypeEdge @shareable {
+  node: ProductType!
+  cursor: String!
 }
 
 type Query {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @lookup @shareable @cost(weight: "10")
+  node("ID of the object." id: ID!): Node @shareable @cost(weight: "10")
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @cost(weight: "10")
-  brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  hiddenNameProductTypes("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductTypeFilterInput @cost(weight: "10") order: [ProductTypeSortInput!] @cost(weight: "10")): ProductTypeConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
+  brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
   brandById(id: ID!): Brand @lookup @cost(weight: "10")
   brandByIdWithDL(id: ID!): Brand @lookup @cost(weight: "10")
-  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
   productById(id: ID!): Product @lookup @internal @cost(weight: "10")
-  productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
   singleProperties: [SingleProperty!]! @cost(weight: "10")
+  statementTransaction: StatementTransaction!
 }
 
 type SingleProperty {
   id: String!
+}
+
+type Supplier {
+  id: Int!
+  name: String!
+  website: String
+  contactEmail: String
+  brands: [Brand!]!
 }
 
 input BooleanOperationFilterInput {
@@ -151,11 +201,18 @@ input BrandFilterInput {
   or: [BrandFilterInput!]
   id: IntOperationFilterInput
   name: StringOperationFilterInput
+  supplier: SupplierFilterInput
   products: ListFilterInputTypeOfProductFilterInput
 }
 
 input BrandSortInput {
   name: SortEnumType @cost(weight: "10")
+}
+
+input CardReaderFilterInput {
+  and: [CardReaderFilterInput!]
+  or: [CardReaderFilterInput!]
+  cardReaderUidLength: IntOperationFilterInput
 }
 
 input DecimalOperationFilterInput {
@@ -188,6 +245,13 @@ input IntOperationFilterInput {
   nlte: Int @cost(weight: "10")
 }
 
+input ListFilterInputTypeOfBrandFilterInput {
+  all: BrandFilterInput @cost(weight: "10")
+  none: BrandFilterInput @cost(weight: "10")
+  some: BrandFilterInput @cost(weight: "10")
+  any: Boolean @cost(weight: "10")
+}
+
 input ListFilterInputTypeOfProductFilterInput {
   all: ProductFilterInput @cost(weight: "10")
   none: ProductFilterInput @cost(weight: "10")
@@ -203,9 +267,7 @@ input ProductFilterInput {
   description: StringOperationFilterInput
   price: DecimalOperationFilterInput
   imageFileName: StringOperationFilterInput
-  typeId: IntOperationFilterInput
   type: ProductTypeFilterInput
-  brandId: IntOperationFilterInput
   brand: BrandFilterInput
   availableStock: IntOperationFilterInput
   restockThreshold: IntOperationFilterInput
@@ -222,8 +284,11 @@ input ProductTypeFilterInput {
   and: [ProductTypeFilterInput!]
   or: [ProductTypeFilterInput!]
   id: IntOperationFilterInput
-  name: StringOperationFilterInput
   products: ListFilterInputTypeOfProductFilterInput
+}
+
+input ProductTypeSortInput {
+  id: SortEnumType @cost(weight: "10")
 }
 
 input StringOperationFilterInput {
@@ -239,6 +304,16 @@ input StringOperationFilterInput {
   nstartsWith: String @cost(weight: "20")
   endsWith: String @cost(weight: "20")
   nendsWith: String @cost(weight: "20")
+}
+
+input SupplierFilterInput {
+  and: [SupplierFilterInput!]
+  or: [SupplierFilterInput!]
+  id: IntOperationFilterInput
+  name: StringOperationFilterInput
+  website: StringOperationFilterInput
+  contactEmail: StringOperationFilterInput
+  brands: ListFilterInputTypeOfBrandFilterInput
 }
 
 "Defines the possible serialization types for GraphQL scalar values."
@@ -316,5 +391,11 @@ directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 """
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 
-"The `Decimal` scalar type represents a decimal floating-point number."
-scalar Decimal @serializeAs(type: FLOAT)
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+"The `Decimal` scalar type represents a decimal floating-point number with high precision."
+scalar Decimal @serializeAs(type: FLOAT) @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
+
+"The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
+scalar UnsignedByte @serializeAs(type: INT) @specifiedBy(url: "https://scalars.graphql.org/chillicream/unsigned-byte.html")

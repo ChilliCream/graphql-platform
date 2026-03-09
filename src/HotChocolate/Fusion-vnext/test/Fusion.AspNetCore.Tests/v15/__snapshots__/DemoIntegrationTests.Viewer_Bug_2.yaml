@@ -51,7 +51,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_f3bb7334_2 {
+            query testQuery_f3bb7334_1 {
               exclusiveSubgraphA {
                 __typename
               }
@@ -86,7 +86,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_f3bb7334_1 {
+            query testQuery_f3bb7334_2 {
               viewer {
                 subType {
                   subgraphB
@@ -121,24 +121,25 @@ operationPlan:
       name: testQuery
       hash: f3bb7334daafefafae0b10d44f0d19bc
       searchSpace: 2
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
-      schema: B
+      schema: A
       operation: |
         query testQuery_f3bb7334_1 {
-          viewer {
-            subType {
-              subgraphB
-            }
+          exclusiveSubgraphA {
+            __typename
           }
         }
     - id: 2
       type: Operation
-      schema: A
+      schema: B
       operation: |
         query testQuery_f3bb7334_2 {
-          exclusiveSubgraphA {
-            __typename
+          viewer {
+            subType {
+              subgraphB
+            }
           }
         }

@@ -184,6 +184,7 @@ operationPlan:
       name: testQuery
       hash: c0cdf5d72861e2b024c2d1ea2305cc18
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Node
@@ -244,6 +245,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Review>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -287,6 +289,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Discussion>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

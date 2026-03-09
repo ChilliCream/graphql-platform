@@ -10,6 +10,7 @@ public sealed class ObjectTypeInfo
     , IOutputTypeInfo
 {
     public ObjectTypeInfo(
+        Compilation compilation,
         INamedTypeSymbol schemaType,
         INamedTypeSymbol runtimeType,
         Resolver? nodeResolver,
@@ -22,11 +23,11 @@ public sealed class ObjectTypeInfo
         RuntimeTypeName = TypeNameInfo.Create(runtimeType);
         RegistrationKey = schemaType.ToAssemblyQualified();
         Namespace = schemaType.ContainingNamespace.ToDisplayString();
-        Description = schemaType.GetDescription();
         IsPublic = schemaType.DeclaredAccessibility == Accessibility.Public;
         NodeResolver = nodeResolver;
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
+        Description = compilation.GetDescription(schemaType);
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
         DescriptorAttributes = attributes.GetUserAttributes();

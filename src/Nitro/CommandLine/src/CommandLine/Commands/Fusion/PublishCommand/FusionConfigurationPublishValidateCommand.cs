@@ -18,7 +18,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
     {
         Description = "Validates a Fusion configuration against the schema and clients.";
         AddOption(Opt<OptionalRequestIdOption>.Instance);
-        AddOption(Opt<ConfigurationFileOption>.Instance);
+        AddOption(Opt<FusionArchiveFileOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -40,12 +40,12 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
             context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(cancellationToken) ??
             throw new ExitException(
-                "No request id was provided and no request id was found in the cache. Please provide a request id.");
+                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
-        var configurationFile =
-            context.ParseResult.GetValueForOption(Opt<ConfigurationFileOption>.Instance)!;
+        var archiveFile =
+            context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
 
-        console.Title("Validating the composition of a fusion configuration");
+        console.Title("Validating the composition of a Fusion configuration");
 
         if (console.IsHumanReadable())
         {
@@ -64,7 +64,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         {
             console.Log("Initialized");
 
-            var stream = FileHelpers.CreateFileStream(configurationFile);
+            var stream = FileHelpers.CreateFileStream(new FileInfo(archiveFile));
 
             var input = new ValidateFusionConfigurationCompositionInput
             {
@@ -94,7 +94,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                 return ExitCodes.Success;
             }
 
-            console.Error.WriteLine("The validation failed:");
+            console.WriteLine("The validation failed:");
             if (failed is not null)
             {
                 console.PrintErrorsAndExit(failed.Errors);
@@ -107,7 +107,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                 if (@event.Errors is { Count: > 0 } errors)
                 {
                     console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
+                    throw Exit("No request ID returned");
                 }
 
                 switch (@event.Data?.OnFusionConfigurationPublishingTaskChanged)

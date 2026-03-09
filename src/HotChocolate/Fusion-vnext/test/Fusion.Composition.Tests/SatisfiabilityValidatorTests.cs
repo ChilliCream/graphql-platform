@@ -2536,6 +2536,39 @@ public sealed class SatisfiabilityValidatorTests
             """);
     }
 
+    [Fact]
+    public void RootRequirement()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    optionalField: String
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    requiredField(value: String @require(field: "optionalField")): String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
     [Theory]
     [MemberData(nameof(GlobalObjectIdentificationExamplesData))]
     public void GlobalObjectIdentification_Examples(string[] sdl, bool success, string? logs = null)
@@ -2786,6 +2819,27 @@ public sealed class SatisfiabilityValidatorTests
                         Unable to access the required field 'Cat.name' on path 'B:Query.node<Node>'.
                           No other schemas contain the field 'Cat.name'.
                 """
+            },
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ],
+                true,
+                null
             },
             // A source schema is missing a lookup, but the fields it's contributing aren't exclusive
             {

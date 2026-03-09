@@ -70,13 +70,18 @@ public sealed class NodeResolverIdParameterAnalyzer : DiagnosticAnalyzer
 
         // Check if first parameter is named "id"
         var firstParameter = methodDeclaration.ParameterList.Parameters[0];
-        if (firstParameter.Identifier.Text != "id")
-        {
-            var diagnostic = Diagnostic.Create(
-                Errors.NodeResolverIdParameter,
-                firstParameter.GetLocation());
+        var firstParameterName = firstParameter.Identifier.Text;
 
-            context.ReportDiagnostic(diagnostic);
+        if (firstParameterName == "id"
+            || firstParameterName.EndsWith("Id", StringComparison.Ordinal))
+        {
+            return;
         }
+
+        var diagnostic = Diagnostic.Create(
+            Errors.NodeResolverIdParameter,
+            firstParameter.GetLocation());
+
+        context.ReportDiagnostic(diagnostic);
     }
 }

@@ -1,22 +1,12 @@
 using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using CoreFormatters = CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace CookieCrumble.HotChocolate;
 
 public static class SnapshotExtensions
 {
-    public static void MatchSnapshot(
-        this ISyntaxNode? value,
-        string? postFix = null)
-        => Snapshot.Match(
-            value,
-            postFix,
-            extension: ".graphql",
-            formatter: SnapshotValueFormatters.GraphQL);
-
     public static void MatchSnapshot(
         this ISchemaDefinition? value,
         string? postFix = null)
@@ -39,7 +29,7 @@ public static class SnapshotExtensions
         IExecutionResult result,
         string? name = null)
     {
-        if (result.ContextData is null)
+        if (result.ContextData.IsEmpty)
         {
             snapshot.Add(result.ToJson(), name);
             return snapshot;

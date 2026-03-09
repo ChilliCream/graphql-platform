@@ -1,22 +1,20 @@
 {
   "errors": [
     {
-      "message": "The specified argument value does not match the argument type.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 22
-        }
-      ],
+      "message": "Not a valid name.",
       "path": [
         "nameToString"
       ],
       "extensions": {
-        "argument": "name",
-        "argumentValue": "\"  \"",
-        "locationType": "Name",
-        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+        "inputPath": [
+          "name"
+        ],
+        "coordinate": "Query.nameToString(name:)",
+        "fieldType": "Name"
       }
     }
-  ]
+  ],
+  "data": {
+    "nameToString": null
+  }
 }

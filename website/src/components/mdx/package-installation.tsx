@@ -6,11 +6,18 @@ import { InputChoiceTabs } from "./input-choice-tabs";
 import { Warning } from "./warning";
 
 type Props = {
-  readonly packageName: string;
+  readonly packageName?: string;
+  // rehype-raw lowercases HTML attributes, so accept both casings
+  readonly packagename?: string;
   readonly external?: boolean;
 };
 
-export const PackageInstallation: FC<Props> = ({ packageName, external }) => {
+export const PackageInstallation: FC<Props> = ({
+  packageName,
+  packagename,
+  external,
+}) => {
+  packageName = packageName || packagename || "";
   return (
     <>
       <InputChoiceTabs>

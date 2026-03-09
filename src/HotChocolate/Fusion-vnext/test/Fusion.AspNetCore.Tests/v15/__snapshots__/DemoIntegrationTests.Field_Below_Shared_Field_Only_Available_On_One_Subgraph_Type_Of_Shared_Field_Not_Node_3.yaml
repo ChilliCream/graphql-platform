@@ -134,19 +134,39 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query Op_b7bd95cc_2(
-              $__fusion_1_id: ID!
-            ) {
-              productAvailabilityById(id: $__fusion_1_id) {
-                subgraph2Only
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_b7bd95cc_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  productAvailabilityById(id: $__fusion_1_id) {
+                    subgraph2Only
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                }
+            - document: |
+                query Op_b7bd95cc_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  node(id: $__fusion_2_id) {
+                    __typename
+                    ... on ProductAvailability {
+                      sharedLinked {
+                        subgraph2Only
+                      }
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -156,27 +176,11 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_b7bd95cc_3(
-              $__fusion_2_id: ID!
-            ) {
-              productAvailabilityById(id: $__fusion_2_id) {
-                sharedLinked {
-                  subgraph2Only
-                }
-              }
-            }
-          variables: |
-            {
-              "__fusion_2_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
-            }
-        response:
-          results:
             - |
               {
                 "data": {
-                  "productAvailabilityById": {
+                  "node": {
+                    "__typename": "ProductAvailability",
                     "sharedLinked": {
                       "subgraph2Only": true
                     }
@@ -204,6 +208,7 @@ operationPlan:
         }
       hash: b7bd95cc656e48080c29c23922f3b879
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -238,6 +243,7 @@ operationPlan:
         }
       source: $.productAvailabilityById
       target: $.productById.subgraph1Only
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -251,14 +257,18 @@ operationPlan:
         query Op_b7bd95cc_3(
           $__fusion_2_id: ID!
         ) {
-          productAvailabilityById(id: $__fusion_2_id) {
-            sharedLinked {
-              subgraph2Only
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on ProductAvailability {
+              sharedLinked {
+                subgraph2Only
+              }
             }
           }
         }
-      source: $.productAvailabilityById
+      source: $.node<ProductAvailability>
       target: $.productById.subgraph1Only
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

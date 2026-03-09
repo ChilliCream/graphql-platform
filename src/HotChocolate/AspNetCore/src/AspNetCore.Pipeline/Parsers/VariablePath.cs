@@ -1,9 +1,10 @@
+using System.Collections;
 using HotChocolate.AspNetCore.Utilities;
 using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 
 namespace HotChocolate.AspNetCore.Parsers;
 
-internal sealed class VariablePath(KeyPathSegment key)
+internal sealed class VariablePath(KeyPathSegment key) : IEnumerable<IVariablePathSegment>
 {
     public KeyPathSegment Key { get; } = key;
 
@@ -45,4 +46,18 @@ internal sealed class VariablePath(KeyPathSegment key)
 
         throw new InvalidOperationException(VariablePath_Parse_FirstSegmentMustBeKey);
     }
+
+    public IEnumerator<IVariablePathSegment> GetEnumerator()
+    {
+        IVariablePathSegment? current = Key;
+
+        while (current is not null)
+        {
+            yield return current;
+
+            current = current.Next;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

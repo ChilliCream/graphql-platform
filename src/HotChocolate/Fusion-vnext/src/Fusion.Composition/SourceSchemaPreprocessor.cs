@@ -199,13 +199,13 @@ internal sealed partial class SourceSchemaPreprocessor(
                         continue;
                     }
 
-                    if (field.Directives.ContainsName(Internal) || field.Directives.ContainsName(Inaccessible))
+                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal) || field.Directives.ContainsName(Inaccessible))
                     {
                         continue;
                     }
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
-                        || otherField.Directives.ContainsName(Internal)
+                        || otherField.Directives.ContainsName(WellKnownDirectiveNames.Internal)
                         || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;
@@ -240,7 +240,7 @@ internal sealed partial class SourceSchemaPreprocessor(
                 continue;
             }
 
-            if (field.Directives.ContainsName(Internal))
+            if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal))
             {
                 queryType.Fields.Remove(field);
             }

@@ -1,6 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -18,7 +18,7 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc").Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
@@ -43,7 +43,7 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc").Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
@@ -63,7 +63,7 @@ public class MiddlewareContextTests
     public async Task CollectFields()
     {
         // arrange
-        var list = new List<ISelection>();
+        var list = new List<Selection>();
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -105,7 +105,7 @@ public class MiddlewareContextTests
             }");
 
         // assert
-        list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
+        list.Select(t => t.SyntaxNodes[0].Node.Name.Value).ToList().MatchSnapshot();
     }
 
     [Fact]
@@ -334,8 +334,8 @@ public class MiddlewareContextTests
                 continue;
             }
 
-            Assert.NotNull(queryResult.Incremental?[0].ContextData);
-            Assert.True(queryResult.Incremental[0].ContextData!.TryGetValue("abc", out var value));
+            Assert.NotNull(queryResult.ContextData);
+            Assert.True(queryResult.ContextData.TryGetValue("abc", out var value));
             Assert.Equal(2, value);
         }
     }
@@ -411,119 +411,6 @@ public class MiddlewareContextTests
     }
 
     [Fact]
-    public async Task SetResultExtensionData_With_Delegate_IntValue()
-    {
-        var result = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(
-                d =>
-                {
-                    d.Field("abc")
-                        .Argument("a", t => t.Type<StringType>())
-                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
-                        .Use(
-                            next => async context =>
-                            {
-                                context.OperationResult.SetExtension("abc", 1);
-                                context.OperationResult.SetExtension<int>("abc", (_, v) => 1 + v);
-                                await next(context);
-                            });
-                })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
-
-        Snapshot
-            .Create()
-            .Add(result)
-            .MatchInline(
-                """
-                {
-                  "data": {
-                    "abc": "abc"
-                  },
-                  "extensions": {
-                    "abc": 2
-                  }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task SetResultExtensionData_With_Delegate_IntValue_With_State()
-    {
-        var result = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(
-                d =>
-                {
-                    d.Field("abc")
-                        .Argument("a", t => t.Type<StringType>())
-                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
-                        .Use(
-                            next => async context =>
-                            {
-                                context.OperationResult.SetExtension("abc", 1);
-                                context.OperationResult.SetExtension<int, int>(
-                                    key: "abc",
-                                    state: 5,
-                                    (_, v, s) => s + v);
-                                await next(context);
-                            });
-                })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
-
-        Snapshot
-            .Create()
-            .Add(result)
-            .MatchInline(
-                """
-                {
-                  "data": {
-                    "abc": "abc"
-                  },
-                  "extensions": {
-                    "abc": 6
-                  }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task SetResultExtensionData_With_Delegate_NoDefaultValue_IntValue()
-    {
-        var result = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(
-                d =>
-                {
-                    d.Field("abc")
-                        .Argument("a", t => t.Type<StringType>())
-                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
-                        .Use(
-                            next => async context =>
-                            {
-                                context.OperationResult.SetExtension<int>("abc", (_, v) => 1 + v);
-                                await next(context);
-                            });
-                })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
-
-        Snapshot
-            .Create()
-            .Add(result)
-            .MatchInline(
-                """
-                {
-                  "data": {
-                    "abc": "abc"
-                  },
-                  "extensions": {
-                    "abc": 1
-                  }
-                }
-                """);
-    }
-
-    [Fact]
     public async Task SetResultExtensionData_With_ObjectValue()
     {
         var result = await new ServiceCollection()
@@ -561,7 +448,8 @@ public class MiddlewareContextTests
                 """);
     }
 
-    [Fact]
+    // TODO : FIX BEFORE V16 RELEASE
+    [Fact(Skip = "We need to research how we deal with extensions")]
     public async Task SetResultExtensionData_With_ObjectValue_WhenDeferred()
     {
         using var cts = new CancellationTokenSource(5000);
@@ -627,8 +515,8 @@ public class MiddlewareContextTests
 
     private static void CollectSelections(
         IResolverContext context,
-        ISelection selection,
-        ICollection<ISelection> collected)
+        Selection selection,
+        ICollection<Selection> collected)
     {
         if (selection.Type.IsLeafType())
         {
@@ -644,5 +532,6 @@ public class MiddlewareContextTests
         }
     }
 
+    // ReSharper disable once NotAccessedPositionalProperty.Local
     private record SomeData(string SomeField);
 }

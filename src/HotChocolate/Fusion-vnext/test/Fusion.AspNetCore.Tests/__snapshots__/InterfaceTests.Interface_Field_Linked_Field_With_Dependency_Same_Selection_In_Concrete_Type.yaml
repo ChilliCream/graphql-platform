@@ -120,21 +120,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_77a61d25_3(
-              $__fusion_2_id: ID!
-            ) {
-              authorById(id: $__fusion_2_id) {
-                displayName
-              }
-            }
-          variables: |
-            {
-              "__fusion_2_id": "QXV0aG9yOjI="
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -166,6 +151,7 @@ operationPlan:
       name: testQuery
       hash: 77a61d25bcbf9ac9675e65103f6dc4ed
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -185,7 +171,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_77a61d25_2(
@@ -196,28 +182,12 @@ operationPlan:
           }
         }
       source: $.authorById
-      target: $.authorable<Discussion>.author
+      targets:
+        - $.authorable<Discussion>.author
+        - $.authorable.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_77a61d25_3(
-          $__fusion_2_id: ID!
-        ) {
-          authorById(id: $__fusion_2_id) {
-            displayName
-          }
-        }
-      source: $.authorById
-      target: $.authorable.author
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:

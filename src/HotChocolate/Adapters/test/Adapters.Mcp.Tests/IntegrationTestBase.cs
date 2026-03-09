@@ -3,7 +3,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution;
@@ -396,7 +395,7 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_WithOpenAiComponent_ReturnsExpectedResult()
+    public async Task ListTools_WithMcpAppView_ReturnsExpectedResult()
     {
         // arrange
         var storage = new TestMcpStorage();
@@ -410,13 +409,8 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(document2)
             {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
-                {
-                    AllowToolCalls = true,
-                    ToolInvokingStatusText = "Invoking GetWithNonNullableVariables...",
-                    ToolInvokedStatusText = "GetWithNonNullableVariables invoked."
-                }
+                View = new McpAppView(
+                    html: await File.ReadAllTextAsync("__resources__/McpAppView.html"))
             });
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
@@ -658,9 +652,9 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "any", null },
+                { "base64String", null },
                 { "boolean", null },
                 { "byte", null },
-                { "byteArray", null },
                 { "date", null },
                 { "dateTime", null },
                 { "decimal", null },
@@ -679,16 +673,18 @@ public abstract class IntegrationTestBase
                 { "string", null },
                 { "timeSpan", null },
                 { "unknown", null },
+                { "unsignedByte", null },
+                { "unsignedInt", null },
+                { "unsignedLong", null },
+                { "unsignedShort", null },
+                { "uri", null },
                 { "url", null },
                 { "uuid", null }
             },
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -710,9 +706,9 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "any", new { key = "value" } },
+                { "base64String", "dGVzdA==" },
                 { "boolean", true },
                 { "byte", 1 },
-                { "byteArray", "dGVzdA==" },
                 { "date", "2000-01-01" },
                 { "dateTime", "2000-01-01T12:00:00Z" },
                 { "decimal", 79228162514264337593543950335m },
@@ -731,16 +727,18 @@ public abstract class IntegrationTestBase
                 { "string", "test" },
                 { "timeSpan", "PT5M" },
                 { "unknown", "test" },
+                { "unsignedByte", 1 },
+                { "unsignedInt", 65536 },
+                { "unsignedLong", 4294967296 },
+                { "unsignedShort", 256 },
+                { "uri", "https://example.com" },
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
             },
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -759,10 +757,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_defaulted_variables");
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -808,10 +803,7 @@ public abstract class IntegrationTestBase
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -829,11 +821,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_errors");
 
         // assert
-        result.StructuredContent!
-            .RemoveLocations()
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -853,8 +841,8 @@ public abstract class IntegrationTestBase
 
         // assert
         var snapshot = new Snapshot();
-        snapshot.Add(result1.StructuredContent, "Result 1", markdownLanguage: "json");
-        snapshot.Add(result2.StructuredContent, "Result 2", markdownLanguage: "json");
+        snapshot.Add(result1.StructuredContent, "Result 1");
+        snapshot.Add(result2.StructuredContent, "Result 2");
         await snapshot.MatchMarkdownAsync();
     }
 
@@ -873,11 +861,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_auth");
 
         // assert
-        result.StructuredContent!
-            .RemoveLocations()
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -912,27 +896,36 @@ public abstract class IntegrationTestBase
         var tool =
             new OperationToolDefinition(documentNode)
             {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
+                View = new McpAppView(
+                    html: await File.ReadAllTextAsync("__resources__/McpAppView.html"))
                 {
-                    Description = "GetBooksWithTitle1 OpenAI Component description",
-                    PrefersBorder = true,
-                    AllowToolCalls = true,
                     Csp =
-                        new OpenAiComponentCsp(
-                            ConnectDomains: ["https://example.com"],
-                            ResourceDomains: ["https://*.example.com"]),
+                        new McpAppViewCsp
+                        {
+                            BaseUriDomains = ["https://example.com"],
+                            ConnectDomains = ["https://example.com"],
+                            FrameDomains = ["https://example.com"],
+                            ResourceDomains = ["https://example.com"]
+                        },
                     Domain = "https://example.com",
-                    ToolInvokingStatusText = "Fetching books...",
-                    ToolInvokedStatusText = "Books fetched."
-                }
+                    Permissions =
+                        new McpAppViewPermissions
+                        {
+                            Camera = true,
+                            ClipboardWrite = false,
+                            Geolocation = true,
+                            Microphone = false
+                        },
+                    PrefersBorder = true
+                },
+                Visibility = [McpAppViewVisibility.App]
             };
         await storage.AddOrUpdateToolAsync(tool);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.ReadResourceAsync(tool.OpenAiComponentOutputTemplate!);
+        var result = await mcpClient.ReadResourceAsync(tool.ViewResourceUri!);
 
         // assert
         JsonSerializer.Serialize(result, JsonSerializerOptions)
@@ -949,13 +942,13 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        async Task Action() => await mcpClient.ReadResourceAsync("ui://open-ai-components/missing.html");
+        async Task Action() => await mcpClient.ReadResourceAsync("ui://views/missing.html");
 
         // assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
         Assert.EndsWith("Resource not found.", exception.Message);
         Assert.Equal(-32002, (int)exception.ErrorCode);
-        Assert.Equal("ui://open-ai-components/missing.html", exception.Data["uri"]);
+        Assert.Equal("ui://views/missing.html", exception.Data["uri"]);
     }
 
     [Fact]
@@ -1050,24 +1043,5 @@ public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
     public override void ValidationErrors(IReadOnlyList<IError> errors)
     {
         ValidationErrorLog.AddRange(errors);
-    }
-}
-
-file static class JsonNodeExtensions
-{
-    public static JsonNode RemoveLocations(this JsonNode node)
-    {
-        if (node["errors"] is JsonArray errors)
-        {
-            foreach (var error in errors)
-            {
-                if (error is JsonObject errorObject)
-                {
-                    errorObject.Remove("locations");
-                }
-            }
-        }
-
-        return node;
     }
 }

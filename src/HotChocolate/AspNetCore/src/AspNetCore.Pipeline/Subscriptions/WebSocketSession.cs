@@ -1,4 +1,7 @@
 using System.Buffers;
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
@@ -7,9 +10,12 @@ using static HotChocolate.AspNetCore.Subscriptions.ConnectionCloseReason;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class WebSocketSession : ISocketSession
 {
-    private static readonly GraphQLSocketOptions s_defaultOptions = new();
     private bool _disposed;
 
     private WebSocketSession(
@@ -40,7 +46,8 @@ internal sealed class WebSocketSession : ISocketSession
 
     public static async Task AcceptAsync(
         HttpContext context,
-        ExecutorSession executorSession)
+        ExecutorSession executorSession,
+        GraphQLSocketOptions socketOptions)
     {
         using var connection = new WebSocketConnection(context, executorSession);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
@@ -52,7 +59,7 @@ internal sealed class WebSocketSession : ISocketSession
         if (protocol is not null)
         {
             using var session = new WebSocketSession(connection, protocol, executorSession);
-            var options = context.GetGraphQLSocketOptions() ?? s_defaultOptions;
+            var options = socketOptions;
 
             try
             {

@@ -1,0 +1,7 @@
+{
+  enum: Foo,
+  enum2: Bar,
+  nested: {
+    inner: "value"
+  }
+}

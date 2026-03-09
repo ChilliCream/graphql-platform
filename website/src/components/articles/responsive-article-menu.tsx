@@ -113,6 +113,8 @@ const Button = styled.button`
   flex-direction: row;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
   font-size: 0.875rem;
   color: ${THEME_COLORS.link};
   transition: color 0.2s ease-in-out;

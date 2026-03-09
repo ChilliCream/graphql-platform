@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -11,6 +12,7 @@ namespace HotChocolate.Fusion.Planning;
 public sealed partial class OperationPlanner
 {
     private const string UploadScalarName = "Upload";
+    private const string DynamicSchemaNameMarker = "__dynamic__";
 
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
@@ -19,7 +21,8 @@ public sealed partial class OperationPlanner
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
-        uint searchSpace)
+        int searchSpace,
+        int expandedNodes)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -31,7 +34,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, searchSpace);
+            return OperationPlan.Create(operation, nodes, nodes, searchSpace, expandedNodes);
         }
 
         var completedSteps = new HashSet<int>();
@@ -48,11 +51,13 @@ public sealed partial class OperationPlanner
             completedNodes,
             dependencyLookup,
             _schema,
+            _options.EnableRequestGrouping,
             hasVariables);
+        MergeEquivalentOperationNodes(completedNodes, dependencyLookup);
         BuildDependencyStructure(completedNodes, dependencyLookup, branchesLookup, fallbackLookup);
 
         var rootNodes = planSteps
-            .Where(t => !dependencyLookup.ContainsKey(t.Id))
+            .Where(t => !dependencyLookup.ContainsKey(t.Id) && completedNodes.ContainsKey(t.Id))
             .Select(t => completedNodes[t.Id])
             .ToImmutableArray();
 
@@ -76,7 +81,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace);
+        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
 
     private static ImmutableList<PlanStep> PrepareSteps(
@@ -87,7 +92,6 @@ public sealed partial class OperationPlanner
         Dictionary<int, int> fallbackLookup)
     {
         var updatedPlanSteps = planSteps;
-        var emptySelectionSetContext = new HasEmptySelectionSetVisitor.Context();
         var forwardVariableContext = new ForwardVariableRewriter.Context();
 
         foreach (var variableDef in originalOperation.VariableDefinitions)
@@ -99,13 +103,23 @@ public sealed partial class OperationPlanner
         {
             if (step is OperationPlanStep operationPlanStep)
             {
+                // Planning may leave temporary `{}` child selections after requirement rewrites.
+                // We normalize those first, then only remove the step if the root selection set
+                // itself became empty.
+                operationPlanStep = RemoveEmptySelectionSets(operationPlanStep);
+
+                if (!ReferenceEquals(step, operationPlanStep))
+                {
+                    updatedPlanSteps = updatedPlanSteps.Replace(step, operationPlanStep);
+                }
+
                 // During the planing process we keep incomplete operation steps around
                 // in order to inline requirements. If those do not materialize these
                 // operation fragments need to be removed before we can build the
                 // execution plan.
                 if (IsEmptyOperation(operationPlanStep))
                 {
-                    updatedPlanSteps = updatedPlanSteps.Remove(step);
+                    updatedPlanSteps = updatedPlanSteps.Remove(operationPlanStep);
                     continue;
                 }
 
@@ -174,9 +188,30 @@ public sealed partial class OperationPlanner
 
         bool IsEmptyOperation(OperationPlanStep step)
         {
-            emptySelectionSetContext.HasEmptySelectionSet = false;
-            s_hasEmptySelectionSetVisitor.Visit(step.Definition, emptySelectionSetContext);
-            return emptySelectionSetContext.HasEmptySelectionSet;
+            if (step.Definition.SelectionSet.Selections.Count == 0)
+            {
+                return true;
+            }
+
+            return step.Definition.SelectionSet.Selections is
+            [
+                FieldNode
+#pragma warning disable format
+                {
+                    Alias: null,
+                    Name.Value: IntrospectionFieldNames.TypeName,
+                    Directives: [{ Name.Value: "fusion__empty" }]
+                }
+#pragma warning restore format
+            ];
+        }
+
+        OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
+        {
+            var updatedDefinition = RemoveEmptySelections(step.Definition);
+            return ReferenceEquals(updatedDefinition, step.Definition)
+                ? step
+                : step with { Definition = updatedDefinition };
         }
 
         OperationPlanStep AddVariableDefinitions(OperationPlanStep step)
@@ -213,10 +248,15 @@ public sealed partial class OperationPlanner
         Dictionary<int, ExecutionNode> completedNodes,
         Dictionary<int, HashSet<int>> dependencyLookup,
         ISchemaDefinition schema,
+        bool enableRequestGrouping,
         bool hasVariables)
     {
-        var hasUploadScalar = schema.Types.TryGetType(UploadScalarName, out var uploadType)
-            && uploadType.IsScalarType();
+        var hasUploadScalar =
+            schema.Types.TryGetType(UploadScalarName, out var uploadType) && uploadType.IsScalarType();
+        var batchingGroupLookup = CreateBatchingGroupLookup(
+            planSteps,
+            dependencyLookup,
+            enableRequestGrouping);
         var readySteps = planSteps.Where(t => !dependencyLookup.ContainsKey(t.Id)).ToList();
         List<string>? variables = null;
 
@@ -265,9 +305,13 @@ public sealed partial class OperationPlanner
                     var requiresFileUpload = hasUploadScalar
                         && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
 
+                    var operation = RemoveEmptyTypeNames(operationStep.Definition);
+                    var operationSource = operation.ToSourceText();
+                    int? batchingGroupId = batchingGroupLookup.TryGetValue(step.Id, out var groupId) ? groupId : null;
+
                     var node = new OperationExecutionNode(
                         operationStep.Id,
-                        RemoveEmptyTypeNames(operationStep.Definition).ToSourceText(),
+                        operationSource,
                         operationStep.SchemaName,
                         operationStep.Target,
                         operationStep.Source,
@@ -275,6 +319,7 @@ public sealed partial class OperationPlanner
                         variables?.Count > 0 ? variables.ToArray() : [],
                         GetResponseNamesFromPath(operationStep.Definition, operationStep.Source),
                         operationStep.Conditions,
+                        batchingGroupId,
                         requiresFileUpload);
 
                     completedNodes.Add(step.Id, node);
@@ -309,6 +354,137 @@ public sealed partial class OperationPlanner
         }
     }
 
+    internal static Dictionary<int, int> CreateBatchingGroupLookup(
+        ImmutableList<PlanStep> planSteps,
+        Dictionary<int, HashSet<int>> dependencyLookup,
+        bool enableRequestGrouping)
+    {
+        if (!enableRequestGrouping)
+        {
+            return [];
+        }
+
+        var queryStepsByService = new Dictionary<string, List<OperationPlanStep>>(StringComparer.Ordinal);
+
+        foreach (var operationStep in planSteps.OfType<OperationPlanStep>())
+        {
+            if (operationStep.Definition.Operation is not OperationType.Query)
+            {
+                continue;
+            }
+
+            var schemaKey = operationStep.SchemaName ?? DynamicSchemaNameMarker;
+
+            if (!queryStepsByService.TryGetValue(schemaKey, out var serviceSteps))
+            {
+                serviceSteps = [];
+                queryStepsByService[schemaKey] = serviceSteps;
+            }
+
+            serviceSteps.Add(operationStep);
+        }
+
+        if (queryStepsByService.Count == 0)
+        {
+            return [];
+        }
+
+        var dependencyDepthLookup = new Dictionary<int, int>();
+        var recursionStack = new HashSet<int>();
+
+        foreach (var serviceSteps in queryStepsByService.Values)
+        {
+            foreach (var step in serviceSteps)
+            {
+                GetDependencyDepth(
+                    step.Id,
+                    dependencyLookup,
+                    dependencyDepthLookup,
+                    recursionStack);
+            }
+        }
+
+        var lookup = new Dictionary<int, int>();
+        var nextGroupId = 0;
+
+        foreach (var (_, serviceSteps) in queryStepsByService.OrderBy(t => t.Key, StringComparer.Ordinal))
+        {
+            var stepsByDepth = new Dictionary<int, List<int>>();
+
+            foreach (var step in serviceSteps)
+            {
+                var depth = dependencyDepthLookup.TryGetValue(step.Id, out var currentDepth)
+                    ? currentDepth
+                    : 0;
+
+                if (!stepsByDepth.TryGetValue(depth, out var groupedSteps))
+                {
+                    groupedSteps = [];
+                    stepsByDepth.Add(depth, groupedSteps);
+                }
+
+                groupedSteps.Add(step.Id);
+            }
+
+            foreach (var groupedSteps in stepsByDepth.OrderBy(t => t.Key).Select(t => t.Value))
+            {
+                if (groupedSteps.Count <= 1)
+                {
+                    continue;
+                }
+
+                groupedSteps.Sort();
+                var groupId = ++nextGroupId;
+
+                foreach (var stepId in groupedSteps)
+                {
+                    lookup.Add(stepId, groupId);
+                }
+            }
+        }
+
+        return lookup;
+    }
+
+    private static int GetDependencyDepth(
+        int stepId,
+        Dictionary<int, HashSet<int>> dependencyLookup,
+        Dictionary<int, int> dependencyDepthLookup,
+        HashSet<int> recursionStack)
+    {
+        if (dependencyDepthLookup.TryGetValue(stepId, out var depth))
+        {
+            return depth;
+        }
+
+        if (!dependencyLookup.TryGetValue(stepId, out var directDependencies) || directDependencies.Count == 0)
+        {
+            dependencyDepthLookup[stepId] = 0;
+            return 0;
+        }
+
+        if (!recursionStack.Add(stepId))
+        {
+            throw new InvalidOperationException("The execution dependency graph contains a cycle.");
+        }
+
+        var maxDepth = 0;
+
+        foreach (var dependency in directDependencies.OrderBy(t => t))
+        {
+            var dependencyDepth = GetDependencyDepth(
+                dependency,
+                dependencyLookup,
+                dependencyDepthLookup,
+                recursionStack);
+            maxDepth = Math.Max(maxDepth, dependencyDepth + 1);
+        }
+
+        recursionStack.Remove(stepId);
+        dependencyDepthLookup[stepId] = maxDepth;
+        return maxDepth;
+    }
+
     private static void BuildDependencyStructure(
         Dictionary<int, ExecutionNode> completedNodes,
         Dictionary<int, HashSet<int>> dependencyLookup,
@@ -317,7 +493,8 @@ public sealed partial class OperationPlanner
     {
         foreach (var (nodeId, stepDependencies) in dependencyLookup)
         {
-            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not OperationExecutionNode node)
+            if (!completedNodes.TryGetValue(nodeId, out var entry)
+                || entry is not (OperationExecutionNode or OperationBatchExecutionNode))
             {
                 continue;
             }
@@ -325,13 +502,13 @@ public sealed partial class OperationPlanner
             foreach (var dependencyId in stepDependencies)
             {
                 if (!completedNodes.TryGetValue(dependencyId, out var childEntry)
-                    || entry is not OperationExecutionNode or NodeFieldExecutionNode)
+                    || childEntry is not (OperationExecutionNode or OperationBatchExecutionNode or NodeFieldExecutionNode))
                 {
                     continue;
                 }
 
-                childEntry.AddDependent(node);
-                node.AddDependency(childEntry);
+                childEntry.AddDependent(entry);
+                entry.AddDependency(childEntry);
             }
         }
 
@@ -367,6 +544,234 @@ public sealed partial class OperationPlanner
 
             node.AddFallbackQuery(fallbackNode);
         }
+    }
+
+    private static void MergeEquivalentOperationNodes(
+        Dictionary<int, ExecutionNode> completedNodes,
+        Dictionary<int, HashSet<int>> dependencyLookup)
+    {
+        // We group OperationExecutionNodes by (schemaName, sortedDependencies).
+        // Nodes must have identical dependency sets to be safely mergeable.
+        //
+        // A node with different dependencies may be gated behind a conditional branch
+        // (e.g. NodeField inline-fragment dispatch) that never fires for certain entity types,
+        // so merging them would create a node whose dependency union can never be fully satisfied,
+        // possibly causing a deadlock.
+        var candidates = new Dictionary<(string schema, string deps), List<OperationExecutionNode>>();
+
+        foreach (var node in completedNodes.Values.OfType<OperationExecutionNode>())
+        {
+            var schemaKey = node.SchemaName ?? DynamicSchemaNameMarker;
+            var depsKey = dependencyLookup.TryGetValue(node.Id, out var depsSet)
+                ? string.Join(",", depsSet.Order())
+                : string.Empty;
+            var groupKey = (schemaKey, depsKey);
+
+            if (!candidates.TryGetValue(groupKey, out var list))
+            {
+                list = [];
+                candidates[groupKey] = list;
+            }
+
+            list.Add(node);
+        }
+
+        // Within each bucket, find sub-groups with identical canonical signatures and merge them.
+        foreach (var (_, groupNodes) in candidates)
+        {
+            if (groupNodes.Count <= 1)
+            {
+                continue;
+            }
+
+            var bySignature = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
+
+            foreach (var node in groupNodes)
+            {
+                var sig = ComputeCanonicalSignature(node);
+
+                if (!bySignature.TryGetValue(sig, out var sigGroup))
+                {
+                    sigGroup = [];
+                    bySignature[sig] = sigGroup;
+                }
+
+                sigGroup.Add(node);
+            }
+
+            foreach (var (_, equivalentNodes) in bySignature)
+            {
+                if (equivalentNodes.Count <= 1)
+                {
+                    continue;
+                }
+
+                // Stable order: lowest ID becomes the canonical node.
+                equivalentNodes.Sort((a, b) => a.Id.CompareTo(b.Id));
+
+                var primary = equivalentNodes[0];
+                var otherIds = equivalentNodes.Skip(1).Select(n => n.Id).ToList();
+
+                var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
+                var targets = equivalentNodes.Select(n => n.Target).ToArray();
+
+                var mergedNode = new OperationBatchExecutionNode(
+                    primary.Id,
+                    canonicalOp,
+                    primary.SchemaName,
+                    targets,
+                    primary.Source,
+                    canonicalRequirements,
+                    primary.ForwardedVariables.ToArray(),
+                    primary.ResponseNames.ToArray(),
+                    primary.Conditions.ToArray(),
+                    primary.BatchingGroupId,
+                    primary.RequiresFileUpload);
+
+                completedNodes[primary.Id] = mergedNode;
+
+                foreach (var otherId in otherIds)
+                {
+                    completedNodes.Remove(otherId);
+                }
+
+                // Union all dependency sets under the primary ID.
+                if (!dependencyLookup.TryGetValue(primary.Id, out var primaryDeps))
+                {
+                    primaryDeps = [];
+                }
+
+                foreach (var otherId in otherIds)
+                {
+                    if (dependencyLookup.TryGetValue(otherId, out var otherDeps))
+                    {
+                        foreach (var dep in otherDeps)
+                        {
+                            primaryDeps.Add(dep);
+                        }
+
+                        dependencyLookup.Remove(otherId);
+                    }
+                }
+
+                if (primaryDeps.Count > 0)
+                {
+                    dependencyLookup[primary.Id] = primaryDeps;
+                }
+                else
+                {
+                    dependencyLookup.Remove(primary.Id);
+                }
+
+                // Replace all references to the removed IDs with the primary ID.
+                var otherIdSet = new HashSet<int>(otherIds);
+
+                foreach (var depSet in dependencyLookup.Values)
+                {
+                    var hadOther = false;
+
+                    foreach (var otherId in otherIdSet)
+                    {
+                        if (depSet.Remove(otherId))
+                        {
+                            hadOther = true;
+                        }
+                    }
+
+                    if (hadOther)
+                    {
+                        depSet.Add(primary.Id);
+                    }
+                }
+            }
+        }
+    }
+
+    private static string ComputeCanonicalSignature(OperationExecutionNode node)
+    {
+        var replacements = BuildPrefixReplacements(node.Requirements);
+        var normalizedText = ApplyPrefixReplacements(node.Operation.SourceText, replacements);
+
+        // Skip the first line — it contains the operation name which embeds the step ID.
+        var firstNewline = normalizedText.IndexOf('\n');
+        var bodyText = firstNewline >= 0 ? normalizedText[(firstNewline + 1)..] : normalizedText;
+
+        var conditions = string.Join(",", node.Conditions.ToArray()
+            .OrderBy(c => c.VariableName)
+            .Select(c => $"{c.VariableName}:{c.PassingValue}"));
+
+        return $"{node.SchemaName}|{node.Source}|{conditions}|{bodyText}";
+    }
+
+    private static (OperationSourceText operation, OperationRequirement[] requirements) CanonicalizeOperation(
+        OperationExecutionNode node)
+    {
+        // Use the primary node's operation and requirements as-is.
+        // The primary has the lowest ID (and therefore the lowest __fusion_{N}_ prefix numbers),
+        // which preserves the globally-unique numbering assigned by the planner.
+        // ComputeCanonicalSignature normalises prefixes only for equivalence comparison,
+        // but the actual merged operation must keep the original numbers.
+        return (node.Operation, node.Requirements.ToArray());
+    }
+
+    /// <summary>
+    /// Builds a list of (original, canonical) string pairs for normalizing
+    /// <c>__fusion_{N}_</c> variable-name prefixes.  Prefixes are sorted
+    /// deterministically by the alphabetically-joined set of their argument names
+    /// so that structurally identical operations always produce the same mapping.
+    /// </summary>
+    private static (string original, string canonical)[] BuildPrefixReplacements(
+        ReadOnlySpan<OperationRequirement> requirements)
+    {
+        var prefixToArgs = new Dictionary<string, SortedSet<string>>(StringComparer.Ordinal);
+
+        foreach (var req in requirements)
+        {
+            var key = req.Key;
+            var lastUnderscore = key.LastIndexOf('_');
+
+            if (lastUnderscore <= 0)
+            {
+                continue;
+            }
+
+            var prefix = key[..lastUnderscore];
+            var arg = key[(lastUnderscore + 1)..];
+
+            if (!prefixToArgs.TryGetValue(prefix, out var args))
+            {
+                args = new(StringComparer.Ordinal);
+                prefixToArgs[prefix] = args;
+            }
+
+            args.Add(arg);
+        }
+
+        var sortedPrefixes = prefixToArgs
+            .OrderBy(kvp => string.Join(",", kvp.Value), StringComparer.Ordinal)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        var result = new (string original, string canonical)[sortedPrefixes.Count];
+
+        for (var i = 0; i < sortedPrefixes.Count; i++)
+        {
+            result[i] = ($"{sortedPrefixes[i]}_", $"__fusion_{i}_");
+        }
+
+        return result;
+    }
+
+    private static string ApplyPrefixReplacements(
+        string text,
+        ReadOnlySpan<(string original, string canonical)> replacements)
+    {
+        foreach (var (original, canonical) in replacements)
+        {
+            text = text.Replace(original, canonical);
+        }
+
+        return text;
     }
 
     private static string[] GetResponseNamesFromPath(
@@ -416,9 +821,9 @@ public sealed partial class OperationPlanner
             return current;
         }
 
-        for (var i = 0; i < path.Segments.Length; i++)
+        for (var i = 0; i < path.Length; i++)
         {
-            var segment = path.Segments[i];
+            var segment = path[i];
 
             switch (segment.Kind)
             {
@@ -461,6 +866,7 @@ public sealed partial class OperationPlanner
         ISchemaDefinition schema)
     {
         var inputObjectTypes = new Queue<IInputObjectTypeDefinition>();
+        var visited = new HashSet<IInputObjectTypeDefinition>(ReferenceEqualityComparer.Instance);
 
         foreach (var variable in variables)
         {
@@ -472,7 +878,7 @@ public sealed partial class OperationPlanner
                 return true;
             }
 
-            if (variableType is IInputObjectTypeDefinition inputObjectType)
+            if (variableType is IInputObjectTypeDefinition inputObjectType && visited.Add(inputObjectType))
             {
                 inputObjectTypes.Enqueue(inputObjectType);
             }
@@ -489,7 +895,7 @@ public sealed partial class OperationPlanner
                     return true;
                 }
 
-                if (fieldType is IInputObjectTypeDefinition nestedInputObjectType)
+                if (fieldType is IInputObjectTypeDefinition nestedInputObjectType && visited.Add(nestedInputObjectType))
                 {
                     inputObjectTypes.Enqueue(nestedInputObjectType);
                 }
@@ -499,66 +905,111 @@ public sealed partial class OperationPlanner
         return false;
     }
 
-    private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
+    private static OperationDefinitionNode RemoveEmptySelections(OperationDefinitionNode operationDefinition)
     {
-        return (OperationDefinitionNode)SyntaxRewriter.Create<List<bool>>(
-            rewrite: (node, context) =>
-            {
-                if (node is SelectionSetNode selectionSet && context.Peek())
+        // Remove fields/fragments whose selection sets collapsed to `{}` during rewriting.
+        // This is local cleanup and intentionally does not remove the whole operation node.
+        return SyntaxRewriter.Create(
+                rewrite: node =>
                 {
-                    var items = selectionSet.Selections.ToList();
-                    for (var i = items.Count - 1; i >= 0; i--)
+                    if (node is not SelectionSetNode selectionSet)
                     {
-                        if (items[i] is FieldNode
-                            {
-                                Alias: null,
-                                Name.Value: IntrospectionFieldNames.TypeName,
-                                Directives: [{ Name.Value: "fusion__empty" }]
-                            } field)
+                        return node;
+                    }
+
+                    List<ISelectionNode>? rewritten = null;
+                    var selections = selectionSet.Selections;
+
+                    for (var i = 0; i < selections.Count; i++)
+                    {
+                        var selection = selections[i];
+                        var removeSelection =
+                            selection is FieldNode { SelectionSet.Selections.Count: 0 }
+                                or InlineFragmentNode { SelectionSet.Selections.Count: 0 };
+
+                        if (!removeSelection)
                         {
-                            if (items.Count > 1)
+                            rewritten?.Add(selection);
+                            continue;
+                        }
+
+                        if (rewritten is null)
+                        {
+                            rewritten = new List<ISelectionNode>(selections.Count - 1);
+                            for (var j = 0; j < i; j++)
                             {
-                                items.RemoveAt(i);
-                            }
-                            else
-                            {
-                                items[i] = field.WithDirectives([]);
+                                rewritten.Add(selections[j]);
                             }
                         }
                     }
 
-                    return new SelectionSetNode(items);
-                }
+                    return rewritten is null
+                        ? node
+                        : new SelectionSetNode(rewritten);
+                })
+            .Rewrite(operationDefinition)!;
+    }
 
-                return node;
-            },
-            enter: (node, context) =>
-            {
-                switch (node)
+    private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
+    {
+        return (OperationDefinitionNode)SyntaxRewriter.Create<List<bool>>(
+                rewrite: (node, context) =>
                 {
-                    case SelectionSetNode:
-                        context.Push(false);
-                        break;
-
-                    case FieldNode
+                    if (node is SelectionSetNode selectionSet && context.Peek())
                     {
-                        Alias: null,
-                        Name.Value: IntrospectionFieldNames.TypeName,
-                        Directives: [{ Name.Value: "fusion__empty" }]
-                    }:
-                        context[^1] = true;
-                        break;
-                }
+                        var items = selectionSet.Selections.ToList();
+                        for (var i = items.Count - 1; i >= 0; i--)
+                        {
+                            if (items[i] is FieldNode
+                                {
+                                    Alias: null,
+                                    Name.Value: IntrospectionFieldNames.TypeName,
+                                    Directives: [{ Name.Value: "fusion__empty" }]
+                                } field)
+                            {
+                                if (items.Count > 1)
+                                {
+                                    items.RemoveAt(i);
+                                }
+                                else
+                                {
+                                    items[i] = field.WithDirectives([]);
+                                }
+                            }
+                        }
 
-                return context;
-            },
-            leave: (node, context) =>
-            {
-                if (node is SelectionSetNode)
+                        return new SelectionSetNode(items);
+                    }
+
+                    return node;
+                },
+                enter: (node, context) =>
                 {
-                    context.Pop();
-                }
-            })
+                    switch (node)
+                    {
+                        case SelectionSetNode:
+                            context.Push(false);
+                            break;
+
+                        case FieldNode
+                        {
+                            Alias: null,
+                            Name.Value: IntrospectionFieldNames.TypeName,
+                            Directives: [{ Name.Value: "fusion__empty" }]
+                        }:
+                            context[^1] = true;
+                            break;
+                    }
+
+                    return context;
+                },
+                leave: (node, context) =>
+                {
+                    if (node is SelectionSetNode)
+                    {
+                        context.Pop();
+                    }
+                })
             .Rewrite(operationDefinition, [])!;
     }
 
@@ -604,7 +1055,23 @@ public sealed partial class OperationPlanner
             newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
         }
 
-        return step with { Definition = newOperation, Conditions = context.Conditions.ToArray() };
+        // Merge extracted conditions with any conditions already propagated from work items,
+        // deduplicating by value equality.
+        var mergedConditions = context.Conditions;
+
+        foreach (var existing in step.Conditions)
+        {
+            mergedConditions.Add(existing);
+        }
+
+        return step with
+        {
+            Definition = newOperation,
+            Conditions = mergedConditions
+                .OrderBy(c => c.VariableName, StringComparer.Ordinal)
+                .ThenBy(c => c.PassingValue)
+                .ToArray(),
+        };
     }
 
     private static SelectionSetNode RewriteConditionalSelectionSet(
@@ -641,7 +1108,8 @@ public sealed partial class OperationPlanner
                 {
                     if (inlineFragmentNode.TypeCondition is null)
                     {
-                        var fragmentSelectionSet = RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, context);
+                        var fragmentSelectionSet =
+                            RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, context);
 
                         if (fragmentSelectionSet.Selections.Count == 0)
                         {
@@ -709,8 +1177,8 @@ file static class Extensions
             {
                 foreach (var fieldName in step.Lookup.Path)
                 {
-                    var fieldNode = selectionSetNode.Selections.FirstOrDefault(
-                        selection => selection is FieldNode fieldNode && fieldNode.Name.Value == fieldName);
+                    var fieldNode = selectionSetNode.Selections.FirstOrDefault(selection =>
+                        selection is FieldNode fieldNode && fieldNode.Name.Value == fieldName);
 
                     if (fieldNode is not FieldNode { SelectionSet: { } nextSelectionSetNode })
                     {
@@ -730,8 +1198,9 @@ file static class Extensions
                 }
             }
 
-            selectionSetNode = lookupFieldNode?.SelectionSet ?? throw new InvalidOperationException(
-                "Expected to find the lookup field with a selection set in the operation definition");
+            selectionSetNode = lookupFieldNode?.SelectionSet ??
+                throw new InvalidOperationException(
+                    "Expected to find the lookup field with a selection set in the operation definition");
         }
 
         foreach (var selection in selectionSetNode.Selections)
@@ -752,24 +1221,32 @@ file static class Extensions
 
     public static bool IsIntrospectionOnly(this Operation operation)
     {
+        var hasNonInternalIntrospectionSelection = false;
+
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
+            if (selection.IsInternal)
+            {
+                continue;
+            }
+
             if (selection.Field.IsIntrospectionField)
             {
+                hasNonInternalIntrospectionSelection = true;
                 continue;
             }
 
             return false;
         }
 
-        return true;
+        return hasNonInternalIntrospectionSelection;
     }
 
     public static bool HasIntrospectionFields(this Operation operation)
     {
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
-            if (selection.Field.IsIntrospectionField)
+            if (selection is { IsInternal: false, Field.IsIntrospectionField: true })
             {
                 return true;
             }
@@ -784,7 +1261,7 @@ file static class Extensions
 
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
-            if (selection.Field.IsIntrospectionField)
+            if (selection is { IsInternal: false, Field.IsIntrospectionField: true })
             {
                 selections.Add(selection);
             }

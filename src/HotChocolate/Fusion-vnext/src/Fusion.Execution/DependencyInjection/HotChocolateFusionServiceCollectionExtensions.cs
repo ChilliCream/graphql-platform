@@ -23,8 +23,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        services.AddOptions();
-
+        AddCore(services);
         AddRequestExecutorManager(services);
         AddSourceSchemaScope(services);
         AddResultObjectPools(services, options.Clone());
@@ -32,18 +31,19 @@ public static class HotChocolateFusionServiceCollectionExtensions
         return CreateBuilder(services, name);
     }
 
-    /// <summary>
-    /// Gets the root service provider from the schema services. This allows
-    /// schema services to access application level services.
-    /// </summary>
-    /// <param name="services">
-    /// The schema services.
-    /// </param>
-    /// <returns>
-    /// The root service provider.
-    /// </returns>
-    public static IServiceProvider GetRootServiceProvider(this IServiceProvider services)
-        => services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
+    private static void AddCore(
+        IServiceCollection services)
+    {
+        services.AddOptions();
+
+        services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+        services.TryAddSingleton(sp =>
+        {
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var policy = new StringBuilderPooledObjectPolicy();
+            return provider.Create(policy);
+        });
+    }
 
     private static void AddRequestExecutorManager(
         IServiceCollection services)

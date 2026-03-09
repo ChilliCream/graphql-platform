@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -33,13 +34,13 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
             context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(cancellationToken) ??
             throw new ExitException(
-                "No request id was provided and no request id was found in the cache. Please provide a request id.");
+                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
-        console.Title("Start the composition of a fusion configuration");
+        console.Title("Start the composition of a Fusion configuration");
 
         await FusionPublishHelpers.ClaimDeploymentSlot(requestId, console, client, cancellationToken);
 
-        console.MarkupLine("Started composition of fusion configuration.");
+        console.MarkupLine("Started composition of Fusion configuration.");
 
         return ExitCodes.Success;
     }

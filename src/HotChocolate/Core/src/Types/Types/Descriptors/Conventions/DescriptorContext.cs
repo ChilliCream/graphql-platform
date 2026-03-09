@@ -154,7 +154,6 @@ public sealed partial class DescriptorContext : IDescriptorContext
         CreateConventions<T>(scope, out convention, out var extensions);
 
         convention ??= convention as T;
-        convention ??= _serviceHelper.GetService<T>();
         convention ??= factory();
 
         if (convention is Convention init)
@@ -267,26 +266,26 @@ public sealed partial class DescriptorContext : IDescriptorContext
 
     internal static DescriptorContext Create(
         IReadOnlySchemaOptions? options = null,
-        IServiceProvider? services = null,
+        IServiceProvider? schemaServices = null,
         IFeatureCollection? features = null,
         SchemaBuilder.LazySchema? schema = null,
         TypeInterceptor? typeInterceptor = null)
         => new DescriptorContext(
             () => options ??= new SchemaOptions(),
-            services ?? EmptyServiceProvider.Instance,
+            schemaServices ?? EmptyServiceProvider.Instance,
             features ?? new FeatureCollection(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());
 
     internal static DescriptorContext Create(
         Func<IReadOnlySchemaOptions> options,
-        IServiceProvider services,
+        IServiceProvider schemaServices,
         IFeatureCollection? features = null,
         SchemaBuilder.LazySchema? schema = null,
         TypeInterceptor? typeInterceptor = null)
         => new DescriptorContext(
             options,
-            services,
+            schemaServices,
             features ?? new FeatureCollection(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());

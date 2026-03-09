@@ -21,4 +21,3 @@ SELECT p."Id", p."Name"
 FROM "Products" AS p
 WHERE p."Id" = ANY (@ids)
 ```
-

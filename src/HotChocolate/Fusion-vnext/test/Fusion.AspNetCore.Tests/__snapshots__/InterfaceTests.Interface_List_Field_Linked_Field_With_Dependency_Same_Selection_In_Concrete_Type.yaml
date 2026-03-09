@@ -22,8 +22,8 @@ response:
         "authorables": [
           {
             "author": {
-              "id": "QXV0aG9yOjY=",
-              "displayName": "Author: QXV0aG9yOjY="
+              "id": "QXV0aG9yOjQ=",
+              "displayName": "Author: QXV0aG9yOjQ="
             }
           },
           {
@@ -34,8 +34,8 @@ response:
           },
           {
             "author": {
-              "id": "QXV0aG9yOjQ=",
-              "displayName": "Author: QXV0aG9yOjQ="
+              "id": "QXV0aG9yOjY=",
+              "displayName": "Author: QXV0aG9yOjY="
             }
           }
         ]
@@ -92,7 +92,7 @@ sourceSchemas:
                     {
                       "__typename": "Discussion",
                       "author": {
-                        "id": "QXV0aG9yOjY="
+                        "id": "QXV0aG9yOjQ="
                       }
                     },
                     {
@@ -104,7 +104,7 @@ sourceSchemas:
                     {
                       "__typename": "Discussion",
                       "author": {
-                        "id": "QXV0aG9yOjQ="
+                        "id": "QXV0aG9yOjY="
                       }
                     }
                   ]
@@ -137,19 +137,23 @@ sourceSchemas:
           variables: |
             [
               {
+                "__fusion_1_id": "QXV0aG9yOjQ="
+              },
+              {
                 "__fusion_1_id": "QXV0aG9yOjY="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjQ="
+                "__fusion_1_id": "QXV0aG9yOjU="
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjY="
+                    "displayName": "Author: QXV0aG9yOjQ="
                   }
                 }
               }
@@ -161,29 +165,14 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_61febe16_3(
-              $__fusion_2_id: ID!
-            ) {
-              authorById(id: $__fusion_2_id) {
-                displayName
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjY="
+                  }
+                }
               }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "QXV0aG9yOjY="
-              },
-              {
-                "__fusion_2_id": "QXV0aG9yOjU="
-              },
-              {
-                "__fusion_2_id": "QXV0aG9yOjQ="
-              }
-            ]
-        response:
-          results:
             - |
               {
                 "data": {
@@ -197,14 +186,6 @@ sourceSchemas:
                 "data": {
                   "authorById": {
                     "displayName": "Author: QXV0aG9yOjU="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjQ="
                   }
                 }
               }
@@ -231,6 +212,7 @@ operationPlan:
       name: testQuery
       hash: 61febe16f0582ccc926bb3b563c81d80
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -250,7 +232,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_61febe16_2(
@@ -261,28 +243,12 @@ operationPlan:
           }
         }
       source: $.authorById
-      target: $.authorables<Discussion>.author
+      targets:
+        - $.authorables<Discussion>.author
+        - $.authorables.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_61febe16_3(
-          $__fusion_2_id: ID!
-        ) {
-          authorById(id: $__fusion_2_id) {
-            displayName
-          }
-        }
-      source: $.authorById
-      target: $.authorables.author
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:

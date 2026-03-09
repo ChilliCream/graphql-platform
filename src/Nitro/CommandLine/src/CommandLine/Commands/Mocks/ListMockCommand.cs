@@ -47,7 +47,7 @@ internal sealed class ListMockCommand : Command
         IApiClient client,
         CancellationToken ct)
     {
-        const string apiMessage = "For which api do you want to list the mock schemas?";
+        const string apiMessage = "For which API do you want to list the mock schemas?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         var container = PaginationContainer
@@ -82,7 +82,7 @@ internal sealed class ListMockCommand : Command
         var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
         if (apiId is null)
         {
-            throw Exit("The api id is required in non-interactive mode.");
+            throw Exit("The API ID is required in non-interactive mode.");
         }
 
         var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
