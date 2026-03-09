@@ -4,15 +4,15 @@ using System.Xml;
 namespace StrawberryShake.Serialization;
 
 /// <summary>
-/// This serializer handles time-span scalars.
+/// This serializer handles <c>Duration</c> scalars.
 /// </summary>
-public class TimeSpanSerializer : ScalarSerializer<string, TimeSpan>
+public class DurationSerializer : ScalarSerializer<string, TimeSpan>
 {
-    private readonly TimeSpanFormat _format;
+    private readonly DurationFormat _format;
 
-    public TimeSpanSerializer(
-        string typeName = BuiltInScalarNames.TimeSpan,
-        TimeSpanFormat format = TimeSpanFormat.Iso8601)
+    public DurationSerializer(
+        string typeName = BuiltInScalarNames.Duration,
+        DurationFormat format = DurationFormat.Iso8601)
         : base(typeName)
     {
         _format = format;
@@ -25,7 +25,7 @@ public class TimeSpanSerializer : ScalarSerializer<string, TimeSpan>
             return timeSpan!.Value;
         }
 
-        throw ThrowHelper.TimeSpanSerializer_CouldNotParseValue(serializedValue, _format);
+        throw ThrowHelper.DurationSerializer_CouldNotParseValue(serializedValue, _format);
     }
 
     protected override string Format(TimeSpan runtimeValue)
@@ -35,15 +35,15 @@ public class TimeSpanSerializer : ScalarSerializer<string, TimeSpan>
             return serializedValue;
         }
 
-        throw ThrowHelper.TimeSpanSerializer_CouldNotFormatValue(runtimeValue, _format);
+        throw ThrowHelper.DurationSerializer_CouldNotFormatValue(runtimeValue, _format);
     }
 
     private static bool TryDeserializeFromString(
         string serialized,
-        TimeSpanFormat format,
+        DurationFormat format,
         out TimeSpan? value)
     {
-        return format == TimeSpanFormat.Iso8601
+        return format == DurationFormat.Iso8601
             ? TryDeserializeIso8601(serialized, out value)
             : TryDeserializeDotNet(serialized, out value);
     }
@@ -54,7 +54,7 @@ public class TimeSpanSerializer : ScalarSerializer<string, TimeSpan>
     {
         if (runtimeValue is TimeSpan timeSpan)
         {
-            if (_format == TimeSpanFormat.Iso8601)
+            if (_format == DurationFormat.Iso8601)
             {
                 resultValue = XmlConvert.ToString(timeSpan);
                 return true;

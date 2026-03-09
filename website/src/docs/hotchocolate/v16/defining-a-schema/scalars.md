@@ -182,12 +182,12 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 | Date          | The [Date][4] scalar type represents a date in UTC.                                                  |
 | DateTime      | The [DateTime][5] scalar type represents a date and time with time zone offset information.          |
 | Decimal       | The [Decimal][6] scalar type represents a decimal floating-point number with high precision.         |
-| LocalDate     | The [LocalDate][7] scalar type represents a date without time or time zone information.              |
-| LocalDateTime | The [LocalDateTime][8] scalar type represents a date and time without time zone information.         |
-| LocalTime     | The [LocalTime][9] scalar type represents a time of day without date or time zone information.       |
-| Long          | The [Long][10] scalar type represents a signed 64-bit integer.                                       |
-| Short         | The [Short][11] scalar type represents a signed 16-bit integer.                                      |
-| TimeSpan      | The [TimeSpan][12] scalar type represents a duration of time.                                        |
+| Duration      | The [Duration][7] scalar type represents a duration of time.                                         |
+| LocalDate     | The [LocalDate][8] scalar type represents a date without time or time zone information.              |
+| LocalDateTime | The [LocalDateTime][9] scalar type represents a date and time without time zone information.         |
+| LocalTime     | The [LocalTime][10] scalar type represents a time of day without date or time zone information.      |
+| Long          | The [Long][11] scalar type represents a signed 64-bit integer.                                       |
+| Short         | The [Short][12] scalar type represents a signed 16-bit integer.                                      |
 | UnsignedByte  | The [UnsignedByte][13] scalar type represents an unsigned 8-bit integer.                             |
 | UnsignedInt   | The [UnsignedInt][14] scalar type represents an unsigned 32-bit integer.                             |
 | UnsignedLong  | The [UnsignedLong][15] scalar type represents an unsigned 64-bit integer.                            |
@@ -202,12 +202,12 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 [4]: https://scalars.graphql.org/chillicream/date.html
 [5]: https://scalars.graphql.org/chillicream/date-time.html
 [6]: https://scalars.graphql.org/chillicream/decimal.html
-[7]: https://scalars.graphql.org/chillicream/local-date.html
-[8]: https://scalars.graphql.org/chillicream/local-date-time.html
-[9]: https://scalars.graphql.org/chillicream/local-time.html
-[10]: https://scalars.graphql.org/chillicream/long.html
-[11]: https://scalars.graphql.org/chillicream/short.html
-[12]: https://scalars.graphql.org/chillicream/time-span.html
+[7]: https://scalars.graphql.org/chillicream/duration.html
+[8]: https://scalars.graphql.org/chillicream/local-date.html
+[9]: https://scalars.graphql.org/chillicream/local-date-time.html
+[10]: https://scalars.graphql.org/chillicream/local-time.html
+[11]: https://scalars.graphql.org/chillicream/long.html
+[12]: https://scalars.graphql.org/chillicream/short.html
 [13]: https://scalars.graphql.org/chillicream/unsigned-byte.html
 [14]: https://scalars.graphql.org/chillicream/unsigned-int.html
 [15]: https://scalars.graphql.org/chillicream/unsigned-long.html
@@ -496,7 +496,7 @@ builder.Services
 
 # Scalar Options
 
-Some scalars like `TimeSpan` or `UUID` have options like their serialization format.
+Some scalars like `Duration` or `UUID` have options like their serialization format.
 
 We can specify these options by registering the scalar explicitly.
 

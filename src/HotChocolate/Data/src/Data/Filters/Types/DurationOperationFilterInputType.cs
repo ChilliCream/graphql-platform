@@ -3,12 +3,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data;
 
-public class TimeSpanOperationFilterInputType
-    : ComparableOperationFilterInputType<TimeSpanType>
+public class DurationOperationFilterInputType
+    : ComparableOperationFilterInputType<DurationType>
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
-        descriptor.Name("TimeSpanOperationFilterInput");
+        descriptor.Name("DurationOperationFilterInput");
         base.Configure(descriptor);
     }
 }
