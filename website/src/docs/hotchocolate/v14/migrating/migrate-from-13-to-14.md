@@ -53,6 +53,7 @@ Things that have been removed or had a change in behavior that may cause your co
 - Since the `RegisterService` method is no longer required, it has been removed, along with the `ServiceKind` enum.
 - Scoped services injected into query resolvers are now resolver-scoped by default (not request scoped). For mutation resolvers, services are request-scoped by default.
 - The default scope can be changed in two ways:
+
   1. Globally, using `ModifyOptions`:
 
      ```csharp
