@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Features;
 using Mocha.Inbox;
 using Mocha.Middlewares;
@@ -14,7 +16,7 @@ public class ConsumeInboxMiddlewareTests
         var inbox = new InMemoryMessageInbox();
         var nextCalled = false;
 
-        var middleware = new ConsumeInboxMiddleware();
+        var middleware = new ConsumeInboxMiddleware(NullLogger<ConsumeInboxMiddleware>.Instance);
         var context = CreateConsumeContext(inbox, messageId: null);
 
         ConsumerDelegate next = _ =>
@@ -44,7 +46,7 @@ public class ConsumeInboxMiddlewareTests
         inbox.RecordedEnvelopes.Clear(); // Clear so we can detect if re-recorded
 
         var nextCalled = false;
-        var middleware = new ConsumeInboxMiddleware();
+        var middleware = new ConsumeInboxMiddleware(NullLogger<ConsumeInboxMiddleware>.Instance);
         var context = CreateConsumeContext(inbox, messageId);
         context.Envelope = envelope;
 
@@ -71,7 +73,7 @@ public class ConsumeInboxMiddlewareTests
         var envelope = new MessageEnvelope { MessageId = messageId, MessageType = "urn:message:test" };
 
         var nextCalled = false;
-        var middleware = new ConsumeInboxMiddleware();
+        var middleware = new ConsumeInboxMiddleware(NullLogger<ConsumeInboxMiddleware>.Instance);
         var context = CreateConsumeContext(inbox, messageId);
         context.Envelope = envelope;
 
@@ -99,7 +101,7 @@ public class ConsumeInboxMiddlewareTests
         var envelope = new MessageEnvelope { MessageId = messageId, MessageType = "urn:message:test" };
 
         var nextCalled = false;
-        var middleware = new ConsumeInboxMiddleware();
+        var middleware = new ConsumeInboxMiddleware(NullLogger<ConsumeInboxMiddleware>.Instance);
         var context = CreateConsumeContext(inbox, messageId);
         context.Envelope = envelope;
 
@@ -128,7 +130,7 @@ public class ConsumeInboxMiddlewareTests
         var inbox = new InMemoryMessageInbox();
         var messageId = Guid.NewGuid().ToString();
 
-        var middleware = new ConsumeInboxMiddleware();
+        var middleware = new ConsumeInboxMiddleware(NullLogger<ConsumeInboxMiddleware>.Instance);
         var context = CreateConsumeContext(inbox, messageId);
         // Envelope is intentionally null
 
@@ -162,7 +164,7 @@ public class ConsumeInboxMiddlewareTests
         // Act — launch N concurrent consumers all trying to process the same MessageId
         var tasks = Enumerable.Range(0, concurrency).Select(_ => Task.Run(async () =>
         {
-            var middleware = new ConsumeInboxMiddleware();
+            var middleware = new ConsumeInboxMiddleware(NullLogger<ConsumeInboxMiddleware>.Instance);
             var context = CreateConsumeContext(inbox, messageId);
             context.Envelope = envelope;
 
