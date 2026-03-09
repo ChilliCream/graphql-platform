@@ -64,10 +64,9 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .AddDirectiveType<ListSizeDirectiveType>()
             .TryAddTypeInterceptor<CostTypeInterceptor>()
             .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
-            .AppendUseRequest(
-                after: WellKnownRequestMiddleware.DocumentValidationMiddleware,
-                configuration: CostAnalyzerMiddleware.Create(),
-                allowMultiple: false);
+            .UseRequest(
+                CostAnalyzerMiddleware.Create(),
+                after: WellKnownRequestMiddleware.DocumentValidationMiddleware);
     }
 
     /// <summary>

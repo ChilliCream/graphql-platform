@@ -1547,6 +1547,72 @@ public class GraphQLHttpClientTests : ServerTestBase
         Assert.Equal(2, count);
     }
 
+    [Fact]
+    public async Task Post_Variables_Do_Not_Escape_Apostrophe_To_Unicode()
+    {
+        // arrange
+        var handler = new CapturingRequestHttpMessageHandler();
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest(
+            "mutation($input: String!) { updateDescription(input: $input) }",
+            variables: new Dictionary<string, object?>
+            {
+                ["input"] = "Bill Curry's lamp"
+            });
+
+        // act
+        using var response = await client.PostAsync(
+            operationRequest,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        Assert.NotNull(handler.LastBody);
+        Assert.Contains("Bill Curry's lamp", handler.LastBody);
+        Assert.DoesNotContain("\\u0027", handler.LastBody, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Post_Long_Description_Does_Not_Throw_And_RoundTrips()
+    {
+        // arrange
+        var handler = new CapturingRequestHttpMessageHandler();
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        const string description =
+            "Now available in three new luminous pastel colors, Bill Curry\u2019s mushroom-shaped Obello Lamp "
+            + "continues its journey. Celebrated for his bold use of color and inventive Space Age forms, the "
+            + "American designer first created the lamp in 1971. After its reintroduction by GUBI in 2022, in "
+            + "the color of frosted glass, the design returns in a trio of luminous pastels, each finished with "
+            + "a glossy finish that accentuates its sculptural silhouette. Balancing softness with warmth, this "
+            + "palette extends Curry\u2019s legacy with a fresh, contemporary expression. It's still iconic.";
+
+        var operationRequest = new OperationRequest(
+            "mutation($description: String!) { updateDescription(description: $description) }",
+            variables: new Dictionary<string, object?>
+            {
+                ["description"] = description
+            });
+
+        // act
+        using var response = await client.PostAsync(
+            operationRequest,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        Assert.NotNull(handler.LastBody);
+        Assert.DoesNotContain("\\u0027", handler.LastBody, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("\\u2019", handler.LastBody, StringComparison.OrdinalIgnoreCase);
+
+        using var body = JsonDocument.Parse(handler.LastBody!);
+        var serializedDescription = body.RootElement
+            .GetProperty("variables")
+            .GetProperty("description")
+            .GetString();
+
+        Assert.Equal(description, serializedDescription);
+    }
+
     private class MockHttpMessageHandler(Stream responseStream, string contentType) : HttpMessageHandler
     {
         public MockHttpMessageHandler(string responseContent, string contentType)
@@ -1579,6 +1645,34 @@ public class GraphQLHttpClientTests : ServerTestBase
             }
 
             throw new Exception("Something went wrong");
+        }
+    }
+
+    private sealed class CapturingRequestHttpMessageHandler : HttpMessageHandler
+    {
+        public string? LastBody { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            LastBody = request.Content is null
+                ? null
+                : await request.Content.ReadAsStringAsync(cancellationToken);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """
+                    {
+                      "data": {
+                        "__typename": "Mutation"
+                      }
+                    }
+                    """,
+                    Encoding.UTF8,
+                    "application/json")
+            };
         }
     }
 

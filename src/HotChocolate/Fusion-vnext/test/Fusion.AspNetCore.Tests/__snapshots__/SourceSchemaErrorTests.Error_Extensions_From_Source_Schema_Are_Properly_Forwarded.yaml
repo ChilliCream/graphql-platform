@@ -15,6 +15,15 @@ response:
           ],
           "extensions": {
             "code": "SOME_ERROR",
+            "stringValue": "a-string",
+            "booleanValue": true,
+            "numberValue": 123,
+            "arrayValue": [
+              1,
+              2,
+              3
+            ],
+            "emptyArrayValue": [],
             "exception": {
               "message": "Some exception",
               "stackTrace": null
@@ -51,6 +60,15 @@ sourceSchemas:
                     ],
                     "extensions": {
                       "code": "SOME_ERROR",
+                      "stringValue": "a-string",
+                      "booleanValue": true,
+                      "numberValue": 123,
+                      "arrayValue": [
+                        1,
+                        2,
+                        3
+                      ],
+                      "emptyArrayValue": [],
                       "exception": {
                         "message": "Some exception",
                         "stackTrace": null

@@ -4239,7 +4239,7 @@ input DeleteOpenApiCollectionByIdInput {
 input EnvironmentCreateChangeInput {
   name: String!
   referenceId: String!
-  variables: [EnvironmentVariableInput!]! = [  ]
+  variables: [EnvironmentVariableInput!]! = []
   workspaceId: ID!
 }
 
@@ -4254,7 +4254,7 @@ input EnvironmentUpdateChangeInput {
   id: ID!
   name: String!
   referenceId: String!
-  variables: [EnvironmentVariableInput!]! = [  ]
+  variables: [EnvironmentVariableInput!]! = []
   version: Version!
   workspaceId: ID!
 }
@@ -4453,7 +4453,7 @@ input StageConditionUpdateInput {
 }
 
 input StageUpdateInput {
-  conditions: [StageConditionUpdateInput!]! = [  ]
+  conditions: [StageConditionUpdateInput!]! = []
   displayName: String!
   name: String!
 }

@@ -100,7 +100,7 @@ public class SyntaxWriterTests
         var result = writer.ToString();
 
         // assert
-        Assert.Equal("[ 1, 2, 3 ]", result);
+        Assert.Equal("[1, 2, 3]", result);
     }
 
     [Fact]

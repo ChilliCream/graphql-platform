@@ -423,6 +423,9 @@
   <data name="LogEntryHelper_RootSubscriptionUsed" xml:space="preserve">
     <value>The root subscription type in schema '{0}' must be named 'Subscription'.</value>
   </data>
+  <data name="LogEntryHelper_SpecifiedByUrlMismatch" xml:space="preserve">
+    <value>The scalar type '{0}' has a different specified-by URL in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
+  </data>
   <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
     <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
   </data>
@@ -503,6 +506,9 @@
   </data>
   <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
+  </data>
+  <data name="SpecifiedByDirective_UrlArgument_Invalid" xml:space="preserve">
+    <value>The @specifiedBy directive must have a 'url' argument of type String.</value>
   </data>
   <data name="TagDirective_NameArgument_Invalid" xml:space="preserve">
     <value>The @tag directive must have a 'name' argument of type String.</value>

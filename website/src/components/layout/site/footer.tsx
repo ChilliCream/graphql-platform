@@ -1,4 +1,3 @@
-import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
@@ -7,7 +6,8 @@ import { Link } from "@/components/misc/link";
 import { SrOnly } from "@/components/misc/sr-only";
 import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
-import { GetFooterDataQuery } from "@/graphql-types";
+import { siteMetadata } from "@/lib/site-config";
+import docsConfig from "@/docs/docs.json";
 import { MAX_CONTENT_WIDTH, THEME_COLORS } from "@/style";
 
 // Icons
@@ -21,43 +21,20 @@ import YouTubeIconSvg from "@/images/icons/youtube.svg";
 // Logos
 import LogoTextSvg from "@/images/logo/chillicream-text.svg";
 
-export const Footer: FC = () => {
-  const data = useStaticQuery<GetFooterDataQuery>(graphql`
-    query getFooterData {
-      site {
-        siteMetadata {
-          tools {
-            blog
-            github
-            linkedIn
-            shop
-            slack
-            youtube
-            x
-          }
-        }
-      }
-      docNav: file(
-        sourceInstanceName: { eq: "docs" }
-        relativePath: { eq: "docs.json" }
-      ) {
-        products: childrenDocsJson {
-          path
-          title
-          latestStableVersion
-        }
-      }
-    }
-  `);
-  const { tools } = data.site!.siteMetadata!;
-  const { products } = data.docNav!;
+const tools = siteMetadata.tools;
+const products = docsConfig.map((p: any) => ({
+  path: p.path,
+  title: p.title,
+  latestStableVersion: p.latestStableVersion,
+}));
 
+export const Footer: FC = () => {
   return (
     <Container>
       <Section>
         <Company>
           <LogoContainer>
-            <LogoTextLink to="/">
+            <LogoTextLink to="/" aria-label="ChilliCream Home">
               <LogoText />
             </LogoTextLink>
           </LogoContainer>
@@ -98,16 +75,16 @@ export const Footer: FC = () => {
           <Links>
             <Title>Documentation</Title>
             <Navigation>
-              {products!.map((product, index) => (
+              {products.map((product: any, index: number) => (
                 <NavLink
                   key={`doc-item-${index}`}
-                  to={`/docs/${product!.path!}${
-                    product?.latestStableVersion
+                  to={`/docs/${product.path}${
+                    product.latestStableVersion
                       ? "/" + product.latestStableVersion
                       : ""
                   }`}
                 >
-                  {product!.title}
+                  {product.title}
                 </NavLink>
               ))}
             </Navigation>
@@ -118,7 +95,7 @@ export const Footer: FC = () => {
               <NavLink prefetch={false} to="mailto:contact@chillicream.com">
                 Contact
               </NavLink>
-              <NavLink to={tools!.shop!}>Shop</NavLink>
+              <NavLink to={tools.shop}>Shop</NavLink>
               <NavLink to="/legal/acceptable-use-policy">
                 Acceptable Use Policy
               </NavLink>
@@ -134,41 +111,47 @@ export const Footer: FC = () => {
       </Section>
       <Section>
         <Connect>
-          <ConnectLink to={tools!.blog!}>
+          <ConnectLink to={tools.blog} aria-label="ChilliCream Blog">
             <IconContainer>
               <BlogIcon />
             </IconContainer>
-            <SrOnly>to read the latest stuff</SrOnly>
+            <SrOnly>ChilliCream Blog</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.github!}>
+          <ConnectLink to={tools.github} aria-label="ChilliCream on GitHub">
             <IconContainer>
               <GithubIcon />
             </IconContainer>
-            <SrOnly>to work with us on the platform</SrOnly>
+            <SrOnly>ChilliCream on GitHub</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.slack!}>
+          <ConnectLink
+            to={tools.slack}
+            aria-label="ChilliCream Slack Community"
+          >
             <IconContainer>
               <SlackIcon />
             </IconContainer>
-            <SrOnly>to get in touch with us</SrOnly>
+            <SrOnly>ChilliCream Slack Community</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.youtube!}>
+          <ConnectLink
+            to={tools.youtube}
+            aria-label="ChilliCream YouTube Channel"
+          >
             <IconContainer>
               <YouTubeIcon />
             </IconContainer>
-            <SrOnly>to learn new stuff</SrOnly>
+            <SrOnly>ChilliCream YouTube Channel</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.x!}>
+          <ConnectLink to={tools.x} aria-label="ChilliCream on X">
             <IconContainer>
               <XIcon />
             </IconContainer>
-            <SrOnly>to stay up-to-date</SrOnly>
+            <SrOnly>ChilliCream on X</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.linkedIn!}>
+          <ConnectLink to={tools.linkedIn} aria-label="ChilliCream on LinkedIn">
             <IconContainer>
               <LinkedInIcon />
             </IconContainer>
-            <SrOnly>to connect</SrOnly>
+            <SrOnly>ChilliCream on LinkedIn</SrOnly>
           </ConnectLink>
         </Connect>
       </Section>
@@ -194,10 +177,6 @@ const Container = styled.footer.attrs({
   padding-bottom: 54px;
   padding-left: 16px;
   width: 100%;
-  /*
-    fixated "font-size" because "text-3" on mobile is "0.75rem" which isn't
-    preferred here
-  */
   font-size: 0.875rem !important;
   backdrop-filter: blur(4px);
   background-color: ${THEME_COLORS.backgroundMenu};

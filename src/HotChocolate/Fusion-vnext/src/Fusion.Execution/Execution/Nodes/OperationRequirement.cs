@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 

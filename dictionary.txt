@@ -5,8 +5,10 @@ accessibilities
 agrc
 Alderaan
 Andi
+appsettings
 ASPDEPR004
 ASPDEPR008
+aspnet
 aspnetcore
 Astromech
 automagically
@@ -15,6 +17,7 @@ backplane
 backpressure
 Badurina
 bananacakepop
+basicsaga
 bbox
 BCPROCKS
 bfnrt
@@ -36,13 +39,17 @@ colocated
 combinators
 contentfiles
 Contoso
+conv
 CQRS
+CUST
+creds
 dataloaders
 debuggable
 decompile
 depersist
 deprioritization
 deprioritized
+Diagnoser
 Dispatchable
 DOCKERHUB
 drawio
@@ -76,6 +83,7 @@ Hmac
 hotchocolate
 Includable
 inheritdocs
+inmemory
 initializable
 inspectable
 Kellner
@@ -143,6 +151,7 @@ reencode
 refetched
 relayjs
 reprojected
+requestreply
 resharper
 resheader
 resmimetype
@@ -157,6 +166,7 @@ runbooks
 Satisfiability
 Senn
 shoooe
+SHORTSHA
 Silmarillion
 skybridge
 Skywalker
@@ -166,6 +176,7 @@ sortings
 Specwise
 sqft
 srid
+sszzz
 Staib
 Starships
 starwars
@@ -184,11 +195,13 @@ Tatooine
 Tengler
 Testcontainers
 Toub
+Touchpoint
 TOWGS
 Trimmable
 Tzdb
 unlisten
 unpublish
+unserialized
 Unsubscriber
 uppercased
 Upsert
@@ -200,3 +213,6 @@ websockets
 Wilhuff
 Wunder
 xunit
+Expando
+traceparent
+tracestate

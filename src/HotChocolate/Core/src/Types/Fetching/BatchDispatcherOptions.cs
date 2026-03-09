@@ -5,7 +5,6 @@ namespace HotChocolate.Fetching;
 /// </summary>
 public struct BatchDispatcherOptions
 {
-    private int _maxParallelBatches = 4;
     private long _maxBatchWaitTimeUs = 50_000;
 
     /// <summary>
@@ -13,24 +12,6 @@ public struct BatchDispatcherOptions
     /// </summary>
     public BatchDispatcherOptions()
     {
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether batches can be dispatched in parallel.
-    /// </summary>
-    public bool EnableParallelBatches { get; set; } = false;
-
-    /// <summary>
-    /// Gets or sets the maximum number of batches that can be dispatched in parallel.
-    /// </summary>
-    public int MaxParallelBatches
-    {
-        readonly get => _maxParallelBatches;
-        set
-        {
-            ArgumentOutOfRangeException.ThrowIfLessThan(value, 2, nameof(MaxParallelBatches));
-            _maxParallelBatches = value;
-        }
     }
 
     /// <summary>

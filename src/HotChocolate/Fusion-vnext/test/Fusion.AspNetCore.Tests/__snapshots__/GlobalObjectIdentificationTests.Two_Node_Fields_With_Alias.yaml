@@ -49,15 +49,25 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query Op_a361113f_3 {
-              b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
-                __typename
-                title
-                id
-              }
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_a361113f_3 {
+                  b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
+                    __typename
+                    title
+                    id
+                  }
+                }
+            - document: |
+                query Op_a361113f_7 {
+                  a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+                    __typename
+                    title
+                  }
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -69,16 +79,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_a361113f_7 {
-              a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-                __typename
-                title
-              }
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -169,6 +169,7 @@ operationPlan:
             __typename
           }
         }
+      batchingGroupId: 2
       dependencies:
         - id: 1
     - id: 3
@@ -182,6 +183,7 @@ operationPlan:
             id
           }
         }
+      batchingGroupId: 1
       dependencies:
         - id: 1
     - id: 4
@@ -218,6 +220,7 @@ operationPlan:
             __typename
           }
         }
+      batchingGroupId: 2
       dependencies:
         - id: 5
     - id: 7
@@ -230,5 +233,6 @@ operationPlan:
             title
           }
         }
+      batchingGroupId: 1
       dependencies:
         - id: 5

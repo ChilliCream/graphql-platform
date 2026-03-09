@@ -95,7 +95,7 @@ public partial class DefaultTypeConverter
     private static void RegisterGuidConversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<Guid, string>(from => from.ToString("N"));
+        registry.Register<Guid, string>(from => from.ToString("D"));
     }
 
     private static void RegisterUriConversions(
@@ -146,7 +146,7 @@ public partial class DefaultTypeConverter
                 var length = checked(from.Length * 4);
                 byte[]? jsonText = null;
 
-                var jsonTextSpan = length <= GraphQLConstants.StackallocThreshold
+                var jsonTextSpan = length <= GraphQLCharacters.StackallocThreshold
                     ? stackalloc byte[length]
                     : jsonText = ArrayPool<byte>.Shared.Rent(length);
 

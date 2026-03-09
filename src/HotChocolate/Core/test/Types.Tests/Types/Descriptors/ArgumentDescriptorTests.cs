@@ -12,7 +12,7 @@ public class ArgumentDescriptorTests
     {
         // arrange
         // act
-        void Action() => new ArgumentDescriptor(Context, "Type", null);
+        void Action() => new ArgumentDescriptor(Context, "Type", null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

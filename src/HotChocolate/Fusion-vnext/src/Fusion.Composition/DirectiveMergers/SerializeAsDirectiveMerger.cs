@@ -18,7 +18,7 @@ internal class SerializeAsDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 {
     public override string DirectiveName => DirectiveNames.SerializeAs;
 
-    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
+    public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(MutableSchemaDefinition schema)
     {
         return SerializeAsMutableDirectiveDefinition.Create(schema);
     }

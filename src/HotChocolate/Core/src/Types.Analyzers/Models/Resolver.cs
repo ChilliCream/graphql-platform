@@ -36,7 +36,12 @@ public sealed class Resolver
         {
             for (var i = 0; i < parameters.Length; i++)
             {
-                parameters[i].Description ??= m.ParameterDescriptions[i];
+                if (parameters[i].Description is null)
+                {
+                    var (paramDesc, paramIsFromAttr) = m.ParameterDescriptions[i];
+                    parameters[i].Description = paramDesc;
+                    parameters[i].IsDescriptionFromAttribute = paramIsFromAttr;
+                }
             }
         }
 
@@ -53,6 +58,8 @@ public sealed class Resolver
 
     public string? Description => _description?.Description;
 
+    public bool IsDescriptionFromAttribute => _description?.IsDescriptionFromAttribute ?? false;
+
     public string? DeprecationReason { get; }
 
     public ISymbol Member { get; }
@@ -66,7 +73,7 @@ public sealed class Resolver
     public bool IsStatic => Member.IsStatic;
 
     public bool IsPure
-        => Kind is not ResolverKind.NodeResolver
+        => Kind is not (ResolverKind.NodeResolver or ResolverKind.BatchResolver)
             && ResultKind is ResolverResultKind.Pure
             && Parameters.All(t => t.IsPure);
 

@@ -734,6 +734,18 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_CompositeId_Long_StringPart()
+    {
+        var compositeId = new CompositeId(new string('a', 300), 42, Guid.Empty, true);
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id, typeof(CompositeId));
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
     public void Parse_CompositeId_UpperHex()
     {
         var compositeId = new CompositeId("foo", 42, Guid.Empty, true);

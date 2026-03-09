@@ -252,4 +252,30 @@ public sealed partial class SourceResultDocument : IDisposable
             _disposed = true;
         }
     }
+
+    public override string ToString()
+    {
+        if (_usedChunks == 0)
+        {
+            return string.Empty;
+        }
+
+        var totalSize = 0;
+
+        for (var i = 0; i < _usedChunks; i++)
+        {
+            totalSize += _dataChunks[i].Length;
+        }
+
+        var buffer = new byte[totalSize];
+        var offset = 0;
+
+        for (var i = 0; i < _usedChunks; i++)
+        {
+            _dataChunks[i].CopyTo(buffer, offset);
+            offset += _dataChunks[i].Length;
+        }
+
+        return s_utf8Encoding.GetString(buffer).TrimEnd('\0');
+    }
 }

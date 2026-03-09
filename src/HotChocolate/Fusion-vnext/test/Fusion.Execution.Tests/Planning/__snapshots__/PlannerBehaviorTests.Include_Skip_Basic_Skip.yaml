@@ -12,7 +12,7 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 1
+    searchSpace: 2
     expandedNodes: 8
 nodes:
   - id: 1
@@ -73,5 +73,8 @@ nodes:
       - name: __fusion_5_price
         selectionMap: >-
           price
+    conditions:
+      - variable: $skip
+        passingValue: false
     dependencies:
       - id: 1

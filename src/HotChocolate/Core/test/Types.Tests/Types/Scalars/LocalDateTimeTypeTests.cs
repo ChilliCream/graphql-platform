@@ -37,11 +37,11 @@ public class LocalDateTimeTypeTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidLocalDateTimeScalarStrings))]
-    public void CoerceInputLiteral_Valid(string dateTimeString, DateTime result)
+    [MemberData(nameof(ValidInput))]
+    public void CoerceInputLiteral_Valid(byte precision, string dateTimeString, DateTime result)
     {
         // arrange
-        var type = new LocalDateTimeType();
+        var type = new LocalDateTimeType(new DateTimeOptions { InputPrecision = precision });
         var literal = new StringValueNode(dateTimeString);
 
         // act
@@ -52,11 +52,11 @@ public class LocalDateTimeTypeTests
     }
 
     [Theory]
-    [MemberData(nameof(InvalidLocalDateTimeScalarStrings))]
-    public void CoerceInputLiteral_Invalid(string dateTime)
+    [MemberData(nameof(InvalidInput))]
+    public void CoerceInputLiteral_Invalid(byte precision, string dateTime)
     {
         // arrange
-        var type = new LocalDateTimeType();
+        var type = new LocalDateTimeType(new DateTimeOptions { InputPrecision = precision });
         var literal = new StringValueNode(dateTime);
 
         // act
@@ -132,6 +132,23 @@ public class LocalDateTimeTypeTests
 
         // assert
         Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidOutput))]
+    public void CoerceOutputValue_Valid(byte precision, DateTime dateTime, string result)
+    {
+        // arrange
+        var type = new LocalDateTimeType(new DateTimeOptions { OutputPrecision = precision });
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot($"\"{result}\"");
     }
 
     [Fact]
@@ -289,12 +306,30 @@ public class LocalDateTimeTypeTests
         const string s = "2011-08-30";
 
         // act
-        var type = new LocalDateTimeType(disableFormatCheck: true);
+        var type = new LocalDateTimeType(new DateTimeOptions { ValidateInputFormat = false });
         var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
         var result = type.CoerceInputValue(inputValue, null!);
 
         // assert
         Assert.IsType<DateTime>(result);
+    }
+
+    [Theory]
+    [InlineData(0, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}$")]
+    [InlineData(1, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,1})?$")]
+    [InlineData(2, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,2})?$")]
+    [InlineData(3, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?$")]
+    [InlineData(4, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,4})?$")]
+    [InlineData(5, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,5})?$")]
+    [InlineData(6, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?$")]
+    [InlineData(7, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?$")]
+    public void Pattern_Should_Match_InputPrecision(byte precision, string expectedPattern)
+    {
+        // arrange & act
+        var type = new LocalDateTimeType(new DateTimeOptions { InputPrecision = precision });
+
+        // assert
+        Assert.Equal(expectedPattern, type.Pattern);
     }
 
     public class Query
@@ -328,42 +363,114 @@ public class LocalDateTimeTypeTests
         public DateTime GetLocalDateTime() => DateTime.MaxValue;
     }
 
-    public static TheoryData<string, DateTime> ValidLocalDateTimeScalarStrings()
+    public static TheoryData<byte, string, DateTime> ValidInput()
     {
-        return new TheoryData<string, DateTime>
+        return new TheoryData<byte, string, DateTime>
         {
             // https://scalars.graphql.org/chillicream/local-date-time.html#sec-Input-spec.Examples (Valid input values)
             {
+                DateTimeOptions.DefaultInputPrecision,
                 "2023-12-24T15:30:00",
                 new DateTime(2023, 12, 24, 15, 30, 0, 0)
             },
             {
-                "2023-12-24t15:30:00.123456789", // Rounded to ".1234568".
-                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(8)
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24t15:30:00.1234567",
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7)
             }
         };
     }
 
-    public static TheoryData<string> InvalidLocalDateTimeScalarStrings()
+    public static TheoryData<byte, string> InvalidInput()
     {
-        return
-        [
+        return new TheoryData<byte, string>
+        {
             // https://scalars.graphql.org/chillicream/local-date-time.html#sec-Input-spec.Examples (Invalid input values)
             // Contains time zone indicator Z.
-            "2023-12-24T15:30:00Z",
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00Z" },
             // Contains time zone offset.
-            "2023-12-24T15:30:00+05:30",
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00+05:30" },
             // Invalid separator (space instead of T or t).
-            "2023-12-24 15:30:00",
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24 15:30:00" },
             // Invalid hour (25).
-            "2023-12-24T25:00:00",
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T25:00:00" },
             // Invalid minute (60).
-            "2023-12-24T15:60:00",
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:60:00" },
             // ReSharper disable once GrammarMistakeInComment
             // Invalid date (February 30th).
-            "2023-02-30T15:30:00",
-            // More than 9 fractional second digits.
-            "2023-12-24T15:30:00.1234567890"
-        ];
+            { DateTimeOptions.DefaultInputPrecision, "2023-02-30T15:30:00" },
+            // More than 7 fractional second digits.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.12345678" },
+            // Additional cases.
+            // More than 6 fractional second digits with precision set to 6.
+            { 6, "2023-12-24T15:30:00.1234567" },
+            // More than 5 fractional second digits with precision set to 5.
+            { 5, "2023-12-24T15:30:00.123456" },
+            // More than 4 fractional second digits with precision set to 4.
+            { 4, "2023-12-24T15:30:00.12345" },
+            // More than 3 fractional second digits with precision set to 3.
+            { 3, "2023-12-24T15:30:00.1234" },
+            // More than 2 fractional second digits with precision set to 2.
+            { 2, "2023-12-24T15:30:00.123" },
+            // More than 1 fractional second digit with precision set to 1.
+            { 1, "2023-12-24T15:30:00.12" },
+            // Fractional second digits with precision set to 0.
+            { 0, "2023-12-24T15:30:00.1" }
+        };
+    }
+
+    public static TheoryData<byte, DateTime, string> ValidOutput()
+    {
+        return new TheoryData<byte, DateTime, string>
+        {
+            // Up to 7 fractional second digits with default precision.
+            {
+                DateTimeOptions.DefaultOutputPrecision,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.1234567"
+            },
+            // Up to 6 fractional second digits with precision set to 6.
+            {
+                6,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.123456"
+            },
+            // Up to 5 fractional second digits with precision set to 5.
+            {
+                5,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.12345"
+            },
+            // Up to 4 fractional second digits with precision set to 4.
+            {
+                4,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.1234"
+            },
+            // Up to 3 fractional second digits with precision set to 3.
+            {
+                3,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.123"
+            },
+            // Up to 2 fractional second digits with precision set to 2.
+            {
+                2,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.12"
+            },
+            // Up to 1 fractional second digit with precision set to 1.
+            {
+                1,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00.1"
+            },
+            // No fractional second digits with precision set to 0.
+            {
+                0,
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7),
+                "2023-12-24T15:30:00"
+            }
+        };
     }
 }

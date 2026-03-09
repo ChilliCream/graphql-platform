@@ -1,5 +1,7 @@
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Optimizers;
 
@@ -38,6 +40,14 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             }
 
             var field = context.TypeContext.Fields[fieldName];
+
+            // Only inject leaf fields. Forcing internal object projections can create
+            // invalid EF Core tracking shapes (e.g. owned entities without owner materialization).
+            if (field.Type.NamedType().IsCompositeType())
+            {
+                continue;
+            }
+
             var fieldNode = new FieldNode(
                 null,
                 new NameNode(fieldName),
@@ -51,6 +61,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             var compiledSelection = new Selection(
                 context.NewSelectionId(),
                 alias,
+                SelectionPath.Root,
                 field,
                 [new FieldSelectionNode(fieldNode, 0)],
                 [],

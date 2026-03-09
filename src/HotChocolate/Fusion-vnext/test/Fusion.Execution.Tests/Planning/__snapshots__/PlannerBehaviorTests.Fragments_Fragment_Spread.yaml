@@ -12,7 +12,7 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 1
+    searchSpace: 2
     expandedNodes: 5
 nodes:
   - id: 1
@@ -59,6 +59,7 @@ nodes:
       }
     source: $.productById
     target: $.products
+    batchingGroupId: 1
     requirements:
       - name: __fusion_2_id
         selectionMap: >-
@@ -78,6 +79,7 @@ nodes:
       }
     source: $.productById
     target: $.products
+    batchingGroupId: 1
     requirements:
       - name: __fusion_3_id
         selectionMap: >-

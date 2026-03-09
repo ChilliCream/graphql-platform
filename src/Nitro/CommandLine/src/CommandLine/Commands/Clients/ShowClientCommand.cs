@@ -48,7 +48,7 @@ internal sealed class ShowClientCommand : Command
         else
         {
             console.ErrorLine(
-                $"Could not find a api with id {id.EscapeMarkup().AsHighlight()}");
+                $"Could not find a client with ID {id.EscapeMarkup().AsHighlight()}");
         }
 
         return ExitCodes.Success;

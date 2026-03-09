@@ -39,4 +39,37 @@
   <data name="FixedSizeArrayPool_Return_InvalidArraySize" xml:space="preserve">
     <value>Buffer size {0} does not match expected chunk size {1}</value>
   </data>
+  <data name="OperationPlannerGuardrailException_GuardrailExceeded" xml:space="preserve">
+    <value>Planner guardrail exceeded for operation '{0}': {1} (Limit={2}, Observed={3}).</value>
+  </data>
+  <data name="SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup" xml:space="preserve">
+    <value>The execution node with id '{0}' is registered to be part of batching group '{1}', but no request was submitted for that node.</value>
+  </data>
+  <data name="SourceSchemaHttpClient_SubscriptionBatchNotSupported" xml:space="preserve">
+    <value>Subscription requests are not supported by batch execution.</value>
+  </data>
+  <data name="SourceSchemaHttpClient_InvalidRequestIndex" xml:space="preserve">
+    <value>The batch response contains an invalid requestIndex '{0}'.</value>
+  </data>
+  <data name="SourceSchemaHttpClient_NoResponseChannelForNode" xml:space="preserve">
+    <value>No response channel exists for node '{0}'.</value>
+  </data>
+  <data name="SourceSchemaHttpClient_InvalidVariableIndex" xml:space="preserve">
+    <value>The batch response contains an invalid variableIndex '{0}' for node '{1}'.</value>
+  </data>
+  <data name="SourceSchemaHttpClient_NoResultForNode" xml:space="preserve">
+    <value>The batch response does not contain any result for node '{0}'.</value>
+  </data>
+  <data name="SourceSchemaRequestDispatcher_DuplicateNodeSubmission" xml:space="preserve">
+    <value>Node '{0}' was already submitted to its batching group.</value>
+  </data>
+  <data name="SourceSchemaRequestDispatcher_RegisterGroupEmptyNodeIds" xml:space="preserve">
+    <value>At least one node ID must be provided.</value>
+  </data>
+  <data name="SourceSchemaRequestDispatcher_OperationAborted" xml:space="preserve">
+    <value>The operation execution was aborted.</value>
+  </data>
+  <data name="SourceSchemaRequestDispatcher_BatchResponseCountMismatch" xml:space="preserve">
+    <value>The client did not return a response for each request in the batch.</value>
+  </data>
 </root>

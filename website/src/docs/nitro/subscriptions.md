@@ -22,10 +22,10 @@ To change your subscription plan, follow these steps:
 1. **Access the Management Portal:** Open the management portal by clicking ['Manage Organizations' -> 'Manage'](/docs/nitro/organizations#managing-organizations) option in the context menu of Nitro or by navigating to [here](https://identity.chillicream.com/Organizations).
 
 2. **Navigate to Subscription:** Within the management portal, click on 'Manage' in the subscription section.
-  ![Screenshot showing the subscription](images/subscription-2.webp)
+   ![Screenshot showing the subscription](images/subscription-2.webp)
 
 3. **Update plan:** Here, you can update your subscription plan. Changing this value will affect the number of users who can join your organization.
-  ![Screenshot showing the subscription](images/subscription-3.webp)
+   ![Screenshot showing the subscription](images/subscription-3.webp)
 
 # Expiry and Seats
 

@@ -100,17 +100,17 @@ public class QueryableFilterVisitorEnumTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
+                .SetDocument("{ root(where: { barEnum: { in: [BAR FOO]}}){ barEnum}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
+                .SetDocument("{ root(where: { barEnum: { in: [FOO]}}){ barEnum}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
+                .SetDocument("{ root(where: { barEnum: { in: [null FOO]}}){ barEnum}}")
                 .Build());
 
         // assert
@@ -134,17 +134,17 @@ public class QueryableFilterVisitorEnumTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { nin: [ BAR FOO ] } }) { barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { nin: [BAR FOO] } }) { barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { nin: [FOO] } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { nin: [null FOO] } }) { barEnum } }")
                 .Build());
 
         // assert
@@ -237,17 +237,17 @@ public class QueryableFilterVisitorEnumTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { in: [ BAR FOO ] } }) { barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { in: [BAR FOO] } }) { barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { in: [ FOO ] } }) { barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { in: [FOO] } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { in: [ null FOO ] } }) { barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { in: [null FOO] } }) { barEnum } }")
                 .Build());
 
         // assert
@@ -268,17 +268,17 @@ public class QueryableFilterVisitorEnumTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { nin: [ BAR FOO ] } }){ barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { nin: [BAR FOO] } }){ barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { nin: [FOO] } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
+                .SetDocument("{ root(where: { barEnum: { nin: [null FOO] } }) { barEnum } }")
                 .Build());
 
         // assert

@@ -116,6 +116,11 @@ internal static class CompositeSchemaBuilder
                     break;
 
                 case DirectiveDefinitionNode directiveType:
+                    if (IsSpecDirective(directiveType.Name.Value))
+                    {
+                        break;
+                    }
+
                     if (options.ApplySerializeAsToScalars || !directiveType.Name.Value.Equals(SerializeAs.Name))
                     {
                         directiveTypes.Add(CreateDirectiveType(directiveType));
@@ -802,7 +807,7 @@ internal static class CompositeSchemaBuilder
 
         if (specifiedByDirective is not null)
         {
-            if (specifiedByDirective.Arguments["url"].Value is not StringValueNode url)
+            if (specifiedByDirective.Arguments["url"] is not StringValueNode url)
             {
                 throw new InvalidOperationException("The specified type does not have a url.");
             }

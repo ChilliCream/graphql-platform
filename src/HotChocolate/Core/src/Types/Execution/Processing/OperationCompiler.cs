@@ -12,12 +12,12 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
+    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
     private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
-    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     internal OperationCompiler(
         Schema schema,
@@ -197,8 +197,7 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            var path = selection.DeclaringSelectionSet.Path.Append(selection.ResponseName);
-            var selectionSet = BuildSelectionSet(path, fields, objectType, compilationContext, optimizers, ref lastId);
+            var selectionSet = BuildSelectionSet(selection.FieldSelectionPath, fields, objectType, compilationContext, optimizers, ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
             selectionSet.Complete(operation);
@@ -407,9 +406,12 @@ public sealed partial class OperationCompiler
                 arguments = CoerceArgumentValues(field, first.Node);
             }
 
+            var selectionPath = path.AppendField(field.Name);
+
             var selection = new Selection(
                 ++lastId,
                 responseName,
+                selectionPath,
                 field,
                 nodes.ToArray(),
                 includeFlags.Count > 0 ? includeFlags.ToArray() : [],
@@ -418,7 +420,8 @@ public sealed partial class OperationCompiler
                 isInternal: isInternal,
                 arguments: arguments,
                 resolverPipeline: fieldDelegate,
-                pureResolver: pureFieldDelegate);
+                pureResolver: pureFieldDelegate,
+                batchResolverPipeline: field.BatchResolver);
 
             if (optimizers.Length > 0)
             {

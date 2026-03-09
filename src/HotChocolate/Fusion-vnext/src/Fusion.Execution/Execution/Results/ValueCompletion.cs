@@ -16,6 +16,8 @@ internal sealed class ValueCompletion
     private readonly ISchemaDefinition _schema;
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
+    private readonly bool _haltOnError;
+    private readonly bool _haltOnNullViolation;
     private readonly int _maxDepth;
 
     public ValueCompletion(
@@ -31,6 +33,8 @@ internal sealed class ValueCompletion
         _schema = schema;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
+        _haltOnError = errorHandlingMode is ErrorHandlingMode.Halt;
+        _haltOnNullViolation = errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt;
         _maxDepth = maxDepth;
     }
 
@@ -194,7 +198,7 @@ internal sealed class ValueCompletion
 
                 _store.AddError(error);
 
-                if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (_haltOnNullViolation)
                 {
                     return false;
                 }
@@ -221,7 +225,7 @@ internal sealed class ValueCompletion
 
                 _store.AddError(errorWithPath);
 
-                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                if (_haltOnError)
                 {
                     return false;
                 }
@@ -268,6 +272,7 @@ internal sealed class ValueCompletion
         var isNullable = elementType.IsNullableType();
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
+        var isAbstract = elementType.IsAbstractType();
 
         target.SetArrayValue(source.GetArrayLength());
 
@@ -291,7 +296,7 @@ internal sealed class ValueCompletion
 
                 _store.AddError(errorWithPath);
 
-                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                if (_haltOnError)
                 {
                     return false;
                 }
@@ -299,7 +304,7 @@ internal sealed class ValueCompletion
 
             if (element.IsNullOrUndefined())
             {
-                if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (!isNullable && _haltOnNullViolation)
                 {
                     return false;
                 }
@@ -308,14 +313,53 @@ internal sealed class ValueCompletion
                 goto TryCompleteList_MoveNext;
             }
 
-            if (!HandleElement(element, enumerator.Current, errorTrieForIndex))
+            var targetElement = enumerator.Current;
+            bool completed;
+
+            if (isNested)
+            {
+                completed = TryCompleteList(
+                    element,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    elementType,
+                    depth);
+            }
+            else if (isLeaf)
+            {
+                targetElement.SetLeafValue(element);
+                completed = true;
+            }
+            else if (isAbstract)
+            {
+                completed = TryCompleteAbstractValue(
+                    element,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    elementType,
+                    depth);
+            }
+            else
+            {
+                completed = TryCompleteObjectValue(
+                    selection,
+                    elementType,
+                    element,
+                    errorTrieForIndex,
+                    depth,
+                    targetElement);
+            }
+
+            if (!completed)
             {
                 if (!isNullable)
                 {
                     return false;
                 }
 
-                enumerator.Current.SetNullValue();
+                targetElement.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
@@ -324,43 +368,6 @@ TryCompleteList_MoveNext:
         }
 
         return true;
-
-        bool HandleElement(
-            SourceResultElement sourceElement,
-            CompositeResultElement targetElement,
-            ErrorTrie? errorTrieForIndex)
-        {
-            if (isNested)
-            {
-                return TryCompleteList(
-                    sourceElement,
-                    targetElement,
-                    errorTrieForIndex,
-                    selection,
-                    elementType,
-                    depth);
-            }
-
-            if (isLeaf)
-            {
-                targetElement.SetLeafValue(sourceElement);
-                return true;
-            }
-
-            if (elementType.IsAbstractType())
-            {
-                return TryCompleteAbstractValue(sourceElement,
-                    targetElement, errorTrieForIndex, selection, elementType, depth);
-            }
-
-            return TryCompleteObjectValue(
-                selection,
-                elementType,
-                sourceElement,
-                errorTrieForIndex,
-                depth,
-                targetElement);
-        }
     }
 
     private bool TryCompleteObjectValue(

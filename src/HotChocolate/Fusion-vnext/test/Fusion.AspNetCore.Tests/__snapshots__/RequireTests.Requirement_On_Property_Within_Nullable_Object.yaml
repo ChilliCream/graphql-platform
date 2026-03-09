@@ -36,21 +36,36 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query Op_b05a9c48_3(
-              $__fusion_3_id: ID!
-            ) {
-              productById(id: $__fusion_3_id) {
-                nullableObject {
-                  field
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_b05a9c48_3(
+                  $__fusion_3_id: ID!
+                ) {
+                  productById(id: $__fusion_3_id) {
+                    nullableObject {
+                      field
+                    }
+                  }
                 }
-              }
-            }
-          variables: |
-            {
-              "__fusion_3_id": "1"
-            }
+              variables: |
+                {
+                  "__fusion_3_id": "1"
+                }
+            - document: |
+                query Op_b05a9c48_4(
+                  $__fusion_4_id: ID!
+                ) {
+                  productById(id: $__fusion_4_id) {
+                    id
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_4_id": "1"
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -62,21 +77,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query Op_b05a9c48_4(
-              $__fusion_4_id: ID!
-            ) {
-              productById(id: $__fusion_4_id) {
-                id
-              }
-            }
-          variables: |
-            {
-              "__fusion_4_id": "1"
-            }
-        response:
-          results:
             - |
               {
                 "data": {
@@ -155,7 +155,7 @@ operationPlan:
           }
         }
       hash: b05a9c488c79e334decd9cae59fb7892
-      searchSpace: 1
+      searchSpace: 2
       expandedNodes: 6
   nodes:
     - id: 1
@@ -206,6 +206,7 @@ operationPlan:
         }
       source: $.productById
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_3_id
           selectionMap: >-
@@ -225,6 +226,7 @@ operationPlan:
         }
       source: $.productById
       target: $.productById
+      batchingGroupId: 1
       requirements:
         - name: __fusion_4_id
           selectionMap: >-

@@ -10,7 +10,7 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 1
+    searchSpace: 2
     expandedNodes: 9
 nodes:
   - id: 1
@@ -36,6 +36,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
+    batchingGroupId: 1
     requirements:
       - name: __fusion_1_price
         selectionMap: >-
@@ -60,6 +61,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
+    batchingGroupId: 2
     requirements:
       - name: __fusion_3_upc
         selectionMap: >-
@@ -79,6 +81,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
+    batchingGroupId: 2
     requirements:
       - name: __fusion_4_upc
         selectionMap: >-
@@ -99,6 +102,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
+    batchingGroupId: 1
     requirements:
       - name: __fusion_5_price
         selectionMap: >-
@@ -122,6 +126,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
+    batchingGroupId: 2
     requirements:
       - name: __fusion_7_upc
         selectionMap: >-
@@ -141,6 +146,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
+    batchingGroupId: 2
     requirements:
       - name: __fusion_8_upc
         selectionMap: >-

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Unicode;
 using HotChocolate.Text.Json;
@@ -157,12 +158,7 @@ public sealed partial class SourceResultDocument
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endRowLength = endRow.SizeOrLength;
-
-        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
-        {
-            endRowLength = 1;
-        }
+        var endRowLength = GetEndRowLength(endRow);
 
         return ReadRawValue(start, endRow.Location - start + endRowLength);
     }
@@ -188,12 +184,7 @@ public sealed partial class SourceResultDocument
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endRowLength = endRow.SizeOrLength;
-
-        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
-        {
-            endRowLength = 1;
-        }
+        var endRowLength = GetEndRowLength(endRow);
 
         return ReadRawValueAsMemory(start, endRow.Location - start + endRowLength);
     }
@@ -219,12 +210,7 @@ public sealed partial class SourceResultDocument
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endRowLength = endRow.SizeOrLength;
-
-        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
-        {
-            endRowLength = 1;
-        }
+        var endRowLength = GetEndRowLength(endRow);
 
         return new ValueRange(start, endRow.Location - start + endRowLength);
     }
@@ -256,7 +242,7 @@ public sealed partial class SourceResultDocument
 
         var endCursor = GetEndIndex(valueCursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endOffset = endRow.Location + endRow.SizeOrLength;
+        var endOffset = endRow.Location + GetEndRowLength(endRow);
         return ReadRawValue(start, endOffset - start);
     }
 
@@ -282,4 +268,10 @@ public sealed partial class SourceResultDocument
 
         return endId;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetEndRowLength(DbRow endRow)
+        => endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.EndArray
+            ? 1
+            : endRow.SizeOrLength;
 }

@@ -13,8 +13,7 @@ public class NullTests : FusionTestBase
         using var server1 = CreateSourceSchema(
             "A",
             b => b.AddQueryType<SourceSchema1.Query>()
-                .InsertUseRequest(
-                    WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                .UseRequest(
                     (_, _) => context =>
                     {
                         // TODO: Re-add this
@@ -25,7 +24,8 @@ public class NullTests : FusionTestBase
                         //     });
                         return ValueTask.CompletedTask;
                     },
-                    key: "SetNull"));
+                    key: "SetNull",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(

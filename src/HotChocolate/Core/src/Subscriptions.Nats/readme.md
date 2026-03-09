@@ -17,19 +17,19 @@ You can start with a single node of NATS and see where you need to go from there
 You do not need to enable persistence in the NATS server (JetStream) for Publish/Subscribe to function.
 
 ```csharp
-using AlterNats;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
+using NATS.Extensions.Microsoft.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
-    .AddNats(poolSize: 1, opts => opts with
-    {
-        Url = "nats://localhost:4222",
-        // Optional serializer (defaults to System.Text.Json)
-        Serializer = new MessagePackNatsSerializer()
-    })
+    .AddNatsClient(nats => nats.ConfigureOptions(
+        options => options.Configure(
+            opts => opts.Opts = opts.Opts with
+            {
+                Url = "nats://localhost:4222"
+            })))
     .AddNatsSubscriptions()
     .AddGraphQLServer()
     .AddMutationConventions()

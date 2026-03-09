@@ -107,11 +107,6 @@ public interface IReadOnlySchemaOptions
     IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
 
     /// <summary>
-    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
-    /// </summary>
-    bool EnableOneOf { get; }
-
-    /// <summary>
     /// Defines if flag enums should be inferred as object value nodes
     /// </summary>
     /// <example>
@@ -174,6 +169,14 @@ public interface IReadOnlySchemaOptions
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }
+
+    /// <summary>
+    /// Enables opt-in features functionality, including the <c>@requiresOptIn</c> and
+    /// <c>@optInFeatureStability</c> directives. When enabled, schema elements can be marked as
+    /// requiring explicit opt-in, and introspection queries can filter results based on opted-in
+    /// features.
+    /// </summary>
+    bool EnableOptInFeatures { get; }
 
     /// <summary>
     /// Specifies the default dependency injection scope for query fields.
