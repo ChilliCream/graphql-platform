@@ -20,6 +20,7 @@
                   "date",
                   "dateTime",
                   "decimal",
+                  "duration",
                   "enum",
                   "float",
                   "id",
@@ -33,7 +34,6 @@
                   "object",
                   "short",
                   "string",
-                  "timeSpan",
                   "unknown",
                   "uri",
                   "url",
@@ -93,6 +93,12 @@
                     "type": "number",
                     "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision.",
                     "format": "float"
+                  },
+                  "duration": {
+                    "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+                    "type": "string",
+                    "description": "The `Duration` scalar type represents a duration of time.",
+                    "format": "duration"
                   },
                   "enum": {
                     "enum": [
@@ -208,12 +214,6 @@
                   "string": {
                     "type": "string"
                   },
-                  "timeSpan": {
-                    "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
-                    "type": "string",
-                    "description": "The `TimeSpan` scalar type represents a duration of time.",
-                    "format": "duration"
-                  },
                   "unknown": {
                     "type": "string"
                   },
@@ -253,6 +253,7 @@
                     "date",
                     "dateTime",
                     "decimal",
+                    "duration",
                     "enum",
                     "float",
                     "id",
@@ -266,7 +267,6 @@
                     "object",
                     "short",
                     "string",
-                    "timeSpan",
                     "unknown",
                     "url",
                     "uuid"
@@ -331,6 +331,13 @@
                       "type": "number",
                       "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision.",
                       "format": "float",
+                      "nullable": true
+                    },
+                    "duration": {
+                      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+                      "type": "string",
+                      "description": "The `Duration` scalar type represents a duration of time.",
+                      "format": "duration",
                       "nullable": true
                     },
                     "enum": {
@@ -460,13 +467,6 @@
                     },
                     "string": {
                       "type": "string",
-                      "nullable": true
-                    },
-                    "timeSpan": {
-                      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
-                      "type": "string",
-                      "description": "The `TimeSpan` scalar type represents a duration of time.",
-                      "format": "duration",
                       "nullable": true
                     },
                     "unknown": {
