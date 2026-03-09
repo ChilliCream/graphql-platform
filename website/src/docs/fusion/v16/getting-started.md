@@ -17,19 +17,21 @@ If you want the broader conceptual background first, read [Overview](/docs/fusio
 
 ## What Is Fusion and Why Use It?
 
-Hot Chocolate Fusion lets you split a GraphQL API across multiple independent services, called **subgraphs**, and present them to clients as a single, unified schema (called a **composite schema** in the spec). Each subgraph contributes types and fields to the overall graph, runs in its own process, and can be developed, deployed, and scaled independently. A **gateway** sits in front of all your subgraphs, receives client queries, routes each part of the query to the subgraphs that own the requested fields, and combines the results. From the client's perspective, they are querying a single GraphQL endpoint with one schema. The gateway handles everything transparently.
+Hot Chocolate Fusion lets you split a GraphQL API across multiple independent services, called **subgraphs**, and present them to clients as a single, unified schema (called a **composite schema** in the spec). Each subgraph contributes types and fields to the overall API, runs in its own process, and can be developed, deployed, and scaled independently.
+
+A **gateway** sits in front of all your subgraphs, receives client queries, routes each part of the query to the subgraphs that own the requested fields, and combines the results. From the client's perspective, they are querying a single GraphQL endpoint with one schema. The gateway handles everything transparently.
 
 Instead of building one monolithic GraphQL server that knows about every domain in your system, you let each team own and ship their own GraphQL service. Fusion handles the hard part by composing those services into a single schema that clients query without knowing (or caring) how many services are behind it.
 
-**When should you use Fusion?** If your GraphQL API is served by a single Hot Chocolate server and that works for your team, there is no reason to add the complexity of multiple subgraphs. Fusion becomes valuable when your API spans multiple domains (products, reviews, accounts, shipping), when different teams own different parts of the graph, or when you need to deploy and scale parts of your API independently. If you find yourself wanting to break a growing monolith into smaller, team-owned services without forcing clients to stitch together calls to multiple endpoints, Fusion is the tool for the job.
+**When should you use Fusion?** Fusion becomes valuable when your API spans multiple domains (products, reviews, accounts, shipping), when different teams own different parts of the API, or when you need to deploy and scale parts of your API independently. If you find yourself wanting to break a growing monolith into smaller, team-owned services without forcing clients to stitch together calls to multiple endpoints, Fusion is the tool for the job.
 
-## Thinking in Composed Graphs
+## Thinking in Composite Schemas
 
 When you first encounter distributed GraphQL, there is a natural assumption about how subgraphs interact that turns out to be wrong. Getting the right mental model now will save you from the most common design mistakes.
 
-### One Graph, Many Contributors
+### One GraphQL Schema, Many Contributors
 
-In Fusion, all subgraphs contribute to **one shared graph**. There is no "Products API" and "Reviews API" that exist as separate GraphQL schemas. There is one graph that describes your entire domain, and different subgraphs are responsible for different parts of it.
+In Fusion, all subgraphs contribute to **one shared GraphQL schema**. There is no "Products Schema" and "Reviews Schema" that exist as separate GraphQL schemas. There is one graph that describes your entire domain, and different subgraphs are responsible for different parts of it.
 
 This means a single type can have fields contributed by multiple subgraphs. For example, the `Product` type might get its `name` and `price` fields from the Products subgraph, its `reviews` field from the Reviews subgraph, and its `deliveryEstimate` field from the Shipping subgraph. From the client's perspective, `Product` is one type with all those fields. The gateway figures out where each field lives and fetches it from the right place.
 
@@ -54,16 +56,14 @@ In Fusion, your subgraph never calls another subgraph. Instead, it says: "this f
 This design has practical consequences:
 
 - **Subgraphs stay independent.** The Users subgraph does not import anything from the Tenants subgraph. It just knows that `Tenant` is an entity with an `id` field.
-- **Adding new subgraphs is safe.** If a new Billing subgraph wants to add a `billingPlan` field to the `Tenant` type, it can do so without modifying the Tenants or Users subgraphs.
-- **The gateway is the coordinator.** Cross-subgraph data fetching is the gateway's job, not yours. Your subgraph only needs to know how to resolve the fields it owns and how to look up its own entities by key.
-
-When you build your subgraphs in the following sections, keep this model in mind: each subgraph contributes to one graph, declares its entities and lookups, and trusts the gateway to wire everything together.
+- **Adding new subgraphs is safe.** If a new Billing subgraph wants to contribute a `billingPlan` field to the `Tenant` type, it can do so without modifying the Tenants or Users subgraphs.
+- **The gateway is the coordinator.** Cross-subgraph data fetching is the gateway's job, not yours. Your subgraph only needs to know how to resolve the fields it owns and how to look up its own entities by key. When you build your subgraphs in the following sections, keep this model in mind: each subgraph contributes to one API, declares its entities and lookups, and trusts the gateway to wire everything together.
 
 ## Key Concepts
 
 Before diving into code, here are the core terms you will encounter throughout this guide. Each builds on the mental model from the previous section.
 
-**Subgraph:** An independent GraphQL service that contributes types and fields to the overall graph. Each subgraph runs in its own process, owns its own data, and defines resolvers for the fields it contributes. In Hot Chocolate, a subgraph is a standard Hot Chocolate server with a few additional attributes that tell Fusion how its types fit into the larger graph.
+**Subgraph:** An independent GraphQL service that contributes types and fields to the overall API. Each subgraph runs in its own process, owns its own data, and defines resolvers for the fields it contributes. In Hot Chocolate, a subgraph is a standard Hot Chocolate server with a few additional attributes that tell Fusion how its types fit into the larger API.
 
 **Source Schema:** The GraphQL schema exposed by a single subgraph. When you export a subgraph's schema (as a `.graphqls` file), that exported schema is the source schema. Fusion's composition engine reads source schemas from all your subgraphs and merges them into the composite schema.
 
@@ -71,20 +71,37 @@ Before diving into code, here are the core terms you will encounter throughout t
 
 **Gateway:** The service that sits between clients and subgraphs. It exposes the composite schema, receives client queries, analyzes each query, routes parts of it to the appropriate subgraphs, and combines the results into a single response. In Hot Chocolate, you create a gateway by calling `AddGraphQLGateway()` in a standard ASP.NET Core project.
 
-**Query Planning:** The process the gateway uses to execute a client query across multiple subgraphs. When a query touches fields from different subgraphs, the gateway analyzes the query, determines which subgraphs own which fields, and creates an execution plan that fetches data in the right order. For example, if a query asks for `product.reviews.author.name`, the gateway must first fetch the Product (from the Products subgraph), then fetch Reviews (to get author IDs), then fetch Users (to get names), coordinating across three subgraphs in sequence. This happens automatically. You do not write query plans yourself.
+**Query Planning:** The process the gateway uses to build an optimized execution plan for a client query across multiple subgraphs. When a query touches fields from different subgraphs, the gateway analyzes the query, determines which subgraphs own which fields, and creates a plan that fetches data in the right order.
 
-**Entity:** A type that can be uniquely identified and resolved across subgraphs. For example, `Product` is an entity because the Products subgraph defines it, the Reviews subgraph extends it with a `reviews` field, and the gateway can resolve a `Product` in any subgraph using its key (like `id`). Entities are defined by their **key fields** (like `id` or `sku`) that uniquely identify each instance. The gateway uses these keys to resolve entity references across subgraphs, which is what makes cross-subgraph types possible.
+**Entity:** A type with a stable key that can be referenced across subgraphs. Entity keys (such as `id` or `sku`) uniquely identify each instance and are used for cross-subgraph references and resolution.
 
-**Shareable:** A marker that allows multiple subgraphs to define the same field on the same type. By default, Fusion requires that each non-key field belongs to exactly one subgraph. If two subgraphs define the same field, composition fails with an error. When you mark a field with `[Shareable]`, you are telling Fusion: "this field is intentionally defined in multiple subgraphs, and all definitions return the same data." The gateway can then resolve the field from whichever subgraph is most convenient for a given query.
+**Lookup:** A query field the gateway uses to enrich an already-referenced entity with additional fields from another subgraph.
 
-**Lookup:** A query field in a subgraph that resolves an entity by its key. When the gateway needs to fetch a `Product` from the Products subgraph, it calls that subgraph's lookup field (e.g., `productById(id: 1)`). In Hot Chocolate, you mark a resolver as a lookup by adding the `[Lookup]` attribute. Every entity needs at least one lookup so the gateway can resolve references to it. Lookups come in two flavors:
+```graphql
+type Query {
+  productById(id: ID!): Product @lookup
+}
+```
 
-- A **public lookup** (without `[Internal]`) serves two purposes: clients can call it directly as a query field, and the gateway uses it for entity resolution. Because clients can call it, a public lookup should validate that the entity exists and return `null` if it does not.
-- An **internal lookup** (marked with `[Internal]`) is hidden from the composite schema and is only used by the gateway during query planning. Internal lookups often just construct a stub object from an ID without checking whether the entity actually exists. This is fine because the gateway only calls them as part of entity resolution, where the entity's existence has already been established by another subgraph.
+- An **internal lookup** (marked with the `@internal` directive) is excluded from the composite schema, cannot be called by clients, and is used only by the gateway for cross-subgraph entity resolution.
+
+```graphql
+type Query {
+  productById(id: ID!): Product @internal @lookup
+}
+```
+
+**Shareable:** A contract for fields that are defined in multiple subgraphs. By default, each non-key field must be defined by exactly one subgraph. If the same field appears in multiple subgraphs, composition fails until every definition is explicitly marked with the `@sharable` directive. This asserts that all definitions have the same semantics, and it allows the query planner to fetch the field from any subgraph subgraph providing this field.
+
+```graphql
+type User {
+  name: String @sharable
+}
+```
 
 ## Prerequisites
 
-To follow this guide, you need the following installed on your machine.
+To follow this tutorial, you need the following installed on your machine.
 
 ### .NET SDK
 
@@ -101,7 +118,7 @@ You should see `10.0.100` or higher.
 The Nitro CLI is a .NET tool that handles schema composition. Install it globally:
 
 ```bash
-dotnet tool install -g ChilliCream.Nitro.CLI
+dotnet tool install -g ChilliCream.Nitro.CommandLine --version "16.0.0-p.11.35"
 ```
 
 Verify the installation:
@@ -110,53 +127,30 @@ Verify the installation:
 nitro version
 ```
 
-### NuGet Packages
+### Hot Chocolate Templates
 
-You do not need to install packages manually. Each project you create will reference them in its `.csproj` file. For reference, these are the Hot Chocolate packages used in this guide:
+Install the Hot Chocolate templates at the same preview version used in this guide:
 
-**For subgraphs:**
-
-- `HotChocolate.AspNetCore`: The Hot Chocolate GraphQL server for ASP.NET Core
-- `HotChocolate.Types.Analyzers`: Source generator that auto-registers your types
-
-**For the gateway:**
-
-- `HotChocolate.Fusion.AspNetCore`: The Hot Chocolate Fusion gateway for ASP.NET Core
-
-All packages use prerelease version `16.0.0-p.11.2` or later, available on nuget.org. At the time of writing, the latest preview is `16.0.0-p.11.2`.
-
-### What You Do Not Need
-
-This guide deliberately keeps infrastructure simple so you can focus on Fusion concepts. You do **not** need:
-
-- A database: all data is in-memory
-- Docker or containers
-- .NET Aspire
-- Authentication or Keycloak
-- A Nitro cloud account
-
-Everything runs locally on your machine.
+```bash
+dotnet new install HotChocolate.Templates@16.0.0-p.11.35
+```
 
 ## Create Your First Subgraph (Products)
 
-Time to write code. You will create a Products subgraph that exposes a few products through a GraphQL API. This subgraph will later become part of your composed graph.
+Time to write code. You will create a Products subgraph that exposes a few products through a GraphQL API. This subgraph will later become part of your composed API.
 
 ### Project Setup
 
-Create a new ASP.NET Core web project and add the required packages:
+Create a new GraphQL server project from the template:
 
 ```bash
 mkdir fusion-getting-started
 cd fusion-getting-started
 
-dotnet new web -n Products
-cd Products
-
-dotnet add package HotChocolate.AspNetCore --version "16.0.0-p.11.2"
-dotnet add package HotChocolate.Types.Analyzers --version "16.0.0-p.11.2"
-
-cd ..
+dotnet new graphql -n Products
 ```
+
+The template creates sample files in `Products/Types` (`Author.cs`, `Book.cs`, `Query.cs`). Delete those files before continuing so your schema only contains the tutorial types.
 
 Your `Products/Products.csproj` should now look like this:
 
@@ -167,13 +161,19 @@ Your `Products/Products.csproj` should now look like this:
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(ImplicitUsings)' == 'enable'">
+    <Using Include="Products" />
+  </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.0-p.11.2" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="16.0.0-p.11.2">
-      <PrivateAssets>all</PrivateAssets>
+    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.0-p.11.35" />
+    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="16.0.0-p.11.35" />
+    <PackageReference Include="HotChocolate.Types.Analyzers" Version="16.0.0-p.11.35">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 
@@ -182,9 +182,10 @@ Your `Products/Products.csproj` should now look like this:
 
 ### Configure the Port
 
-By default, ASP.NET Core picks a port for you. To keep things predictable, configure the Products subgraph to run on port 5001. Edit `Products/Properties/launchSettings.json` and set the `applicationUrl` under the `http` profile to:
+The `dotnet new graphql` template already defines a default port in `launchSettings.json`. For this tutorial, change it so the Products subgraph runs on port 5001. Edit `Products/Properties/launchSettings.json` and set `launchUrl` and `applicationUrl` under the `http` profile to:
 
 ```json
+"launchUrl": "http://localhost:5001/graphql",
 "applicationUrl": "http://localhost:5001"
 ```
 
@@ -233,7 +234,7 @@ public static class ProductRepository
 }
 ```
 
-In production, you would use `[DataLoader]` to batch database lookups. This prevents N+1 queries when the gateway resolves entities across subgraphs. See the fusion-demo repository for DataLoader examples.
+> In production, use **DataLoader** or **batch resolvers** in your subgraphs to batch backend lookups and reduce N+1 query patterns. This is especially important for entity lookups across subgraphs. See the [Fusion demo project](https://github.com/ChilliCream/fusion-demo) for a more complete example.
 
 ### Expose Products Through GraphQL
 
@@ -254,22 +255,20 @@ public static partial class ProductQueries
 }
 ```
 
-The `partial` keyword is required because the source generator adds generated code to this class at compile time.
-
 Two attributes to notice:
 
 - **`[QueryType]`** tells Hot Chocolate that this class contributes fields to the `Query` root type. The source generator (from `HotChocolate.Types.Analyzers`) automatically registers these fields.
-- **`[Lookup]`** marks `GetProductById` as a lookup resolver. This is how the gateway resolves a `Product` when another subgraph references it. Without this attribute, the gateway would have no way to fetch a Product by its ID from this subgraph. Because this lookup is **public** (not marked `[Internal]`), it also appears in the composite schema as a query field clients can call directly. Notice it returns `Product?` (nullable). If the ID does not match any product, it returns `null`. This is important for public lookups because clients can call them with arbitrary IDs.
+- **`[Lookup]`** marks `GetProductById` as a lookup resolver. This is how the gateway resolves a `Product` when another subgraph references it. Without this attribute, the gateway would have no way to fetch a Product by its ID from this subgraph. Because this lookup is **public**, it also appears in the composite schema as a query field clients can call directly. Lookups must return nullable entity types (`Product?`) so unresolved keys can return `null` and avoid cascading failures when one or more subgraphs cannot provide requested fields for an entity.
 
 ### Configure the Server
 
-Replace the contents of `Program.cs` with:
+Set `Program.cs` to:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL("Products")
     .AddTypes();
 
 var app = builder.Build();
@@ -278,7 +277,7 @@ app.MapGraphQL();
 app.RunWithGraphQLCommands(args);
 ```
 
-This is a minimal Hot Chocolate server. `AddTypes()` is a source-generated method that automatically registers all types discovered by the `HotChocolate.Types.Analyzers` package, including `ProductQueries` and the `Product` type. The `RunWithGraphQLCommands(args)` method (instead of `app.Run()`) enables CLI commands, including schema export which you will use shortly.
+This is a minimal Hot Chocolate server. `AddGraphQL("Products")` sets the subgraph name used during schema export. `AddTypes()` registers all discovered types, including `ProductQueries` and `Product`. `RunWithGraphQLCommands(args)` enables CLI commands, including schema export.
 
 ### Test the Subgraph
 
@@ -331,29 +330,22 @@ Stop the server with `Ctrl+C` before continuing.
 
 ### Export the Schema
 
-The gateway needs each subgraph's schema for composition. Hot Chocolate can export the schema files automatically using a CLI command. Add the command-line package:
+The gateway needs each subgraph's source schema for composition. Hot Chocolate can export source schema files automatically. From the `fusion-getting-started` directory, run:
 
 ```bash
-cd Products
-dotnet add package HotChocolate.AspNetCore.CommandLine --version "16.0.0-p.11.2"
-```
-
-Now export the schema. From the `fusion-getting-started` directory:
-
-```bash
-dotnet run ./Products -- schema export
+dotnet run --project ./Products -- schema export
 ```
 
 This generates two files in the Products project directory:
 
-- **`schema.graphqls`**: The Products subgraph's GraphQL schema, describing its types and fields.
-- **`schema-settings.json`**: A companion file that tells Fusion the subgraph's name and runtime URL.
+- **`schema.graphqls`**: The Products subgraph's source schema, describing its types and fields.
+- **`schema-settings.json`**: A companion file that tells Fusion the subgraph's name and runtime URL and other subgraph options.
 
-Open `Products/schema-settings.json` and verify it contains the subgraph name. You will need to set the transport URL so the gateway knows where to reach this subgraph at runtime. Update it to:
+Because `Program.cs` uses `AddGraphQL("Products")`, `Products/schema-settings.json` already contains `"name": "Products"`. Update the transport URL to match port 5001:
 
 ```json
 {
-  "name": "products",
+  "name": "Products",
   "transports": {
     "http": {
       "url": "http://localhost:5001/graphql"
@@ -362,7 +354,7 @@ Open `Products/schema-settings.json` and verify it contains the subgraph name. Y
 }
 ```
 
-The `name` field is the unique identifier for this subgraph in the composed graph. The `url` is where the gateway will send requests to this subgraph at runtime.
+The `name` field identifies this subgraph within the composite schema and must be unique. The `url` is where the gateway sends requests to this subgraph at runtime.
 
 ### What You Built
 
@@ -377,28 +369,24 @@ In the next section, you will create a second subgraph (Reviews) that references
 
 ## Create a Second Subgraph (Reviews)
 
-Now you will create a Reviews subgraph that adds review data to the graph. The key part is that the Reviews subgraph will add a `reviews` field to the `Product` type that lives in the Products subgraph. This is Fusion's core capability: multiple subgraphs contributing fields to the same type.
+Now you will create a Reviews subgraph that adds review data to the API. The key part is that the Reviews subgraph will add a `reviews` field to the `Product` type that lives in the Products subgraph. This is Fusion's core capability: multiple subgraphs contributing fields to the same type.
 
 ### Project Setup
 
 From the `fusion-getting-started` directory:
 
 ```bash
-dotnet new web -n Reviews
-cd Reviews
-
-dotnet add package HotChocolate.AspNetCore --version "16.0.0-p.11.2"
-dotnet add package HotChocolate.AspNetCore.CommandLine --version "16.0.0-p.11.2"
-dotnet add package HotChocolate.Types.Analyzers --version "16.0.0-p.11.2"
-
-cd ..
+dotnet new graphql -n Reviews
 ```
+
+The template also creates sample files in `Reviews/Types` (`Author.cs`, `Book.cs`, `Query.cs`). Delete those files before continuing.
 
 ### Configure the Port
 
-Edit `Reviews/Properties/launchSettings.json` and set the `applicationUrl` under the `http` profile to:
+The `dotnet new graphql` template already defines a default port in `launchSettings.json`. For this tutorial, change it so the Reviews subgraph runs on port 5002. Edit `Reviews/Properties/launchSettings.json` and set `launchUrl` and `applicationUrl` under the `http` profile to:
 
 ```json
+"launchUrl": "http://localhost:5002/graphql",
 "applicationUrl": "http://localhost:5002"
 ```
 
@@ -469,9 +457,9 @@ public sealed record Product(int Id)
 }
 ```
 
-This is **not** a duplicate of the Product type from the Products subgraph. It is an **entity stub**, a lightweight declaration that says: "I know `Product` exists in the graph, identified by `Id`, and I want to add a `reviews` field to it."
+This is **not** a duplicate of the Product type from the Products subgraph. It is an **entity stub**, a lightweight declaration that says: "I know `Product` exists in the API, identified by `Id`, and I want to add a `reviews` field to it."
 
-The Reviews subgraph does not define `name`, `price`, or any other Product fields. It only contributes the `reviews` field. When the gateway composes the graph, it merges this stub with the full `Product` type from the Products subgraph. Clients see one `Product` type with:
+The Reviews subgraph does not define `name`, `price`, or any other Product fields. It only contributes the `reviews` field. When the gateway composes the API, it merges this stub with the full `Product` type from the Products subgraph. Clients see one `Product` type with:
 
 - `id`, `name`, and `price` from the Products subgraph
 - `reviews` from the Reviews subgraph
@@ -506,7 +494,7 @@ namespace Reviews;
 public static partial class ProductQueries
 {
     [Lookup, Internal]
-    public static Product GetProductById(int id)
+    public static Product? GetProductById(int id)
         => new(id);
 }
 ```
@@ -518,17 +506,17 @@ Two attributes to notice:
 
 Why is the internal lookup needed? When a client queries `review.product.reviews`, the gateway needs a way to enter the Reviews subgraph's `Product` type so it can resolve the `reviews` field. The internal lookup provides this entry point. Given a product ID (which the gateway already knows from another subgraph), it constructs a `Product` stub that the `reviews` field can then resolve against.
 
-Notice that this lookup returns `Product` (non-nullable) and does `new(id)`. It constructs a stub from the ID without checking whether that product actually exists. This is safe because internal lookups are never called by clients directly. The gateway only calls them during entity resolution, after another subgraph has already confirmed the entity exists. Compare this to the Products subgraph's public `GetProductById`, which calls `ProductRepository.GetById(id)` and returns `Product?` (nullable) because clients can call it with any ID.
+Notice that this lookup returns `Product?` (nullable), even though it is internal. Lookups should be nullable so unresolved keys can return `null` and avoid cascading failures across subgraphs. In this sample, the resolver still constructs a stub with `new(id)` because the key is already known.
 
 ### Configure the Server
 
-Replace the contents of `Program.cs` with:
+Set `Program.cs` to:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL("Reviews")
     .AddTypes();
 
 var app = builder.Build();
@@ -537,7 +525,7 @@ app.MapGraphQL();
 app.RunWithGraphQLCommands(args);
 ```
 
-This is identical to the Products subgraph's `Program.cs`.
+This follows the same pattern as the Products subgraph, but sets the subgraph name to `Reviews`.
 
 ### Add the ObjectType Extension
 
@@ -622,17 +610,22 @@ Stop the server with `Ctrl+C`.
 
 ### Export the Schema
 
-Export the Reviews subgraph's schema. From the `fusion-getting-started` directory:
+Export the Reviews subgraph's source schema. From the `fusion-getting-started` directory:
 
 ```bash
-dotnet run ./Reviews -- schema export
+dotnet run --project ./Reviews -- schema export
 ```
 
-This generates `schema.graphqls` and `schema-settings.json` in the Reviews project directory. Open `Reviews/schema-settings.json` and update the transport URL:
+This generates two files in the Reviews project directory:
+
+- **`schema.graphqls`**: The Reviews subgraph's source schema, describing its types and fields.
+- **`schema-settings.json`**: A companion file that tells Fusion the subgraph's name and runtime URL and other subgraph options.
+
+Because `Program.cs` uses `AddGraphQL("Reviews")`, `Reviews/schema-settings.json` already contains `"name": "Reviews"`. Update the transport URL to match port 5002:
 
 ```json
 {
-  "name": "reviews",
+  "name": "Reviews",
   "transports": {
     "http": {
       "url": "http://localhost:5002/graphql"
@@ -640,6 +633,8 @@ This generates `schema.graphqls` and `schema-settings.json` in the Reviews proje
   }
 }
 ```
+
+The `name` field identifies this subgraph within the composite schema and must be unique. The `url` is where the gateway sends requests to this subgraph at runtime.
 
 ### What You Built
 
@@ -651,7 +646,7 @@ Your Reviews subgraph now:
 - Provides an internal `productById` lookup that the gateway uses for cross-subgraph resolution
 - Has an exported schema and settings file ready for composition
 
-You now have two independent subgraphs that contribute to one shared graph. In the next section, you will compose them into a single composite schema.
+You now have two independent subgraphs that contribute to one shared API. In the next section, you will compose them into a single composite schema.
 
 ## Compose the Schemas with Nitro CLI
 
@@ -693,16 +688,8 @@ Each subgraph directory has a `schema.graphqls` and a `schema-settings.json`. Th
 From the `fusion-getting-started` directory, run:
 
 ```bash
-nitro fusion compose \
-  --source-schema-file Products/schema.graphqls \
-  --source-schema-file Reviews/schema.graphqls \
-  --archive gateway.far
-```
-
-On Windows (PowerShell or cmd), put everything on one line:
-
-```bash
-nitro fusion compose --source-schema-file Products/schema.graphqls --source-schema-file Reviews/schema.graphqls --archive gateway.far
+mkdir Gateway
+nitro fusion compose --s Products/schema.graphqls --s Reviews/schema.graphqls --f Gateway/gateway.far
 ```
 
 If composition succeeds, you will see output similar to:
@@ -715,32 +702,20 @@ Fusion archive created: gateway.far
 
 The exact output may vary by Nitro CLI version, but you should see confirmation that the archive was created. The `gateway.far` file is a binary package containing the composed gateway configuration. You do not need to look inside this file; the gateway reads it directly. You will pass it to the gateway in the next section.
 
-Notice that composition validates your schemas at build time. If there were conflicts between subgraphs, for example two subgraphs defining the same field without `[Shareable]`, you would find out now, not when a user hits a broken query path in production. This is one of Fusion's key advantages.
+Notice that composition validates your schemas at build time. If there were conflicts between subgraphs, for example two subgraphs defining the same field without the `@sharable` directive, you would find out now, not when a user hits a broken query path in production.
 
 ### What Happens During Composition
 
-The Nitro CLI performs three steps:
+The Nitro CLI performs four steps:
 
-1. **Validate** each source schema individually: are they valid GraphQL, and are the Fusion attributes used correctly?
-2. **Merge** the source schemas: combine types with the same name, verify that non-shared fields appear in only one subgraph, and resolve entity references.
-3. **Produce** the composite schema: the unified schema clients will query, plus the internal routing metadata the gateway needs to plan queries.
+1. **Validate** source schemas: check GraphQL validity and Fusion metadata.
+2. **Merge** source schemas: combine matching types and enforce field ownership rules.
+3. **Check satisfiability**: verify that cross-subgraph selections can actually be fulfilled with the available keys and lookups.
+4. **Produce** output: create the composite schema plus routing metadata for the gateway.
 
-In this case, composition merges the `Product` type from the Products subgraph (with `id`, `name`, `price`) and the `Product` entity stub from the Reviews subgraph (with `reviews`). The result is one `Product` type with all four fields.
+In this tutorial, composition merges `Product` from Products (`id`, `name`, `price`) with the Reviews contribution (`reviews`) into one composite `Product`.
 
-Lookup resolvers are also merged into the gateway configuration. The gateway knows it can resolve a Product by ID from the Products subgraph (for full product data) or from the Reviews subgraph (for the entity stub). The internal lookup in Reviews (marked `[Internal]`) is hidden from the composite schema but available to the gateway for query planning.
-
-### Troubleshooting Composition Errors
-
-If composition fails, the CLI reports specific errors. Common issues include:
-
-- **"Field X is defined in multiple subgraphs without `[Shareable]`"**: Two subgraphs define the same field on the same type. Either mark the field as `[Shareable]` in both subgraphs (if they return the same data), or remove the duplicate.
-- **"No lookup found for entity X"**: A subgraph references an entity type but no subgraph provides a lookup for it. Add a `[Lookup]` resolver.
-- **"Entity X has no key fields"**: An entity type is referenced across subgraphs but does not have a key field. Make sure your entity stub and main entity definition both have the same key field (usually `Id`).
-- **"Schema file not found" or "settings file not found"**: The `.graphqls` file does not have a matching `-settings.json` file in the same directory. Make sure they share the same prefix (e.g., `schema.graphqls` and `schema-settings.json`).
-
-If you see errors, export each schema again from the solution root after your latest code changes.
-
-With composition complete, you now have a `gateway.far` file containing your composed graph. In the next section, you will create a gateway that loads this file and serves the unified schema to clients.
+Composition also records lookup routes. The gateway can resolve `Product` by key from Products for full product fields, or from Reviews for the local entity stub. The Reviews internal lookup (`@internal`) is excluded from the composite schema but still available to the gateway.
 
 ## Run the Fusion Gateway
 
@@ -751,13 +726,13 @@ The gateway is the service that clients connect to. It loads the composed config
 From the `fusion-getting-started` directory:
 
 ```bash
-dotnet new web -n Gateway
 cd Gateway
-
-dotnet add package HotChocolate.Fusion.AspNetCore --version "16.0.0-p.11.2"
+dotnet new graphql-gateway
 
 cd ..
 ```
+
+The `graphql-gateway` template already includes the `HotChocolate.Fusion.AspNetCore` package and a working gateway `Program.cs`.
 
 Your `Gateway/Gateway.csproj` should look like this:
 
@@ -771,7 +746,7 @@ Your `Gateway/Gateway.csproj` should look like this:
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.Fusion.AspNetCore" Version="16.0.0-p.11.2" />
+    <PackageReference Include="HotChocolate.Fusion.AspNetCore" Version="16.0.0-p.11.35" />
   </ItemGroup>
 
 </Project>
@@ -779,9 +754,10 @@ Your `Gateway/Gateway.csproj` should look like this:
 
 ### Configure the Port
 
-Edit `Gateway/Properties/launchSettings.json` and set the `applicationUrl` under the `http` profile to:
+Edit `Gateway/Properties/launchSettings.json` and set `launchUrl` and `applicationUrl` under the `http` profile to:
 
 ```json
+"launchUrl": "http://localhost:5000/graphql",
 "applicationUrl": "http://localhost:5000"
 ```
 
@@ -789,21 +765,15 @@ The gateway runs on port 5000. The subgraphs run on ports 5001 (Products) and 50
 
 ### Copy the Fusion Archive
 
-Copy the `gateway.far` file you created during composition into the Gateway project directory:
+The composition step already wrote `gateway.far` into the `Gateway` directory (`--f Gateway/gateway.far`). Verify that the file exists before continuing:
 
 ```bash
-cp gateway.far Gateway/gateway.far
-```
-
-On Windows:
-
-```bash
-copy gateway.far Gateway\gateway.far
+ls Gateway/gateway.far
 ```
 
 ### Configure the Gateway
 
-Replace the contents of `Gateway/Program.cs` with:
+Set `Gateway/Program.cs` to:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -811,8 +781,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddHttpClient("fusion");
 
-builder
-    .AddGraphQLGateway()
+builder.Services
+    .AddGraphQLGatewayServer()
     .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
@@ -824,7 +794,7 @@ app.Run();
 Three things to notice:
 
 - **`AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The gateway uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
-- **`AddGraphQLGateway()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
+- **`AddGraphQLGatewayServer()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
 - **`AddFileSystemConfiguration("./gateway.far")`** tells the gateway to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
 
 ### Start Everything
@@ -1012,7 +982,7 @@ This time, `body` and `stars` came from the Reviews subgraph, while `product.nam
 
 Remember in the previous section, when you queried `review.product` on the Reviews subgraph directly? You could see `product.id` and `product.reviews`, but `product.name` and `product.price` were missing because those fields did not exist in the Reviews subgraph.
 
-Now, through the gateway, `product.name` and `product.price` are available. Composition merged the Product type from both subgraphs, and the gateway resolves each field from the subgraph that owns it. This is what it means for subgraphs to contribute to one shared graph.
+Now, through the gateway, `product.name` and `product.price` are available. Composition merged the Product type from both subgraphs, and the gateway resolves each field from the subgraph that owns it. This is what it means for subgraphs to contribute to one shared API.
 
 ### Lookup a Single Product
 
@@ -1098,7 +1068,7 @@ If the fields return **different** data, they should have **different** names (e
 
 ## What's Next
 
-You now have a working Fusion setup: two subgraphs contributing to one composed graph, served through a single gateway. Here are some directions to explore next based on what you need:
+You now have a working Fusion setup: two subgraphs contributing to one composed API, served through a single gateway. Here are some directions to explore next based on what you need:
 
 - **I want to add another subgraph to this project**: [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph)
 - **I want to understand entities more deeply**: [Entities and Lookups](/docs/fusion/v16/entities-and-lookups)
