@@ -440,8 +440,7 @@ builder.Services
 
 ### Any input fields now deserialize complex types as `JsonElement`
 
-Previously, complex input values for `Any`-typed input variables were deserialized as `IDictionary<string, object?>`.  
-They are now deserialized as `JsonElement`, aligning input behavior with arbitrary output types.
+Previously, complex input values for `Any`-typed input variables were deserialized as `IDictionary<string, object?>`. They are now deserialized as `JsonElement`, aligning input behavior with arbitrary output types.
 
 ```csharp
 public string Foo([GraphQLType<AnyType>]object? input) => input?.GetType().Name;
@@ -472,6 +471,7 @@ For example, a `DateTime` value can no longer be used to fill a `Date` scalar si
 You can also bypass this by annotating your types with custom JsonConverters.
 
 If you need to pass an Upload scalar value, you can do the following:
+
 ```csharp
 var requestBuilder = new OperationRequestBuilder();
 requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
@@ -486,12 +486,12 @@ public class FileLookup : IFileLookup
             file = new StreamFile("Foo.txt", () => new MemoryStream());
             return true;
         }
-        
+
         file = null;
         return false;
     }
 }
-```  
+```
 
 ## `Byte` and `SignedByte` types renamed
 
@@ -670,7 +670,9 @@ builder.Services
         new HttpResponseFormatterOptions { /* ... */ },
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
+
 ## `OperationRequestBuilder.AddVariableValues` renamed to `SetVariableValues`
+
 `OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
 
 # Deprecations
