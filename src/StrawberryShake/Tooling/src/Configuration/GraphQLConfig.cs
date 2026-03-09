@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -30,13 +31,13 @@ public class GraphQLConfig
         return JsonConvert.SerializeObject(this, CreateJsonSettings());
     }
 
-    public static GraphQLConfig FromJson(string json)
+    public static GraphQLConfig FromJson([StringSyntax(StringSyntaxAttribute.Json)] string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
         var config = JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings());
 
-        if(config is null)
+        if (config is null)
         {
             throw new InvalidOperationException("The Strawberry Shake configuration is null.");
         }

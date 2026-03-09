@@ -16,14 +16,12 @@
 
 12and13 SQL:
 ---------------
-.param set @p '[12,13]'
+.param set @p1 12
+.param set @p2 13
 
 SELECT "d"."Id", "d"."BarDecimal", "d"."BarDouble", "d"."BarFloat", "d"."BarInt", "d"."BarLong", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "d"."BarShort" IN (@p1, @p2)
 ---------------
 
 13and14 Result:
@@ -44,14 +42,12 @@ WHERE "d"."BarShort" IN (
 
 13and14 SQL:
 ---------------
-.param set @p '[13,14]'
+.param set @p1 13
+.param set @p2 14
 
 SELECT "d"."Id", "d"."BarDecimal", "d"."BarDouble", "d"."BarFloat", "d"."BarInt", "d"."BarLong", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "d"."BarShort" IN (@p1, @p2)
 ---------------
 
 nullAnd14

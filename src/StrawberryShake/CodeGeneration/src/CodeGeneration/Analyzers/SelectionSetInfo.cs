@@ -11,19 +11,19 @@ public readonly struct SelectionSetInfo(ITypeDefinition type, SelectionSetNode s
     public SelectionSetNode SelectionSet { get; } = selectionSet;
 
     public bool Equals(SelectionSetInfo other) =>
-        Type.Equals(other.Type) &&
-        SelectionSet.Equals(other.SelectionSet);
+        Type.Equals(other.Type)
+        && SelectionSet.Equals(other.SelectionSet);
 
     public override bool Equals(object? obj) =>
-        obj is SelectionSetInfo other &&
-        Equals(other);
+        obj is SelectionSetInfo other
+        && Equals(other);
 
     public override int GetHashCode()
     {
         unchecked
         {
-            return Type.GetHashCode() * 397 ^
-                   SelectionSet.GetHashCode() * 397;
+            return Type.GetHashCode() * 397
+                ^ SelectionSet.GetHashCode() * 397;
         }
     }
 }

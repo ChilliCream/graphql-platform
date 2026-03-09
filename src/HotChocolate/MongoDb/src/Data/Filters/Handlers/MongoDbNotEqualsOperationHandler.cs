@@ -17,14 +17,17 @@ public class MongoDbNotEqualsOperationHandler
     {
     }
 
+    public static MongoDbNotEqualsOperationHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id is DefaultFilterOperations.NotEquals;
+        return fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id is DefaultFilterOperations.NotEquals;
     }
 
     /// <inheritdoc />

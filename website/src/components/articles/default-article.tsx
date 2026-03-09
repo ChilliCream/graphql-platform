@@ -1,6 +1,4 @@
-import { graphql } from "gatsby";
-import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FC, useCallback, useEffect, useRef } from "react";
+import React, { FC, ReactNode, useCallback, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 
 import {
@@ -9,7 +7,6 @@ import {
   ArticleTitle,
 } from "@/components/article-elements";
 import { ArticleLayout } from "@/components/layout";
-import { DefaultArticleFragment } from "@/graphql-types";
 import { useObservable } from "@/state";
 import { toggleAside } from "@/state/common";
 import { ArticleContentFooter } from "./article-content-footer";
@@ -19,18 +16,41 @@ import { ArticleTableOfContent } from "./article-table-of-content";
 import { DefaultArticleNavigation } from "./default-article-navigation";
 import { ResponsiveArticleMenu } from "./responsive-article-menu";
 
-export interface DefaultArticleProps {
-  readonly data: DefaultArticleFragment;
+interface DefaultArticleMdx {
+  fields?: {
+    slug?: string;
+    lastUpdated?: string;
+    lastAuthorName?: string;
+  };
+  frontmatter?: {
+    title?: string;
+    description?: string;
+  };
+  headings?: Array<{
+    depth?: number;
+    value?: string;
+  } | null>;
 }
 
-export const DefaultArticle: FC<DefaultArticleProps> = ({ data }) => {
+interface DefaultArticleData {
+  file?: {
+    childMdx?: DefaultArticleMdx;
+  };
+}
+
+export interface DefaultArticleProps {
+  readonly data: DefaultArticleData;
+  readonly content: ReactNode;
+}
+
+export const DefaultArticle: FC<DefaultArticleProps> = ({ data, content }) => {
   const dispatch = useDispatch();
   const responsiveMenuRef = useRef<HTMLDivElement>(null);
 
-  const { fields, frontmatter, body } = data.file!.childMdx!;
-  const title = frontmatter!.title!;
-  const description = frontmatter!.description;
-  const slug = fields!.slug!;
+  const { fields, frontmatter } = data.file?.childMdx || {};
+  const title = frontmatter?.title || "";
+  const description = frontmatter?.description;
+  const slug = fields?.slug || "";
 
   const hasScrolled$ = useObservable((state) => {
     return state.common.yScrollPosition > 20;
@@ -53,7 +73,7 @@ export const DefaultArticle: FC<DefaultArticleProps> = ({ data }) => {
   return (
     <ArticleLayout
       navigation={<DefaultArticleNavigation data={data} selectedPath={slug} />}
-      aside={<ArticleTableOfContent data={data.file!.childMdx!} />}
+      aside={<ArticleTableOfContent data={data.file?.childMdx || {}} />}
     >
       <ArticleHeader>
         <ResponsiveArticleMenu />
@@ -61,36 +81,12 @@ export const DefaultArticle: FC<DefaultArticleProps> = ({ data }) => {
       </ArticleHeader>
       <ArticleContent>
         {description && <p>{description}</p>}
-        <MDXRenderer>{body}</MDXRenderer>
+        {content}
         <ArticleContentFooter
-          lastUpdated={fields!.lastUpdated!}
-          lastAuthorName={fields!.lastAuthorName!}
+          lastUpdated={fields?.lastUpdated || ""}
+          lastAuthorName={fields?.lastAuthorName || ""}
         />
       </ArticleContent>
     </ArticleLayout>
   );
 };
-
-export const DefaultArticleGraphQLFragment = graphql`
-  fragment DefaultArticle on Query {
-    file(
-      sourceInstanceName: { eq: "basic" }
-      relativePath: { eq: $originPath }
-    ) {
-      childMdx {
-        fields {
-          slug
-          lastUpdated
-          lastAuthorName
-        }
-        frontmatter {
-          title
-          description
-        }
-        body
-        ...ArticleSections
-      }
-    }
-    ...DefaultArticleNavigation
-  }
-`;

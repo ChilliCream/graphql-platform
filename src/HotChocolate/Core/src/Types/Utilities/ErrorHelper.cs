@@ -1,11 +1,10 @@
 using System.Globalization;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
-
-#nullable enable
 
 namespace HotChocolate.Utilities;
 
@@ -183,7 +182,7 @@ internal static class ErrorHelper
         string[] fieldNames)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults,
+                ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults,
                 type.Name,
                 fieldNames.Length is 1 ? string.Empty : "s",
                 string.Join(", ", fieldNames))
@@ -367,7 +366,7 @@ internal static class ErrorHelper
         DirectiveNode? syntaxNode,
         object source,
         Path path,
-        SerializationException exception)
+        LeafCoercionException exception)
     {
         var message = string.Format(
             ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
@@ -454,11 +453,10 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, IReadOnlyList<FieldNode> fieldNodes)
+    public static IError Relay_NoNodeResolver(string typeName, Path path, Selection selection)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
-            .AddLocations(fieldNodes)
             .Build();
 
     public static ISchemaError NodeResolver_MustHaveExactlyOneIdArg(
@@ -496,7 +494,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        IReadOnlyList<FieldNode> fieldNodes,
+        Selection selection,
         Path path,
         int maxAllowedNodes,
         int requestNodes)
@@ -505,7 +503,6 @@ internal static class ErrorHelper
                 ErrorHelper_FetchedToManyNodesAtOnce,
                 maxAllowedNodes,
                 requestNodes)
-            .AddLocations(fieldNodes)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
             .Build();
@@ -556,4 +553,24 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
     }
+
+    public static ISchemaError RequiresOptInOnRequiredInputField(
+        IInputObjectTypeDefinition type,
+        IInputValueDefinition field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredInputField)
+            .SetType(type)
+            .SetField(field)
+            .Build();
+
+    public static ISchemaError RequiresOptInOnRequiredArgument(
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredArgument)
+            .SetType(type)
+            .SetField(field)
+            .SetArgument(argument)
+            .Build();
 }

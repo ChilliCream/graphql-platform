@@ -1,11 +1,14 @@
 using System.Net.WebSockets;
-using HotChocolate.AspNetCore.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
-using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,7 +32,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -59,12 +62,13 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
         {
             // arrange
             using var testServer = CreateStarWarsServer(
-                configureConventions: mapping => mapping.WithOptions(
-                    new GraphQLServerOptions { Sockets =
+                configureServices: s => s
+                    .AddGraphQL()
+                    .ModifyServerOptions(o =>
                     {
-                        ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                        KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                    } }));
+                        o.Sockets.ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50);
+                        o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
+                    }));
             var client = CreateWebSocketClient(testServer);
 
             // act
@@ -95,7 +99,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message[MessageProperties.Type]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty(MessageProperties.Type).GetString());
         });
 
     [Fact]
@@ -138,7 +142,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -158,7 +162,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -324,13 +328,16 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
                 // act
 
                 await webSocket.SendMessageAsync(
-                    @"{
-                    ""type"": ""start"",
-                    ""id"": ""abc"",
-                    ""payload"": {
-                        ""query"": ""}""
+                    // lang=json
+                    """
+                    {
+                        "type": "start",
+                        "id": "abc",
+                        "payload": {
+                            "query": "}"
+                        }
                     }
-                }",
+                    """,
                     ct);
 
                 // assert
@@ -352,13 +359,16 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
                 // act
 
                 await webSocket.SendMessageAsync(
-                    @"{
-                    ""type"": ""start"",
-                    ""id"": """",
-                    ""payload"": {
-                        ""query"": ""}""
+                    // lang=json
+                    """
+                    {
+                        "type": "start",
+                        "id": "",
+                        "payload": {
+                            "query": "}"
+                        }
                     }
-                }",
+                    """,
                     ct);
 
                 // assert
@@ -387,15 +397,20 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
 
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
-                Query = @"
+                Query =
+                    """
                     mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
+                        createReview(
+                            episode: NEW_HOPE
+                            review: {
+                                commentary: "foo"
+                                stars: 5
+                            }
+                        ) {
                             stars
                         }
-                    }"
+                    }
+                    """
             });
 
             await WaitForMessage(webSocket, "data", ct);
@@ -405,15 +420,20 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
 
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
-                Query = @"
+                Query =
+                    """
                     mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
+                        createReview(
+                            episode: NEW_HOPE
+                            review: {
+                                commentary: "foo"
+                                stars: 5
+                            }
+                        ) {
                             stars
                         }
-                    }"
+                    }
+                    """
             });
 
             // assert
@@ -534,9 +554,9 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
                                 _ => new DefaultWebSocketPayloadFormatter(
                                     new WebSocketPayloadFormatterOptions
                                     {
-                                        Json = new JsonResultFormatterOptions()
+                                        Json = new JsonResultFormatterOptions
                                         {
-                                            NullIgnoreCondition = JsonNullIgnoreCondition.All
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
                                         }
                                     })));
                 var client = CreateWebSocketClient(testServer);
@@ -570,11 +590,10 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
 
                 var message = await WaitForMessage(webSocket, "data", ct);
                 Assert.NotNull(message);
-                var messagePayload = (Dictionary<string, object?>?)message["payload"];
-                var messageData = (Dictionary<string, object?>?)messagePayload?["data"];
-                var messageOnReview = (Dictionary<string, object?>?)messageData?["onReview"];
-                Assert.NotNull(messageOnReview);
-                Assert.DoesNotContain("commentary", messageOnReview);
+                var messagePayload = message.RootElement.GetProperty("payload");
+                var messageData = messagePayload.GetProperty("data");
+                var messageOnReview = messageData.GetProperty("onReview");
+                Assert.False(messageOnReview.TryGetProperty("commentary", out _));
             });
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor
@@ -584,7 +603,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = connectionInitMessage.As<Auth>();
+            var payload = connectionInitMessage.Payload?.Deserialize<Auth>();
 
             if (payload?.Token is not null)
             {
@@ -596,6 +615,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
 
         private sealed class Auth
         {
+            [JsonPropertyName("token")]
             public string? Token { get; set; }
         }
     }

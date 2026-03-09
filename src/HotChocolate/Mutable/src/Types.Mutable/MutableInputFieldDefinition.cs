@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -74,7 +73,7 @@ public class MutableInputFieldDefinition
                     return new SchemaCoordinate(typeDef.Name, Name, ofDirective: false);
 
                 case IDirectiveDefinition directiveDef:
-                    return new SchemaCoordinate(directiveDef.Name, Name, ofDirective: true);
+                    return new SchemaCoordinate(directiveDef.Name, argumentName: Name, ofDirective: true);
 
                 case IOutputFieldDefinition fieldDef:
                     if (fieldDef.DeclaringType is null)
@@ -129,6 +128,9 @@ public class MutableInputFieldDefinition
             }
         }
     }
+
+    /// <inheritdoc cref="IMutableFieldDefinition.IsIntrospectionField" />
+    public bool IsIntrospectionField { get; set; }
 
     public DirectiveCollection Directives
         => _directives ??= [];

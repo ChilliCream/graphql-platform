@@ -76,7 +76,7 @@ public static class RedisSubscriptionsServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(connection);
 
-        services.TryAddSingleton<SubscriptionOptions>(_ => options ?? new SubscriptionOptions());
+        services.TryAddSingleton(_ => options ?? new SubscriptionOptions());
         services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
         services.TryAddSingleton(sp => new RedisPubSub(
             connection(sp),

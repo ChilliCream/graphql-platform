@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
@@ -32,9 +30,11 @@ internal static class NodeFieldResolvers
         if (context.Schema.Types.TryGetType<ObjectType>(typeName, out var type)
             && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
         {
+            var typeConverter = context.Service<ITypeConverter>();
             SetLocalContext(context, nodeId, deserializedId, type);
             TryReplaceArguments(context, feature.NodeResolver, Id, nodeId);
             await feature.NodeResolver.Pipeline.Invoke(context);
+            context.Result = CoerceResult(context.Result, type, typeConverter);
         }
         else
         {
@@ -42,7 +42,7 @@ internal static class NodeFieldResolvers
                 ErrorHelper.Relay_NoNodeResolver(
                     typeName,
                     context.Path,
-                    context.Selection.SyntaxNodes));
+                    context.Selection));
 
             context.Result = null;
         }
@@ -66,7 +66,7 @@ internal static class NodeFieldResolvers
             {
                 context.ReportError(
                     ErrorHelper.FetchedToManyNodesAtOnce(
-                        context.Selection.SyntaxNodes,
+                        context.Selection,
                         context.Path,
                         maxAllowedNodes,
                         list.Items.Count));
@@ -74,8 +74,9 @@ internal static class NodeFieldResolvers
             }
 
             var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
-            var result = new object?[list.Items.Count];
+            var results = new object?[list.Items.Count];
             var ct = context.RequestAborted;
+            var typeConverter = context.Service<ITypeConverter>();
 
             for (var i = 0; i < list.Items.Count; i++)
             {
@@ -92,7 +93,7 @@ internal static class NodeFieldResolvers
                     var nodeContext = context.Clone();
                     SetLocalContext(nodeContext, nodeId, deserializedId, type);
                     TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
-                    tasks[i] = ExecutePipelineAsync(nodeContext, feature.NodeResolver);
+                    tasks[i] = ExecutePipelineAsync(nodeContext, type, feature.NodeResolver, typeConverter);
                 }
                 else
                 {
@@ -102,7 +103,7 @@ internal static class NodeFieldResolvers
                         ErrorHelper.Relay_NoNodeResolver(
                             typeName,
                             context.Path,
-                            context.Selection.SyntaxNodes));
+                            context.Selection));
                 }
             }
 
@@ -116,11 +117,19 @@ internal static class NodeFieldResolvers
                 {
                     if (task.Exception is null)
                     {
-                        result[i] = task.Result;
+                        if (task.Result is IError error)
+                        {
+                            results[i] = null;
+                            context.ReportError(error.WithPath(context.Path.Append(i)));
+                        }
+                        else
+                        {
+                            results[i] = task.Result;
+                        }
                     }
                     else
                     {
-                        result[i] = null;
+                        results[i] = null;
                         ReportError(context, i, task.Exception);
                     }
                 }
@@ -128,22 +137,22 @@ internal static class NodeFieldResolvers
                 {
                     try
                     {
-                        result[i] = await task;
+                        results[i] = await task;
                     }
                     catch (Exception ex)
                     {
-                        result[i] = null;
+                        results[i] = null;
                         ReportError(context, i, ex);
                     }
                 }
             }
 
-            context.Result = result;
+            context.Result = results;
             ArrayPool<Task<object?>>.Shared.Return(tasks, true);
         }
         else
         {
-            var result = new object?[1];
+            var results = new object?[1];
             var nodeId = context.ArgumentLiteral<StringValueNode>(Ids);
             var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
             var typeName = deserializedId.TypeName;
@@ -152,34 +161,47 @@ internal static class NodeFieldResolvers
             if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
                 && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
             {
+                var typeConverter = context.Service<ITypeConverter>();
                 var nodeContext = context.Clone();
 
                 SetLocalContext(nodeContext, nodeId, deserializedId, type);
                 TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
 
-                result[0] = await ExecutePipelineAsync(nodeContext, feature.NodeResolver);
+                var result = await ExecutePipelineAsync(nodeContext, type, feature.NodeResolver, typeConverter);
+
+                if (result is IError error)
+                {
+                    results[0] = null;
+                    context.ReportError(error.WithPath(context.Path.Append(0)));
+                }
+                else
+                {
+                    results[0] = result;
+                }
             }
             else
             {
-                result[0] = null;
+                results[0] = null;
 
                 context.ReportError(
                     ErrorHelper.Relay_NoNodeResolver(
                         typeName,
                         context.Path,
-                        context.Selection.SyntaxNodes));
+                        context.Selection));
             }
 
-            context.Result = result;
+            context.Result = results;
         }
         return;
 
         static async Task<object?> ExecutePipelineAsync(
             IMiddlewareContext nodeResolverContext,
-            NodeResolverInfo nodeResolverInfo)
+            ObjectType type,
+            NodeResolverInfo nodeResolverInfo,
+            ITypeConverter typeConverter)
         {
             await nodeResolverInfo.Pipeline.Invoke(nodeResolverContext).ConfigureAwait(false);
-            return nodeResolverContext.Result;
+            return CoerceResult(nodeResolverContext.Result, type, typeConverter);
         }
     }
 
@@ -224,6 +246,22 @@ internal static class NodeFieldResolvers
             // meaning we skip the restore.
             context.ReplaceArgument(argumentName, idArg);
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static object? CoerceResult(
+        object? result,
+        ObjectType type,
+        ITypeConverter typeConverter)
+    {
+        if (result is null || result is IError || type.RuntimeType.IsInstanceOfType(result))
+        {
+            return result;
+        }
+
+        return typeConverter.TryConvert(type.RuntimeType, result, out var converted)
+            ? converted
+            : result;
     }
 
     private static void ReportError(IResolverContext context, int item, Exception ex)

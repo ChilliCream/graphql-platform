@@ -1,19 +1,13 @@
-﻿{
+{
   "errors": [
     {
       "message": "You must provide a `first` or `last` value to properly paginate the `LettersConnection`.",
-      "locations": [
-        {
-          "line": 3,
-          "column": 21
-        }
-      ],
       "path": [
         "letters"
       ],
       "extensions": {
         "code": "HC0052",
-        "fieldCoordinate": "Query.letters"
+        "coordinate": "Query.letters"
       }
     }
   ],

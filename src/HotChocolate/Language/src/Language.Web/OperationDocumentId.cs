@@ -36,6 +36,11 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     public bool IsEmpty => string.IsNullOrEmpty(Value);
 
     /// <summary>
+    /// Gets a value indicating whether the GraphQL operation document id has a non-empty value.
+    /// </summary>
+    public bool HasValue => !string.IsNullOrEmpty(Value);
+
+    /// <summary>
     /// Gets the GraphQL operation document id.
     /// </summary>
     public string Value { get; }
@@ -138,7 +143,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </exception>
     public static void EnsureValidId(string operationId)
     {
-        if(!IsValidId(operationId))
+        if (!IsValidId(operationId))
         {
             throw new ArgumentException(
                 "Invalid operation id format.",
@@ -159,7 +164,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </returns>
     public static bool IsValidId(string operationId)
     {
-        if(operationId.Length == 0)
+        if (operationId.Length == 0)
         {
             return false;
         }
@@ -183,7 +188,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
 
     internal static bool IsValidId(ReadOnlySpan<byte> operationId)
     {
-        if(operationId.Length == 0)
+        if (operationId.Length == 0)
         {
             return false;
         }

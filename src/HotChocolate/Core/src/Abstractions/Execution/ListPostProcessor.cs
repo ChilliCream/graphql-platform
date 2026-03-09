@@ -63,7 +63,7 @@ public sealed class ListPostProcessor<T> : IResolverResultPostProcessor
 
     public IAsyncEnumerable<object?> ToStreamResultAsync(object result, CancellationToken cancellationToken)
     {
-        if(result is IAsyncEnumerable<object?> asyncEnumerable)
+        if (result is IAsyncEnumerable<object?> asyncEnumerable)
         {
             return asyncEnumerable;
         }
@@ -105,7 +105,7 @@ public sealed class ListPostProcessor<T> : IResolverResultPostProcessor
     {
         try
         {
-            await foreach(var item in executable.ToAsyncEnumerable(cancellationToken))
+            await foreach (var item in executable.ToAsyncEnumerable(cancellationToken))
             {
                 yield return item;
             }

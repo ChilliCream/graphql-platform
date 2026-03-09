@@ -1,7 +1,5 @@
 using System.Linq.Expressions;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public static class ResolveWithObjectFieldDescriptorExtensions

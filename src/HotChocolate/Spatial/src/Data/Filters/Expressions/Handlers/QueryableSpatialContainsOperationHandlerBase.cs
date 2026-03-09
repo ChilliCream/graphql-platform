@@ -15,7 +15,7 @@ public abstract class QueryableSpatialContainsOperationHandlerBase
     private static readonly MethodInfo s_contains =
         typeof(Geometry).GetMethod(nameof(Geometry.Contains))!;
 
-    public QueryableSpatialContainsOperationHandlerBase(
+    protected QueryableSpatialContainsOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)

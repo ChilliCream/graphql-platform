@@ -177,32 +177,44 @@
             "title": "Overview"
           },
           {
-            "path": "quick-start",
-            "title": "Quick Start"
+            "path": "getting-started",
+            "title": "Getting Started"
           },
           {
-            "path": "entities",
-            "title": "Entities"
+            "path": "adding-a-subgraph",
+            "title": "Adding a Subgraph"
           },
           {
-            "path": "lookups",
-            "title": "Lookups"
+            "path": "entities-and-lookups",
+            "title": "Entities and Lookups"
           },
           {
-            "path": "devops",
-            "title": "DevOps"
+            "path": "composition",
+            "title": "Composition"
           },
           {
-            "path": "node",
-            "title": "Node Pattern"
+            "path": "authentication-and-authorization",
+            "title": "Authentication and Authorization"
           },
           {
-            "path": "aspire",
-            "title": "Aspire"
+            "path": "deployment-and-ci-cd",
+            "title": "Deployment and CI/CD"
           },
           {
-            "path": "cli",
-            "title": "CLI"
+            "path": "nitro-cli-reference",
+            "title": "Nitro CLI Reference"
+          },
+          {
+            "path": "attribute-and-directive-reference",
+            "title": "Attribute and Directive Reference"
+          },
+          {
+            "path": "coming-from-apollo-federation",
+            "title": "Coming from Apollo Federation"
+          },
+          {
+            "path": "migrating-from-schema-stitching",
+            "title": "Migrating from Schema Stitching"
           }
         ]
       },
@@ -2469,10 +2481,6 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
               }
@@ -2577,12 +2585,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2685,12 +2693,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2789,12 +2797,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2889,12 +2897,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2959,6 +2967,74 @@
           {
             "path": "scalars",
             "title": "Scalars"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mocha",
+    "title": "Mocha",
+    "description": "Messaging Bus for .NET",
+    "metaDescription": "Mocha is a messaging framework for .NET that combines simplicity, flexibility, and observability with deep Nitro integration.",
+    "latestStableVersion": "v1",
+    "versions": [
+      {
+        "path": "v1",
+        "title": "v1",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "quick-start",
+            "title": "Quick Start"
+          },
+          {
+            "path": "messages",
+            "title": "Messages"
+          },
+          {
+            "path": "messaging-patterns",
+            "title": "Messaging Patterns"
+          },
+          {
+            "path": "handlers-and-consumers",
+            "title": "Handlers and Consumers"
+          },
+          {
+            "path": "routing-and-endpoints",
+            "title": "Routing and Endpoints"
+          },
+          {
+            "path": "middleware-and-pipelines",
+            "title": "Middleware and Pipelines"
+          },
+          {
+            "path": "reliability",
+            "title": "Reliability"
+          },
+          {
+            "path": "observability",
+            "title": "Observability"
+          },
+          {
+            "path": "sagas",
+            "title": "Sagas"
+          },
+          {
+            "path": "transports",
+            "title": "Transports",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              { "path": "in-memory", "title": "InMemory" },
+              { "path": "rabbitmq", "title": "RabbitMQ" }
+            ]
+          },
+          {
+            "path": "hosting",
+            "title": "Hosting"
           }
         ]
       }

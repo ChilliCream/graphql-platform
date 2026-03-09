@@ -1,7 +1,7 @@
 using GreenDonut.Data;
 using GreenDonut.Data.Cursors;
 using GreenDonut.Data.Cursors.Serializers;
-using HotChocolate.Data.Pagination;
+using HotChocolate.Data;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 

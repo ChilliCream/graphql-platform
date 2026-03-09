@@ -1,28 +1,17 @@
-[
-  {
-    "Message": "Fragments can only be declared on unions, interfaces, and objects.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 7,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "typeCondition": "Int",
-      "fragment": "fragOnScalar",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-On-Composite-Types"
-    },
-    "Exception": null
+{
+  "message": "Fragments can only be declared on unions, interfaces, and objects.",
+  "locations": [
+    {
+      "line": 7,
+      "column": 1
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "typeCondition": "Int",
+    "fragment": "fragOnScalar",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragments-on-Object-Interface-or-Union-Types"
   }
-]
+}

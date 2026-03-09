@@ -1,7 +1,4 @@
 using System.Diagnostics;
-#if NET8_0
-using HotChocolate.Execution;
-#endif
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Diagnostics;
@@ -21,16 +18,16 @@ public static class ActivityTestHelper
         {
             lock (sync)
             {
-                if (a.Parent is null &&
-                    a.OperationName.EqualsOrdinal("ExecuteHttpRequest") &&
-                    lookup.TryGetValue(rootActivity, out var parentData))
+                if (a.Parent is null
+                    && a.OperationName.EqualsOrdinal("ExecuteHttpRequest")
+                    && lookup.TryGetValue(rootActivity, out var parentData))
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
                 }
 
-                if (a.Parent is not null &&
-                    lookup.TryGetValue(a.Parent, out parentData))
+                if (a.Parent is not null
+                    && lookup.TryGetValue(a.Parent, out parentData))
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
@@ -68,7 +65,7 @@ public static class ActivityTestHelper
 
     private static void SerializeActivity(Activity activity)
     {
-        var data = (OrderedDictionary<string, object?>)activity.GetCustomProperty("test.data")!;
+        var data = (OrderedDictionary<string, object?>?)activity.GetCustomProperty("test.data");
 
         if (data is null)
         {

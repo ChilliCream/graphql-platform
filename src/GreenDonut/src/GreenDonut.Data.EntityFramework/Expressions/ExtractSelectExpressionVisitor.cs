@@ -43,6 +43,6 @@ internal sealed class ExtractSelectExpressionVisitor : ExpressionVisitor
 
         // Convert the property expression into a lambda expression
         var typeArguments = e.Type.GetGenericArguments()[0].GetGenericArguments();
-        return Expression.Lambda(e,  Expression.Parameter(typeArguments[0]));
+        return Expression.Lambda(e, Expression.Parameter(typeArguments[0]));
     }
 }

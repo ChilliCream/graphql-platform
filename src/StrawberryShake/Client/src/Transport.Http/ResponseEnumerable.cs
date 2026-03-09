@@ -2,7 +2,6 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Transport.Http;
-using HotChocolate.Utilities;
 using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;
 
@@ -36,8 +35,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             transportError = CreateError(result);
         }
 
-        ConfiguredCancelableAsyncEnumerable<HotChocolate.Transport.OperationResult>.Enumerator
-            enumerator = default!;
+        ConfiguredCancelableAsyncEnumerable<HotChocolate.Transport.OperationResult>.Enumerator enumerator = default!;
         try
         {
             enumerator = result
@@ -82,6 +80,11 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         }
     }
 
+    // TODO : we have to fix this properly before we release 16.
+    // the issue is that we at some point introduced the HotChocolate Transport and this does not really fit
+    // together with strawberry shakes transport abstraction.
+    // what we need to do is to rewire the transport, ideally we get rid of the generic response and
+    // simplify the client structure.
     private static JsonDocument? ParseResult(HotChocolate.Transport.OperationResult? result)
     {
         if (result is null)
@@ -96,14 +99,14 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         WriteProperty(writer, "data", result.Data);
 
         // in case we have just a "Internal Execution Error" we will not write the errors as this
-        // is a internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
+        // is an internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
         // handle the transport errors our self.
         // Strawberry Shake only outputs the exceptions though if there is no error in the errors
         // field
-        if (result.Errors.ValueKind is not JsonValueKind.Array ||
-            result.Errors.GetArrayLength() != 1 ||
-            !result.Errors[0].TryGetProperty("message", out var message) ||
-            message.GetString() is not "Internal Execution Error")
+        if (result.Errors.ValueKind is not JsonValueKind.Array
+            || result.Errors.GetArrayLength() != 1
+            || !result.Errors[0].TryGetProperty("message", out var message)
+            || message.GetString() is not "Internal Execution Error")
         {
             WriteProperty(writer, "errors", result.Errors);
         }
@@ -113,7 +116,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
 
         writer.Flush();
 
-        return JsonDocument.Parse(buffer.GetWrittenMemory());
+        return JsonDocument.Parse(buffer.WrittenMemory.ToArray());
     }
 
     private static void WriteProperty(Utf8JsonWriter writer, string propertyName, JsonElement value)
@@ -149,7 +152,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         jsonWriter.WriteEndObject();
         jsonWriter.Flush();
 
-        return JsonDocument.Parse(bufferWriter.GetWrittenMemory());
+        return JsonDocument.Parse(bufferWriter.GetWrittenMemory().ToArray());
     }
 
     public static ResponseEnumerable Create(

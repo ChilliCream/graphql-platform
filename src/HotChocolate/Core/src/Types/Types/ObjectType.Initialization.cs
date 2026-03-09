@@ -9,8 +9,6 @@ using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public partial class ObjectType
@@ -123,7 +121,7 @@ public partial class ObjectType
                     continue;
                 }
 
-                if (field.Resolvers.HasResolvers)
+                if (field.Resolvers.HasResolvers || field.BatchResolver is not null)
                 {
                     interfaceFields.Add(field.Name, field);
                 }
@@ -133,10 +131,18 @@ public partial class ObjectType
         foreach (var field in definition.Fields)
         {
             if (processed.Add(field.Name)
-                && !field.Resolvers.HasResolvers
                 && interfaceFields.TryGetValue(field.Name, out var interfaceField))
             {
-                field.Resolvers = interfaceField.Resolvers;
+                if (!field.Resolvers.HasResolvers)
+                {
+                    field.Resolvers = interfaceField.Resolvers;
+                }
+
+                if (field.BatchResolver is null && interfaceField.BatchResolver is not null)
+                {
+                    field.BatchResolver = interfaceField.BatchResolver;
+                    field.SetBatchResolverFlags();
+                }
             }
         }
 

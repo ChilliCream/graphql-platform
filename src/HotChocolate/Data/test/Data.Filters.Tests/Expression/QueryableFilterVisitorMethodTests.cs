@@ -27,8 +27,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                     x.AddDefaults();
                     x.Provider(
                         new QueryableFilterProvider(
-                            p => p.AddFieldHandler<QueryableSimpleMethodTest>()
-                                .AddFieldHandler<QueryableComplexMethodTest>()
+                            p => p.AddFieldHandler(QueryableSimpleMethodTest.Create)
+                                .AddFieldHandler(QueryableComplexMethodTest.Create)
                                 .AddDefaultFieldHandlers()));
                 }));
 
@@ -57,8 +57,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                     x.AddDefaults();
                     x.Provider(
                         new QueryableFilterProvider(
-                            p => p.AddFieldHandler<QueryableSimpleMethodTest>()
-                                .AddFieldHandler<QueryableComplexMethodTest>()
+                            p => p.AddFieldHandler(QueryableSimpleMethodTest.Create)
+                                .AddFieldHandler(QueryableComplexMethodTest.Create)
                                 .AddDefaultFieldHandlers()));
                 }));
 
@@ -108,8 +108,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 context.ReportError(
                     ErrorBuilder.New()
                         .SetMessage(
-                            "The provided value for filter `{0}` of type {1} is invalid. " +
-                            "Null values are not supported.",
+                            "The provided value for filter `{0}` of type {1} is invalid. "
+                            + "Null values are not supported.",
                             context.Operations.Peek().Name,
                             field.Type.Print())
                         .Build());
@@ -125,6 +125,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             action = SyntaxVisitor.Continue;
             return true;
         }
+
+        public static new QueryableSimpleMethodTest Create(FilterProviderContext context) => new(context.TypeInspector);
     }
 
     private sealed class QueryableComplexMethodTest : QueryableDefaultFieldHandler
@@ -159,8 +161,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 context.ReportError(
                     ErrorBuilder.New()
                         .SetMessage(
-                            "The provided value for filter `{0}` of type {1} is invalid. " +
-                            "Null values are not supported.",
+                            "The provided value for filter `{0}` of type {1} is invalid. "
+                            + "Null values are not supported.",
                             context.Operations.Peek().Name,
                             field.Type.Print())
                         .Build());
@@ -169,8 +171,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 return true;
             }
 
-            if (field.Type is StringOperationFilterInputType operationType &&
-                node.Value is ObjectValueNode objectValue)
+            if (field.Type is StringOperationFilterInputType operationType
+                && node.Value is ObjectValueNode objectValue)
             {
                 IValueNode parameterNode = null!;
 
@@ -205,6 +207,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             action = null!;
             return false;
         }
+
+        public static new QueryableComplexMethodTest Create(FilterProviderContext context) => new(context.InputParser);
     }
 
     public class Foo

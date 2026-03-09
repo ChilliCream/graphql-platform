@@ -26,20 +26,6 @@ public interface IOperationStore : IDisposable
         where TResultData : class;
 
     /// <summary>
-    /// Stores the <paramref name="operationResult"/> for the specified
-    /// <paramref name="operationRequest"/>.
-    /// </summary>
-    /// <param name="operationRequest">
-    /// The operation request for which a result shall be stored.
-    /// </param>
-    /// <param name="operationResult">
-    /// The operation result that shall be stored.
-    /// </param>
-    void Set(
-        OperationRequest operationRequest,
-        IOperationResult operationResult);
-
-    /// <summary>
     /// Resets the stored operation by removing the cached result.
     ///
     /// This marks an operation as dirty meaning that whenever a new subscriber comes

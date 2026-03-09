@@ -14,11 +14,11 @@ The GraphQL specification defines the following scalars.
 
 ```sdl
 type Product {
-  description: String;
+  description: String
 }
 ```
 
-This scalar represents an UTF-8 character sequence.
+This scalar represents a UTF-8 character sequence.
 
 It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
 
@@ -26,7 +26,7 @@ It is automatically inferred from the usage of the .NET [string type](https://do
 
 ```sdl
 type Product {
-  purchasable: Boolean;
+  purchasable: Boolean
 }
 ```
 
@@ -38,7 +38,7 @@ It is automatically inferred from the usage of the .NET [bool type](https://docs
 
 ```sdl
 type Product {
-  quantity: Int;
+  quantity: Int
 }
 ```
 
@@ -50,7 +50,7 @@ It is automatically inferred from the usage of the .NET [int type](https://docs.
 
 ```sdl
 type Product {
-  price: Float;
+  price: Float
 }
 ```
 
@@ -64,7 +64,7 @@ It is automatically inferred from the usage of the .NET [float](https://docs.mic
 
 ```sdl
 type Product {
-  id: ID!;
+  id: ID!
 }
 ```
 

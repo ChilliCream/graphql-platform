@@ -3,8 +3,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -30,7 +28,7 @@ public partial class ObjectType
     , IObjectTypeDefinition
 {
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// Initializes a new instance of <see cref="ObjectType"/>.
     /// </summary>
     protected ObjectType()
     {
@@ -38,7 +36,7 @@ public partial class ObjectType
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// Initializes a new instance of <see cref="ObjectType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
@@ -52,7 +50,7 @@ public partial class ObjectType
     }
 
     /// <summary>
-    /// Create a object type from a type definition.
+    /// Create an object type from a type definition.
     /// </summary>
     /// <param name="definition">
     /// The object type definition that specifies the properties of the
@@ -99,7 +97,7 @@ public partial class ObjectType
 
     /// <summary>
     /// Defines if this type is implementing the
-    /// the given <paramref name="interfaceType" />.
+    /// given <paramref name="interfaceType" />.
     /// </summary>
     /// <param name="interfaceType">
     /// The interface type.

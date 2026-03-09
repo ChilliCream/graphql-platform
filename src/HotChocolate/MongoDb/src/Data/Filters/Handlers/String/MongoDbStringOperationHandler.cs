@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb.Filters;
 public abstract class MongoDbStringOperationHandler
     : MongoDbOperationHandlerBase
 {
-    public MongoDbStringOperationHandler(InputParser inputParser) : base(inputParser)
+    protected MongoDbStringOperationHandler(InputParser inputParser) : base(inputParser)
     {
     }
 
@@ -18,8 +18,8 @@ public abstract class MongoDbStringOperationHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is StringOperationFilterInputType &&
-            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id == Operation;
+        return context.Type is StringOperationFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 }

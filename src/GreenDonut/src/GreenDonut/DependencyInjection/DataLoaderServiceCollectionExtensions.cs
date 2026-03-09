@@ -7,62 +7,112 @@ using Microsoft.Extensions.ObjectPool;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Extension methods for <see cref="IServiceCollection"/> to add data loader services.
+/// </summary>
 public static class DataLoaderServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds a data loader for the specified type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the data loader to add.</typeparam>
+    /// <param name="services">The service collection to add the data loader to.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddDataLoader<T>(
         this IServiceCollection services)
         where T : class, IDataLoader
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.TryAddDataLoaderCore();
         services.AddSingleton(new DataLoaderRegistration(typeof(T)));
-        services.TryAddScoped<T>(sp => sp.GetDataLoader<T>());
+        services.TryAddScoped(sp => sp.GetDataLoader<T>());
         return services;
     }
 
+    /// <summary>
+    /// Adds a data loader for the specified type <typeparamref name="TService"/>
+    /// and <typeparamref name="TImplementation"/>.
+    /// </summary>
+    /// <typeparam name="TService">The service type of the data loader to add.</typeparam>
+    /// <typeparam name="TImplementation">The implementation type of the data loader to add.</typeparam>
+    /// <param name="services">The service collection to add the data loader to.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddDataLoader<TService, TImplementation>(
         this IServiceCollection services)
         where TService : class, IDataLoader
         where TImplementation : class, TService
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.TryAddDataLoaderCore();
         services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation)));
-        services.TryAddScoped<TImplementation>(sp => sp.GetDataLoader<TImplementation>());
-        services.TryAddScoped<TService>(sp => sp.GetDataLoader<TService>());
+        services.TryAddScoped(sp => sp.GetDataLoader<TImplementation>());
+        services.TryAddScoped<TService>(sp => sp.GetDataLoader<TImplementation>());
         return services;
     }
 
+    /// <summary>
+    /// Adds a data loader for the specified type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the data loader to add.</typeparam>
+    /// <param name="services">The service collection to add the data loader to.</param>
+    /// <param name="factory">The factory to create the data loader.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddDataLoader<T>(
         this IServiceCollection services,
         Func<IServiceProvider, T> factory)
         where T : class, IDataLoader
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(factory);
+
         services.TryAddDataLoaderCore();
         services.AddSingleton(new DataLoaderRegistration(typeof(T), sp => factory(sp)));
-        services.TryAddScoped<T>(sp => sp.GetDataLoader<T>());
+        services.TryAddScoped(sp => sp.GetDataLoader<T>());
         return services;
     }
 
+    /// <summary>
+    /// Adds a data loader for the specified type <typeparamref name="TService"/>
+    /// and <typeparamref name="TImplementation"/>.
+    /// </summary>
+    /// <typeparam name="TService">The service type of the data loader to add.</typeparam>
+    /// <typeparam name="TImplementation">The implementation type of the data loader to add.</typeparam>
+    /// <param name="services">The service collection to add the data loader to.</param>
+    /// <param name="factory">The factory to create the data loader.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddDataLoader<TService, TImplementation>(
         this IServiceCollection services,
         Func<IServiceProvider, TImplementation> factory)
         where TService : class, IDataLoader
         where TImplementation : class, TService
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(factory);
+
         services.TryAddDataLoaderCore();
         services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation), sp => factory(sp)));
-        services.TryAddScoped<TImplementation>(sp => sp.GetDataLoader<TImplementation>());
-        services.TryAddScoped<TService>(sp => sp.GetDataLoader<TService>());
+        services.TryAddScoped(sp => sp.GetDataLoader<TImplementation>());
+        services.TryAddScoped<TService>(sp => sp.GetDataLoader<TImplementation>());
         return services;
     }
 
+    /// <summary>
+    /// Tries to add the core data loader services to the service collection.
+    /// </summary>
+    /// <param name="services">The service collection to add the data loader to.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection TryAddDataLoaderCore(
         this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
         services.TryAddSingleton<DataLoaderRegistrar>();
         services.AddSingleton<DataLoaderScopeFactory>();
-        services.TryAddScoped<IDataLoaderScope>(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
+        services.TryAddScoped(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
 
         services.TryAddSingleton(sp => PromiseCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));

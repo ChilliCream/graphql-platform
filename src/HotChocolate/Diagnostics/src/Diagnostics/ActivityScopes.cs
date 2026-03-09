@@ -17,24 +17,24 @@ public enum ActivityScopes
     ResolveFieldValue = 1024,
     DataLoaderBatch = 2048,
     Default =
-        ExecuteHttpRequest |
-        ParseHttpRequest |
-        ValidateDocument |
-        CompileOperation |
-        ResolveFieldValue |
-        FormatHttpResponse |
-        DataLoaderBatch,
+        ExecuteHttpRequest
+        | ParseHttpRequest
+        | ValidateDocument
+        | CompileOperation
+        | ResolveFieldValue
+        | FormatHttpResponse
+        | DataLoaderBatch,
     All =
-        ExecuteHttpRequest |
-        ParseHttpRequest |
-        FormatHttpResponse |
-        ExecuteRequest |
-        ParseDocument |
-        ValidateDocument |
-        AnalyzeComplexity |
-        CoerceVariables |
-        CompileOperation |
-        ExecuteOperation |
-        ResolveFieldValue |
-        DataLoaderBatch
+        ExecuteHttpRequest
+        | ParseHttpRequest
+        | FormatHttpResponse
+        | ExecuteRequest
+        | ParseDocument
+        | ValidateDocument
+        | AnalyzeComplexity
+        | CoerceVariables
+        | CompileOperation
+        | ExecuteOperation
+        | ResolveFieldValue
+        | DataLoaderBatch
 }

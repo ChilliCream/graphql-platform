@@ -23,7 +23,7 @@ public ref partial struct Utf8GraphQLReader
         var length = escapedValue.Length;
         byte[]? unescapedArray = null;
 
-        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 
@@ -31,6 +31,51 @@ public ref partial struct Utf8GraphQLReader
         {
             UnescapeValue(escapedValue, ref unescapedSpan, isBlockString);
             return GetString(unescapedSpan);
+        }
+        finally
+        {
+            if (unescapedArray != null)
+            {
+                unescapedSpan.Clear();
+                ArrayPool<byte>.Shared.Return(unescapedArray);
+            }
+        }
+    }
+
+    public readonly int GetRawString(IBufferWriter<byte> writer)
+        => _value.Length == 0 ? 0 : GetRawString(_value, _kind == TokenKind.BlockString, writer);
+
+    public static int GetRawString(
+        ReadOnlySpan<byte> escapedValue,
+        bool isBlockString,
+        IBufferWriter<byte> writer)
+    {
+        // we have an empty string
+        if (escapedValue.Length == 0)
+        {
+            return 0;
+        }
+
+        var length = escapedValue.Length;
+        byte[]? unescapedArray = null;
+
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
+            ? stackalloc byte[length]
+            : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            UnescapeValue(escapedValue, ref unescapedSpan, isBlockString);
+
+            // we have an empty string
+            if (unescapedSpan.Length == 0)
+            {
+                return 0;
+            }
+
+            unescapedSpan.CopyTo(writer.GetSpan(unescapedSpan.Length));
+            writer.Advance(unescapedSpan.Length);
+            return unescapedSpan.Length;
         }
         finally
         {
@@ -57,7 +102,7 @@ public ref partial struct Utf8GraphQLReader
         var length = escapedValue.Length;
         byte[]? unescapedArray = null;
 
-        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 
@@ -108,25 +153,23 @@ public ref partial struct Utf8GraphQLReader
         return GetString(_value);
     }
 
-    public readonly string GetName() => GetString(_value);
+    public readonly string GetName()
+        => WellKnownNames.TryGetWellKnownName(_value, out var name)
+            ? name
+            : GetString(_value);
 
     public readonly string GetScalarValue() => GetString(_value);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void UnescapeValue(
         in ReadOnlySpan<byte> escaped,
         ref Span<byte> unescapedValue,
         bool isBlockString)
     {
-        Utf8Helper.Unescape(
-            in escaped,
-            ref unescapedValue,
-            isBlockString);
+        Utf8Helper.Unescape(in escaped, ref unescapedValue, isBlockString);
 
         if (isBlockString)
         {
-            StringHelper.TrimBlockStringToken(
-                unescapedValue, ref unescapedValue);
+            StringHelper.TrimBlockStringToken(unescapedValue, ref unescapedValue);
         }
     }
 

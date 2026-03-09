@@ -7,7 +7,7 @@ public class DefaultJsonMessageSerializerTests
     {
         // arrange
         var serializer = new DefaultJsonMessageSerializer();
-        var message = "{\"body\":\"abc\",\"kind\":0}";
+        const string message = "{\"body\":\"abc\",\"kind\":0}";
 
         // act
         var messageEnvelope = serializer.Deserialize<string>(message);
@@ -22,7 +22,7 @@ public class DefaultJsonMessageSerializerTests
     {
         // arrange
         var serializer = new DefaultJsonMessageSerializer();
-        var message = "{\"kind\":1}";
+        const string message = "{\"kind\":1}";
 
         // act
         var messageEnvelope = serializer.Deserialize<string>(message);
@@ -36,7 +36,7 @@ public class DefaultJsonMessageSerializerTests
     {
         // arrange
         var serializer = new DefaultJsonMessageSerializer();
-        var message = "{\"kind\":1}";
+        const string message = "{\"kind\":1}";
 
         // act
         var messageEnvelope = serializer.Deserialize<Foo>(message);
@@ -50,7 +50,7 @@ public class DefaultJsonMessageSerializerTests
     {
         // arrange
         var serializer = new DefaultJsonMessageSerializer();
-        var message = "{\"kind\":1}";
+        const string message = "{\"kind\":1}";
 
         // act
         var messageEnvelope = serializer.Deserialize<int>(message);
@@ -64,7 +64,7 @@ public class DefaultJsonMessageSerializerTests
     {
         // arrange
         var serializer = new DefaultJsonMessageSerializer();
-        var message = "abc";
+        const string message = "abc";
 
         // act
         var serializedMessage = serializer.Serialize(message);

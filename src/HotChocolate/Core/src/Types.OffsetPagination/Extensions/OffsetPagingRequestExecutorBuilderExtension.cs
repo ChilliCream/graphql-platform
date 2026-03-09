@@ -37,7 +37,7 @@ public static class OffsetPagingRequestExecutorBuilderExtension
             defaultProvider);
 
     /// <summary>
-    /// Adds a offset paging provider to the DI.
+    /// Adds an offset paging provider to the DI.
     /// </summary>
     /// <param name="builder">
     /// The request executor builder.
@@ -77,7 +77,7 @@ public static class OffsetPagingRequestExecutorBuilderExtension
     }
 
     /// <summary>
-    /// Adds a offset paging provider to the DI.
+    /// Adds an offset paging provider to the DI.
     /// </summary>
     /// <param name="builder">
     /// The request executor builder.

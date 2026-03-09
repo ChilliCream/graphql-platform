@@ -15,9 +15,9 @@ type CursorPaginationConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo @semanticNonNull
   "A list of edges."
-  edges: [CursorPaginationEdge] @semanticNonNull(levels: [ 1 ])
+  edges: [CursorPaginationEdge] @semanticNonNull(levels: [1])
   "A flattened list of the nodes."
-  nodes: [String] @semanticNonNull(levels: [ 1 ])
+  nodes: [String] @semanticNonNull(levels: [1])
 }
 
 "An edge in a connection."
@@ -33,7 +33,7 @@ type OffsetPaginationCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo @semanticNonNull
   "A flattened list of the items."
-  items: [String] @semanticNonNull(levels: [ 1 ])
+  items: [String] @semanticNonNull(levels: [1])
 }
 
 "Information about pagination in a connection."
@@ -53,4 +53,6 @@ type QueryWithPagination {
   offsetPagination(skip: Int take: Int): OffsetPaginationCollectionSegment
 }
 
-directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!] = [
+  0
+]) on FIELD_DEFINITION

@@ -168,7 +168,7 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support two subscription providers.
+To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support four subscription providers.
 
 ## In-Memory Provider
 
@@ -198,6 +198,55 @@ builder.Services
 
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
 
+## NATS Provider
+
+The NATS subscription provider enables us to run multiple instances of our Hot Chocolate GraphQL server and handle subscription events reliably over NATS.
+
+In order to use the NATS provider we have to add the `HotChocolate.Subscriptions.Nats` and `NATS.Extensions.Microsoft.DependencyInjection` packages.
+
+<PackageInstallation packageName="HotChocolate.Subscriptions.Nats" />
+
+<PackageInstallation packageName="NATS.Extensions.Microsoft.DependencyInjection" external />
+
+After we have added the packages we can setup the NATS subscription provider.
+
+```csharp
+using NATS.Extensions.Microsoft.DependencyInjection;
+
+builder.Services
+    .AddNatsClient(
+        nats => nats.ConfigureOptions(
+            options => options.Configure(
+                opts => opts.Opts = opts.Opts with
+                {
+                    Url = "nats://localhost:4222"
+                })));
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>() // every GraphQL server needs a query
+    .AddSubscriptionType<Subscription>()
+    .AddNatsSubscriptions();
+```
+
+If multiple distinct GraphQL servers share the same NATS broker, configure a `TopicPrefix` to isolate their topics:
+
+```csharp
+using HotChocolate.Subscriptions;
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>() // every GraphQL server needs a query
+    .AddSubscriptionType<Subscription>()
+    .AddNatsSubscriptions(
+        new SubscriptionOptions
+        {
+            TopicPrefix = "orders-service-dev"
+        });
+```
+
+The NATS provider uses NATS core publish/subscribe; JetStream is not required.
+
 ## Postgres Provider
 
 The PostgreSQL Subscription Provider enables your GraphQL server to provide real-time updates to your clients using PostgreSQL's native `LISTEN/NOTIFY` mechanism. This provider is ideal for applications that already use PostgreSQL and want to avoid the overhead of running a separate pub/sub service.
@@ -215,7 +264,7 @@ builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>() // every GraphQL server needs a query
     .AddSubscriptionType<Subscriptions>()
-    .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create you connection*/);
+    .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create your connection*/);
 ```
 
 ### Options
@@ -331,3 +380,66 @@ public class Subscription
         => book;
 }
 ```
+
+# Websocket Authentication
+
+When working with GraphQL subscriptions over WebSockets, you may want to authenticate incoming WebSocket connections using JSON Web Tokens. Normally, HTTP headers are sent with each request for standard APIs, but WebSockets behave differently. After a successful HTTP handshake, the protocol is "upgraded" to WebSockets, and additional headers cannot be easily injected for subsequent messages.
+
+Instead, the recommended approach is to send your token via the `connection_init` message when the WebSocket connection is first established. Hot Chocolate allows you to intercept this initial message, extract the token, and then authenticate the user in a way similar to standard HTTP requests.
+
+An example implementation of this approach can be found in the [Hot Chocolate Examples repository](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/WebsocketAuthentication).
+
+## Why a Special Approach for WebSockets
+
+- **Single HTTP Handshake**: A WebSocket connection is established once. After that, you cannot update HTTP headers on the same connection.
+- **`connection_init` Payload**: GraphQL subscription clients send a `connection_init` message when establishing the subscription. This payload can include extra properties (e.g., `authorization`), which Hot Chocolate can use for authentication.
+- **Long-Lived Connections**: Because WebSockets are persistent, tokens might remain valid for the entire duration of the connection. It is advisable to ensure that you handle token expiration appropriately—often by closing the connection if security policies require it.
+
+## Core Concepts
+
+1. **Stub (or "Skip") Authentication Scheme**
+
+   The initial WebSocket upgrade request is directed to a "stub" authentication scheme that simply indicates "no authentication result" for upgrade requests. This prevents the request from failing before you can intercept and handle the token manually.
+
+2. **Forwarding the Default Scheme**
+
+   In standard HTTP scenarios, the default scheme (e.g., JWT bearer) is used to authenticate. However, if the request is recognized as a WebSocket upgrade, the framework forwards it to the "stub" scheme first. That way, you don’t attempt to validate a token at the moment of the upgrade handshake.
+
+3. **Intercepting `connection_init`**
+
+   Once the WebSocket is established, the client sends `connection_init` containing authentication data. A custom `SocketSessionInterceptor` (or similar) reads the token from `connection_init` (e.g., under a key like `authorization`), stores it in the `HttpContext`, and triggers a fresh authentication attempt—this time using the real JWT bearer scheme.
+
+4. **Hot Chocolate Integration**
+
+   Hot Chocolate's subscription middleware allows you to plug into the subscription lifecycle. By customizing the session interceptor (`OnConnectAsync`), you can decide whether to accept or reject the connection based on successful authentication.
+
+## Testing the Flow
+
+1. **Open Nitro**
+
+   Use a local instance of Nitro (e.g., `https://localhost:5095/graphql`) to send GraphQL queries and subscriptions.
+
+2. **Retrieve an Access Token**
+
+   Request a token from your `/token` endpoint. This endpoint should return a valid JWT that is trusted by your API.
+
+3. **Configure Nitro**
+
+   - In Nitro, open the **Settings** of your document / API.
+   - Under **Authentication**, choose **Bearer Token** and paste your JWT.
+   - Nitro will automatically include the token in the `connection_init` message under an `authorization` parameter when opening a WebSocket connection.
+
+4. **Run Your Subscription**
+
+   Execute the subscription query of your choice. For example:
+
+   ```graphql
+   subscription {
+     onTimedEvent {
+       count
+       isAuthenticated
+     }
+   }
+   ```
+
+   The server-side resolver can check `isAuthenticated` to demonstrate whether the current user is authenticated (based on the token you provided).

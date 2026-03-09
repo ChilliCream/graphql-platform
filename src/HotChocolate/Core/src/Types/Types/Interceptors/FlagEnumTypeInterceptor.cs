@@ -9,7 +9,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Interceptors;
-#nullable enable
 
 public class FlagsEnumInterceptor : TypeInterceptor
 {
@@ -224,7 +223,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 return $"[{Rewrite(reference.ElementType, typeName)}]{nullability}";
             }
 
-            return $"{typeName}{nullability}";
+            return typeName + nullability;
         }
     }
 

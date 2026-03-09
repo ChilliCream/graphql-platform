@@ -7,13 +7,10 @@ using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers;
 
-#pragma warning disable RS1041
 [Generator]
-#pragma warning restore RS1041
 public class GraphQLServerGenerator : IIncrementalGenerator
 {
     private static readonly ISyntaxInspector[] s_allInspectors =
@@ -137,7 +134,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        var processedFiles = PooledObjects.GetStringSet();
+        var sourceFiles = PooledObjects.GetStringDictionary();
 
         try
         {
@@ -156,18 +153,20 @@ public class GraphQLServerGenerator : IIncrementalGenerator
             {
                 generator.Generate(context, assemblyName, syntaxInfos, AddSource);
             }
+
+            foreach (var sourceFile in sourceFiles)
+            {
+                context.AddSource(sourceFile.Key, sourceFile.Value);
+            }
         }
         finally
         {
-            PooledObjects.Return(processedFiles);
+            PooledObjects.Return(sourceFiles);
         }
 
-        void AddSource(string fileName, SourceText sourceText)
+        void AddSource(string fileName, string sourceText)
         {
-            if (processedFiles.Add(fileName))
-            {
-                context.AddSource(fileName, sourceText);
-            }
+            sourceFiles.TryAdd(fileName, sourceText);
         }
     }
 }

@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Features;
@@ -24,6 +22,9 @@ internal sealed class IsSelectedParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(IsSelectedAttribute));
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is IsSelectedAttribute);
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameter = context.Parameter;
@@ -32,8 +33,8 @@ internal sealed class IsSelectedParameterExpressionBuilder
         return Expression.Invoke(expr, context.ResolverContext);
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => new IsSelectedBinding($"isSelected.{context.Parameter.Name}");
+    public IParameterBinding Create(ParameterDescriptor parameter)
+        => new IsSelectedBinding($"isSelected.{parameter.Name}");
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
@@ -132,6 +133,6 @@ internal sealed class IsSelectedParameterExpressionBuilder
         public bool IsPure => false;
 
         public T Execute<T>(IResolverContext context)
-            => context.GetLocalState<T>(key)!;
+            => context.GetLocalState<T>(key);
     }
 }

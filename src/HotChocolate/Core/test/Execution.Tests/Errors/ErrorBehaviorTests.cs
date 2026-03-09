@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.SnapshotHelpers;
@@ -201,7 +200,6 @@ public class ErrorBehaviorTests
         }
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Query
     {
         public Task<string?> Error1()
@@ -275,13 +273,11 @@ public class ErrorBehaviorTests
         public string Error15 => throw new ArgumentNullException("Error15");
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Foo
     {
         public string? Bar => throw new Exception("baz");
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Baz
     {
         public string? Bar => throw new Exception("baz");

@@ -1,5 +1,6 @@
+#nullable disable
+
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -59,10 +60,7 @@ public partial class SchemaErrorBuilder
     public SchemaErrorBuilder SetException(Exception exception)
     {
         _error.Exception = exception;
-        if (_error.Message is null)
-        {
-            _error.Message = exception.Message;
-        }
+        _error.Message ??= exception.Message;
         return this;
     }
 

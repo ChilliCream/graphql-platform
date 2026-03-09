@@ -29,8 +29,8 @@ public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsLi
     public override void MessageProcessingError(string topicName, Exception error)
     {
         _output.WriteLine(
-            $"Error: {topicName} {error.Message} " +
-            $"{error.StackTrace} {error.GetType().FullName}");
+            $"Error: {topicName} {error.Message} "
+            + $"{error.StackTrace} {error.GetType().FullName}");
     }
 
     public override void Received(string topicName, string serializedMessage)

@@ -8,9 +8,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -24,19 +21,25 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly List<CreateRef> _types = [];
     private readonly Dictionary<OperationType, CreateRef> _operations = [];
 
-    private readonly List<object> _typeInterceptors =
-    [
-        typeof(IntrospectionTypeInterceptor),
-        typeof(InterfaceCompletionTypeInterceptor),
-        typeof(MiddlewareValidationTypeInterceptor),
-        typeof(SemanticNonNullTypeInterceptor),
-        typeof(StoreGlobalPagingOptionsTypeInterceptor)
-    ];
-
     private readonly SchemaOptions _options = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
     private CreateRef? _schema;
+
+    private SchemaBuilder()
+    {
+        var typeInterceptors = new TypeInterceptorCollection();
+
+        typeInterceptors.TryAdd(new IntrospectionTypeInterceptor());
+        typeInterceptors.TryAdd(new InterfaceCompletionTypeInterceptor());
+        typeInterceptors.TryAdd(new MiddlewareValidationTypeInterceptor());
+        typeInterceptors.TryAdd(new SemanticNonNullTypeInterceptor());
+        typeInterceptors.TryAdd(new StoreGlobalPagingOptionsTypeInterceptor());
+        typeInterceptors.TryAdd(new StoreGlobalSchemaOptionsTypeInterceptor());
+        typeInterceptors.TryAdd(new OptInFeaturesTypeInterceptor());
+
+        Features.Set(typeInterceptors);
+    }
 
     public IFeatureCollection Features { get; } = new FeatureCollection();
 
@@ -225,40 +228,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        _services = _services is null ? services : new CombinedServiceProvider(_services, services);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
-    {
-        ArgumentNullException.ThrowIfNull(interceptor);
-
-        if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_Interceptor_NotSupported,
-                nameof(interceptor));
-        }
-
-        if (!_typeInterceptors.Contains(interceptor))
-        {
-            _typeInterceptors.Add(interceptor);
-        }
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor)
-    {
-        ArgumentNullException.ThrowIfNull(interceptor);
-
-        if (!_typeInterceptors.Contains(interceptor))
-        {
-            _typeInterceptors.Add(interceptor);
-        }
+        _services = services;
 
         return this;
     }

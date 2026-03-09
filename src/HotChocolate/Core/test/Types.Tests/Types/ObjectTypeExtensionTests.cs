@@ -8,10 +8,7 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 using static HotChocolate.Types.FieldBindingFlags;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -922,7 +919,7 @@ public class ObjectTypeExtensionTests
     [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
     public class BindResolver_With_Field_PersonResolvers
     {
-        [BindFieldAttribute("friendId")]
+        [BindField("friendId")]
         public List<BindResolver_With_Property_PersonDto?> Friends() => [];
     }
 
@@ -1068,7 +1065,7 @@ public class ObjectTypeExtensionTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Use(_ => ctx =>
             {

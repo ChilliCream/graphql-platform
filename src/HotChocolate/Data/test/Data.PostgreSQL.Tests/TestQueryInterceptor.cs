@@ -9,7 +9,7 @@ public class TestQueryInterceptor : PagingQueryInterceptor
 
     public override void OnBeforeExecute<T>(IQueryable<T> query)
     {
-        lock(Queries)
+        lock (Queries)
         {
             Queries.Add(query.ToQueryString());
         }

@@ -49,4 +49,6 @@ public class MongoDbDefaultSortFieldHandler
         action = SyntaxVisitor.Continue;
         return true;
     }
+
+    public static MongoDbDefaultSortFieldHandler Create(SortProviderContext context) => new();
 }

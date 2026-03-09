@@ -4,8 +4,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>

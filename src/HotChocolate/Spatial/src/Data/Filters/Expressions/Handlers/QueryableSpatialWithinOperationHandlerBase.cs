@@ -15,7 +15,7 @@ public abstract class QueryableSpatialWithinOperationHandlerBase
     private static readonly MethodInfo s_within =
         typeof(Geometry).GetMethod(nameof(Geometry.Within))!;
 
-    public QueryableSpatialWithinOperationHandlerBase(
+    protected QueryableSpatialWithinOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)

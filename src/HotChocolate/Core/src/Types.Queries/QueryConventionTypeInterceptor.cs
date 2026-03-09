@@ -1,5 +1,4 @@
 using System.Text;
-using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Types;
@@ -148,8 +147,8 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                         new FieldMiddlewareConfiguration(
                             FieldClassMiddlewareFactory.Create<QueryResultMiddleware>(
                                 (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                            key: "Query Results",
-                            isRepeatable: false);
+                            isRepeatable: false,
+                            key: "Query Results");
 
                     // last but not least we insert the result middleware to the query field.
                     field.MiddlewareConfigurations.Insert(0, errorMiddleware);

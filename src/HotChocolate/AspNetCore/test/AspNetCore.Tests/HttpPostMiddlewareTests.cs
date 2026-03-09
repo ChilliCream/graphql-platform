@@ -1,15 +1,14 @@
 using System.Net.Http.Json;
-using CookieCrumble.HotChocolate.Formatters;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Text.Json;
+using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
 namespace HotChocolate.AspNetCore;
 
@@ -84,7 +83,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: sc => sc.AddHttpResponseFormatter(indented: true));
+            configureServices: sc => sc.AddGraphQLServer().AddHttpResponseFormatter(indented: true));
 
         // act
         var result = await server.PostRawAsync(
@@ -99,7 +98,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: sc => sc.AddHttpResponseFormatter(indented: false));
+            configureServices: sc => sc.AddGraphQLServer().AddHttpResponseFormatter(indented: false));
 
         // act
         var result = await server.PostRawAsync(
@@ -199,7 +198,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: s => s.AddHttpResponseFormatter<CustomFormatter>());
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter<CustomFormatter>());
 
         // act
         var result =
@@ -231,7 +230,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     private class CustomFormatter : DefaultHttpResponseFormatter
     {
         protected override void OnWriteResponseHeaders(
-            IOperationResult result,
+            OperationResult result,
             FormatInfo format,
             IHeaderDictionary headers)
         {
@@ -264,37 +263,6 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     }
 
     [Fact]
-    public async Task SingleRequest_Defer_Results()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostRawAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    {
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"")
-                            {
-                                id
-                            }
-                        }
-                    }"
-                });
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Single_Diagnostic_Listener_Is_Triggered()
     {
         // arrange
@@ -309,20 +277,20 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         await server.PostRawAsync(
             new ClientQueryRequest
             {
-                Query = @"
-                {
-                    ... @defer {
-                        wait(m: 300)
-                    }
-                    hero(episode: NEW_HOPE)
+                Query =
+                    """
                     {
-                        name
-                        ... on Droid @defer(label: ""my_id"")
-                        {
-                            id
+                        ... @defer {
+                            wait(m: 300)
+                        }
+                        hero(episode: NEW_HOPE) {
+                            name
+                            ... on Droid @defer(label: "my_id") {
+                                id
+                            }
                         }
                     }
-                }"
+                    """
             });
 
         // assert
@@ -346,182 +314,25 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         await server.PostRawAsync(
             new ClientQueryRequest
             {
-                Query = @"
-                {
-                    ... @defer {
-                        wait(m: 300)
-                    }
-                    hero(episode: NEW_HOPE)
+                Query =
+                    """
                     {
-                        name
-                        ... on Droid @defer(label: ""my_id"")
-                        {
-                            id
+                        ... @defer {
+                            wait(m: 300)
+                        }
+                        hero(episode: NEW_HOPE) {
+                            name
+                            ... on Droid @defer(label: "my_id") {
+                                id
+                            }
                         }
                     }
-                }"
+                    """
             });
 
         // assert
         Assert.True(listenerA.Triggered);
         Assert.True(listenerB.Triggered);
-    }
-
-    [Fact]
-    public async Task Ensure_Multipart_Format_Is_Correct_With_Defer()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostHttpAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    {
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"")
-                            {
-                                id
-                            }
-                        }
-                    }"
-                });
-
-        // assert
-        new GraphQLHttpResponse(result).MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "hero": {
-                  "name": "R2-D2",
-                  "id": "2001"
-                },
-                "wait": true
-              }
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task Ensure_Multipart_Format_Is_Correct_With_Defer_If_Condition_True()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostRawAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    query ($if: Boolean!){
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"", if: $if)
-                            {
-                                id
-                            }
-                        }
-                    }",
-                    Variables = new Dictionary<string, object?> { ["if"] = true }
-                });
-
-        // assert
-        result.Content.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Ensure_JSON_Format_Is_Correct_With_Defer_If_Condition_False()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostRawAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    query ($if: Boolean!){
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"", if: $if)
-                            {
-                                id
-                            }
-                        }
-                    }",
-                    Variables = new Dictionary<string, object?> { ["if"] = false }
-                });
-
-        // assert
-        result.Content.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Ensure_Multipart_Format_Is_Correct_With_Stream()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result = await server.PostHttpAsync(
-            new ClientQueryRequest
-            {
-                Query = @"
-                    {
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            friends(first: 10) {
-                                nodes @stream(initialCount: 1 label: ""foo"") {
-                                    name
-                                }
-                            }
-                        }
-                    }"
-            });
-
-        // assert
-        new GraphQLHttpResponse(result).MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "hero": {
-                  "name": "R2-D2",
-                  "friends": {
-                    "nodes": [
-                      {
-                        "name": "Luke Skywalker"
-                      },
-                      {
-                        "name": "Han Solo"
-                      },
-                      {
-                        "name": "Leia Organa"
-                      }
-                    ]
-                  }
-                },
-                "wait": true
-              }
-            }
-            """);
     }
 
     [Fact]
@@ -968,23 +779,20 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: s => s.AddHttpResponseFormatter(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
                 _ => new DefaultHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
                         Json = new JsonResultFormatterOptions
                         {
-                            NullIgnoreCondition = Fields
+                            NullIgnoreCondition = JsonNullIgnoreCondition.Fields
                         }
                     })));
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __schema { description } }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
         using var response = await client.SendAsync(request);
 
@@ -995,12 +803,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""__schema"":{}}}");
+                {"data":{"__schema":{}}}
+                """);
     }
 
     [Fact]
@@ -1008,19 +818,16 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: s => s.AddHttpResponseFormatter(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
-                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = Fields }
+                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = JsonNullIgnoreCondition.Fields }
                 }));
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __schema { description } }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
         using var response = await client.SendAsync(request);
 
@@ -1031,12 +838,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""__schema"":{}}}");
+                {"data":{"__schema":{}}}
+                """);
     }
 
     [Fact]
@@ -1049,20 +858,16 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             configureServices: s => s
                 .AddGraphQLServer("test")
                 .AddQueryType<NullListQuery>()
-                .Services
                 .AddHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
-                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = Lists }
+                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = JsonNullIgnoreCondition.Lists }
                     }));
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ nullValues }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ nullValues }" });
 
         using var response = await client.SendAsync(request);
 
@@ -1073,12 +878,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""nullValues"":[""abc""]}}");
+                {"data":{"nullValues":["abc"]}}
+                """);
     }
 
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor

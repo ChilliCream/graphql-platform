@@ -1,7 +1,4 @@
 using System.Collections.Immutable;
-#if NET8_0
-using HotChocolate.Execution;
-#endif
 using HotChocolate.Language;
 
 namespace HotChocolate;

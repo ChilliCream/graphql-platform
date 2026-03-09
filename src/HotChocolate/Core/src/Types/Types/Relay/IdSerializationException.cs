@@ -1,8 +1,9 @@
+#nullable disable
+
 using System.Buffers;
 
 namespace HotChocolate.Types.Relay;
 
-#pragma warning disable RCS1194
 public class IdSerializationException
     : GraphQLException
 {
@@ -18,4 +19,3 @@ public class IdSerializationException
     {
     }
 }
-#pragma warning restore RCS1194

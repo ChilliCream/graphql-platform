@@ -2,8 +2,6 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using HotChocolate.Utilities.CompilerServices;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 internal readonly struct NullableHelper
@@ -38,12 +36,6 @@ internal readonly struct NullableHelper
     {
         var attribute = GetNullableContextAttribute(member);
         return GetContext(attribute);
-    }
-
-    private bool? GetContext(ParameterInfo parameter)
-    {
-        var attribute = GetNullableContextAttribute(parameter);
-        return GetContext(attribute, GetContext(parameter.Member));
     }
 
     private bool? GetContext(NullableContextAttribute? attribute)
@@ -104,10 +96,6 @@ internal readonly struct NullableHelper
 
     private static NullableContextAttribute? GetNullableContextAttribute(
         MemberInfo member) =>
-        GetNullableContextAttribute(member.GetCustomAttributesData());
-
-    private static NullableContextAttribute? GetNullableContextAttribute(
-        ParameterInfo member) =>
         GetNullableContextAttribute(member.GetCustomAttributesData());
 
     private static NullableContextAttribute? GetNullableContextAttribute(

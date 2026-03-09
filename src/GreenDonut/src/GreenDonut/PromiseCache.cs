@@ -97,7 +97,7 @@ public sealed class PromiseCache : IPromiseCache
             return AddNewEntry(k, promise);
         });
 
-        if(!read)
+        if (!read)
         {
             Interceptor?.TryAdd(key, promise);
         }
@@ -128,7 +128,7 @@ public sealed class PromiseCache : IPromiseCache
             return AddNewEntry(k, createPromise());
         });
 
-        if(!read)
+        if (!read)
         {
             Interceptor?.TryAdd(key, (Promise<T>)entry.Value);
         }

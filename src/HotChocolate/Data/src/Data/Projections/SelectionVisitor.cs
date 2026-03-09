@@ -1,12 +1,12 @@
 namespace HotChocolate.Data.Projections;
 
-public class SelectionVisitor
+public abstract class SelectionVisitor
 {
     /// <summary>
     /// The visitor default action.
     /// </summary>
     /// <value></value>
-    protected virtual ISelectionVisitorAction DefaultAction => Continue;
+    protected ISelectionVisitorAction DefaultAction => Continue;
 
     /// <summary>
     /// Ends traversing the graph.

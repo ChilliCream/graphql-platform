@@ -24,14 +24,14 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         FieldNode node,
         Context context)
     {
-        if(node.Name.Value.Equals(WellKnownNames.TypeName))
+        if (node.Name.Value.Equals(WellKnownNames.TypeName))
         {
             return node;
         }
 
         var field = ((IComplexTypeDefinition)context.Types.Peek()).Fields[node.Name.Value];
 
-        if(field.Type.NamedType().IsLeafType())
+        if (field.Type.NamedType().IsLeafType())
         {
             return node;
         }

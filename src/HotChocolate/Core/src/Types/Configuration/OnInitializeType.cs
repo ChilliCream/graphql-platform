@@ -1,7 +1,5 @@
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 /// <summary>

@@ -5,6 +5,7 @@ using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 using TypeInfo = HotChocolate.Types.Analyzers.Models.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
@@ -47,6 +48,14 @@ public class ClassBaseClassInspector : ISyntaxInspector
                         return true;
                     }
 
+                    if (current.GetAttributes().Any(
+                            t => t.AttributeClass?.ToDisplayString()
+                                .StartsWith(InterfaceTypeAttribute, StringComparison.Ordinal) is true))
+                    {
+                        syntaxInfo = new TypeInfo(typeDisplayString);
+                        return true;
+                    }
+
                     if (WellKnownTypes.TypeExtensionClass.Contains(displayString))
                     {
                         syntaxInfo = new TypeExtensionInfo(typeDisplayString, false);
@@ -64,7 +73,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
 
                     if (displayString.Equals(WellKnownTypes.DataLoader, StringComparison.Ordinal))
                     {
-                        syntaxInfo =  new RegisterDataLoaderInfo(typeDisplayString);
+                        syntaxInfo = new RegisterDataLoaderInfo(typeDisplayString);
                         return true;
                     }
 

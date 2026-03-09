@@ -1,5 +1,4 @@
 using HotChocolate.Language.Utilities;
-using Xunit;
 
 namespace HotChocolate.Utilities.Introspection;
 

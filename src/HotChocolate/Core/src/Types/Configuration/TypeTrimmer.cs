@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeTrimmer
@@ -187,7 +185,7 @@ internal sealed class TypeTrimmer
 
         foreach (var discoveredType in _discoveredTypes)
         {
-            if(discoveredType is not IComplexTypeDefinition complexType)
+            if (discoveredType is not IComplexTypeDefinition complexType)
             {
                 continue;
             }

@@ -7,7 +7,7 @@ namespace HotChocolate.Configuration;
 public class TypeTrimmerTests
 {
     [Fact]
-    private void RemoveUnusedTypes()
+    public void RemoveUnusedTypes()
     {
         // arrange
         // act
@@ -45,7 +45,7 @@ public class TypeTrimmerTests
     }
 
     [Fact]
-    private void Interface_Implementors_Correctly_Detected()
+    public void Interface_Implementors_Correctly_Detected()
     {
         // arrange
         // act
@@ -74,7 +74,7 @@ public class TypeTrimmerTests
     }
 
     [Fact]
-    private void Interface_Implementors_Correctly_Detected_2()
+    public void Interface_Implementors_Correctly_Detected_2()
     {
         // arrange
         // act
@@ -103,7 +103,7 @@ public class TypeTrimmerTests
     }
 
     [Fact]
-    private void Union_Set_Is_Correctly_Detected()
+    public void Union_Set_Is_Correctly_Detected()
     {
         // arrange
         // act
@@ -130,7 +130,7 @@ public class TypeTrimmerTests
     }
 
     [Fact]
-    private void Unused_TypeSystem_Directives_Are_Removed()
+    public void Unused_TypeSystem_Directives_Are_Removed()
     {
         // arrange
         // act
@@ -166,7 +166,7 @@ public class TypeTrimmerTests
     }
 
     [Fact]
-    private void Executable_Directives_Are_Never_Removed()
+    public void Executable_Directives_Are_Never_Removed()
     {
         // arrange
         // act
@@ -198,7 +198,7 @@ public class TypeTrimmerTests
     }
 
     [Fact]
-    private void Executable_Directives_Are_Never_Removed_2()
+    public void Executable_Directives_Are_Never_Removed_2()
     {
         // arrange
         // act
@@ -230,7 +230,7 @@ public class TypeTrimmerTests
     }
 
     [Fact]
-    private void Executable_Directives_Should_Be_Visited()
+    public void Executable_Directives_Should_Be_Visited()
     {
         // arrange
         // act

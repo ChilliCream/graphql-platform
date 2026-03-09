@@ -35,7 +35,7 @@ public sealed class OperationInspector : ISyntaxInspector
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
                     var operationType = ParseOperationType(fullName);
 
-                    if(operationType == OperationType.No)
+                    if (operationType == OperationType.No)
                     {
                         continue;
                     }

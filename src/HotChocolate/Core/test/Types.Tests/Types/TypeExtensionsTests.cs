@@ -130,7 +130,7 @@ public class TypeExtensionsTests
                     new StringType())));
 
         // act & assert
-        Assert.Throws<ArgumentException>(() => type.NamedType<ObjectType>());
+        Assert.Throws<ArgumentException>(type.NamedType<ObjectType>);
     }
 
     [Fact]

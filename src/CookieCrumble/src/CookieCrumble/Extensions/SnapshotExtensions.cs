@@ -10,6 +10,45 @@ public static class SnapshotExtensions
         ISnapshotValueFormatter? formatter = null)
         => Snapshot.Create().Add(value, formatter: formatter).MatchInline(snapshot);
 
+    public static void MatchInlineSnapshots(
+        this IEnumerable<object?> values,
+        IEnumerable<string> snapshots,
+        ISnapshotValueFormatter? formatter = null)
+    {
+        var valuesArray = values.ToArray();
+        var snapshotsArray = snapshots.ToArray();
+
+        if (valuesArray.Length != snapshotsArray.Length)
+        {
+            throw new ArgumentException(
+                $"The number of snapshots must be the same as the number of values ({valuesArray.Length}).",
+                nameof(snapshots));
+        }
+
+        var i = 0;
+        List<Exception> exceptions = [];
+
+        foreach (var value in valuesArray)
+        {
+            try
+            {
+                Snapshot
+                    .Create()
+                    .Add(value, formatter: formatter)
+                    .MatchInline(snapshotsArray[i++]);
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+        }
+
+        if (exceptions.Count != 0)
+        {
+            throw new AggregateException(exceptions);
+        }
+    }
+
     public static void MatchSnapshot(this Snapshot value)
         => value.Match();
 

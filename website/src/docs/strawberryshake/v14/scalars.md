@@ -67,7 +67,7 @@ directive @serializationType(name: String!) on SCALAR
 "Defines the runtimeType of a scalar"
 directive @runtimeType(name: String!) on SCALAR
 
-"Represents a integer value that is greater or equal to 0"
+"Represents an integer value that is greater or equal to 0"
 extend scalar PositiveInt
     @serializationType(name: "global::System.Int32")
     @runtimeType(name: "global::System.Int32")

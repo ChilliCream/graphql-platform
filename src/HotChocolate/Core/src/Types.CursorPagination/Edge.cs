@@ -52,7 +52,7 @@ public class Edge<T> : IEdge<T>
         _resolveCursor = edge => resolveCursor(edge.Node);
     }
 
-        /// <summary>
+    /// <summary>
     /// Initializes a new instance of <see cref="Edge{T}" />.
     /// </summary>
     /// <param name="node">

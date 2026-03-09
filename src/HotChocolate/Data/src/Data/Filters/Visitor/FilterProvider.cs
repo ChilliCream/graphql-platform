@@ -1,22 +1,20 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// A <see cref="FilterProvider{TContext}"/> translates a incoming query to another
+/// A <see cref="FilterProvider{TContext}"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class FilterProvider<TContext>
     : Convention<FilterProviderConfiguration>
-    , IFilterProvider
-    , IFilterProviderConvention
+        , IFilterProvider
+        , IFilterProviderConvention
     where TContext : IFilterVisitorContext
 {
     private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers = [];
@@ -30,7 +28,7 @@ public abstract class FilterProvider<TContext>
     }
 
     /// <inheritdoc />
-    public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
+    protected FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
     internal new FilterProviderConfiguration? Configuration => base.Configuration;
@@ -59,7 +57,7 @@ public abstract class FilterProvider<TContext>
         IFilterConvention convention)
     {
         _filterConvention = convention;
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void IFilterProviderConvention.Complete(IConventionContext context)
@@ -70,7 +68,7 @@ public abstract class FilterProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Configuration!.Handlers.Count == 0)
+        if (Configuration!.FieldHandlerConfigurations.Count == 0)
         {
             throw FilterProvider_NoHandlersConfigured(this);
         }
@@ -82,34 +80,29 @@ public abstract class FilterProvider<TContext>
                 context.Scope);
         }
 
-        var services = new CombinedServiceProvider(
-            new DictionaryServiceProvider(
-                (typeof(IFilterProvider), this),
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(IFilterConvention), _filterConvention),
-                (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
-                (typeof(InputParser), context.DescriptorContext.InputParser),
-                (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-            context.Services);
+        var providerContext = new FilterProviderContext(
+            context.Services,
+            this,
+            context,
+            context.DescriptorContext,
+            _filterConvention,
+            context.DescriptorContext.TypeConverter,
+            context.DescriptorContext.TypeInspector,
+            context.DescriptorContext.InputParser,
+            context.DescriptorContext.InputFormatter
+        );
 
-        foreach (var (type, instance) in Configuration.Handlers)
+        foreach (var handlerConfiguration in Configuration.FieldHandlerConfigurations)
         {
-            if (instance is IFilterFieldHandler<TContext> casted)
-            {
-                _fieldHandlers.Add(casted);
-                continue;
-            }
-
             try
             {
-                var optimizers = (IFilterFieldHandler<TContext>)ActivatorUtilities.GetServiceOrCreateInstance(services, type);
-                _fieldHandlers.Add(optimizers);
+                var handler = handlerConfiguration.Create<TContext>(providerContext);
+
+                _fieldHandlers.Add(handler);
             }
-            catch
+            catch (Exception exception)
             {
-                throw FilterProvider_UnableToCreateFieldHandler(this, type);
+                throw FilterProvider_UnableToCreateFieldHandler(this, exception);
             }
         }
     }

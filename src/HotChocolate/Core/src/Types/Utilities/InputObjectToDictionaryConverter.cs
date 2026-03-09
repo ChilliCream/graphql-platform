@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Collections;
 using HotChocolate.Types;
 
@@ -94,7 +96,7 @@ internal class InputObjectToDictionaryConverter
 
     private void VisitLeaf(ILeafType type, object obj, Action<object> setValue)
     {
-        if (type is IHasRuntimeType hasClrType)
+        if (type is IRuntimeTypeProvider hasClrType)
         {
             var currentType = obj.GetType();
             var normalized = currentType == hasClrType.RuntimeType

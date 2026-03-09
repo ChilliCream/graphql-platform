@@ -1,8 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 public class NullableTypeConverter : IChangeTypeProvider

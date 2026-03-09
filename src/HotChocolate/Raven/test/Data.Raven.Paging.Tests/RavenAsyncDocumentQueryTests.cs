@@ -14,7 +14,7 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class RavenAsyncDocumentQueryTests
 {
-    private readonly List<Foo> foos =
+    private readonly List<Foo> _foos =
     [
         new Foo { Bar = "a" },
         new Foo { Bar = "b" },
@@ -104,8 +104,9 @@ public class RavenAsyncDocumentQueryTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                foos(first: 2 after: ""MQ=="") {
+            """
+            {
+                foos(first: 2, after: "MQ==") {
                     edges {
                         node {
                             bar
@@ -123,7 +124,8 @@ public class RavenAsyncDocumentQueryTests
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot.Create().AddResult(result).MatchAsync();
@@ -377,7 +379,7 @@ public class RavenAsyncDocumentQueryTests
                 {
                     descriptor
                         .Field("foos")
-                        .Resolve(BuildResolver(database, foos))
+                        .Resolve(BuildResolver(database, _foos))
                         .Type<ListType<ObjectType<Foo>>>()
                         .Use(
                             next => async context =>
@@ -403,7 +405,7 @@ public class RavenAsyncDocumentQueryTests
 
                     descriptor
                         .Field("foosOffset")
-                        .Resolve(BuildResolver(database, foos))
+                        .Resolve(BuildResolver(database, _foos))
                         .Type<ListType<ObjectType<Foo>>>()
                         .Use(
                             next => async context =>
@@ -433,11 +435,8 @@ public class RavenAsyncDocumentQueryTests
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("query", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("query", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

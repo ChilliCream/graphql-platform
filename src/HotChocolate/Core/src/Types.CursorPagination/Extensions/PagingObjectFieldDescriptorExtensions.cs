@@ -145,20 +145,27 @@ public static class PagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
-                if (typeRef is null &&
-                    d.Type is SyntaxTypeReference syntaxTypeRef &&
-                    syntaxTypeRef.Type.IsListType())
+                if (typeRef is null
+                    && d.Type is SyntaxTypeReference syntaxTypeRef
+                    && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                if (typeRef is null &&
-                    d.Type is ExtendedTypeReference extendedTypeRef &&
-                    c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo) &&
-                    GetElementType(typeInfo) is { } elementType)
+                // if the type reference is based on an extended type,
+                // we will try to create an element type reference from it.
+                // This will ensure that we are not inferring an actual schema type
+                // but instead defer that decision to the type initialization.
+                typeRef ??= d.Type switch
                 {
-                    typeRef = TypeReference.Create(elementType, TypeContext.Output);
-                }
+                    FactoryTypeReference factoryTypeRef
+                        => factoryTypeRef.GetElementType(),
+                    ExtendedTypeReference extendedTypeRef when
+                        c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                            && GetElementType(typeInfo) is { } elementType
+                        => TypeReference.Create(elementType, TypeContext.Output),
+                    _ => typeRef
+                };
 
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
@@ -228,12 +235,27 @@ public static class PagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
-                if (typeRef is null &&
-                    d.Type is SyntaxTypeReference syntaxTypeRef &&
-                    syntaxTypeRef.Type.IsListType())
+                if (typeRef is null
+                    && d.Type is SyntaxTypeReference syntaxTypeRef
+                    && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
+
+                // if the type reference is based on an extended type,
+                // we will try to create an element type reference from it.
+                // This will ensure that we are not inferring an actual schema type
+                // but instead defer that decision to the type initialization.
+                typeRef ??= d.Type switch
+                {
+                    FactoryTypeReference factoryTypeRef
+                        => factoryTypeRef.GetElementType(),
+                    ExtendedTypeReference extendedTypeRef when
+                        c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                        && GetElementType(typeInfo) is { } elementType
+                        => TypeReference.Create(elementType, TypeContext.Output),
+                    _ => typeRef
+                };
 
                 d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
             });
@@ -319,19 +341,16 @@ public static class PagingObjectFieldDescriptorExtensions
     {
         var typeInspector = context.TypeInspector;
 
-        if (nodeType is null)
-        {
-            // if there is no explicit node type provided we will try and
-            // infer the schema type from the resolver member.
-            nodeType = TypeReference.Create(
-                PagingHelper.GetSchemaType(context, resolverMember),
-                TypeContext.Output);
-        }
+        // if there is no explicit node type provided we will try and
+        // infer the schema type from the resolver member.
+        nodeType ??= TypeReference.Create(
+            PagingHelper.GetSchemaType(context, resolverMember),
+            TypeContext.Output);
 
         // if the node type is a syntax type reference we will try to preserve the actual
         // runtime type for later usage.
-        if (nodeType.Kind == TypeReferenceKind.Syntax &&
-            PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
+        if (nodeType.Kind == TypeReferenceKind.Syntax
+            && PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
         {
             context.TryBindRuntimeType(
                 ((SyntaxTypeReference)nodeType).Type.NamedType().Name.Value,
@@ -343,6 +362,7 @@ public static class PagingObjectFieldDescriptorExtensions
         // last but not least we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.
         return CreateConnectionType(
+            context,
             connectionName,
             nodeType,
             options.IncludeTotalCount ?? false,
@@ -401,11 +421,12 @@ public static class PagingObjectFieldDescriptorExtensions
             // in this case we will ignore the exception and return the default provider.
         }
 
-        // if no provider was added we will fallback to the queryable paging provider.
+        // if no provider was added we will fall back to the queryable paging provider.
         return new QueryableCursorPagingProvider();
     }
 
     private static TypeReference CreateConnectionType(
+        IDescriptorContext context,
         string? connectionName,
         TypeReference nodeType,
         bool includeTotalCount,
@@ -418,13 +439,14 @@ public static class PagingObjectFieldDescriptorExtensions
                 _ => new ConnectionType(nodeType, includeTotalCount, includeNodesField),
                 TypeContext.Output)
             : TypeReference.Create(
-                connectionName + "Connection",
+                NameHelper.CreateConnectionName(context.Naming, connectionName),
                 TypeContext.Output,
-                factory: _ => new ConnectionType(
+                factory: c => new ConnectionType(
                     connectionName,
                     nodeType,
                     includeTotalCount,
-                    includeNodesField));
+                    includeNodesField,
+                    c.Naming));
     }
 
     private static string EnsureConnectionNameCasing(string connectionName)

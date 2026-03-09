@@ -40,8 +40,8 @@ public abstract class QueryableSpatialMethodHandler
         ITypeCompletionContext context,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration) =>
-        fieldConfiguration is FilterOperationFieldConfiguration op &&
-        op.Id == Operation;
+        fieldConfiguration is FilterOperationFieldConfiguration op
+        && op.Id == Operation;
 
     public override bool TryHandleEnter(
         QueryableFilterContext context,

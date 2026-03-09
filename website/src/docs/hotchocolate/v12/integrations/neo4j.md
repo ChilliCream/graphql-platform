@@ -5,7 +5,7 @@ title: Neo4J Database
 HotChocolate has a data integration for Neo4J.
 With this integration, you can translate paging, filtering, sorting, and projections, directly into native cypher queries.
 
-You can find a example project in [HotChocolate Examples](https://github.com/ChilliCream/graphql-workshop-neo4j)
+You can find an example project in [HotChocolate Examples](https://github.com/ChilliCream/graphql-workshop-neo4j)
 
 # Get Started
 

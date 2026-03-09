@@ -1,5 +1,3 @@
-using HotChocolate.Types.Descriptors.Configurations;
-
 namespace HotChocolate.Types;
 
 internal sealed class MutationErrorTypeInterceptor<T>(T errorRegistrar)

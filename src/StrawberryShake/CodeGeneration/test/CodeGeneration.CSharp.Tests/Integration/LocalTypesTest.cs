@@ -1,7 +1,6 @@
 using HotChocolate;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
 
@@ -17,8 +16,8 @@ public class LocalTypesTest : ServerTestBase
     public async Task Execute_LocalTypes_Test()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(
             builder => builder.AddTypeExtension(typeof(QueryType)),
             out var port);
         var serviceCollection = new ServiceCollection();
@@ -30,7 +29,7 @@ public class LocalTypesTest : ServerTestBase
             c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
         serviceCollection.AddLocalTypesClient();
         IServiceProvider services = serviceCollection.BuildServiceProvider();
-        LocalTypesClient client = services.GetRequiredService<LocalTypesClient>();
+        var client = services.GetRequiredService<LocalTypesClient>();
 
         // act
         var result = await client.LocalTypes.ExecuteAsync(ct);

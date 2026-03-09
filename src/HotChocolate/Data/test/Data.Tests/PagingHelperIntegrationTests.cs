@@ -14,7 +14,7 @@ using Squadron;
 namespace HotChocolate.Data;
 
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
-public class IntegrationPagingHelperTests(PostgreSqlResource resource)
+public class PagingHelperIntegrationTests(PostgreSqlResource resource)
 {
     public PostgreSqlResource Resource { get; } = resource;
 
@@ -233,6 +233,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -345,6 +346,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -544,11 +546,12 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 

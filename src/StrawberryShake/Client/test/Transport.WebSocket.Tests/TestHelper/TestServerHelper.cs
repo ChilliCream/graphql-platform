@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.WellKnownContextData;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -50,27 +49,23 @@ public static class TestServerHelper
                                     {
                                         if (context.ContextData.TryGetValue(
                                                 nameof(HttpContext),
-                                                out var value) &&
-                                            value is HttpContext httpContext &&
-                                            context.Result is HotChocolate.Execution.IOperationResult result)
+                                                out var value)
+                                            && value is HttpContext httpContext
+                                            && context.Result is OperationResult result)
                                         {
                                             var headers = httpContext.Request.Headers;
                                             if (headers.ContainsKey("sendErrorStatusCode"))
                                             {
-                                                context.Result = result =
-                                                    OperationResultBuilder
-                                                        .FromResult(result)
-                                                        .SetContextData(HttpStatusCode, 403)
-                                                        .Build();
+                                                result.ContextData =
+                                                    result.ContextData.SetItem(
+                                                        ExecutionContextData.HttpStatusCode,
+                                                        403);
                                             }
 
                                             if (headers.ContainsKey("sendError"))
                                             {
-                                                context.Result =
-                                                    OperationResultBuilder
-                                                        .FromResult(result)
-                                                        .AddError(new Error { Message = "Some error!" })
-                                                        .Build();
+                                                result.Errors = result.Errors.Add(
+                                                    new Error { Message = "Some error!" });
                                             }
                                         }
 
@@ -79,30 +74,29 @@ public static class TestServerHelper
                         })
                     .Configure(
                         app =>
-                            app.Use(
-                                    async (ct, next) =>
+                            app.Use(async (ct, next) =>
+                            {
+                                try
+                                {
+                                    // Kestrel does not return proper error responses:
+                                    // https://github.com/aspnet/KestrelHttpServer/issues/43
+                                    await next();
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (ct.Response.HasStarted)
                                     {
-                                        try
-                                        {
-                                            // Kestrel does not return proper error responses:
-                                            // https://github.com/aspnet/KestrelHttpServer/issues/43
-                                            await next();
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            if (ct.Response.HasStarted)
-                                            {
-                                                throw;
-                                            }
+                                        throw;
+                                    }
 
-                                            ct.Response.StatusCode = 500;
-                                            ct.Response.Headers.Clear();
-                                            await ct.Response.WriteAsync(ex.ToString());
-                                        }
-                                    })
-                                .UseWebSockets()
-                                .UseRouting()
-                                .UseEndpoints(e => e.MapGraphQL()))
+                                    ct.Response.StatusCode = 500;
+                                    ct.Response.Headers.Clear();
+                                    await ct.Response.WriteAsync(ex.ToString());
+                                }
+                            })
+                            .UseWebSockets()
+                            .UseRouting()
+                            .UseEndpoints(e => e.MapGraphQL()))
                     .Build();
 
                 host.Start();

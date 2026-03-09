@@ -1,8 +1,8 @@
-#nullable enable
+using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     private static class SystemType
     {
@@ -25,6 +25,15 @@ internal sealed partial class ExtendedType
                     isNullable: true);
             }
 
+            var isNullable = !type.IsValueType;
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
+            {
+                type = type.GetGenericArguments()[0];
+                type = Helper.RemoveNonEssentialTypes(type);
+                isNullable = false;
+            }
+
             var elementType =
                 Helper.GetInnerListType(type) is { } e
                     ? FromType(e, cache)
@@ -40,9 +49,9 @@ internal sealed partial class ExtendedType
                 ExtendedTypeKind.Runtime,
                 typeArguments: typeArguments,
                 source: type,
-                isNullable: !type.IsValueType,
-                isList: Helper.IsListType(type),
-                elementType: elementType);
+                elementType: elementType,
+                isList: elementType is not null,
+                isNullable: isNullable);
         }
 
         public static IReadOnlyList<ExtendedType> GetGenericArguments(

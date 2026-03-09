@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Mime;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
@@ -10,8 +9,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.WellKnownMiddleware;
-
-#nullable enable
 
 namespace HotChocolate.Types.Pagination;
 

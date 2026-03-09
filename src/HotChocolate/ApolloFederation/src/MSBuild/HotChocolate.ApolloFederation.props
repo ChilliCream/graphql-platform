@@ -2,5 +2,6 @@
   <PropertyGroup>
     <!--ApolloFederationImplicitUsings: default|disable|enable-->
     <ApolloFederationImplicitUsings>default</ApolloFederationImplicitUsings>
+    <HotChocolateCompositeImplicitUsings>disable</HotChocolateCompositeImplicitUsings>
   </PropertyGroup>
 </Project>

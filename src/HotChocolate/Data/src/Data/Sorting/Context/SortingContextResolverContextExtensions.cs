@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -17,7 +16,7 @@ public static class SortingContextResolverContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var argumentName = context.Selection.GetSortingArgumentName();
+        var argumentName = context.Selection.SortingArgumentName;
         if (string.IsNullOrEmpty(argumentName))
         {
             return null;

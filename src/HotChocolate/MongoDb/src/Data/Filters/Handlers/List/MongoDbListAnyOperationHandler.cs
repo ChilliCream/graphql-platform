@@ -8,7 +8,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb.Filters;
 
 /// <summary>
-/// This filter operation handler maps a Any operation field to a
+/// This filter operation handler maps an Any operation field to a
 /// <see cref="FilterDefinition{TDocument}"/>
 /// </summary>
 public class MongoDbListAnyOperationHandler
@@ -19,15 +19,18 @@ public class MongoDbListAnyOperationHandler
         CanBeNull = false;
     }
 
+    public static MongoDbListAnyOperationHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IListFilterInputType &&
-            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id is DefaultFilterOperations.Any;
+        return context.Type is IListFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id is DefaultFilterOperations.Any;
     }
 
     /// <inheritdoc />
@@ -37,10 +40,10 @@ public class MongoDbListAnyOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } &&
-            parsedValue is bool parsedBool &&
-            context.Scopes.Peek() is MongoDbFilterScope scope)
+        if (context.RuntimeTypes.Count > 0
+            && context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 }
+            && parsedValue is bool parsedBool
+            && context.Scopes.Peek() is MongoDbFilterScope scope)
         {
             var path = scope.GetPath();
 

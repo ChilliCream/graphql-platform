@@ -1,19 +1,14 @@
-[
-  {
-    "Message": "A document containing operations that define more than one variable with the same name is invalid for execution.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 29
-      }
-    ],
-    "Extensions": {
-      "variable": "atOtherHomes",
-      "variableType": "Boolean",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variable-Uniqueness"
-    },
-    "Exception": null
+{
+  "message": "A document containing operations that define more than one variable with the same name is invalid for execution.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 29
+    }
+  ],
+  "extensions": {
+    "variable": "atOtherHomes",
+    "variableType": "Boolean",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Variable-Uniqueness"
   }
-]
+}

@@ -17,13 +17,14 @@ public class OrderedDictionary<TKey, TValue>
     where TKey : IEquatable<TKey>
 {
     private readonly List<TKey> _keys = [];
-    private readonly Dictionary<TKey, TValue> _map = [];
+    private readonly Dictionary<TKey, TValue> _map;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrderedDictionary{TKey, TValue}"/> class that is empty.
     /// </summary>
     public OrderedDictionary()
     {
+        _map = [];
     }
 
     /// <summary>
@@ -35,11 +36,18 @@ public class OrderedDictionary<TKey, TValue>
     {
         ArgumentNullException.ThrowIfNull(collection);
 
+        _map = [];
+
         foreach (var (key, value) in collection)
         {
             _map.Add(key, value);
             _keys.Add(key);
         }
+    }
+
+    public OrderedDictionary(IEqualityComparer<TKey>? comparer)
+    {
+        _map = new Dictionary<TKey, TValue>(comparer);
     }
 
     /// <summary>
@@ -237,10 +245,10 @@ public class OrderedDictionary<TKey, TValue>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
         var index = IndexOfKey(item.Key);
-        if(index != -1)
+        if (index != -1)
         {
             var value = _map[item.Key];
-            if(value == null || value.Equals(item.Value))
+            if (value == null || value.Equals(item.Value))
             {
                 _keys.RemoveAt(index);
                 _map.Remove(item.Key);

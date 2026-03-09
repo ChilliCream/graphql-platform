@@ -1,10 +1,8 @@
 using HotChocolate.Execution;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
-public class InputObjectTypeNonNullTests
+public class InputObjectTypeDictionaryTests
     : TypeTestBase
 {
     [Fact]
@@ -44,6 +42,40 @@ public class InputObjectTypeNonNullTests
         result.ToJson().MatchSnapshot();
     }
 
+    [Fact]
+    public void Dictionary_Input_With_Nullable_Value_Is_Correctly_Detected()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<NullableDictionaryInputQuery>()
+            .Create();
+
+        // assert
+        var fooInputType = schema.Types.GetType<InputObjectType>("NullableDictionaryInput");
+        var keyValuePairType = schema.Types.GetType<InputObjectType>(
+            fooInputType.Fields["contextData"].Type.TypeName());
+
+        Assert.False(keyValuePairType.Fields["value"].Type.IsNonNullType());
+    }
+
+    [Fact]
+    public void Dictionary_Output_With_Nullable_Value_Is_Correctly_Detected()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<NullableDictionaryOutputQuery>()
+            .Create();
+
+        // assert
+        var queryType = schema.Types.GetType<ObjectType>("NullableDictionaryOutputQuery");
+        var keyValuePairType = schema.Types.GetType<ObjectType>(
+            queryType.Fields["contextData"].Type.TypeName());
+
+        Assert.False(keyValuePairType.Fields["value"].Type.IsNonNullType());
+    }
+
     public class Query
     {
         public string GetFoo(FooInput input)
@@ -63,5 +95,55 @@ public class InputObjectTypeNonNullTests
         public IDictionary<string, string>? ContextData2 { get; set; }
 
         public IReadOnlyDictionary<string, string>? ContextData3 { get; set; }
+    }
+
+    [Fact]
+    public void Explicit_ObjectType_For_KeyValuePair_Overrides_Inferred_Type()
+    {
+        // arrange & act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<CustomKvpOutputQuery>()
+            .AddType<CustomKeyValuePairType>()
+            .Create();
+
+        // assert — the custom type name and field names must appear in the schema,
+        // proving the explicit ObjectType<T> definition is used instead of the
+        // auto-inferred KeyValuePairOfStringAndString.
+        schema.MatchSnapshot();
+
+        var customType = schema.Types.GetType<ObjectType>("StringPair");
+        Assert.Equal("first", customType.Fields["first"].Name);
+        Assert.Equal("second", customType.Fields["second"].Name);
+        Assert.Equal(2, customType.Fields.Count(f => !f.IsIntrospectionField));
+    }
+
+    public class NullableDictionaryInput
+    {
+        public Dictionary<string, string?>? ContextData { get; set; }
+    }
+
+    public class NullableDictionaryInputQuery
+    {
+        public string GetFoo(NullableDictionaryInput input) => "ok";
+    }
+
+    public class NullableDictionaryOutputQuery
+    {
+        public Dictionary<string, string?>? GetContextData() => null;
+    }
+
+    public class CustomKeyValuePairType : ObjectType<KeyValuePair<string, string>>
+    {
+        protected override void Configure(IObjectTypeDescriptor<KeyValuePair<string, string>> descriptor)
+        {
+            descriptor.Name("StringPair");
+            descriptor.Field(x => x.Key).Name("first");
+            descriptor.Field(x => x.Value).Name("second");
+        }
+    }
+
+    public class CustomKvpOutputQuery
+    {
+        public Dictionary<string, string>? GetItems() => null;
     }
 }

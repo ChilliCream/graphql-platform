@@ -18,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 

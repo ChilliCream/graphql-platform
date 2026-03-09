@@ -7,7 +7,7 @@ using static HotChocolate.Data.MongoDb.MongoDbContextData;
 namespace HotChocolate.Data.MongoDb.Filters;
 
 /// <summary>
-/// A <see cref="FilterProvider{TContext}"/> translates a incoming query to a
+/// A <see cref="FilterProvider{TContext}"/> translates an incoming query to a
 /// <see cref="FilterDefinition{T}"/>
 /// </summary>
 public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>

@@ -2,13 +2,15 @@ using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
 /// Binds a member of a type extension to a field of the actual type.
 /// </summary>
+[AttributeUsage(
+    AttributeTargets.Property | AttributeTargets.Method,
+    Inherited = true,
+    AllowMultiple = false)]
 public sealed class BindFieldAttribute : ObjectFieldDescriptorAttribute
 {
     /// <summary>
@@ -33,7 +35,7 @@ public sealed class BindFieldAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         if (!string.IsNullOrEmpty(Name))
         {

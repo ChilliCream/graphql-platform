@@ -30,7 +30,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private ImmutableDictionary<string, IDataLoader> _branches =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<string, IDataLoader>.Empty;
+#endif
     private Batch<TKey>? _currentBatch;
 
     /// <summary>
@@ -96,7 +100,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// Gets the options of this DataLoader.
     /// </summary>
     protected internal DataLoaderOptions Options
-        => new() { MaxBatchSize = _maxBatchSize, Cache = Cache, DiagnosticEvents = _diagnosticEvents };
+        => new()
+        {
+            MaxBatchSize = _maxBatchSize,
+            Cache = Cache,
+            DiagnosticEvents = _diagnosticEvents
+        };
 
     /// <inheritdoc />
     public Task<TValue?> LoadAsync(
@@ -178,7 +187,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             // we dispatch after everything is enqueued.
             if (_currentBatch is { IsScheduled: false })
             {
-                ScheduleBatchUnsafe(_currentBatch, ct);
+                ScheduleBatchUnsafe(_currentBatch);
             }
         }
 
@@ -256,20 +265,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             PromiseCacheKey cacheKey = new(CacheKeyType, key);
             Cache.TryRemove(cacheKey);
         }
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use SetCacheEntry instead.")]
-    public void Set(TKey key, Task<TValue?> value)
-    {
-        SetCacheEntry(key, value);
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use RemoveCacheEntry instead.")]
-    public void Remove(TKey key)
-    {
-        RemoveCacheEntry(key);
     }
 
     /// <inheritdoc />
@@ -372,7 +367,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                     var context = new DataLoaderFetchContext<TValue>(ContextData);
                     await FetchAsync(batch.Keys, buffer, context, cancellationToken).ConfigureAwait(false);
                     BatchOperationSucceeded(batch, batch.Keys, buffer);
-                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
+                    _diagnosticEvents.BatchResults(batch.Keys, buffer);
                 }
                 catch (Exception ex)
                 {
@@ -411,25 +406,25 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             // we will schedule it before issuing a new batch.
             if (!current.IsScheduled)
             {
-                ScheduleBatchUnsafe(current, ct);
+                ScheduleBatchUnsafe(current);
             }
         }
 
-        var newBatch = _currentBatch = BatchPool<TKey>.Shared.Get();
+        var newBatch = _currentBatch = RentBatch(ct);
         var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
 
         if (scheduleOnNewBatch)
         {
-            ScheduleBatchUnsafe(newBatch, ct);
+            ScheduleBatchUnsafe(newBatch);
         }
 
         return newPromise;
     }
 
-    private void ScheduleBatchUnsafe(Batch<TKey> batch, CancellationToken ct)
+    private void ScheduleBatchUnsafe(Batch<TKey> batch)
     {
         batch.IsScheduled = true;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(batch, ct));
+        _batchScheduler.Schedule(batch);
     }
 
     private void SetSingleResult(
@@ -528,4 +523,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// </returns>
     protected static string GetCacheKeyType(Type type)
         => type.FullName ?? type.Name;
+
+    private Batch<TKey> RentBatch(CancellationToken ct)
+    {
+        var batch = BatchPool<TKey>.Shared.Get();
+        batch.Initialize(DispatchBatchAsync, ct);
+        return batch;
+    }
 }

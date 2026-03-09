@@ -2,8 +2,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -15,7 +13,6 @@ namespace HotChocolate.Types;
 public abstract class NamedTypeBase<TConfiguration>
     : TypeSystemObject<TConfiguration>
     , ITypeDefinition
-    , IHasRuntimeType
     , ITypeIdentityProvider
     , ITypeConfigurationProvider
     where TConfiguration : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeConfiguration

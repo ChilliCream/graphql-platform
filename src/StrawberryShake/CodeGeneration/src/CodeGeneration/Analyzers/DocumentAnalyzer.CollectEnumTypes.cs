@@ -1,5 +1,4 @@
 using HotChocolate;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;

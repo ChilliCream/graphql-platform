@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           show-progress: false
 
@@ -30,21 +30,29 @@ jobs:
       - run: echo ${{ secrets.CONTAINER_REG_URL }}
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
       - name: Cache Yarn Packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             website/.yarn/cache
-            website/.cache/yarn
+            website/.next/cache
           key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
+      - name: Cache Optimized Images
+        uses: actions/cache@v5
+        with:
+          path: website/.next/cache/images
+          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/public/docs/**/*.png', 'website/public/docs/**/*.jpg', 'website/public/docs/**/*.webp') }}
+          restore-keys: |
+            ${{ runner.os }}-optimized-images-
 
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
@@ -65,8 +73,12 @@ jobs:
         run: yarn clean
         working-directory: website
 
+      - name: Optimize Images
+        run: yarn optimize-images
+        working-directory: website
+
       - name: Build Website
-        run: yarn build --prefix-paths
+        run: yarn build
         working-directory: website
 
       - name: Build WebSite Container
@@ -81,7 +93,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ccc-p-us1-website
-          slot-name: "production"
+          slot-name: "next"
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           images: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 

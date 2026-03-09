@@ -1,0 +1,19 @@
+schema {
+  mutation: Issue4803Mutation
+}
+
+type DoSomethingPayload {
+  issue4803_result: Issue4803Result
+}
+
+type Issue4803Mutation {
+  do_something(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type Issue4803Result {
+  user_name: String!
+}
+
+input DoSomethingInput {
+  user_name: String!
+}

@@ -264,7 +264,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-                    var client = new SocketClientStub() { Protocol = protocolMock.Object };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     var manager = new Session(client);
 
                     // act
@@ -313,7 +313,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub() { Protocol = protocolMock.Object };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     OnReceiveAsync listener = null!;
                     protocolMock
                         .Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()))

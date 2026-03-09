@@ -19,7 +19,7 @@ public sealed class DefaultPredicateBuilder : IPredicateBuilder
     /// </param>
     public DefaultPredicateBuilder(LambdaExpression? initialPredicate)
     {
-        if(initialPredicate is not null)
+        if (initialPredicate is not null)
         {
             _predicates = _predicates.Add(initialPredicate);
         }

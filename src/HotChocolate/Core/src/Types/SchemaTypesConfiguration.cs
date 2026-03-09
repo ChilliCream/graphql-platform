@@ -1,6 +1,3 @@
-#nullable enable
-
-using System.Collections.Immutable;
 using HotChocolate.Types;
 
 namespace HotChocolate;

@@ -18,7 +18,7 @@ public class UseCultureAttribute : BeforeAfterTestAttribute
 {
     private readonly Lazy<CultureInfo> _culture;
     private readonly Lazy<CultureInfo> _uiCulture;
-private CultureInfo _originalCulture = null!;
+    private CultureInfo _originalCulture = null!;
     private CultureInfo _originalUiCulture = null!;
 
     /// <summary>

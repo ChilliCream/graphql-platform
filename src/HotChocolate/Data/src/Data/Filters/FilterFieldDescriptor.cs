@@ -35,6 +35,11 @@ public class FilterFieldDescriptor
         Configuration.Description = convention.GetFieldDescription(member);
         Configuration.Type = convention.GetFieldType(member);
         Configuration.Scope = scope;
+
+        if (context.Naming.IsDeprecated(member, out var reason))
+        {
+            Deprecated(reason);
+        }
     }
 
     protected FilterFieldDescriptor(
@@ -76,10 +81,14 @@ public class FilterFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Member: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Member);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.Member);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(configuration);
@@ -99,7 +108,7 @@ public class FilterFieldDescriptor
         return this;
     }
 
-   public new IFilterFieldDescriptor Description(string value)
+    public new IFilterFieldDescriptor Description(string value)
     {
         base.Description(value);
         return this;

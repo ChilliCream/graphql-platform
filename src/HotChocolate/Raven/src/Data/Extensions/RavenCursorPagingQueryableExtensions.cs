@@ -39,7 +39,7 @@ public static class RavenCursorPagingQueryableExtensions
             context,
             defaultPageSize);
 
-     /// <summary>
+    /// <summary>
     /// Applies the cursor pagination algorithm to the <paramref name="query"/>.
     /// </summary>
     /// <param name="query">

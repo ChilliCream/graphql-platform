@@ -34,7 +34,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         var resolver = BuildResolver(documentStore, entities);
 
         var builder = new ServiceCollection()
-            .AddSingleton<IDocumentStore>(documentStore)
+            .AddSingleton(documentStore)
             .AddGraphQLServer()
             .AddRavenFiltering()
             .AddRavenPagingProviders()
@@ -60,11 +60,8 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("sql", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("sql", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

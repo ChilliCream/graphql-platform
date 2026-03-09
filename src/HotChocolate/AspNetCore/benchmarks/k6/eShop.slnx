@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Catalog.API/eShop.Catalog.API.csproj" />
+  <Project Path="Catalog.AppHost/eShop.Catalog.AppHost.csproj" />
+</Solution>

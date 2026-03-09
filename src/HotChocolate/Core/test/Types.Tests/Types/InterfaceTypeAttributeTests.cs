@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class InterfaceTypeAttributeTests
@@ -92,7 +90,7 @@ public class InterfaceTypeAttributeTests
 
     public interface Interface1
     {
-        string GetField([ArgumentDefaultValue("abc")]string argument);
+        string GetField([ArgumentDefaultValue("abc")] string argument);
     }
 
     public class ArgumentDefaultValueAttribute
@@ -105,10 +103,9 @@ public class InterfaceTypeAttributeTests
 
         public object DefaultValue { get; }
 
-        protected override void OnConfigure(
-            IDescriptorContext context,
+        protected override void OnConfigure(IDescriptorContext context,
             IArgumentDescriptor descriptor,
-            ParameterInfo parameter)
+            ParameterInfo? parameter)
         {
             descriptor.DefaultValue(DefaultValue);
         }
@@ -126,7 +123,7 @@ public class InterfaceTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInterfaceFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Extend().OnBeforeCompletion(
                 (c, d) => d.Features.Set(new CustomFeature()));
@@ -145,7 +142,7 @@ public class InterfaceTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInterfaceTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Field("abc").Type<StringType>();
         }

@@ -18,10 +18,10 @@ public sealed class RavenCursorPagingProvider : CursorPagingProvider
 
     /// <inheritdoc />
     public override bool CanHandle(IExtendedType source)
-        => source.Source.IsGenericType &&
-            source.Source.GetGenericTypeDefinition() is { } type && (
-                type == typeof(IRavenQueryable<>) ||
-                type == typeof(IAsyncDocumentQuery<>));
+        => source.Source.IsGenericType
+            && source.Source.GetGenericTypeDefinition() is { } type && (
+                type == typeof(IRavenQueryable<>)
+                || type == typeof(IAsyncDocumentQuery<>));
 
     /// <inheritdoc />
     protected override CursorPagingHandler CreateHandler(

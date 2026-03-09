@@ -1,13 +1,11 @@
-#nullable enable
-
 using System.Collections;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 
 namespace HotChocolate;
 
@@ -308,8 +306,8 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 
                 return result;
             },
-            key: WellKnownMiddleware.SemanticNonNull,
-            isRepeatable: false);
+            isRepeatable: false,
+            key: WellKnownMiddleware.SemanticNonNull);
 
     private static void CheckResultForSemanticNonNullViolations(object? result, IResolverContext context, Path path,
         HashSet<int> levels,

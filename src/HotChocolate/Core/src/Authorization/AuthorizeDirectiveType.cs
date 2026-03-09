@@ -29,24 +29,24 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             .Argument(t => t.Policy)
             .Name(Names.Policy)
             .Description(
-                "The name of the authorization policy that determines " +
-                "access to the annotated resource.")
+                "The name of the authorization policy that determines "
+                + "access to the annotated resource.")
             .Type<StringType>();
 
         descriptor
             .Argument(t => t.Roles)
             .Name(Names.Roles)
             .Description(
-                "Roles that are allowed to access the " +
-                "annotated resource.")
+                "Roles that are allowed to access the "
+                + "annotated resource.")
             .Type<ListType<NonNullType<StringType>>>();
 
         descriptor
             .Argument(t => t.Apply)
             .Name(Names.Apply)
             .Description(
-                "Defines when when the authorize directive shall be applied." +
-                "By default the authorize directives are applied during the validation phase.")
+                "Defines when when the authorize directive shall be applied."
+                + "By default the authorize directives are applied during the validation phase.")
             .Type<NonNullType<ApplyPolicyType>>()
             .DefaultValue(ApplyPolicy.BeforeResolver);
 
@@ -74,9 +74,9 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             {
                 var arg = args[i];
 
-                if (arg.Name.Value.EqualsOrdinal(Names.Apply) &&
-                    arg.Value is EnumValueNode value &&
-                    value.Value.EqualsOrdinal(ApplyPolicyType.Names.Validation))
+                if (arg.Name.Value.EqualsOrdinal(Names.Apply)
+                    && arg.Value is EnumValueNode value
+                    && value.Value.EqualsOrdinal(ApplyPolicyType.Names.Validation))
                 {
                     return true;
                 }

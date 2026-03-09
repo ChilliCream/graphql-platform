@@ -64,10 +64,10 @@
     <value>All operations finished</value>
   </data>
   <data name="SessionManager_SessionIsNotOpen" xml:space="preserve">
-    <value>The session was not open. Operations can only be started or stopped on a open session</value>
+    <value>The session was not open. Operations can only be started or stopped on an open session</value>
   </data>
   <data name="SessionManager_SocketWasNotInitialized" xml:space="preserve">
-    <value>Could not get the protocol from socket {0}. The socket is in a invalid state</value>
+    <value>Could not get the protocol from socket {0}. The socket is in an invalid state</value>
   </data>
   <data name="SessionManager_OperationWasAlreadyRegistered" xml:space="preserve">
     <value>Operation with id {0} was already registered on the operation manager</value>
@@ -76,7 +76,7 @@
     <value>The specified client does not belong to this pool.</value>
   </data>
   <data name="ErrorOperationMessage_UnexpectedServerError" xml:space="preserve">
-    <value>There was a unexpected error on the server</value>
+    <value>There was an unexpected error on the server</value>
   </data>
   <data name="ErrorOperationMessage_ConnectionInitializationError" xml:space="preserve">
     <value>Connection initialization failed. Could not connect to server</value>
@@ -94,7 +94,7 @@
     <value>'{0}' cannot be null or empty.</value>
   </data>
   <data name="InMemoryConnection_InvalidResponseFormat" xml:space="preserve">
-    <value>The response was in a invalid format</value>
+    <value>The response was in an invalid format</value>
   </data>
   <data name="InMemoryClient_ExecuteAsync_NoExecutorFound" xml:space="preserve">
     <value>There was no executor configured for client {0}</value>

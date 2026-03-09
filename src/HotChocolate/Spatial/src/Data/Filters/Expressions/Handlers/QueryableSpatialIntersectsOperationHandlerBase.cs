@@ -15,7 +15,7 @@ public abstract class QueryableSpatialIntersectsOperationHandlerBase
     private static readonly MethodInfo s_intersects =
         typeof(Geometry).GetMethod(nameof(Geometry.Intersects))!;
 
-    public QueryableSpatialIntersectsOperationHandlerBase(
+    protected QueryableSpatialIntersectsOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)

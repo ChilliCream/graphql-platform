@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -49,7 +50,8 @@ public class HttpConnectionTests : ServerTestBase
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         var document = new MockDocument(
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     ... HeroName
                 }
@@ -60,14 +62,15 @@ public class HttpConnectionTests : ServerTestBase
                 friends {
                     nodes {
                         name
-                        ... HeroAppearsIn2 @defer(label: ""HeroAppearsIn2"")
+                        ... HeroAppearsIn2 @defer(label: "HeroAppearsIn2")
                     }
                 }
             }
 
             fragment HeroAppearsIn2 on Character {
                 appearsIn
-            }");
+            }
+            """);
         var request = new OperationRequest("GetHero", document);
 
         // act
@@ -109,10 +112,11 @@ public class HttpConnectionTests : ServerTestBase
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         var document = new MockDocument(
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     ... HeroName
-                    ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
+                    ... HeroAppearsIn @defer(label: "HeroAppearsIn")
                 }
             }
 
@@ -127,7 +131,8 @@ public class HttpConnectionTests : ServerTestBase
 
             fragment HeroAppearsIn on Character {
                 appearsIn
-            }");
+            }
+            """);
         var request = new OperationRequest("GetHero", document);
 
         // act
@@ -157,7 +162,7 @@ public class HttpConnectionTests : ServerTestBase
     {
         private readonly byte[] _query;
 
-        public MockDocument(string query)
+        public MockDocument([StringSyntax("graphql")] string query)
         {
             _query = Encoding.UTF8.GetBytes(query);
         }

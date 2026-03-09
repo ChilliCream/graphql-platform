@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
@@ -13,6 +11,8 @@ internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
 
     public SyntaxTypeReferenceHandler(IDescriptorContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         _typeInspector = context.TypeInspector;
         _scalarTypes = context.Features.Get<TypeSystemFeature>()?.ScalarNameOverrides ?? [];
     }
@@ -43,8 +43,8 @@ internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
                 scalarTypeRef = _typeInspector.GetTypeRef(scalarType);
             }
 
-            if (scalarTypeRef is not null &&
-                !typeRegistrar.IsResolved(scalarTypeRef))
+            if (scalarTypeRef is not null
+                && !typeRegistrar.IsResolved(scalarTypeRef))
             {
                 typeRegistrar.Register(
                     typeRegistrar.CreateInstance(scalarTypeRef.Type.Type),

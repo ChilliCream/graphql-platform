@@ -3,7 +3,7 @@ using NetTopologySuite.Geometries;
 namespace HotChocolate.Types.Spatial.Transformation;
 
 /// <summary>
-/// Transforms a geometry into a another coordinates system
+/// Transforms a geometry into another coordinates system
 /// </summary>
 public interface IGeometryTransformer
 {

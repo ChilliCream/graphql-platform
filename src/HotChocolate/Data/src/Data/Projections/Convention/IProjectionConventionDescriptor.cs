@@ -24,14 +24,14 @@ public interface IProjectionConventionDescriptor
     IProjectionConventionDescriptor Provider(Type provider);
 
     /// <summary>
-    /// Add a extensions that is applied to <see cref="ProjectionProvider"/>
+    /// Adds an extension that is applied to <see cref="ProjectionProvider"/>
     /// </summary>
     /// <typeparam name="TExtension">The filter provider extension type.</typeparam>
     IProjectionConventionDescriptor AddProviderExtension<TExtension>()
         where TExtension : class, IProjectionProviderExtension;
 
     /// <summary>
-    /// Add a extensions that is applied to <see cref="ProjectionProvider"/>
+    /// Adds an extension that is applied to <see cref="ProjectionProvider"/>
     /// </summary>
     /// <param name="provider">
     /// The concrete filter provider extension that shall be used.

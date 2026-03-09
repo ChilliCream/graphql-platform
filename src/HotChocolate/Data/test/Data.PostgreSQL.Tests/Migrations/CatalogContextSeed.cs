@@ -16,9 +16,27 @@ public sealed class CatalogContextSeed : IDbSeeder<CatalogContext>
             var sourceJson = FileResource.Open("catalog.json");
             var sourceItems = JsonSerializer.Deserialize<ProductEntry[]>(sourceJson)!;
 
+            // Seed suppliers first (brands will reference them).
+            context.Suppliers.RemoveRange(context.Suppliers);
+            var suppliers = new[]
+            {
+                new Supplier { Name = "Global Supply Co.", Website = "https://globalsupply.example.com", ContactEmail = "info@globalsupply.example.com" },
+                new Supplier { Name = "Prime Distribution", Website = "https://primedist.example.com", ContactEmail = "sales@primedist.example.com" },
+                new Supplier { Name = "Atlas Logistics", Website = "https://atlaslogistics.example.com", ContactEmail = "contact@atlaslogistics.example.com" }
+            };
+            await context.Suppliers.AddRangeAsync(suppliers);
+            await context.SaveChangesAsync();
+
+            var supplierIds = await context.Suppliers.Select(s => s.Id).ToListAsync();
+
             context.Brands.RemoveRange(context.Brands);
+            var brandNames = sourceItems.Select(x => x.Brand).Distinct().ToList();
             await context.Brands.AddRangeAsync(
-                sourceItems.Select(x => x.Brand).Distinct().Select(brandName => new Brand { Name = brandName }));
+                brandNames.Select((brandName, i) => new Brand
+                {
+                    Name = brandName,
+                    SupplierId = supplierIds[i % supplierIds.Count]
+                }));
 
             context.ProductTypes.RemoveRange(context.ProductTypes);
             await context.ProductTypes.AddRangeAsync(
@@ -44,7 +62,7 @@ public sealed class CatalogContextSeed : IDbSeeder<CatalogContext>
                     ImageFileName = $"images/{source.Id}.webp"
                 }));
 
-            for(var i = 0; i < 100; i++)
+            for (var i = 0; i < 100; i++)
             {
                 await context.SingleProperties.AddAsync(
                     new SingleProperty

@@ -2,8 +2,8 @@ schema {
   query: Query
 }
 
-type Query @authorize(roles: [ "policy_tester_noupdate", "policy_tester_update_noread", "authorizationHandlerTester" ]) {
-  hello: String @authorize(roles: [ "admin" ]) @cost(weight: "10")
+type Query @authorize(roles: ["policy_tester_noupdate", "policy_tester_update_noread", "authorizationHandlerTester"]) {
+  hello: String @authorize(roles: ["admin"]) @cost(weight: "10")
 }
 
 "Defines when a policy shall be executed."

@@ -2,7 +2,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class TupleBuilder : ICode
 {
-    private bool _determineStatement = false;
+    private bool _determineStatement;
     private string? _prefix;
     private bool _setReturn;
     private readonly List<ICode> _members = [];

@@ -1,0 +1,12 @@
+{
+  "message": "The specified directive is not valid in the current location.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 11
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Directives-Are-in-Valid-Locations"
+  }
+}

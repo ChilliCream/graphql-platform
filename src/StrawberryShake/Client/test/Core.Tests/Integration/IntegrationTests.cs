@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using StrawberryShake.Integration.Mappers;
 using StrawberryShake.Serialization;
-using Xunit;
 
 namespace StrawberryShake.Integration
 {

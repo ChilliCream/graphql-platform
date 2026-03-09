@@ -1,3 +1,5 @@
-query($var: Boolean) @onQuery {
+query(
+  $var: Boolean
+) @onQuery {
   field
 }

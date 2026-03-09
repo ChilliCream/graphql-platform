@@ -48,9 +48,9 @@ public class ProjectionConventionExtension
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (convention is ProjectionConvention projectionConvention &&
-            Configuration is not null &&
-            projectionConvention.Configuration is not null)
+        if (convention is ProjectionConvention projectionConvention
+            && Configuration is not null
+            && projectionConvention.Configuration is not null)
         {
             projectionConvention.Configuration.ProviderExtensions.AddRange(
                 Configuration.ProviderExtensions);

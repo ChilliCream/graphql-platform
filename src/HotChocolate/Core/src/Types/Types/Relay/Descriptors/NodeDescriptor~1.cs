@@ -5,8 +5,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
@@ -133,8 +131,8 @@ public class NodeDescriptor<TNode>
 
         return ResolveNode(async ctx =>
         {
-            if (ctx.LocalContextData.TryGetValue(WellKnownContextData.InternalId, out var o) &&
-                o is TId id)
+            if (ctx.LocalContextData.TryGetValue(WellKnownContextData.InternalId, out var o)
+                && o is TId id)
             {
                 return await fieldResolver(ctx, id).ConfigureAwait(false);
             }

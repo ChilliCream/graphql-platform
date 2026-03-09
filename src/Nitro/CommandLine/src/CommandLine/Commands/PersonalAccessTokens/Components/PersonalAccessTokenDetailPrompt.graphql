@@ -1,0 +1,6 @@
+fragment PersonalAccessTokenDetailPrompt_PersonalAccessToken on PersonalAccessToken {
+  id
+  description
+  createdAt
+  expiresAt
+}

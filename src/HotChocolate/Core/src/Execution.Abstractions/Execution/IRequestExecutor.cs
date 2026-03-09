@@ -1,10 +1,12 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Execution;
 
 // Leave it as IRequestExecutor
 /// <summary>
 /// This executor processes GraphQL query, mutation and subscription requests against an underlying schema.
 /// </summary>
-public interface IRequestExecutor
+public interface IRequestExecutor : IFeatureProvider
 {
     /// <summary>
     /// Gets an <see cref="ulong"/> representing the version of the executor.
@@ -30,16 +32,16 @@ public interface IRequestExecutor
     /// Returns the execution result of the given GraphQL <paramref name="request" />.
     ///
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     ///
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
-    /// that the <see cref="IResponseStream" /> yields is a <see cref="IOperationResult" />.
+    /// that the <see cref="IResponseStream" /> yields is a <see cref="OperationResult" />.
     ///
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     /// </returns>
     Task<IExecutionResult> ExecuteAsync(
         IOperationRequest request,

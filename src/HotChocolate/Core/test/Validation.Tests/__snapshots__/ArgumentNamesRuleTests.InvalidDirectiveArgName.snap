@@ -1,64 +1,41 @@
-[
-  {
-    "Message": "The argument `unless` does not exist.",
-    "Code": null,
-    "Path": {
-      "Name": "isHouseTrained",
-      "Parent": {
-        "Name": "dog",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 8,
-        "Column": 47
-      }
-    ],
-    "Extensions": {
-      "directive": "include",
-      "argument": "unless",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The argument `if` is required.",
-    "Code": null,
-    "Path": {
-      "Name": "isHouseTrained",
-      "Parent": {
-        "Name": "dog",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 8,
-        "Column": 38
-      }
-    ],
-    "Extensions": {
-      "directive": "include",
-      "argument": "if",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
+---------------
+{
+  "message": "The argument \u0060unless\u0060 does not exist.",
+  "locations": [
+    {
+      "line": 8,
+      "column": 47
+    }
+  ],
+  "path": [
+    "dog",
+    "isHouseTrained"
+  ],
+  "extensions": {
+    "directive": "include",
+    "argument": "unless",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "The argument \u0060if\u0060 is required.",
+  "locations": [
+    {
+      "line": 8,
+      "column": 38
+    }
+  ],
+  "path": [
+    "dog",
+    "isHouseTrained"
+  ],
+  "extensions": {
+    "directive": "include",
+    "argument": "if",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+  }
+}
+---------------

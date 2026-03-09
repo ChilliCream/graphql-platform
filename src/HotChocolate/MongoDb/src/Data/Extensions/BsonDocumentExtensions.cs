@@ -20,7 +20,7 @@ public static class BsonDocumentExtensions
                 s_serializerRegistry));
 
     public static BsonDocument DefaultRender(
-        this MongoDB.Driver.SortDefinition<BsonDocument> bsonQuery)
+        this SortDefinition<BsonDocument> bsonQuery)
         => bsonQuery.Render(
             new RenderArgs<BsonDocument>(
                 s_documentSerializer,

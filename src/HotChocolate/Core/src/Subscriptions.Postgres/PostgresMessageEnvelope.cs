@@ -137,5 +137,5 @@ internal readonly struct PostgresMessageEnvelope
         string topic,
         string payload,
         int maxMessagePayloadSize)
-        => new (topic, Format(topic, payload, maxMessagePayloadSize));
+        => new(topic, Format(topic, payload, maxMessagePayloadSize));
 }

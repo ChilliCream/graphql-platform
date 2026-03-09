@@ -17,7 +17,7 @@ public class AnimalContext(string connectionString) : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Owner>()
-            .HasMany<Animal>(o => o.Pets)
+            .HasMany(o => o.Pets)
             .WithOne(t => t.Owner)
             .HasForeignKey(t => t.OwnerId)
             .HasPrincipalKey(o => o.Id);

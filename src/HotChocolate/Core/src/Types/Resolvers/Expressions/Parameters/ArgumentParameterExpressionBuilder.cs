@@ -4,8 +4,6 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal class ArgumentParameterExpressionBuilder
@@ -25,16 +23,16 @@ internal class ArgumentParameterExpressionBuilder
         ContextType.GetMethods().First(IsArgumentOptionalMethod);
 
     private static bool IsArgumentValueMethod(MethodInfo method)
-        => method.Name.Equals(ArgumentValue, StringComparison.Ordinal) &&
-           method.IsGenericMethod;
+        => method.Name.Equals(ArgumentValue, StringComparison.Ordinal)
+            && method.IsGenericMethod;
 
     private static bool IsArgumentLiteralMethod(MethodInfo method)
-        => method.Name.Equals(ArgumentLiteral, StringComparison.Ordinal) &&
-           method.IsGenericMethod;
+        => method.Name.Equals(ArgumentLiteral, StringComparison.Ordinal)
+            && method.IsGenericMethod;
 
     private static bool IsArgumentOptionalMethod(MethodInfo method)
-        => method.Name.Equals(ArgumentOptional, StringComparison.Ordinal) &&
-           method.IsGenericMethod;
+        => method.Name.Equals(ArgumentOptional, StringComparison.Ordinal)
+            && method.IsGenericMethod;
 
     public ArgumentKind Kind => ArgumentKind.Argument;
 
@@ -44,6 +42,9 @@ internal class ArgumentParameterExpressionBuilder
 
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ArgumentAttribute));
+
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is ArgumentAttribute);
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -64,8 +65,8 @@ internal class ArgumentParameterExpressionBuilder
 
         MethodInfo argumentMethod;
 
-        if (parameter.ParameterType.IsGenericType &&
-            parameter.ParameterType.GetGenericTypeDefinition() == s_optional)
+        if (parameter.ParameterType.IsGenericType
+            && parameter.ParameterType.GetGenericTypeDefinition() == s_optional)
         {
             argumentMethod = s_getArgumentOptional.MakeGenericMethod(
                 parameter.ParameterType.GenericTypeArguments[0]);
@@ -84,8 +85,8 @@ internal class ArgumentParameterExpressionBuilder
         return Expression.Call(context.ResolverContext, argumentMethod, Expression.Constant(name));
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => new ArgumentBinding(context.ArgumentName);
+    public IParameterBinding Create(ParameterDescriptor parameter)
+        => new ArgumentBinding(parameter.Name);
 
     private sealed class ArgumentBinding(string name) : IParameterBinding
     {

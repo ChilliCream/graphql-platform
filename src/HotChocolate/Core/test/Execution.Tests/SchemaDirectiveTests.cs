@@ -1,5 +1,4 @@
 using HotChocolate.Types;
-using HotChocolate.Tests;
 
 namespace HotChocolate.Execution;
 

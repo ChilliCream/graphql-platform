@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class SelectionSetNodeTests
@@ -174,7 +172,7 @@ public class SelectionSetNodeTests
         );
 
         // assert
-        selectionSet.MatchSnapshot();
+        selectionSet.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -205,7 +203,7 @@ public class SelectionSetNodeTests
         selectionSet = selectionSet.WithLocation(location);
 
         // assert
-        selectionSet.MatchSnapshot();
+        selectionSet.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -248,6 +246,6 @@ public class SelectionSetNodeTests
             });
 
         // assert
-        selectionSet.MatchSnapshot();
+        selectionSet.ToString().MatchSnapshot(extension: ".graphql");
     }
 }

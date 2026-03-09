@@ -2,8 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -25,7 +23,7 @@ public partial class InputObjectType
     , IInputObjectTypeDefinition
 {
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectType"/>.
+    /// Initializes a new instance of <see cref="InputObjectType"/>.
     /// </summary>
     protected InputObjectType()
     {
@@ -33,7 +31,7 @@ public partial class InputObjectType
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectType"/>.
+    /// Initializes a new instance of <see cref="InputObjectType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
