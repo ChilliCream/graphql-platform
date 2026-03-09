@@ -8,9 +8,9 @@ This page explains entity resolution in more detail: how entities are defined, h
 
 ## What Makes a Type an Entity
 
-A regular GraphQL type lives in one subgraph and is resolved entirely by that subgraph. An entity is identified by a stable key that can be referenced across subgraphs.
+An entity is a type whose instances are identified by stable key fields, such as `id` or `sku`, across the composed API. The same key refers to the same logical object in every subgraph that uses that entity. This lets one subgraph return an entity reference while another subgraph resolves additional fields for that same entity.
 
-For practical use in Fusion, separate these concerns:
+In Fusion, separate these concerns:
 
 1. **Entity identity:** one or more key fields uniquely identify each instance, like `id` or `sku`.
 2. **Entity resolution:** at least one lookup exists in the composed system so the gateway can resolve references by key.
@@ -42,10 +42,6 @@ public sealed record Product([property: ID<Product>] int Id)
 ```
 
 The entity stub does not duplicate `name`, `price`, or `weight`. It only declares the key (`Id`) and the fields it adds (`reviews`). During composition, Fusion merges these into one `Product` type with all fields. The gateway resolves each field from the subgraph that owns it.
-
-### Entity Stubs Are Not Code Duplication
-
-A common concern: "Am I duplicating the Product type across subgraphs?" No. The entity stub is a declaration, not a copy. It says "I know `Product` exists, identified by `Id`, and I want to contribute fields to it." The stub has no knowledge of the other subgraph's fields, does not import the other subgraph's code, and can be deployed independently.
 
 ## Lookups
 
@@ -138,119 +134,6 @@ public static partial class UserQueries
 
 The Accounts subgraph defines two lookups for `User`: one by `id` and one by `username`. The gateway can resolve a User reference using whichever key is available. If another subgraph references a User by username, the gateway uses `GetUserByUsername`.
 
-### Argument Mapping with `@is`
-
-When a lookup argument name does not match the entity's field name, use the `@is` directive (or its C# equivalent) to map them. For example, if your lookup uses `productId` as the argument name but the entity's key field is `id`:
-
-```graphql
-type Query {
-  personById(productId: ID! @is(field: "id")): Person @lookup
-}
-```
-
-The `@is` directive tells the composition engine that the `productId` argument corresponds to the `id` field on the `Person` type. When argument names match field names, which is the common case, you can omit `@is` because the mapping is inferred automatically.
-
-### Batch Lookups and the N+1 Problem
-
-When the gateway resolves a list of entities (for example, fetching reviews for 10 products), it needs to call the lookup once per entity. Without batching, this creates an N+1 problem: one call to get the product list, then N calls to get reviews for each product.
-
-Hot Chocolate's `[DataLoader]` attribute solves this by automatically batching entity resolution.
-
-```csharp
-// Products/Data/ProductDataLoader.cs
-
-internal static class ProductDataLoader
-{
-    [DataLoader]
-    internal static async Task<Dictionary<int, Product>> GetProductByIdAsync(
-        IReadOnlyList<int> ids,
-        ProductContext context,
-        CancellationToken cancellationToken)
-        => await context.Products
-            .Where(t => ids.Contains(t.Id))
-            .ToDictionaryAsync(t => t.Id, cancellationToken);
-}
-```
-
-The `[DataLoader]` attribute source-generates an `IProductByIdDataLoader` interface. When your lookup uses this DataLoader, the gateway automatically batches entity resolution:
-
-```csharp
-[Lookup]
-public static async Task<Product?> GetProductByIdAsync(
-    int id,
-    IProductByIdDataLoader productById,
-    CancellationToken cancellationToken)
-    => await productById.LoadAsync(id, cancellationToken);
-```
-
-Even though the lookup accepts a single `id`, the DataLoader collects all requested IDs and executes a single batch query. This turns N+1 individual database queries into one query with a `WHERE id IN (...)` clause.
-
-Always use DataLoaders for lookup resolvers that hit a database or external service. Without them, cross-subgraph queries on lists will generate one database query per entity, which degrades performance significantly as the list grows.
-
-## Field Ownership and `[Shareable]`
-
-When multiple subgraphs define the same type, Fusion needs to know which subgraph owns each field. The rules are straightforward:
-
-### Key Fields Are Automatically Shareable
-
-Fields that serve as entity keys (referenced by lookups) are implicitly shareable. You do not need to add `[Shareable]` to key fields. Both the Products and Reviews subgraphs define `Product.id`, and this composes without conflict because `id` is a key field.
-
-### Non-Key Fields Must Be Unique or Explicitly Shareable
-
-By default, a non-key field must appear in exactly one subgraph. If two subgraphs define the same non-key field on the same type, composition fails with an error.
-
-For example, if both the Accounts subgraph and the Reviews subgraph define `User.name`:
-
-```csharp
-// Accounts/Types/UserNode.cs
-
-[ObjectType<User>]
-public static partial class UserNode
-{
-    [Shareable]
-    public static string GetName([Parent] User user)
-        => user.Name!;
-}
-```
-
-```csharp
-// Reviews/Types/UserNode.cs
-
-[ObjectType<User>]
-internal static partial class UserNode
-{
-    [Shareable]
-    public static string GetName([Parent] User user)
-        => user.Name!;
-}
-```
-
-Both subgraphs mark `GetName` with `[Shareable]`. This tells Fusion: "this field is intentionally defined in multiple subgraphs, and all definitions return the same data." The gateway can resolve the field from whichever subgraph is most convenient for a given query.
-
-If you forget `[Shareable]` on any definition, composition fails:
-
-```text
-Error: Field "User.name" is defined in subgraphs "accounts-api" and "reviews-api"
-without [Shareable]. Mark the field as [Shareable] in all subgraphs that define it,
-or remove the duplicate definition.
-```
-
-### When to Use `[Shareable]`
-
-Mark a field as `[Shareable]` when:
-
-- Multiple subgraphs genuinely return the same data for this field
-- You want the gateway to have the flexibility to resolve it from either subgraph
-
-Do **not** use `[Shareable]` when:
-
-- The fields return different data (use different field names instead)
-- Only one subgraph should own the field (do not define it in other subgraphs)
-
-A common use case: the Reviews subgraph stores a local copy of `User.name` for display purposes. Both the Accounts and Reviews subgraphs can resolve it, so both mark it `[Shareable]`. The gateway can resolve `User.name` from whichever subgraph it is already calling for that query, avoiding an extra cross-subgraph hop.
-
-In short: key fields used for entity identity are implicitly shareable, while duplicate non-key fields require `[Shareable]` on every definition.
-
 ## `[EntityKey]` for Explicit Key Declaration
 
 In most cases, you do not need to declare entity keys explicitly. The composition engine infers keys from your `[Lookup]` resolvers. If `GetProductById(int id)` is marked `[Lookup]`, Fusion infers that `id` is a key field for `Product`.
@@ -271,30 +154,9 @@ The `[EntityKey("id")]` attribute explicitly declares that `Product` is an entit
 
 The argument to `[EntityKey]` is the GraphQL field name (lowercase `"id"`), not the C# property name.
 
-## Putting It All Together
-
-Here is a summary of the patterns for the most common entity scenarios:
-
-**You own the entity (primary subgraph):**
-
-- Define the full type with all fields
-- Add a public `[Lookup]` resolver
-- Use `[DataLoader]` for batch resolution
-
-**You extend the entity (secondary subgraph):**
-
-- Create an entity stub with just the key field and your new fields
-- Add an internal `[Lookup, Internal]` resolver
-- Use `[BindMember]` if replacing a foreign key with an entity reference
-- Mark any duplicated non-key fields with `[Shareable]`
-
-**Your entity can be identified by multiple keys:**
-
-- Add multiple `[Lookup]` resolvers (by ID, by username, by SKU, etc.)
-- The gateway uses whichever key is available
-
 ## Next Steps
 
-- **Need cross-subgraph field dependencies?** The `[Require]` attribute enables resolvers to depend on data from other subgraphs. Cross-subgraph data dependencies, including complex field mapping, will be covered in detail in future documentation.
-- **Want to understand composition rules?** See [Composition](/docs/fusion/v16/composition) for how types are merged, what causes composition errors, and how to fix them.
+- **Need field ownership rules?** See [Composition](/docs/fusion/v16/composition) for how field ownership, `@shareable`, and composition validation work.
+- **Need argument mapping and cross-subgraph dependencies?** The `@is` and `@require` directives are covered in dedicated pages.
+- **Need runtime performance guidance?** See Hot Chocolate docs for DataLoader and batching patterns used inside lookup resolvers.
 - **Ready to go to production?** See [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization) for securing your gateway and subgraphs, or [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for setting up independent subgraph deployments.
