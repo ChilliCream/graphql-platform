@@ -265,6 +265,20 @@ public class SortInputTypeTests : SortTestBase
     }
 
     [Fact]
+    public void SortInputType_Honors_SortFieldsByName()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s
+                .AddType(new SortInputType<SortTypeWithNonAlphabeticallyMembers>())
+                .ModifyOptions(x => x.SortFieldsByName = true));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public void SortInputType_ShouldInferDeprecatedDirective_ForDeprecatedFields()
     {
         // arrange
@@ -451,6 +465,8 @@ public class SortInputTypeTests : SortTestBase
             descriptor.Field(x => x.Root).UseFiltering();
         }
     }
+
+    public record SortTypeWithNonAlphabeticallyMembers(int X, int A, int Y, int Z, int B);
 
     public record TypeWithDeprecatedField(
         string Foo,
