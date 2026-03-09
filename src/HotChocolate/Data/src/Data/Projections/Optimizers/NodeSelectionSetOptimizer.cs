@@ -1,24 +1,17 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Relay;
 
-namespace HotChocolate.Data.Projections;
+namespace HotChocolate.Data.Projections.Optimizers;
 
-internal sealed class NodeSelectionSetOptimizer : ISelectionSetOptimizer
+internal sealed class NodeSelectionSetOptimizer(ISelectionSetOptimizer optimizer) : ISelectionSetOptimizer
 {
-    private readonly ISelectionSetOptimizer _optimizer;
-
-    public NodeSelectionSetOptimizer(ISelectionSetOptimizer optimizer)
-    {
-        _optimizer = optimizer;
-    }
-
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {
-        if (context.Type.ContextData.TryGetValue(WellKnownContextData.NodeResolver, out var o) &&
-            o is NodeResolverInfo { QueryField.ContextData: var fieldContextData, } &&
-           fieldContextData.ContainsKey(ProjectionProvider.ProjectionContextIdentifier))
+        if (context.TypeContext.Features.TryGet<NodeTypeFeature>(out var feature)
+            && feature.NodeResolver is { } nodeResolverInfo
+            && nodeResolverInfo.QueryField?.HasProjectionMiddleware() == true)
         {
-            _optimizer.OptimizeSelectionSet(context);
+            optimizer.OptimizeSelectionSet(context);
         }
     }
 }

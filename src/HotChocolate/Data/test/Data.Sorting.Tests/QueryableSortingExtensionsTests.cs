@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -11,10 +10,10 @@ namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortingExtensionsTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
     ];
 
     [Fact]
@@ -56,9 +55,9 @@ public class QueryableSortingExtensionsTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -80,9 +79,9 @@ public class QueryableSortingExtensionsTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -91,7 +90,7 @@ public class QueryableSortingExtensionsTests
         [UseSorting]
         public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
 
         [CatchErrorMiddleware]
@@ -99,13 +98,13 @@ public class QueryableSortingExtensionsTests
         [AddTypeMismatchMiddleware]
         public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
 
         [CatchErrorMiddleware]
         public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
     }
 
@@ -127,20 +126,21 @@ public class QueryableSortingExtensionsTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
-            descriptor.Use(next => context =>
-            {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
-                        QueryableSortProvider.ContextApplySortingKey,
-                        CreateApplicatorAsync<Foo>());
+            descriptor.Use(
+                static next => ctx =>
+                {
+                    ctx.LocalContextData =
+                        ctx.LocalContextData.SetItem(
+                            QueryableSortProvider.ContextApplySortingKey,
+                            CreateApplicatorAsync());
 
-                return next(context);
-            });
+                    return next(ctx);
+                });
         }
 
-        private static ApplySorting CreateApplicatorAsync<TEntityType>() =>
-            (context, input) => new object();
+        private static ApplySorting CreateApplicatorAsync() =>
+            (_, _) => new object();
     }
 }

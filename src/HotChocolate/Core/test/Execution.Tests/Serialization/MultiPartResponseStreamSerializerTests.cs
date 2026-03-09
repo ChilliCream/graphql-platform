@@ -1,5 +1,6 @@
-using CookieCrumble;
+using System.IO.Pipelines;
 using HotChocolate.StarWars;
+using HotChocolate.Transport.Formatters;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -22,11 +23,13 @@ public class MultiPartResponseStreamSerializerTests
                         o.EnableDefer = true;
                         o.EnableStream = true;
                     })
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .ExecuteRequestAsync(
-                    @"{
+                    """
+                    {
                         hero(episode: NEW_HOPE) {
                             id
-                            ... @defer(label: ""friends"") {
+                            ... @defer(label: "friends") {
                                 friends {
                                     nodes {
                                         id
@@ -35,15 +38,18 @@ public class MultiPartResponseStreamSerializerTests
                                 }
                             }
                         }
-                    }");
+                    }
+                    """);
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
         var memoryStream = new MemoryStream();
         var serializer = new MultiPartResultFormatter();
+        var writer = PipeWriter.Create(memoryStream, new StreamPipeWriterOptions(leaveOpen: true));
 
         // act
-        await serializer.FormatAsync(stream, memoryStream, CancellationToken.None);
+        await serializer.FormatAsync(stream, writer, ExecutionResultFormatFlags.None, CancellationToken.None);
+        await writer.CompleteAsync();
 
         // assert
         memoryStream.Seek(0, SeekOrigin.Begin);
@@ -55,10 +61,11 @@ public class MultiPartResponseStreamSerializerTests
     {
         // arrange
         var serializer = new MultiPartResultFormatter();
-        var stream = new Mock<Stream>();
+        var stream = new Mock<PipeWriter>();
 
         // act
-        ValueTask Action() => serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
+        ValueTask Action() => serializer.FormatAsync(
+            null!, stream.Object, ExecutionResultFormatFlags.None, CancellationToken.None);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());
@@ -72,7 +79,8 @@ public class MultiPartResponseStreamSerializerTests
         var stream = new Mock<IResponseStream>();
 
         // act
-        ValueTask Action() => serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
+        ValueTask Action() => serializer.FormatAsync(
+            stream.Object, null!, ExecutionResultFormatFlags.None, CancellationToken.None);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());

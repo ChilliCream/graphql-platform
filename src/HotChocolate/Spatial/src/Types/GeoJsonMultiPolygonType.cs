@@ -17,21 +17,21 @@ public sealed class GeoJsonMultiPolygonType
             .BindFieldsExplicitly();
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetGeometryCollectionCoordinates(default!))
+            .Field<GeoJsonResolvers>(x => x.GetGeometryCollectionCoordinates(null!))
             .Name(CoordinatesFieldName)
             .Description(GeoJson_Field_Coordinates_Description_MultiPolygon)
             .Type<GeoJsonCoordinatesType>();
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetType(default!))
+            .Field<GeoJsonResolvers>(x => x.GetType(null!))
             .Description(GeoJson_Field_Type_Description);
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetBbox(default!))
+            .Field<GeoJsonResolvers>(x => x.GetBbox(null!))
             .Description(GeoJson_Field_Bbox_Description);
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetCrs(default!))
+            .Field<GeoJsonResolvers>(x => x.GetCrs(null!))
             .Description(GeoJson_Field_Crs_Description);
     }
 }

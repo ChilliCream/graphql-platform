@@ -1,0 +1,6 @@
+{
+  "document": "{ foo }",
+  "contextData": {
+    "one": "bar"
+  }
+}

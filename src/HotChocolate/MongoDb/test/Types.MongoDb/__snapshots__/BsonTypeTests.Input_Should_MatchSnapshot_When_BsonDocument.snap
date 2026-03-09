@@ -1,1 +1,1 @@
-{ "int32" : NumberLong(42), "int64" : NumberLong(42), "decimal" : "42.123456789123456789123456789", "double" : 42.229999999999997, "boolean" : true, "bsonArray" : [false, true], "string" : "String", "null" : null, "nested" : { "int32" : NumberLong(42), "int64" : NumberLong(42) } }
+{ "int32" : 42, "int64" : 42, "decimal" : "42.123456789123456789123456789", "double" : 42.229999999999997, "boolean" : true, "bsonArray" : [false, true], "string" : "String", "null" : null, "nested" : { "int32" : 42, "int64" : 42 } }

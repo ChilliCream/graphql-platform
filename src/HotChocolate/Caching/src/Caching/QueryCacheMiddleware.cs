@@ -18,7 +18,7 @@ internal sealed class QueryCacheMiddleware
         _options = optionsAccessor.CacheControl;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         await _next(context).ConfigureAwait(false);
 
@@ -29,41 +29,33 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        if (context.Operation?.ContextData is null
-            || !context.Operation.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value)
-            || value is not CacheControlHeaderValue cacheControlHeaderValue)
+        if (!context.TryGetOperation(out var operation)
+            || !operation.Features.TryGet<CacheControlHeaderValue>(out var headerValue)
+            || !operation.Features.TryGet<ImmutableCacheConstraints>(out var constraints))
         {
             return;
         }
 
-        // only single operation results can be cached.
-        var operationResult = context.Result?.ExpectOperationResult();
-
-        if (operationResult is { Errors: null })
+        if (context.Result is OperationResult { Errors.Count: 0, ContextData: { } contextData } operationResult)
         {
-            var contextData =
-                operationResult.ContextData is not null
-                    ? new ExtensionData(operationResult.ContextData)
-                    : new ExtensionData();
+            contextData = contextData.Add(ExecutionContextData.CacheControlHeaderValue, headerValue);
 
-            contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
-
-            if (context.Operation.ContextData.TryGetValue(VaryHeaderValue, out var varyValue)
-                && varyValue is string varyHeaderValue
-                && !string.IsNullOrEmpty(varyHeaderValue))
+            if (constraints.Vary.Length > 0)
             {
-                contextData.Add(VaryHeaderValue, varyHeaderValue);
+                contextData = contextData.Add(ExecutionContextData.VaryHeaderValue, constraints.VaryString);
             }
 
-            context.Result = operationResult.WithContextData(contextData);
+            operationResult.ContextData = contextData;
         }
     }
 
-    internal static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var options = core.SchemaServices.GetRequiredService<ICacheControlOptionsAccessor>();
-            var middleware = new QueryCacheMiddleware(next, options);
-            return context => middleware.InvokeAsync(context);
-        };
+    internal static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var options = core.SchemaServices.GetRequiredService<ICacheControlOptionsAccessor>();
+                var middleware = new QueryCacheMiddleware(next, options);
+                return context => middleware.InvokeAsync(context);
+            },
+            WellKnownRequestMiddleware.QueryCacheMiddleware);
 }

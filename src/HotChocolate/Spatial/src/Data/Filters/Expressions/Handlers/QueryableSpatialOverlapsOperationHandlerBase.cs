@@ -12,14 +12,14 @@ namespace HotChocolate.Data.Filters.Spatial;
 public abstract class QueryableSpatialOverlapsOperationHandlerBase
     : QueryableSpatialBooleanMethodHandler
 {
-    private static readonly MethodInfo _overlap =
+    private static readonly MethodInfo s_overlap =
         typeof(Geometry).GetMethod(nameof(Geometry.Overlaps))!;
 
-    public QueryableSpatialOverlapsOperationHandlerBase(
+    protected QueryableSpatialOverlapsOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)
-        : base(convention, inspector, inputParser, _overlap)
+        : base(convention, inspector, inputParser, s_overlap)
     {
     }
 

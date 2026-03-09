@@ -18,13 +18,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="NameUtils_InvalidGraphQLName" xml:space="preserve">
-    <value>The specified name is not a valid GraphQL name.</value>
-  </data>
   <data name="ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName" xml:space="preserve">
     <value>A argument name without a member name is only allowed on directive coordinates.</value>
   </data>
   <data name="ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate" xml:space="preserve">
     <value>A directive cannot contain a member name.</value>
+  </data>
+  <data name="DirectiveTypeFactory_LocationNotSupported" xml:space="preserve">
+    <value>The specified location `{0}` is not supported.</value>
+  </data>
+  <data name="NameUtils_EnsureGraphQLName_InvalidName" xml:space="preserve">
+    <value>`{0}` is not a valid GraphQL name.
+https://spec.graphql.org/October2021/#sec-Names
+</value>
   </data>
 </root>

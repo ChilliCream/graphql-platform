@@ -1,27 +1,21 @@
 using HotChocolate.CostAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Cost Analyzer extensions for the <see cref="IRequestContext"/>.
+/// Cost Analyzer extensions for the <see cref="RequestContext"/>.
 /// </summary>
 public static class CostAnalyzerRequestContextExtensions
 {
-    internal static IRequestContext AddCostMetrics(
-        this IRequestContext context,
+    internal static RequestContext SetCostMetrics(
+        this RequestContext context,
         CostMetrics costMetrics)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(costMetrics);
 
-        if (costMetrics is null)
-        {
-            throw new ArgumentNullException(nameof(costMetrics));
-        }
-
-        context.ContextData[WellKnownContextData.CostMetrics] = costMetrics;
+        context.Features.Set(costMetrics);
         return context;
     }
 
@@ -38,15 +32,11 @@ public static class CostAnalyzerRequestContextExtensions
     /// <paramref name="context"/> is <c>null</c>.
     /// </exception>
     public static CostMetrics GetCostMetrics(
-        this IRequestContext context)
+        this RequestContext context)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
-        if (context.ContextData.TryGetValue(WellKnownContextData.CostMetrics, out var value) &&
-            value is CostMetrics costMetrics)
+        if (context.Features.TryGet<CostMetrics>(out var costMetrics))
         {
             return costMetrics;
         }
@@ -55,20 +45,18 @@ public static class CostAnalyzerRequestContextExtensions
     }
 
     internal static CostAnalyzerMode GetCostAnalyzerMode(
-        this IRequestContext context,
-        CostOptions options)
+        this RequestContext context,
+        RequestCostOptions options)
     {
-        if (context is null)
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (options.SkipAnalyzer)
         {
-            throw new ArgumentNullException(nameof(context));
+            return CostAnalyzerMode.Skip;
         }
 
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        if (context.ContextData.ContainsKey(WellKnownContextData.ValidateCost))
+        if (context.ContextData.ContainsKey(ExecutionContextData.ValidateCost))
         {
             return CostAnalyzerMode.Analyze | CostAnalyzerMode.Report;
         }
@@ -82,11 +70,98 @@ public static class CostAnalyzerRequestContextExtensions
 
         flags |= CostAnalyzerMode.Execute;
 
-        if (context.ContextData.ContainsKey(WellKnownContextData.ReportCost))
+        if (context.ContextData.ContainsKey(ExecutionContextData.ReportCost))
         {
             flags |= CostAnalyzerMode.Report;
         }
 
         return flags;
+    }
+
+    /// <summary>
+    /// Gets the cost options for the current request.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <returns>
+    /// Returns the cost options.
+    /// </returns>
+    public static RequestCostOptions GetCostOptions(this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        if (context.Features.TryGet<RequestCostOptions>(out var options))
+        {
+            return options;
+        }
+
+        return context.Schema.Services.GetRequiredService<RequestCostOptions>();
+    }
+
+    /// <summary>
+    /// Gets the global cost options from the executor.
+    /// </summary>
+    /// <param name="executor">
+    /// The GraphQL executor.
+    /// </param>
+    /// <returns>
+    /// Returns the global cost options.
+    /// </returns>
+    public static RequestCostOptions GetCostOptions(this IRequestExecutor executor)
+    {
+        ArgumentNullException.ThrowIfNull(executor);
+
+        return executor.Schema.Services.GetRequiredService<RequestCostOptions>();
+    }
+
+    internal static RequestCostOptions? TryGetCostOptions(this RequestContext context)
+    {
+        if (context.Features.TryGet<RequestCostOptions>(out var options))
+        {
+            return options;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Sets the cost options for the current request.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="options">
+    /// The cost options.
+    /// </param>
+    public static void SetCostOptions(this RequestContext context, RequestCostOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(options);
+
+        context.Features.Set(options);
+    }
+
+    /// <summary>
+    /// Sets the cost options for the current request.
+    /// </summary>
+    /// <param name="builder">
+    /// The operation request builder.
+    /// </param>
+    /// <param name="options">
+    /// The cost options.
+    /// </param>
+    /// <returns>
+    /// Returns the operation request builder.
+    /// </returns>
+    public static OperationRequestBuilder SetCostOptions(
+        this OperationRequestBuilder builder,
+        RequestCostOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(options);
+
+        builder.Features.Set(options);
+        return builder;
     }
 }

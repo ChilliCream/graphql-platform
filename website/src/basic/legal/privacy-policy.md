@@ -4,9 +4,9 @@ title: "Privacy Policy"
 
 This policy is effective as of 26 August 2021.
 
-Last updated: 11 September 2023
+Last updated: 1 October 2024
 
-Your privacy is important to us. It is ChilliCream Inc.&#39;s policy to respect your privacy and comply with any applicable law and regulation regarding any personal information we may collect about you, including across our "Services", which refers collectively to: (1) [https://chillicream.com](https://chillicream.com) and any other websites we operate and that link to this policy (collectively, "Websites"), and (2) all versions of ChilliCream software, platforms or services (including but not limited to Banana Cake Pop).
+Your privacy is important to us. It is ChilliCream Inc.&#39;s policy to respect your privacy and comply with any applicable law and regulation regarding any personal information we may collect about you, including across our "Services", which refers collectively to: (1) [https://chillicream.com](https://chillicream.com) and any other websites we operate and that link to this policy (collectively, "Websites"), and (2) all versions of ChilliCream software, platforms or services (including but not limited to Nitro).
 
 Personal information is any information about you which can be used to identify you. This includes information about you as a person (such as name, address, and date of birth), your devices, payment details, and even information about how you use a website or online service.
 

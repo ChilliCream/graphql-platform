@@ -1,0 +1,173 @@
+query GetWithSkipAndInclude($skip: Boolean!, $include: Boolean!) {
+  withDefaultedVariables {
+    # Skip
+    skipped: int @skip(if: true)
+    notSkipped: int @skip(if: false)
+    possiblySkipped: int @skip(if: $skip)
+    # Include
+    included: int @include(if: true)
+    notIncluded: int @include(if: false)
+    possiblyIncluded: int @include(if: $include)
+    # Skip and Include (excluded)
+    skippedAndIncluded: int @skip(if: true) @include(if: true)
+    skippedAndNotIncluded: int @skip(if: true) @include(if: false)
+    skippedAndPossiblyIncluded: int @skip(if: true) @include(if: $include)
+    notSkippedAndNotIncluded: int @skip(if: false) @include(if: false)
+    possiblySkippedAndNotIncluded: int @skip(if: $skip) @include(if: false)
+    # Skip and Include (included)
+    notSkippedAndIncluded: int @skip(if: false) @include(if: true)
+    notSkippedAndPossiblyIncluded: int @skip(if: false) @include(if: $include)
+    possiblySkippedAndIncluded: int @skip(if: $skip) @include(if: true)
+    possiblySkippedAndPossiblyIncluded: int @skip(if: $skip) @include(if: $include)
+    # Object field (skipped)
+    objectFieldSkipped: object @skip(if: true) {
+        field1A { field1B { field1C } }
+    }
+    # Object field (not skipped)
+    objectFieldNotSkipped: object @skip(if: false) {
+        field1A { field1B { field1C } }
+    }
+    # Object field (possibly skipped, nested fields are still required)
+    objectFieldPossiblySkipped: object @skip(if: $skip) {
+        field1A { field1B { field1C } }
+    }
+    # Object field (included)
+    objectFieldIncluded: object @include(if: true) {
+        field1A { field1B { field1C } }
+    }
+    # Object field (not included)
+    objectFieldNotIncluded: object @include(if: false) {
+        field1A { field1B { field1C } }
+    }
+    # Object field (possibly included, nested fields are still required)
+    objectFieldPossiblyIncluded: object @include(if: $include) {
+        field1A { field1B { field1C } }
+    }
+    # Fragment spread (skipped)
+    ...fragmentSkipped @skip(if: true)
+    # Fragment spread (not skipped)
+    ...fragmentNotSkipped @skip(if: false)
+    # Fragment spread (possibly skipped)
+    ...fragmentPossiblySkipped @skip(if: $skip)
+    # Fragment spread (included)
+    ...fragmentIncluded @include(if: true)
+    # Fragment spread (not included)
+    ...fragmentNotIncluded @include(if: false)
+    # Fragment spread (possibly included)
+    ...fragmentPossiblyIncluded @include(if: $include)
+    # Inline fragment with no type condition (skipped)
+    ... @skip(if: true) {
+      inlineFragmentFieldSkipped: int
+    }
+    # Inline fragment with no type condition (not skipped)
+    ... @skip(if: false) {
+      inlineFragmentFieldNotSkipped: int
+    }
+    # Inline fragment with no type condition (possibly skipped)
+    ... @skip(if: $skip) {
+        inlineFragmentFieldPossiblySkipped: int
+    }
+    # Inline fragment with no type condition (included)
+    ... @include(if: true) {
+      inlineFragmentFieldIncluded: int
+    }
+    # Inline fragment with no type condition (not included)
+    ... @include(if: false) {
+      inlineFragmentFieldNotIncluded: int
+    }
+    # Inline fragment with no type condition (possibly included)
+    ... @include(if: $include) {
+      inlineFragmentFieldPossiblyIncluded: int
+    }
+  }
+  withInterfaceType {
+    # Type name
+    typeName: __typename
+    typeNameSkipped: __typename @skip(if: true)
+    typeNameNotSkipped: __typename @skip(if: false)
+    typeNamePossiblySkipped: __typename @skip(if: $skip)
+    typeNameIncluded: __typename @include(if: true)
+    typeNameNotIncluded: __typename @include(if: false)
+    typeNamePossiblyIncluded: __typename @include(if: $include)
+    # Inline fragment with equal type condition
+    ... on Pet {
+      inlineFragmentEqualTypeFieldNeverOmitted: name
+    }
+    # Inline fragment with equal type condition (skipped)
+    ... on Pet @skip(if: true) {
+      inlineFragmentEqualTypeFieldSkipped: name
+    }
+    # Inline fragment with equal type condition (not skipped)
+    ... on Pet @skip(if: false) {
+      inlineFragmentEqualTypeFieldNotSkipped: name
+    }
+    # Inline fragment with equal type condition (possibly skipped)
+    ... on Pet @skip(if: $skip) {
+      inlineFragmentEqualTypeFieldPossiblySkipped: name
+    }
+    # Inline fragment with equal type condition (included)
+    ... on Pet @include(if: true) {
+      inlineFragmentEqualTypeFieldIncluded: name
+    }
+    # Inline fragment with equal type condition (not included)
+    ... on Pet @include(if: false) {
+      inlineFragmentEqualTypeFieldNotIncluded: name
+    }
+    # Inline fragment with equal type condition (possibly included)
+    ... on Pet @include(if: $include) {
+      inlineFragmentEqualTypeFieldPossiblyIncluded: name
+    }
+    # Inline fragment with narrowing type condition
+    ... on Cat {
+      inlineFragmentNarrowedTypeFieldPossiblyOmitted: isPurring
+    }
+    # Inline fragment with narrowing type condition (skipped)
+    ... on Cat @skip(if: true) {
+      inlineFragmentNarrowedTypeFieldSkipped: isPurring
+    }
+    # Inline fragment with narrowing type condition (not skipped)
+    ... on Cat @skip(if: false) {
+      inlineFragmentNarrowedTypeFieldNotSkipped: isPurring
+    }
+    # Inline fragment with narrowing type condition (possibly skipped)
+    ... on Cat @skip(if: $skip) {
+      inlineFragmentNarrowedTypeFieldPossiblySkipped: isPurring
+    }
+    # Inline fragment with narrowing type condition (included)
+    ... on Cat @include(if: true) {
+      inlineFragmentNarrowedTypeFieldIncluded: isPurring
+    }
+    # Inline fragment with narrowing type condition (not included)
+    ... on Cat @include(if: false) {
+      inlineFragmentNarrowedTypeFieldNotIncluded: isPurring
+    }
+    # Inline fragment with narrowing type condition (possibly included)
+    ... on Cat @include(if: $include) {
+      inlineFragmentNarrowedTypeFieldPossiblyIncluded: isPurring
+    }
+  }
+}
+
+fragment fragmentSkipped on ResultDefaulted {
+  fragmentFieldSkipped: int
+}
+
+fragment fragmentNotSkipped on ResultDefaulted {
+  fragmentFieldNotSkipped: int
+}
+
+fragment fragmentPossiblySkipped on ResultDefaulted {
+  fragmentFieldPossiblySkipped: int
+}
+
+fragment fragmentIncluded on ResultDefaulted {
+  fragmentFieldIncluded: int
+}
+
+fragment fragmentNotIncluded on ResultDefaulted {
+  fragmentFieldNotIncluded: int
+}
+
+fragment fragmentPossiblyIncluded on ResultDefaulted {
+  fragmentFieldPossiblyIncluded: int
+}

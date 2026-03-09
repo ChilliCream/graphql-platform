@@ -69,10 +69,7 @@ public class AssignmentBuilder : ICode
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (_leftHandSide is null || _rightHandSide is null)
         {

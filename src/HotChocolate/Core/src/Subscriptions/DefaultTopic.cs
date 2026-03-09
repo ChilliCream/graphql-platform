@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
@@ -37,7 +38,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode,
+            FullMode = fullMode.ToBoundedChannelFullMode()
         };
         _incoming = CreateUnbounded<TMessage>();
         _diagnosticEvents = diagnosticEvents;
@@ -53,7 +54,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode,
+            FullMode = fullMode.ToBoundedChannelFullMode()
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
@@ -107,7 +108,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     }
 
     /// <summary>
-    /// Allows to subscribe to this topic. If the topic is already completed, this method will
+    /// Allows subscribing to this topic. If the topic is already completed, this method will
     /// return null.
     /// </summary>
     /// <returns>
@@ -192,12 +193,10 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private void BeginProcessing(IDisposable session)
-        => Task.Factory.StartNew(
-            async s => await ProcessMessagesSessionAsync((IDisposable)s!).ConfigureAwait(false),
-            session);
+    private void BeginProcessing(IAsyncDisposable session)
+        => _ = ProcessMessagesSessionAsync(session);
 
-    private async Task ProcessMessagesSessionAsync(IDisposable session)
+    private async Task ProcessMessagesSessionAsync(IAsyncDisposable session)
     {
         try
         {
@@ -209,7 +208,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
         finally
         {
-            session.Dispose();
+            await session.DisposeAsync().ConfigureAwait(false);
+
             DiagnosticEvents.Disconnected(Name);
         }
     }
@@ -259,7 +259,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
 
                 if (!allWritesSuccessful || iterations++ >= 8)
                 {
-                    // we will take a pause if we have dispatched 8 messages or if we could not dispatch all messages.
+                    // We will take a pause if we have dispatched 8 messages
+                    // or if we could not dispatch all messages.
                     // This will give time for subscribers to unsubscribe and
                     // others to hop on.
                     break;
@@ -330,6 +331,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// <param name="serializedMessage">
     /// The serialized message.
     /// </param>
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     protected void DispatchMessage(IMessageSerializer serializer, string? serializedMessage)
     {
         // we ensure that if there is noise on the channel we filter it out.
@@ -345,19 +348,21 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             Complete();
         }
-        else if(envelope.Body is { } body)
+        else if (envelope.Body is { } body)
         {
             Publish(body);
         }
     }
 
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     private MessageEnvelope<TMessage> DeserializeMessage(IMessageSerializer serializer, string serializedMessage)
     {
         try
         {
             return serializer.Deserialize<TMessage>(serializedMessage);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _diagnosticEvents.MessageProcessingError(Name, ex);
             throw;
@@ -373,7 +378,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// <returns>
     /// Returns a session to dispose the subscription session.
     /// </returns>
-    protected virtual ValueTask<IDisposable> OnConnectAsync(
+    protected virtual ValueTask<IAsyncDisposable> OnConnectAsync(
         CancellationToken cancellationToken)
         => new(DefaultSession.Instance);
 
@@ -408,10 +413,10 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private sealed class DefaultSession : IDisposable
+    private sealed class DefaultSession : IAsyncDisposable
     {
         private DefaultSession() { }
-        public void Dispose() { }
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
         public static readonly DefaultSession Instance = new();
     }

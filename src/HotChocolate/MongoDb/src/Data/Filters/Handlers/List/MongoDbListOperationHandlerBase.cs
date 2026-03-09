@@ -9,7 +9,7 @@ namespace HotChocolate.Data.MongoDb.Filters;
 /// <summary>
 /// The base of a mongodb operation handler specific for
 /// <see cref="IListFilterInputType"/>
-/// If the <see cref="FilterTypeInterceptor"/> encounters a operation field that implements
+/// If the <see cref="FilterTypeInterceptor"/> encounters an operation field that implements
 /// <see cref="IListFilterInputType"/> and matches the operation identifier
 /// defined in <see cref="MongoDbComparableOperationHandler.Operation"/> the handler is bound to
 /// the field
@@ -25,12 +25,12 @@ public abstract class MongoDbListOperationHandlerBase
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IListFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
-            operationField.Id == Operation;
+        return context.Type is IListFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 
     /// <inheritdoc />
@@ -49,8 +49,8 @@ public abstract class MongoDbListOperationHandlerBase
             return true;
         }
 
-        if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0, } args)
+        if (context.RuntimeTypes.Count > 0
+            && context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
         {
             var element = args[0];
             context.RuntimeTypes.Push(element);
@@ -90,7 +90,7 @@ public abstract class MongoDbListOperationHandlerBase
     }
 
     /// <summary>
-    /// Maps a operation field to a mongodb list filter definition.
+    /// Maps an operation field to a mongodb list filter definition.
     /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a
     /// field
     /// </summary>

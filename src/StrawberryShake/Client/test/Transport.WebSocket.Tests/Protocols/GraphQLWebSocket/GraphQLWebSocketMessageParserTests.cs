@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text;
-using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -64,7 +63,7 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_TypeIsNull_ThrowException()
     {
         // arrange
-        var message = GetBytes($@"{{""type"": null, ""Foo"":1}}");
+        var message = GetBytes(@"{""type"": null, ""Foo"":1}");
 
         // act
         var ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));

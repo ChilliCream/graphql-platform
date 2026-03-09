@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Utilities;
 
@@ -61,7 +60,7 @@ public class ServiceCollectionTests
                 .AddFileSystemOperationDocumentStorage(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>((Action) Action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]

@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Types;
 
 public class ExtendObjectTypeAttributeTests
@@ -12,7 +10,7 @@ public class ExtendObjectTypeAttributeTests
             .AddType<NonGenericExtendFoo>()
             .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -24,15 +22,15 @@ public class ExtendObjectTypeAttributeTests
             .AddType<GenericExtendFoo>()
             .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
     public class Foo
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string IgnoreMe { get; set; }
+        public required string Name { get; set; }
+        public required string IgnoreMe { get; set; }
     }
 
     public class FooType : ObjectType<Foo>

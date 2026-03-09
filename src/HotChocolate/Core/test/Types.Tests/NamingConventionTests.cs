@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -18,7 +17,7 @@ public class NamingConventionTests
             .AddMutationType<MutationNamingConvention>()
             .AddConvention<INamingConventions, CustomNamingConvention>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -79,23 +78,23 @@ public class NamingConventionTests
     {
         public ObjectNamingConvention QueryField(
             int queryArgument,
-            InputObjectNamingConvention complexArgument) => default!;
+            InputObjectNamingConvention complexArgument) => null!;
     }
 
     public class InputObjectNamingConvention
     {
-        public string InputField { get; set; }
+        public required string InputField { get; set; }
     }
 
     public class ObjectNamingConvention
     {
-        public string OutputField { get; set; }
+        public required string OutputField { get; set; }
     }
 
     public class MutationNamingConvention
     {
         public ObjectNamingConvention MutationField(
             int mutationArgument,
-            InputObjectNamingConvention complexArgumentMutation) => default!;
+            InputObjectNamingConvention complexArgumentMutation) => null!;
     }
 }

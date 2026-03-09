@@ -1,3 +1,8 @@
 namespace HotChocolate.Types;
 
-public sealed record Book(int Id, string Title, int AuthorId, Genre Genre) : IEntity;
+public sealed record Book(
+    int Id,
+    string Title,
+    int AuthorId,
+    Genre Genre)
+    : IEntity;

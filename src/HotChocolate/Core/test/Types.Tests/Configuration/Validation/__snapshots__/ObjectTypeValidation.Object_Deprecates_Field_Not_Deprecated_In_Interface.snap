@@ -1,0 +1,10 @@
+{
+  "message": "Interface field Node.id is not deprecated, so implementation field Foo.id must not be deprecated.",
+  "type": "Foo",
+  "extensions": {
+    "field": "id",
+    "implementedField": "id",
+    "specifiedBy": "https://spec.graphql.org/draft/#sec-Objects.Type-Validation"
+  }
+}
+

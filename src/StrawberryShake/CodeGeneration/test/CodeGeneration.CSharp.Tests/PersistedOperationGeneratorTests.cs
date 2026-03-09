@@ -10,7 +10,7 @@ public class PersistedOperationGeneratorTests
         AssertResult(
             new AssertSettings
             {
-                RequestStrategy = RequestStrategyGen.PersistedOperation,
+                RequestStrategy = RequestStrategyGen.PersistedOperation
             },
             "query GetPerson { person { name email } }",
             "type Query { person: Person }",

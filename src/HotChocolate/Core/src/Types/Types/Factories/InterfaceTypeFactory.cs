@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Factories;
 
@@ -10,14 +10,14 @@ internal sealed class InterfaceTypeFactory
 {
     public InterfaceType Create(IDescriptorContext context, InterfaceTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new InterfaceTypeDefinition(
+        var typeDefinition = new InterfaceTypeConfiguration(
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         foreach (var typeNode in node.Interfaces)
@@ -34,12 +34,12 @@ internal sealed class InterfaceTypeFactory
 
     public InterfaceTypeExtension Create(IDescriptorContext context, InterfaceTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new InterfaceTypeDefinition(node.Name.Value)
+        var typeDefinition = new InterfaceTypeConfiguration(node.Name.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         foreach (var typeNode in node.Interfaces)
@@ -56,25 +56,25 @@ internal sealed class InterfaceTypeFactory
 
     private static void DeclareFields(
         IDescriptorContext context,
-        InterfaceTypeDefinition parent,
+        InterfaceTypeConfiguration parent,
         IReadOnlyCollection<FieldDefinitionNode> fields,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var field in fields)
         {
-            var fieldDefinition = new InterfaceFieldDefinition(
+            var fieldDefinition = new InterfaceFieldConfiguration(
                 field.Name.Value,
                 field.Description?.Value,
                 TypeReference.Create(field.Type))
             {
-                BindTo = field.GetBindingValue(),
+                BindTo = field.GetBindingValue()
             };
 
             SdlToTypeSystemHelper.AddDirectives(context, fieldDefinition, field, path);
 
-            if (field.DeprecationReason() is { Length: > 0, } reason)
+            if (field.DeprecationReason() is { Length: > 0 } reason)
             {
                 fieldDefinition.DeprecationReason = reason;
             }
@@ -89,24 +89,24 @@ internal sealed class InterfaceTypeFactory
 
     private static void DeclareFieldArguments(
         IDescriptorContext context,
-        InterfaceFieldDefinition parent,
+        InterfaceFieldConfiguration parent,
         FieldDefinitionNode field,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var argument in field.Arguments)
         {
-            var argumentDefinition = new ArgumentDefinition(
+            var argumentDefinition = new ArgumentConfiguration(
                 argument.Name.Value,
                 argument.Description?.Value,
                 TypeReference.Create(argument.Type),
                 argument.DefaultValue)
             {
-                BindTo = argument.GetBindingValue(),
+                BindTo = argument.GetBindingValue()
             };
 
-            if (argument.DeprecationReason() is { Length: > 0, } reason)
+            if (argument.DeprecationReason() is { Length: > 0 } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }

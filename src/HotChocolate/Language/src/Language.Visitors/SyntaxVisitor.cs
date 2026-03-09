@@ -52,29 +52,41 @@ public class SyntaxVisitor : SyntaxVisitor<object?>
     {
         defaultAction ??= Skip;
 
-        VisitSyntaxNode<TContext> enterFunc = enter is not null
-            ? (node, context) =>
+        VisitSyntaxNode<TContext> enterFunc;
+        if (enter is not null)
+        {
+            enterFunc = (node, context) =>
             {
                 context.Navigator.Push(node);
                 return enter(node, context);
-            }
-            : (node, context) =>
+            };
+        }
+        else
+        {
+            enterFunc = (node, context) =>
             {
                 context.Navigator.Push(node);
                 return defaultAction;
             };
+        }
 
-        VisitSyntaxNode<TContext> leaveFunc = leave is not null
-            ? (node, context) =>
+        VisitSyntaxNode<TContext> leaveFunc;
+        if (leave is not null)
+        {
+            leaveFunc = (node, context) =>
             {
                 context.Navigator.Pop();
                 return leave(node, context);
-            }
-            : (_, context) =>
+            };
+        }
+        else
+        {
+            leaveFunc = (_, context) =>
             {
                 context.Navigator.Pop();
                 return defaultAction;
             };
+        }
 
         return new DelegateSyntaxVisitor<TContext>(enterFunc, leaveFunc, defaultAction, options);
     }

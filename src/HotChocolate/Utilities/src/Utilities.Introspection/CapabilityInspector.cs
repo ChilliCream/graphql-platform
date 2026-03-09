@@ -69,31 +69,32 @@ internal sealed class CapabilityInspector
         using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
 
-        if (result.Data.ValueKind is JsonValueKind.Object &&
-            result.Data.TryGetProperty("__type", out var type) &&
-            type.TryGetProperty("fields", out var fields))
+        if (result.Data.ValueKind is JsonValueKind.Object
+            && result.Data.TryGetProperty("__type", out var type)
+            && type.ValueKind is JsonValueKind.Object
+            && type.TryGetProperty("fields", out var fields))
         {
             foreach (var field in fields.EnumerateArray())
             {
-                if (!field.TryGetProperty("name", out var fieldName) ||
-                    fieldName.ValueKind is not JsonValueKind.String)
+                if (!field.TryGetProperty("name", out var fieldName)
+                    || fieldName.ValueKind is not JsonValueKind.String)
                 {
                     return;
                 }
 
                 if (fieldName.GetString().EqualsOrdinal("args"))
                 {
-                    if (!field.TryGetProperty("args", out var args) ||
-                        args.ValueKind is not JsonValueKind.Array)
+                    if (!field.TryGetProperty("args", out var args)
+                        || args.ValueKind is not JsonValueKind.Array)
                     {
                         return;
                     }
 
                     foreach (var arg in args.EnumerateArray())
                     {
-                        if (arg.TryGetProperty("name", out var argName) &&
-                            argName.ValueKind is JsonValueKind.String &&
-                            argName.GetString().EqualsOrdinal("includeDeprecated"))
+                        if (arg.TryGetProperty("name", out var argName)
+                            && argName.ValueKind is JsonValueKind.String
+                            && argName.GetString().EqualsOrdinal("includeDeprecated"))
                         {
                             _features.HasArgumentDeprecation = true;
                         }
@@ -129,17 +130,26 @@ internal sealed class CapabilityInspector
         using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
 
-        if (result.Data.ValueKind is JsonValueKind.Object &&
-            result.Data.TryGetProperty("__type", out var type) &&
-            type.TryGetProperty("fields", out var fields))
+        if (result.Data.ValueKind is not JsonValueKind.Object
+            || !result.Data.TryGetProperty("__type", out var type)
+            || type.ValueKind is not JsonValueKind.Object
+            || !type.TryGetProperty("fields", out var fields))
+        {
+            // if we cannot detect features because __type does return null,
+            // we will assume `locations` exists but assume all other
+            // directive related features do not exist.
+            _features.HasDirectiveLocations = true;
+            _features.HasRepeatableDirectives = false;
+        }
+        else
         {
             var locations = false;
             var isRepeatable = false;
 
             foreach (var field in fields.EnumerateArray())
             {
-                if (!field.TryGetProperty("name", out var fieldName) ||
-                    fieldName.ValueKind is not JsonValueKind.String)
+                if (!field.TryGetProperty("name", out var fieldName)
+                    || fieldName.ValueKind is not JsonValueKind.String)
                 {
                     return;
                 }
@@ -201,17 +211,18 @@ internal sealed class CapabilityInspector
         using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
 
-        if (result.Data.ValueKind is JsonValueKind.Object &&
-            result.Data.TryGetProperty("__schema", out var schema) &&
-            schema.TryGetProperty("directives", out var directives))
+        if (result.Data.ValueKind is JsonValueKind.Object
+            && result.Data.TryGetProperty("__schema", out var schema)
+            && schema.ValueKind is JsonValueKind.Object
+            && schema.TryGetProperty("directives", out var directives))
         {
             var defer = false;
             var stream = false;
 
             foreach (var directive in directives.EnumerateArray())
             {
-                if (!directive.TryGetProperty("name", out var directiveName) ||
-                    directiveName.ValueKind is not JsonValueKind.String)
+                if (!directive.TryGetProperty("name", out var directiveName)
+                    || directiveName.ValueKind is not JsonValueKind.String)
                 {
                     return;
                 }
@@ -276,17 +287,18 @@ internal sealed class CapabilityInspector
         using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
 
-        if (result.Data.ValueKind is JsonValueKind.Object &&
-            result.Data.TryGetProperty("__type", out var type) &&
-            type.TryGetProperty("fields", out var fields))
+        if (result.Data.ValueKind is JsonValueKind.Object
+            && result.Data.TryGetProperty("__type", out var type)
+            && type.ValueKind is JsonValueKind.Object
+            && type.TryGetProperty("fields", out var fields))
         {
             var description = false;
             var subscriptionType = false;
 
             foreach (var field in fields.EnumerateArray())
             {
-                if (!field.TryGetProperty("name", out var fieldName) ||
-                    fieldName.ValueKind is not JsonValueKind.String)
+                if (!field.TryGetProperty("name", out var fieldName)
+                    || fieldName.ValueKind is not JsonValueKind.String)
                 {
                     return;
                 }

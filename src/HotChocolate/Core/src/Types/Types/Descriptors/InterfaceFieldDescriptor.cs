@@ -1,19 +1,18 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;
 
 public class InterfaceFieldDescriptor
-    : OutputFieldDescriptorBase<InterfaceFieldDefinition>
+    : OutputFieldDescriptorBase<InterfaceFieldConfiguration>
     , IInterfaceFieldDescriptor
 {
     private ParameterInfo[] _parameterInfos = [];
@@ -24,15 +23,15 @@ public class InterfaceFieldDescriptor
         string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName;
+        Configuration.Name = fieldName;
     }
 
     protected internal InterfaceFieldDescriptor(
         IDescriptorContext context,
-        InterfaceFieldDefinition definition)
+        InterfaceFieldConfiguration definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
     protected internal InterfaceFieldDescriptor(
@@ -42,10 +41,10 @@ public class InterfaceFieldDescriptor
     {
         var naming = context.Naming;
 
-        Definition.Member = member ?? throw new ArgumentNullException(nameof(member));
-        Definition.Name = naming.GetMemberName(member, MemberKind.InterfaceField);
-        Definition.Description = naming.GetMemberDescription(member, MemberKind.InterfaceField);
-        Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+        Configuration.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Configuration.Name = naming.GetMemberName(member, MemberKind.InterfaceField);
+        Configuration.Description = naming.GetMemberDescription(member, MemberKind.InterfaceField);
+        Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
         if (naming.IsDeprecated(member, out var reason))
         {
@@ -54,43 +53,56 @@ public class InterfaceFieldDescriptor
 
         if (member is MethodInfo m)
         {
-            _parameterInfos = m.GetParameters();
+            _parameterInfos = context.TypeInspector.GetParameters(m);
             Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+
+            if (m.IsDefined(typeof(BatchResolverAttribute)))
+            {
+                Configuration.Flags |= CoreFieldFlags.BatchResolver;
+            }
         }
     }
 
-    protected internal override InterfaceFieldDefinition Definition { get; protected set; } = new();
+    protected internal override InterfaceFieldConfiguration Configuration { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(InterfaceFieldDefinition definition)
+    protected override void OnCreateConfiguration(InterfaceFieldConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Member: not null, })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
-            Definition.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.Member);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         CompleteArguments(definition);
 
         Context.Descriptors.Pop();
     }
 
-    private void CompleteArguments(InterfaceFieldDefinition definition)
+    private void CompleteArguments(InterfaceFieldConfiguration definition)
     {
         if (!_argumentsInitialized && Parameters.Any())
         {
             FieldDescriptorUtilities.DiscoverArguments(
                 Context,
                 definition.Arguments,
-                definition.Member,
+                definition.ResolverMember ?? definition.Member,
                 _parameterInfos,
-                definition.GetParameterExpressionBuilders());
+                definition.GetParameterExpressionBuilders(),
+                IsBatchResolver());
             _argumentsInitialized = true;
         }
     }
+
+    private bool IsBatchResolver()
+        => (Configuration.Flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver;
 
     public new IInterfaceFieldDescriptor Name(string name)
     {
@@ -144,7 +156,7 @@ public class InterfaceFieldDescriptor
 
     public IInterfaceFieldDescriptor StreamResult(bool hasStreamResult = true)
     {
-        Definition.HasStreamResult = hasStreamResult;
+        Configuration.HasStreamResult = hasStreamResult;
         return this;
     }
 
@@ -164,12 +176,9 @@ public class InterfaceFieldDescriptor
 
     public IInterfaceFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
-        Definition.Resolver = fieldResolver;
+        Configuration.Resolver = fieldResolver;
         return this;
     }
 
@@ -177,16 +186,13 @@ public class InterfaceFieldDescriptor
         FieldResolverDelegate fieldResolver,
         Type? resultType)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
-        Definition.Resolver = fieldResolver;
+        Configuration.Resolver = fieldResolver;
 
         if (resultType is not null)
         {
-            Definition.SetMoreSpecificType(
+            Configuration.SetMoreSpecificType(
                 Context.TypeInspector.GetType(resultType),
                 TypeContext.Output);
 
@@ -194,13 +200,13 @@ public class InterfaceFieldDescriptor
             {
                 var resultTypeDef = resultType.GetGenericTypeDefinition();
 
-                var clrResultType = resultTypeDef == typeof(NativeType<>)
+                var clrResultType = resultTypeDef == typeof(NamedRuntimeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
 
                 if (!clrResultType.IsSchemaType())
                 {
-                    Definition.ResultType = clrResultType;
+                    Configuration.ResultType = clrResultType;
                 }
             }
         }
@@ -211,20 +217,14 @@ public class InterfaceFieldDescriptor
     public IInterfaceFieldDescriptor ResolveWith<TResolver>(
         Expression<Func<TResolver, object>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
     }
 
     public IInterfaceFieldDescriptor ResolveWith(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
     }
@@ -244,18 +244,18 @@ public class InterfaceFieldDescriptor
 
         if (propertyOrMethod is PropertyInfo or MethodInfo)
         {
-            Definition.SetMoreSpecificType(
+            Configuration.SetMoreSpecificType(
                 Context.TypeInspector.GetReturnType(propertyOrMethod),
                 TypeContext.Output);
 
-            Definition.ResolverType = resolverType;
-            Definition.ResolverMember = propertyOrMethod;
-            Definition.Resolver = null;
-            Definition.ResultType = propertyOrMethod.GetReturnType();
+            Configuration.ResolverType = resolverType;
+            Configuration.ResolverMember = propertyOrMethod;
+            Configuration.Resolver = null;
+            Configuration.ResultType = propertyOrMethod.GetReturnType();
 
             if (propertyOrMethod is MethodInfo m)
             {
-                _parameterInfos = m.GetParameters();
+                _parameterInfos = Context.TypeInspector.GetParameters(m);
                 Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
             }
 
@@ -267,14 +267,64 @@ public class InterfaceFieldDescriptor
             nameof(propertyOrMethod));
     }
 
-    public IInterfaceFieldDescriptor Use(FieldMiddleware middleware)
+    public IInterfaceFieldDescriptor ResolveBatchWith<TResolver>(
+        Expression<Func<TResolver, object?>> propertyOrMethod)
     {
-        if (middleware is null)
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        return ResolveBatchWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
+    }
+
+    public IInterfaceFieldDescriptor ResolveBatchWith(MemberInfo propertyOrMethod)
+    {
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        return ResolveBatchWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IInterfaceFieldDescriptor ResolveBatchWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
+    {
+        if (resolverType?.IsAbstract is true)
         {
-            throw new ArgumentNullException(nameof(middleware));
+            throw new ArgumentException(
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
         }
 
-        Definition.MiddlewareDefinitions.Add(new(middleware));
+        if (propertyOrMethod is not MethodInfo method)
+        {
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        var elementType = BatchResolverCompiler.GetListElementType(method.ReturnType)
+            ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
+
+        Configuration.Flags |= CoreFieldFlags.BatchResolver;
+        Configuration.SetMoreSpecificType(
+            Context.TypeInspector.GetType(elementType),
+            TypeContext.Output);
+        Configuration.ResolverType = resolverType;
+        Configuration.ResolverMember = propertyOrMethod;
+        Configuration.Resolver = null;
+        Configuration.ResultType = elementType;
+
+        _parameterInfos = Context.TypeInspector.GetParameters(method);
+        Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+
+        return this;
+    }
+
+    public IInterfaceFieldDescriptor Use(FieldMiddleware middleware)
+    {
+        ArgumentNullException.ThrowIfNull(middleware);
+
+        Configuration.MiddlewareDefinitions.Add(new(middleware));
         return this;
     }
 
@@ -312,6 +362,6 @@ public class InterfaceFieldDescriptor
 
     public static InterfaceFieldDescriptor From(
         IDescriptorContext context,
-        InterfaceFieldDefinition definition)
+        InterfaceFieldConfiguration definition)
         => new(context, definition);
 }

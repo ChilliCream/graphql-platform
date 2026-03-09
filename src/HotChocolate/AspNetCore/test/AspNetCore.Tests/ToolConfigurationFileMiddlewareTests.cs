@@ -1,10 +1,11 @@
 using System.Net;
 using System.Net.Http.Headers;
-using CookieCrumble;
+using ChilliCream.Nitro.App;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore;
 
@@ -22,7 +23,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result = await GetBcpConfigAsync(server);
+        var result = await GetNitroConfigAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -32,11 +33,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
-        var server = CreateServer(builder => builder.MapBananaCakePop().WithOptions(options));
+        var server = CreateServer(builder => builder.MapNitroApp()
+            .WithOptions(o => o.ServeMode = ServeMode.Embedded));
 
         // act
-        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+        var result = await GetNitroConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -46,15 +47,15 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
         var server = CreateServer(builder =>
         {
             builder.MapGraphQLHttp();
-            builder.MapBananaCakePop().WithOptions(options);
+            builder.MapNitroApp()
+                .WithOptions(o => o.ServeMode = ServeMode.Embedded);
         });
 
         // act
-        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+        var result = await GetNitroConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -64,11 +65,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
-        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar").WithOptions(options));
+        var server = CreateServer(b => b.MapNitroApp("/foo/bar")
+            .WithOptions(o => o.ServeMode = ServeMode.Embedded));
 
         // act
-        var result = await GetBcpConfigAsync(server, "/foo/bar");
+        var result = await GetNitroConfigAsync(server, "/foo/bar");
 
         // assert
         result.MatchSnapshot();
@@ -82,11 +83,15 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_When_Disabled(string version)
     {
         // arrange
-        var options = new GraphQLServerOptions
-        {
-            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false, },
-        };
-        var server = CreateStarWarsServer(configureConventions: e => e.WithOptions(options));
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o => o.Tool.Enable = false),
+            configureConventions: e => e.WithOptions(o =>
+                {
+                    o.ServeMode = ServeMode.Version(version);
+                    o.Enable = false;
+                }));
 
         // act
         var result = await GetAsync(server, "/graphql/index.html");
@@ -99,57 +104,50 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_With_Options()
     {
         // arrange
-        var options = new GraphQLServerOptions
-        {
-            Tool =
+        var server = CreateStarWarsServer("/graphql",
+            configureConventions: builder => builder.WithOptions(o =>
             {
-                ServeMode = GraphQLToolServeMode.Embedded,
-                Document = "# foo",
-                IncludeCookies = true,
-                HttpHeaders =
-                    new HeaderDictionary { { "Content-Type", "application/json" }, },
-                HttpMethod = DefaultHttpMethod.Get,
-                Enable = true,
-                Title = "Hello",
-                GaTrackingId = "GA-FOO",
-                GraphQLEndpoint = "/foo/bar",
-                UseBrowserUrlAsGraphQLEndpoint = true,
-                DisableTelemetry = true,
-            },
-        };
-
-        var server = CreateStarWarsServer("/graphql", configureConventions: builder => builder.WithOptions(options));
+                o.ServeMode = ServeMode.Embedded;
+                o.Document = "# foo";
+                o.IncludeCookies = true;
+                o.HttpHeaders =
+                    new HeaderDictionary { { "Content-Type", "application/json" } };
+                o.UseGet = true;
+                o.Enable = true;
+                o.Title = "Hello";
+                o.GaTrackingId = "GA-FOO";
+                o.GraphQLEndpoint = "/foo/bar";
+                o.UseBrowserUrlAsGraphQLEndpoint = true;
+                o.DisableTelemetry = true;
+            }));
 
         // act
-        var result = await GetBcpConfigAsync(server);
+        var result = await GetNitroConfigAsync(server);
 
         // assert
         result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Fetch_MapBananaCakePop_Tool_Config()
+    public async Task Fetch_MapNitroApp_Tool_Config()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
-        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
+        var server = CreateServer(endpoint => endpoint.MapNitroApp()
+            .WithOptions(o => o.ServeMode = ServeMode.Embedded));
 
         // act
-        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+        var result = await GetNitroConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Fetch_MapBananaCakePop_Tool_FromCdn()
+    public async Task Fetch_MapNitroApp_Tool_FromCdn()
     {
         // arrange
-        var options = new GraphQLToolOptions
-        {
-            ServeMode = GraphQLToolServeMode.Version("5.0.8"),
-        };
-        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
+        var server = CreateServer(endpoint => endpoint.MapNitroApp()
+            .WithOptions(o => o.ServeMode = ServeMode.Version("5.0.8")));
 
         // act
         var result = await GetAsync(server, "/graphql/ui/index.html");
@@ -158,9 +156,9 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         Assert.Contains("static/js/main.98391269.js", result.Content);
     }
 
-    private Task<Result> GetBcpConfigAsync(TestServer server, string url = "/graphql")
+    private Task<Result> GetNitroConfigAsync(TestServer server, string url = "/graphql")
     {
-        return GetAsync(server, $"{url}/bcp-config.json");
+        return GetAsync(server, $"{url}/nitro-config.json");
     }
 
     private async Task<Result> GetAsync(TestServer server, string url = "/graphql")
@@ -173,15 +171,15 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         {
             Content = content,
             ContentType = response.Content.Headers.ContentType!,
-            StatusCode = response.StatusCode,
+            StatusCode = response.StatusCode
         };
     }
 
     private sealed class Result
     {
-        public string Content { get; set; } = default!;
+        public string Content { get; set; } = null!;
 
-        public MediaTypeHeaderValue ContentType { get; set; } = default!;
+        public MediaTypeHeaderValue ContentType { get; set; } = null!;
 
         public HttpStatusCode StatusCode { get; set; }
     }

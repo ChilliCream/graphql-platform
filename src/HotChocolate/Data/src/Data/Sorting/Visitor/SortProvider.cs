@@ -1,20 +1,18 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
-using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// A <see cref="SortProvider{TContext}"/> translates a incoming query to another
+/// A <see cref="SortProvider{TContext}"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class SortProvider<TContext>
-    : Convention<SortProviderDefinition>
+    : Convention<SortProviderConfiguration>
     , ISortProvider
     , ISortProviderConvention
     where TContext : ISortVisitorContext
@@ -23,18 +21,19 @@ public abstract class SortProvider<TContext>
     private readonly List<ISortOperationHandler<TContext>> _operationHandlers = [];
 
     private Action<ISortProviderDescriptor<TContext>>? _configure;
+    private ISortConvention? _sortConvention;
 
     protected SortProvider()
     {
         _configure = Configure;
     }
 
-    public SortProvider(Action<ISortProviderDescriptor<TContext>> configure)
+    protected SortProvider(Action<ISortProviderDescriptor<TContext>> configure)
     {
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortProviderDefinition? Definition => base.Definition;
+    internal new SortProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
@@ -48,7 +47,7 @@ public abstract class SortProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override SortProviderDefinition CreateDefinition(IConventionContext context)
+    protected override SortProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -60,11 +59,12 @@ public abstract class SortProvider<TContext>
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
-    void ISortProviderConvention.Initialize(IConventionContext context)
+    void ISortProviderConvention.Initialize(IConventionContext context, ISortConvention convention)
     {
+        _sortConvention = convention;
         base.Initialize(context);
     }
 
@@ -76,60 +76,57 @@ public abstract class SortProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition!.Handlers.Count == 0)
+        if (Configuration!.FieldHandlerConfigurations.Count == 0)
         {
             throw SortProvider_NoFieldHandlersConfigured(this);
         }
 
-        if (Definition.OperationHandlers.Count == 0)
+        if (Configuration.OperationHandlerConfigurations.Count == 0)
         {
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
 
-        var services = new CombinedServiceProvider(
-            new DictionaryServiceProvider(
-                (typeof(ISortProvider), this),
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-            context.Services);
-
-        foreach ((Type Type, ISortFieldHandler? Instance) handler in Definition.Handlers)
+        if (_sortConvention is null)
         {
-            if (handler.Instance is ISortFieldHandler<TContext> field)
-            {
-                _fieldHandlers.Add(field);
-                continue;
-            }
+            throw SortConvention_ProviderHasToBeInitializedByConvention(
+                GetType(),
+                context.Scope);
+        }
 
+        var providerContext = new SortProviderContext(
+            context.Services,
+            this,
+            context,
+            context.DescriptorContext,
+            _sortConvention,
+            context.DescriptorContext.TypeInspector,
+            context.DescriptorContext.InputParser);
+
+        foreach (var handlerConfiguration in Configuration.FieldHandlerConfigurations)
+        {
             try
             {
-                field = (ISortFieldHandler<TContext>)GetServiceOrCreateInstance(services, handler.Type);
-                _fieldHandlers.Add(field);
+                var handler = handlerConfiguration.Create<TContext>(providerContext);
+
+                _fieldHandlers.Add(handler);
             }
-            catch
+            catch (Exception exception)
             {
-                throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
+                throw SortProvider_UnableToCreateFieldHandler(this, exception);
             }
         }
 
-        foreach ((Type Type, ISortOperationHandler? Instance) handler
-            in Definition.OperationHandlers)
+        foreach (var operationHandlerConfiguration in Configuration.OperationHandlerConfigurations)
         {
-            if (handler.Instance is ISortOperationHandler<TContext> op)
-            {
-                _operationHandlers.Add(op);
-                continue;
-            }
-
             try
             {
-                op = (ISortOperationHandler<TContext>)GetServiceOrCreateInstance(services, handler.Type);
-                _operationHandlers.Add(op);
+                var handler = operationHandlerConfiguration.Create<TContext>(providerContext);
+
+                _operationHandlers.Add(handler);
             }
-            catch
+            catch (Exception exception)
             {
-                throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
+                throw SortProvider_UnableToCreateOperationHandler(this, exception);
             }
         }
     }
@@ -169,7 +166,7 @@ public abstract class SortProvider<TContext>
 
     public virtual ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition)
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration)
         => null;
 }

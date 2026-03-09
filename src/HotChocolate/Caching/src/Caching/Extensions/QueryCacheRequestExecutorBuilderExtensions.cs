@@ -27,10 +27,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder UseQueryCachePipeline(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder
             .UseInstrumentation()
@@ -42,6 +39,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
     }
@@ -55,10 +53,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddCacheControl(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddOperationCompilerOptimizer<CacheControlConstraintsOptimizer>();
 
@@ -90,21 +85,10 @@ public static class QueryCacheRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<CacheControlOptions> modifyOptions)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(modifyOptions);
 
-        if (modifyOptions is null)
-        {
-            throw new ArgumentNullException(nameof(modifyOptions));
-        }
-
-        builder.ConfigureSchemaServices(
-            services =>
-            {
-                services.Configure(modifyOptions);
-            });
+        builder.ConfigureSchemaServices(services => services.Configure(modifyOptions));
 
         return builder;
     }

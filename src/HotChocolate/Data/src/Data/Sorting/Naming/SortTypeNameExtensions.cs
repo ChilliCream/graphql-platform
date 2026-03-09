@@ -6,17 +6,10 @@ public static class SortTypeNameExtensions
 {
     public static ISortInputTypeNameDependencyDescriptor<T> Name<T>(
         this ISortInputTypeDescriptor<T> descriptor,
-        Func<INamedType, string> createName)
+        Func<ITypeDefinition, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new SortInputTypeNameDependencyDescriptor<T>(descriptor, createName);
     }

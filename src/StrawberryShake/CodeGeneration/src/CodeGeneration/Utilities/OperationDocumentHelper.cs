@@ -1,5 +1,4 @@
 using HotChocolate;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,14 +23,11 @@ internal static class OperationDocumentHelper
     /// </param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static async ValueTask<OperationDocuments> CreateOperationDocumentsAsync(
+    public static OperationDocuments CreateOperationDocuments(
         IEnumerable<DocumentNode> documents,
-        ISchema? schema = null)
+        Schema? schema = null)
     {
-        if (documents is null)
-        {
-            throw new ArgumentNullException(nameof(documents));
-        }
+        ArgumentNullException.ThrowIfNull(documents);
 
         var mergedDocument = MergeDocuments(documents);
         mergedDocument = RemovedUnusedFragmentRewriter.Rewrite(mergedDocument);
@@ -39,19 +35,11 @@ internal static class OperationDocumentHelper
         if (schema is not null)
         {
             var validator =
-                new ServiceCollection()
-                    .AddValidation()
-                    .Services
-                    .BuildServiceProvider()
-                    .GetRequiredService<IDocumentValidatorFactory>()
-                    .CreateValidator();
+                DocumentValidatorBuilder.New()
+                    .AddDefaultRules()
+                    .Build();
 
-            var result = await validator.ValidateAsync(
-                schema,
-                mergedDocument,
-                new OperationDocumentId("dummy"),
-                new Dictionary<string, object?>(),
-                false);
+            var result = validator.Validate(schema, mergedDocument);
 
             if (result.HasErrors)
             {
@@ -71,7 +59,7 @@ internal static class OperationDocumentHelper
         {
             foreach (var definition in document.Definitions)
             {
-                if (definition is OperationDefinitionNode { Name: { } name, } op)
+                if (definition is OperationDefinitionNode { Name: { } name } op)
                 {
                     name = name.WithValue(GetClassName(name.Value));
                     op = op.WithName(name);
@@ -145,7 +133,7 @@ internal static class OperationDocumentHelper
         {
             visitor.Visit(context.Operation, context);
 
-            var definitions = new List<IDefinitionNode> { context.Operation, };
+            var definitions = new List<IDefinitionNode> { context.Operation };
             definitions.AddRange(context.ExportedFragments);
             var operationDoc = new DocumentNode(definitions);
             operationDocs.Add(context.Operation.Name!.Value, operationDoc);

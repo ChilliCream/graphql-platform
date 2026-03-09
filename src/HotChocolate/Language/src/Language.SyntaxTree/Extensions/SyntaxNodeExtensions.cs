@@ -28,8 +28,8 @@ public static class SyntaxNodeExtensions
             return true;
         }
 
-        if (type.Kind is SyntaxKind.NonNullType &&
-            ((NonNullTypeNode)type).Type.Kind is SyntaxKind.ListType)
+        if (type.Kind is SyntaxKind.NonNullType
+            && ((NonNullTypeNode)type).Type.Kind is SyntaxKind.ListType)
         {
             return true;
         }
@@ -90,7 +90,7 @@ public static class SyntaxNodeExtensions
             return (NamedTypeNode)innerType;
         }
 
-        for(var i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             innerType = innerType.InnerType();
 
@@ -103,16 +103,17 @@ public static class SyntaxNodeExtensions
         throw new NotSupportedException();
     }
 
-    public static string Name(this ITypeNode type)
-        => type.NamedType().Name.Value;
-
     public static bool Equals(
         this ISyntaxNode node,
         ISyntaxNode? other,
         SyntaxComparison comparison)
-        => comparison is SyntaxComparison.Syntax
-            ? SyntaxComparer.BySyntax.Equals(node, other)
-            : SyntaxComparer.ByReference.Equals(node, other);
+        => comparison switch
+        {
+            SyntaxComparison.Reference => SyntaxComparer.ByReference.Equals(node, other),
+            SyntaxComparison.Syntax => SyntaxComparer.BySyntax.Equals(node, other),
+            SyntaxComparison.SyntaxIgnoreDescriptions => SyntaxComparer.BySyntaxIgnoreDescriptions.Equals(node, other),
+            _ => throw new ArgumentOutOfRangeException(nameof(comparison), comparison, null)
+        };
 
     public static string ToString(this ISyntaxNode node, SyntaxSerializerOptions options)
     {

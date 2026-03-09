@@ -1,4 +1,4 @@
-using CookieCrumble;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -110,6 +110,83 @@ public class IntegrationTests
             ");
 
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Projection_Should_Project_ArrayLength_Expression_Fields()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithExpressionProjection>()
+            .AddType<CardReaderType>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                cardReaders {
+                    cardReaderUidLength
+                }
+            }
+            """);
+
+        using var document = JsonDocument.Parse(result.ToJson());
+        var readers = document.RootElement
+            .GetProperty("data")
+            .GetProperty("cardReaders");
+
+        // assert
+        Assert.Equal(2, readers.GetArrayLength());
+
+        var enumerator = readers.EnumerateArray();
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal(3, enumerator.Current.GetProperty("cardReaderUidLength").GetInt32());
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal(1, enumerator.Current.GetProperty("cardReaderUidLength").GetInt32());
+        Assert.False(enumerator.MoveNext());
+    }
+
+    [Fact]
+    public async Task Projection_Should_Project_ComputedExpression_Field_Dependencies()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithComputedExpressionProjection>()
+            .AddType<ExpressionPersonType>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                people {
+                    firstName
+                    fullName
+                }
+            }
+            """);
+
+        using var document = JsonDocument.Parse(result.ToJson());
+        var people = document.RootElement
+            .GetProperty("data")
+            .GetProperty("people");
+
+        // assert
+        Assert.Equal(2, people.GetArrayLength());
+
+        var enumerator = people.EnumerateArray();
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("Jane", enumerator.Current.GetProperty("firstName").GetString());
+        Assert.Equal("Jane Doe", enumerator.Current.GetProperty("fullName").GetString());
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("John", enumerator.Current.GetProperty("firstName").GetString());
+        Assert.Equal("John Smith", enumerator.Current.GetProperty("fullName").GetString());
+        Assert.False(enumerator.MoveNext());
     }
 
     [Fact]
@@ -468,7 +545,57 @@ public class Query
 {
     [UseProjection]
     public IQueryable<Foo> Foos
-        => new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+}
+
+public class QueryWithExpressionProjection
+{
+    [UseProjection]
+    public IQueryable<CardReader> CardReaders
+        => new[]
+        {
+            new CardReader { CardReaderUid = [1, 2, 3] },
+            new CardReader { CardReaderUid = [1] }
+        }.AsQueryable();
+}
+
+public class QueryWithComputedExpressionProjection
+{
+    [UseProjection]
+    public IQueryable<ExpressionPerson> People
+        => new[]
+        {
+            new ExpressionPerson { FirstName = "Jane", LastName = "Doe" },
+            new ExpressionPerson { FirstName = "John", LastName = "Smith" }
+        }.AsQueryable();
+}
+
+public class CardReaderType : ObjectType<CardReader>
+{
+    protected override void Configure(IObjectTypeDescriptor<CardReader> descriptor)
+    {
+        descriptor.Field(x => x.CardReaderUid.Length).Name("cardReaderUidLength");
+    }
+}
+
+public class ExpressionPersonType : ObjectType<ExpressionPerson>
+{
+    protected override void Configure(IObjectTypeDescriptor<ExpressionPerson> descriptor)
+    {
+        descriptor.Field(x => x.FirstName + " " + x.LastName).Name("fullName");
+    }
+}
+
+public class CardReader
+{
+    public byte[] CardReaderUid { get; set; } = [];
+}
+
+public class ExpressionPerson
+{
+    public string FirstName { get; set; } = null!;
+
+    public string LastName { get; set; } = null!;
 }
 
 public class Mutation
@@ -477,14 +604,14 @@ public class Mutation
     [UseProjection]
     public IQueryable<Foo> Modify()
     {
-        return new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
+        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
     }
 
     [UseMutationConvention]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> ModifySingleOrDefault()
-        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
 
     [Error<AnError>]
     [UseMutationConvention]
@@ -496,7 +623,7 @@ public class Mutation
             throw new AnError("this is only a test");
         }
 
-        return new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
+        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
     }
 
     public class AnError : Exception
@@ -512,11 +639,11 @@ public class FooExtensions
 {
     public string Baz => "baz";
 
-    public IEnumerable<string> Qux => new[] { "baz", };
+    public IEnumerable<string> Qux => ["baz"];
 
-    public IEnumerable<Foo> NestedList => new[] { new Foo() { Bar = "C", }, };
+    public IEnumerable<Foo> NestedList => [new Foo { Bar = "C" }];
 
-    public Foo Nested => new() { Bar = "C", };
+    public Foo Nested => new() { Bar = "C" };
 }
 
 public class Foo
@@ -543,20 +670,20 @@ public class QueryWithNodeResolvers
 {
     [UseProjection]
     public IQueryable<Foo> All()
-        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> GetById(string id)
-        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Baz> GetBazById(string id)
-        => new Baz[] { new() { Bar2 = "A", }, }.AsQueryable();
+        => new Baz[] { new() { Bar2 = "A" } }.AsQueryable();
 
     [NodeResolver]
-    public Bar GetBarById(string id) => new() { IdOfBar = "A", };
+    public Bar GetBarById(string id) => new() { IdOfBar = "A" };
 }

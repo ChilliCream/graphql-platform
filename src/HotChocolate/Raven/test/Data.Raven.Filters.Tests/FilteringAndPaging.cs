@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
@@ -6,10 +5,10 @@ namespace HotChocolate.Data.Filters;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class FilteringAndPaging
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     private readonly SchemaCache _cache;
@@ -23,7 +22,7 @@ public class FilteringAndPaging
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities, true);
 
         // act
         var res1 = await tester.ExecuteAsync(

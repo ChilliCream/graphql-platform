@@ -1,0 +1,6 @@
+{
+  "document": "{ foo }",
+  "variableValues": {
+    "one": "bar"
+  }
+}

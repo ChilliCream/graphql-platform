@@ -1,0 +1,13 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "scalarListThrowingError"
+      ]
+    }
+  ],
+  "data": {
+    "scalarListThrowingError": null
+  }
+}

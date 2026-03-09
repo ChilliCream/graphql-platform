@@ -1,9 +1,6 @@
 using HotChocolate.Resolvers;
-using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Types;
-
-#pragma warning disable CA1812
 
 internal sealed class ExecutableMiddleware(FieldDelegate next)
 {

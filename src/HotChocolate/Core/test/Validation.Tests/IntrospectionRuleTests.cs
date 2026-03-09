@@ -1,4 +1,4 @@
-using CookieCrumble;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Validation.TestHelper;
 
@@ -12,7 +12,7 @@ public class IntrospectionRuleTests
         ExpectErrors(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __schema
@@ -21,37 +21,21 @@ public class IntrospectionRuleTests
     }
 
     [Fact]
-    public void IntrospectionNotAllowed_Schema_Field_Custom_MessageFactory()
-    {
-        ExpectErrors(
-            CreateSchema(),
-            b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
-            """
-            {
-                __schema
-            }
-            """,
-            [
-                new(WellKnownContextData.IntrospectionMessage, new Func<string>(() => "Bar"))
-            ]);
-    }
-
-    [Fact]
     public void IntrospectionNotAllowed_Schema_Field_Custom_Message()
     {
         ExpectErrors(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __schema
             }
             """,
-            [
-                new(WellKnownContextData.IntrospectionMessage, "Baz")
-            ]);
+            context => context.Features.Set(
+                new IntrospectionRequestOverrides(
+                    IsAllowed: false,
+                    NotAllowedErrorMessage: "Baz")));
     }
 
     [Fact]
@@ -60,7 +44,7 @@ public class IntrospectionRuleTests
         ExpectErrors(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __type(name: "foo")
@@ -74,7 +58,7 @@ public class IntrospectionRuleTests
         ExpectValid(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __typename
@@ -88,7 +72,7 @@ public class IntrospectionRuleTests
         ExpectValid(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __schema {
@@ -96,9 +80,7 @@ public class IntrospectionRuleTests
                 }
             }
             """,
-            [
-                new(WellKnownContextData.IntrospectionAllowed, null)
-            ]);
+            context => context.Features.Set(new IntrospectionRequestOverrides(IsAllowed: true)));
     }
 
     [Fact]
@@ -107,18 +89,16 @@ public class IntrospectionRuleTests
         ExpectValid(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __type(name: "foo")
             }
             """,
-            [
-                new(WellKnownContextData.IntrospectionAllowed, null)
-            ]);
+            context => context.Features.Set(new IntrospectionRequestOverrides(IsAllowed: true)));
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddDocumentFromString(
                 FileResource.Open("IntrospectionSchema.graphql"))

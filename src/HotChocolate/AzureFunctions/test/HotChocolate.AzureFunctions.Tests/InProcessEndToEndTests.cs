@@ -34,13 +34,13 @@ public class InProcessEndToEndTests
         var resultContent = await httpContext.ReadResponseContentAsync();
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
-        dynamic json = JObject.Parse(resultContent!);
+        dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
-        Assert.Equal("Luke Skywalker",json.data.person.ToString());
+        Assert.Equal("Luke Skywalker", json.data.person.ToString());
     }
 
     [Fact]
-    public async Task AzFuncInProcess_BananaCakePopTestAsync()
+    public async Task AzFuncInProcess_NitroTestAsync()
     {
         var hostBuilder = new MockInProcessFunctionsHostBuilder();
 
@@ -50,15 +50,15 @@ public class InProcessEndToEndTests
             .AddGraphQLFunction()
             .AddQueryType(
                 d => d.Name("Query")
-                    .Field("BcpTest")
-                    .Resolve("This is a test for BCP File Serving..."));
+                    .Field("NitroTest")
+                    .Resolve("This is a test for Nitro File Serving..."));
 
         var serviceProvider = hostBuilder.BuildServiceProvider();
 
         // The executor should resolve without error as a Required service...
         var requestExecutor = serviceProvider.GetRequiredService<IGraphQLRequestExecutor>();
 
-        var httpContext = TestHttpContextHelper.NewBcpHttpContext();
+        var httpContext = TestHttpContextHelper.NewNitroHttpContext();
 
         // Execute Query Test for end-to-end validation...
         await requestExecutor.ExecuteAsync(httpContext.Request);
@@ -67,6 +67,6 @@ public class InProcessEndToEndTests
         var resultContent = await httpContext.ReadResponseContentAsync();
         Assert.NotNull(resultContent);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
-        Assert.True(resultContent!.Contains("<html") && resultContent.Contains("</html>"));
+        Assert.True(resultContent.Contains("<html") && resultContent.Contains("</html>"));
     }
 }

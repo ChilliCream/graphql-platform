@@ -17,7 +17,7 @@
 ```json
 {
   "fieldCost": 10,
-  "typeCost": 52
+  "typeCost": 12
 }
 ```
 
@@ -33,9 +33,8 @@
   "extensions": {
     "operationCost": {
       "fieldCost": 42,
-      "typeCost": 52
+      "typeCost": 12
     }
   }
 }
 ```
-

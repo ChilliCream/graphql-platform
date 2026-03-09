@@ -3,7 +3,7 @@ namespace HotChocolate.Subscriptions.Diagnostics;
 /// <summary>
 /// Inherit from this listener to implement a diagnostic listener for subscriptions.
 /// </summary>
-[DiagnosticEventSource(typeof(ISubscriptionDiagnosticEventsListener))]
+[DiagnosticEventSource(typeof(ISubscriptionDiagnosticEventsListener), isSchemaService: false)]
 public class SubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEventsListener
 {
     /// <inheritdoc cref="ISubscriptionDiagnosticEvents.Created"/>

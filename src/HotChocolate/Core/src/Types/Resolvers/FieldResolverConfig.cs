@@ -1,12 +1,10 @@
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
-internal readonly struct FieldResolverConfig
+internal readonly struct FieldResolverConfiguration
 {
     private readonly bool _isEmpty;
 
-    public FieldResolverConfig(
+    public FieldResolverConfiguration(
         SchemaCoordinate fieldCoordinate,
         FieldResolverDelegate? resolver = null,
         PureFieldDelegate? pureResolver = null,
@@ -19,7 +17,7 @@ internal readonly struct FieldResolverConfig
 
         FieldCoordinate = fieldCoordinate;
         PureResolver = pureResolver;
-        Resolver = resolver ?? new FieldResolverDelegate(ctx => new(pureResolver!(ctx)));
+        Resolver = resolver ?? (ctx => new ValueTask<object?>(pureResolver!(ctx)));
         ResultType = resultType ?? typeof(object);
         _isEmpty = false;
     }

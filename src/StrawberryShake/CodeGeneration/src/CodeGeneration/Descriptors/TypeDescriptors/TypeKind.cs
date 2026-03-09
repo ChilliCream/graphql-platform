@@ -26,7 +26,7 @@ public enum TypeKind
     Entity,
 
     /// <summary>
-    /// An abstract type that can be a entity or a data type.
+    /// An abstract type that can be an entity or a data type.
     /// </summary>
     EntityOrData,
 
@@ -36,12 +36,12 @@ public enum TypeKind
     Result,
 
     /// <summary>
-    /// A input class.
+    /// An input class.
     /// </summary>
     Input,
 
     /// <summary>
     /// A preserved fragment.
     /// </summary>
-    Fragment,
+    Fragment
 }

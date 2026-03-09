@@ -6,7 +6,7 @@ public interface ISortVisitorContext
 {
     Stack<IType> Types { get; }
 
-    Stack<IInputField> Fields { get; }
+    Stack<IInputValueDefinition> Fields { get; }
 
     IList<IError> Errors { get; }
 }

@@ -2,7 +2,6 @@ using HotChocolate.Data;
 using HotChocolate.Data.Pagination;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
-using HotChocolate.Types.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 namespace Microsoft.Extensions.DependencyInjection;

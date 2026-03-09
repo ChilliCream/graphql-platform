@@ -15,25 +15,25 @@ public class VariablesAreInputTypesRuleTests
     public void QueriesWithValidVariableTypes()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                query takesBoolean($atOtherHomes: Boolean) {
-                    dog {
-                        isHouseTrained(atOtherHomes: $atOtherHomes)
-                    }
+        var query = Utf8GraphQLParser.Parse(
+            """
+            query takesBoolean($atOtherHomes: Boolean) {
+                dog {
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }
+            }
 
-                query takesComplexInput($complexInput: ComplexInput) {
-                    findDog(complex: $complexInput) {
-                        name
-                    }
+            query takesComplexInput($complexInput: ComplexInput) {
+                findDog(complex: $complexInput) {
+                    name
                 }
+            }
 
-                query TakesListOfBooleanBang($booleans: [Boolean!]) {
-                    booleanList(booleanListArg: $booleans)
-                }
-            ");
-        context.Prepare(query);
+            query TakesListOfBooleanBang($booleans: [Boolean!]) {
+                booleanList(booleanListArg: $booleans)
+            }
+            """);
+        var context = ValidationUtils.CreateContext(query);
 
         // act
         Rule.Validate(context, query);
@@ -45,22 +45,23 @@ public class VariablesAreInputTypesRuleTests
     [Fact]
     public void QueriesWithInvalidVariableTypes()
     {
-        ExpectErrors(@"
-                query takesCat($cat: Cat) {
-                    # ...
-                }
+        ExpectErrors(
+            """
+            query takesCat($cat: Cat) {
+                # ...
+            }
 
-                query takesDogBang($dog: Dog!) {
-                    # ...
-                }
+            query takesDogBang($dog: Dog!) {
+                # ...
+            }
 
-                query takesListOfPet($pets: [Pet]) {
-                    # ...
-                }
+            query takesListOfPet($pets: [Pet]) {
+                # ...
+            }
 
-                query takesCatOrDog($catOrDog: CatOrDog) {
-                    # ...
-                }
-            ");
+            query takesCatOrDog($catOrDog: CatOrDog) {
+                # ...
+            }
+            """);
     }
 }

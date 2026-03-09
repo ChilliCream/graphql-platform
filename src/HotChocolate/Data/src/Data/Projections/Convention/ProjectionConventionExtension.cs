@@ -3,7 +3,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Data.Projections;
 
 public class ProjectionConventionExtension
-    : ConventionExtension<ProjectionConventionDefinition>
+    : ConventionExtension<ProjectionConventionConfiguration>
 {
     private Action<IProjectionConventionDescriptor>? _configure;
 
@@ -18,7 +18,7 @@ public class ProjectionConventionExtension
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override ProjectionConventionDefinition CreateDefinition(
+    protected override ProjectionConventionConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -34,7 +34,7 @@ public class ProjectionConventionExtension
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected internal new void Initialize(IConventionContext context)
@@ -48,24 +48,24 @@ public class ProjectionConventionExtension
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (convention is ProjectionConvention projectionConvention &&
-            Definition is not null &&
-            projectionConvention.Definition is not null)
+        if (convention is ProjectionConvention projectionConvention
+            && Configuration is not null
+            && projectionConvention.Configuration is not null)
         {
-            projectionConvention.Definition.ProviderExtensions.AddRange(
-                Definition.ProviderExtensions);
+            projectionConvention.Configuration.ProviderExtensions.AddRange(
+                Configuration.ProviderExtensions);
 
-            projectionConvention.Definition.ProviderExtensionsTypes.AddRange(
-                Definition.ProviderExtensionsTypes);
+            projectionConvention.Configuration.ProviderExtensionsTypes.AddRange(
+                Configuration.ProviderExtensionsTypes);
 
-            if (Definition.Provider is not null)
+            if (Configuration.Provider is not null)
             {
-                projectionConvention.Definition.Provider = Definition.Provider;
+                projectionConvention.Configuration.Provider = Configuration.Provider;
             }
 
-            if (Definition.ProviderInstance is not null)
+            if (Configuration.ProviderInstance is not null)
             {
-                projectionConvention.Definition.ProviderInstance = Definition.ProviderInstance;
+                projectionConvention.Configuration.ProviderInstance = Configuration.ProviderInstance;
             }
         }
     }

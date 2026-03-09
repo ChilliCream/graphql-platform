@@ -12,10 +12,7 @@ internal sealed class DataMessageObserver(string id) : IObserver<IOperationMessa
 
     public async ValueTask<IDataMessage?> TryReadNextAsync(CancellationToken ct)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException($"{nameof(DataMessageObserver)} is disposed.");
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         await _semaphore.WaitAsync(ct);
 

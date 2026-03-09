@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,7 +56,7 @@ public class CustomScalarTests
                 """)
             .AddType(new StringType())
             .AddType(new StringType("Custom"))
-            .UseField(_ => _)
+            .UseField(x => x)
             .BuildSchemaAsync();
 
         // assert
@@ -100,7 +99,7 @@ public class CustomScalarTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IScalarTypeDescriptor descriptor,
-            Type type)
+            Type? type)
             => descriptor.Directive<CustomDirective>();
     }
 }

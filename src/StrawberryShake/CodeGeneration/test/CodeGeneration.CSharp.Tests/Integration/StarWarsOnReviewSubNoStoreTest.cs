@@ -1,4 +1,4 @@
-using CookieCrumble;
+using CookieCrumble.Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Subscriptions;

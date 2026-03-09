@@ -1,10 +1,10 @@
-using IdentityModel.Client;
+using Duende.IdentityModel.Client;
 
 namespace StrawberryShake.Tools.OAuth;
 
 public static class TokenClient
 {
-    public static async Task<string> GetTokenAsync(
+    public static async Task<string?> GetTokenAsync(
         string tokenEndpoint,
         string clientId,
         string clientSecret,
@@ -18,7 +18,7 @@ public static class TokenClient
                 Address = tokenEndpoint,
                 ClientId = clientId,
                 ClientSecret = clientSecret,
-                Scope = string.Join(" ", scopes),
+                Scope = string.Join(" ", scopes)
             },
             cancellationToken).ConfigureAwait(false);
         return tokenRes.AccessToken;

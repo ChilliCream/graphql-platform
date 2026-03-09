@@ -17,7 +17,7 @@ public sealed class SyntaxTokenInfo
     }
 
     /// <summary>
-    /// Gets the kind of <see cref="HotChocolate.Language.ISyntaxNode" />.
+    /// Gets the kind of <see cref="ISyntaxNode" />.
     /// </summary>
     public TokenKind Kind { get; }
 
@@ -33,13 +33,13 @@ public sealed class SyntaxTokenInfo
 
     /// <summary>
     /// Gets the 1-indexed line number on which this
-    /// <see cref="HotChocolate.Language.ISyntaxNode" /> appears.
+    /// <see cref="ISyntaxNode" /> appears.
     /// </summary>
     public int Line { get; }
 
     /// <summary>
     /// Gets the 1-indexed column number at which this
-    /// <see cref="HotChocolate.Language.ISyntaxNode" /> begins.
+    /// <see cref="ISyntaxNode" /> begins.
     /// </summary>
     public int Column { get; }
 

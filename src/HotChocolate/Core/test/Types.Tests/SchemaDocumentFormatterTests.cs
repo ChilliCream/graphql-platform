@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,11 +22,10 @@ public static class SchemaDocumentFormatterTests
             }
 
             type Query {
-              hello: String
+              hello: String!
             }
             """);
     }
-
 
     [Fact]
     public static async Task Add_Single_Schema_Formatter()
@@ -46,7 +44,7 @@ public static class SchemaDocumentFormatterTests
             }
 
             type Query {
-              hello: String
+              hello: String!
             }
 
             scalar Scalar1
@@ -73,7 +71,7 @@ public static class SchemaDocumentFormatterTests
             }
 
             type Query {
-              hello: String
+              hello: String!
             }
 
             scalar Scalar1

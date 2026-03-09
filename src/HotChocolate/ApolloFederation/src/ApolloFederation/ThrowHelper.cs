@@ -14,9 +14,9 @@ internal static class ThrowHelper
     /// Either the syntax node is invalid when parsing the literal or the syntax
     /// node value has an invalid format.
     /// </summary>
-    public static SerializationException FieldSet_InvalidFormat(
+    public static LeafCoercionException FieldSet_InvalidFormat(
         FieldSetType fieldSetType) =>
-        new SerializationException(
+        new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_FieldSet_HasInvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -27,9 +27,9 @@ internal static class ThrowHelper
     /// Either the syntax node is invalid when parsing the literal or the syntax
     /// node value has an invalid format.
     /// </summary>
-    public static SerializationException Any_InvalidFormat(
+    public static LeafCoercionException Any_InvalidFormat(
         _AnyType anyType) =>
-        new SerializationException(
+        new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_Any_HasInvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -47,8 +47,8 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "The specified external attribute was applied to " +
-                    "the member `{0}` of `{1}`, which is not a property.",
+                    "The specified external attribute was applied to "
+                    + "the member `{0}` of `{1}`, which is not a property.",
                     member?.Name,
                     type.FullName ?? type.Name)
                 .Build());
@@ -70,10 +70,10 @@ internal static class ThrowHelper
     /// <summary>
     /// The runtime type is not supported by the scalars ParseValue method.
     /// </summary>
-    public static SerializationException Scalar_CannotParseValue(
+    public static LeafCoercionException Scalar_CannotParseValue(
         ScalarType scalarType,
         Type valueType) =>
-        new SerializationException(
+        new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_Scalar_CannotParseValue,
@@ -135,8 +135,8 @@ internal static class ThrowHelper
         return new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "The specified key attributes must share the same resolvable " +
-                    "values when annotated on multiple fields.")
+                    "The specified key attributes must share the same resolvable "
+                    + "values when annotated on multiple fields.")
                 .SetExtension("type", type.FullName ?? type.Name)
                 .SetExtension("member", member.Name)
                 // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
@@ -148,12 +148,12 @@ internal static class ThrowHelper
     /// <see cref="string.Empty"/>.
     /// </summary>
     public static SchemaException Provides_FieldSet_CannotBeEmpty(
-        MemberInfo member) =>
+        string fieldName) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_Provides_FieldSet_CannotBeEmpty)
                 // .SetCode(ErrorCodes.ApolloFederation.ProvidesFieldSetNullOrEmpty)
-                .SetExtension(nameof(member), member)
+                .SetExtension(nameof(fieldName), fieldName)
                 .Build());
 
     /// <summary>
@@ -161,12 +161,12 @@ internal static class ThrowHelper
     /// <see cref="string.Empty"/>.
     /// </summary>
     public static SchemaException Requires_FieldSet_CannotBeEmpty(
-        MemberInfo member) =>
+        string fieldName) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_Requires_FieldSet_CannotBeEmpty)
                 // .SetCode(ErrorCodes.ApolloFederation.RequiresFieldSetNullOrEmpty)
-                .SetExtension(nameof(member), member)
+                .SetExtension(nameof(fieldName), fieldName)
                 .Build());
 
     /// <summary>

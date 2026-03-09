@@ -3,27 +3,24 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public sealed class InputFormatter
 {
     private readonly ITypeConverter _converter;
 
-    public InputFormatter() : this(new DefaultTypeConverter()) { }
-
     public InputFormatter(ITypeConverter converter)
     {
-        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+        ArgumentNullException.ThrowIfNull(converter);
+
+        _converter = converter;
     }
+
+    public InputFormatter() : this(new DefaultTypeConverter()) { }
 
     public IValueNode FormatValue(object? runtimeValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return FormatValueInternal(runtimeValue, type, path ?? Path.Root);
     }
@@ -43,7 +40,7 @@ public sealed class InputFormatter
         switch (type.Kind)
         {
             case TypeKind.NonNull:
-                return FormatValueInternal(runtimeValue, ((NonNullType)type).Type, path);
+                return FormatValueInternal(runtimeValue, ((NonNullType)type).NullableType, path);
 
             case TypeKind.List:
                 return FormatValueList(runtimeValue, (ListType)type, path);
@@ -113,7 +110,7 @@ public sealed class InputFormatter
         if (runtimeValue is IEnumerable enumerable)
         {
             var items = new List<IValueNode>();
-            var i = 0;
+            const int i = 0;
 
             foreach (var item in enumerable)
             {
@@ -131,31 +128,26 @@ public sealed class InputFormatter
     {
         try
         {
-            if (runtimeValue.GetType() != type.RuntimeType &&
-                _converter.TryConvert(type.RuntimeType, runtimeValue, out var converted))
+            var runtimeType = type.RuntimeType;
+
+            if (runtimeValue.GetType() != runtimeType
+                && _converter.TryConvert(runtimeType, runtimeValue, out var converted))
             {
                 runtimeValue = converted;
             }
 
-            return type.ParseValue(runtimeValue);
+            return type.ValueToLiteral(runtimeValue);
         }
-        catch (SerializationException ex)
+        catch (LeafCoercionException ex)
         {
-            throw new SerializationException(ex.Errors[0], ex.Type, path);
+            throw new LeafCoercionException(ex.Errors[0], ex.Type, path);
         }
     }
 
     public DirectiveNode FormatDirective(object runtimeValue, DirectiveType type, Path? path = null)
     {
-        if (runtimeValue is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeValue));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeValue);
+        ArgumentNullException.ThrowIfNull(type);
 
         path ??= Path.Root.Append(type.Name);
 
@@ -189,145 +181,6 @@ public sealed class InputFormatter
         {
             var value = FormatValueInternal(fieldValue, fieldType, fieldPath);
             fields.Add(new ArgumentNode(fieldName, value));
-        }
-    }
-
-    public IValueNode FormatResult(object? resultValue, IType type, Path? path = null)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        return FormatResultInternal(resultValue, type, path ?? Path.Root);
-    }
-
-    private IValueNode FormatResultInternal(object? resultValue, IType type, Path path)
-    {
-        if (resultValue is null or NullValueNode)
-        {
-            if (type.Kind == TypeKind.NonNull)
-            {
-                throw NonNullInputViolation(type, path);
-            }
-
-            return NullValueNode.Default;
-        }
-
-        switch (type.Kind)
-        {
-            case TypeKind.NonNull:
-                return FormatResultInternal(resultValue, ((NonNullType)type).Type, path);
-
-            case TypeKind.List:
-                return FormatResultList(resultValue, (ListType)type, path);
-
-            case TypeKind.InputObject:
-                return FormatResultObject(resultValue, (InputObjectType)type, path);
-
-            case TypeKind.Enum:
-            case TypeKind.Scalar:
-                return FormatResultLeaf(resultValue, (ILeafType)type, path);
-
-            default:
-                throw new NotSupportedException();
-        }
-    }
-
-    private ObjectValueNode FormatResultObject(
-        object resultValue,
-        InputObjectType type,
-        Path path)
-    {
-        if (resultValue is IReadOnlyDictionary<string, object?> map)
-        {
-            var fields = new List<ObjectFieldNode>();
-            var processed = 0;
-
-            foreach (var field in type.Fields)
-            {
-                if (map.TryGetValue(field.Name, out var fieldValue))
-                {
-                    var value = FormatResultInternal(fieldValue, field.Type, path);
-                    fields.Add(new ObjectFieldNode(field.Name, value));
-                    processed++;
-                }
-            }
-
-            if (processed < map.Count)
-            {
-                var invalidFieldNames = new List<string>();
-
-                foreach (var item in map)
-                {
-                    if (!type.Fields.ContainsField(item.Key))
-                    {
-                        invalidFieldNames.Add(item.Key);
-                    }
-                }
-
-                throw InvalidInputFieldNames(type, invalidFieldNames, path);
-            }
-
-            return new ObjectValueNode(fields);
-        }
-
-        if (resultValue is ObjectValueNode node)
-        {
-            return node;
-        }
-
-        if (type.RuntimeType != typeof(object) &&
-            type.RuntimeType.IsInstanceOfType(resultValue))
-        {
-            return FormatValueObject(resultValue, type, path);
-        }
-
-        throw FormatResultObject_InvalidObjectKind(type, resultValue.GetType(), path);
-    }
-
-    private ListValueNode FormatResultList(object resultValue, ListType type, Path path)
-    {
-        if (resultValue is IList resultList)
-        {
-            var items = new List<IValueNode>();
-
-            for (var i = 0; i < resultList.Count; i++)
-            {
-                var newPath = path.Append(i);
-                items.Add(FormatResultInternal(resultList[i], type.ElementType, newPath));
-            }
-
-            return new ListValueNode(items);
-        }
-
-        if (resultValue is ListValueNode node)
-        {
-            return node;
-        }
-
-        throw FormatResultList_InvalidObjectKind(type, resultValue.GetType(), path);
-    }
-
-    private static IValueNode FormatResultLeaf(object resultValue, ILeafType type, Path path)
-    {
-        if (resultValue is IValueNode node)
-        {
-            if (type.IsInstanceOfType(node))
-            {
-                return node;
-            }
-
-            throw FormatResultLeaf_InvalidSyntaxKind(type, node.Kind, path);
-        }
-
-        try
-        {
-            return type.ParseResult(resultValue);
-        }
-        catch (SerializationException ex)
-        {
-            throw new SerializationException(ex.Errors[0], ex.Type, path);
         }
     }
 }

@@ -1,4 +1,5 @@
-#nullable enable
+using System.Collections.Immutable;
+using GreenDonut.Data;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -60,6 +61,34 @@ public class PagingOptions
     public bool? IncludeNodesField { get; set; }
 
     /// <summary>
+    /// Defines whether relative cursors are allowed.
+    /// </summary>
+    public bool? EnableRelativeCursors { get; set; }
+
+    /// <summary>Defines the null ordering to be used.</summary>
+    public NullOrdering NullOrdering { get; set; }
+
+    /// <summary>
+    /// Gets or sets the fields that represent relative cursors.
+    /// </summary>
+    public ImmutableHashSet<string> RelativeCursorFields { get; set; } =
+        [
+            "pageInfo { forwardCursors }",
+            "pageInfo { backwardCursors }"
+        ];
+
+    /// <summary>
+    /// Gets or sets the fields that represent page infos like hasNextPage or startCursor.
+    /// </summary>
+    public ImmutableHashSet<string> PageInfoFields { get; set; } =
+        [
+            "pageInfo { startCursor }",
+            "pageInfo { endCursor }" ,
+            "pageInfo { hasNextPage }" ,
+            "pageInfo { hasPreviousPage }"
+        ];
+
+    /// <summary>
     /// Merges the <paramref name="other"/> options into this options instance wherever
     /// a property is not set.
     /// </summary>
@@ -77,6 +106,13 @@ public class PagingOptions
         InferCollectionSegmentNameFromField ??= other.InferCollectionSegmentNameFromField;
         ProviderName ??= other.ProviderName;
         IncludeNodesField ??= other.IncludeNodesField;
+        EnableRelativeCursors ??= other.EnableRelativeCursors;
+        if (NullOrdering == NullOrdering.Unspecified)
+        {
+            NullOrdering = other.NullOrdering;
+        }
+        RelativeCursorFields = RelativeCursorFields.Union(other.RelativeCursorFields);
+        PageInfoFields = PageInfoFields.Union(other.PageInfoFields);
     }
 
     /// <summary>
@@ -93,6 +129,10 @@ public class PagingOptions
             InferConnectionNameFromField = InferConnectionNameFromField,
             InferCollectionSegmentNameFromField = InferCollectionSegmentNameFromField,
             ProviderName = ProviderName,
-            IncludeNodesField = IncludeNodesField
+            IncludeNodesField = IncludeNodesField,
+            EnableRelativeCursors = EnableRelativeCursors,
+            NullOrdering = NullOrdering,
+            RelativeCursorFields = RelativeCursorFields,
+            PageInfoFields = PageInfoFields
         };
 }

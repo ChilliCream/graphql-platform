@@ -11,15 +11,9 @@ The first GraphQL request issued against a Hot Chocolate server will most of the
 We can however delegate this task to the startup of the application instead of the first request, by call `InitializeOnStartup()` on the `IRequestExecutorBuilder`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .InitializeOnStartup()
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .InitializeOnStartup()
 ```
 
 This will create the schema and warmup the request executor as soon as the app starts. This also brings the added benefit that schema errors are surfaced at app startup and not on the first request.

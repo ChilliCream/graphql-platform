@@ -6,9 +6,9 @@ namespace StrawberryShake.Transport.WebSockets;
 public class RequestWriter
     : IRequestWriter
 {
-    private const int _initialBufferSize = 1024;
-    private const int _defaultMemorySize = 256;
-    private const int _minMemorySize = 1;
+    private const int InitialBufferSize = 1024;
+    private const int DefaultMemorySize = 256;
+    private const int MinMemorySize = 1;
     private byte[] _buffer;
     private int _capacity;
     private int _start;
@@ -16,20 +16,17 @@ public class RequestWriter
 
     protected RequestWriter()
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
+        _buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
         _capacity = _buffer.Length;
     }
 
     /// <inheritdoc />
-    public ReadOnlyMemory<byte> Body => _buffer.AsMemory().Slice(0, _start);
+    public ReadOnlyMemory<byte> Body => _buffer.AsMemory()[.._start];
 
     /// <inheritdoc />
     public void Advance(int count)
     {
-        if (count < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         _start += count;
         _capacity -= count;
@@ -38,7 +35,7 @@ public class RequestWriter
     /// <inheritdoc />
     public Memory<byte> GetMemory(int sizeHint = 0)
     {
-        var size = sizeHint < _minMemorySize ? _defaultMemorySize : sizeHint;
+        var size = sizeHint < MinMemorySize ? DefaultMemorySize : sizeHint;
         EnsureBufferCapacity(size);
         return _buffer.AsMemory().Slice(_start, size);
     }
@@ -46,7 +43,7 @@ public class RequestWriter
     /// <inheritdoc />
     public Span<byte> GetSpan(int sizeHint = 0)
     {
-        var size = sizeHint < _minMemorySize ? _defaultMemorySize : sizeHint;
+        var size = sizeHint < MinMemorySize ? DefaultMemorySize : sizeHint;
         EnsureBufferCapacity(size);
         return _buffer.AsSpan().Slice(_start, size);
     }
@@ -75,7 +72,7 @@ public class RequestWriter
     public virtual void Reset()
     {
         ArrayPool<byte>.Shared.Return(_buffer);
-        _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
+        _buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
         _capacity = _buffer.Length;
         _start = 0;
     }

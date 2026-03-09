@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -7,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.WellKnownContextData;
+using static HotChocolate.ExecutionContextData;
 
 namespace HotChocolate.Authorization;
 
@@ -43,12 +42,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "person"
                       ],
@@ -190,12 +183,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "person"
                       ],
@@ -285,12 +272,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "cityOrStreet"
                       ],
@@ -334,12 +315,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "thisIsAuthorized"
                       ],
@@ -412,7 +387,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureSchemaField =
-                    descriptor => { descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation); };
+                    descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -463,7 +438,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureTypeField =
-                    descriptor => { descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation); };
+                    descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -501,6 +476,30 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Node_Field_Schema()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_NODE")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+
+        // act
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
+            });
+
+        // assert
+        var executor = await services.GetRequestExecutorAsync();
+        executor.Schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Authorize_Node_Field()
     {
         // arrange
@@ -514,7 +513,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -583,12 +582,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "node"
                       ],
@@ -628,7 +621,7 @@ public class AnnotationBasedAuthorizationTests
                       }
                     }
                     """)
-                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                 .Build());
 
         // assert
@@ -641,12 +634,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "node"
                       ],
@@ -687,7 +674,7 @@ public class AnnotationBasedAuthorizationTests
                       }
                     }
                     """)
-                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                 .Build());
 
         // assert
@@ -700,12 +687,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "node"
                       ],
@@ -735,7 +716,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -773,6 +754,73 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Nodes_Field_Different_Ids_BeforeResolver()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.NotAllowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(builder =>
+            builder.SetDocument(
+                """
+                query($ids: [ID!]!) {
+                  nodes(ids: $ids) {
+                    __typename
+                  }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?>
+            {
+                {
+                    "ids",
+                    new List<string>
+                    {
+                        Convert.ToBase64String("BlogPage:1"u8),
+                        Convert.ToBase64String("Order:1"u8),
+                        Convert.ToBase64String("BlogPage:2"u8)
+                    }
+                }
+            }));
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "path": [
+                        "nodes",
+                        1
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "nodes": [
+                      {
+                        "__typename": "BlogPage"
+                      },
+                      null,
+                      {
+                        "__typename": "BlogPage"
+                      }
+                    ]
+                  }
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Skip_Authorize_On_Node_Field()
     {
         // arrange
@@ -786,7 +834,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -829,11 +877,11 @@ public class AnnotationBasedAuthorizationTests
         // arrange
         var handler = new AuthHandler(
             resolver: (ctx, _)
-                => ctx.ContextData.ContainsKey(WellKnownContextData.UserState)
+                => ctx.Features.TryGet(out UserState? _)
                     ? AuthorizeResult.Allowed
                     : AuthorizeResult.NotAllowed,
             validation: (ctx, _)
-                => ctx.ContextData.ContainsKey(WellKnownContextData.UserState)
+                => ctx.Features.TryGet(out UserState? _)
                     ? AuthorizeResult.Allowed
                     : AuthorizeResult.NotAllowed);
 
@@ -842,24 +890,23 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor => { descriptor.Authorize("READ_NODE"); };
+                    descriptor => descriptor.Authorize("READ_NODE");
             });
 
         var executor = await services.GetRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            builder =>
-                builder
-                    .SetDocument(
-                        """
-                        {
-                          nodes(ids: "abc") {
-                            __typename
-                          }
-                        }
-                        """)
-                    .SetUser(new ClaimsPrincipal()));
+        var result = await executor.ExecuteAsync(builder =>
+            builder
+                .SetDocument(
+                    """
+                    {
+                      nodes(ids: "abc") {
+                        __typename
+                      }
+                    }
+                    """)
+                .SetUser(new ClaimsPrincipal()));
 
         // assert
         Snapshot
@@ -871,12 +918,6 @@ public class AnnotationBasedAuthorizationTests
                   "errors": [
                     {
                       "message": "The node ID string has an invalid format.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "nodes"
                       ],
@@ -907,16 +948,15 @@ public class AnnotationBasedAuthorizationTests
         var executor = await services.GetRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            builder =>
-                builder
-                    .SetDocument(
-                        """
-                        {
-                          null
-                        }
-                        """)
-                    .SetUser(new ClaimsPrincipal()));
+        var result = await executor.ExecuteAsync(builder =>
+            builder
+                .SetDocument(
+                    """
+                    {
+                      null
+                    }
+                    """)
+                .SetUser(new ClaimsPrincipal()));
 
         // assert
         Snapshot
@@ -942,6 +982,8 @@ public class AnnotationBasedAuthorizationTests
             .AddType<Street>()
             .AddTypeExtension(typeof(StreetExtensions))
             .AddType<City>()
+            .AddType<Order>()
+            .AddType<BlogPage>()
             .AddGlobalObjectIdentification()
             .AddAuthorizationHandler(_ => handler)
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
@@ -990,6 +1032,23 @@ public class AnnotationBasedAuthorizationTests
 
     [UnionType]
     public interface ICityOrStreet;
+
+    [Node]
+    [Authorize(ApplyPolicy.BeforeResolver)]
+    public sealed record Order(string Id)
+    {
+        [NodeResolver]
+        public static Order GetOrderById(string id)
+            => new(id);
+    }
+
+    [Node]
+    public sealed record BlogPage(string Id)
+    {
+        [NodeResolver]
+        public static BlogPage GetBlogPageById(string id)
+            => new(id);
+    }
 
     [Node]
     [ExtendObjectType<Street>]
@@ -1047,7 +1106,7 @@ public class AnnotationBasedAuthorizationTests
 
                 if (result is not AuthorizeResult.Allowed)
                 {
-                    return new(result);
+                    return new ValueTask<AuthorizeResult>(result);
                 }
             }
 
@@ -1055,15 +1114,8 @@ public class AnnotationBasedAuthorizationTests
         }
     }
 
-    private sealed class AuthHandler2 : IAuthorizationHandler
+    private sealed class AuthHandler2(Stack<AuthorizeResult> results) : IAuthorizationHandler
     {
-        private readonly Stack<AuthorizeResult> _results;
-
-        public AuthHandler2(Stack<AuthorizeResult> results)
-        {
-            _results = results;
-        }
-
         public ValueTask<AuthorizeResult> AuthorizeAsync(
             IMiddlewareContext context,
             AuthorizeDirective directive,
@@ -1074,7 +1126,7 @@ public class AnnotationBasedAuthorizationTests
             AuthorizationContext context,
             IReadOnlyList<AuthorizeDirective> directives,
             CancellationToken cancellationToken = default)
-            => new(_results.Pop());
+            => new(results.Pop());
     }
 
     [DirectiveType(DirectiveLocation.Object)]
@@ -1085,7 +1137,7 @@ public class AnnotationBasedAuthorizationTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
-            Type type)
+            Type? type)
             => descriptor.Directive(new FooDirective());
     }
 

@@ -12,6 +12,18 @@ public class UploadQuery
         return await sr.ReadToEndAsync();
     }
 
+    public async Task<FileInfoOutput> SingleInfoUpload(IFile file)
+    {
+        await using var stream = file.OpenReadStream();
+        using var sr = new StreamReader(stream, Encoding.UTF8);
+        return new FileInfoOutput
+        {
+            Content = await sr.ReadToEndAsync(),
+            ContentType = file.ContentType ?? string.Empty,
+            Name = file.Name
+        };
+    }
+
     public async Task<string> ObjectUpload(
         InputWithFile input)
     {
@@ -41,6 +53,13 @@ public class UploadQuery
         using var sr = new StreamReader(stream, Encoding.UTF8);
         return await sr.ReadToEndAsync();
     }
+
+    public class FileInfoOutput
+    {
+        public string? Content { get; init; }
+        public string? ContentType { get; init; }
+        public string? Name { get; init; }
+    }
 }
 
 public class InputWithOptionalFile
@@ -52,5 +71,5 @@ public class InputWithOptionalFile
 public class InputWithFile
 {
     [GraphQLType<NonNullType<UploadType>>]
-    public IFile File { get; set; } = default!;
+    public IFile File { get; set; } = null!;
 }

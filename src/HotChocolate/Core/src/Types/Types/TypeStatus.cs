@@ -6,5 +6,7 @@ internal enum TypeStatus
     Initialized,
     Named,
     Completed,
-    Finalized,
+    MetadataCompleted,
+    Executable,
+    Finalized
 }

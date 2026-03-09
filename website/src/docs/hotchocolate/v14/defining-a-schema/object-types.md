@@ -70,15 +70,9 @@ Since there could be multiple types inheriting from `ObjectType<Author>`, but di
 We can either [explicitly specify the type on a per-resolver basis](#explicit-types) or we can register the type once globally:
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddType<AuthorType>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddType<AuthorType>();
 ```
 
 With this configuration every `Author` CLR type we return from our resolvers would be assumed to be an `AuthorType`.
@@ -105,21 +99,17 @@ public class Author
 {
     public string Name { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Author {
-                  name: String
-                }
-            ")
-            .BindRuntimeType<Author>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Author {
+          name: String
+        }
+    ")
+    .BindRuntimeType<Author>();
 ```
 
 </Schema>
@@ -136,7 +126,7 @@ In the code-first approach we can also enable explicit binding, where we have to
 We can configure our preferred binding behavior globally like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .ModifyOptions(options =>
     {
@@ -378,26 +368,22 @@ public class Author
 {
     public string Name { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Author {
+          name: String
+          additionalField: DateTime!
+        }
+    ")
+    .BindRuntimeType<Author>()
+    .AddResolver("Author", "additionalField", (context) =>
     {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Author {
-                  name: String
-                  additionalField: DateTime!
-                }
-            ")
-            .BindRuntimeType<Author>()
-            .AddResolver("Author", "additionalField", (context) =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
+        // Omitted code for brevity
+    });
 ```
 
 </Schema>

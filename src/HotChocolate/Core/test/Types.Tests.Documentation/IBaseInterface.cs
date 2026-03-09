@@ -1,5 +1,3 @@
 namespace HotChocolate.Types.Descriptors;
 
-public interface IBaseInterface : IBaseBaseInterface
-{
-}
+public interface IBaseInterface : IBaseBaseInterface;

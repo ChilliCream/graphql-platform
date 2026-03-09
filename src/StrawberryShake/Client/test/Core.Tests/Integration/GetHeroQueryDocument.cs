@@ -5,7 +5,7 @@ namespace StrawberryShake.Integration
 {
     public class GetHeroQueryDocument : IDocument
     {
-        private const string _bodyString =
+        private const string BodyString =
             @"query GetHero {
                 hero {
                     __typename
@@ -23,7 +23,7 @@ namespace StrawberryShake.Integration
                 version
             }";
 
-        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+        private static readonly byte[] s_body = Encoding.UTF8.GetBytes(BodyString);
 
         private GetHeroQueryDocument() { }
 
@@ -31,10 +31,10 @@ namespace StrawberryShake.Integration
 
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => _body;
+        public ReadOnlySpan<byte> Body => s_body;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
 
-        public override string ToString() => _bodyString;
+        public override string ToString() => BodyString;
     }
 }

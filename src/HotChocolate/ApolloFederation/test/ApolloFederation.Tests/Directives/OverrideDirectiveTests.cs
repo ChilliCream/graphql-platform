@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
@@ -21,7 +20,7 @@ public class OverrideDirectiveTests
             .AddType<Foo>()
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act
@@ -40,7 +39,7 @@ public class OverrideDirectiveTests
             .AddType<Foo>()
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act

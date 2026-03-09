@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -9,10 +8,10 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class RgbaType : RegexType
 {
-    private const string _validationPattern =
-        "((?:rgba?)\\((?:\\d+%?(?:,|\\s)+){2,3}[\\s\\/]*[\\d\\.]+%?\\))";
+    private const string ValidationPattern =
+        "rgba?\\((?:[0-9]+%?(?:,|\\s)+){2}[0-9]+%?\\s*[,\\/]\\s*[0-9\\.]+%?\\)";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>
@@ -41,15 +40,6 @@ public partial class RgbaType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.RgbaType_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.RgbaType_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException(string runtimeValue)
+        => ThrowHelper.RgbaType_InvalidFormat(this);
 }

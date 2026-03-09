@@ -192,6 +192,10 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.UInt64, true)
         },
         {
+            TypeNames.SByte,
+            new RuntimeTypeInfo(TypeNames.SByte, true)
+        },
+        {
             TypeNames.Single,
             new RuntimeTypeInfo(TypeNames.Single, true)
         },
@@ -222,6 +226,14 @@ public sealed class TypeInfos
         {
             TypeNames.DateTime,
             new RuntimeTypeInfo(TypeNames.DateTime, true)
+        },
+        {
+            TypeNames.DateOnly,
+            new RuntimeTypeInfo(TypeNames.DateOnly, true)
+        },
+        {
+            TypeNames.TimeOnly,
+            new RuntimeTypeInfo(TypeNames.TimeOnly, true)
         },
         {
             TypeNames.TimeSpan,
@@ -356,6 +368,10 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.DecimalSerializer)
         },
         {
+            TypeNames.UriSerializer,
+            new RuntimeTypeInfo(TypeNames.UriSerializer)
+        },
+        {
             TypeNames.UrlSerializer,
             new RuntimeTypeInfo(TypeNames.UrlSerializer)
         },
@@ -376,13 +392,45 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.DateSerializer)
         },
         {
+            TypeNames.LocalDateSerializer,
+            new RuntimeTypeInfo(TypeNames.LocalDateSerializer)
+        },
+        {
+            TypeNames.LocalDateTimeSerializer,
+            new RuntimeTypeInfo(TypeNames.LocalDateTimeSerializer)
+        },
+        {
+            TypeNames.LocalTimeSerializer,
+            new RuntimeTypeInfo(TypeNames.LocalTimeSerializer)
+        },
+        {
+            TypeNames.Base64StringSerializer,
+            new RuntimeTypeInfo(TypeNames.Base64StringSerializer)
+        },
+        {
             TypeNames.ByteArraySerializer,
             new RuntimeTypeInfo(TypeNames.ByteArraySerializer)
         },
         {
-            TypeNames.TimeSpanSerializer,
-            new RuntimeTypeInfo(TypeNames.TimeSpanSerializer)
+            TypeNames.DurationSerializer,
+            new RuntimeTypeInfo(TypeNames.DurationSerializer)
         },
+        {
+            TypeNames.UnsignedByteSerializer,
+            new RuntimeTypeInfo(TypeNames.UnsignedByteSerializer)
+        },
+        {
+            TypeNames.UnsignedIntSerializer,
+            new RuntimeTypeInfo(TypeNames.UnsignedIntSerializer)
+        },
+        {
+            TypeNames.UnsignedLongSerializer,
+            new RuntimeTypeInfo(TypeNames.UnsignedLongSerializer)
+        },
+        {
+            TypeNames.UnsignedShortSerializer,
+            new RuntimeTypeInfo(TypeNames.UnsignedShortSerializer)
+        }
     };
 
     public RuntimeTypeInfo GetOrAdd(string fullTypeName, bool valueType = false) =>

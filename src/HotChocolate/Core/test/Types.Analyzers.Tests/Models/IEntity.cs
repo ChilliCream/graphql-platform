@@ -15,5 +15,5 @@ public static partial class EntityInterface
         descriptor.Name("Entity");
     }
 
-    public static string IdString([HotChocolate.Parent] IEntity entity) => entity.Id.ToString();
+    public static string IdString([Parent] IEntity entity) => entity.Id.ToString();
 }

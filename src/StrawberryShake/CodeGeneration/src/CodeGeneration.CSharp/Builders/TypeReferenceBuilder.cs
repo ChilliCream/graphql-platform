@@ -56,7 +56,7 @@ public class TypeReferenceBuilder : ICode
     private enum TypeKindToken
     {
         List,
-        Nullable,
+        Nullable
     }
 
     public override string ToString()

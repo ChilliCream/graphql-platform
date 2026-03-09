@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Mappers;
 
 public static class EntityTypeDescriptorMapper
 {
-    private static readonly ScalarTypeDescriptor _boolean = new(
+    private static readonly ScalarTypeDescriptor s_boolean = new(
         "Boolean",
         new RuntimeTypeInfo(TypeNames.Boolean, true),
         new RuntimeTypeInfo(TypeNames.Boolean, true));
@@ -80,7 +80,7 @@ public static class EntityTypeDescriptorMapper
                     var indicator = new PropertyDescriptor(
                         $"Is{typeName}Fulfilled",
                         $"_is{typeName}Fulfilled",
-                        new NonNullTypeDescriptor(_boolean),
+                        new NonNullTypeDescriptor(s_boolean),
                         null,
                         PropertyKind.FragmentIndicator);
                     properties.Add(indicator.Name, indicator);

@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -126,9 +125,7 @@ public class TypeValidationTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
-        {
-            descriptor.Use(_ => _);
-        }
+            MemberInfo? member)
+            => descriptor.Use(_ => _);
     }
 }

@@ -4,48 +4,21 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-internal sealed class AuthorizationPolicyCache(IAuthorizationPolicyProvider policyProvider)
+internal sealed class AuthorizationPolicyCache
 {
-    private readonly ConcurrentDictionary<string, Task<AuthorizationPolicy>> _cache = new();
+    private readonly ConcurrentDictionary<string, AuthorizationPolicy> _cache = new();
 
-    public Task<AuthorizationPolicy> GetOrCreatePolicyAsync(AuthorizeDirective directive)
+    public AuthorizationPolicy? LookupPolicy(AuthorizeDirective directive)
     {
         var cacheKey = directive.GetPolicyCacheKey();
 
-        return _cache.GetOrAdd(cacheKey, _ => BuildAuthorizationPolicy(directive.Policy, directive.Roles));
+        return _cache.GetValueOrDefault(cacheKey);
     }
 
-    private async Task<AuthorizationPolicy> BuildAuthorizationPolicy(
-        string? policyName,
-        IReadOnlyList<string>? roles)
+    public void CachePolicy(AuthorizeDirective directive, AuthorizationPolicy policy)
     {
-        var policyBuilder = new AuthorizationPolicyBuilder();
+        var cacheKey = directive.GetPolicyCacheKey();
 
-        if (!string.IsNullOrWhiteSpace(policyName))
-        {
-            var policy = await policyProvider.GetPolicyAsync(policyName).ConfigureAwait(false);
-
-            if (policy is not null)
-            {
-                policyBuilder = policyBuilder.Combine(policy);
-            }
-            else
-            {
-                throw new MissingAuthorizationPolicyException(policyName);
-            }
-        }
-        else
-        {
-            var defaultPolicy = await policyProvider.GetDefaultPolicyAsync().ConfigureAwait(false);
-
-            policyBuilder = policyBuilder.Combine(defaultPolicy);
-        }
-
-        if (roles is not null)
-        {
-            policyBuilder = policyBuilder.RequireRole(roles);
-        }
-
-        return policyBuilder.Build();
+        _cache.TryAdd(cacheKey, policy);
     }
 }

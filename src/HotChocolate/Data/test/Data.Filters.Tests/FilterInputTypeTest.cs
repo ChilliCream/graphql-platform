@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
@@ -263,8 +262,11 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         // assert
-        var exception = Assert.Throws<SchemaException>(() => builder.Create());
-        exception.Message.MatchSnapshot();
+        var exception = Assert.Throws<SchemaException>(builder.Create);
+        Assert.Contains(
+            "No filter convention found for scope `Foo`. Register a convention with "
+            + "`AddConvention<IFilterConvention, TYourConvention>(\"Foo\")` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -281,8 +283,10 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         // assert
-        var exception = Assert.Throws<SchemaException>(() => builder.Create());
-        exception.Message.MatchSnapshot();
+        var exception = Assert.Throws<SchemaException>(builder.Create);
+        Assert.Contains(
+            "No default filter convention found. Call `AddFiltering()` on the schema builder.",
+            exception.Message);
     }
 
     [Fact]
@@ -295,46 +299,46 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         // assert
-        builder.Create().Print().MatchSnapshot();
+        builder.Create().ToString().MatchSnapshot();
     }
 
     [Fact]
     public void FilterInputType_Should_NotOverrideHandler_OnBeforeCreate()
     {
         // arrange
-        var builder = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<CustomHandlerQueryType>()
             .Create();
 
         // act
-        builder.TryGetType<CustomHandlerFilterInputType>(
+        schema.Types.TryGetType<CustomHandlerFilterInputType>(
             "TestName",
             out var type);
 
         // assert
         Assert.NotNull(type);
-        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type!.Fields["id"]).Handler);
+        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type.Fields["id"]).Handler);
     }
 
     [Fact]
     public void FilterInputType_Should_NotOverrideHandler_OnBeforeCompletion()
     {
         // arrange
-        var builder = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<CustomHandlerQueryType>()
             .Create();
 
         // act
-        builder.TryGetType<CustomHandlerFilterInputType>(
+        schema.Types.TryGetType<CustomHandlerFilterInputType>(
             "TestName",
             out var type);
 
         // assert
         Assert.NotNull(type);
         Assert.IsType<CustomHandler>(
-            Assert.IsType<FilterField>(type!.Fields["friends"]).Handler);
+            Assert.IsType<FilterField>(type.Fields["friends"]).Handler);
         Assert.IsType<QueryableDefaultFieldHandler>(
             Assert.IsType<FilterField>(type.Fields["name"]).Handler);
     }
@@ -379,6 +383,79 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     [Fact]
+    public void FilterInputType_Field_ArrayLengthExpression_Infers_IntOperationType()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("cardReaders")
+                    .Resolve(new List<CardReader>())
+                    .UseFiltering<CardReaderFilterInputType>())
+            .Create();
+
+        // act
+        Assert.True(
+            schema.Types.TryGetType<CardReaderFilterInputType>(
+                "CardReaderFilterInput",
+                out var filterType));
+
+        // assert
+        Assert.NotNull(filterType);
+        var lengthField = Assert.IsType<FilterField>(filterType.Fields["cardReaderUidLength"]);
+        Assert.IsType<IntOperationFilterInputType>(lengthField.Type);
+    }
+
+    [Fact]
+    public void FilterInputType_WithGlobalObjectIdentification_AppliesGlobalIdFormatter()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .ModifyOptions(x => x.StrictValidation = false)
+            .AddGlobalObjectIdentification()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Field("books")
+                    .UseFiltering<BookFilterInput>()
+                    .Resolve(new List<Book>()));
+
+        // act
+        var schema = builder.Create();
+        var idFilterField = ((BookFilterInput)schema.Types[nameof(BookFilterInput)]).Fields["id"];
+
+        // assert
+        Assert.True(
+            ((IdOperationFilterInputType)idFilterField.Type).Fields.All(
+                f => f.Formatter is FilterGlobalIdInputValueFormatter));
+    }
+
+    [Fact]
+    public void FilterInputType_WithoutGlobalObjectIdentification_DoesNotApplyGlobalIdFormatter()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .ModifyOptions(x => x.StrictValidation = false)
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Field("books")
+                    .UseFiltering<BookFilterInput>()
+                    .Resolve(new List<Book>()));
+
+        // act
+        var schema = builder.Create();
+        var idFilterField = ((BookFilterInput)schema.Types[nameof(BookFilterInput)]).Fields["id"];
+
+        // assert
+        Assert.True(
+            ((IdOperationFilterInputType)idFilterField.Type).Fields.All(
+                f => f.Formatter is not FilterGlobalIdInputValueFormatter));
+    }
+
+    [Fact]
     public async Task Execute_CoerceWhereArgument_MatchesSnapshot()
     {
         // arrange
@@ -408,6 +485,32 @@ public class FilterInputTypeTest : FilterTestBase
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public void FilterInputType_Honors_SortFieldsByName()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s
+                .AddType(new FilterInputType<FilterWithNonAlphabeticallyMembers>())
+                .ModifyOptions(x => x.SortFieldsByName = true));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_ShouldInferDeprecatedDirective_ForDeprecatedFields()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s.AddType(new FilterInputType<TypeWithDeprecatedField>()));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
     public class FooDirectiveType
         : DirectiveType<FooDirective>
     {
@@ -419,20 +522,18 @@ public class FilterInputTypeTest : FilterTestBase
         }
     }
 
-    public class FooDirective
-    {
-    }
+    public class FooDirective;
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class Bar
     {
-        public string Baz { get; set; } = default!;
+        public string Baz { get; set; } = null!;
 
-        public string Qux { get; set; } = default!;
+        public string Qux { get; set; } = null!;
     }
 
     public class Query
@@ -491,16 +592,16 @@ public class FilterInputTypeTest : FilterTestBase
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
-        public List<User> Friends { get; set; } = default!;
+        public List<User> Friends { get; set; } = null!;
     }
 
     public interface ITest
     {
-        public string? Prop { get; set; }
+        string? Prop { get; set; }
 
-        public string? Prop2 { get; set; }
+        string? Prop2 { get; set; }
     }
 
     public interface ITest<T>
@@ -519,7 +620,12 @@ public class FilterInputTypeTest : FilterTestBase
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
+    }
+
+    public class CardReader
+    {
+        public byte[] CardReaderUid { get; set; } = [];
     }
 
     public class IgnoreTestFilterInputType
@@ -536,6 +642,16 @@ public class FilterInputTypeTest : FilterTestBase
         protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
         {
             descriptor.Ignore(x => x.Id);
+        }
+    }
+
+    public class CardReaderFilterInputType : FilterInputType<CardReader>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<CardReader> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Name("CardReaderFilterInput");
+            descriptor.Field(x => x.CardReaderUid.Length).Name("cardReaderUidLength");
         }
     }
 
@@ -596,8 +712,8 @@ public class FilterInputTypeTest : FilterTestBase
     {
         public bool CanHandle(
             ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
+            IFilterInputTypeConfiguration typeConfiguration,
+            IFilterFieldConfiguration fieldConfiguration)
         {
             throw new NotImplementedException();
         }
@@ -611,4 +727,18 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     public record struct ExampleValueType(string Foo, string Bar);
+
+    public record FilterWithNonAlphabeticallyMembers(int X, int A, int Y, int Z, int B);
+
+    public record TypeWithDeprecatedField(
+        string Foo,
+        [property: GraphQLDeprecated("old")] string? DeprecatedField = null);
+
+    private class BookFilterInput : FilterInputType<Book>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.Field(b => b.Id).Type<IdOperationFilterInputType>();
+        }
+    }
 }

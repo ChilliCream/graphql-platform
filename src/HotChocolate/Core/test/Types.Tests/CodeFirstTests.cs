@@ -1,7 +1,4 @@
-#nullable enable
-
 using System.Collections;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,7 +66,7 @@ public class CodeFirstTests
             .Create();
 
         // assert
-        var exists = schema.TryGetType<INamedType>("Url", out _);
+        var exists = schema.Types.TryGetType<ITypeDefinition>("Url", out _);
         Assert.False(exists);
     }
 
@@ -80,7 +77,7 @@ public class CodeFirstTests
             .AddQueryType<QueryInterfaces>()
             .AddType<Foo>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -92,7 +89,7 @@ public class CodeFirstTests
             .AddType<Foo>()
             .AddType<IBar>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -227,6 +224,70 @@ public class CodeFirstTests
             """);
     }
 
+    [Fact]
+    public async Task Schema_Name_With_Hyphen()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer("abc-def")
+                .AddQueryType<QueryWithEnumerableArg>()
+                .BuildSchemaAsync("abc-def");
+
+        schema.MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithEnumerableArg
+            }
+
+            type QueryWithEnumerableArg {
+              foo(foo: [String!]!): String!
+            }
+            """);
+    }
+
+    [Fact]
+    public void Disallow_Implicitly_Binding_Object()
+    {
+        Assert.Throws<ArgumentException>(
+            () => SchemaBuilder.New().BindRuntimeType<object, StringType>());
+    }
+
+    [Fact]
+    public async Task DisposeSchemaService()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        var customService = new CustomService();
+        var customAsyncService = new CustomAsyncService();
+
+        var services = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType(c => c.Field("a").Resolve("b"))
+            .ConfigureSchemaServices(s =>
+            {
+                s.AddSingleton(_ => customService);
+                s.AddSingleton(_ => customAsyncService);
+            })
+            .Configure(s => s.EvictionTimeout = TimeSpan.FromSeconds(3))
+            .Services
+            .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<IRequestExecutorManager>();
+        var executor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        Assert.NotNull(executor.Schema.Services.GetService<CustomService>());
+        Assert.NotNull(executor.Schema.Services.GetService<CustomAsyncService>());
+
+        // act
+        manager.EvictExecutor();
+
+        // assert
+        await customService.WaitAsync(cts.Token);
+        await customAsyncService.WaitAsync(cts.Token);
+
+        Assert.True(customService.Triggered);
+        Assert.True(customAsyncService.Triggered);
+    }
+
     public class Query
     {
         public string SayHello(string name) =>
@@ -299,9 +360,7 @@ public class CodeFirstTests
             throw new NotImplementedException();
     }
 
-    public class Cat : Dog
-    {
-    }
+    public class Cat : Dog;
 
     public class QueryWithDateTimeType : ObjectType<QueryWithDateTime>
     {
@@ -360,7 +419,7 @@ public class CodeFirstTests
 
     public class EquatableExample : IStructuralEquatable
     {
-        public string Some { get; set; } = default!;
+        public string Some { get; set; } = null!;
 
         public bool Equals(object? other, IEqualityComparer comparer) => throw new NotImplementedException();
 
@@ -374,7 +433,7 @@ public class CodeFirstTests
 
     public class ComparableExample : IComparable, IComparable<EquatableExample>
     {
-        public string Some { get; set; } = default!;
+        public string Some { get; set; } = null!;
 
         public int CompareTo(object? obj)
         {
@@ -413,6 +472,45 @@ public class CodeFirstTests
         public Example NestedClassNullableString()
         {
             return new Example();
+        }
+    }
+
+    public class CustomService : IDisposable
+    {
+        private readonly TaskCompletionSource _tcs = new();
+
+        public bool Triggered { get; set; }
+
+        public async Task WaitAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.Register(() => _tcs.TrySetCanceled());
+            await _tcs.Task;
+        }
+
+        public void Dispose()
+        {
+            Triggered = true;
+            _tcs.TrySetResult();
+        }
+    }
+
+    public class CustomAsyncService : IAsyncDisposable
+    {
+        private readonly TaskCompletionSource _tcs = new();
+
+        public bool Triggered { get; set; }
+
+        public async Task WaitAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.Register(() => _tcs.TrySetCanceled());
+            await _tcs.Task;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Triggered = true;
+            _tcs.TrySetResult();
+            return default;
         }
     }
 }

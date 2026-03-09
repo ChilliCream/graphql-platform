@@ -1,16 +1,16 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Caching.Memory;
 using HotChocolate.CostAnalysis.Caching;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.CostAnalysis.Doubles;
 
-internal class FakeCostMetricsCache(int capacity = 100) : ICostMetricsCache
+internal class FakeCostMetricsCache(int capacity = 256) : ICostMetricsCache
 {
     private readonly Cache<CostMetrics> _cache = new(capacity);
 
     public int Capacity => _cache.Capacity;
 
-    public int Count => _cache.Usage;
+    public int Count => _cache.Count;
 
     public int Hits { get; private set; }
 
@@ -18,9 +18,7 @@ internal class FakeCostMetricsCache(int capacity = 100) : ICostMetricsCache
 
     public int Additions { get; private set; }
 
-    public bool TryGetCostMetrics(
-        string operationId,
-        [NotNullWhen(true)] out CostMetrics? costMetrics)
+    public bool TryGetCostMetrics(string operationId, [NotNullWhen(true)] out CostMetrics? costMetrics)
     {
         var result = _cache.TryGet(operationId, out costMetrics);
 
@@ -36,13 +34,9 @@ internal class FakeCostMetricsCache(int capacity = 100) : ICostMetricsCache
         return result;
     }
 
-    public void TryAddCostMetrics(
-        string operationId,
-        CostMetrics costMetrics)
+    public void TryAddCostMetrics(string operationId, CostMetrics costMetrics)
     {
-        _cache.GetOrCreate(operationId, () => costMetrics);
+        _cache.GetOrCreate(operationId, static (_, m) => m, costMetrics);
         Additions++;
     }
-
-    public void Clear() => _cache.Clear();
 }

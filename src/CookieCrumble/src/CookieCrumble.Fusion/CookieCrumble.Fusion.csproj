@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>CookieCrumble.Fusion</AssemblyName>
+    <RootNamespace>CookieCrumble.Fusion</RootNamespace>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CookieCrumble\CookieCrumble.csproj" />
+  </ItemGroup>
+
+</Project>

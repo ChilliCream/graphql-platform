@@ -1,6 +1,6 @@
 type Query {
   hero(episode: Episode! = NEW_HOPE): Character
-  heroByTraits(traits: JSON!): Character
+  heroByTraits(traits: Any!): Character
   heroes(episodes: [Episode!]!): [Character!]
   character(characterIds: [String!]!): [Character!]! @cost(weight: "10")
   search(text: String!): [SearchResult]

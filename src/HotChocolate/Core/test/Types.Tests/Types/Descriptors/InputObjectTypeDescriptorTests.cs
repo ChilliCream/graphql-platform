@@ -17,7 +17,7 @@ public class InputObjectTypeDescriptorTests
 
         // assert
         var description =
-            descriptor.CreateDefinition();
+            descriptor.CreateConfiguration();
 
         Assert.Collection(description.Fields,
             t => Assert.Equal("name", t.Name));
@@ -36,7 +36,7 @@ public class InputObjectTypeDescriptorTests
 
         // assert
         var description =
-            descriptor.CreateDefinition();
+            descriptor.CreateConfiguration();
 
         Assert.Collection(description.Fields,
             t => Assert.Equal("id", t.Name),
@@ -46,6 +46,6 @@ public class InputObjectTypeDescriptorTests
     public class SimpleInput
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 }

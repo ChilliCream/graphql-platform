@@ -1,9 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
@@ -31,28 +32,35 @@ public class FilterInputTypeDescriptor<T>
 
     protected internal FilterInputTypeDescriptor(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope)
-        : base(context, definition, scope)
+        : base(context, configuration, scope)
     {
     }
 
     protected override void OnCompleteFields(
-        IDictionary<string, FilterFieldDefinition> fields,
+        IDictionary<string, FilterFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
-        if (Definition.Fields.IsImplicitBinding())
+        if (Configuration.Fields.IsImplicitBinding())
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
-                Definition.EntityType!,
-                p => FilterFieldDescriptor
-                    .New(Context, Definition.Scope, p)
-                    .CreateDefinition(),
+                Configuration.EntityType!,
+                p =>
+                {
+                    var config = FilterFieldDescriptor
+                        .New(Context, Configuration.Scope, p)
+                        .CreateConfiguration();
+                    config.IsImplicit = true;
+                    return config;
+                },
                 fields,
                 handledProperties,
                 include: (_, member)
-                    => member is PropertyInfo && !handledProperties.Contains(member));
+                    => member is PropertyInfo p
+                        && !handledProperties.Contains(member)
+                        && !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
         }
 
         base.OnCompleteFields(fields, handledProperties);
@@ -96,31 +104,44 @@ public class FilterInputTypeDescriptor<T>
     /// <inheritdoc />
     public IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
-        switch (propertyOrMember.TryExtractMember())
+        if (propertyOrMember.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
         {
-            case PropertyInfo m:
-                var fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == m);
-
-                if (fieldDescriptor is null)
-                {
-                    fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
-                    Fields.Add(fieldDescriptor);
-                }
-
-                return fieldDescriptor;
-
-            case MethodInfo:
-                throw new ArgumentException(
-                    FilterInputTypeDescriptor_Field_OnlyProperties,
-                    nameof(propertyOrMember));
-
-            default:
-                fieldDescriptor = FilterFieldDescriptor
-                    .New(Context, Definition.Scope, propertyOrMember);
-                Fields.Add(fieldDescriptor);
-                return fieldDescriptor;
+            var arrayLengthFieldDescriptor =
+                FilterFieldDescriptor.New(
+                    Context,
+                    Configuration.Scope,
+                    propertyOrMember);
+            Fields.Add(arrayLengthFieldDescriptor);
+            return arrayLengthFieldDescriptor;
         }
+
+        if (TryExtractDirectMember(propertyOrMember, out var member))
+        {
+            switch (member)
+            {
+                case PropertyInfo m:
+                    var fieldDescriptor =
+                        Fields.FirstOrDefault(t => t.Configuration.Member == m);
+
+                    if (fieldDescriptor is null)
+                    {
+                        fieldDescriptor = FilterFieldDescriptor.New(Context, Configuration.Scope, m);
+                        Fields.Add(fieldDescriptor);
+                    }
+
+                    return fieldDescriptor;
+
+                case MethodInfo:
+                    throw new ArgumentException(
+                        FilterInputTypeDescriptor_Field_OnlyProperties,
+                        nameof(propertyOrMember));
+            }
+        }
+
+        var expressionFieldDescriptor = FilterFieldDescriptor
+            .New(Context, Configuration.Scope, expression: propertyOrMember);
+        Fields.Add(expressionFieldDescriptor);
+        return expressionFieldDescriptor;
     }
 
     /// <inheritdoc />
@@ -143,12 +164,12 @@ public class FilterInputTypeDescriptor<T>
         if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
             var fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Member == p);
+                Fields.FirstOrDefault(t => t.Configuration.Member == p);
 
             if (fieldDescriptor is null)
             {
                 fieldDescriptor =
-                    IgnoreFilterFieldDescriptor.New(Context, Definition.Scope, p);
+                    IgnoreFilterFieldDescriptor.New(Context, Configuration.Scope, p);
                 Fields.Add(fieldDescriptor);
             }
 
@@ -193,5 +214,30 @@ public class FilterInputTypeDescriptor<T>
     {
         base.Directive(name, arguments);
         return this;
+    }
+
+    private static bool TryExtractDirectMember<TField>(
+        Expression<Func<T, TField>> propertyOrMember,
+        [NotNullWhen(true)] out MemberInfo? member)
+    {
+        var expression = propertyOrMember.Body;
+
+        while (expression is UnaryExpression
+            {
+                NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked
+            } unaryExpression)
+        {
+            expression = unaryExpression.Operand;
+        }
+
+        if (expression is MemberExpression { Expression: ParameterExpression }
+            || expression is MethodCallExpression { Object: ParameterExpression })
+        {
+            member = propertyOrMember.TryExtractMember();
+            return member is not null;
+        }
+
+        member = null;
+        return false;
     }
 }

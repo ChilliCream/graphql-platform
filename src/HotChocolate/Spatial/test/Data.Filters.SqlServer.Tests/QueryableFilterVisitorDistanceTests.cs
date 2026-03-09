@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
@@ -10,30 +9,30 @@ namespace HotChocolate.Data.Spatial.Filters;
 public class QueryableFilterVisitorDistanceTests
     : SchemaCache
 {
-    private static readonly Polygon _truePolygon = new(
+    private static readonly Polygon s_truePolygon = new(
         new LinearRing(
         [
             new Coordinate(0, 0),
             new Coordinate(0, 2),
             new Coordinate(2, 2),
             new Coordinate(2, 0),
-            new Coordinate(0, 0),
+            new Coordinate(0, 0)
         ]));
 
-    private static readonly Polygon _falsePolygon = new(
+    private static readonly Polygon s_falsePolygon = new(
         new LinearRing(
         [
             new Coordinate(0, 0),
             new Coordinate(0, -2),
             new Coordinate(-2, -2),
             new Coordinate(-2, 0),
-            new Coordinate(0, 0),
+            new Coordinate(0, 0)
         ]));
 
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = _truePolygon, },
-        new() { Id = 2, Bar = _falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon },
+        new() { Id = 2, Bar = s_falsePolygon }
     ];
 
     public QueryableFilterVisitorDistanceTests(PostgreSqlResource<PostgisConfig> resource)
@@ -45,7 +44,7 @@ public class QueryableFilterVisitorDistanceTests
     public async Task Create_Distance_Expression()
     {
         // arrange
-        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(s_fooEntities);
 
         // act
         // assert
@@ -90,10 +89,13 @@ public class QueryableFilterVisitorDistanceTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2"), res2, "1")
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
+            .AddResult(res1, "2")
+            .AddResult(res2, "1")
             .MatchAsync();
     }
 
@@ -104,7 +106,5 @@ public class QueryableFilterVisitorDistanceTests
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 }

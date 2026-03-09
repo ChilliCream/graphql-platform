@@ -13,7 +13,7 @@ a Result:
 
 a Query:
 ---------------
-find({ "Bar" : { "$regex" : /a/ } })
+find({ "Bar" : { "$regex" : { "$regularExpression" : { "pattern" : "a", "options" : "" } } } })
 ---------------
 
 b Result:
@@ -31,7 +31,7 @@ b Result:
 
 b Query:
 ---------------
-find({ "Bar" : { "$regex" : /b/ } })
+find({ "Bar" : { "$regex" : { "$regularExpression" : { "pattern" : "b", "options" : "" } } } })
 ---------------
 
 null

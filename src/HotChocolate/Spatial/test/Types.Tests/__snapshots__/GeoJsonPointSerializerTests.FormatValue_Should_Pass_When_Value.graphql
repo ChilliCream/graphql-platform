@@ -1,0 +1,8 @@
+{
+  type: Point,
+  coordinates: [
+    30,
+    10
+  ],
+  crs: 0
+}

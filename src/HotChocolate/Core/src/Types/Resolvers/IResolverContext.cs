@@ -1,39 +1,38 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers;
 
 /// <summary>
-/// The resolver context represent the execution context for a specific
+/// The resolver context represents the execution context for a specific
 /// field that is being resolved.
 /// </summary>
-public interface IResolverContext : IHasContextData
+public interface IResolverContext : IHasContextData, IFeatureProvider
 {
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.
     /// </summary>
-    ISchema Schema { get; }
+    Schema Schema { get; }
 
     /// <summary>
     /// Gets the object type on which the field resolver is being executed.
     /// </summary>
-    IObjectType ObjectType { get; }
+    ObjectType ObjectType { get; }
 
     /// <summary>
     /// Gets the operation from the query that is being executed.
     /// </summary>
-    IOperation Operation { get; }
+    Operation Operation { get; }
 
     /// <summary>
     /// Gets the field selection for which a field resolver is
     /// being executed.
     /// </summary>
-    ISelection Selection { get; }
+    Selection Selection { get; }
 
     /// <summary>
     /// Gets access to the coerced variable values of the request.
@@ -46,10 +45,15 @@ public interface IResolverContext : IHasContextData
     Path Path { get; }
 
     /// <summary>
+    /// Gets the selection include flags.
+    /// </summary>
+    ulong IncludeFlags { get; }
+
+    /// <summary>
     /// Gets the previous (parent) resolver result.
     /// </summary>
     /// <typeparam name="T">
-    /// The type to which the result shall be casted.
+    /// The type to which the result shall be cast.
     /// </typeparam>
     /// <returns>
     /// Returns the previous (parent) resolver result.
@@ -63,7 +67,7 @@ public interface IResolverContext : IHasContextData
     /// The argument name.
     /// </param>
     /// <typeparam name="T">
-    /// The type to which the argument shall be casted to.
+    /// The type to which the argument shall be cast to.
     /// </typeparam>
     /// <returns>
     /// Returns the value of the specified field argument as literal.
@@ -77,7 +81,7 @@ public interface IResolverContext : IHasContextData
     /// The argument name.
     /// </param>
     /// <typeparam name="TValueNode">
-    /// The type to which the argument shall be casted to.
+    /// The type to which the argument shall be cast to.
     /// </typeparam>
     /// <returns>
     /// Returns the value of the specified field argument as literal.
@@ -91,7 +95,7 @@ public interface IResolverContext : IHasContextData
     /// The argument name.
     /// </param>
     /// <typeparam name="T">
-    /// The type to which the argument shall be casted to.
+    /// The type to which the argument shall be cast to.
     /// </typeparam>
     /// <returns>
     /// Returns the value of the specified field argument as optional.
@@ -129,7 +133,7 @@ public interface IResolverContext : IHasContextData
     /// <returns>
     /// Returns the specified service.
     /// </returns>
-    T? Service<T>(object key) where T : notnull;
+    T Service<T>(object key) where T : notnull;
 
     /// <summary>
     /// Gets a resolver object containing one or more resolvers.
@@ -183,7 +187,7 @@ public interface IResolverContext : IHasContextData
 
     /// <summary>
     /// Notifies when the connection underlying this request is aborted
-    /// and thus request operations should be cancelled.
+    /// and thus request operations should be canceled.
     /// </summary>
     CancellationToken RequestAborted { get; }
 
@@ -230,7 +234,7 @@ public interface IResolverContext : IHasContextData
     /// <param name="configure">
     /// A delegate to further configure the error object.
     /// </param>
-    void ReportError(Exception exception, Action<IErrorBuilder>? configure = null);
+    void ReportError(Exception exception, Action<ErrorBuilder>? configure = null);
 
     /// <summary>
     /// Gets the pre-compiled selections for the selection-set
@@ -250,9 +254,9 @@ public interface IResolverContext : IHasContextData
     /// Returns the pre-compiled selections for the <paramref name="selection" />
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
-    IReadOnlyList<ISelection> GetSelections(
-        IObjectType typeContext,
-        ISelection? selection = null,
+    SelectionEnumerator GetSelections(
+        ObjectType typeContext,
+        Selection? selection = null,
         bool allowInternals = false);
 
     /// <summary>

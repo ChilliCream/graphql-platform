@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Sorting;
 
 public interface ISortFieldDescriptor
-    : IDescriptor<SortFieldDefinition>
+    : IDescriptor<SortFieldConfiguration>
     , IFluent
 {
     ISortFieldDescriptor Name(string value);

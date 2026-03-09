@@ -1,10 +1,8 @@
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>
 /// This exception indicates that the specified
-/// <see cref="InvalidSchemaCoordinateException.Coordinate"/>
+/// <see cref="Coordinate"/>
 /// could not be resolved.
 /// </summary>
 public class InvalidSchemaCoordinateException : Exception

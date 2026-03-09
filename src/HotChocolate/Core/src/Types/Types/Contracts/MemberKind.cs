@@ -28,5 +28,5 @@ public enum MemberKind
     /// <summary>
     /// GraphQL Directive Argument.
     /// </summary>
-    DirectiveArgument,
+    DirectiveArgument
 }

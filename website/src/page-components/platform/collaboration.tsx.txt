@@ -1,0 +1,217 @@
+import React, { FC } from "react";
+import styled from "styled-components";
+
+import { SiteLayout } from "@/components/layout";
+import {
+  Card,
+  CardOffer,
+  CardsContainer,
+  ContentSection,
+  Hero,
+  HeroLink,
+  HeroTeaser,
+  HeroTitleFirst,
+  Link,
+  NextStepsContentSection,
+  SEO,
+  SrOnly,
+} from "@/components/misc";
+import {
+  MostRecentBlogPostsSection,
+  NewsletterSection,
+} from "@/components/widgets";
+import { useAnimationIntersectionObserver } from "@/hooks";
+import { FADE_IN, ZOOM_IN } from "@/style";
+
+// Images
+import BannerSvg from "@/images/collaboration/banner.svg";
+
+const CollaborationPage: FC = () => {
+  useAnimationIntersectionObserver();
+
+  return (
+    <SiteLayout>
+      <SEO title="Collaboration" />
+      <BackgroundContainer>
+        <Banner />
+      </BackgroundContainer>
+      <CollaborationPageHero>
+        <HeroTitleFirst>Together, We Are Better.</HeroTitleFirst>
+        <HeroTeaser>
+          Effortlessly share documents with your team and streamline your setup
+          by defining connection details just once. Collaborate across teams to
+          test and refine your API, and keep your projects organized with
+          customizable workspaces and environments. Unlock the full potential of
+          GraphQL with Nitro.
+        </HeroTeaser>
+        <HeroLink to="">Get Started</HeroLink>
+      </CollaborationPageHero>
+      <ContentSection
+        title="Batteries Included"
+        text="Everything you need to build great APIs - and more"
+        noBackground
+      >
+        <CardsContainer>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>Authentication Flows</h5>
+              </header>
+              <p>
+                Choose between various authentication flows like basic, bearer
+                or OAuth 2.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>Organization Workspaces</h5>
+              </header>
+              <p>
+                Organize your GraphQL APIs and collaborate with colleagues
+                across your organization with ease.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>Document Synchronization</h5>
+              </header>
+              <p>
+                Keep your documents safe across all your devices and your teams.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>
+                  PWA <SrOnly>(Progressive Web Application)</SrOnly> Support
+                </h5>
+              </header>
+              <p>
+                Use your favorite Browser to install Nitro as a PWA on
+                your Device without requiring administrative privileges.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>Beautiful Themes</h5>
+              </header>
+              <p>
+                Choose your single preferred theme or let the system
+                automatically switch between dark and light theme.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>GraphQL File Upload</h5>
+              </header>
+              <p>
+                Implements the latest version of the{" "}
+                <Link to="https://github.com/jaydenseric/graphql-multipart-request-spec">
+                  GraphQL multipart request spec
+                </Link>
+                .
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>
+                  Subscriptions over SSE <SrOnly>(Server-Sent Events)</SrOnly>
+                </h5>
+              </header>
+              <p>
+                Supports{" "}
+                <Link to="https://github.com/enisdenjo/graphql-sse">
+                  GraphQL subscriptions over Server-Sent Events
+                </Link>
+                .
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>Performant GraphQL IDE</h5>
+              </header>
+              <p>
+                Lagging apps can be frustrating. We do not accept that and keep
+                always an eye on performance so that you can get your task done
+                fast.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h5>
+                  Subscriptions over WS <SrOnly>(WebSockets)</SrOnly>
+                </h5>
+              </header>
+              <p>
+                Supports{" "}
+                <Link to="https://github.com/enisdenjo/graphql-ws">
+                  GraphQL subscriptions over WebSocket
+                </Link>{" "}
+                as well as the{" "}
+                <Link to="https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md">
+                  Apollo subscription protocol
+                </Link>
+                .
+              </p>
+            </CardOffer>
+          </Card>
+        </CardsContainer>
+      </ContentSection>
+      <NextStepsContentSection
+        title="Collaborate, Create, Conquer"
+        text={
+          <>
+            Join us now and bring your team closer together for a future of
+            efficient, collaborative development.
+            <br />
+            This platform is the gateway to seamless teamwork and innovative
+            solutions.
+          </>
+        }
+        primaryLink="mailto:contact@chillicream.com?subject=Demo"
+        primaryLinkText="Book a Demo"
+      />
+      <NewsletterSection />
+      <MostRecentBlogPostsSection />
+    </SiteLayout>
+  );
+};
+
+export default CollaborationPage;
+
+const Banner = styled(BannerSvg)`
+  animation: 0.5s ease-in-out ${FADE_IN} forwards,
+    0.5s ease-in-out ${ZOOM_IN} forwards;
+  opacity: 0;
+  transform: translateZ(-1px);
+`;
+
+const BackgroundContainer = styled.div`
+  position: absolute;
+  z-index: -1;
+  top: 572px;
+  width: 100%;
+  max-width: 1104px;
+  perspective: 1px;
+`;
+
+const CollaborationPageHero = styled(Hero)`
+  @media only screen and (min-width: 992px) {
+    padding-bottom: 620px;
+  }
+`;

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
@@ -7,17 +6,17 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorComparableTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { BarShort = 12, }, new() { BarShort = 14, }, new() { BarShort = 13, },
+        new() { BarShort = 12 }, new() { BarShort = 14 }, new() { BarShort = 13 }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { BarShort = 12, },
-        new() { BarShort = null, },
-        new() { BarShort = 14, },
-        new() { BarShort = 13, },
+        new() { BarShort = 12 },
+        new() { BarShort = null },
+        new() { BarShort = 14 },
+        new() { BarShort = 13 }
     ];
 
     private readonly SchemaCache _cache;
@@ -31,7 +30,7 @@ public class QueryableSortVisitorComparableTests
     public async Task Create_Short_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -45,14 +44,10 @@ public class QueryableSortVisitorComparableTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -60,8 +55,8 @@ public class QueryableSortVisitorComparableTests
     public async Task Create_Short_OrderBy_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
-            _fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableSortType>(
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -75,14 +70,10 @@ public class QueryableSortVisitorComparableTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -109,11 +100,7 @@ public class QueryableSortVisitorComparableTests
         public short? BarShort { get; set; }
     }
 
-    public class FooSortType : SortInputType<Foo>
-    {
-    }
+    public class FooSortType : SortInputType<Foo>;
 
-    public class FooNullableSortType : SortInputType<FooNullable>
-    {
-    }
+    public class FooNullableSortType : SortInputType<FooNullable>;
 }

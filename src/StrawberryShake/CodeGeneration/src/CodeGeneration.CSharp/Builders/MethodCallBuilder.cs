@@ -28,7 +28,7 @@ public class MethodCallBuilder : ICode
     {
         _methodName =
         [
-            methodName,
+            methodName
         ];
         return this;
     }
@@ -115,10 +115,7 @@ public class MethodCallBuilder : ICode
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (_determineStatement)
         {

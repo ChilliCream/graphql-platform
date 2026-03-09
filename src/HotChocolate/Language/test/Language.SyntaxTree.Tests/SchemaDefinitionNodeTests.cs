@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class SchemaDefinitionNodeTests
@@ -21,14 +19,14 @@ public class SchemaDefinitionNodeTests
         var c = new SchemaDefinitionNode(
             new Location(1, 1, 1, 1),
             new StringValueNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<OperationTypeDefinitionNode>(0));
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -54,14 +52,14 @@ public class SchemaDefinitionNodeTests
         var c = new SchemaDefinitionNode(
             new Location(3, 3, 3, 3),
             new StringValueNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<OperationTypeDefinitionNode>(0));
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);

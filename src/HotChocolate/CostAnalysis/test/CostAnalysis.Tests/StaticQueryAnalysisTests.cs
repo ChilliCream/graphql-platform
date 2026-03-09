@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -173,7 +172,6 @@ public sealed class StaticQueryAnalysisTests
                 "examples(limit: null) { field1, field2 }"
             },
             // @listSize directive with slicing arguments (no limit in query).
-            // Error: "Expected 1 slicing argument, 0 provided.".
             {
                 4,
                 """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
@@ -189,7 +187,6 @@ public sealed class StaticQueryAnalysisTests
                 "examples(limit: null) { field1, field2 }"
             },
             // @listSize directive with slicing arguments (no limit in query, with assumedSize).
-            // Error: "Expected 1 slicing argument, 0 provided.".
             {
                 6,
                 """

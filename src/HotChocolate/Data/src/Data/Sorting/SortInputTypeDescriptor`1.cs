@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
@@ -31,33 +33,148 @@ public class SortInputTypeDescriptor<T>
 
     protected internal SortInputTypeDescriptor(
         IDescriptorContext context,
-        SortInputTypeDefinition definition,
+        SortInputTypeConfiguration configuration,
         string? scope)
-        : base(context, definition, scope)
+        : base(context, configuration, scope)
     {
     }
 
     protected override void OnCompleteFields(
-        IDictionary<string, SortFieldDefinition> fields,
+        IDictionary<string, SortFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
-        if (Definition.Fields.IsImplicitBinding() &&
-            Definition.EntityType is { })
+        if (Configuration.Fields.IsImplicitBinding()
+            && Configuration.EntityType is { })
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
-                Definition.EntityType,
-                p => SortFieldDescriptor
-                    .New(Context, Definition.Scope, p)
-                    .CreateDefinition(),
+                Configuration.EntityType,
+                p =>
+                {
+                    var config = SortFieldDescriptor
+                        .New(Context, Configuration.Scope, p)
+                        .CreateConfiguration();
+                    config.IsImplicit = true;
+                    return config;
+                },
                 fields,
                 handledProperties,
-                include: (_, member) => member is PropertyInfo &&
-                    !handledProperties.Contains(member) &&
-                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
+                include: (_, member) => member is PropertyInfo p
+                && !handledProperties.Contains(member)
+                && IsSortableProperty(p));
         }
 
         base.OnCompleteFields(fields, handledProperties);
+    }
+
+    private bool IsSortableProperty(PropertyInfo property)
+    {
+        ArgumentNullException.ThrowIfNull(property);
+
+        if (property.GetIndexParameters().Length > 0)
+        {
+            return false;
+        }
+
+        if (!property.CanRead)
+        {
+            return false;
+        }
+
+        if (typeof(IFieldResult).IsAssignableFrom(property.PropertyType))
+        {
+            return false;
+        }
+
+        var runtimeType = Context.TypeInspector.GetReturnType(property, ignoreAttributes: true);
+
+        if (runtimeType.IsArrayOrList)
+        {
+            return false;
+        }
+
+        return IsSortableType(runtimeType, []);
+    }
+
+    private bool IsSortableType(IExtendedType runtimeType, HashSet<Type> inspectedTypes)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(inspectedTypes);
+
+        TypeReference fieldType;
+
+        try
+        {
+            fieldType = Convention.GetFieldType(runtimeType.Source);
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (fieldType is not ExtendedTypeReference { Type.Source: { } sourceType })
+        {
+            return false;
+        }
+
+        if (!TryGetRuntimeTypeFromSortInput(sourceType, out var entityType))
+        {
+            return true;
+        }
+
+        if (!inspectedTypes.Add(entityType))
+        {
+            return false;
+        }
+
+        foreach (var member in Context.TypeInspector.GetMembers(entityType))
+        {
+            if (member is not PropertyInfo property
+                || !IsSortablePropertyCandidate(property))
+            {
+                continue;
+            }
+
+            var propertyType = Context.TypeInspector.GetReturnType(property, ignoreAttributes: true);
+
+            if (propertyType.IsArrayOrList)
+            {
+                continue;
+            }
+
+            if (IsSortableType(propertyType, inspectedTypes))
+            {
+                inspectedTypes.Remove(entityType);
+                return true;
+            }
+        }
+
+        inspectedTypes.Remove(entityType);
+        return false;
+    }
+
+    private static bool IsSortablePropertyCandidate(PropertyInfo property)
+    {
+        ArgumentNullException.ThrowIfNull(property);
+
+        return property.GetIndexParameters().Length == 0
+            && property.CanRead
+            && !typeof(IFieldResult).IsAssignableFrom(property.PropertyType);
+    }
+
+    private static bool TryGetRuntimeTypeFromSortInput(
+        Type sourceType,
+        [NotNullWhen(true)] out Type? entityType)
+    {
+        if (sourceType.IsGenericType
+            && sourceType.GetGenericTypeDefinition() == typeof(SortInputType<>))
+        {
+            entityType = sourceType.GenericTypeArguments[0];
+            return true;
+        }
+
+        entityType = null;
+        return false;
     }
 
     /// <inheritdoc />
@@ -98,15 +215,26 @@ public class SortInputTypeDescriptor<T>
     /// <inheritdoc />
     public ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
+        if (propertyOrMember.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
+        {
+            var arrayLengthFieldDescriptor =
+                SortFieldDescriptor.New(
+                    Context,
+                    Configuration.Scope,
+                    propertyOrMember);
+            Fields.Add(arrayLengthFieldDescriptor);
+            return arrayLengthFieldDescriptor;
+        }
+
         switch (propertyOrMember.TryExtractMember())
         {
             case PropertyInfo m:
                 var fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == m);
+                    Fields.FirstOrDefault(t => t.Configuration.Member == m);
 
                 if (fieldDescriptor is null)
                 {
-                    fieldDescriptor = SortFieldDescriptor.New(Context, Definition.Scope, m);
+                    fieldDescriptor = SortFieldDescriptor.New(Context, Configuration.Scope, m);
                     Fields.Add(fieldDescriptor);
                 }
 
@@ -119,7 +247,7 @@ public class SortInputTypeDescriptor<T>
 
             default:
                 fieldDescriptor = SortFieldDescriptor
-                    .New(Context, Definition.Scope, propertyOrMember);
+                    .New(Context, Configuration.Scope, propertyOrMember);
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
         }
@@ -138,11 +266,11 @@ public class SortInputTypeDescriptor<T>
         if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
             var fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Member == p);
+                Fields.FirstOrDefault(t => t.Configuration.Member == p);
 
             if (fieldDescriptor is null)
             {
-                fieldDescriptor = IgnoreSortFieldDescriptor.New(Context, Definition.Scope, p);
+                fieldDescriptor = IgnoreSortFieldDescriptor.New(Context, Configuration.Scope, p);
                 Fields.Add(fieldDescriptor);
             }
 

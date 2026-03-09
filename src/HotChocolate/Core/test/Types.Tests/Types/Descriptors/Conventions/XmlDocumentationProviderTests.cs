@@ -1,6 +1,4 @@
 using System.Drawing;
-using System.Text.RegularExpressions;
-using CookieCrumble;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -35,7 +33,8 @@ public class XmlDocumentationProviderTests
                 .GetProperty(nameof(WithMultilineXmlDoc.Foo))!);
 
         // assert
-        Assert.Matches(new Regex(@"\n[ \t]*\n"), description);
+        Assert.NotNull(description);
+        Assert.Matches(@"\n[ \t]*\n", description);
         Assert.Contains("    * Users", description);
         Assert.Equal(description.Trim(), description);
     }
@@ -55,8 +54,8 @@ public class XmlDocumentationProviderTests
 
         // asssert
         Assert.Equal(
-            "null for the default Record.\nSee this and\nthis" +
-            " at\nhttps://foo.com/bar/baz.",
+            "null for the default Record.\nSee this and\nthis"
+            + " at\nhttps://foo.com/bar/baz.",
             description);
     }
 
@@ -413,5 +412,21 @@ public class XmlDocumentationProviderTests
 
         // assert
         methodDescription.MatchSnapshot();
+    }
+
+    [Fact]
+    public void When_method_has_dictionary_args_then_it_is_found()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+
+        // act
+        var methodDescription = documentationProvider.GetDescription(
+            typeof(WithDictionaryArgs).GetMethod(nameof(WithDictionaryArgs.Method))!);
+
+        // assert
+        Assert.Equal("This is a method description", methodDescription);
     }
 }

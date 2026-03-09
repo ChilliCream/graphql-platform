@@ -44,4 +44,3 @@ type Example {
     field2: Int!
 }
 ```
-

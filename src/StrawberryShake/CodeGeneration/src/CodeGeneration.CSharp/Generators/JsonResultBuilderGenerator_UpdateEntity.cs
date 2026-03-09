@@ -8,8 +8,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class JsonResultBuilderGenerator
 {
-    private const string _entityId = "entityId";
-    private const string _entity = "entity";
+    private const string EntityId = "entityId";
+    private const string Entity = "entity";
 
     private void AddUpdateEntityMethod(
         ClassBuilder classBuilder,
@@ -20,18 +20,18 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLeftHandSide($"{TypeNames.EntityId} {_entityId}")
+                .SetLeftHandSide($"{TypeNames.EntityId} {EntityId}")
                 .SetRightHandSide(
                     MethodCallBuilder
                         .Inline()
-                        .SetMethodName(GetFieldName(_idSerializer), "Parse")
-                        .AddArgument($"{_obj}.Value")));
+                        .SetMethodName(GetFieldName(IdSerializer), "Parse")
+                        .AddArgument($"{Obj}.Value")));
 
         methodBuilder.AddCode(
             MethodCallBuilder
                 .New()
-                .SetMethodName(_entityIds, nameof(List<object>.Add))
-                .AddArgument(_entityId));
+                .SetMethodName(EntityIds, nameof(List<object>.Add))
+                .AddArgument(EntityId));
 
         methodBuilder.AddEmptyLine();
 
@@ -43,7 +43,7 @@ public partial class JsonResultBuilderGenerator
                 methodBuilder
                     .AddEmptyLine()
                     .AddCode(CreateUpdateEntityStatement(concreteType)
-                        .AddCode($"return {_entityId};"));
+                        .AddCode($"return {EntityId};"));
             }
 
             methodBuilder.AddEmptyLine();
@@ -59,7 +59,7 @@ public partial class JsonResultBuilderGenerator
                 .AddElse(CreateEntityConstructorCall(objectTypeDescriptor, true));
 
             methodBuilder.AddEmptyLine();
-            methodBuilder.AddCode($"return {_entityId};");
+            methodBuilder.AddCode($"return {EntityId};");
         }
 
         AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder, processed);
@@ -73,7 +73,7 @@ public partial class JsonResultBuilderGenerator
             .SetCondition(
                 MethodCallBuilder
                     .Inline()
-                    .SetMethodName(_entityId, "Name", nameof(string.Equals))
+                    .SetMethodName(EntityId, "Name", nameof(string.Equals))
                     .AddArgument(concreteType.Name.AsStringToken())
                     .AddArgument(TypeNames.OrdinalStringComparison));
 
@@ -131,14 +131,14 @@ public partial class JsonResultBuilderGenerator
             }
             else
             {
-                newEntity.AddArgument($"{_entity}.{property.Name}");
+                newEntity.AddArgument($"{Entity}.{property.Name}");
             }
         }
 
         return MethodCallBuilder
             .New()
-            .SetMethodName(_session, "SetEntity")
-            .AddArgument(_entityId)
+            .SetMethodName(Session, "SetEntity")
+            .AddArgument(EntityId)
             .AddArgument(newEntity);
     }
 
@@ -148,9 +148,9 @@ public partial class JsonResultBuilderGenerator
             .New()
             .SetCondition(MethodCallBuilder
                 .Inline()
-                .SetMethodName(_session, "CurrentSnapshot", "TryGetEntity")
-                .AddArgument(_entityId)
-                .AddOutArgument(_entity, entityType.ToString()));
+                .SetMethodName(Session, "CurrentSnapshot", "TryGetEntity")
+                .AddArgument(EntityId)
+                .AddOutArgument(Entity, entityType.ToString()));
     }
 
     private static PropertyDescriptor EnsureDeferredFieldIsNullable(PropertyDescriptor property)

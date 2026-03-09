@@ -14,11 +14,11 @@ The GraphQL specification defines the following scalars.
 
 ```sdl
 type Product {
-  description: String;
+  description: String
 }
 ```
 
-This scalar represents an UTF-8 character sequence.
+This scalar represents a UTF-8 character sequence.
 
 It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
 
@@ -26,7 +26,7 @@ It is automatically inferred from the usage of the .NET [string type](https://do
 
 ```sdl
 type Product {
-  purchasable: Boolean;
+  purchasable: Boolean
 }
 ```
 
@@ -38,7 +38,7 @@ It is automatically inferred from the usage of the .NET [bool type](https://docs
 
 ```sdl
 type Product {
-  quantity: Int;
+  quantity: Int
 }
 ```
 
@@ -50,7 +50,7 @@ It is automatically inferred from the usage of the .NET [int type](https://docs.
 
 ```sdl
 type Product {
-  price: Float;
+  price: Float
 }
 ```
 
@@ -64,7 +64,7 @@ It is automatically inferred from the usage of the .NET [float](https://docs.mic
 
 ```sdl
 type Product {
-  id: ID!;
+  id: ID!
 }
 ```
 
@@ -140,31 +140,27 @@ public class Product
 {
     public int Id { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          product(id: ID): Product
+        }
+
+        type Product {
+          id: ID
+        }
+    ")
+    .BindRuntimeType<Product>()
+    .AddResolver("Query", "product", context =>
     {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-               type Query {
-                 product(id: ID): Product
-               }
+        var id = context.ArgumentValue<int>("id");
 
-               type Product {
-                 id: ID
-               }
-            ")
-            .BindRuntimeType<Product>()
-            .AddResolver("Query", "product", context =>
-            {
-                var id = context.ArgumentValue<int>("id");
-
-                // Omitted code for brevity
-            });
-    }
-}
+        // Omitted code for brevity
+    });
 ```
 
 </Schema>
@@ -174,7 +170,7 @@ Notice how our code uses `int` for the `Id`, but in a request / response it woul
 
 # GraphQL Community Scalars
 
-The website <https://www.graphql-scalars.com/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
+The website <https://scalars.graphql.org/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
 
 ```sdl
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
@@ -211,9 +207,9 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 | `Uuid`      | GUID                                                         |
 | `Any`       | This type can be anything, string, int, list or object, etc. |
 
-## Uuid Type
+## UUID Type
 
-The `Uuid` scalar supports the following serialization formats.
+The `UUID` scalar supports the following serialization formats.
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |
@@ -228,7 +224,7 @@ The `UuidType` will always return the value in the specified format. In case it 
 To change the default format we have to register the `UuidType` with the specifier on the schema:
 
 ```csharp
-services
+builder.Services
    .AddGraphQLServer()
    .AddType(new UuidType('D'));
 ```
@@ -386,17 +382,13 @@ public class Query
 {
     public Duration GetDuration() => Duration.FromMinutes(3);
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<DurationType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddType<DurationType>();
 ```
 
 This package was originally developed by [@shoooe](https://github.com/shoooe).
@@ -409,7 +401,7 @@ A `System.String` is for example automatically mapped to a `StringType` in the s
 We can override these mappings by explicitly specifying type bindings.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .BindRuntimeType<string, StringType>();
 ```
@@ -417,7 +409,7 @@ services
 Furthermore, we can also bind scalars to arrays or type structures:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .BindRuntimeType<byte[], ByteArrayType>();
 ```
@@ -438,21 +430,17 @@ public class Query
         return offsetDateTime;
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .BindRuntimeType<OffsetDateTime, DateTimeType>()
-            .AddTypeConverter<OffsetDateTime, DateTimeOffset>(
-                x => x.ToDateTimeOffset())
-            .AddTypeConverter<DateTimeOffset, OffsetDateTime>(
-                x => OffsetDateTime.FromDateTimeOffset(x));
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .BindRuntimeType<OffsetDateTime, DateTimeType>()
+    .AddTypeConverter<OffsetDateTime, DateTimeOffset>(
+        x => x.ToDateTimeOffset())
+    .AddTypeConverter<DateTimeOffset, OffsetDateTime>(
+        x => OffsetDateTime.FromDateTimeOffset(x));
 ```
 
 # Scalar Options
@@ -462,9 +450,9 @@ Some scalars like `TimeSpan` or `Uuid` have options like their serialization for
 We can specify these options by registering the scalar explicitly.
 
 ```csharp
-services
-   .AddGraphQLServer()
-   .AddType(new UuidType('D'));
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new UuidType('D'));
 ```
 
 # Custom Scalars
@@ -558,10 +546,7 @@ public class CreditCardNumberType : ScalarType
     // define which value nodes this type can be parsed from
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax == null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         return valueSyntax is StringValueNode stringValueNode &&
             _validator.ValidateCreditCard(stringValueNode.Value);

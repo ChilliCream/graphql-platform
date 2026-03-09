@@ -16,7 +16,7 @@ a Result:
 
 a Query:
 ---------------
-find({ "Bar" : { "$not" : { "$regex" : /a/ } } })
+find({ "Bar" : { "$not" : { "$regex" : { "$regularExpression" : { "pattern" : "a", "options" : "" } } } } })
 ---------------
 
 b Result:
@@ -37,7 +37,7 @@ b Result:
 
 b Query:
 ---------------
-find({ "Bar" : { "$not" : { "$regex" : /b/ } } })
+find({ "Bar" : { "$not" : { "$regex" : { "$regularExpression" : { "pattern" : "b", "options" : "" } } } } })
 ---------------
 
 null

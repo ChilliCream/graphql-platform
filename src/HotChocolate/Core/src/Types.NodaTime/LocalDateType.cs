@@ -26,7 +26,11 @@ public class LocalDateType : StringToStructBaseType<LocalDate>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.LocalDateType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.LocalDateType_Description,
+            NodaTimeResources.LocalDateType_Description_Extended);
     }
 
     /// <summary>
@@ -38,13 +42,29 @@ public class LocalDateType : StringToStructBaseType<LocalDate>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(LocalDate runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out LocalDate? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        LocalDate runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
+
+    protected override Dictionary<IPattern<LocalDate>, string> PatternMap => new()
+    {
+        { LocalDatePattern.Iso, "YYYY-MM-DD" },
+        { LocalDatePattern.FullRoundtrip, "YYYY-MM-DD (calendar)" }
+    };
+
+    protected override Dictionary<IPattern<LocalDate>, string> ExampleMap => new()
+    {
+        { LocalDatePattern.Iso, "2000-01-01" },
+        { LocalDatePattern.FullRoundtrip, "2000-01-01 (ISO)" }
+    };
 }

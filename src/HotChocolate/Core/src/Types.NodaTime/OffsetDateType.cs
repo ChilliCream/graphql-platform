@@ -27,7 +27,11 @@ public class OffsetDateType : StringToStructBaseType<OffsetDate>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.OffsetDateType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.OffsetDateType_Description,
+            NodaTimeResources.OffsetDateType_Description_Extended);
     }
 
     /// <summary>
@@ -39,13 +43,29 @@ public class OffsetDateType : StringToStructBaseType<OffsetDate>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(OffsetDate runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out OffsetDate? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        OffsetDate runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
+
+    protected override Dictionary<IPattern<OffsetDate>, string> PatternMap => new()
+    {
+        { OffsetDatePattern.GeneralIso, "YYYY-MM-DD±hh:mm" },
+        { OffsetDatePattern.FullRoundtrip, "YYYY-MM-DD±hh:mm (calendar)" }
+    };
+
+    protected override Dictionary<IPattern<OffsetDate>, string> ExampleMap => new()
+    {
+        { OffsetDatePattern.GeneralIso, "2000-01-01Z" },
+        { OffsetDatePattern.FullRoundtrip, "2000-01-01Z (ISO)" }
+    };
 }

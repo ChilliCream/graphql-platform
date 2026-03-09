@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -124,7 +123,7 @@ public class GeoJsonMultiPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -137,7 +136,7 @@ public class GeoJsonMultiPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("coordinates", _multiPolygon),
@@ -154,7 +153,7 @@ public class GeoJsonMultiPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode("MultiPolygon")),
@@ -171,7 +170,7 @@ public class GeoJsonMultiPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
@@ -225,7 +224,7 @@ public class GeoJsonMultiPolygonInputTests
         schema.MatchSnapshot();
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddQueryType(
             d => d
@@ -238,6 +237,6 @@ public class GeoJsonMultiPolygonInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiPolygonInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiPolygonInput");
     }
 }

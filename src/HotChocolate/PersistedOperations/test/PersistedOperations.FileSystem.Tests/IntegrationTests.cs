@@ -1,7 +1,7 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using IO = System.IO;
 
 namespace HotChocolate.PersistedOperations.FileSystem;
@@ -23,16 +23,14 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddFileSystemOperationDocumentStorage(cacheDirectory)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -61,16 +59,14 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddFileSystemOperationDocumentStorage(cacheDirectory)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -81,6 +77,56 @@ public class IntegrationTests
 
         // assert
         File.Delete(cachedOperation);
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ExecuteAutomaticPersistedOperation()
+    {
+        // arrange
+        var cacheDirectory = IO.Path.GetTempPath();
+        const string documentHash = "hash";
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                .AddFileSystemOperationDocumentStorage(cacheDirectory)
+                .UseRequest((_, n) => async c =>
+                {
+                    await n(c);
+
+                    if (c.IsPersistedOperationDocument())
+                    {
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
+                    }
+                })
+                .UseAutomaticPersistedOperationPipeline()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocumentId(documentHash)
+                .SetDocument(Utf8GraphQLParser.Parse("{ __typename }"))
+                .SetDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
+                .SetExtensions(new Dictionary<string, object?>
+                {
+                    {
+                        "persistedQuery",
+                        new Dictionary<string, object?>
+                        {
+                            { "version", 1 },
+                            { "md5Hash", documentHash }
+                        }
+                    }
+                })
+                .Build());
+
+        File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
+
+        // assert
         result.MatchSnapshot();
     }
 }

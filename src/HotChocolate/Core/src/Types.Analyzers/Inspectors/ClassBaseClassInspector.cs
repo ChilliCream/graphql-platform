@@ -1,25 +1,29 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 using TypeInfo = HotChocolate.Types.Analyzers.Models.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public class ClassBaseClassInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [ClassWithBaseClass.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [ClassWithBaseClass.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.ClassDeclaration];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if (context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0, TypeParameterList: null, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0, TypeParameterList: null } possibleType)
         {
             var model = context.SemanticModel.GetDeclaredSymbol(possibleType);
-            if (model is { IsAbstract: false, })
+            if (model is { IsAbstract: false })
             {
                 var typeDisplayString = model.ToDisplayString();
                 var processing = new Queue<INamedTypeSymbol>();
@@ -44,6 +48,14 @@ public class ClassBaseClassInspector : ISyntaxInspector
                         return true;
                     }
 
+                    if (current.GetAttributes().Any(
+                            t => t.AttributeClass?.ToDisplayString()
+                                .StartsWith(InterfaceTypeAttribute, StringComparison.Ordinal) is true))
+                    {
+                        syntaxInfo = new TypeInfo(typeDisplayString);
+                        return true;
+                    }
+
                     if (WellKnownTypes.TypeExtensionClass.Contains(displayString))
                     {
                         syntaxInfo = new TypeExtensionInfo(typeDisplayString, false);
@@ -61,7 +73,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
 
                     if (displayString.Equals(WellKnownTypes.DataLoader, StringComparison.Ordinal))
                     {
-                        syntaxInfo =  new RegisterDataLoaderInfo(typeDisplayString);
+                        syntaxInfo = new RegisterDataLoaderInfo(typeDisplayString);
                         return true;
                     }
 

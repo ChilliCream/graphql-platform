@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -12,11 +11,11 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class EmailAddressType : RegexType
 {
-    private const string _validationPattern =
-        "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
-        "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
+    private const string ValidationPattern =
+        @"^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
+        + @"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\z";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>
@@ -41,13 +40,9 @@ public partial class EmailAddressType : RegexType
     public EmailAddressType()
         : this(
             WellKnownScalarTypes.EmailAddress,
-            ScalarResources.EmailAddressType_Description) { }
+            ScalarResources.EmailAddressType_Description)
+    { }
 
-    /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-        => ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
-
-    /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
-        => ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
+    protected override LeafCoercionException FormatException(string runtimeValue)
+        => ThrowHelper.EmailAddressType_InvalidFormat(this);
 }

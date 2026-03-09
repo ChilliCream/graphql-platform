@@ -99,7 +99,7 @@ if (username.HasValue)
 <Schema>
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDocumentFromString(@"
         type Query {

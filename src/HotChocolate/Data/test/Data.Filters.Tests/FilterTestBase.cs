@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Tests;
 
 public abstract class FilterTestBase
 {
-    public ISchema CreateSchema(Action<ISchemaBuilder> configure)
+    public Schema CreateSchema(Action<ISchemaBuilder> configure)
     {
         var builder = SchemaBuilder.New()
             .AddFiltering()

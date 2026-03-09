@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 
@@ -12,7 +11,7 @@ public class CustomCursorHandlerTests
         SchemaBuilder.New()
             .AddQueryType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -45,7 +44,7 @@ public class CustomCursorHandlerTests
             string? before = null)
         {
             return new(
-                new[] { new Edge<string>("hello", "abc"), },
+                [new Edge<string>("hello", "abc")],
                 new ConnectionPageInfo(false, false, "abc", "abc"),
                 2000);
         }

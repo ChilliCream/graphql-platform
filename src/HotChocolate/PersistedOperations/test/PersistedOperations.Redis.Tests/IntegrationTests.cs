@@ -1,5 +1,5 @@
-using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -34,16 +34,16 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddRedisOperationDocumentStorage(_ => _database)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -67,23 +67,23 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddRedisOperationDocumentStorage(_ => _database, TimeSpan.FromMilliseconds(10))
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // ... write document to cache
-        var cache = executor.Services.GetRequiredService<IOperationDocumentStorage>();
+        var cache = executor.Schema.Services.GetRequiredService<IOperationDocumentStorage>();
         await cache.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         // ... wait for document to expire
@@ -115,16 +115,16 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddRedisOperationDocumentStorage(_ => _database)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -134,7 +134,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
         result.MatchSnapshot();
     }
 
@@ -151,27 +151,27 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 // we register the multiplexer on the application services
                 .AddSingleton(_multiplexer)
                 .AddGraphQL()
+                .AddApplicationService<IConnectionMultiplexer>()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
                 .AddRedisOperationDocumentStorage(sp => sp.GetRequiredService<IConnectionMultiplexer>())
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -193,24 +193,23 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
                 .AddRedisOperationDocumentStorage()
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -229,24 +228,23 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddRedisOperationDocumentStorage(_ => _database)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
 
         // assert
         result.MatchSnapshot();

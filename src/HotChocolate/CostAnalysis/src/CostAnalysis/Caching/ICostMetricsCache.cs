@@ -45,9 +45,4 @@ internal interface ICostMetricsCache
     void TryAddCostMetrics(
         string operationId,
         CostMetrics costMetrics);
-
-    /// <summary>
-    /// Clears all items from the cache.
-    /// </summary>
-    void Clear();
 }

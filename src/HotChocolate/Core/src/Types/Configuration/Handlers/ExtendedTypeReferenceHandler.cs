@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using ExtendedType = HotChocolate.Internal.ExtendedType;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector) : ITypeRegistrarHandler
@@ -16,8 +14,8 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
     {
         var typeRef = (ExtendedTypeReference)typeReference;
 
-        if (!typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) ||
-            ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
+        if (!typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo)
+            || ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
         {
             return;
         }
@@ -46,6 +44,7 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
         {
             TryMapToExistingRegistration(
                 typeRegistrar,
+                typeRef,
                 typeInfo,
                 typeReference.Context,
                 typeReference.Scope);
@@ -54,10 +53,20 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
 
     private static void TryMapToExistingRegistration(
         ITypeRegistrar typeRegistrar,
+        ExtendedTypeReference typeRef,
         ITypeInfo typeInfo,
         TypeContext context,
         string? scope)
     {
+        // If there is an explicit runtime binding for the full type, keep the original
+        // type reference unresolved so discovery can apply that binding.
+        if (RuntimeTypeBindingHelper.RequiresExactBinding(typeRef.Type)
+            && typeRegistrar.HasRuntimeTypeBinding(typeRef))
+        {
+            typeRegistrar.MarkUnresolved(typeRef);
+            return;
+        }
+
         ExtendedTypeReference? normalizedTypeRef = null;
         var resolved = false;
 
@@ -79,5 +88,5 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
     }
 
     private static bool IsTypeSystemObject(Type type) =>
-        typeof(TypeSystemObjectBase).IsAssignableFrom(type);
+        typeof(TypeSystemObject).IsAssignableFrom(type);
 }

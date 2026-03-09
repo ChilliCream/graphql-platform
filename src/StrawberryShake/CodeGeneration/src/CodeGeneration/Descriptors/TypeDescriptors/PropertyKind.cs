@@ -19,4 +19,9 @@ public enum PropertyKind
     /// A non-null field that is deferred.
     /// </summary>
     DeferredField,
+
+    /// <summary>
+    /// A non-null field that is included or skipped conditionally.
+    /// </summary>
+    SkipOrIncludeField
 }

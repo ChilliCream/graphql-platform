@@ -7,8 +7,8 @@ namespace HotChocolate.Data.Sorting;
 /// The sort input descriptor allows to configure a <see cref="SortInputType"/>.
 /// </summary>
 public interface ISortInputTypeDescriptor
-    : IDescriptor<SortInputTypeDefinition>
-    , IHasRuntimeType
+    : IDescriptor<SortInputTypeConfiguration>
+    , IRuntimeTypeProvider
     , IFluent
 {
     /// <summary>

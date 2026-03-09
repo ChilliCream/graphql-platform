@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Data.Filters;
 
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
@@ -20,7 +18,7 @@ public class ConventionTests
 
         await Snapshot
             .Create()
-            .Add(tester.Schema.Print(), "schema")
+            .Add(tester.Schema.ToString(), "schema")
             .MatchAsync();
     }
 
@@ -28,7 +26,7 @@ public class ConventionTests
     {
         public static TypeWithList[] Data =
         [
-            new() { List = new List<ListItem>() { new() { Foo = "Foo", }, new() { Foo = "Bar", }, }, },
+            new() { List = [new() { Foo = "Foo" }, new() { Foo = "Bar" }] }
         ];
 
         public string? Id { get; set; }

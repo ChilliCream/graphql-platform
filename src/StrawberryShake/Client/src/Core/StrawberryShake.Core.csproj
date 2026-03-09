@@ -5,6 +5,7 @@
     <AssemblyName>StrawberryShake.Core</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
     <Description>Abstractions and foundational APIs for StrawberryShake GraphQL clients.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,7 +1,7 @@
-using CookieCrumble;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
-
-#nullable enable
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -35,12 +35,12 @@ public class ScalarBindingTests
 
     public class QueryA
     {
-        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))]int id) => new Bar();
+        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))] int id) => new Bar();
     }
 
     public class QueryB
     {
-        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))]int id) => new Bar();
+        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))] int id) => new Bar();
     }
 
     public class Bar
@@ -60,22 +60,24 @@ public class ScalarBindingTests
         {
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.Int;
+
+        public override object CoerceInputLiteral(IValueNode valueSyntax)
         {
             throw new NotImplementedException();
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax)
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseValue(object? value)
+        protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseResult(object? resultValue)
+        protected override IValueNode OnValueToLiteral(int runtimeValue)
         {
             throw new NotImplementedException();
         }
@@ -88,22 +90,24 @@ public class ScalarBindingTests
         {
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.Int;
+
+        public override object CoerceInputLiteral(IValueNode valueSyntax)
         {
             throw new NotImplementedException();
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax)
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseValue(object? value)
+        protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseResult(object? resultValue)
+        protected override IValueNode OnValueToLiteral(int runtimeValue)
         {
             throw new NotImplementedException();
         }

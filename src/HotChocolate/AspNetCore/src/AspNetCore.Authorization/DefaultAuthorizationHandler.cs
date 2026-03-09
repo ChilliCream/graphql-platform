@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HotChocolate.Authorization;
+using HotChocolate.Features;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Authorization;
 using IAuthorizationHandler = HotChocolate.Authorization.IAuthorizationHandler;
@@ -12,7 +13,9 @@ namespace HotChocolate.AspNetCore.Authorization;
 internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 {
     private readonly IAuthorizationService _authSvc;
-    private readonly AuthorizationPolicyCache _policyCache;
+    private readonly IAuthorizationPolicyProvider _authorizationPolicyProvider;
+    private readonly AuthorizationPolicyCache _authorizationPolicyCache;
+    private readonly bool _canCachePolicies;
 
     /// <summary>
     /// Initializes a new instance <see cref="DefaultAuthorizationHandler"/>.
@@ -20,25 +23,33 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     /// <param name="authorizationService">
     /// The authorization service.
     /// </param>
-    /// <param name="policyCache">
+    /// <param name="authorizationPolicyProvider">
+    /// The authorization policy provider.
+    /// </param>
+    /// <param name="authorizationPolicyCache">
     /// The authorization policy cache.
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="authorizationService"/> is <c>null</c>.
-    /// <paramref name="policyCache"/> is <c>null</c>.
+    /// <paramref name="authorizationPolicyCache"/> is <c>null</c>.
     /// </exception>
     public DefaultAuthorizationHandler(
         IAuthorizationService authorizationService,
-        AuthorizationPolicyCache policyCache)
+        IAuthorizationPolicyProvider authorizationPolicyProvider,
+        AuthorizationPolicyCache authorizationPolicyCache)
     {
         _authSvc = authorizationService ??
             throw new ArgumentNullException(nameof(authorizationService));
-        _policyCache = policyCache ??
-            throw new ArgumentNullException(nameof(policyCache));
+        _authorizationPolicyProvider = authorizationPolicyProvider ??
+            throw new ArgumentNullException(nameof(authorizationPolicyProvider));
+        _authorizationPolicyCache = authorizationPolicyCache ??
+            throw new ArgumentNullException(nameof(authorizationPolicyCache));
+
+        _canCachePolicies = _authorizationPolicyProvider.AllowsCachingPolicies;
     }
 
     /// <summary>
-    /// Authorize current directive using Microsoft.AspNetCore.Authorization.
+    /// Authorize the current directive using Microsoft.AspNetCore.Authorization.
     /// </summary>
     /// <param name="context">The current middleware context.</param>
     /// <param name="directive">The authorization directive.</param>
@@ -52,7 +63,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         AuthorizeDirective directive,
         CancellationToken ct)
     {
-        var userState = GetUserState(context.ContextData);
+        var userState = GetUserState(context);
         var user = userState.User;
         bool authenticated;
 
@@ -62,10 +73,10 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         }
         else
         {
-            // if the authenticated state is not yet set we will determine it and update the state.
+            // if the authenticated state is not yet set, we will determine it and update the state.
             authenticated = user.Identities.Any(t => t.IsAuthenticated);
             userState = userState.SetIsAuthenticated(authenticated);
-            SetUserState(context.ContextData, userState);
+            SetUserState(context, userState);
         }
 
         return await AuthorizeAsync(
@@ -81,7 +92,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         IReadOnlyList<AuthorizeDirective> directives,
         CancellationToken ct)
     {
-        var userState = GetUserState(context.ContextData);
+        var userState = GetUserState(context);
         var user = userState.User;
         bool authenticated;
 
@@ -91,10 +102,10 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         }
         else
         {
-            // if the authenticated state is not yet set we will determine it and update the state.
+            // if the authenticated state is not yet set, we will determine it and update the state.
             authenticated = user.Identities.Any(t => t.IsAuthenticated);
             userState = userState.SetIsAuthenticated(authenticated);
-            SetUserState(context.ContextData, userState);
+            SetUserState(context, userState);
         }
 
         foreach (var directive in directives)
@@ -123,9 +134,24 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     {
         try
         {
-            var combinedPolicy = await _policyCache.GetOrCreatePolicyAsync(directive);
+            AuthorizationPolicy? authorizationPolicy = null;
 
-            var result = await _authSvc.AuthorizeAsync(user, context, combinedPolicy).ConfigureAwait(false);
+            if (_canCachePolicies)
+            {
+                authorizationPolicy = _authorizationPolicyCache.LookupPolicy(directive);
+            }
+
+            if (authorizationPolicy is null)
+            {
+                authorizationPolicy = await BuildAuthorizationPolicy(directive.Policy, directive.Roles);
+
+                if (_canCachePolicies)
+                {
+                    _authorizationPolicyCache.CachePolicy(directive, authorizationPolicy);
+                }
+            }
+
+            var result = await _authSvc.AuthorizeAsync(user, context, authorizationPolicy).ConfigureAwait(false);
 
             return result.Succeeded
                 ? AuthorizeResult.Allowed
@@ -137,20 +163,53 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         }
     }
 
-    private static UserState GetUserState(IDictionary<string, object?> contextData)
+    private async Task<AuthorizationPolicy> BuildAuthorizationPolicy(
+        string? policyName,
+        IReadOnlyList<string>? roles)
     {
-        if (contextData.TryGetValue(WellKnownContextData.UserState, out var value) &&
-            value is UserState p)
+        var policyBuilder = new AuthorizationPolicyBuilder();
+
+        if (!string.IsNullOrWhiteSpace(policyName))
         {
-            return p;
+            var policy = await _authorizationPolicyProvider.GetPolicyAsync(policyName).ConfigureAwait(false);
+
+            if (policy is not null)
+            {
+                policyBuilder = policyBuilder.Combine(policy);
+            }
+            else
+            {
+                throw new MissingAuthorizationPolicyException(policyName);
+            }
+        }
+        else
+        {
+            var defaultPolicy = await _authorizationPolicyProvider.GetDefaultPolicyAsync().ConfigureAwait(false);
+
+            policyBuilder = policyBuilder.Combine(defaultPolicy);
+        }
+
+        if (roles is not null)
+        {
+            policyBuilder = policyBuilder.RequireRole(roles);
+        }
+
+        return policyBuilder.Build();
+    }
+
+    private static UserState GetUserState(IFeatureProvider featureProvider)
+    {
+        if (featureProvider.Features.TryGet<UserState>(out var state))
+        {
+            return state;
         }
 
         throw new MissingStateException(
             "Authorization",
-            WellKnownContextData.UserState,
+            "HotChocolate.Authorization.UserState",
             StateKind.Global);
     }
 
-    private static void SetUserState(IDictionary<string, object?> contextData, UserState state)
-        => contextData[WellKnownContextData.UserState] = state;
+    private static void SetUserState(IFeatureProvider featureProvider, UserState state)
+        => featureProvider.Features.Set(state);
 }

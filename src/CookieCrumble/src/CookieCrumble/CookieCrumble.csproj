@@ -11,14 +11,6 @@
     <PackageReference Include="DiffPlex" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\HotChocolate\Fusion\src\Core\HotChocolate.Fusion.csproj" />
   </ItemGroup>
 
 </Project>

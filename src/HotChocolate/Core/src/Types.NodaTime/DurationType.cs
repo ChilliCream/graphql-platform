@@ -25,7 +25,11 @@ public class DurationType : StringToStructBaseType<Duration>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.DurationType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.DurationType_Description,
+            NodaTimeResources.DurationType_Description_Extended);
     }
 
     /// <summary>
@@ -37,13 +41,29 @@ public class DurationType : StringToStructBaseType<Duration>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(Duration runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out Duration? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        Duration runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
+
+    protected override Dictionary<IPattern<Duration>, string> PatternMap => new()
+    {
+        { DurationPattern.Roundtrip, "-D:hh:mm:ss.sssssssss" },
+        { DurationPattern.JsonRoundtrip, "-hh:mm:ss.sssssssss" }
+    };
+
+    protected override Dictionary<IPattern<Duration>, string> ExampleMap => new()
+    {
+        { DurationPattern.Roundtrip, "-1:20:00:00.999999999" },
+        { DurationPattern.JsonRoundtrip, "-44:00:00.999999999" }
+    };
 }

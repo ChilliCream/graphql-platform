@@ -16,11 +16,7 @@ public class CatchBlockBuilder : ICode
 
     public CatchBlockBuilder SetExceptionVariable(string name)
     {
-        if (_exception is null)
-        {
-            _exception = TypeNames.Exception;
-        }
-
+        _exception ??= TypeNames.Exception;
         _exceptionVariable = name;
         return this;
     }
@@ -34,7 +30,7 @@ public class CatchBlockBuilder : ICode
     public void Build(CodeWriter writer)
     {
         writer.WriteIndent();
-        writer.Write($"catch");
+        writer.Write("catch");
         if (_exception is not null)
         {
             writer.Write("(");

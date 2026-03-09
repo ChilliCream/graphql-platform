@@ -2,25 +2,19 @@
 title: Endpoints
 ---
 
-Hot Chocolate comes with a set of ASP.NET Core middleware used for making the GraphQL server available via HTTP and WebSockets. There are also middleware for hosting our GraphQL IDE [Banana Cake Pop](/products/bananacakepop) as well as an endpoint used for downloading the schema in its SDL representation.
+Hot Chocolate comes with a set of ASP.NET Core middleware used for making the GraphQL server available via HTTP and WebSockets. There are also middleware for hosting our GraphQL IDE [Nitro](/products/nitro) as well as an endpoint used for downloading the schema in its SDL representation.
 
 # MapGraphQL
 
 We can call `MapGraphQL()` on the `IEndpointRouteBuilder` to register all of the middleware a standard GraphQL server requires.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL();
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQL();
+});
 ```
 
 If you are using .NET 6 Minimal APIs, you can also call `MapGraphQL()` on the `app` builder directly, since it implements `IEndpointRouteBuilder`:
@@ -50,13 +44,13 @@ Calling `MapGraphQL()` will enable the following functionality on the specified 
 - HTTP GET and HTTP POST GraphQL requests are handled (Multipart included)
 - WebSocket GraphQL requests are handled (if the ASP.NET Core WebSocket Middleware has been registered)
 - Including the query string `?sdl` after the endpoint will download the GraphQL schema
-- Accessing the endpoint from a browser will load our GraphQL IDE [Banana Cake Pop](/products/bananacakepop)
+- Accessing the endpoint from a browser will load our GraphQL IDE [Nitro](/products/nitro)
 
 We can customize the combined middleware using `GraphQLServerOptions` as shown below or we can only include the parts of the middleware we need and configure them explicitly.
 
 The following middleware are available:
 
-- [MapBananaCakePop](#mapbananacakepop)
+- [MapNitroApp](#mapnitroapp)
 - [MapGraphQLHttp](#mapgraphqlhttp)
 - [MapGraphQLWebsocket](#mapgraphqlwebsocket)
 - [MapGraphQLSchema](#mapgraphqlschema)
@@ -115,118 +109,106 @@ This setting controls whether the GraphQL server is able to handle HTTP Multipar
 
 ### Tool
 
-We can specify options for the Banana Cake Pop GraphQL IDE using the `Tool` property.
+We can specify options for the Nitro using the `Tool` property.
 
-We could for example only enable Banana Cake Pop during development.
+We could for example only enable Nitro during development.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-            {
-                Tool = {
-                    Enable = env.IsDevelopment()
-                }
-            });
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
+    {
+        Tool = {
+            Enable = env.IsDevelopment()
+        }
+    });
+});
 ```
 
 [Learn more about possible GraphQLToolOptions](#graphqltooloptions)
 
-# MapBananaCakePop
+# MapNitroApp
 
-We can call `MapBananaCakePop()` on the `IEndpointRouteBuilder` to serve [Banana Cake Pop](/products/bananacakepop) on a different endpoint than the actual GraphQL endpoint.
+We can call `MapNitroApp()` on the `IEndpointRouteBuilder` to serve [Nitro](/products/nitro) on a different endpoint than the actual GraphQL endpoint.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapBananaCakePop("/graphql/ui");
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapNitroApp("/graphql/ui");
+});
 ```
 
-This would make Banana Cake Pop accessible via a Web Browser at the `/graphql/ui` endpoint.
+This would make Nitro accessible via a Web Browser at the `/graphql/ui` endpoint.
 
 ## GraphQLToolOptions
 
-We can configure Banana Cake Pop using `GraphQLToolOptions`.
+We can configure Nitro using `GraphQLToolOptions`.
 
 ### Enable
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     Enable = false
 });
 ```
 
-This setting controls whether Banana Cake Pop should be served or not.
+This setting controls whether Nitro should be served or not.
 
 ### GraphQLEndpoint
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     GraphQLEndpoint = "/my/graphql/endpoint"
 });
 ```
 
-This setting sets the GraphQL endpoint to use when creating new documents within Banana Cake Pop.
+This setting sets the GraphQL endpoint to use when creating new documents within Nitro.
 
 ### UseBrowserUrlAsGraphQLEndpoint
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     UseBrowserUrlAsGraphQLEndpoint = true
 });
 ```
 
-If set to `true` the current Web Browser URL is treated as the GraphQL endpoint when creating new documents within Banana Cake Pop.
+If set to `true` the current Web Browser URL is treated as the GraphQL endpoint when creating new documents within Nitro.
 
 > Warning: [GraphQLEndpoint](#graphqlendpoint) takes precedence over this setting.
 
 ### Document
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     Document = "{ __typename }"
 });
 ```
 
-This setting allows us to set a default GraphQL document that should be a placeholder for each new document created using Banana Cake Pop.
+This setting allows us to set a default GraphQL document that should be a placeholder for each new document created using Nitro.
 
 ### HttpMethod
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     HttpMethod = DefaultHttpMethod.Get
 });
 ```
 
-This setting controls the default HTTP method used to execute GraphQL operations when creating new documents within Banana Cake Pop.
+This setting controls the default HTTP method used to execute GraphQL operations when creating new documents within Nitro.
 
 ### HttpHeaders
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     HttpHeaders = new HeaderDictionary
     {
@@ -235,34 +217,34 @@ endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
 });
 ```
 
-This setting allows us to specify default HTTP Headers that will be added to each new document created using Banana Cake Pop.
+This setting allows us to specify default HTTP Headers that will be added to each new document created using Nitro.
 
 ### IncludeCookies
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     IncludeCookies = true
 });
 ```
 
-This setting specifies the default for including cookies in cross-origin when creating new documents within Banana Cake Pop.
+This setting specifies the default for including cookies in cross-origin when creating new documents within Nitro.
 
 ### Title
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     Title = "My GraphQL explorer"
 });
 ```
 
-This setting controls the tab name, when Banana Cake Pop is opened inside of a Web Browser.
+This setting controls the tab name, when Nitro is opened inside of a Web Browser.
 
 ### DisableTelemetry
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     DisableTelemetry = true
 });
@@ -273,13 +255,13 @@ This setting allows us to disable telemetry events.
 ### GaTrackingId
 
 ```csharp
-endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+endpoints.MapNitroApp("/ui").WithOptions(new GraphQLToolOptions
 {
     GaTrackingId = "google-analytics-id"
 });
 ```
 
-This setting allows us to set a custom Google Analytics Id, which in turn allows us to gain insights into the usage of Banana Cake Pop hosted as part of our GraphQL server.
+This setting allows us to set a custom Google Analytics Id, which in turn allows us to gain insights into the usage of Nitro hosted as part of our GraphQL server.
 
 The following information is collected:
 
@@ -289,25 +271,19 @@ The following information is collected:
 | `operatingSystem`    | Name of the operating system: `Windows`, `macOS`, `Linux` & `Unknown` |
 | `userAgent`          | `User-Agent` header                                                   |
 | `applicationType`    | The type of application: `app` (Electron) or `middleware`             |
-| `applicationVersion` | Version of Banana Cake Pop                                            |
+| `applicationVersion` | Version of Nitro                                                      |
 
 # MapGraphQLHttp
 
 We can call `MapGraphQLHttp()` on the `IEndpointRouteBuilder` to make our GraphQL server available via HTTP at a specific endpoint.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQLHttp("/graphql/http");
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQLHttp("/graphql/http");
+});
 ```
 
 With the above configuration we could now issue HTTP GET / POST requests against the `/graphql/http` endpoint.
@@ -332,18 +308,12 @@ The `GraphQLHttpOptions` are the same as the `GraphQLServerOptions` except that 
 We can call `MapGraphQLWebSocket()` on the `IEndpointRouteBuilder` to make our GraphQL server available via WebSockets at a specific endpoint.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQLWebSocket("/graphql/ws");
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQLWebSocket("/graphql/ws");
+});
 ```
 
 With the above configuration we could now issue GraphQL subscription requests via WebSocket against the `/graphql/ws` endpoint.
@@ -353,18 +323,12 @@ With the above configuration we could now issue GraphQL subscription requests vi
 We can call `MapGraphQLSchema()` on the `IEndpointRouteBuilder` to make our GraphQL schema available at a specific endpoint.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQLSchema("/graphql/schema");
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQLSchema("/graphql/schema");
+});
 ```
 
 With the above configuration we could now download our `schema.graphql` file from the `/graphql/schema` endpoint.

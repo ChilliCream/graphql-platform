@@ -2,26 +2,24 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortField
-    : InputField
-    , ISortField
+public class SortField : InputField, ISortField
 {
-    internal SortField(SortFieldDefinition definition, int index)
-        : base(definition, index)
+    internal SortField(SortFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        Member = definition.Member;
-        Handler = definition.Handler ??
+        Member = configuration.Member;
+        Handler = configuration.Handler ??
             throw ThrowHelper.SortField_ArgumentInvalid_NoHandlerWasFound();
-        Metadata = definition.Metadata;
+        Metadata = configuration.Metadata;
     }
 
     public new SortInputType DeclaringType => (SortInputType)base.DeclaringType;
 
-    SortInputType ISortField.DeclaringType => DeclaringType;
+    ISortInputType ISortField.DeclaringType => DeclaringType;
 
     public MemberInfo? Member { get; }
 
@@ -34,7 +32,7 @@ public class SortField
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
 

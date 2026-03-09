@@ -1,13 +1,12 @@
 using System.Globalization;
-using System.Linq.Expressions;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
@@ -17,7 +16,7 @@ namespace HotChocolate.Types;
 
 public static class SortingObjectFieldDescriptorExtensions
 {
-    private static readonly MethodInfo _factoryTemplate =
+    private static readonly MethodInfo s_factoryTemplate =
         typeof(SortingObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateBuilder), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -32,10 +31,7 @@ public static class SortingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return UseSortingInternal(descriptor, null, null, scope);
     }
@@ -52,10 +48,7 @@ public static class SortingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var sortType =
             typeof(ISortInputType).IsAssignableFrom(typeof(T))
@@ -78,15 +71,8 @@ public static class SortingObjectFieldDescriptorExtensions
         Type type,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(type);
 
         var sortType =
             typeof(ISortInputType).IsAssignableFrom(type)
@@ -110,18 +96,89 @@ public static class SortingObjectFieldDescriptorExtensions
         Action<ISortInputTypeDescriptor<T>> configure,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(configure);
 
         var filterType = new SortInputType<T>(configure);
         return UseSortingInternal(descriptor, filterType.GetType(), filterType, scope);
+    }
+
+    /// <summary>
+    /// Adds sorting arguments to an interface field.
+    /// </summary>
+    /// <param name="descriptor">The field descriptor where the arguments are applied to</param>
+    /// <param name="scope">Specifies what scope should be used for the
+    /// <see cref="SortConvention" /></param>
+    public static IInterfaceFieldDescriptor UseSorting(
+        this IInterfaceFieldDescriptor descriptor,
+        string? scope = null)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        return UseSortingInternal(descriptor, null, null, scope);
+    }
+
+    /// <summary>
+    /// Adds sorting arguments to an interface field.
+    /// </summary>
+    /// <param name="descriptor">The field descriptor where the arguments are applied to</param>
+    /// <param name="scope">Specifies what scope should be used for the
+    /// <see cref="SortConvention" /></param>
+    /// <typeparam name="T">Either a runtime type or a <see cref="SortInputType"/></typeparam>
+    public static IInterfaceFieldDescriptor UseSorting<T>(
+        this IInterfaceFieldDescriptor descriptor,
+        string? scope = null)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        var sortType =
+            typeof(ISortInputType).IsAssignableFrom(typeof(T))
+                ? typeof(T)
+                : typeof(SortInputType<>).MakeGenericType(typeof(T));
+
+        return UseSorting(descriptor, sortType, scope);
+    }
+
+    /// <summary>
+    /// Adds sorting arguments to an interface field.
+    /// </summary>
+    /// <param name="descriptor">The field descriptor where the arguments are applied to</param>
+    /// <param name="type">Either a runtime type or a <see cref="SortInputType"/></param>
+    /// <param name="scope">Specifies what scope should be used for the
+    /// <see cref="SortConvention" /></param>
+    public static IInterfaceFieldDescriptor UseSorting(
+        this IInterfaceFieldDescriptor descriptor,
+        Type type,
+        string? scope = null)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(type);
+
+        var sortType =
+            typeof(ISortInputType).IsAssignableFrom(type)
+                ? type
+                : typeof(SortInputType<>).MakeGenericType(type);
+
+        return UseSortingInternal(descriptor, sortType, null, scope);
+    }
+
+    /// <summary>
+    /// Adds sorting arguments to an interface field.
+    /// </summary>
+    /// <param name="descriptor">The field descriptor where the arguments are applied to</param>
+    /// <param name="configure">Configures the sort input type that is used by the field</param>
+    /// <param name="scope">Specifies what scope should be used for the
+    /// <see cref="SortConvention" /></param>
+    public static IInterfaceFieldDescriptor UseSorting<T>(
+        this IInterfaceFieldDescriptor descriptor,
+        Action<ISortInputTypeDescriptor<T>> configure,
+        string? scope = null)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        var sortType = new SortInputType<T>(configure);
+        return UseSortingInternal(descriptor, sortType.GetType(), sortType, scope);
     }
 
     private static IObjectFieldDescriptor UseSortingInternal(
@@ -130,12 +187,12 @@ public static class SortingObjectFieldDescriptorExtensions
         ITypeSystemMember? sortTypeInstance,
         string? scope)
     {
-        FieldMiddlewareDefinition sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+        FieldMiddlewareConfiguration sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
 
         var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
-        var fieldDefinition = descriptor.Extend().Definition;
+        var fieldDefinition = descriptor.Extend().Configuration;
 
-        fieldDefinition.MiddlewareDefinitions.Add(sortQuery);
+        fieldDefinition.MiddlewareConfigurations.Add(sortQuery);
 
         descriptor
             .Extend()
@@ -152,9 +209,9 @@ public static class SortingObjectFieldDescriptorExtensions
                     {
                         var convention = c.GetSortConvention(scope);
 
-                        if (definition.ResultType is null ||
-                            definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        if (definition.ResultType is null
+                            || definition.ResultType == typeof(object)
+                            || !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,
@@ -171,17 +228,17 @@ public static class SortingObjectFieldDescriptorExtensions
                             scope);
                     }
 
-                    var argumentDefinition = new ArgumentDefinition
+                    var argumentDefinition = new ArgumentConfiguration
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
-                        Flags = FieldFlags.SortArgument
+                        Flags = CoreFieldFlags.SortArgument
                     };
 
-                    argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentDefinition>((context, def) =>
+                    argumentDefinition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>((context, def) =>
                         {
-                            var namedType = context.GetType<INamedType>(argumentTypeReference);
+                            var namedType = context.GetType<ITypeDefinition>(argumentTypeReference);
                             def.Type = TypeReference.Parse($"[{namedType.Name}!]");
                         },
                         argumentDefinition,
@@ -191,8 +248,8 @@ public static class SortingObjectFieldDescriptorExtensions
 
                     definition.Arguments.Add(argumentDefinition);
 
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (context, def) =>
                                 CompileMiddleware(
                                     context,
@@ -205,8 +262,103 @@ public static class SortingObjectFieldDescriptorExtensions
                             argumentTypeReference,
                             TypeDependencyFulfilled.Completed));
 
-                    argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentDefinition>(
+                    argumentDefinition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
+                            (context, argDef) => argDef.Name = context.GetSortConvention(scope).GetArgumentName(),
+                            argumentDefinition,
+                            ApplyConfigurationOn.BeforeNaming));
+                });
+
+        return descriptor;
+    }
+
+    private static bool TryGetTypeInfo(
+        IDescriptorContext context,
+        InterfaceFieldConfiguration definition,
+        [NotNullWhen(true)]
+        out ITypeInfo? typeInfo)
+    {
+        if (definition.ResultType is not null
+            && definition.ResultType != typeof(object)
+            && context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out typeInfo))
+        {
+            return true;
+        }
+
+        if (definition.Member is not null
+            && context.TypeInspector.TryCreateTypeInfo(
+                context.TypeInspector.GetReturnType(definition.Member),
+                out typeInfo))
+        {
+            return true;
+        }
+
+        typeInfo = null;
+        return false;
+    }
+
+    private static IInterfaceFieldDescriptor UseSortingInternal(
+        IInterfaceFieldDescriptor descriptor,
+        Type? sortType,
+        ITypeSystemMember? sortTypeInstance,
+        string? scope)
+    {
+        var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+
+        descriptor
+            .Extend()
+            .OnBeforeCreate(
+                (c, definition) =>
+                {
+                    TypeReference argumentTypeReference;
+                    if (sortTypeInstance is not null)
+                    {
+                        argumentTypeReference =
+                            TypeReference.Create(sortTypeInstance, scope);
+                    }
+                    else if (sortType is null)
+                    {
+                        var convention = c.GetSortConvention(scope);
+
+                        if (!TryGetTypeInfo(c, definition, out var typeInfo))
+                        {
+                            throw new ArgumentException(
+                                SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,
+                                nameof(descriptor));
+                        }
+
+                        argumentTypeReference = convention.GetFieldType(typeInfo.NamedType);
+                    }
+                    else
+                    {
+                        argumentTypeReference = c.TypeInspector.GetTypeRef(
+                            sortType,
+                            TypeContext.Input,
+                            scope);
+                    }
+
+                    var argumentDefinition = new ArgumentConfiguration
+                    {
+                        Name = argumentPlaceholder,
+                        Type = argumentTypeReference,
+                        Flags = CoreFieldFlags.SortArgument
+                    };
+
+                    argumentDefinition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>((context, def) =>
+                        {
+                            var namedType = context.GetType<ITypeDefinition>(argumentTypeReference);
+                            def.Type = TypeReference.Parse($"[{namedType.Name}!]");
+                        },
+                        argumentDefinition,
+                        ApplyConfigurationOn.BeforeNaming,
+                        argumentTypeReference,
+                        TypeDependencyFulfilled.Named));
+
+                    definition.Arguments.Add(argumentDefinition);
+
+                    argumentDefinition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
                             (context, argDef) => argDef.Name = context.GetSortConvention(scope).GetArgumentName(),
                             argumentDefinition,
                             ApplyConfigurationOn.BeforeNaming));
@@ -217,9 +369,9 @@ public static class SortingObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition,
-        ArgumentDefinition argumentDefinition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        ArgumentConfiguration argumentDefinition,
+        FieldMiddlewareConfiguration placeholder,
         string? scope)
     {
         var resolvedType = context.GetType<IType>(argumentDefinition.Type!);
@@ -233,11 +385,11 @@ public static class SortingObjectFieldDescriptorExtensions
         var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
         convention.ConfigureField(fieldDescriptor);
 
-        var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+        var factory = s_factoryTemplate.MakeGenericMethod(type.EntityType.Source);
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
 
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Sorting);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Sorting);
     }
 
     private static IQueryBuilder CreateBuilder<TEntity>(

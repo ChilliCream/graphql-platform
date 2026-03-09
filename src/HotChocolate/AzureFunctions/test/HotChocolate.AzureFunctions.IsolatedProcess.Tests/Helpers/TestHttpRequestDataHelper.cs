@@ -24,7 +24,7 @@ public static class TestHttpRequestDataHelper
         return httpRequestData;
     }
 
-    public static HttpRequestData NewBcpHttpRequestData(
+    public static HttpRequestData NewNitroHttpRequestData(
         IServiceProvider serviceProvider,
         string path)
     {
@@ -33,8 +33,8 @@ public static class TestHttpRequestDataHelper
             HttpMethods.Get,
             new Uri(IO.Path.Combine(DefaultAzFuncGraphQLUri.ToString(), path)));
 
-        //Ensure we accept Text/Html for BCP requests...
-        httpRequestData.Headers.Add(Accept, TestConstants.DefaultBcpContentType);
+        //Ensure we accept Text/Html for Nitro requests...
+        httpRequestData.Headers.Add(Accept, TestConstants.DefaultNitroContentType);
 
         return httpRequestData;
     }

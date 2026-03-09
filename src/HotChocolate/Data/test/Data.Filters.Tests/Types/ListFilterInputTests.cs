@@ -1,5 +1,4 @@
 using HotChocolate.Types;
-using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 
@@ -106,6 +105,6 @@ public class ListFilterInputTests
     public enum FooBar
     {
         Foo,
-        Bar,
+        Bar
     }
 }

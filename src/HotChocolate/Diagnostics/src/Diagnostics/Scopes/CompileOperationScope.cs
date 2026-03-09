@@ -8,7 +8,7 @@ internal sealed class CompileOperationScope : RequestScopeBase
 {
     public CompileOperationScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {
@@ -19,7 +19,7 @@ internal sealed class CompileOperationScope : RequestScopeBase
 
     protected override void SetStatus()
     {
-        if (Context.Operation is not null)
+        if (Context.TryGetOperation(out _))
         {
             Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);

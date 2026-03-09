@@ -113,28 +113,28 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (element is not MemberInfo)
+        if (attributeProvider is not MemberInfo)
         {
             return;
         }
 
         var connectionName =
             string.IsNullOrEmpty(_connectionName)
-                ? default!
+                ? null!
                 : _connectionName;
-        var options =
-            new PagingOptions
-            {
-                DefaultPageSize = _defaultPageSize,
-                MaxPageSize = _maxPageSize,
-                IncludeTotalCount = _includeTotalCount,
-                AllowBackwardPagination = _allowBackwardPagination,
-                RequirePagingBoundaries = _requirePagingBoundaries,
-                InferConnectionNameFromField = _inferConnectionNameFromField,
-                ProviderName = ProviderName
-            };
+
+        var options = new PagingOptions
+        {
+            DefaultPageSize = _defaultPageSize,
+            MaxPageSize = _maxPageSize,
+            IncludeTotalCount = _includeTotalCount,
+            AllowBackwardPagination = _allowBackwardPagination,
+            RequirePagingBoundaries = _requirePagingBoundaries,
+            InferConnectionNameFromField = _inferConnectionNameFromField,
+            ProviderName = ProviderName
+        };
 
         if (descriptor is IObjectFieldDescriptor ofd)
         {

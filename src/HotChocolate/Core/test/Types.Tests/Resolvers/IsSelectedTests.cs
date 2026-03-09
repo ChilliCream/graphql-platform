@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -811,6 +810,71 @@ public class IsSelectedTests
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task IsSelected_Pattern_Lists()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user_Attribute_List {
+                            email
+                            tags {
+                                name
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task IsSelected_Pattern_Root_Lists()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        books {
+                            author { name }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task IsSelected_Pattern_On_NonQueryType_Should_Build_Schema()
+    {
+        // Arrange & Act - should not throw KeyNotFoundException
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithNestedIsSelected>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        metrics {
+                            latency {
+                                dataset {
+                                    p50
+                                }
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public static User DummyUser { get; } =
@@ -821,7 +885,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
 
         public User GetUser_Attribute_1([IsSelected("email")] bool isSelected, IResolverContext context)
@@ -834,7 +898,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -848,7 +912,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -865,7 +929,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -882,7 +946,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -899,7 +963,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -916,7 +980,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -930,7 +994,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -946,7 +1010,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -962,7 +1026,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -972,7 +1036,7 @@ public class IsSelectedTests
                 "isSelected",
                 context.IsSelected(new HashSet<string>
                 {
-                    "email", "password", "phoneNumber", "address",
+                    "email", "password", "phoneNumber", "address"
                 }));
             return new User
             {
@@ -981,8 +1045,34 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
+        }
+
+        public User GetUser_Attribute_List(
+            [IsSelected("tags { name }")]
+            bool isSelected,
+            IResolverContext context)
+        {
+            ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f"
+            };
+        }
+
+        public List<Book> GetBooks(
+            [IsSelected("author")]
+            bool isSelected,
+            IResolverContext context)
+        {
+            ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
+            return [];
         }
     }
 
@@ -996,7 +1086,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
 
         public User GetUser_1(
@@ -1012,7 +1102,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -1029,46 +1119,70 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
     }
 
     public class User
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
-        public string Password { get; set; }
+        public required string Password { get; set; }
 
-        public string PhoneNumber { get; set; }
+        public required string PhoneNumber { get; set; }
 
-        public string Address { get; set; }
+        public required string Address { get; set; }
 
-        public string City { get; set; }
+        public required string City { get; set; }
 
-        public Category Category { get; set; }
-        public List<UserTag> Tags { get; set; }
+        public Category? Category { get; set; }
+        public List<UserTag>? Tags { get; set; }
     }
 
     public class Category
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public Category Next { get; set; }
+        public required Category Next { get; set; }
     }
 
     public class UserTag
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public int Value { get; set; }
-        public Audit Audit { get; set; }
+        public required Audit Audit { get; set; }
     }
 
     public class Audit
     {
-        public string EditedBy { get; set; }
-        public string EditedAt { get; set; }
+        public required string EditedBy { get; set; }
+        public required string EditedAt { get; set; }
+    }
+
+    public record Book(string Title, Author Author);
+
+    public record Author(string Name);
+
+    public sealed record MetricsInnerData(double P50, double P95);
+
+    public sealed record MetricsOuterGraph(List<MetricsInnerData> Dataset);
+
+    public class MetricsType
+    {
+        public MetricsOuterGraph? GetLatency(
+            [IsSelected("dataset { p50 }")] bool isP50Selected,
+            IResolverContext context)
+        {
+            ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isP50Selected);
+            return null;
+        }
+    }
+
+    public class QueryWithNestedIsSelected
+    {
+        public MetricsType GetMetrics() => new();
     }
 }

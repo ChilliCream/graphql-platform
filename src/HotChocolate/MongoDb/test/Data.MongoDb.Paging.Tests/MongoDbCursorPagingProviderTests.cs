@@ -40,7 +40,5 @@ public class MongoDbCursorPagingProviderTests
 
     public IQueryable<Foo> IQueryable() => throw new InvalidOperationException();
 
-    public class Foo
-    {
-    }
+    public class Foo;
 }

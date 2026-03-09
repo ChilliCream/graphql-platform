@@ -5,7 +5,16 @@ namespace HotChocolate.StarWars.Resolvers;
 
 public class SharedResolvers
 {
-    public IEnumerable<ICharacter> GetCharacter(
+    public async Task<IEnumerable<ICharacter>> GetCharacters(
+        [Parent] ICharacter character,
+        [Service] CharacterRepository repository)
+    {
+        await Task.Delay(250);
+
+        return GetCharactersInternal(character, repository);
+    }
+
+    private IEnumerable<ICharacter> GetCharactersInternal(
         [Parent] ICharacter character,
         [Service] CharacterRepository repository)
     {
@@ -28,7 +37,7 @@ public class SharedResolvers
             return null;
         }
         return character.Friends
-            .Select(t => repository.GetCharacter(t))
+            .Select(repository.GetCharacter)
             .OfType<Human>()
             .FirstOrDefault();
     }

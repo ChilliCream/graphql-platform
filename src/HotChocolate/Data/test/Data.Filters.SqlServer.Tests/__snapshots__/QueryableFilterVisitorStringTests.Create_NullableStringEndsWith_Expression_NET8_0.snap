@@ -13,11 +13,11 @@ atest Result:
 
 atest SQL:
 ---------------
-.param set @__p_0_rewritten '%atest'
+.param set @__p_0_endswith '%atest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IS NOT NULL AND "d"."Bar" LIKE @__p_0_rewritten ESCAPE '\'
+WHERE "d"."Bar" IS NOT NULL AND "d"."Bar" LIKE @__p_0_endswith ESCAPE '\'
 ---------------
 
 btest Result:
@@ -35,11 +35,11 @@ btest Result:
 
 btest SQL:
 ---------------
-.param set @__p_0_rewritten '%btest'
+.param set @__p_0_endswith '%btest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IS NOT NULL AND "d"."Bar" LIKE @__p_0_rewritten ESCAPE '\'
+WHERE "d"."Bar" IS NOT NULL AND "d"."Bar" LIKE @__p_0_endswith ESCAPE '\'
 ---------------
 
 null

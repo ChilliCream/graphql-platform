@@ -3,8 +3,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 /// <summary>
@@ -110,6 +108,34 @@ public interface IResolverCompiler : IDisposable
     /// </returns>
     SubscribeResolverDelegate CompileSubscribe(
         MemberInfo member,
+        Type? sourceType = null,
+        Type? resolverType = null,
+        IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null);
+
+    /// <summary>
+    /// Compiles a batch resolver from a method.
+    /// </summary>
+    /// <param name="method">
+    /// The batch resolver method.
+    /// </param>
+    /// <param name="sourceType">
+    /// The source type.
+    /// </param>
+    /// <param name="resolverType">
+    /// The resolver type.
+    /// </param>
+    /// <param name="argumentNames">
+    /// The parameter argument name lookup.
+    /// </param>
+    /// <param name="parameterExpressionBuilders">
+    /// Field level parameter expression builders.
+    /// </param>
+    /// <returns>
+    /// Returns the compiled batch field delegate.
+    /// </returns>
+    BatchFieldDelegate CompileBatchResolve(
+        MethodInfo method,
         Type? sourceType = null,
         Type? resolverType = null,
         IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,

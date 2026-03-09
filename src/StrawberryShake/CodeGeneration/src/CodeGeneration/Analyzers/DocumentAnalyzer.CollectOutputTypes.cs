@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public partial class DocumentAnalyzer
 {
-    private static readonly InterfaceTypeSelectionSetAnalyzer _selectionAnalyzer = new();
+    private static readonly InterfaceTypeSelectionSetAnalyzer s_selectionAnalyzer = new();
 
     private static OperationModel CreateOperationModel(
         IDocumentAnalyzerContext context)
@@ -64,7 +64,7 @@ public partial class DocumentAnalyzer
 
         EnqueueFields(selectionSetVariants, backlog);
 
-        return _selectionAnalyzer.AnalyzeOperation(
+        return s_selectionAnalyzer.AnalyzeOperation(
             context,
             selectionSetVariants);
     }
@@ -74,7 +74,7 @@ public partial class DocumentAnalyzer
         FieldSelection fieldSelection,
         Queue<FieldSelection> backlog)
     {
-        var namedType = (INamedOutputType)fieldSelection.Field.Type.NamedType();
+        var namedType = (IOutputTypeDefinition)fieldSelection.Field.Type.NamedType();
 
         var selectionSetVariants =
             context.CollectFields(
@@ -86,14 +86,14 @@ public partial class DocumentAnalyzer
 
         if (namedType is UnionType or InterfaceType)
         {
-            _selectionAnalyzer.Analyze(
+            s_selectionAnalyzer.Analyze(
                 context,
                 fieldSelection,
                 selectionSetVariants);
         }
         else if (namedType is ObjectType)
         {
-            _selectionAnalyzer.Analyze(
+            s_selectionAnalyzer.Analyze(
                 context,
                 fieldSelection,
                 selectionSetVariants);
@@ -108,12 +108,12 @@ public partial class DocumentAnalyzer
         foreach (var variableDefinition in
                  context.OperationDefinition.VariableDefinitions)
         {
-            var namedInputType = context.Schema.GetType<INamedInputType>(
+            var namedInputType = context.Schema.Types.GetType<IInputTypeDefinition>(
                 variableDefinition.Type.NamedType().Name.Value);
 
             arguments.Add(new ArgumentModel(
                 variableDefinition.Variable.Name.Value,
-                (IInputType)variableDefinition.Type.ToType(namedInputType),
+                (IInputType)variableDefinition.Type.RewriteToType(namedInputType),
                 variableDefinition,
                 variableDefinition.DefaultValue));
         }

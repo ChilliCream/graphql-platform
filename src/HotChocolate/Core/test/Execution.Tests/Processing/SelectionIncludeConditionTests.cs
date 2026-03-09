@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +26,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(true);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.True);
         var visibility = new SelectionIncludeCondition(skip: new VariableNode("b"));
 
         // act
@@ -56,7 +55,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(false);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.False);
         var visibility = new SelectionIncludeCondition(skip: new VariableNode("b"));
 
         // act
@@ -85,7 +84,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(true);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.True);
         var visibility = new SelectionIncludeCondition(include: new VariableNode("b"));
 
         // act
@@ -114,7 +113,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(false);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.False);
         var visibility = new SelectionIncludeCondition(include: new VariableNode("b"));
 
         // act
@@ -292,7 +291,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": true,
+                              "include": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -326,7 +331,12 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "shouldSkip", true }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "shouldSkip": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -360,7 +370,12 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "shouldSkip", false }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "shouldSkip": false
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -394,7 +409,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": true,
+                              "include": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -422,7 +443,6 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true }, })
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -450,7 +470,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", false }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": true,
+                              "include": false
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -505,7 +531,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", false }, { "include", false }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": false,
+                              "include": false
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -564,7 +596,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", false }, { "include", true }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": false,
+                              "include": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -623,7 +661,12 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -694,7 +737,12 @@ public class SelectionIncludeConditionTests
                                 __typename
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "permission", false }, })
+                        .SetVariableValues(
+                            """
+                            {
+                              "permission": false
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -715,7 +763,7 @@ public class SelectionIncludeConditionTests
         public Person Person() => new Person();
 
         [UsePaging]
-        public Person[] Persons() => [new Person(),];
+        public Person[] Persons() => [new Person()];
     }
 
     public sealed class Person

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -30,7 +29,7 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }",
+                }"
             });
 
             // assert
@@ -55,7 +54,7 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }",
+                }"
             });
 
             // assert
@@ -80,7 +79,7 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }",
+                }"
             });
 
             // assert
@@ -106,7 +105,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
@@ -136,7 +135,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
@@ -154,7 +153,7 @@ public class ServerInstrumentationTests : ServerTestBase
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
-                    o.RequestDetails = RequestDetails.Default | RequestDetails.Variables;
+                    o.RequestDetails = RequestDetails.Default | RequestDetails.Operation;
                 });
 
             // act
@@ -166,7 +165,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
@@ -192,8 +191,8 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
-                Extensions = new Dictionary<string, object?> { { "test", "abc" }, },
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
             });
 
             // assert
@@ -233,17 +232,17 @@ public class ServerInstrumentationTests : ServerTestBase
             // act
             await server.PostRawAsync(new ClientQueryRequest
             {
-                Query = @"
-                {
-                    hero(episode: NEW_HOPE)
+                Query =
+                    """
                     {
-                        name
-                        ... on Droid @defer(label: ""my_id"")
-                        {
-                            id
+                        hero(episode: NEW_HOPE) {
+                            name
+                            ... on Droid @defer(label: "my_id") {
+                                id
+                            }
                         }
                     }
-                }",
+                    """
             });
 
             // assert
@@ -278,7 +277,7 @@ public class ServerInstrumentationTests : ServerTestBase
                             }
                         }
                     }
-                }",
+                }"
             });
 
             // assert
@@ -297,6 +296,7 @@ public class ServerInstrumentationTests : ServerTestBase
             // act
             await server.PostRawAsync(new ClientQueryRequest
             {
+                // lang=text
                 Query = @"
                 {
                     hero(episode: NEW_HOPE)
@@ -313,7 +313,7 @@ public class ServerInstrumentationTests : ServerTestBase
                             }
                         }
                     }
-                }",
+                }"
             });
 
             // assert
@@ -337,10 +337,11 @@ public class ServerInstrumentationTests : ServerTestBase
             // act
             await server.PostRawAsync(new ClientQueryRequest
             {
+                // lang=text
                 Query = @"
                 {
                     1
-                }",
+                }"
             });
 
             // assert
@@ -367,7 +368,7 @@ public class ServerInstrumentationTests : ServerTestBase
                 Query = @"
                 {
                     abc
-                }",
+                }"
             });
 
             // assert
@@ -376,7 +377,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     private TestServer CreateInstrumentedServer(
-        Action<InstrumentationOptions>? options = default)
+        Action<InstrumentationOptions>? options = null)
         => CreateStarWarsServer(
                 configureServices: services =>
                     services

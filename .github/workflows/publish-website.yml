@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           show-progress: false
 
@@ -27,24 +27,20 @@ jobs:
           username: ${{ secrets.CONTAINER_REG_USERNAME }}
           password: ${{ secrets.CONTAINER_REG_PASSWORD }}
 
-      - run: echo ${{ secrets.CONTAINER_REG_URL }}
-
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "18.x"
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
-      - name: Cache Yarn Packages
-        uses: actions/cache@v4
+      - name: Cache Next.js Build Artifacts
+        uses: actions/cache@v5
         with:
-          path: |
-            website/.yarn/cache
-            website/.cache/yarn
-          key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+          path: website/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-
 
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
@@ -61,14 +57,18 @@ jobs:
           unzip -P ${{ secrets.ICON_PASSWORD }} src/images/icons.zip -d src/images/
         working-directory: website
 
+      - name: Optimize Images
+        run: yarn optimize-images
+        working-directory: website
+
       - name: Build Website
-        run: yarn build --prefix-paths
+        run: yarn build
         working-directory: website
 
       - name: Build WebSite Container
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./website
           file: .docker/website/dockerfile
           push: true
           tags: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
@@ -77,7 +77,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ccc-p-us1-website
-          slot-name: "production"
+          slot-name: "next"
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           images: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 

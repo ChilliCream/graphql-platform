@@ -1,6 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
@@ -25,18 +26,18 @@ public static class RelayIdFilterFieldExtensions
     public static IFilterOperationFieldDescriptor ID(
         this IFilterOperationFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .Extend()
             .OnBeforeCompletion((c, d) =>
             {
-                var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
-                var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
-                d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType));
+                if (c.Features.Get<NodeSchemaFeature>() is { IsEnabled: true } nodeFeature)
+                {
+                    var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
+                    var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
+                    d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType, nodeFeature.NodeIdTypes));
+                }
             });
 
         return descriptor;
@@ -44,8 +45,10 @@ public static class RelayIdFilterFieldExtensions
 
     private static IInputValueFormatter CreateSerializer(
         ITypeCompletionContext completionContext,
-        Type namedType)
+        Type namedType,
+        IDictionary<string, Type>? nodeIdTypes)
         => new FilterGlobalIdInputValueFormatter(
             completionContext.DescriptorContext.NodeIdSerializerAccessor,
-            namedType);
+            namedType,
+            nodeIdTypes);
 }

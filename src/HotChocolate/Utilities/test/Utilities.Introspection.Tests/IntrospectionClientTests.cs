@@ -1,6 +1,4 @@
 using System.Net;
-using CookieCrumble;
-using Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
 
 // ReSharper disable AccessToDisposedClosure

@@ -1,2 +1,2 @@
-The directive arguments have invalid values: 'Int cannot parse the given literal of type `BooleanValueNode`.' at /e.
+The directive arguments have invalid values: 'Int cannot coerce the given literal of type `BooleanValue` to a runtime value.' at /e.
 @a(d: 1, e: true)

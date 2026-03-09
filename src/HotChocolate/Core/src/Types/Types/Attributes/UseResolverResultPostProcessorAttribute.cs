@@ -11,10 +11,10 @@ public class UseResolverResultPostProcessorAttribute<T>
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
-        var services = context.Services.GetRequiredService<IApplicationServiceProvider>();
+        var services = context.Services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         var postProcessor = ActivatorUtilities.GetServiceOrCreateInstance<T>(services);
-        descriptor.ExtendWith(c => c.Definition.ResultPostProcessor = postProcessor);
+        descriptor.ExtendWith(c => c.Configuration.ResultPostProcessor = postProcessor);
     }
 }

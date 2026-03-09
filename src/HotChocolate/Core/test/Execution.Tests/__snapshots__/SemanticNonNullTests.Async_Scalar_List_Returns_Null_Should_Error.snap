@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "Cannot return null for semantic non-null field.",
+      "path": [
+        "scalarListReturningNull"
+      ],
+      "extensions": {
+        "code": "HC0088"
+      }
+    }
+  ],
+  "data": {
+    "scalarListReturningNull": null
+  }
+}

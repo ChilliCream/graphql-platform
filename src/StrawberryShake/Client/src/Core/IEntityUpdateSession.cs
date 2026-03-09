@@ -9,7 +9,7 @@ public interface IEntityUpdateSession : IDisposable
     /// <summary>
     /// Gets the store version.
     /// </summary>
-    public ulong Version { get; }
+    ulong Version { get; }
 }
 
 /// <summary>
@@ -21,5 +21,5 @@ public interface IEntityReadSession : IDisposable
     /// <summary>
     /// Gets the store version.
     /// </summary>
-    public ulong Version { get; }
+    ulong Version { get; }
 }

@@ -1,5 +1,4 @@
 using System.Net;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
@@ -43,8 +42,10 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer(
             configureServices: sp =>
-                sp.RemoveAll<ITimeProvider>()
-                    .AddSingleton<ITimeProvider, StaticTimeProvider>());
+                sp.AddGraphQLServer()
+                    .ConfigureSchemaServices(s =>
+                            s.RemoveAll<ITimeProvider>()
+                            .AddSingleton<ITimeProvider, StaticTimeProvider>()));
         var url = TestServerExtensions.CreateUrl(path);
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
@@ -53,6 +54,37 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.Headers.Remove("ETag");
+        response.Content.Headers.ContentLength = null;
+
+        response.MatchMarkdownSnapshot();
+    }
+
+    [Theory]
+    [InlineData("/graphql?sdl")]
+    [InlineData("/graphql/schema/")]
+    [InlineData("/graphql/schema.graphql")]
+    [InlineData("/graphql/schema")]
+    public async Task Download_GraphQL_Schema_Slicing_Args_Enabled(string path)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp =>
+                sp.AddGraphQLServer()
+                    .ConfigureSchemaServices(s =>
+                        s.RemoveAll<ITimeProvider>()
+                            .AddSingleton<ITimeProvider, StaticTimeProvider>())
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true));
+        var url = TestServerExtensions.CreateUrl(path);
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.Headers.Remove("ETag");
+        response.Content.Headers.ContentLength = null;
 
         response.MatchMarkdownSnapshot();
     }
@@ -66,9 +98,9 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: s =>
-                s.AddGraphQL()
-                    .ModifyRequestOptions(o => o.EnableSchemaFileSupport = false));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o => o.EnableSchemaFileSupport = false));
 
         var url = TestServerExtensions.CreateUrl(path);
         var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -207,8 +239,14 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions { EnableSchemaRequests = false, Tool = { Enable = false, }, }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                {
+                    o.EnableSchemaRequests = false;
+                    o.Tool.Enable = false;
+                }),
+            configureConventions: e => e.WithOptions(o => o.Enable = false));
         var url = TestServerExtensions.CreateUrl("/graphql?sdl");
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 

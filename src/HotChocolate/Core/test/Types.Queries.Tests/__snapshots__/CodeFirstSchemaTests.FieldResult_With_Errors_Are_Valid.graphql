@@ -1,0 +1,22 @@
+schema {
+  query: ValidQueryValueTask
+}
+
+interface Error {
+  message: String!
+}
+
+type ArgumentError implements Error {
+  message: String!
+  paramName: String
+}
+
+type Foo {
+  bar: String!
+}
+
+type ValidQueryValueTask {
+  foo: FooResult!
+}
+
+union FooResult = Foo | ArgumentError

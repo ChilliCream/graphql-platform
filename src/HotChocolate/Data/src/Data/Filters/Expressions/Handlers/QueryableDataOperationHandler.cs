@@ -10,10 +10,12 @@ public class QueryableDataOperationHandler
 
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
-        return fieldDefinition is FilterOperationFieldDefinition def &&
-            def.Id == Operation;
+        return fieldConfiguration is FilterOperationFieldConfiguration def
+            && def.Id == Operation;
     }
+
+    public static QueryableDataOperationHandler Create(FilterProviderContext context) => new();
 }

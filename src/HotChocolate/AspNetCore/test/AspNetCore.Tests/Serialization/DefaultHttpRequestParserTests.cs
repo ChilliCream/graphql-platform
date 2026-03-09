@@ -1,5 +1,7 @@
 using System.Collections;
+using System.IO.Pipelines;
 using System.Text;
+using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +22,7 @@ public sealed class DefaultHttpRequestParserTests
             }
             """;
 
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
         // act
         var parser = new DefaultHttpRequestParser(
@@ -28,11 +30,11 @@ public sealed class DefaultHttpRequestParserTests
             new Sha256DocumentHashProvider(),
             256,
             ParserOptions.Default);
-        var request = await parser.ParseRequestAsync(stream, CancellationToken.None);
+        var request = await parser.ParseRequestAsync(PipeReader.Create(stream), CancellationToken.None);
 
         // assert
         Assert.Collection(
-            request.Select(r => r.QueryId),
+            request.Select(r => r.DocumentId?.Value),
             id => Assert.Equal("abc1213_5164-ABC-123", id));
     }
 
@@ -50,7 +52,7 @@ public sealed class DefaultHttpRequestParserTests
         // act
         async Task Parse()
         {
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
             var parser = new DefaultHttpRequestParser(
                 new DefaultDocumentCache(),
@@ -58,12 +60,12 @@ public sealed class DefaultHttpRequestParserTests
                 256,
                 ParserOptions.Default);
 
-            await parser.ParseRequestAsync(stream, CancellationToken.None);
+            await parser.ParseRequestAsync(PipeReader.Create(stream), CancellationToken.None);
         }
 
         // assert
         var ex = await Assert.ThrowsAsync<GraphQLRequestException>(Parse);
-        Assert.Equal("Invalid query id format.", ex.Message);
+        Assert.Equal("The operation id has an invalid format.", ex.Message);
     }
 
     [Fact]
@@ -87,7 +89,7 @@ public sealed class DefaultHttpRequestParserTests
 
         // assert
         Assert.Collection(
-            request.Select(r => r.QueryId),
+            request.Select(r => r.DocumentId?.Value),
             id => Assert.Equal("abc1213_5164-ABC-123", id));
     }
 
@@ -116,7 +118,7 @@ public sealed class DefaultHttpRequestParserTests
 
         // assert
         var ex = Assert.Throws<GraphQLRequestException>(Parse);
-        Assert.Equal("Invalid query id format.", ex.Message);
+        Assert.Equal("The operation id has an invalid format.", ex.Message);
     }
 
     [Fact]
@@ -134,7 +136,7 @@ public sealed class DefaultHttpRequestParserTests
         var request = parser.ParseRequestFromParams(queryParams);
 
         // assert
-        Assert.Equal("abc1213_5164-ABC-123", request.QueryId);
+        Assert.Equal("abc1213_5164-ABC-123", request.DocumentId?.Value);
     }
 
     [InlineData("abc1213_5164-ABC-123/")]
@@ -161,7 +163,7 @@ public sealed class DefaultHttpRequestParserTests
 
         // assert
         var ex = Assert.Throws<GraphQLRequestException>(Parse);
-        Assert.Equal("Invalid query id format.", ex.Message);
+        Assert.Equal("The operation id has an invalid format.", ex.Message);
     }
 
     public sealed class MockQueryParams(string id) : IQueryCollection

@@ -18,11 +18,11 @@ public class GraphQLHttpClientConfigurationTests
         ))
         {
             DefaultRequestVersion = HttpVersion.Version20,
-            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
         };
 
         var client = GraphQLHttpClient.Create(httpClient, true);
-        await client.SendAsync(new("{ __typename }", new(CreateUrl(default))), default);
+        await client.SendAsync(new("{ __typename }", new(CreateUrl(null))), CancellationToken.None);
     }
 
     internal class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> sender) : HttpMessageHandler

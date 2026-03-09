@@ -1,0 +1,555 @@
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Types.Analyzers.Models;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static System.StringComparison;
+using static HotChocolate.Types.Analyzers.WellKnownAttributes;
+
+namespace HotChocolate.Types.Analyzers.Inspectors;
+
+public class ObjectTypeInspector : ISyntaxInspector
+{
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.ClassDeclaration];
+
+    public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
+    {
+        var diagnostics = ImmutableArray<Diagnostic>.Empty;
+        var isOperationType = false;
+        var includeInternalMembers = context.SemanticModel.Compilation.IncludeInternalMembers();
+
+        OperationType? operationType = null;
+        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
+        {
+            if (!IsOperationType(context, out possibleType, out classSymbol, out operationType))
+            {
+                syntaxInfo = null;
+                return false;
+            }
+
+            isOperationType = true;
+        }
+
+        if (!possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+        {
+            diagnostics = diagnostics.Add(
+                Diagnostic.Create(
+                    Errors.ObjectTypePartialKeywordMissing,
+                    Location.Create(possibleType.SyntaxTree, possibleType.Span)));
+        }
+
+        if (!possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
+        {
+            diagnostics = diagnostics.Add(
+                Diagnostic.Create(
+                    Errors.ObjectTypeStaticKeywordMissing,
+                    Location.Create(possibleType.SyntaxTree, possibleType.Span)));
+        }
+
+        var members = classSymbol.GetMembers();
+        var resolvers = new Resolver[members.Length];
+        Resolver? nodeResolver = null;
+        var i = 0;
+
+        foreach (var member in members)
+        {
+            if (member.IsIgnored())
+            {
+                continue;
+            }
+
+            if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
+            {
+                var hasNodeResolverAttribute = methodSymbol.IsNodeResolver();
+                var includeInternalNodeResolver = hasNodeResolverAttribute
+                    && methodSymbol.DeclaredAccessibility is
+                        Accessibility.Internal
+                        or Accessibility.ProtectedOrInternal
+                        or Accessibility.ProtectedAndInternal;
+
+                if (!IsVisibleResolverMember(member, includeInternalMembers) && !includeInternalNodeResolver)
+                {
+                    continue;
+                }
+
+                if (methodSymbol.Skip())
+                {
+                    continue;
+                }
+
+                if (!isOperationType && hasNodeResolverAttribute)
+                {
+                    nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
+                    continue;
+                }
+
+                resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol);
+                continue;
+            }
+
+            if (member is IPropertySymbol)
+            {
+                if (!IsVisibleResolverMember(member, includeInternalMembers))
+                {
+                    continue;
+                }
+
+                var compilation = context.SemanticModel.Compilation;
+
+                resolvers[i++] = new Resolver(
+                    classSymbol.Name,
+                    member,
+                    compilation.GetDescription(member),
+                    compilation.GetDeprecationReason(member),
+                    ResolverResultKind.Pure,
+                    [],
+                    member.GetMemberBindings(),
+                    compilation.CreateTypeReference(member));
+            }
+        }
+
+        if (i > 0 && i < resolvers.Length)
+        {
+            Array.Resize(ref resolvers, i);
+        }
+
+        if (runtimeType is not null)
+        {
+            var objectTypeInfo = new ObjectTypeInfo(
+                context.SemanticModel.Compilation,
+                classSymbol,
+                runtimeType,
+                nodeResolver,
+                possibleType,
+                i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+                classSymbol.GetAttributes());
+            syntaxInfo = objectTypeInfo;
+
+            if (diagnostics.Length > 0)
+            {
+                objectTypeInfo.AddDiagnosticRange(diagnostics);
+            }
+
+            return true;
+        }
+
+        var rootType = new RootTypeInfo(
+            context.SemanticModel.Compilation,
+            classSymbol,
+            operationType!.Value,
+            possibleType,
+            i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+            classSymbol.GetAttributes());
+
+        rootType.SourceSchemaDetected =
+            rootType.Shareable is not DirectiveScope.None
+                || rootType.Inaccessible is not DirectiveScope.None
+                || rootType.DescriptorAttributes.HasSourceSchemaAttribute()
+                || rootType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
+
+        if (diagnostics.Length > 0)
+        {
+            rootType.AddDiagnosticRange(diagnostics);
+        }
+
+        syntaxInfo = rootType;
+        return true;
+    }
+
+    private static bool IsObjectTypeExtension(
+        GeneratorSyntaxContext context,
+        [NotNullWhen(true)] out ClassDeclarationSyntax? resolverTypeSyntax,
+        [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
+        [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
+    {
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
+        {
+            foreach (var attributeListSyntax in possibleType.AttributeLists)
+            {
+                foreach (var attributeSyntax in attributeListSyntax.Attributes)
+                {
+                    var symbol = ModelExtensions.GetSymbolInfo(context.SemanticModel, attributeSyntax).Symbol;
+
+                    if (symbol is not IMethodSymbol attributeSymbol)
+                    {
+                        continue;
+                    }
+
+                    var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                    var fullName = attributeContainingTypeSymbol.ToDisplayString();
+
+                    // We do a start with here to capture the generic and non-generic variant of
+                    // the object type extension attribute.
+                    if (fullName.StartsWith(ObjectTypeAttribute, Ordinal)
+                        && attributeContainingTypeSymbol.TypeArguments.Length == 1
+                        && attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol rt
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rts)
+                    {
+                        resolverTypeSyntax = possibleType;
+                        resolverTypeSymbol = rts;
+                        runtimeType = rt;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        resolverTypeSyntax = null;
+        resolverTypeSymbol = null;
+        runtimeType = null;
+        return false;
+    }
+
+    private static bool IsVisibleResolverMember(ISymbol member, bool includeInternalMembers)
+        => member.DeclaredAccessibility switch
+        {
+            Accessibility.Public => true,
+            Accessibility.Internal => includeInternalMembers,
+            Accessibility.ProtectedOrInternal => includeInternalMembers,
+            Accessibility.ProtectedAndInternal => includeInternalMembers,
+            _ => false
+        };
+
+    private static bool IsOperationType(
+        GeneratorSyntaxContext context,
+        [NotNullWhen(true)] out ClassDeclarationSyntax? resolverTypeSyntax,
+        [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
+        [NotNullWhen(true)] out OperationType? operationType)
+    {
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
+        {
+            foreach (var attributeListSyntax in possibleType.AttributeLists)
+            {
+                foreach (var attributeSyntax in attributeListSyntax.Attributes)
+                {
+                    var symbol = ModelExtensions.GetSymbolInfo(context.SemanticModel, attributeSyntax).Symbol;
+
+                    if (symbol is not IMethodSymbol attributeSymbol)
+                    {
+                        continue;
+                    }
+
+                    var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                    var fullName = attributeContainingTypeSymbol.ToDisplayString();
+
+                    if (fullName.StartsWith(QueryTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsq)
+                    {
+                        resolverTypeSyntax = possibleType;
+                        resolverTypeSymbol = rtsq;
+                        operationType = OperationType.Query;
+                        return true;
+                    }
+
+                    if (fullName.StartsWith(MutationTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsm)
+                    {
+                        resolverTypeSyntax = possibleType;
+                        resolverTypeSymbol = rtsm;
+                        operationType = OperationType.Mutation;
+                        return true;
+                    }
+
+                    if (fullName.StartsWith(SubscriptionTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtss)
+                    {
+                        resolverTypeSyntax = possibleType;
+                        resolverTypeSymbol = rtss;
+                        operationType = OperationType.Subscription;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        resolverTypeSyntax = null;
+        resolverTypeSymbol = null;
+        operationType = null;
+        return false;
+    }
+
+    private static Resolver CreateResolver(
+        GeneratorSyntaxContext context,
+        INamedTypeSymbol resolverType,
+        IMethodSymbol resolverMethod)
+        => CreateResolver(context.SemanticModel.Compilation, resolverType, resolverMethod);
+
+    public static Resolver CreateResolver(
+        Compilation compilation,
+        INamedTypeSymbol resolverType,
+        IMethodSymbol resolverMethod,
+        string? resolverTypeName = null)
+    {
+        var parameters = resolverMethod.Parameters;
+        var buffer = new ResolverParameter[parameters.Length];
+        var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
+        var isBatchResolver = resolverMethod.IsBatchResolver();
+
+        for (var i = 0; i < parameters.Length; i++)
+        {
+            var parameter = parameters[i];
+            var parameterKind = compilation.GetParameterKind(parameter, out var key);
+
+            var paramDesc = compilation.GetDescription(parameter);
+            buffer[i] = new ResolverParameter(
+                parameter,
+                parameterKind,
+                compilation.CreateTypeReference(parameter, isBatchResolver),
+                paramDesc?.Description,
+                compilation.GetDeprecationReason(parameter),
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
+        }
+
+        resolverTypeName ??= resolverType.Name;
+
+        return new Resolver(
+            resolverTypeName,
+            resolverMethod,
+            compilation.GetDescription(resolverMethod),
+            compilation.GetDeprecationReason(resolverMethod),
+            resolverMethod.GetResultKind(),
+            resolverParameters,
+            resolverMethod.GetMemberBindings(),
+            isBatchResolver
+                ? compilation.CreateTypeReference(resolverMethod, isBatchResolver: true)
+                : compilation.CreateTypeReference(resolverMethod),
+            kind: isBatchResolver
+                ? ResolverKind.BatchResolver
+                : compilation.IsConnectionType(resolverMethod.ReturnType)
+                    ? ResolverKind.ConnectionResolver
+                    : ResolverKind.Default);
+    }
+
+    private static Resolver CreateNodeResolver(
+        GeneratorSyntaxContext context,
+        INamedTypeSymbol resolverType,
+        IMethodSymbol resolverMethod,
+        ref ImmutableArray<Diagnostic> diagnostics)
+    {
+        var compilation = context.SemanticModel.Compilation;
+        var parameters = resolverMethod.Parameters;
+        var buffer = new ResolverParameter[parameters.Length];
+        var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
+        var hasNamedIdParameter = HasNamedNodeIdParameter(compilation, parameters);
+
+        for (var i = 0; i < parameters.Length; i++)
+        {
+            var parameter = parameters[i];
+            var parameterKind = compilation.GetParameterKind(parameter, out var key);
+
+            var paramDesc = compilation.GetDescription(parameter);
+            var resolverParameter = new ResolverParameter(
+                parameter,
+                parameterKind,
+                compilation.CreateTypeReference(parameter),
+                paramDesc?.Description,
+                compilation.GetDeprecationReason(parameter),
+                key,
+                paramDesc?.IsDescriptionFromAttribute ?? false);
+
+            if (resolverParameter.Kind == ResolverParameterKind.Argument)
+            {
+                if (!IsNodeIdParameter(resolverParameter, i, hasNamedIdParameter))
+                {
+                    var location = parameter.Locations[0];
+
+                    diagnostics = diagnostics.Add(
+                        Diagnostic.Create(
+                            Errors.InvalidNodeResolverArgumentName,
+                            Location.Create(location.SourceTree!, location.SourceSpan)));
+                }
+            }
+
+            if (resolverParameter.Kind is ResolverParameterKind.Unknown
+                && IsNodeIdParameter(resolverParameter, i, hasNamedIdParameter))
+            {
+                resolverParameter = new ResolverParameter(
+                    parameter,
+                    ResolverParameterKind.Argument,
+                    compilation.CreateTypeReference(parameter),
+                    paramDesc?.Description,
+                    compilation.GetDeprecationReason(parameter),
+                    key,
+                    paramDesc?.IsDescriptionFromAttribute ?? false);
+            }
+
+            buffer[i] = resolverParameter;
+        }
+
+        if (buffer.Count(t => t.Kind == ResolverParameterKind.Argument) > 1)
+        {
+            var location = resolverMethod.Locations[0];
+
+            diagnostics = diagnostics.Add(
+                Diagnostic.Create(
+                    Errors.TooManyNodeResolverArguments,
+                    Location.Create(location.SourceTree!, location.SourceSpan)));
+        }
+
+        return new Resolver(
+            resolverType.Name,
+            resolverMethod,
+            compilation.GetDescription(resolverMethod),
+            compilation.GetDeprecationReason(resolverMethod),
+            resolverMethod.GetResultKind(),
+            resolverParameters,
+            resolverMethod.GetMemberBindings(),
+            compilation.CreateTypeReference(resolverMethod),
+            kind: ResolverKind.NodeResolver);
+    }
+
+    private static bool HasNamedNodeIdParameter(
+        Compilation compilation,
+        ImmutableArray<IParameterSymbol> parameters)
+    {
+        foreach (var parameter in parameters)
+        {
+            var kind = compilation.GetParameterKind(parameter, out var key);
+
+            if (kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
+                && (parameter.Name == "id" || key == "id"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsNodeIdParameter(
+        ResolverParameter parameter,
+        int parameterIndex,
+        bool hasNamedIdParameter)
+    {
+        if (parameter.Name == "id" || parameter.Key == "id")
+        {
+            return true;
+        }
+
+        if (parameterIndex != 0 || hasNamedIdParameter)
+        {
+            return false;
+        }
+
+        return parameter.Name.EndsWith("Id", Ordinal)
+            || (parameter.Key?.EndsWith("Id", Ordinal) ?? false);
+    }
+
+    public static ImmutableArray<MemberBinding> GetMemberBindings(ISymbol member)
+        => member.GetMemberBindings();
+}
+
+file static class Extensions
+{
+    public static bool HasSourceSchemaAttribute(this Resolver resolver)
+    {
+        if (resolver.Shareable is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        if (resolver.Inaccessible is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        return resolver.DescriptorAttributes.HasSourceSchemaAttribute();
+    }
+
+    public static bool HasSourceSchemaAttribute(this ImmutableArray<AttributeData> attributes)
+    {
+        if (attributes.Length == 0)
+        {
+            return false;
+        }
+
+        return attributes.Any(
+            a => a.AttributeClass?.ToDisplayString() switch
+            {
+                InaccessibleAttribute => true,
+                InternalAttribute => true,
+                LookupAttribute => true,
+                ShareableAttribute => true,
+                _ => false
+            });
+    }
+
+    public static bool IsNodeResolver(this IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(NodeResolverAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsBatchResolver(this IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == BatchResolverAttribute)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool Skip(this IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(
+                DataLoaderAttribute,
+                QueryAttribute,
+                MutationAttribute,
+                SubscriptionAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static ImmutableArray<MemberBinding> GetMemberBindings(this ISymbol member)
+    {
+        var bindings = ImmutableArray.CreateBuilder<MemberBinding>();
+
+        foreach (var attribute in member.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString().Equals(BindFieldAttribute, Ordinal) ?? false)
+            {
+                var name = attribute.ConstructorArguments[0].Value?.ToString();
+
+                if (name is not null)
+                {
+                    bindings.Add(new MemberBinding(name, MemberBindingKind.Field));
+                }
+            }
+            else if (attribute.AttributeClass?.ToDisplayString().Equals(BindMemberAttribute, Ordinal) ?? false)
+            {
+                var name = attribute.ConstructorArguments[0].Value?.ToString();
+
+                if (name is not null)
+                {
+                    bindings.Add(new MemberBinding(name, MemberBindingKind.Property));
+                }
+            }
+        }
+
+        return bindings.ToImmutable();
+    }
+}

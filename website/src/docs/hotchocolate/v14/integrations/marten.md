@@ -21,7 +21,7 @@ To use the Marten integration, you need to install the package `HotChocolate.Dat
 To use Marten filtering, you need to register the convention on the schema builder:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMartenFiltering();
@@ -34,7 +34,7 @@ services
 To use Marten sorting, you need to register the convention on the schema builder:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMartenSorting();

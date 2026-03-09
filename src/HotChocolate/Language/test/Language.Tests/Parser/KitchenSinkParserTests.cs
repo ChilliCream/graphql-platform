@@ -1,6 +1,4 @@
 using System.Text;
-using CookieCrumble;
-using Xunit;
 using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace HotChocolate.Language;
@@ -22,7 +20,7 @@ public class KitchenSinkParserTests
 
         // assert
         var snapshot = new Snapshot();
-        snapshot.Add(document, "SDL:");
+        snapshot.Add(document.ToString(), "SDL:");
         snapshot.Add(document, "AST:", Json);
         snapshot.Match();
     }
@@ -42,7 +40,7 @@ public class KitchenSinkParserTests
 
         // assert
         var snapshot = new Snapshot();
-        snapshot.Add(document, "SDL:");
+        snapshot.Add(document.ToString(), "SDL:");
         snapshot.Add(document, "AST:", Json);
         snapshot.Match();
     }

@@ -1,0 +1,37 @@
+operation:
+  - document: |
+      query(
+        $included: Boolean!
+      ) {
+        recommender @include(if: $included) {
+          id
+          results {
+            __typename @fusion__requirement
+            ... on Product {
+              id
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: recommender
+    operation: |
+      query Op_123456789101112_1 {
+        recommender {
+          id
+          results {
+            __typename
+            ... on Product {
+              id
+            }
+          }
+        }
+      }
+    conditions:
+      - variable: $included
+        passingValue: true

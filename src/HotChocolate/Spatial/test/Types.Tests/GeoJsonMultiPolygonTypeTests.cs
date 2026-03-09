@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
@@ -14,7 +13,7 @@ public class GeoJsonMultiPolygonTypeTests
             new Coordinate(30, 20),
             new Coordinate(45, 40),
             new Coordinate(10, 40),
-            new Coordinate(30, 20),
+            new Coordinate(30, 20)
         ])),
         new Polygon(new LinearRing(
         [
@@ -22,8 +21,8 @@ public class GeoJsonMultiPolygonTypeTests
             new Coordinate(40, 10),
             new Coordinate(10, 20),
             new Coordinate(5, 15),
-            new Coordinate(15, 5),
-        ])),
+            new Coordinate(15, 5)
+        ]))
     ]);
 
     [Fact]

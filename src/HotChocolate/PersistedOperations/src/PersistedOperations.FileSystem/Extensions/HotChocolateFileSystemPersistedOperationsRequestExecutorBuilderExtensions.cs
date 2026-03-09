@@ -21,10 +21,7 @@ public static class HotChocolateFileSystemPersistedOperationsRequestExecutorBuil
         this IRequestExecutorBuilder builder,
         string? cacheDirectory = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchemaServices(
             s => s.AddFileSystemOperationDocumentStorage(cacheDirectory));

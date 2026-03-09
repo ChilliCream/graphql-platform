@@ -1,0 +1,16 @@
+mutation DeleteApiKeyCommandMutation($input: DeleteApiKeyInput!) {
+  deleteApiKey(input: $input) {
+    apiKey {
+      ...DeleteApiKeyCommand_ApiKey
+    }
+    errors {
+      ...ApiKeyNotFoundError
+      ...Error
+    }
+  }
+}
+
+fragment DeleteApiKeyCommand_ApiKey on ApiKey {
+  id
+  ...ApiKeyDetailPrompt_ApiKey
+}

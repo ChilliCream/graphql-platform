@@ -49,7 +49,7 @@ a Result:
 
 a SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorlisttests_foo as d where CAST(d.data ->> 'FooNested' as jsonb) @> :p0;
+select d.id, d.data from public.mt_doc_queryablefiltervisitorlisttests_foo as d where d.data -> 'FooNested' @> :p0;
 ---------------
 
 d Result:
@@ -103,7 +103,7 @@ d Result:
 
 d SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorlisttests_foo as d where CAST(d.data ->> 'FooNested' as jsonb) @> :p0;
+select d.id, d.data from public.mt_doc_queryablefiltervisitorlisttests_foo as d where d.data -> 'FooNested' @> :p0;
 ---------------
 
 null Result:

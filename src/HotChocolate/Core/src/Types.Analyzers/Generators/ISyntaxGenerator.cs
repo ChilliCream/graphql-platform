@@ -8,6 +8,7 @@ public interface ISyntaxGenerator
 {
     void Generate(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<SyntaxInfo> syntaxInfos);
+        string assemblyName,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, string> addSource);
 }

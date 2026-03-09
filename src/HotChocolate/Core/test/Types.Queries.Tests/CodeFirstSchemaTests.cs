@@ -1,10 +1,7 @@
-using CookieCrumble;
-using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Types.Queries.Tests;
+namespace HotChocolate.Types;
 
 public class CodeFirstSchemaTests
 {
@@ -354,6 +351,78 @@ public class CodeFirstSchemaTests
         exception.Errors[0].Message.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQuery>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_1()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<InvalidQuery>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_2()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQueryTask>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_3()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQueryValueTask>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task FieldResult_With_Errors_Are_Valid()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<ValidQueryValueTask>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
     public class QueryWithFieldResultType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -442,7 +511,7 @@ public class CodeFirstSchemaTests
                 .Field("users")
                 .Argument("error", a => a.Type<NonNullType<BooleanType>>().DefaultValue(false))
                 .UsePaging()
-                .Resolve<FieldResult<IQueryable<User>, UserNotFound>>(
+                .Resolve(
                     ctx =>
                     {
                         var error = ctx.ArgumentValue<bool>("error");
@@ -455,7 +524,7 @@ public class CodeFirstSchemaTests
                         return new FieldResult<IQueryable<User>, UserNotFound>(
                             new[]
                             {
-                                new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
+                                new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"))
                             }.AsQueryable());
                     });
 
@@ -478,7 +547,7 @@ public class CodeFirstSchemaTests
                         return new FieldResult<IQueryable<User>, UserNotFound>(
                             new[]
                             {
-                                new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
+                                new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"))
                             }.AsQueryable());
                     });
         }
@@ -507,4 +576,30 @@ public class CodeFirstSchemaTests
     public sealed class UserNotFoundException : Exception;
 
     public sealed class InvalidUserIdException : Exception;
+
+    public class InvalidQuery
+    {
+        public FieldResult<Foo> Foo() => default!;
+    }
+
+    public class InvalidQueryTask
+    {
+        public Task<FieldResult<Foo>> Foo() => null!;
+    }
+
+    public class InvalidQueryValueTask
+    {
+        public Task<FieldResult<Foo>> Foo() => null!;
+    }
+
+    public class ValidQueryValueTask
+    {
+        [Error<ArgumentException>]
+        public Task<FieldResult<Foo>> Foo() => null!;
+    }
+
+    public class Foo
+    {
+        public string Bar => null!;
+    }
 }

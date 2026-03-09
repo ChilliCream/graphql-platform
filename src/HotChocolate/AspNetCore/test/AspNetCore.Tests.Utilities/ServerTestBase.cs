@@ -1,5 +1,5 @@
 using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.Execution;
+using HotChocolate.PersistedOperations;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -21,8 +21,8 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
 
     protected virtual TestServer CreateStarWarsServer(
         string pattern = "/graphql",
-        Action<IServiceCollection>? configureServices = default,
-        Action<GraphQLEndpointConventionBuilder>? configureConventions = default,
+        Action<IServiceCollection>? configureServices = null,
+        Action<GraphQLEndpointConventionBuilder>? configureConventions = null,
         ITestOutputHelper? output = null,
         bool requireOperationName = false,
         string? environment = null)
@@ -36,13 +36,20 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 services
                     .AddSingleton(mockHostEnvironment.Object)
                     .AddRouting()
-                    .AddHttpResponseFormatter()
                     .AddGraphQLServer()
+                    .AddHttpResponseFormatter()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
+                    .AddType<Foo>()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
+                    .ModifyServerOptions(o =>
+                    {
+                        o.Batching = AllowedBatching.All;
+                        o.AllowedGetOperations =
+                            AllowedGetOperations.Query | AllowedGetOperations.Subscription;
+                    })
                     .UseInstrumentation()
                     .UseExceptions()
                     .UseTimeout()
@@ -52,7 +59,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .UseWritePersistedOperation()
                     .UseDocumentParser()
                     .UseDocumentValidation()
-                    .UseCostAnalyzer()
                     .UseOperationCache()
                     .UseOperationResolver()
                     .UseOperationVariableCoercion()
@@ -119,13 +125,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     {
                         endpoints.MapGraphQLPersistedOperations(requireOperationName: requireOperationName);
 
-                        var builder = endpoints.MapGraphQL(pattern)
-                            .WithOptions(new GraphQLServerOptions
-                            {
-                                EnableBatching = true,
-                                AllowedGetOperations =
-                                    AllowedGetOperations.Query | AllowedGetOperations.Subscription,
-                            });
+                        var builder = endpoints.MapGraphQL(pattern);
 
                         configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/notnull", "notnull");
@@ -134,22 +134,17 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
                         endpoints.MapGraphQL("/test", "test");
-                        endpoints.MapGraphQL("/batching").WithOptions(new GraphQLServerOptions
-                        {
-                            // with defaults
-                            // EnableBatching = false
-                        });
                     }));
     }
 
     protected virtual TestServer CreateServer(
-        Action<IEndpointRouteBuilder>? configureConventions = default)
+        Action<IEndpointRouteBuilder>? configureConventions = null)
     {
         return ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResponseFormatter()
                 .AddGraphQLServer()
+                .AddHttpResponseFormatter()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
                 .AddTypeExtension<SubscriptionsExtensions>()
@@ -164,5 +159,11 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .UseWebSockets()
                 .UseRouting()
                 .UseEndpoints(endpoints => configureConventions?.Invoke(endpoints)));
+    }
+
+    [DirectiveType(DirectiveLocation.Subscription)]
+    public class Foo
+    {
+        public required int Bar { get; set; }
     }
 }

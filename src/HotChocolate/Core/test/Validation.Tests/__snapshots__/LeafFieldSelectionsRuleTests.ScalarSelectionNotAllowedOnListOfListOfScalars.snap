@@ -1,0 +1,16 @@
+{
+  "message": "Field \u0022listOfListOfScalars\u0022 must not have a selection since type \u0022[[String]]\u0022 has no subfields.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 3
+    }
+  ],
+  "extensions": {
+    "declaringType": "Query",
+    "field": "listOfListOfScalars",
+    "type": "[[String]]",
+    "responseName": "listOfListOfScalars",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+  }
+}

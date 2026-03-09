@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Integration.Spec;
@@ -15,8 +14,19 @@ public class ArgumentCoercionTests
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                      sayHello(name: null)
+                    }
+                    """)
+                .Build();
+
         // act
-        var result = await executor.ExecuteAsync("{ sayHello(name: null) }");
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -32,8 +42,19 @@ public class ArgumentCoercionTests
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                      sayHello
+                    }
+                    """)
+                .Build();
+
         // act
-        var result = await executor.ExecuteAsync("{ sayHello }");
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -49,9 +70,19 @@ public class ArgumentCoercionTests
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query ($a: String!) {
+                      sayHello(name: $a)
+                    }
+                    """)
+                .Build();
+
         // act
-        var result = await executor.ExecuteAsync(
-            "query ($a: String!) { sayHello(name: $a) }");
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -67,12 +98,25 @@ public class ArgumentCoercionTests
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
-        var variables = new Dictionary<string, object?> { { "a", null }, };
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query ($a: String!) {
+                      sayHello(name: $a)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                      "a": null
+                    }
+                    """)
+                .Build();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "query ($a: String!) { sayHello(name: $a) }",
-            variables);
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -88,12 +132,25 @@ public class ArgumentCoercionTests
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
-        var variables = new Dictionary<string, object?> { { "a", "Sydney" }, };
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query ($a: String!) {
+                      sayHello(name: $a)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                      "a": "Sydney"
+                    }
+                    """)
+                .Build();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "query ($a: String!) { sayHello(name: $a) }",
-            variables);
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -101,6 +158,7 @@ public class ArgumentCoercionTests
 
     public class Query
     {
-        public string SayHello(string name = "Michael") => $"Hello {name}.";
+        public string SayHello(string name = "Michael")
+            => $"Hello {name}.";
     }
 }

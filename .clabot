@@ -1,0 +1,7 @@
+{
+  "contributors": [],
+  "allowlist": [
+    "github-actions[bot]",
+    "dependabot[bot]"
+  ]
+}

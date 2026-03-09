@@ -1,14 +1,14 @@
-﻿{
+{
   "errors": [
     {
       "message": "Cannot accept null for non-nullable input.",
-      "path": [
-        "user",
-        "name"
-      ],
       "extensions": {
         "code": "HC0018",
-        "fieldCoordinate": "UserInput.name"
+        "inputPath": [
+          "user",
+          "name"
+        ],
+        "coordinate": "UserInput.name"
       }
     }
   ]

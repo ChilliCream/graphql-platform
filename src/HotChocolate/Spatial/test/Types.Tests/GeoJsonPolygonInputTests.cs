@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -109,7 +108,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -122,7 +121,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("coordinates", _polygon),
@@ -139,7 +138,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
@@ -156,7 +155,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
@@ -181,7 +180,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test(arg: { type: Polygon, coordinates:[ [30, 10], [40, 40], [20, 40], [10, 20], [30, 10] ] })}");
+            "{ test(arg: { type: Polygon, coordinates:[[30, 10], [40, 40], [20, 40], [10, 20], [30, 10]] })}");
 
         // assert
         result.MatchSnapshot();
@@ -198,7 +197,7 @@ public class GeoJsonPolygonInputTests
         schema.MatchSnapshot();
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddQueryType(
             d => d
@@ -211,6 +210,6 @@ public class GeoJsonPolygonInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONPolygonInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONPolygonInput");
     }
 }

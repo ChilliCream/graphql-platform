@@ -1,4 +1,4 @@
-using CookieCrumble;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
@@ -23,8 +23,8 @@ public class NodeTypeTests : TypeTestBase
             nodeInterface.Name);
 
         Assert.Equal(
-            "The node interface is implemented by entities that have " +
-            "a global unique identifier.",
+            "The node interface is implemented by entities that have "
+            + "a global unique identifier.",
             nodeInterface.Description);
 
         Assert.Collection(
@@ -33,7 +33,7 @@ public class NodeTypeTests : TypeTestBase
             {
                 Assert.Equal("id", t.Name);
                 Assert.IsType<IdType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             });
     }
 
@@ -113,6 +113,55 @@ public class NodeTypeTests : TypeTestBase
     }
 
     [Fact]
+    public async Task Infer_Node_From_Query_Field_Resolve_Node_With_Runtime_Type_Conversion()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query10Type>()
+            .AddGlobalObjectIdentification()
+            .AddTypeConverter<FooWrapper, Foo>(wrapper => wrapper.Value)
+            .BuildRequestExecutorAsync();
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var id = serializer.Format("Foo", "abc");
+
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    query ($id: ID!) {
+                        node(id: $id) {
+                            ... on Foo {
+                                id
+                                clearTextId
+                            }
+                        }
+                        nodes(ids: [$id, $id]) {
+                            ... on Foo {
+                                clearTextId
+                            }
+                        }
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
+                .Build());
+
+        var operationResult = result.ExpectOperationResult();
+
+        Assert.True(
+            operationResult.Errors is null || operationResult.Errors.Count == 0,
+            $"Expected no errors but got: {operationResult.ToJson()}");
+
+        using var document = JsonDocument.Parse(operationResult.ToJson());
+        var data = document.RootElement.GetProperty("data");
+
+        Assert.Equal(id, data.GetProperty("node").GetProperty("id").GetString());
+        Assert.Equal("abc", data.GetProperty("node").GetProperty("clearTextId").GetString());
+        Assert.Equal("abc", data.GetProperty("nodes")[0].GetProperty("clearTextId").GetString());
+        Assert.Equal("abc", data.GetProperty("nodes")[1].GetProperty("clearTextId").GetString());
+    }
+
+    [Fact]
     public async Task Infer_Node_From_Query_Field_With_Abc_Argument_Resolve_Node()
     {
         await new ServiceCollection()
@@ -170,7 +219,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -225,7 +274,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -250,8 +299,7 @@ public class NodeTypeTests : TypeTestBase
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query9>()
-            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
-            .AddGlobalObjectIdentification()
+            .AddGlobalObjectIdentification(o => o.EnsureAllNodesCanBeResolved = false)
             .BuildSchemaAsync();
 
         Assert.NotNull(schema);
@@ -267,6 +315,18 @@ public class NodeTypeTests : TypeTestBase
     {
         [NodeResolver]
         public Foo GetFooById(string abc) => new(abc);
+    }
+
+    public class Query10
+    {
+        [NodeResolver]
+        public object GetFooById(string id) => new FooWrapper(new Foo(id));
+    }
+
+    public class Query10Type : ObjectType<Query10>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Query10> descriptor)
+            => descriptor.Field(t => t.GetFooById(default!)).Type<ObjectType<Foo>>();
     }
 
     public class Query3
@@ -299,6 +359,11 @@ public class NodeTypeTests : TypeTestBase
         public string Id { get; } = id;
 
         public string ClearTextId => Id;
+    }
+
+    public sealed class FooWrapper(Foo value)
+    {
+        public Foo Value { get; } = value;
     }
 
     public class Bar(int id)

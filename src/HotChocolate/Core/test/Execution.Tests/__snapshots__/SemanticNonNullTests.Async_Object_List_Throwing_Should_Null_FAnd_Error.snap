@@ -1,0 +1,13 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "objectListThrowingError"
+      ]
+    }
+  ],
+  "data": {
+    "objectListThrowingError": null
+  }
+}

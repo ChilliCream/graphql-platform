@@ -1,0 +1,15 @@
+{
+  "errors": [
+    {
+      "message": "ERROR",
+      "path": [
+        "foo",
+        "nonnull_prop",
+        "c"
+      ]
+    }
+  ],
+  "data": {
+    "foo": null
+  }
+}

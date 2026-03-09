@@ -16,12 +16,12 @@ using GreenDonut;
 namespace TestNamespace
 {
     public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, string>
+        : global::GreenDonut.IDataLoader<int, string?>
     {
     }
 
-    public sealed class EntityByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, string>
+    public sealed partial class EntityByIdDataLoader
+        : global::GreenDonut.DataLoaderBase<int, string?>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -39,11 +39,11 @@ namespace TestNamespace
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Memory<GreenDonut.Result<string?>> results,
-            global::GreenDonut.DataLoaderFetchContext<string> context,
+            global::GreenDonut.DataLoaderFetchContext<string?> context,
             global::System.Threading.CancellationToken ct)
         {
             var p1 = context.GetRequiredState<string>("key");
-            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 
@@ -98,4 +98,3 @@ namespace Microsoft.Extensions.DependencyInjection
 }
 
 ```
-

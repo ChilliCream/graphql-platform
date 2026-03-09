@@ -38,6 +38,9 @@ public interface ICursorPaginationQueryExecutor<in TQuery, TEntity> where TQuery
     /// <param name="slicedQuery">
     /// The sliced query that should be executed.
     /// </param>
+    /// <param name="originalQuery">
+    /// The original query.
+    /// </param>
     /// <param name="offset">
     /// Teh offset for the index edge.
     /// </param>
@@ -52,6 +55,7 @@ public interface ICursorPaginationQueryExecutor<in TQuery, TEntity> where TQuery
     /// </returns>
     ValueTask<CursorPaginationData<TEntity>> QueryAsync(
         TQuery slicedQuery,
+        TQuery originalQuery,
         int offset,
         bool includeTotalCount,
         CancellationToken cancellationToken);

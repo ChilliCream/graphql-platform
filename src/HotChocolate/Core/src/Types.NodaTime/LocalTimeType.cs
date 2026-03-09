@@ -26,7 +26,11 @@ public class LocalTimeType : StringToStructBaseType<LocalTime>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.LocalTimeType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.LocalTimeType_Description,
+            NodaTimeResources.LocalTimeType_Description_Extended);
     }
 
     /// <summary>
@@ -38,13 +42,31 @@ public class LocalTimeType : StringToStructBaseType<LocalTime>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(LocalTime runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out LocalTime? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        LocalTime runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
+
+    protected override Dictionary<IPattern<LocalTime>, string> PatternMap => new()
+    {
+        { LocalTimePattern.ExtendedIso, "hh:mm:ss.sssssssss" },
+        { LocalTimePattern.LongExtendedIso, "hh:mm:ss.sssssssss" },
+        { LocalTimePattern.GeneralIso, "hh:mm:ss" }
+    };
+
+    protected override Dictionary<IPattern<LocalTime>, string> ExampleMap => new()
+    {
+        { LocalTimePattern.ExtendedIso, "20:00:00.999" },
+        { LocalTimePattern.LongExtendedIso, "20:00:00.999999999" },
+        { LocalTimePattern.GeneralIso, "20:00:00" }
+    };
 }

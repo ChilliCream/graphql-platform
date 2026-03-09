@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 
 internal static class ProjectionExpressionBuilder
 {
-    private static readonly ConstantExpression _null =
+    private static readonly ConstantExpression s_null =
         Expression.Constant(null, typeof(object));
 
     public static MemberInitExpression CreateMemberInit(
@@ -17,7 +17,7 @@ internal static class ProjectionExpressionBuilder
 
     public static Expression NotNull(Expression expression)
     {
-        return Expression.NotEqual(expression, _null);
+        return Expression.NotEqual(expression, s_null);
     }
 
     public static Expression NotNullAndAlso(Expression property, Expression condition)

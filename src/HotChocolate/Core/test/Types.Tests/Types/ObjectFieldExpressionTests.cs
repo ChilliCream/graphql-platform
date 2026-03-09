@@ -1,7 +1,4 @@
-using CookieCrumble;
 using HotChocolate.Execution;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -58,7 +55,7 @@ public class ObjectFieldExpressionTests
 
     public class Foo
     {
-        public IEnumerable<Bar> Bars => new[] { new Bar(), };
+        public IEnumerable<Bar> Bars => new[] { new Bar() };
 
         public Bar Bar => new Bar();
 

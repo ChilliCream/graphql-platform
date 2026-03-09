@@ -31,7 +31,7 @@ Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in
 
 Nitro App is an awesome, performant, feature-rich GraphQL IDE / API Cockpit that helps developers and data scientists to explore, share, and test any GraphQL API.
 
-Nitro App can be installed as [Desktop App](https://get-nitro.chillicream.com), used as [Web App](https://nitro.chillicream.com), which can be installed through your browser of choice as well, or used as Middleware on your GraphQL endpoint. Middlewares are available in [.NET](https://www.nuget.org/packages/HotChocolate.AspNetCore) and [NodeJS](https://www.npmjs.com/package/@chillicream/nitro-express-middleware). More middlewares will follow.
+Nitro App can be installed as a [Desktop App](https://get-nitro.chillicream.com), used as a [Web App](https://nitro.chillicream.com), which can be installed through your browser of choice as well, or used as middleware on your GraphQL endpoint. Middlewares are available in [.NET](https://www.nuget.org/packages/HotChocolate.AspNetCore) and [NodeJS](https://www.npmjs.com/package/@chillicream/nitro-express-middleware). More middlewares will follow.
 
 [Documentation](https://chillicream.com/docs/nitro/)
 

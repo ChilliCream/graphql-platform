@@ -18,7 +18,7 @@ public class InputFieldModel : IFieldModel
     public InputFieldModel(
         string name,
         string? description,
-        IInputField field,
+        IInputValueDefinition field,
         IInputType type)
     {
         Name = name.EnsureGraphQLName();
@@ -37,9 +37,9 @@ public class InputFieldModel : IFieldModel
     /// </summary>
     public string? Description { get; }
 
-    public IInputField Field { get; }
+    public IInputValueDefinition Field { get; }
 
-    IField IFieldModel.Field => Field;
+    IFieldDefinition IFieldModel.Field => Field;
 
     public IInputType Type { get; }
 

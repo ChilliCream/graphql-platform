@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -100,7 +99,7 @@ public class GeoJsonMultiPointInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -113,7 +112,7 @@ public class GeoJsonMultiPointInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("missingType", new StringValueNode("ignored")),
@@ -130,7 +129,7 @@ public class GeoJsonMultiPointInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode("MultiPoint")),
@@ -147,7 +146,7 @@ public class GeoJsonMultiPointInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
@@ -194,7 +193,7 @@ public class GeoJsonMultiPointInputTests
         schema.MatchSnapshot();
     }
 
-    private ISchema CreateSchema() =>
+    private Schema CreateSchema() =>
         SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddType<MockObjectType>()
@@ -209,6 +208,6 @@ public class GeoJsonMultiPointInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiPointInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiPointInput");
     }
 }

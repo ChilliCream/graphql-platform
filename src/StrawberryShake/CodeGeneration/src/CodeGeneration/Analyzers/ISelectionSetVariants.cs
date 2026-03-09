@@ -1,16 +1,10 @@
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-public class SelectionSetVariants
+public class SelectionSetVariants(
+    SelectionSet returnType,
+    IReadOnlyList<SelectionSet>? variants = null)
 {
-    public SelectionSetVariants(
-        SelectionSet returnType,
-        IReadOnlyList<SelectionSet>? variants = null)
-    {
-        ReturnType = returnType;
-        Variants = variants ?? new [] { returnType, };
-    }
+    public SelectionSet ReturnType { get; } = returnType;
 
-    public SelectionSet ReturnType { get; }
-
-    public IReadOnlyList<SelectionSet> Variants { get; }
+    public IReadOnlyList<SelectionSet> Variants { get; } = variants ?? [returnType];
 }

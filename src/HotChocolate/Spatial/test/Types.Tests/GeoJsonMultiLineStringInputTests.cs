@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -42,7 +41,7 @@ public class GeoJsonMultiLineStringInputTests
         var type = CreateInputType();
 
         // act
-        var result = inputParser.ParseResult(
+        var result = inputParser.ParseLiteral(
             new ObjectValueNode(
                 new ObjectFieldNode(
                     "type",
@@ -115,7 +114,7 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -128,7 +127,7 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("coordinates", _multiLinestring),
@@ -145,7 +144,7 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode(
@@ -164,7 +163,7 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
@@ -188,8 +187,8 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test(arg: { type: MultiLineString, coordinates: [ [" +
-            "[10, 10], [20, 20], [10, 40]], [[40, 40], [30, 30], [40, 20], [30, 10]] ] })}");
+            "{ test(arg: { type: MultiLineString, coordinates: [["
+            + "[10, 10], [20, 20], [10, 40]], [[40, 40], [30, 30], [40, 20], [30, 10]]] })}");
 
         // assert
         result.MatchSnapshot();
@@ -200,7 +199,7 @@ public class GeoJsonMultiLineStringInputTests
         CreateSchema()
             .MatchSnapshot();
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddQueryType(d => d
             .Name("Query")
@@ -212,6 +211,6 @@ public class GeoJsonMultiLineStringInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
     }
 }

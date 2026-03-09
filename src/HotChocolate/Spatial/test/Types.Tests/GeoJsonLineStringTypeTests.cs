@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
@@ -11,7 +10,7 @@ public class GeoJsonLineStringTypeTests
     [
         new Coordinate(30, 10),
         new Coordinate(10, 30),
-        new Coordinate(40, 40),
+        new Coordinate(40, 40)
     ]);
 
     [Fact]

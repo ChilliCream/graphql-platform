@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 using static HotChocolate.Language.TokenPrinter;
@@ -7,12 +8,11 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private NameNode ParseName()
     {
         var start = Start();
-        var name = ExpectName();
         var location = CreateLocation(in start);
+        var name = ExpectName();
 
         return new NameNode
         (
@@ -55,7 +55,6 @@ public ref partial struct Utf8GraphQLParser
                 start.Column)
             : null;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private string ExpectName()
     {
         if (_reader.Kind == TokenKind.Name)
@@ -80,14 +79,13 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectRightBracket() => Expect(TokenKind.RightBracket);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private string ExpectString()
+    private int ExpectRawString(IBufferWriter<byte> writer)
     {
         if (TokenHelper.IsString(ref _reader))
         {
-            var value = _reader.GetString();
+            var written = _reader.GetRawString(writer);
             MoveNext();
-            return value;
+            return written;
         }
 
         throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.String, _reader.Kind);
@@ -162,8 +160,8 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipKeyword(ReadOnlySpan<byte> keyword)
     {
-        if (_reader.Kind == TokenKind.Name &&
-            _reader.Value.SequenceEqual(keyword))
+        if (_reader.Kind == TokenKind.Name
+            && _reader.Value.SequenceEqual(keyword))
         {
             MoveNext();
             return true;

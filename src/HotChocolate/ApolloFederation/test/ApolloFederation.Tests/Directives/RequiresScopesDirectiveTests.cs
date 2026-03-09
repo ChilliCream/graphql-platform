@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.ApolloFederation.Support;
 using HotChocolate.ApolloFederation.Types;
@@ -61,7 +60,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
         schema.MatchSnapshot();
     }
 
-    private static string[][] GetSingleRequiresScopesArgument(IDirectiveCollection directives)
+    private static string[][] GetSingleRequiresScopesArgument(DirectiveCollection directives)
     {
         foreach (var directive in directives)
         {
@@ -70,7 +69,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
                 continue;
             }
 
-            var argument = directive.AsSyntaxNode().Arguments.Single();
+            var argument = directive.ToSyntaxNode().Arguments.Single();
             return ParsingHelper.ParseRequiresScopesDirectiveNode(argument.Value);
         }
 
@@ -78,9 +77,9 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
         return null!;
     }
 
-    private static void CheckQueryType(ISchema schema)
+    private static void CheckQueryType(Schema schema)
     {
-        var testType = schema.GetType<ObjectType>(nameof(Query));
+        var testType = schema.Types.GetType<ObjectType>(nameof(Query));
         var directives = testType
             .Fields
             .Single(f => f.Name == "someField")
@@ -97,9 +96,9 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
             t2 => Assert.Equal("s2", t2[0]));
     }
 
-    private static void CheckReviewType(ISchema schema)
+    private static void CheckReviewType(Schema schema)
     {
-        var testType = schema.GetType<ObjectType>(nameof(Review));
+        var testType = schema.Types.GetType<ObjectType>(nameof(Review));
         var directives = testType.Directives;
         var requiresCollection = GetSingleRequiresScopesArgument(directives);
         var t1 = Assert.Single(requiresCollection);
@@ -124,7 +123,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
     public class Query
     {
         [RequiresScopes(["s1, s1_1", "s2"])]
-        public Review SomeField(int id) => default!;
+        public Review SomeField(int id) => null!;
     }
 
     [Key("id")]

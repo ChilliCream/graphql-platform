@@ -4,7 +4,6 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -33,9 +32,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         string? name = null,
         bool compatibilityMode = false)
     {
-        builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new FilterContextParameterExpressionBuilder());
-
+        builder.Services.TryAddParameterExpressionBuilder<FilterContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddFiltering(name, compatibilityMode));
     }
 
@@ -59,11 +57,9 @@ public static class HotChocolateDataRequestBuilderExtensions
         Action<IFilterConventionDescriptor> configure,
         string? name = null)
     {
-        builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new FilterContextParameterExpressionBuilder());
-
-        return builder
-            .ConfigureSchema(s => s.AddFiltering(configure, name));
+        builder.Services.TryAddParameterExpressionBuilder<FilterContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
+        return builder.ConfigureSchema(s => s.AddFiltering(configure, name));
     }
 
     /// <summary>
@@ -86,9 +82,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         string? name = null)
         where TConvention : class, IFilterConvention
     {
-        builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new FilterContextParameterExpressionBuilder());
-
+        builder.Services.TryAddParameterExpressionBuilder<FilterContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddFiltering<TConvention>(name));
     }
 
@@ -108,8 +103,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         this IRequestExecutorBuilder builder,
         string? name = null)
     {
-        builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new SortingContextParameterExpressionBuilder());
+        builder.Services.TryAddParameterExpressionBuilder<SortingContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddSorting(name));
     }
 
@@ -133,8 +128,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         Action<ISortConventionDescriptor> configure,
         string? name = null)
     {
-        builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new SortingContextParameterExpressionBuilder());
+        builder.Services.TryAddParameterExpressionBuilder<SortingContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddSorting(configure, name));
     }
 
@@ -158,8 +153,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         string? name = null)
         where TConvention : class, ISortConvention
     {
-        builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new SortingContextParameterExpressionBuilder());
+        builder.Services.TryAddParameterExpressionBuilder<SortingContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddSorting<TConvention>(name));
     }
 
@@ -177,8 +172,8 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddProjections(
         this IRequestExecutorBuilder builder,
-        string? name = null) =>
-        AddProjections(builder, x => x.AddDefaults(), name);
+        string? name = null)
+        => AddProjections(builder, x => x.AddDefaults(), name);
 
     /// <summary>
     /// Adds projection support.
@@ -227,4 +222,20 @@ public static class HotChocolateDataRequestBuilderExtensions
         => builder.ConfigureSchema(s => s
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention, TConvention>(name));
+
+    /// <summary>
+    /// Adds data context support.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    ///</param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/>.
+    /// </returns>
+    public static IRequestExecutorBuilder AddQueryContext(
+        this IRequestExecutorBuilder builder)
+    {
+        builder.Services.TryAddParameterExpressionBuilder<QueryContextParameterExpressionBuilder>();
+        return builder;
+    }
 }

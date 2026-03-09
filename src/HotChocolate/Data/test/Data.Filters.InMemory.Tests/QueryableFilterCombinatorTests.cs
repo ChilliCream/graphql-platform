@@ -4,17 +4,16 @@
 // ReSharper disable UnusedType.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterCombinatorTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new Foo(bar: true),
-        new Foo(bar: false),
+        new Foo(bar: false)
     ];
 
     private readonly SchemaCache _cache = new();
@@ -23,7 +22,7 @@ public class QueryableFilterCombinatorTests
     public async Task Create_Empty_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         // assert

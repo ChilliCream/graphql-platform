@@ -1,0 +1,28 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "scalarConnection",
+        "edges",
+        1,
+        "node"
+      ]
+    }
+  ],
+  "data": {
+    "scalarConnection": {
+      "edges": [
+        {
+          "node": "a"
+        },
+        {
+          "node": null
+        },
+        {
+          "node": "c"
+        }
+      ]
+    }
+  }
+}

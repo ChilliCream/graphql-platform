@@ -12,6 +12,74 @@ Start by installing the latest `14.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
+## Banana Cake Pop and Barista renamed to Nitro
+
+| Old                                           | New                                   | Notes                                    |
+| --------------------------------------------- | ------------------------------------- | ---------------------------------------- |
+| AddBananaCakePopExporter                      | AddNitroExporter                      |                                          |
+| AddBananaCakePopServices                      | AddNitro                              |                                          |
+| BananaCakePop.Middleware                      | ChilliCream.Nitro.App                 |                                          |
+| BananaCakePop.Services                        | ChilliCream.Nitro                     |                                          |
+| BananaCakePop.Services.Azure                  | ChilliCream.Nitro.Azure               |                                          |
+| BananaCakePop.Services.Fusion                 | ChilliCream.Nitro.Fusion              |                                          |
+| barista                                       | nitro                                 | CLI executable                           |
+| Barista                                       | ChilliCream.Nitro.CLI                 | CLI NuGet package                        |
+| BARISTA_API_ID                                | NITRO_API_ID                          |                                          |
+| BARISTA_API_KEY                               | NITRO_API_KEY                         |                                          |
+| BARISTA_CLIENT_ID                             | NITRO_CLIENT_ID                       |                                          |
+| BARISTA_OPERATIONS_FILE                       | NITRO_OPERATIONS_FILE                 |                                          |
+| BARISTA_OUTPUT_FILE                           | NITRO_OUTPUT_FILE                     |                                          |
+| BARISTA_SCHEMA_FILE                           | NITRO_SCHEMA_FILE                     |                                          |
+| BARISTA_STAGE                                 | NITRO_STAGE                           |                                          |
+| BARISTA_SUBGRAPH_ID                           | NITRO_SUBGRAPH_ID                     |                                          |
+| BARISTA_SUBGRAPH_NAME                         | NITRO_SUBGRAPH_NAME                   |                                          |
+| BARISTA_TAG                                   | NITRO_TAG                             |                                          |
+| bcp                                           | nitro                                 | Key in `subgraph-config.json`            |
+| bcp-config.json                               | nitro-config.json                     |                                          |
+| BCP_API_ID                                    | NITRO_API_ID                          |                                          |
+| BCP_API_KEY                                   | NITRO_API_KEY                         |                                          |
+| BCP_STAGE                                     | NITRO_STAGE                           |                                          |
+| eat.bananacakepop.com                         | nitro.chillicream.com                 |                                          |
+| MapBananaCakePop                              | MapNitroApp                           |                                          |
+| @chillicream/bananacakepop-express-middleware | @chillicream/nitro-express-middleware |                                          |
+| @chillicream/bananacakepop-graphql-ide        | @chillicream/nitro-embedded           | `mode: "self"` is now `mode: "embedded"` |
+
+## Dependency injection changes
+
+- It is no longer necessary to use the `[Service]` attribute unless you're using keyed services, in which case the attribute is used to specify the key.
+  - Hot Chocolate will identify services automatically.
+- Support for the `[FromServices]` attribute has been removed.
+  - As with the `[Service]` attribute above, this attribute is no longer necessary.
+- Since the `RegisterService` method is no longer required, it has been removed, along with the `ServiceKind` enum.
+- Scoped services injected into query resolvers are now resolver-scoped by default (not request scoped). For mutation resolvers, services are request-scoped by default.
+- The default scope can be changed in two ways:
+
+  1. Globally, using `ModifyOptions`:
+
+     ```csharp
+     builder.Services
+         .AddGraphQLServer()
+         .ModifyOptions(o =>
+         {
+             o.DefaultQueryDependencyInjectionScope =
+                 DependencyInjectionScope.Resolver;
+             o.DefaultMutationDependencyInjectionScope =
+                 DependencyInjectionScope.Request;
+         });
+     ```
+
+  2. On a per-resolver basis, with the `[UseRequestScope]` or `[UseResolverScope]` attribute.
+     - Note: The `[UseServiceScope]` attribute has been removed.
+
+For more information, see the [Dependency Injection](/docs/hotchocolate/v14/server/dependency-injection) documentation.
+
+## Entity framework integration changes
+
+- The `RegisterDbContext` method is no longer required, and has therefore been removed, along with the `DbContextKind` enum.
+- Use `RegisterDbContextFactory` to register a DbContext factory.
+
+For more information, see the [Entity Framework integration](/docs/hotchocolate/v14/integrations/entity-framework) documentation.
+
 ## New GID format
 
 This release introduces a more performant GID serializer, which also simplifies the underlying format of globally unique IDs.
@@ -23,10 +91,10 @@ This change is breaking if your consumers depend on the format of the GIDs, by f
 If you don't want to switch to the new format yet, you can register the legacy serializer, which only supports parsing and emitting the old ID format:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddLegacyNodeIdSerializer()
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddLegacyNodeIdSerializer()
+    .AddGlobalObjectIdentification();
 ```
 
 > Note: `AddLegacyNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
@@ -40,10 +108,10 @@ Therefore, you'll first want to make sure that all of your services support pars
 This can be done, by configuring the new default serializer to not yet emit the new format:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
+    .AddGlobalObjectIdentification();
 ```
 
 > Note: `AddDefaultNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
@@ -51,10 +119,26 @@ services
 Once all of your services have been updated to this, you can start emitting the new format service-by-service, by removing the `AddDefaultNodeIdSerializer()` call and switching to the new default behavior:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification();
 ```
+
+## IIdSerializer replaced by INodeIdSerializer
+
+Previously, you could grab the `IIdSerializer` from your dependency injection container to manually parse and serialize globally unique identifiers (GID).
+As part of the changes to the GID format mentioned above, the `IIdSerializer` interface has been renamed to `INodeIdSerializer`.
+
+The methods used for parsing and serialization have also been renamed:
+
+| Before                             | After                                                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| `.Deserialize("<gid-value>")`      | `.Parse("<gid-value>", typeof(string))` where `string` is the underlying type of the GID |
+| `.Serialize("MyType", "<raw-id>")` | `.Format("MyType", "<raw-id>")`                                                          |
+
+The `Parse()` (previously `Deserialize()`) method has also changed its return type from `IdValue` to `NodeId`. The parsed Id value can now be accessed through the `NodeId.InternalId` instead of the `IdValue.Value` property.
+
+The ability to encode the schema name in the GID via `.Serialize("SchemaName", "MyType", "<raw-id>")` has been dropped and is no longer supported.
 
 ## Node Resolver validation
 
@@ -63,10 +147,15 @@ We now enforce that each object type implementing the `Node` interface also defi
 You can opt out of this new behavior by setting the `EnsureAllNodesCanBeResolved` option to `false`.
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+builder.Services
+    .AddGraphQLServer()
+    .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
 ```
+
+## DataLoader.LoadAsync always returns nullable type
+
+Previously, the `LoadAsync` method on a DataLoader was typed as non-nullable, even though `null` could be returned.
+This release changes the return type of `LoadAsync` to always be nullable.
 
 ## Builder APIs
 
@@ -76,17 +165,27 @@ We have aligned all builder APIs to be more consistent and easier to use. Builde
 
 The interface `IQueryRequestBuilder` and its implementations were replaced with `OperationRequestBuilder` which now supports building standard GraphQL operation requests as well as variable batch requests.
 
-The `Build()` method returns now a `IOperationRequest` which is implemented by `OperationRequest` and `VariableBatchRequest`.
+The `Build()` method now returns a `IOperationRequest` which is implemented by `OperationRequest` and `VariableBatchRequest`.
 
-We have also simplified what the builder does and removed a lot of the convenience methods that allowed to add single variables to it. This has todo with the support of variable batching. Now, you have to provide the variable map directly.
+We've also renamed and consolidated some methods on the `OperationRequestBuilder`:
+
+| Before                              | After                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `SetQuery("{ __typename }")`        | `SetDocument("{ __typename }")`                                             |
+| `AddVariableValue("name", "value")` | `AddVariableValues(new Dictionary<string, object?> { ["name"] = "value" })` |
 
 ### IQueryResultBuilder replaced by OperationResultBuilder
 
 The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
 
-### IQueryResult replaced by OperationResult
+### IQueryResult replaced by IOperationResult
 
-The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
+The interface `IQueryResult` was replaced with `IOperationResult`.
+
+### IExecutionResult.ExpectQueryResult replaced by .ExpectOperationResult
+
+In your unit tests you might have been using `result.ExpectQueryResult()` to assert that a result is not a streamed response and rather a completed result.
+This assertion method has been renamed to `ExpectOperationResult()`.
 
 ## Operation complexity analyzer replaced
 
@@ -102,6 +201,14 @@ Please see the [documentation](/docs/hotchocolate/v14/security/cost-analysis) fo
 The `DateTime` scalar will now enforce a specific format. The time and offset are now required, and fractional seconds are limited to 7. This aligns it with the DateTime Scalar spec (<https://www.graphql-scalars.com/date-time/>), with the one difference being that fractions of a second are optional, and 0-7 digits may be specified.
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
+
+You can opt out of the format check with the following code:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new DateTimeType(disableFormatCheck: true));
+```
 
 ## Persisted Queries renamed to Persisted Operations
 
@@ -121,25 +228,110 @@ Please ensure that your clients are sending date/time strings in the correct for
 
 ### Methods renamed
 
-| Old method name                     | New method name                        |
-| ----------------------------------- | -------------------------------------- |
-| UsePersistedQueryPipeline           | UsePersistedOperationPipeline          |
-| UseAutomaticPersistedQueryPipeline  | UseAutomaticPersistedOperationPipeline |
-| AddFileSystemQueryStorage           | AddFileSystemOperationDocumentStorage  |
-| AddInMemoryQueryStorage             | AddInMemoryOperationDocumentStorage    |
-| AddRedisQueryStorage                | AddRedisOperationDocumentStorage       |
-| OnlyAllowPersistedQueries           | OnlyAllowPersistedOperations           |
-| OnlyPersistedQueriesAreAllowedError | OnlyPersistedOperationsAreAllowedError |
-| AllowNonPersistedQuery              | AllowNonPersistedOperation             |
-| UseReadPersistedQuery               | UseReadPersistedOperation              |
-| UseAutomaticPersistedQueryNotFound  | UseAutomaticPersistedOperationNotFound |
-| UseWritePersistedQuery              | UseWritePersistedOperation             |
+| Old method name                    | New method name                        |
+| ---------------------------------- | -------------------------------------- |
+| UsePersistedQueryPipeline          | UsePersistedOperationPipeline          |
+| UseAutomaticPersistedQueryPipeline | UseAutomaticPersistedOperationPipeline |
+| AddFileSystemQueryStorage          | AddFileSystemOperationDocumentStorage  |
+| AddInMemoryQueryStorage            | AddInMemoryOperationDocumentStorage    |
+| AddRedisQueryStorage               | AddRedisOperationDocumentStorage       |
+| AllowNonPersistedQuery             | AllowNonPersistedOperation             |
+| UseReadPersistedQuery              | UseReadPersistedOperation              |
+| UseAutomaticPersistedQueryNotFound | UseAutomaticPersistedOperationNotFound |
+| UseWritePersistedQuery             | UseWritePersistedOperation             |
+
+### Options renamed
+
+| Old option name                     | New option name                                 |
+| ----------------------------------- | ----------------------------------------------- |
+| OnlyAllowPersistedQueries           | PersistedOperations.OnlyAllowPersistedDocuments |
+| OnlyPersistedQueriesAreAllowedError | PersistedOperations.OperationNotAllowedError    |
 
 ### Defaults changed
 
 | Parameter      | Old default         | New default            |
 | -------------- | ------------------- | ---------------------- |
 | cacheDirectory | "persisted_queries" | "persisted_operations" |
+
+## MutationResult renamed to FieldResult
+
+| Old name                      | New name                   |
+| ----------------------------- | -------------------------- |
+| MutationResult&lt;TResult&gt; | FieldResult&lt;TResult&gt; |
+| IMutationResult               | IFieldResult               |
+
+## IReadStoredQueries and IWriteStoredQueries now IOperationDocumentStorage
+
+`IReadStoredQueries` and `IWriteStoredQueries` have been merged into a single interface named `IOperationDocumentStorage`.
+
+Renamed interface methods:
+
+| Old name          | New name     |
+| ----------------- | ------------ |
+| TryReadQueryAsync | TryReadAsync |
+| WriteQueryAsync   | SaveAsync    |
+
+## Required keyed services
+
+Accessing a keyed service that has not been registered will now throw, instead of returning `null`. The return type is now non-nullable.
+
+This change aligns the API with the regular (non-keyed) service access API.
+
+## Change to OnlyAllowPersistedOperations option
+
+**Before**
+
+```csharp
+ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true);
+```
+
+**After**
+
+```csharp
+ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true);
+```
+
+## Connection getTotalCount constructor argument replaced with totalCount
+
+Previously, you could supply an async method to the `getTotalCount` constructor argument when instantiating a `Connection<T>`. This method would only be evaluated to calculate the total count, if the `totalCount` field was selected on that Connection in a query.
+
+```csharp
+return new Connection<MyType>(
+    edges: [/* ... */],
+    info: new ConnectionPageInfo(/* ... */),
+    getTotalCount: async cancellationToken => 123)
+```
+
+In this release the constructor argument was renamed to `totalCount` and now only accepts an `int` for the total count, no longer a method to compute the total count.
+If you want to re-create the old behavior, you can use the new `[IsSelected]` attribute to conditionally compute the total count.
+
+```csharp
+public Connection<MyType> GetMyTypes(
+  [IsSelected("totalCount")] bool hasSelectedTotalCount,
+  CancellationToken cancellationToken)
+{
+    var totalCount = 0;
+    if (hasSelectedTotalCount)
+    {
+        totalCount = /* ... */;
+    }
+
+    return new Connection<MyType>(
+        edges: [/* ... */],
+        info: new ConnectionPageInfo(/* ... */),
+        totalCount: totalCount)
+}
+```
+
+# Other changes
+
+## Change to `SingleOrDefaultMiddleware`
+
+As a side-effect of fixing [a bug](https://github.com/ChilliCream/graphql-platform/issues/5566) in the `SingleOrDefaultMiddleware`, usage of this middleware along with EF Core may result in a warning being logged, as follows:
+
+> The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+
+We are looking at fixing this in a different way in the future (see [#8070](https://github.com/ChilliCream/graphql-platform/issues/8070)), but for now you can work around this by returning an `IExecutable` from your resolver by calling `AsDbContextExecutable()` on your `IQueryable` or `DbSet`, or by using `Executable.From(...)`.
 
 # Deprecations
 
@@ -152,23 +344,23 @@ In an effort to align our configuration APIs, we're now also offering a delegate
 **Before**
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .SetPagingOptions(new PagingOptions
-  {
-      MaxPageSize = 100,
-      DefaultPageSize = 25
-  });
+builder.Services
+    .AddGraphQLServer()
+    .SetPagingOptions(new PagingOptions
+    {
+        MaxPageSize = 100,
+        DefaultPageSize = 25
+    });
 ```
 
 **After**
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .ModifyPagingOptions(opt =>
-  {
-      opt.MaxPageSize = 100;
-      opt.DefaultPageSize = 25;
-  });
+builder.Services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.MaxPageSize = 100;
+        opt.DefaultPageSize = 25;
+    });
 ```

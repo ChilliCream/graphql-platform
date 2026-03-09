@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Types.SDL;
 
 public class ObjectTypeSchemaFirstTests
@@ -8,7 +6,7 @@ public class ObjectTypeSchemaFirstTests
     public void Declare_Simple_Query_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello: String
                 }";
@@ -19,7 +17,7 @@ public class ObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -27,7 +25,7 @@ public class ObjectTypeSchemaFirstTests
     public void Declare_Query_Type_With_Type_Extension()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello: String
                 }
@@ -42,7 +40,7 @@ public class ObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -50,7 +48,7 @@ public class ObjectTypeSchemaFirstTests
     public void Declare_Query_Type_With_Type_Extension_Add_Directive_To_Field()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello: String
                 }
@@ -67,7 +65,7 @@ public class ObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -75,7 +73,7 @@ public class ObjectTypeSchemaFirstTests
     public void Declare_Query_Type_With_Type_Extension_Add_Directive_To_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello: String
                 }
@@ -90,7 +88,7 @@ public class ObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

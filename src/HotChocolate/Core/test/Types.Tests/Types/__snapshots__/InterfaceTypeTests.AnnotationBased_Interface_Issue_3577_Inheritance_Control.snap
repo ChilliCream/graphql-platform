@@ -1,19 +1,19 @@
-﻿schema {
+schema {
   query: PetQuery
 }
 
 interface Canine implements Pet {
-  name: String
+  name: String!
 }
 
 interface Pet {
-  name: String
+  name: String!
 }
 
 type Dog implements Canine & Pet {
-  name: String
+  name: String!
 }
 
 type PetQuery {
-  dog: Pet
+  dog: Pet!
 }

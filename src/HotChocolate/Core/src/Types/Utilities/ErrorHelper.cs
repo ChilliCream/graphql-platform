@@ -1,23 +1,21 @@
 using System.Globalization;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
-using IHasName = HotChocolate.Types.IHasName;
-
-#nullable enable
 
 namespace HotChocolate.Utilities;
 
 internal static class ErrorHelper
 {
-    private const string _interfaceTypeValidation = "sec-Interfaces.Type-Validation";
-    private const string _objectTypeValidation = "sec-Objects.Type-Validation";
-    private const string _inputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
-    private const string _directiveValidation = "sec-Type-System.Directives.Validation";
+    private const string InterfaceTypeValidation = "sec-Interfaces.Type-Validation";
+    private const string ObjectTypeValidation = "sec-Objects.Type-Validation";
+    private const string InputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
+    private const string DirectiveValidation = "sec-Type-System.Directives.Validation";
 
-    public static ISchemaError NeedsOneAtLeastField(INamedType type)
+    public static ISchemaError NeedsOneAtLeastField(ITypeDefinition type)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_NeedsOneAtLeastField,
@@ -28,8 +26,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError TwoUnderscoresNotAllowedField(
-        INamedType type,
-        IField field)
+        ITypeDefinition type,
+        IFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_TwoUnderscoresNotAllowedField)
@@ -39,9 +37,9 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError TwoUnderscoresNotAllowedOnArgument(
-        IComplexOutputType type,
-        IOutputField field,
-        IInputField argument)
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_TwoUnderscoresNotAllowedOnArgument)
@@ -52,26 +50,26 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError TwoUnderscoresNotAllowedOnArgument(
-        DirectiveType type,
-        IInputField argument)
+        IDirectiveDefinition directiveDefinition,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_TwoUnderscoresNotAllowedOnArgument)
-            .SetDirective(type)
+            .SetDirective(directiveDefinition)
             .SetArgument(argument)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
 
-    public static ISchemaError TwoUnderscoresNotAllowedOnDirectiveName(DirectiveType type)
+    public static ISchemaError TwoUnderscoresNotAllowedOnDirectiveName(IDirectiveDefinition directiveDefinition)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName)
-            .SetDirective(type)
+            .SetDirective(directiveDefinition)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
 
     public static ISchemaError NotTransitivelyImplemented(
-        IComplexOutputType type,
-        IComplexOutputType implementedType)
+        IComplexTypeDefinition type,
+        IComplexTypeDefinition implementedType)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_NotTransitivelyImplemented,
@@ -82,9 +80,9 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError InvalidFieldType(
-        IComplexOutputType type,
-        IOutputField field,
-        IOutputField implementedField)
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_InvalidFieldType,
@@ -96,9 +94,27 @@ internal static class ErrorHelper
             .SetSpecifiedBy(type.Kind)
             .Build();
 
+    public static ISchemaError InvalidFieldDeprecation(
+        string implementedTypeName,
+        IOutputFieldDefinition implementedField,
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_InvalidFieldDeprecation,
+                implementedTypeName,
+                implementedField.Name,
+                type.Name,
+                field.Name)
+            .SetType(type)
+            .SetField(field)
+            .SetImplementedField(implementedField)
+            .SetSpecifiedBy(type.Kind, isDraft: true)
+            .Build();
+
     public static ISchemaError FieldNotImplemented(
-        IComplexOutputType type,
-        IOutputField implementedField)
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition implementedField)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_FieldNotImplemented,
@@ -111,10 +127,10 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError InvalidArgumentType(
-        IOutputField field,
-        IOutputField implementedField,
-        IInputField argument,
-        IInputField implementedArgument)
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField,
+        IInputValueDefinition argument,
+        IInputValueDefinition implementedArgument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_InvalidArgumentType,
@@ -129,9 +145,9 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError AdditionalArgumentNotNullable(
-        IOutputField field,
-        IOutputField implementedField,
-        IInputField argument)
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_AdditionalArgumentNotNullable,
@@ -144,9 +160,9 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError ArgumentNotImplemented(
-        IOutputField field,
-        IOutputField implementedField,
-        IInputField missingArgument)
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField,
+        IInputValueDefinition missingArgument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_ArgumentNotImplemented,
@@ -166,7 +182,7 @@ internal static class ErrorHelper
         string[] fieldNames)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults,
+                ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults,
                 type.Name,
                 fieldNames.Length is 1 ? string.Empty : "s",
                 string.Join(", ", fieldNames))
@@ -187,9 +203,9 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError RequiredArgumentCannotBeDeprecated(
-        IComplexOutputType type,
-        IOutputField field,
-        IInputField argument)
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_RequiredArgumentCannotBeDeprecated,
@@ -201,8 +217,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError RequiredArgumentCannotBeDeprecated(
-        DirectiveType directive,
-        IInputField argument)
+        IDirectiveDefinition directive,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_RequiredArgumentCannotBeDeprecated,
@@ -213,8 +229,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError RequiredFieldCannotBeDeprecated(
-        IInputObjectType type,
-        IInputField field)
+        IInputObjectTypeDefinition type,
+        IInputValueDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_RequiredFieldCannotBeDeprecated,
@@ -237,50 +253,51 @@ internal static class ErrorHelper
 
     private static SchemaErrorBuilder SetType(
         this SchemaErrorBuilder errorBuilder,
-        INamedType type)
-        => errorBuilder.SetTypeSystemObject((TypeSystemObjectBase)type);
+        ITypeDefinition type)
+        => errorBuilder.SetTypeSystemObject((TypeSystemObject)type);
 
     private static SchemaErrorBuilder SetDirective(
         this SchemaErrorBuilder errorBuilder,
-        DirectiveType type)
-        => errorBuilder.SetTypeSystemObject(type);
+        IDirectiveDefinition type)
+        => errorBuilder.SetTypeSystemObject((TypeSystemObject)type);
 
     private static SchemaErrorBuilder SetField(
         this SchemaErrorBuilder errorBuilder,
-        IField field,
+        IFieldDefinition field,
         string name = "field")
         => errorBuilder.SetExtension(name, field);
 
     private static SchemaErrorBuilder SetArgument(
         this SchemaErrorBuilder errorBuilder,
-        IInputField field)
+        IInputValueDefinition field)
         => errorBuilder.SetField(field, "argument");
 
     private static SchemaErrorBuilder SetImplementedType(
         this SchemaErrorBuilder errorBuilder,
-        IComplexOutputType type)
+        ITypeDefinition type)
         => errorBuilder.SetExtension("implementedType", type);
 
     private static SchemaErrorBuilder SetImplementedField(
         this SchemaErrorBuilder errorBuilder,
-        IOutputField field)
+        IOutputFieldDefinition field)
         => errorBuilder.SetField(field, "implementedField");
 
     private static SchemaErrorBuilder SetImplementedArgument(
         this SchemaErrorBuilder errorBuilder,
-        IInputField field)
+        IInputValueDefinition field)
         => errorBuilder.SetField(field, "implementedArgument");
 
     private static SchemaErrorBuilder SetSpecifiedBy(
         this SchemaErrorBuilder errorBuilder,
         TypeKind kind,
+        bool isDraft = false,
         int? rfc = null)
     {
         errorBuilder
-            .SpecifiedBy(_interfaceTypeValidation, kind is TypeKind.Interface)
-            .SpecifiedBy(_objectTypeValidation, kind is TypeKind.Object)
-            .SpecifiedBy(_inputObjectTypeValidation, kind is TypeKind.InputObject)
-            .SpecifiedBy(_directiveValidation, kind is TypeKind.Directive);
+            .SpecifiedBy(InterfaceTypeValidation, kind is TypeKind.Interface, isDraft)
+            .SpecifiedBy(ObjectTypeValidation, kind is TypeKind.Object, isDraft)
+            .SpecifiedBy(InputObjectTypeValidation, kind is TypeKind.InputObject, isDraft)
+            .SpecifiedBy(DirectiveValidation, kind is TypeKind.Directive, isDraft);
 
         if (rfc.HasValue)
         {
@@ -305,7 +322,7 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError CompleteInterfacesHelper_UnableToResolveInterface(
-        ITypeSystemObject interfaceOrObject)
+        TypeSystemObject interfaceOrObject)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface)
             .SetCode(ErrorCodes.Schema.MissingType)
@@ -314,7 +331,7 @@ internal static class ErrorHelper
 
     public static ISchemaError DirectiveCollection_DirectiveIsUnique(
         DirectiveType directiveType,
-        ITypeSystemObject type,
+        TypeSystemObject type,
         DirectiveNode? syntaxNode,
         object source)
         => SchemaErrorBuilder.New()
@@ -330,7 +347,7 @@ internal static class ErrorHelper
     public static ISchemaError DirectiveCollection_LocationNotAllowed(
         DirectiveType directiveType,
         Types.DirectiveLocation location,
-        ITypeSystemObject type,
+        TypeSystemObject type,
         DirectiveNode? syntaxNode,
         object source)
         => SchemaErrorBuilder.New()
@@ -349,7 +366,7 @@ internal static class ErrorHelper
         DirectiveNode? syntaxNode,
         object source,
         Path path,
-        SerializationException exception)
+        LeafCoercionException exception)
     {
         var message = string.Format(
             ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
@@ -374,7 +391,7 @@ internal static class ErrorHelper
     public static ISchemaError ObjectType_UnableToInferOrResolveType(
         string typeName,
         ObjectType type,
-        ObjectFieldDefinition field)
+        ObjectFieldConfiguration field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_ObjectType_UnableToInferOrResolveType,
@@ -389,7 +406,7 @@ internal static class ErrorHelper
     public static ISchemaError ObjectField_HasNoResolver(
         string typeName,
         string fieldName,
-        ITypeSystemObject type)
+        TypeSystemObject type)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_ObjectField_HasNoResolver,
@@ -401,7 +418,7 @@ internal static class ErrorHelper
 
     public static ISchemaError MiddlewareOrderInvalid(
         SchemaCoordinate fieldCoordinate,
-        ITypeSystemObject type,
+        TypeSystemObject type,
         string currentOrder)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_MiddlewareOrderInvalid, fieldCoordinate, currentOrder)
@@ -412,7 +429,7 @@ internal static class ErrorHelper
 
     public static ISchemaError DuplicateDataMiddlewareDetected(
         SchemaCoordinate field,
-        ITypeSystemObject type,
+        TypeSystemObject type,
         IEnumerable<string> duplicateMiddleware)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -425,7 +442,7 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError NoSchemaTypesAllowedAsRuntimeType(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         Type runtimeType)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -436,16 +453,15 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, IReadOnlyList<FieldNode> fieldNodes)
+    public static IError Relay_NoNodeResolver(string typeName, Path path, Selection selection)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
-            .SetLocations(fieldNodes)
             .Build();
 
     public static ISchemaError NodeResolver_MustHaveExactlyOneIdArg(
         string fieldName,
-        ITypeSystemObject type)
+        TypeSystemObject type)
         => SchemaErrorBuilder
             .New()
             .SetMessage(ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg, fieldName)
@@ -454,7 +470,7 @@ internal static class ErrorHelper
 
     public static ISchemaError NodeResolver_MustReturnObject(
         string fieldName,
-        ITypeSystemObject type)
+        TypeSystemObject type)
         => SchemaErrorBuilder
             .New()
             .SetMessage(ErrorHelper_NodeResolver_MustReturnObject, fieldName)
@@ -478,7 +494,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        IReadOnlyList<FieldNode> fieldNodes,
+        Selection selection,
         Path path,
         int maxAllowedNodes,
         int requestNodes)
@@ -487,13 +503,12 @@ internal static class ErrorHelper
                 ErrorHelper_FetchedToManyNodesAtOnce,
                 maxAllowedNodes,
                 requestNodes)
-            .SetLocations(fieldNodes)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
             .Build();
 
     public static ISchemaError NoFields(
-        ITypeSystemObject typeSystemObj,
+        TypeSystemObject typeSystemObj,
         IType type)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -505,7 +520,7 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError DuplicateFieldName(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         ITypeSystemMember declaringMember,
         IReadOnlyCollection<string> duplicateFieldNames)
     {
@@ -515,7 +530,7 @@ internal static class ErrorHelper
 
         var coordinate = declaringMember is IType
             ? new SchemaCoordinate(type.Name)
-            : new SchemaCoordinate(type.Name, ((IHasName)declaringMember).Name);
+            : new SchemaCoordinate(type.Name, ((INameProvider)declaringMember).Name);
 
         var s = string.Empty;
         var @is = "is";
@@ -538,4 +553,24 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
     }
+
+    public static ISchemaError RequiresOptInOnRequiredInputField(
+        IInputObjectTypeDefinition type,
+        IInputValueDefinition field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredInputField)
+            .SetType(type)
+            .SetField(field)
+            .Build();
+
+    public static ISchemaError RequiresOptInOnRequiredArgument(
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredArgument)
+            .SetType(type)
+            .SetField(field)
+            .SetArgument(argument)
+            .Build();
 }
