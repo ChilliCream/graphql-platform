@@ -4,44 +4,44 @@ title: "Entities and Lookups"
 
 Entities are the mechanism that makes distributed GraphQL work. They are types with stable keys that can be referenced and resolved across subgraphs. For example, the Products subgraph defines the `Product` type, and the Reviews subgraph contributes the `reviews` field to `Product`. The Accounts subgraph defines the `User` type, and other subgraphs can contribute additional fields to `User`. Without entities, each subgraph would be an isolated API. With entities, those subgraphs compose into one unified API.
 
-This page explains entity resolution in more detail: how entities are defined, how lookups resolve them across subgraphs, and how field ownership is enforced. If you completed the [Getting Started](/docs/fusion/v16/getting-started) tutorial, you already used these concepts. Here, you will focus on the mechanics and patterns behind them.
+This page explains entity resolution in more detail: how entities are defined and how lookups resolve them across subgraphs. If you completed the [Getting Started](/docs/fusion/v16/getting-started) tutorial, you already used these concepts. Here, you will focus on the mechanics and patterns behind them.
 
 ## What Makes a Type an Entity
 
-An entity is a type whose instances are identified by stable key fields, such as `id` or `sku`, across the composed API. The same key refers to the same logical object in every subgraph that uses that entity. This lets one subgraph return an entity reference while another subgraph resolves additional fields for that same entity.
+A type is not an entity because it appears in multiple subgraphs. It is an entity because it has stable key-based identity. An entity is a type with one or more key fields that uniquely identify an instance across multiple subgraphs. Those key fields form the contract between subgraphs: one subgraph can return an entity reference by key, and another subgraph can use that key to resolve additional fields for the same instance.
 
-In Fusion, separate these concerns:
+In practice, two requirements matter:
 
 1. **Entity identity:** one or more key fields uniquely identify each instance, like `id` or `sku`.
-2. **Entity resolution:** at least one lookup exists in the composed system so the gateway can resolve references by key.
+2. **Entity resolution:** at least one lookup is available so the gateway can resolve references by key.
 
-In the Products subgraph, `Product` is a full type with `id`, `name`, `price`, and other fields:
+```graphql
+# Products subgraph
+type Product {
+  id: ID!
+  name: String!
+}
 
-```csharp
-// Products/Data/Product.cs
-
-public class Product
-{
-    public int Id { get; set; }
-    public required string Name { get; set; }
-    public double Price { get; set; }
-    public int Weight { get; set; }
+type Query {
+  productById(id: ID!): Product @lookup
 }
 ```
 
-In the Reviews subgraph, `Product` is an entity stub, a lightweight declaration with just the key field and the new fields this subgraph contributes:
+Another subgraph can reuse the same key and contribute fields.
 
-```csharp
-// Reviews/Types/Product.cs
+```graphql
+# Reviews subgraph
+type Product {
+  id: ID!
+  reviews: [Review!]!
+}
 
-public sealed record Product([property: ID<Product>] int Id)
-{
-    public List<Review> GetReviews()
-        => ReviewRepository.GetByProductId(Id);
+type Query {
+  productById(id: ID!): Product @lookup @internal
 }
 ```
 
-The entity stub does not duplicate `name`, `price`, or `weight`. It only declares the key (`Id`) and the fields it adds (`reviews`). During composition, Fusion merges these into one `Product` type with all fields. The gateway resolves each field from the subgraph that owns it.
+In these examples, `id` is the key and `@lookup` defines how `Product` is resolved by that key. The Reviews lookup is internal, so clients cannot call it directly, but the gateway can use it to enter the Reviews subgraph and resolve `reviews`.
 
 ## Lookups
 
