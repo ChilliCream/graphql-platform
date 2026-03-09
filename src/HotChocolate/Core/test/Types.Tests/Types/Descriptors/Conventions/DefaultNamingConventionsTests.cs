@@ -12,11 +12,10 @@ public class DefaultNamingConventionsTests
     [InlineData("FOo", "fOo")]
     [InlineData("FOOBarBaz", "fooBarBaz")]
     [InlineData("FoO", "foO")]
-    [InlineData("F","f")]
+    [InlineData("F", "f")]
     [Theory]
-    public void GetFormattedFieldName_ReturnsFormattedFieldName(
-            string fieldName,
-            string expected) {
+    public void GetFormattedFieldName_ReturnsFormattedFieldName(string fieldName, string expected)
+    {
         // arrange
         var namingConventions = new DefaultNamingConventions(
             new XmlDocumentationProvider(

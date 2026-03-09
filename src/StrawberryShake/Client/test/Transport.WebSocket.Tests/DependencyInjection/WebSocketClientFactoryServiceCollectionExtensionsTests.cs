@@ -27,8 +27,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         ServiceCollection services = null!;
 
         // act
-        var ex =
-            Record.Exception(() => services.AddProtocol<GraphQLWebSocketProtocolFactory>());
+        var ex = Record.Exception(services.AddProtocol<GraphQLWebSocketProtocolFactory>);
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

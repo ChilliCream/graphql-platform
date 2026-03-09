@@ -27,9 +27,18 @@ export const BoxLink = styled(Link)`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+  overflow: hidden;
 
   > .gatsby-image-wrapper {
     flex: 0 0 auto;
+    border-radius: var(--box-border-radius) var(--box-border-radius) 0 0;
+  }
+
+  > img {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
     border-radius: var(--box-border-radius) var(--box-border-radius) 0 0;
   }
 `;

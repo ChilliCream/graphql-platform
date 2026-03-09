@@ -134,7 +134,7 @@ public class UsePagingAttributeTests
     public class Query
     {
         [UsePaging]
-        public IQueryable<Foo> Foos ()
+        public IQueryable<Foo> Foos()
         {
             return new List<Foo>
             {
@@ -146,7 +146,7 @@ public class UsePagingAttributeTests
 
     public class Query1
     {
-        public IQueryable<Foo> Foos ()
+        public IQueryable<Foo> Foos()
         {
             return new List<Foo>
             {
@@ -162,7 +162,7 @@ public class UsePagingAttributeTests
     {
         [UsePaging]
         [BindMember(nameof(Query1.Foos))]
-        public IQueryable<Foo> Foos ()
+        public IQueryable<Foo> Foos()
         {
             return new List<Foo>
             {

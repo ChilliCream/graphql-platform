@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteRequest",
@@ -18,16 +18,7 @@
           "Value": "_Default-1-f7e9989fbb67af7fa747a9983313c9e5"
         }
       ],
-      "event": [
-        {
-          "Name": "AddedOperationToCache",
-          "Tags": []
-        },
-        {
-          "Name": "AddedDocumentToCache",
-          "Tags": []
-        }
-      ],
+      "event": [],
       "activities": [
         {
           "OperationName": "ParseDocument",

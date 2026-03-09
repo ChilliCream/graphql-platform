@@ -160,7 +160,7 @@ public interface ISortConvention : IConvention
     void ConfigureField(IObjectFieldDescriptor fieldDescriptor);
 
     /// <summary>
-    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// Creates metadata for a field that the provider can pick up and use for the translation
     /// </summary>
     ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,

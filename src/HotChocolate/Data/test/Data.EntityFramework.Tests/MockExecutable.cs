@@ -18,7 +18,7 @@ public class MockExecutable<T>(IQueryable<T> set) : IExecutable<T>
     async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        await foreach(var item in ToAsyncEnumerable(cancellationToken))
+        await foreach (var item in ToAsyncEnumerable(cancellationToken))
         {
             yield return item;
         }
@@ -27,16 +27,16 @@ public class MockExecutable<T>(IQueryable<T> set) : IExecutable<T>
     public async IAsyncEnumerable<T> ToAsyncEnumerable(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        if(set is IAsyncEnumerable<T> asyncEnumerable)
+        if (set is IAsyncEnumerable<T> asyncEnumerable)
         {
-            await foreach(var item in asyncEnumerable.WithCancellation(cancellationToken))
+            await foreach (var item in asyncEnumerable.WithCancellation(cancellationToken))
             {
                 yield return item;
             }
         }
         else
         {
-            foreach(var item in set)
+            foreach (var item in set)
             {
                 yield return item;
             }

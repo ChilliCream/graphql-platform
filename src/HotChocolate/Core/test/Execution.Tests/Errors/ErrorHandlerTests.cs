@@ -1,11 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.SnapshotHelpers;
 
 namespace HotChocolate.Execution.Errors;
 
-[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
-[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class ErrorHandlerTests
 {
     [Fact]
@@ -130,6 +127,7 @@ public class ErrorHandlerTests
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
+            .AddApplicationService<SomeService>()
 
             // error filter configuration
             .AddErrorFilter<DummyErrorFilterWithDependency>()

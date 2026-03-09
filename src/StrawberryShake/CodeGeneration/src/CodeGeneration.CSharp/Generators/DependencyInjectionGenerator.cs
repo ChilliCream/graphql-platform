@@ -24,36 +24,41 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
     private static readonly string[] s_builtInSerializers =
     [
-        StringSerializer,
+        AnySerializer,
+        Base64StringSerializer,
         BooleanSerializer,
+        ByteArraySerializer,
         ByteSerializer,
-        ShortSerializer,
-        IntSerializer,
-        LongSerializer,
-        FloatSerializer,
-        DecimalSerializer,
-        UrlSerializer,
-        UUIDSerializer,
-        IdSerializer,
-        DateTimeSerializer,
         DateSerializer,
+        DateTimeSerializer,
+        DecimalSerializer,
+        FloatSerializer,
+        IdSerializer,
+        IntSerializer,
         LocalDateSerializer,
         LocalDateTimeSerializer,
         LocalTimeSerializer,
-        ByteArraySerializer,
+        LongSerializer,
+        ShortSerializer,
+        StringSerializer,
         TimeSpanSerializer,
-        JsonSerializer
+        UnsignedByteSerializer,
+        UnsignedIntSerializer,
+        UnsignedLongSerializer,
+        UnsignedShortSerializer,
+        UriSerializer,
+        UrlSerializer,
+        UUIDSerializer
     ];
 
     private static readonly Dictionary<string, string> s_alternativeTypeNames = new()
     {
-        ["Uuid"] = UUIDSerializer,
         ["Guid"] = UUIDSerializer,
-        ["URL"] = UrlSerializer,
-        ["Uri"] = UrlSerializer,
-        ["URI"] = UrlSerializer,
-        ["JSON"] = JsonSerializer,
-        ["Json"] = JsonSerializer
+        ["Json"] = AnySerializer,
+        ["JSON"] = AnySerializer,
+        ["Uri"] = UriSerializer,
+        ["Url"] = UrlSerializer,
+        ["Uuid"] = UUIDSerializer
     };
 
     protected override void Generate(
@@ -90,8 +95,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             addClientMethod
                 .AddParameter(Profile)
                 .SetType(CreateProfileEnumReference(descriptor))
-                .SetDefault(CreateProfileEnumReference(descriptor) + "." +
-                            descriptor.TransportProfiles[0].Name);
+                .SetDefault(CreateProfileEnumReference(descriptor) + "."
+                    + descriptor.TransportProfiles[0].Name);
         }
 
         foreach (var profile in descriptor.TransportProfiles)
@@ -99,7 +104,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             GenerateClientForProfile(settings, factory, descriptor, profile);
         }
 
-        factory.AddClass(s_clientServiceProvider);
+        factory.AddClass(ClientServiceProvider);
 
         factory.Build(writer);
     }
@@ -225,6 +230,11 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 (builder, operation) =>
                     builder.AddCode(ForwardSingletonToClientServiceProvider(
                         operation.RuntimeType.ToString())))
+            .ForEach(
+                descriptor.Operations,
+                (builder, operation) =>
+                    builder.AddCode(ForwardSingletonToClientServiceProvider(
+                        operation.InterfaceType.ToString())))
             .AddEmptyLine()
             .AddCode(ForwardSingletonToClientServiceProvider(
                 descriptor.ClientDescriptor.RuntimeType.ToString()))
@@ -488,9 +498,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         foreach (var scalar in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
-            if (scalar.RuntimeType.Equals(stringTypeInfo) &&
-                scalar.SerializationType.Equals(stringTypeInfo) &&
-                !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
+            if (scalar.RuntimeType.Equals(stringTypeInfo)
+                && scalar.SerializationType.Equals(stringTypeInfo)
+                && !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
             {
                 body.AddMethodCall()
                     .SetMethodName(AddSingleton)
@@ -900,7 +910,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .AddArgument(Sp)))));
     }
 
-    private static string s_clientServiceProvider =
+    private const string ClientServiceProvider =
         @"private sealed class ClientServiceProvider
                 : System.IServiceProvider
                 , System.IDisposable

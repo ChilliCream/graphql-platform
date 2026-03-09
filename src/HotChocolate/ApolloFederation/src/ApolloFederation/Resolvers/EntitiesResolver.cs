@@ -1,4 +1,5 @@
 using System.Buffers;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using static HotChocolate.ApolloFederation.FederationContextData;
 
@@ -23,8 +24,8 @@ internal static class EntitiesResolver
 
             var current = representations[i];
 
-            if (schema.Types.TryGetType<ObjectType>(current.TypeName, out var objectType) &&
-                objectType.Features.TryGet(out ReferenceResolver? entity))
+            if (schema.Types.TryGetType<ObjectType>(current.TypeName, out var objectType)
+                && objectType.Features.TryGet(out ReferenceResolver? entity))
             {
                 // We clone the resolver context here so that we can split the work
                 // into subtasks that can be awaited in parallel and produce separate results.
@@ -33,12 +34,25 @@ internal static class EntitiesResolver
                 entityContext.SetLocalState(TypeField, objectType);
                 entityContext.SetLocalState(DataField, current.Data);
 
-                tasks[i] = entity.Resolver.Invoke(entityContext).AsTask();
+                tasks[i] = ResolveEntityAsync(entity.Resolver, entityContext, objectType, current.Data);
+                continue;
             }
-            else
+
+            if (schema.Types.TryGetType<InterfaceType>(current.TypeName, out var interfaceType)
+                && interfaceType.Features.TryGet(out ReferenceResolver? entityInterface))
             {
-                throw ThrowHelper.EntityResolver_NoResolverFound();
+                // We clone the resolver context here so that we can split the work
+                // into subtasks that can be awaited in parallel and produce separate results.
+                var entityContext = context.Clone();
+
+                entityContext.SetLocalState(TypeField, interfaceType);
+                entityContext.SetLocalState(DataField, current.Data);
+
+                tasks[i] = entityInterface.Resolver.Invoke(entityContext).AsTask();
+                continue;
             }
+
+            throw ThrowHelper.EntityResolver_NoResolverFound();
         }
 
         for (var i = 0; i < representations.Count; i++)
@@ -74,6 +88,30 @@ internal static class EntitiesResolver
 
         ArrayPool<Task<object?>>.Shared.Return(tasks, true);
         return result;
+    }
+
+    private static Task<object?> ResolveEntityAsync(
+        FieldResolverDelegate resolver,
+        IResolverContext context,
+        ObjectType type,
+        IValueNode representation)
+        => ResolveEntityInternalAsync(resolver, context, type, representation).AsTask();
+
+    private static async ValueTask<object?> ResolveEntityInternalAsync(
+        FieldResolverDelegate resolver,
+        IResolverContext context,
+        ObjectType type,
+        IValueNode representation)
+    {
+        var entity = await resolver(context);
+
+        if (entity is not null
+            && type.Features.TryGet(out ExternalSetter? externalSetter))
+        {
+            externalSetter.Invoke(type, representation, entity);
+        }
+
+        return entity;
     }
 
     private static void ReportError(IResolverContext context, int item, Exception ex)

@@ -67,7 +67,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
             item => Assert.Equal("Leia Organa", item?.Name));
     }
 
-        [Fact]
+    [Fact]
     public async Task Execute_StarWarsGetFriends_WithHttpClient_Test()
     {
         // arrange

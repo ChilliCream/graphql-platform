@@ -1,6 +1,6 @@
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
@@ -38,8 +38,8 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
         SyntaxVisitor
             .Create(node =>
             {
-                if (node is FragmentSpreadNode spread &&
-                    spread.Directives.Any(t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer.Name)))
+                if (node is FragmentSpreadNode spread
+                    && spread.Directives.Any(t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer.Name)))
                 {
                     context.Deferred.Add(spread.Name.Value);
                 }

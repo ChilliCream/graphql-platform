@@ -1,11 +1,9 @@
-#nullable enable
-
 using System.Collections.Immutable;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Factories;
@@ -13,7 +11,11 @@ namespace HotChocolate.Types.Factories;
 internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
 {
     private ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> _directives =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<string, IReadOnlyList<DirectiveNode>>.Empty;
+#endif
 
     internal override void InitializeContext(
         IDescriptorContext context,

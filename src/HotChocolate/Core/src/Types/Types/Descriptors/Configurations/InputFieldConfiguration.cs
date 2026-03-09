@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>

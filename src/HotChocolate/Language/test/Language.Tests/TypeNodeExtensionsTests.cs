@@ -1,5 +1,4 @@
 using HotChocolate.Language.Utilities;
-using Xunit;
 
 namespace HotChocolate.Language;
 
@@ -123,8 +122,8 @@ public class TypeNodeExtensionsTests
     {
         var definition = Utf8GraphQLParser.Parse($"type Foo {{ field: {type}  }}");
 
-        if (definition.Definitions.FirstOrDefault() is ObjectTypeDefinitionNode typeNode &&
-            typeNode.Fields.FirstOrDefault() is { } field)
+        if (definition.Definitions.FirstOrDefault() is ObjectTypeDefinitionNode typeNode
+            && typeNode.Fields.FirstOrDefault() is { } field)
         {
             return field.Type;
         }

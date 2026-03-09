@@ -23,7 +23,8 @@ public class PostgresChannelWriterTests
         _channelName = $"channel_{Guid.NewGuid():N}";
         _options = new PostgresSubscriptionOptions
         {
-            ConnectionFactory = ConnectionFactory, ChannelName = _channelName
+            ConnectionFactory = ConnectionFactory,
+            ChannelName = _channelName
         };
     }
 
@@ -79,7 +80,7 @@ public class PostgresChannelWriterTests
     {
         // Arrange
         var connected = false;
-        var options = new PostgresSubscriptionOptions()
+        var options = new PostgresSubscriptionOptions
         {
             ConnectionFactory = async ct =>
             {
@@ -136,7 +137,7 @@ public class PostgresChannelWriterTests
     {
         // Arrange
         NpgsqlConnection? connection = null;
-        var options = new PostgresSubscriptionOptions()
+        var options = new PostgresSubscriptionOptions
         {
             ConnectionFactory = async ct =>
             {

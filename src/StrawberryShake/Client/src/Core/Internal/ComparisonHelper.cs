@@ -152,36 +152,36 @@ public static class ComparisonHelper
             return false;
         }
 
-        if (first is Dictionary<string, object?> firstDict &&
-            second is Dictionary<string, object?> secondDict)
+        if (first is Dictionary<string, object?> firstDict
+            && second is Dictionary<string, object?> secondDict)
         {
             return DictionaryEqualInternal(firstDict, secondDict);
         }
 
-        if (first is List<object?> firstList &&
-            second is List<object?> secondList)
+        if (first is List<object?> firstList
+            && second is List<object?> secondList)
         {
             return ListEqualInternal(firstList, secondList);
         }
 
-        if (first is IReadOnlyDictionary<string, object?> firstReadDict &&
-            second is IReadOnlyDictionary<string, object?> secondReadDict)
+        if (first is IReadOnlyDictionary<string, object?> firstReadDict
+            && second is IReadOnlyDictionary<string, object?> secondReadDict)
         {
             return DictionaryEqualInternal(firstReadDict, secondReadDict);
         }
 
-        if (first is IEnumerable<KeyValuePair<string, object?>> firstKvp &&
-            second is IEnumerable<KeyValuePair<string, object?>> secondKvp)
+        if (first is IEnumerable<KeyValuePair<string, object?>> firstKvp
+            && second is IEnumerable<KeyValuePair<string, object?>> secondKvp)
         {
             return DictionaryEqualInternal(
                 firstKvp.ToDictionary(t => t.Key, t => t.Value),
                 secondKvp.ToDictionary(t => t.Key, t => t.Value));
         }
 
-        if (first is not string &&
-            second is not string &&
-            first is IEnumerable firstEnum &&
-            second is IEnumerable secondEnum)
+        if (first is not string
+            && second is not string
+            && first is IEnumerable firstEnum
+            && second is IEnumerable secondEnum)
         {
             return SequenceEqual(firstEnum, secondEnum);
         }

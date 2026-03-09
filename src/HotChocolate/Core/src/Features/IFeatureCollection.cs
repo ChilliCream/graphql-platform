@@ -1,8 +1,6 @@
 // This code was originally forked of https://github.com/dotnet/aspnetcore/tree/c7aae8ff34dce81132d0fb3a976349dcc01ff903/src/Extensions/Features/src
 
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Tracing;
-using System.Reflection.Metadata;
 
 namespace HotChocolate.Features;
 
@@ -38,7 +36,25 @@ public interface IFeatureCollection : IEnumerable<KeyValuePair<Type, object>>
     /// </summary>
     /// <typeparam name="TFeature">The feature key.</typeparam>
     /// <returns>The requested feature, or null if it is not present.</returns>
-    TFeature? Get<TFeature>();
+    TFeature? Get<TFeature>()
+    {
+        if (typeof(TFeature).IsValueType)
+        {
+            var feature = this[typeof(TFeature)];
+            if (feature is null && Nullable.GetUnderlyingType(typeof(TFeature)) is null)
+            {
+                throw new InvalidOperationException(
+                    $"{typeof(TFeature).FullName} does not exist in the feature collection "
+                    + "and because it is a struct the method can't return null. "
+                    + $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' "
+                    + "to check if the feature exists.");
+            }
+
+            return (TFeature?)feature;
+        }
+
+        return (TFeature?)this[typeof(TFeature)];
+    }
 
     /// <summary>
     /// Tries to retrieve the requested feature from the collection.
@@ -57,5 +73,6 @@ public interface IFeatureCollection : IEnumerable<KeyValuePair<Type, object>>
     /// </summary>
     /// <typeparam name="TFeature">The feature key.</typeparam>
     /// <param name="instance">The feature value.</param>
-    void Set<TFeature>(TFeature? instance);
+    void Set<TFeature>(TFeature? instance)
+        => this[typeof(TFeature)] = instance;
 }

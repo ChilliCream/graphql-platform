@@ -23,8 +23,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `intArg` is not compatible with the " +
-                "type of the current location.",
+                "The variable `intArg` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -41,8 +41,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `booleanListArg` is not compatible with the " +
-                "type of the current location.",
+                "The variable `booleanListArg` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -59,8 +59,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `booleanArg` is not compatible with the " +
-                "type of the current location.",
+                "The variable `booleanArg` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -107,8 +107,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `nullableBoolean` is not compatible with the " +
-                "type of the current location.",
+                "The variable `nullableBoolean` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -125,8 +125,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `booleanList` is not compatible with the " +
-                "type of the current location.",
+                "The variable `booleanList` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -499,6 +499,48 @@ public class AllVariableUsagesAreAllowedRuleTests
             """
             query Query($boolVar: Boolean = false) {
               dog @include(if: $boolVar)
+            }
+            """
+        );
+    }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable1_Valid()
+    {
+        ExpectValid(
+            """
+            mutation addCat($cat: CatInput!) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
+            }
+            """
+        );
+    }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable2_Valid()
+    {
+        ExpectValid(
+            """
+            mutation addCatWithDefault($cat: CatInput! = { name: "Brontie" }) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
+            }
+            """
+        );
+    }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable1_Error()
+    {
+        ExpectErrors(
+            """
+            mutation addNullableCat($cat: CatInput) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
             }
             """
         );

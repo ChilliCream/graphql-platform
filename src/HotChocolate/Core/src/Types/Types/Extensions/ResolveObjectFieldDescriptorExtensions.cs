@@ -1,6 +1,5 @@
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -46,10 +45,10 @@ public static class ResolveObjectFieldDescriptorExtensions
         ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor
-            .Type<NativeType<TResult>>()
+            .Type<NamedRuntimeType<TResult>>()
             .Resolve(
                 ctx => new ValueTask<object?>(resolver(ctx)),
-                typeof(NativeType<TResult>));
+                typeof(NamedRuntimeType<TResult>));
     }
 
     public static IObjectFieldDescriptor Resolve<TResult>(
@@ -70,7 +69,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
                 return await resolverTask.ConfigureAwait(false);
             },
-            typeof(NativeType<TResult>));
+            typeof(NamedRuntimeType<TResult>));
     }
 
     // Resolve()
@@ -104,7 +103,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
         return descriptor.Resolve(
             _ => new ValueTask<object?>(resolver()),
-            typeof(NativeType<TResult>));
+            typeof(NamedRuntimeType<TResult>));
     }
 
     public static IObjectFieldDescriptor Resolve<TResult>(
@@ -126,7 +125,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
                 return await resolverTask.ConfigureAwait(false);
             },
-            typeof(NativeType<TResult>));
+            typeof(NamedRuntimeType<TResult>));
     }
 
     // Resolve(IResolverContext, CancellationToken)
@@ -151,7 +150,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
         return descriptor.Resolve(
             ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)),
-            typeof(NativeType<TResult>));
+            typeof(NamedRuntimeType<TResult>));
     }
 
     public static IObjectFieldDescriptor Resolve<TResult>(
@@ -173,7 +172,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
                 return await resolverTask.ConfigureAwait(false);
             },
-            typeof(NativeType<TResult>));
+            typeof(NamedRuntimeType<TResult>));
     }
 
     // Constant
@@ -196,6 +195,6 @@ public static class ResolveObjectFieldDescriptorExtensions
 
         return descriptor.Resolve(
             _ => new ValueTask<object?>(constantResult),
-            typeof(NativeType<TResult>));
+            typeof(NamedRuntimeType<TResult>));
     }
 }

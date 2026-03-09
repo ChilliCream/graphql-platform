@@ -20,8 +20,8 @@ internal sealed class DocumentStoreParameterExpressionBuilder()
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
-        if (descriptor.Extend().Configuration is { ResultType: { } resultType } definition &&
-            TryExtractEntityType(resultType, out var entityType))
+        if (descriptor.Extend().Configuration is { ResultType: { } resultType } definition
+            && TryExtractEntityType(resultType, out var entityType))
         {
             var middleware = new FieldMiddlewareConfiguration(
                 Create(typeof(ToListMiddleware<>).MakeGenericType(entityType)),

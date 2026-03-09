@@ -1,7 +1,5 @@
 using HotChocolate.Configuration;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class OnCompleteTypeSystemConfigurationTask<TDefinition>
@@ -71,7 +69,7 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
         On = on;
-        _dependencies = [..dependencies];
+        _dependencies = [.. dependencies];
     }
 
     public ITypeSystemConfiguration Owner { get; }

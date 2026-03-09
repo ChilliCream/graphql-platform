@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

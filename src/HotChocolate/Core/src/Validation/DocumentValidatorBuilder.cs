@@ -225,7 +225,11 @@ public sealed class DocumentValidatorBuilder
 
         var contextPool = _services.GetService<ObjectPool<DocumentValidatorContext>>();
         contextPool ??= new DocumentValidatorContextPool();
-        return new DocumentValidator(contextPool, [.. rules], _options.MaxAllowedErrors);
+        return new DocumentValidator(
+            contextPool,
+            [.. rules],
+            _options.MaxAllowedErrors,
+            _options.MaxLocationsPerError);
     }
 
     private static T CreateInstance<T>(

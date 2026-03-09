@@ -29,6 +29,6 @@ public class Fragment
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        return new Fragment(name,Kind, TypeCondition, SelectionSet);
+        return new Fragment(name, Kind, TypeCondition, SelectionSet);
     }
 }

@@ -16,22 +16,6 @@ public static class WellKnownContextData
     public const string Subscription = "HotChocolate.Execution.Subscription";
 
     /// <summary>
-    /// The key allows users to override the status code behavior of the default
-    /// HTTP response formatter.
-    /// </summary>
-    public const string HttpStatusCode = "HotChocolate.Execution.Transport.HttpStatusCode";
-
-    /// <summary>
-    /// The key for setting a flag that an operation was not allowed during request execution.
-    /// </summary>
-    public const string OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed";
-
-    /// <summary>
-    /// Includes the query plan into the response.
-    /// </summary>
-    public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
-
-    /// <summary>
     /// The key identifies the resolver scope on the local context.
     /// </summary>
     public const string ResolverServiceScope = "HotChocolate.Resolvers.ServiceScope";
@@ -50,12 +34,6 @@ public static class WellKnownContextData
     /// The key to the current schema.
     /// </summary>
     public const string Schema = "HotChocolate.Schema";
-
-    /// <summary>
-    /// The key to get the user provided transport operation session id when executing
-    /// GraphQL over Websocket.
-    /// </summary>
-    public const string OperationSessionId = "HotChocolate.Execution.Transport.OperationSessionId";
 
     /// <summary>
     /// The key to get the deferred task ID on the scoped context data.
@@ -114,24 +92,9 @@ public static class WellKnownContextData
     public const string IdValue = "HotChocolate.Relay.Node.Id.Value";
 
     /// <summary>
-    /// The key to get the Cache-Control header value from the context data.
-    /// </summary>
-    public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
-
-    /// <summary>
-    /// The key to get the Vary header value from the context data.
-    /// </summary>
-    public const string VaryHeaderValue = "HotChocolate.Caching.VaryHeaderValue";
-
-    /// <summary>
-    /// The key to to ski caching a query result.
+    /// The key to skip caching a query result.
     /// </summary>
     public const string SkipQueryCaching = "HotChocolate.Caching.SkipQueryCaching";
-
-    /// <summary>
-    /// The key to retrieve the cache constraints from the operation.
-    /// </summary>
-    public const string CacheControlConstraints = "HotChocolate.Caching.CacheControlConstraints";
 
     /// <summary>
     /// Type key to access the paging arguments in the local resolver state.
@@ -149,27 +112,17 @@ public static class WellKnownContextData
     public const string NodeIdResultFormatter = "HotChocolate.Relay.NodeIdResultFormatter";
 
     /// <summary>
-    /// The key to set the flag that the cost should be reported in the response.
-    /// </summary>
-    public const string ReportCost = "HotChocolate.CostAnalysis.ReportCost";
-
-    /// <summary>
-    /// The key to set the flag that only the cost should be validated and the request should not be executed.
-    /// </summary>
-    public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
-
-    /// <summary>
     /// The key to access the paging observers stored on the local resolver state.
     /// </summary>
     public const string PagingObserver = "HotChocolate.Types.PagingObserver";
 
     /// <summary>
-    /// The key to access the requirements syntax on an object field definition.
+    /// The key to access the requirement syntax on an object field definition.
     /// </summary>
-    public const string FieldRequirementsSyntax = "HotChocolate.Types.ObjectField.Requirements.Syntax";
+    public const string FieldRequirementSyntax = "HotChocolate.Types.ObjectField.Requirements.Syntax";
 
     /// <summary>
-    /// The key to access the requirements entity type on an object field definition.
+    /// The key to access the requirement entity type on an object field definition.
     /// </summary>
     public const string FieldRequirementsEntity = "HotChocolate.Types.ObjectField.Requirements.EntityType";
 

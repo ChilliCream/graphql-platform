@@ -28,11 +28,11 @@ namespace HotChocolate.ApolloFederation.Types;
 [Package(FederationVersionUrls.Federation26)]
 [DirectiveType(
     PolicyDirective_Name,
-    DirectiveLocation.Enum |
-    DirectiveLocation.FieldDefinition |
-    DirectiveLocation.Interface |
-    DirectiveLocation.Object |
-    DirectiveLocation.Scalar)]
+    DirectiveLocation.Enum
+    | DirectiveLocation.FieldDefinition
+    | DirectiveLocation.Interface
+    | DirectiveLocation.Object
+    | DirectiveLocation.Scalar)]
 [GraphQLDescription(FederationResources.PolicyDirective_Description)]
 public sealed class PolicyDirective(List<IReadOnlySet<Policy>> policies)
 {

@@ -15,7 +15,7 @@ public sealed class WebSocketClient : IWebSocketClient
     private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
     private readonly ClientWebSocket _socket;
     private ISocketProtocol? _activeProtocol;
-    private bool _receiveFinishEventTriggered = false;
+    private bool _receiveFinishEventTriggered;
     private bool _disposed;
 
     /// <summary>

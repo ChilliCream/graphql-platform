@@ -1,0 +1,14 @@
+fragment MockSchemaDetailPrompt on MockSchema {
+  id
+  name
+  createdAt
+  createdBy {
+    username
+  }
+  modifiedAt
+  modifiedBy {
+    username
+  }
+  downstreamUrl
+  url
+}

@@ -11,7 +11,7 @@ public interface IExecutable<T> : IExecutable
     /// <param name="cancellationToken">
     /// A cancellation token that can be used to cancel the execution.
     /// </param>
-    /// <returns>Returns a arbitrary list</returns>
+    /// <returns>Returns an arbitrary list</returns>
     new ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken = default);
 
     /// <summary>

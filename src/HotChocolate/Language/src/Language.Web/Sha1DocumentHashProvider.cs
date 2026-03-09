@@ -1,4 +1,7 @@
+#if NET8_0_OR_GREATER
+using System.Buffers;
 using System.Runtime.CompilerServices;
+#endif
 using System.Security.Cryptography;
 
 namespace HotChocolate.Language;
@@ -28,7 +31,7 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
     {
         var hashBytes = new byte[20];
         var hashSpan = hashBytes.AsSpan();
-        
+
         _sha.Value!.TryComputeHash(document, hashBytes, out var written);
 
         if (written < 20)
@@ -37,6 +40,27 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
         }
 
         return FormatHash(hashSpan, format);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected override string ComputeHash(ReadOnlySequence<byte> document, HashFormat format)
+    {
+        using var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
+
+        foreach (var segment in document)
+        {
+            incrementalHash.AppendData(segment.Span);
+        }
+
+        Span<byte> hashBytes = stackalloc byte[20];
+        incrementalHash.TryGetHashAndReset(hashBytes, out var written);
+
+        if (written < 20)
+        {
+            hashBytes = hashBytes[..written];
+        }
+
+        return FormatHash(hashBytes, format);
     }
 #endif
 }

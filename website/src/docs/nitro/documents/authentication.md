@@ -47,7 +47,7 @@ Learn more about Bearer Token Authentication [here](https://swagger.io/docs/spec
 
 # OAuth 2.0
 
-OAuth 2.0 authentication flow is a industry-standard authorization framework. It allows third-party applications to gain limited access to a web service through a server that supports the OAuth 2.0 protocol. Most major identity providers support OAuth 2.0, including Auth0, Okta, AWS Cognito, Azure AD, and more.
+OAuth 2.0 authentication flow is an industry-standard authorization framework. It allows third-party applications to gain limited access to a web service through a server that supports the OAuth 2.0 protocol. Most major identity providers support OAuth 2.0, including Auth0, Okta, AWS Cognito, Azure AD, and more.
 
 In .NET, OAuth 2.0 is implemented by [Duende IdentityServer](https://duendesoftware.com/products/identityserver) and [OpenIddict](https://documentation.openiddict.com/).
 

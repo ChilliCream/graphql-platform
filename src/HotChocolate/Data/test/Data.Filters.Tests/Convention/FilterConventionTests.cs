@@ -16,8 +16,8 @@ public class FilterConventionTests
         var provider = new QueryableFilterProvider(
             descriptor =>
             {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create);
             });
 
         var convention = new FilterConvention(
@@ -50,10 +50,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create));
 
         var convention = new FilterConvention(
             descriptor =>
@@ -78,10 +75,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create));
 
         var convention = new FilterConvention(
             descriptor =>
@@ -108,8 +102,8 @@ public class FilterConventionTests
         var provider = new QueryableFilterProvider(
             descriptor =>
             {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create);
             });
 
         var convention = new FilterConvention(
@@ -136,8 +130,8 @@ public class FilterConventionTests
         var provider = new QueryableFilterProvider(
             descriptor =>
             {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create);
             });
 
         var convention = new FilterConvention(
@@ -181,8 +175,8 @@ public class FilterConventionTests
         var provider = new QueryableFilterProvider(
             descriptor =>
             {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create);
             });
 
         var convention = new FilterConvention(
@@ -209,8 +203,8 @@ public class FilterConventionTests
         var provider = new QueryableFilterProvider(
             descriptor =>
             {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create);
             });
 
         var convention = new FilterConvention(
@@ -226,10 +220,7 @@ public class FilterConventionTests
             });
 
         var extension2 = new FilterConventionExtension(
-            descriptor =>
-            {
-                descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
-            });
+            descriptor => descriptor.Operation(DefaultFilterOperations.Equals).Name("eq"));
 
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
@@ -255,8 +246,8 @@ public class FilterConventionTests
         var provider = new QueryableFilterProvider(
             descriptor =>
             {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create);
             });
 
         var convention = new FilterConvention(
@@ -291,10 +282,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create));
 
         var convention = new FilterConvention(
             descriptor =>
@@ -358,7 +346,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor => descriptor.AddFieldHandler<QueryableStringEqualsHandler>());
+            descriptor => descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create));
         var context = ConventionContext.Create(
             null,
             new ServiceCollection().BuildServiceProvider(),
@@ -423,6 +411,36 @@ public class FilterConventionTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task FilterConvention_Should_Ignore_String_Operations()
+    {
+        // arrange
+        var convention = new FilterConvention(
+            descriptor =>
+            {
+                descriptor.AddDefaults();
+                descriptor.Configure<StringOperationFilterInputType>(
+                    d => d.Operation(DefaultFilterOperations.Contains).Ignore());
+                descriptor.Configure<StringOperationFilterInputType>(
+                    d => d.Operation(DefaultFilterOperations.EndsWith).Ignore());
+            });
+
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddConvention<IFilterConvention>(convention)
+            .AddFiltering()
+            .AddQueryType(
+                x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
+
+        // act
+        var schema = await builder.BuildSchemaAsync();
+        var stringOperations = schema.Types.GetType<InputObjectType>("StringOperationFilterInput");
+
+        // assert
+        Assert.DoesNotContain(stringOperations.Fields, t => t.Name.Equals("contains", StringComparison.Ordinal));
+        Assert.DoesNotContain(stringOperations.Fields, t => t.Name.Equals("endsWith", StringComparison.Ordinal));
+    }
+
     protected Schema CreateSchemaWithTypes(
         IFilterInputType type,
         FilterConvention convention,
@@ -476,7 +494,7 @@ public class FilterConventionTests
         protected override void Configure(
             IFilterProviderDescriptor<QueryableFilterContext> descriptor)
         {
-            descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+            descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
         }
     }
 

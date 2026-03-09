@@ -5,8 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
@@ -104,13 +102,6 @@ public static partial class SchemaBuilderExtensions
         ArgumentNullException.ThrowIfNull(concreteConvention);
 
         if (!typeof(IConvention).IsAssignableFrom(convention))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSupported,
-                nameof(convention));
-        }
-
-        if (!typeof(IConvention).IsAssignableFrom(concreteConvention.GetType()))
         {
             throw new ArgumentException(
                 TypeResources.SchemaBuilder_Convention_NotSupported,

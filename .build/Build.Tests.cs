@@ -38,11 +38,11 @@ partial class Build
     [Partition(TestPartitionCount)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
-        ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
+        AllSolutionFile.ReadSolution().GetAllProjects("*.Tests")
                 .Where(t => !ExcludedTests.Contains(t.Name)));
 
     IEnumerable<Project> CoverProjects => TestPartition.GetCurrent(
-        ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
+        AllSolutionFile.ReadSolution().GetAllProjects("*.Tests")
                 .Where(t => !ExcludedCover.Contains(t.Name)));
 
     Target Test => _ => _
@@ -70,7 +70,8 @@ partial class Build
             TestHotChocolateUtilities,
             TestStrawberryShakeClient,
             TestStrawberryShakeCodeGeneration,
-            TestStrawberryShakeTooling);
+            TestStrawberryShakeTooling,
+            TestMocha);
 
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -133,7 +134,7 @@ partial class Build
         TestBaseSettings(settings)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
-            .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
+            .SetProcessAdditionalArguments("--collect:\"XPlat Code Coverage\"")
             .SetExcludeByFile("*.Generated.cs")
             .SetFramework(Net60)
             .CombineWith(projects, (_, v) => _
@@ -145,7 +146,7 @@ partial class Build
         TestBaseSettings(settings)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
-            .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
+            .SetProcessAdditionalArguments("--collect:\"XPlat Code Coverage\"")
             .SetExcludeByFile("*.Generated.cs")
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)

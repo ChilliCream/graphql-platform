@@ -37,7 +37,8 @@ const Header = styled.header<{
   }
 `;
 
-const Title = styled.h5`
+const Title = styled.h2`
+  font-weight: 700;
   flex: 1 1 auto;
   margin-bottom: 0;
   margin-left: 25px;

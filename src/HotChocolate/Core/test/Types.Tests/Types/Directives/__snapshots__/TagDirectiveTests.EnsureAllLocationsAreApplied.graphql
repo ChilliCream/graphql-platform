@@ -3,20 +3,20 @@ schema @tag(name: "OnSchema") {
 }
 
 interface IFoo @tag(name: "OnInterface") {
-  bar(baz: String @tag(name: "OnInterfaceFieldArg")): String @tag(name: "OnInterfaceField")
+  bar(baz: String! @tag(name: "OnInterfaceFieldArg")): String! @tag(name: "OnInterfaceField")
 }
 
 type Foo implements IFoo {
-  bar(baz: String): String
+  bar(baz: String!): String!
 }
 
 type Query @tag(name: "OnObjectType") {
-  foo(a: String @tag(name: "OnObjectFieldArg")): IFoo @tag(name: "OnObjectField")
-  fooEnum(input: FooInput): FooEnum!
+  foo(a: String! @tag(name: "OnObjectFieldArg")): IFoo! @tag(name: "OnObjectField")
+  fooEnum(input: FooInput!): FooEnum!
 }
 
 input FooInput @tag(name: "OnInputObjectType") {
-  bar: String @tag(name: "OnInputObjectField")
+  bar: String! @tag(name: "OnInputObjectField")
 }
 
 enum FooEnum @tag(name: "OnEnum") {
@@ -24,7 +24,7 @@ enum FooEnum @tag(name: "OnEnum") {
   BAR
 }
 
-directive @foo(arg: String @tag(name: "OnDirectiveArgument")) on QUERY
+directive @foo(arg: String! @tag(name: "OnDirectiveArgument")) on QUERY
 
 """
 The @tag directive is used to apply arbitrary string

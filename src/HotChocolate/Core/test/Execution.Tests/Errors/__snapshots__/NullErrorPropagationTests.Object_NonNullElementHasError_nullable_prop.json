@@ -1,0 +1,17 @@
+{
+  "errors": [
+    {
+      "message": "ERROR",
+      "path": [
+        "foo",
+        "nullable_prop",
+        "c"
+      ]
+    }
+  ],
+  "data": {
+    "foo": {
+      "nullable_prop": null
+    }
+  }
+}

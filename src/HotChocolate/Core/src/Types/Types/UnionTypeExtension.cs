@@ -4,8 +4,6 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -19,7 +17,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
     private Action<IUnionTypeDescriptor>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="UnionTypeExtension"/>.
+    /// Initializes a new instance of <see cref="UnionTypeExtension"/>.
     /// </summary>
     public UnionTypeExtension()
     {
@@ -27,7 +25,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="UnionTypeExtension"/>.
+    /// Initializes a new instance of <see cref="UnionTypeExtension"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.

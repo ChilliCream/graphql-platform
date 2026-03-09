@@ -4,7 +4,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 using Lang = HotChocolate.Language.DirectiveLocation;
 
-#nullable enable
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]

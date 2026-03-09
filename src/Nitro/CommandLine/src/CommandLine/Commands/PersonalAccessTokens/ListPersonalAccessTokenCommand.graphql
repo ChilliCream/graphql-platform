@@ -1,0 +1,27 @@
+query ListPersonalAccessTokenCommandQuery($after: String, $first: Int) {
+  me {
+    personalAccessTokens(after: $after, first: $first) {
+      edges {
+        ...ListPersonalAccessTokenCommand_PersonalAccessTokenEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment ListPersonalAccessTokenCommand_PersonalAccessTokenEdge on PersonalAccessTokensEdge {
+  cursor
+  node {
+    ...ListPersonalAccessTokenCommand_PersonalAccessToken
+  }
+}
+
+fragment ListPersonalAccessTokenCommand_PersonalAccessToken on PersonalAccessToken {
+  id
+  description
+  expiresAt
+  createdAt
+  ...PersonalAccessTokenDetailPrompt_PersonalAccessToken
+}

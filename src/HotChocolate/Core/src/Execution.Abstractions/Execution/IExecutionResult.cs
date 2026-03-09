@@ -1,3 +1,6 @@
+using System.Collections.Immutable;
+using HotChocolate.Features;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -8,7 +11,7 @@ namespace HotChocolate.Execution;
 /// them allows it to give back its used memory to the execution
 /// engine result pools.
 /// </remarks>
-public interface IExecutionResult : IAsyncDisposable
+public interface IExecutionResult : IFeatureProvider, IAsyncDisposable
 {
     /// <summary>
     /// Gets the result kind.
@@ -19,7 +22,11 @@ public interface IExecutionResult : IAsyncDisposable
     /// Gets the result context data which represent additional
     /// properties that are NOT written to the transport.
     /// </summary>
-    IReadOnlyDictionary<string, object?>? ContextData { get; }
+    ImmutableDictionary<string, object?> ContextData
+    {
+        get => Features.Get<ImmutableDictionary<string, object?>>() ?? ImmutableDictionary<string, object?>.Empty;
+        set => Features.Set(value);
+    }
 
     /// <summary>
     /// Registers a cleanup task for execution resources bound to this execution result.

@@ -1,5 +1,4 @@
 using HotChocolate.Data.Filters.Expressions;
-using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Filters;
 

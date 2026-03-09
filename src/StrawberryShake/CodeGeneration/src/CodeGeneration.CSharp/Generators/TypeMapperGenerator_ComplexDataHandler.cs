@@ -61,8 +61,8 @@ public partial class TypeMapperGenerator
         ComplexTypeDescriptor complexTypeDescriptor,
         Func<ObjectTypeDescriptor, IfBuilder> generator)
     {
-        if (complexTypeDescriptor is not InterfaceTypeDescriptor interfaceTypeDescriptor ||
-            !interfaceTypeDescriptor.ImplementedBy.Any())
+        if (complexTypeDescriptor is not InterfaceTypeDescriptor interfaceTypeDescriptor
+            || !interfaceTypeDescriptor.ImplementedBy.Any())
         {
             return;
         }
@@ -112,7 +112,7 @@ public partial class TypeMapperGenerator
             else if (prop.Type.IsNonNull())
             {
                 if (prop.Type.InnerType() is ILeafTypeDescriptor
-                        { RuntimeType: { IsValueType: true } })
+                    { RuntimeType: { IsValueType: true } })
                 {
                     block
                         .AddCode(IfBuilder

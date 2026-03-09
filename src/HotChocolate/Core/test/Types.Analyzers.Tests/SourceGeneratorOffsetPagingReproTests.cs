@@ -1,0 +1,299 @@
+using System.Reflection;
+using System.Runtime.Loader;
+using Basic.Reference.Assemblies;
+using GreenDonut;
+using GreenDonut.Data;
+using HotChocolate.Data.Filters;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Types.Analyzers;
+using HotChocolate.Types.Pagination;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace HotChocolate.Types;
+
+public class SourceGeneratorOffsetPagingReproTests
+{
+    [Fact]
+    public async Task QueryType_SourceGenerator_Path_Works_Like_AddQueryType_Path()
+    {
+        var assembly = CompileOffsetPagingReproAssembly();
+
+        var sourceGeneratorException = await BuildSchemaWithSourceGeneratorRegistrationAsync(assembly);
+        var addQueryTypeException = await BuildSchemaWithAddQueryTypeRegistrationAsync(assembly);
+
+        Assert.Null(sourceGeneratorException);
+        Assert.Null(addQueryTypeException);
+    }
+
+    [Fact]
+    public async Task Module_QueryType_Dictionary_Result_SourceGenerator_Path_Works_Like_AddQueryType_Path()
+    {
+        var assembly = CompileModuleDictionaryReproAssembly();
+
+        var sourceGenerated = await ExecuteWithSourceGeneratorRegistrationAsync(
+            assembly,
+            registrationMethodName: "AddDemo",
+            query: "{ foo { key value } }");
+
+        var addQueryType = await ExecuteWithAddQueryTypeRegistrationAsync(
+            assembly,
+            runtimeQueryTypeName: "Repro.RuntimeQuery",
+            query: "{ foo { key value } }");
+
+        Assert.Contains("foo: [KeyValuePairOfStringAndString!]!", sourceGenerated.Schema);
+        Assert.Equal(addQueryType.Result, sourceGenerated.Result);
+        Assert.DoesNotContain("\"errors\"", sourceGenerated.Result, StringComparison.Ordinal);
+        Assert.Contains("\"key\": \"foo\"", sourceGenerated.Result, StringComparison.Ordinal);
+        Assert.Contains("\"value\": \"bar\"", sourceGenerated.Result, StringComparison.Ordinal);
+    }
+
+    private static async Task<Exception?> BuildSchemaWithSourceGeneratorRegistrationAsync(Assembly assembly)
+    {
+        var services = new ServiceCollection();
+        var builder = services.AddGraphQLServer(disableDefaultSecurity: true);
+
+        var addTypesMethod = FindRegistrationMethod(
+            assembly,
+            m =>
+            {
+                var p = m.GetParameters();
+                return m.Name.StartsWith("Add", StringComparison.Ordinal)
+                    && m.Name.EndsWith("Types", StringComparison.Ordinal)
+                    && m.ReturnType == typeof(IRequestExecutorBuilder)
+                    && p.Length == 1
+                    && p[0].ParameterType == typeof(IRequestExecutorBuilder);
+            });
+
+        addTypesMethod.Invoke(null, [builder]);
+
+        return await Record.ExceptionAsync(
+            async () => await builder.BuildSchemaAsync());
+    }
+
+    private static async Task<Exception?> BuildSchemaWithAddQueryTypeRegistrationAsync(Assembly assembly)
+    {
+        var runtimeQueryType = assembly.GetType("Repro.RuntimeQuery")
+            ?? throw new InvalidOperationException("Could not locate runtime query type.");
+
+        var builder = new ServiceCollection()
+            .AddGraphQLServer(disableDefaultSecurity: true)
+            .AddQueryType(runtimeQueryType);
+
+        return await Record.ExceptionAsync(
+            async () => await builder.BuildSchemaAsync());
+    }
+
+    private static async Task<ExecutionResult> ExecuteWithSourceGeneratorRegistrationAsync(
+        Assembly assembly,
+        string registrationMethodName,
+        string query)
+    {
+        var builder = new ServiceCollection().AddGraphQLServer(disableDefaultSecurity: true);
+
+        var addModuleMethod = FindRegistrationMethod(
+            assembly,
+            m =>
+            {
+                var p = m.GetParameters();
+                return m.Name.Equals(registrationMethodName, StringComparison.Ordinal)
+                    && m.ReturnType == typeof(IRequestExecutorBuilder)
+                    && p.Length == 1
+                    && p[0].ParameterType == typeof(IRequestExecutorBuilder);
+            });
+
+        addModuleMethod.Invoke(null, [builder]);
+
+        var executor = await builder.BuildRequestExecutorAsync();
+        var result = await executor.ExecuteAsync(query);
+        return new ExecutionResult(executor.Schema.ToString(), result.ToJson());
+    }
+
+    private static async Task<ExecutionResult> ExecuteWithAddQueryTypeRegistrationAsync(
+        Assembly assembly,
+        string runtimeQueryTypeName,
+        string query)
+    {
+        var runtimeQueryType = assembly.GetType(runtimeQueryTypeName)
+            ?? throw new InvalidOperationException("Could not locate runtime query type.");
+
+        var builder = new ServiceCollection()
+            .AddGraphQLServer(disableDefaultSecurity: true)
+            .AddQueryType(runtimeQueryType);
+
+        var executor = await builder.BuildRequestExecutorAsync();
+        var result = await executor.ExecuteAsync(query);
+        return new ExecutionResult(executor.Schema.ToString(), result.ToJson());
+    }
+
+    private static MethodInfo FindRegistrationMethod(
+        Assembly assembly,
+        Func<MethodInfo, bool> predicate)
+    {
+        return assembly
+            .GetTypes()
+            .Where(t => t is { IsAbstract: true, IsSealed: true }
+                && t.Namespace == "Microsoft.Extensions.DependencyInjection")
+            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            .Single(predicate);
+    }
+
+    private static Assembly CompileOffsetPagingReproAssembly()
+    {
+        const string source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using HotChocolate.Types;
+
+            namespace Repro;
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                [UseOffsetPaging]
+                public static async Task<Dictionary<string, string>> UglyLegacyResolver()
+                {
+                    await Task.Yield();
+                    return new();
+                }
+            }
+
+            public class RuntimeQuery
+            {
+                [UseOffsetPaging]
+                public async Task<Dictionary<string, string>> UglyLegacyResolver()
+                {
+                    await Task.Yield();
+                    return new();
+                }
+            }
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorOffsetPagingRepro");
+    }
+
+    private static Assembly CompileModuleDictionaryReproAssembly()
+    {
+        const string source = """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                public static Dictionary<string, string> Foo()
+                    => new()
+                    {
+                        ["foo"] = "bar"
+                    };
+            }
+
+            public class RuntimeQuery
+            {
+                public Dictionary<string, string> Foo()
+                    => new()
+                    {
+                        ["foo"] = "bar"
+                    };
+            }
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorDictionaryModuleRepro");
+    }
+
+    private static Assembly CompileReproAssembly(string source, string assemblyName)
+    {
+        var parseOptions = CSharpParseOptions.Default;
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
+
+        IEnumerable<PortableExecutableReference> references =
+        [
+#if NET8_0
+            .. Net80.References.All,
+#elif NET9_0
+            .. Net90.References.All,
+#elif NET10_0
+            .. Net100.References.All,
+#endif
+            MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(RequestContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(HotChocolateExecutionSelectionExtensions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ISelection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(QueryTypeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(PageConnection<>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ISchemaDefinition).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IFeatureProvider).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(OperationType).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(
+                typeof(HotChocolateAspNetCoreServiceCollectionExtensions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(DefaultPredicateBuilder).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(UseOffsetPagingAttribute).Assembly.Location)
+        ];
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName: assemblyName,
+            syntaxTrees: [syntaxTree],
+            references: references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var driver = CSharpGeneratorDriver
+            .Create(new GraphQLServerGenerator())
+            .RunGenerators(compilation);
+
+        var generatedTrees = driver
+            .GetRunResult()
+            .Results
+            .SelectMany(t => t.GeneratedSources)
+            .Select(s => CSharpSyntaxTree.ParseText(
+                s.SourceText,
+                parseOptions,
+                path: s.HintName));
+
+        var updatedCompilation = compilation.AddSyntaxTrees(generatedTrees);
+
+        using var stream = new MemoryStream();
+        var emitResult = updatedCompilation.Emit(stream);
+
+        if (!emitResult.Success)
+        {
+            throw new InvalidOperationException(
+                string.Join(
+                    Environment.NewLine,
+                    emitResult.Diagnostics
+                        .OrderBy(d => d.Severity)
+                        .ThenBy(d => d.Id)
+                        .Select(d => d.ToString())));
+        }
+
+        stream.Position = 0;
+
+        var context = new AssemblyLoadContext(assemblyName, isCollectible: true);
+        return context.LoadFromStream(stream);
+    }
+
+    private sealed record ExecutionResult(string Schema, string Result);
+}

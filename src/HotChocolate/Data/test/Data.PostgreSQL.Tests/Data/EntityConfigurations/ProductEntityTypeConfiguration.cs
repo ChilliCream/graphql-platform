@@ -1,4 +1,4 @@
-﻿using HotChocolate.Data.Models;
+using HotChocolate.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

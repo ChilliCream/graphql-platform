@@ -28,4 +28,6 @@ public class QueryableStringStartsWithHandler : QueryableStringOperationHandler
 
         return FilterExpressionBuilder.StartsWith(property, parsedValue);
     }
+
+    public static QueryableStringStartsWithHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

@@ -11,11 +11,10 @@ internal sealed class MiddlewareMethod : ISyntaxFilter
 
     public bool IsMatch(SyntaxNode node)
         => node is InvocationExpressionSyntax
+        {
+            Expression: MemberAccessExpressionSyntax
             {
-                Expression: MemberAccessExpressionSyntax
-                {
-                    Name.Identifier.ValueText: var method
-                }
-            } &&
-            (method.Equals("UseRequest") || method.Equals("UseField") || method.Equals("Use"));
+                Name.Identifier.ValueText: var method
+            }
+        } && (method.Equals("UseRequest") || method.Equals("UseField") || method.Equals("Use"));
 }

@@ -1,8 +1,5 @@
-using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors.Configurations;
 
@@ -13,18 +10,17 @@ namespace HotChocolate.Types.Descriptors.Configurations;
 public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
 {
     private List<TypeDependency>? _dependencies;
-    private List<ITypeSystemConfigurationTask>? _configurations;
+    private List<ITypeSystemConfigurationTask>? _tasks;
     private IFeatureCollection? _features;
-    private string _name = string.Empty;
 
     /// <summary>
     /// Gets or sets the name of the type system member.
     /// </summary>
-    public string Name
+    public virtual string Name
     {
-        get => _name;
-        set => _name = string.Intern(value.EnsureGraphQLName());
-    }
+        get;
+        set => field = string.Intern(value.EnsureGraphQLName());
+    } = string.Empty;
 
     /// <summary>
     /// Gets or sets the description of the type system member.
@@ -35,6 +31,11 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Gets or sets a name to which this definition is bound to.
     /// </summary>
     public string? BindTo { get; set; }
+
+    /// <summary>
+    /// Defines whether the <see cref="Configurations"/>> have been applied or not.
+    /// </summary>
+    public bool ConfigurationsAreApplied { get; set; }
 
     /// <summary>
     /// Get access to context data that are copied to the type
@@ -59,30 +60,25 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Gets configurations that shall be applied at a later point.
     /// </summary>
     public IList<ITypeSystemConfigurationTask> Tasks
-        => _configurations ??= [];
+        => _tasks ??= [];
 
     /// <summary>
     /// Defines if this type has configurations.
     /// </summary>
     public bool HasTasks
-        => _configurations is { Count: > 0 };
-
-    /// <summary>
-    /// Defines whether descriptor attributes have been applied or not.
-    /// </summary>
-    public bool AttributesAreApplied { get; set; }
+        => _tasks is { Count: > 0 };
 
     /// <summary>
     /// Gets lazy configuration of this definition and all dependent definitions.
     /// </summary>
     public virtual IEnumerable<ITypeSystemConfigurationTask> GetTasks()
     {
-        if (_configurations is null)
+        if (_tasks is null)
         {
             return [];
         }
 
-        return _configurations;
+        return _tasks;
     }
 
     /// <summary>
@@ -109,22 +105,22 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Ensures that a feature collection is created.
     /// </summary>
     public void TouchFeatures()
-        => _features = new FeatureCollection();
+        => _features ??= new FeatureCollection();
 
     protected void CopyTo(TypeSystemConfiguration target)
     {
         if (_dependencies?.Count > 0)
         {
-            target._dependencies = [.._dependencies];
+            target._dependencies = [.. _dependencies];
         }
 
-        if (_configurations?.Count > 0)
+        if (_tasks?.Count > 0)
         {
-            target._configurations = [];
+            target._tasks = [];
 
-            foreach (var configuration in _configurations)
+            foreach (var configuration in _tasks)
             {
-                target._configurations.Add(configuration.Copy(target));
+                target._tasks.Add(configuration.Copy(target));
             }
         }
 
@@ -139,7 +135,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
 
         target.Name = Name;
         target.Description = Description;
-        target.AttributesAreApplied = AttributesAreApplied;
+        target.ConfigurationsAreApplied = ConfigurationsAreApplied;
         target.BindTo = BindTo;
     }
 
@@ -151,13 +147,13 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             target._dependencies.AddRange(_dependencies);
         }
 
-        if (_configurations?.Count > 0)
+        if (_tasks?.Count > 0)
         {
-            target._configurations ??= [];
+            target._tasks ??= [];
 
-            foreach (var configuration in _configurations)
+            foreach (var configuration in _tasks)
             {
-                target._configurations.Add(configuration.Copy(target));
+                target._tasks.Add(configuration.Copy(target));
             }
         }
 
@@ -180,9 +176,9 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             target.BindTo = BindTo;
         }
 
-        if (!target.AttributesAreApplied)
+        if (!target.ConfigurationsAreApplied)
         {
-            target.AttributesAreApplied = AttributesAreApplied;
+            target.ConfigurationsAreApplied = ConfigurationsAreApplied;
         }
     }
 

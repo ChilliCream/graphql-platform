@@ -12,10 +12,11 @@ public class FilterProviderDescriptor<TContext>
 
     public FilterProviderConfiguration CreateConfiguration() => Configuration;
 
-    public IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
+    public IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>(
+        Func<FilterProviderContext, TFieldHandler> factory)
         where TFieldHandler : IFilterFieldHandler<TContext>
     {
-        Configuration.Handlers.Add((typeof(TFieldHandler), null));
+        Configuration.FieldHandlerConfigurations.Add(new FilterFieldHandlerConfiguration(ctx => factory(ctx)));
         return this;
     }
 
@@ -23,12 +24,9 @@ public class FilterProviderDescriptor<TContext>
         TFieldHandler fieldHandler)
         where TFieldHandler : IFilterFieldHandler<TContext>
     {
-        Configuration.Handlers.Add((typeof(TFieldHandler), fieldHandler));
+        Configuration.FieldHandlerConfigurations.Add(new FilterFieldHandlerConfiguration(fieldHandler));
         return this;
     }
 
-#pragma warning disable CA1000 // Do not declare static members on generic types
-    public static FilterProviderDescriptor<TContext> New() =>
-        new FilterProviderDescriptor<TContext>();
-#pragma warning restore CA1000 // Do not declare static members on generic types
+    public static FilterProviderDescriptor<TContext> New() => new();
 }

@@ -32,7 +32,7 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
     public ValueTask DisposeAsync()
     {
         // if the source stream is disposed, we are completing the channel which will trigger
-        // an unsubscribe from the topic.
+        // an 'unsubscribe' from the topic.
         _channel.Writer.TryComplete();
         _topic.Unsubscribe(_channel);
         return default;

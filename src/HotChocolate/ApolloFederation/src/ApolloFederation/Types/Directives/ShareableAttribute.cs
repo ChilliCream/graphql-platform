@@ -36,20 +36,17 @@ public sealed class ShareableAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
             case IObjectTypeDescriptor objectTypeDescriptor:
-            {
                 objectTypeDescriptor.Shareable();
                 break;
-            }
+
             case IObjectFieldDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.Shareable();
                 break;
-            }
         }
     }
 }

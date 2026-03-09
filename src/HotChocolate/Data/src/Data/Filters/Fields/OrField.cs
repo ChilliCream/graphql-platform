@@ -9,12 +9,12 @@ public sealed class OrField
     : FilterOperationField
     , IOrField
 {
-    internal OrField(IDescriptorContext context, int index, string? scope)
-        : base(CreateConfiguration(context, scope), index)
+    internal OrField(FilterOperationFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
     }
 
-    public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
+    public new FilterInputType DeclaringType => base.DeclaringType;
 
     IFilterInputType IOrField.DeclaringType => DeclaringType;
 
@@ -31,7 +31,7 @@ public sealed class OrField
         base.OnCompleteField(context, declaringMember, definition);
     }
 
-    private static FilterOperationFieldConfiguration CreateConfiguration(
+    internal static FilterOperationFieldConfiguration CreateConfiguration(
         IDescriptorContext context,
         string? scope) =>
         FilterOperationFieldDescriptor

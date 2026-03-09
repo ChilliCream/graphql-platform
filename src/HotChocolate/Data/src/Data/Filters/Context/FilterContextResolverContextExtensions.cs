@@ -24,8 +24,8 @@ public static class FilterContextResolverContextExtensions
         }
 
         var argument = context.Selection.Field.Arguments[argumentName];
-        var filter = context.LocalContextData.ContainsKey(ContextValueNodeKey) &&
-            context.LocalContextData[ContextValueNodeKey] is IValueNode node
+        var filter = context.LocalContextData.ContainsKey(ContextValueNodeKey)
+            && context.LocalContextData[ContextValueNodeKey] is IValueNode node
                 ? node
                 : context.ArgumentLiteral<IValueNode>(argumentName);
 

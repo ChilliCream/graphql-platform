@@ -4,8 +4,6 @@ using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -54,7 +52,8 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
 
     protected virtual void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        TConfiguration configuration) { }
+        TConfiguration configuration)
+    { }
 
     internal sealed override void CompleteName(ITypeCompletionContext context)
     {
@@ -121,7 +120,8 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
 
     protected virtual void OnCompleteType(
         ITypeCompletionContext context,
-        TConfiguration configuration) { }
+        TConfiguration configuration)
+    { }
 
     internal sealed override void CompleteMetadata(ITypeCompletionContext context)
     {
@@ -138,7 +138,8 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
 
     protected virtual void OnCompleteMetadata(
         ITypeCompletionContext context,
-        TConfiguration configuration) { }
+        TConfiguration configuration)
+    { }
 
     internal sealed override void MakeExecutable(ITypeCompletionContext context)
     {
@@ -155,11 +156,13 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
 
     protected virtual void OnMakeExecutable(
         ITypeCompletionContext context,
-        TConfiguration configuration) { }
+        TConfiguration configuration)
+    { }
 
     protected virtual void OnFinalizeType(
         ITypeCompletionContext context,
-        TConfiguration configuration) { }
+        TConfiguration configuration)
+    { }
 
     internal sealed override void FinalizeType(ITypeCompletionContext context)
     {

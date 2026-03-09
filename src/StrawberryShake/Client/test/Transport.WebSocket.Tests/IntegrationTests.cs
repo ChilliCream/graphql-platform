@@ -275,18 +275,6 @@ public class IntegrationTests : ServerTestBase
 
             return payload;
         }
-
-#pragma warning disable CS0618
-        [SubscribeAndResolve]
-#pragma warning restore CS0618
-        public async IAsyncEnumerable<int> CountUp()
-        {
-            for (var i = 0; i < 100; i++)
-            {
-                await Task.Delay(1);
-                yield return i;
-            }
-        }
     }
 
     private sealed class MockDocument(string query) : IDocument
@@ -307,7 +295,7 @@ public class IntegrationTests : ServerTestBase
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            InitializeConnectionMessage = connectionInitMessage.As<Dictionary<string, string>>();
+            InitializeConnectionMessage = connectionInitMessage.Payload?.Deserialize<Dictionary<string, string>>();
             return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
         }
 

@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class OperationDefinitionNodeTests
@@ -11,6 +9,7 @@ public class OperationDefinitionNodeTests
         var a = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -18,6 +17,7 @@ public class OperationDefinitionNodeTests
         var b = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -25,6 +25,7 @@ public class OperationDefinitionNodeTests
         var c = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -32,6 +33,7 @@ public class OperationDefinitionNodeTests
         var d = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -59,6 +61,7 @@ public class OperationDefinitionNodeTests
         var a = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -66,6 +69,7 @@ public class OperationDefinitionNodeTests
         var b = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -73,6 +77,7 @@ public class OperationDefinitionNodeTests
         var c = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -80,6 +85,7 @@ public class OperationDefinitionNodeTests
         var d = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -107,6 +113,7 @@ public class OperationDefinitionNodeTests
         var a = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -114,6 +121,7 @@ public class OperationDefinitionNodeTests
         var b = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -121,6 +129,7 @@ public class OperationDefinitionNodeTests
         var c = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -128,6 +137,7 @@ public class OperationDefinitionNodeTests
         var d = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),

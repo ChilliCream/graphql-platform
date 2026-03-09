@@ -27,12 +27,15 @@ public class InputOutputObjectAreTheSame
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync(@"{
-                    person(person: { firstName:""a"", lastName:""b"" }) {
+            await schema.MakeExecutable().ExecuteAsync(
+                """
+                {
+                    person(person: { firstName: "a", lastName: "b" }) {
                         lastName
                         firstName
                     }
-                }");
+                }
+                """);
 
         // assert
         result.ToJson().MatchSnapshot();

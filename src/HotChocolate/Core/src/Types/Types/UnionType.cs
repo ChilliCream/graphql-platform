@@ -9,8 +9,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -61,7 +59,7 @@ public class UnionType
     private ResolveAbstractType? _resolveAbstractType;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="UnionType"/>.
+    /// Initializes a new instance of <see cref="UnionType"/>.
     /// </summary>
     protected UnionType()
     {
@@ -69,7 +67,7 @@ public class UnionType
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="UnionType"/>.
+    /// Initializes a new instance of <see cref="UnionType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.

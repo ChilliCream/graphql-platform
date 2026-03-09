@@ -122,7 +122,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
         17  Product 0-16
         18  Product 0-17
         */
-        new {
+        new
+        {
             First = page.First!.Name,
             Last = page.Last!.Name,
             ItemsCount = page.Items.Length
@@ -240,7 +241,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
@@ -270,7 +271,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
@@ -300,7 +301,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Brands
+        await context.Brands
             .With(query)
             .ToPageAsync(arguments);
 

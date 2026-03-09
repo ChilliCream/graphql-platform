@@ -1,11 +1,8 @@
-using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -165,28 +162,6 @@ public interface ISchemaBuilder : IFeatureProvider
     /// Returns the schema builder to chain in further configuration.
     /// </returns>
     ISchemaBuilder AddServices(IServiceProvider services);
-
-    /// <summary>
-    /// Adds a type interceptor to the schema.
-    /// </summary>
-    /// <param name="interceptor">
-    /// The type interceptor.
-    /// </param>
-    /// <returns>
-    /// Returns the schema builder to chain in further configuration.
-    /// </returns>
-    ISchemaBuilder TryAddTypeInterceptor(Type interceptor);
-
-    /// <summary>
-    /// Adds a type interceptor to the schema.
-    /// </summary>
-    /// <param name="interceptor">
-    /// The type interceptor.
-    /// </param>
-    /// <returns>
-    /// Returns the schema builder to chain in further configuration.
-    /// </returns>
-    ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor);
 
     /// <summary>
     /// Creates a new GraphQL Schema.

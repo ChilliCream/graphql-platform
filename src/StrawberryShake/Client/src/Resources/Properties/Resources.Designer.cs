@@ -132,7 +132,7 @@ namespace StrawberryShake.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There was a unexpected error on the server.
+        ///   Looks up a localized string similar to There was an unexpected error on the server.
         /// </summary>
         internal static string ErrorOperationMessage_UnexpectedServerError {
             get {
@@ -168,7 +168,7 @@ namespace StrawberryShake.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The response was in a invalid format.
+        ///   Looks up a localized string similar to The response was in an invalid format.
         /// </summary>
         internal static string InMemoryConnection_InvalidResponseFormat {
             get {
@@ -321,7 +321,7 @@ namespace StrawberryShake.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The session was not open. Operations can only be started or stopped on a open session.
+        ///   Looks up a localized string similar to The session was not open. Operations can only be started or stopped on an open session.
         /// </summary>
         internal static string SessionManager_SessionIsNotOpen {
             get {
@@ -330,7 +330,7 @@ namespace StrawberryShake.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not get the protocol from socket {0}. The socket is in a invalid state.
+        ///   Looks up a localized string similar to Could not get the protocol from socket {0}. The socket is in an invalid state.
         /// </summary>
         internal static string SessionManager_SocketWasNotInitialized {
             get {

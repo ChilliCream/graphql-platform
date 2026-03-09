@@ -4,9 +4,7 @@ using HotChocolate.Execution.Processing;
 namespace HotChocolate.Data.Projections;
 
 /// <inheritdoc/>
-public interface IProjectionFieldHandler<TContext>
-    : IProjectionFieldHandler
-    where TContext : IProjectionVisitorContext
+public interface IProjectionFieldHandler<TContext> : IProjectionFieldHandler where TContext : IProjectionVisitorContext
 {
     /// <summary>
     /// This method is called before the visitor calls
@@ -17,7 +15,7 @@ public interface IProjectionFieldHandler<TContext>
     /// <returns>
     /// The instance of <typeparamref name="TContext"/> that is used in TryHandleEnter
     /// </returns>
-    TContext OnBeforeEnter(TContext context, ISelection selection);
+    TContext OnBeforeEnter(TContext context, Selection selection);
 
     /// <summary>
     /// Tries to apply projection to the field. This method is called after
@@ -33,7 +31,7 @@ public interface IProjectionFieldHandler<TContext>
     /// <returns>If <c>true</c> is returned the action is used for further processing</returns>
     bool TryHandleEnter(
         TContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action);
 
     /// <summary>
@@ -48,7 +46,7 @@ public interface IProjectionFieldHandler<TContext>
     /// </returns>
     TContext OnAfterEnter(
         TContext context,
-        ISelection selection,
+        Selection selection,
         ISelectionVisitorAction result);
 
     /// <summary>
@@ -60,7 +58,7 @@ public interface IProjectionFieldHandler<TContext>
     /// <returns>
     /// The instance of <typeparamref name="TContext"/> that is used in TryHandleLeave
     /// </returns>
-    TContext OnBeforeLeave(TContext context, ISelection selection);
+    TContext OnBeforeLeave(TContext context, Selection selection);
 
     /// <summary>
     /// Tries to apply projection to the field. This method is called after
@@ -76,7 +74,7 @@ public interface IProjectionFieldHandler<TContext>
     /// <returns>If <c>true</c> is returned the action is used for further processing</returns>
     bool TryHandleLeave(
         TContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action);
 
     /// <summary>
@@ -91,6 +89,6 @@ public interface IProjectionFieldHandler<TContext>
     /// </returns>
     TContext OnAfterLeave(
         TContext context,
-        ISelection selection,
+        Selection selection,
         ISelectionVisitorAction result);
 }

@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.Execution;
 using HotChocolate.PersistedOperations;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
@@ -37,14 +36,20 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 services
                     .AddSingleton(mockHostEnvironment.Object)
                     .AddRouting()
-                    .AddHttpResponseFormatter()
                     .AddGraphQLServer()
+                    .AddHttpResponseFormatter()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
                     .AddType<Foo>()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
+                    .ModifyServerOptions(o =>
+                    {
+                        o.Batching = AllowedBatching.All;
+                        o.AllowedGetOperations =
+                            AllowedGetOperations.Query | AllowedGetOperations.Subscription;
+                    })
                     .UseInstrumentation()
                     .UseExceptions()
                     .UseTimeout()
@@ -120,13 +125,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     {
                         endpoints.MapGraphQLPersistedOperations(requireOperationName: requireOperationName);
 
-                        var builder = endpoints.MapGraphQL(pattern)
-                            .WithOptions(new GraphQLServerOptions
-                            {
-                                EnableBatching = true,
-                                AllowedGetOperations =
-                                    AllowedGetOperations.Query | AllowedGetOperations.Subscription
-                            });
+                        var builder = endpoints.MapGraphQL(pattern);
 
                         configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/notnull", "notnull");
@@ -135,12 +134,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
                         endpoints.MapGraphQL("/test", "test");
-                        endpoints.MapGraphQL("/batching").WithOptions(
-                            new GraphQLServerOptions
-                            {
-                                // with defaults
-                                // EnableBatching = false
-                            });
                     }));
     }
 
@@ -150,8 +143,8 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
         return ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResponseFormatter()
                 .AddGraphQLServer()
+                .AddHttpResponseFormatter()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
                 .AddTypeExtension<SubscriptionsExtensions>()

@@ -16,7 +16,7 @@ public class InMemoryClientTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
 
         // act
         var ex = Record.Exception(() => new InMemoryClient(name));
@@ -29,10 +29,10 @@ public class InMemoryClientTests
     public void Constructor_NoName_ThrowException()
     {
         // arrange
-        string name = null!;
+        const string name = null!;
 
         // act
-        var ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name!));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -74,8 +74,7 @@ public class InMemoryClientTests
     {
         // arrange
         var client = new InMemoryClient("Foo");
-        var variables = new Dictionary<string, object?>();
-        var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
+        var operationRequest = new OperationRequest("foo", new StubDocument(), new Dictionary<string, object?>());
         var executor = new StubExecutor();
         client.Executor = executor;
 
@@ -85,8 +84,8 @@ public class InMemoryClientTests
         // assert
         var request = Assert.IsType<HotChocolate.Execution.OperationRequest>(executor.Request);
         Assert.Equal(operationRequest.Name, request.OperationName);
-        Assert.Equal(variables, request.VariableValues);
         Assert.Equal("{ foo }", Encoding.UTF8.GetString(request.Document!.AsSpan()));
+        request.VariableValues?.Document.MatchInlineSnapshot("{}");
     }
 
     [Fact]
@@ -130,6 +129,8 @@ public class InMemoryClientTests
 
         public ulong Version { get; }
 
+        public IFeatureCollection Features { get; } = new FeatureCollection();
+
         public Task<IExecutionResult> ExecuteAsync(
             IOperationRequest request,
             CancellationToken cancellationToken = default)
@@ -160,17 +161,17 @@ public class InMemoryClientTests
         private class StubSchema(IServiceProvider services) : ISchemaDefinition
         {
             public string Name => null!;
-            public string? Description  => null;
-            public IReadOnlyDirectiveCollection Directives  => null!;
-            public IFeatureCollection Features  => null!;
+            public string? Description => null;
+            public IReadOnlyDirectiveCollection Directives => null!;
+            public IFeatureCollection Features => null!;
             public ISyntaxNode ToSyntaxNode() => null!;
 
             public IServiceProvider Services => services;
-            public IObjectTypeDefinition QueryType  => null!;
+            public IObjectTypeDefinition QueryType => null!;
             public IObjectTypeDefinition? MutationType => null;
-            public IObjectTypeDefinition? SubscriptionType  => null;
-            public IReadOnlyTypeDefinitionCollection Types  => null!;
-            public IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions  => null!;
+            public IObjectTypeDefinition? SubscriptionType => null;
+            public IReadOnlyTypeDefinitionCollection Types => null!;
+            public IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions => null!;
             public IObjectTypeDefinition GetOperationType(OperationType operation)
             {
                 throw new NotImplementedException();
@@ -202,7 +203,7 @@ public class InMemoryClientTests
     {
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ foo }");
+        public ReadOnlySpan<byte> Body => "{ foo }"u8;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
     }

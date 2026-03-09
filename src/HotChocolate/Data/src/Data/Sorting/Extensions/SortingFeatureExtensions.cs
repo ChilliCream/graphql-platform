@@ -7,19 +7,20 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 public static class SortingFeatureExtensions
 {
-    /// <summary>
-    /// Gets the sorting argument name from the selection.
-    /// </summary>
-    /// <param name="selection">The selection.</param>
-    /// <returns>The sorting argument name.</returns>
-    public static string? GetSortingArgumentName(this ISelection selection)
-        => selection.Field.Features.Get<SortingFeature>()?.ArgumentName;
+    extension(Selection selection)
+    {
+        /// <summary>
+        /// Gets the sorting argument name from the selection.
+        /// </summary>
+        /// <returns>The sorting argument name.</returns>
+        public string? SortingArgumentName
+            => selection.Field.Features.Get<SortingFeature>()?.ArgumentName;
 
-    /// <summary>
-    /// Checks if the selection has a sorting feature.
-    /// </summary>
-    /// <param name="selection">The selection.</param>
-    /// <returns>True if the selection has a sorting feature, otherwise false.</returns>
-    public static bool HasSortingFeature(this ISelection selection)
-        => selection.Field.Features.Get<SortingFeature>() is not null;
+        /// <summary>
+        /// Checks if the selection has a sorting feature.
+        /// </summary>
+        /// <returns>True if the selection has a sorting feature, otherwise false.</returns>
+        public bool HasSortingFeature
+            => selection.Field.Features.Get<SortingFeature>() is not null;
+    }
 }

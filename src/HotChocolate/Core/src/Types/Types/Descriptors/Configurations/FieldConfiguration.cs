@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
@@ -75,6 +73,25 @@ public abstract class FieldConfiguration
     }
 
     /// <summary>
+    /// Defines if this field was implicitly inferred rather than explicitly configured.
+    /// </summary>
+    internal bool IsImplicit
+    {
+        get => (Flags & CoreFieldFlags.ImplicitField) == CoreFieldFlags.ImplicitField;
+        set
+        {
+            if (value)
+            {
+                Flags |= CoreFieldFlags.ImplicitField;
+            }
+            else
+            {
+                Flags &= ~CoreFieldFlags.ImplicitField;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets the list of directives that are annotated to this field.
     /// </summary>
     public IList<DirectiveConfiguration> Directives
@@ -100,6 +117,8 @@ public abstract class FieldConfiguration
 
     public void SetSourceGeneratorFlags() => Flags |= CoreFieldFlags.SourceGenerator;
 
+    public void SetBatchResolverFlags() => Flags |= CoreFieldFlags.BatchResolver;
+
     public void SetConnectionFlags() => Flags |= CoreFieldFlags.Connection;
 
     public void SetConnectionEdgesFieldFlags() => Flags |= CoreFieldFlags.ConnectionEdgesField;
@@ -108,13 +127,19 @@ public abstract class FieldConfiguration
 
     public void SetConnectionTotalCountFieldFlags() => Flags |= CoreFieldFlags.TotalCount;
 
+    public void SetFieldRequirements(string requirements, Type entityType)
+    {
+        Flags |= CoreFieldFlags.WithRequirements;
+        Features.Set(new FieldRequirementFeature(requirements, entityType));
+    }
+
     protected void CopyTo(FieldConfiguration target)
     {
         base.CopyTo(target);
 
         if (_directives is { Count: > 0 })
         {
-            target._directives = [.._directives];
+            target._directives = [.. _directives];
         }
 
         target.Type = Type;

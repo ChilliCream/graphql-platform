@@ -19,7 +19,7 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
     public void NoTypeProvided()
     {
         // act
-        Action a = () => EnumTypeDescriptor.New(Context, (Type)null);
+        Action a = () => EnumTypeDescriptor.New(Context, null);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);

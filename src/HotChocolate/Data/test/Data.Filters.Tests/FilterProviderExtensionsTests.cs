@@ -35,9 +35,9 @@ public class FilterProviderExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.Handlers,
-            x => Assert.Equal(extensionFieldHandler, x.HandlerInstance),
-            x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
+            convention.DefinitionAccessor!.FieldHandlerConfigurations,
+            x => Assert.Equal(extensionFieldHandler, x.Instance),
+            x => Assert.Equal(firstFieldHandler, x.Instance));
     }
 
     private sealed class MockProviderExtensions

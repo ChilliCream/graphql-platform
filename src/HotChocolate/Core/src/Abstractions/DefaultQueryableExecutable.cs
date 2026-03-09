@@ -84,7 +84,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             {
                 var obj = enumerator.Current;
 
-                if(enumerator.MoveNext())
+                if (enumerator.MoveNext())
                 {
                     throw new InvalidOperationException("Sequence contains more than one element.");
                 }
@@ -96,7 +96,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
         }
         finally
         {
-            if(enumerator is IDisposable disposable)
+            if (enumerator is IDisposable disposable)
             {
                 disposable.Dispose();
             }

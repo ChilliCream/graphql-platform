@@ -1,0 +1,81 @@
+title: Recursive_Input_Object_Type
+request:
+  document: |
+    query testQuery(
+      $input: RecursiveInput!
+    ) {
+      field(input: $input)
+    }
+  variables: |
+    {
+      "input": {
+        "child": null
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "field": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        field(input: RecursiveInput!): String
+      }
+
+      input RecursiveInput {
+        child: RecursiveInput
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_4b201a4f_1(
+              $input: RecursiveInput!
+            ) {
+              field(input: $input)
+            }
+          variables: |
+            {
+              "input": {
+                "child": null
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "field": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $input: RecursiveInput!
+        ) {
+          field(input: $input)
+        }
+      name: testQuery
+      hash: 4b201a4f390fe386d2d0db5091a152b3
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_4b201a4f_1(
+          $input: RecursiveInput!
+        ) {
+          field(input: $input)
+        }
+      forwardedVariables:
+        - input

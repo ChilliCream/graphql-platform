@@ -27,8 +27,8 @@ public class QueryableDefaultFieldHandler
         ITypeCompletionContext context,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration) =>
-        fieldConfiguration is not FilterOperationFieldConfiguration &&
-        (fieldConfiguration.Member is not null || fieldConfiguration.Expression is not null);
+        fieldConfiguration is not FilterOperationFieldConfiguration
+        && (fieldConfiguration.Member is not null || fieldConfiguration.Expression is not null);
 
     public override bool TryHandleEnter(
         QueryableFilterContext context,
@@ -56,8 +56,8 @@ public class QueryableDefaultFieldHandler
         Expression nestedProperty;
         if (field.Metadata is ExpressionFilterMetadata { Expression: LambdaExpression expression })
         {
-            if (expression.Parameters.Count != 1 ||
-                expression.Parameters[0].Type != context.RuntimeTypes.Peek().Source)
+            if (expression.Parameters.Count != 1
+                || expression.Parameters[0].Type != context.RuntimeTypes.Peek().Source)
             {
                 throw ThrowHelper.QueryableFiltering_ExpressionParameterInvalid(
                     field.RuntimeType.Source,
@@ -77,8 +77,8 @@ public class QueryableDefaultFieldHandler
             //
             // without this check we would chain "previous" directly to "current": previous.current
             // with this check we chain "previous" via ".Value" to "current": previous.Value.current
-            if (context.TryGetPreviousRuntimeType(out var previousRuntimeType) &&
-                previousRuntimeType.IsNullableValueType())
+            if (context.TryGetPreviousRuntimeType(out var previousRuntimeType)
+                && previousRuntimeType.IsNullableValueType())
             {
                 var valueGetter = instance.Type.GetProperty(nameof(Nullable<int>.Value));
                 instance = Expression.Property(instance, valueGetter!);
@@ -122,9 +122,9 @@ public class QueryableDefaultFieldHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        // when we are in a in-memory context, it is possible that we have null reference exceptions
-        // To avoid these exceptions, we need to add null checks to the chain. We always wrap the
-        // field before in a null check.
+        // When we are in an in-memory context, it is possible that we have null reference
+        // exceptions. To avoid these exceptions, we need to add null checks to the chain. We always
+        // wrap the field before in a null check.
         //
         // reference types:
         //    previous.current > 10   ==>    previous is not null && previous.current > 10
@@ -132,9 +132,9 @@ public class QueryableDefaultFieldHandler
         // structs:
         //    previous.Value.current > 10   ==> previous is not null && previous.Value.current > 10
         //
-        if (context.InMemory &&
-            context.TryGetPreviousRuntimeType(out var previousRuntimeType) &&
-            (previousRuntimeType.IsNullableValueType() || !previousRuntimeType.IsValueType()))
+        if (context.InMemory
+            && context.TryGetPreviousRuntimeType(out var previousRuntimeType)
+            && (previousRuntimeType.IsNullableValueType() || !previousRuntimeType.IsValueType()))
         {
             var peekedInstance = context.GetInstance();
             condition = FilterExpressionBuilder.NotNullAndAlso(peekedInstance, condition);
@@ -145,6 +145,8 @@ public class QueryableDefaultFieldHandler
 
         return true;
     }
+
+    public static QueryableDefaultFieldHandler Create(FilterProviderContext context) => new();
 
     private sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
     {

@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteRequest",
@@ -30,16 +30,7 @@
           "Value": "ERROR"
         }
       ],
-      "event": [
-        {
-          "Name": "AddedOperationToCache",
-          "Tags": []
-        },
-        {
-          "Name": "AddedDocumentToCache",
-          "Tags": []
-        }
-      ],
+      "event": [],
       "activities": [
         {
           "OperationName": "ParseDocument",
@@ -150,14 +141,6 @@
                     {
                       "Key": "graphql.error.path",
                       "Value": "/causeFatalError"
-                    },
-                    {
-                      "Key": "graphql.error.location.column",
-                      "Value": 27
-                    },
-                    {
-                      "Key": "graphql.error.location.line",
-                      "Value": 1
                     }
                   ]
                 }

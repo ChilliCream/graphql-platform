@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using GreenDonut.Data;
-using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
@@ -114,7 +113,7 @@ public class SortingContext : ISortingContext
 
     public SortDefinition<T>? AsSortDefinition<T>()
     {
-        if(_valueNode.Kind == SyntaxKind.NullValue
+        if (_valueNode.Kind == SyntaxKind.NullValue
             || _valueNode is ListValueNode { Items.Count: 0 }
             || _valueNode is ObjectValueNode { Fields.Count: 0 })
         {
@@ -158,11 +157,22 @@ public class SortingContext : ISortingContext
             Context context)
         {
             var type = context.Types.Peek();
-            var field = (SortField)type.Fields[node.Name.Value];
-            var fieldType = field.Type.NamedType();
+            if (!type.Fields.TryGetField(node.Name.Value, out var inputField))
+            {
+                context.Parents.Push(null);
+                return base.Leave(node, context);
+            }
 
-            var parent = context.Parents.Peek();
-            context.Parents.Push(Expression.Property(parent, (PropertyInfo)field.Member!));
+            var fieldType = inputField.Type.NamedType();
+
+            if (inputField is SortField field)
+            {
+                context.Parents.Push(CreateSelector(context.Parents.Peek(), field.Member));
+            }
+            else
+            {
+                context.Parents.Push(null);
+            }
 
             if (fieldType.IsInputObjectType())
             {
@@ -178,34 +188,49 @@ public class SortingContext : ISortingContext
         {
             var type = context.Types.Peek();
 
-            if (type.Fields.TryGetField(node.Name.Value, out var inputField) && inputField is SortField sortField)
+            if (type.Fields.TryGetField(node.Name.Value, out var inputField))
             {
-                var fieldType = sortField.Type.NamedType();
+                var fieldType = inputField.Type.NamedType();
                 var expression = context.Parents.Pop();
 
                 if (fieldType.IsInputObjectType())
                 {
                     context.Types.Pop();
                 }
-                else
+                else if (inputField is SortField && expression is not null)
                 {
                     var ascending = node.Value.Value?.Equals("ASC") ?? true;
-                    context.Completed.Add((expression, ascending, sortField.Member!.GetReturnType()));
+                    context.Completed.Add((expression, ascending, expression.Type));
                 }
             }
             else
             {
-                context.Types.Pop();
+                context.Parents.Pop();
             }
 
             return base.Leave(node, context);
+        }
+
+        private static Expression? CreateSelector(Expression? parent, MemberInfo? member)
+        {
+            if (parent is null || member is null)
+            {
+                return null;
+            }
+
+            return member switch
+            {
+                PropertyInfo property => Expression.Property(parent, property),
+                FieldInfo field => Expression.Field(parent, field),
+                _ => null
+            };
         }
 
         public class Context
         {
             public Stack<InputObjectType> Types { get; } = new();
 
-            public Stack<Expression> Parents { get; } = new();
+            public Stack<Expression?> Parents { get; } = new();
 
             public List<(Expression, bool, Type)> Completed { get; } = [];
         }

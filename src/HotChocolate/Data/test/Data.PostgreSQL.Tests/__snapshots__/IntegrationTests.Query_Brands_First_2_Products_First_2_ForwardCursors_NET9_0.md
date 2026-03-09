@@ -42,7 +42,7 @@
 
 ```sql
 -- @__p_0='2'
-SELECT b."Name", b."Id"
+SELECT b."Id", b."Name"
 FROM "Brands" AS b
 ORDER BY b."Name" DESC, b."Id"
 LIMIT @__p_0
@@ -62,7 +62,7 @@ GROUP BY p."BrandId"
 
 ```sql
 -- @__brandIds_0={ '11' } (DbType = Object)
-SELECT p1."BrandId", p3."Name", p3."Id", p3."BrandId"
+SELECT p1."BrandId", p3."Name", p3."Id"
 FROM (
     SELECT p."BrandId"
     FROM "Products" AS p
@@ -80,4 +80,3 @@ LEFT JOIN (
 ) AS p3 ON p1."BrandId" = p3."BrandId"
 ORDER BY p1."BrandId", p3."BrandId", p3."Id"
 ```
-

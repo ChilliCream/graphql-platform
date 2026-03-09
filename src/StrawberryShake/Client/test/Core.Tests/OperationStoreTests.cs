@@ -74,12 +74,7 @@ public class OperationStoreTests
 
         // act
         using var session =
-            ObservableExtensions.Subscribe(
-                store.Watch<string>(request),
-                r =>
-                {
-                    lastResult = r;
-                });
+            ObservableExtensions.Subscribe(store.Watch<string>(request), r => lastResult = r);
 
         // assert
         store.Set(request, result.Object);

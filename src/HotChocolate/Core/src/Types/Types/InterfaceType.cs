@@ -3,8 +3,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -54,7 +52,7 @@ public partial class InterfaceType
     , IInterfaceTypeDefinition
 {
     /// <summary>
-    /// Initializes a new  instance of <see cref="InterfaceType"/>.
+    /// Initializes a new instance of <see cref="InterfaceType"/>.
     /// </summary>
     protected InterfaceType()
     {
@@ -62,7 +60,7 @@ public partial class InterfaceType
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InterfaceType"/>.
+    /// Initializes a new instance of <see cref="InterfaceType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
@@ -137,8 +135,8 @@ public partial class InterfaceType
         switch (namedType.Kind)
         {
             case TypeKind.Interface:
-                return ReferenceEquals(namedType, this) ||
-                    ((InterfaceType)namedType).IsImplementing(this);
+                return ReferenceEquals(namedType, this)
+                    || ((InterfaceType)namedType).IsImplementing(this);
 
             case TypeKind.Object:
                 return ((ObjectType)namedType).IsImplementing(this);

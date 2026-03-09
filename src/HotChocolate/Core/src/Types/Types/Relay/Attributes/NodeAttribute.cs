@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -14,6 +12,11 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 public class NodeAttribute : ObjectTypeDescriptorAttribute
 {
+    public NodeAttribute()
+    {
+        RequiresAttributeProvider = true;
+    }
+
     /// <summary>
     /// The name of the member representing the ID field of the node.
     /// </summary>
@@ -32,8 +35,13 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
+        if (type is null)
+        {
+            return;
+        }
+
         var nodeDescriptor = new NodeDescriptor(descriptor, type);
 
         descriptor.Extend().OnBeforeCreate(

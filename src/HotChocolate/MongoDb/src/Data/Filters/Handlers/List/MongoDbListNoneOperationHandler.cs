@@ -5,13 +5,16 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb.Filters;
 
 /// <summary>
-/// This filter operation handler maps a All operation field to a
+/// This filter operation handler maps an All operation field to a
 /// <see cref="FilterDefinition{TDocument}"/>
 /// </summary>
 public class MongoDbListNoneOperationHandler : MongoDbListOperationHandlerBase
 {
     /// <inheritdoc />
     protected override int Operation => DefaultFilterOperations.None;
+
+    public static MongoDbListNoneOperationHandler Create(FilterProviderContext context)
+        => new();
 
     /// <inheritdoc />
     protected override MongoDbFilterDefinition HandleListOperation(

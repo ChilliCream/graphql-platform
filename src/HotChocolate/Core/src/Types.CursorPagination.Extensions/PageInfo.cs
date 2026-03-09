@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 [GraphQLDescription(
     "Information about pagination in a connection.")]
+[ConditionalShareable]
 public abstract class PageInfo : IPageInfo
 {
     /// <summary>
@@ -14,8 +15,8 @@ public abstract class PageInfo : IPageInfo
     /// the set defined by the clients arguments.
     /// </summary>
     [GraphQLDescription(
-        "Indicates whether more edges exist following " +
-        "the set defined by the clients arguments.")]
+        "Indicates whether more edges exist following "
+        + "the set defined by the clients arguments.")]
     public abstract bool HasNextPage { get; }
 
     /// <summary>
@@ -23,8 +24,8 @@ public abstract class PageInfo : IPageInfo
     /// the set defined by the clients arguments.
     /// </summary>
     [GraphQLDescription(
-        "Indicates whether more edges exist prior " +
-        "the set defined by the clients arguments.")]
+        "Indicates whether more edges exist prior "
+        + "the set defined by the clients arguments.")]
     public abstract bool HasPreviousPage { get; }
 
     /// <summary>

@@ -141,7 +141,7 @@ public class ResultTests
     public void GetHashCodeValue()
     {
         // arrange
-        var value = "Foo";
+        const string value = "Foo";
 
         // act
         Result<string> result1 = value;
@@ -182,7 +182,7 @@ public class ResultTests
     public void ImplicitReject()
     {
         // arrange
-        var errorMessage = "Foo";
+        const string errorMessage = "Foo";
         var error = new Exception(errorMessage);
 
         // act
@@ -198,7 +198,7 @@ public class ResultTests
     public void ExplicitReject()
     {
         // arrange
-        var errorMessage = "Foo";
+        const string errorMessage = "Foo";
         var error = new Exception(errorMessage);
 
         // act

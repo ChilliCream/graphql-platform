@@ -1,6 +1,3 @@
-using System.Data;
-using System.Diagnostics.Contracts;
-
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes
@@ -18,6 +15,7 @@ public static class WellKnownTypes
     public const string InputObjectTypeExtension = "HotChocolate.Types.InputObjectTypeExtension";
     public const string EnumTypeExtension = "HotChocolate.Types.EnumTypeExtension";
     public const string DataLoader = "GreenDonut.IDataLoader";
+    public const string DbContext = "Microsoft.EntityFrameworkCore.DbContext";
     public const string CancellationToken = "System.Threading.CancellationToken";
     public const string GlobalCancellationToken = "global::System.Threading.CancellationToken";
     public const string ReadOnlyList = "System.Collections.Generic.IReadOnlyList";
@@ -42,7 +40,7 @@ public static class WellKnownTypes
     public const string ClaimsPrincipal = "System.Security.Claims.ClaimsPrincipal";
     public const string DocumentNode = "HotChocolate.Language.DocumentNode";
     public const string OutputField = "HotChocolate.Types.IOutputField";
-    public const string ParameterBindingResolver = "HotChocolate.Internal.IParameterBindingResolver";
+    public const string ParameterBindingResolver = "HotChocolate.Resolvers.ParameterBindingResolver";
     public const string CustomAttributeData = "HotChocolate.Internal.GenCustomAttributeData";
     public const string ParameterInfo = "HotChocolate.Internal.GenParameterInfo";
     public const string CustomAttributeTypedArgument = "System.Reflection.CustomAttributeTypedArgument";
@@ -89,12 +87,30 @@ public static class WellKnownTypes
     public const string IObjectTypeDescriptor = "HotChocolate.Types.IObjectTypeDescriptor";
     public const string IInterfaceTypeDescriptor = "HotChocolate.Types.IInterfaceTypeDescriptor";
     public const string TypeReference = "HotChocolate.Types.Descriptors.TypeReference";
+    public const string FactoryTypeReference = "HotChocolate.Types.Descriptors.FactoryTypeReference";
     public const string IDescriptorContext = "HotChocolate.Types.Descriptors.IDescriptorContext";
     public const string ObjectTypeDefinition = "HotChocolate.Types.Descriptors.Configurations.ObjectTypeDefinition";
     public const string NonNullType = "HotChocolate.Types.NonNullType";
     public const string ListType = "HotChocolate.Types.ListType";
     public const string ConnectionFlags = "HotChocolate.Types.Pagination.ConnectionFlags";
     public const string ConnectionFlagsHelper = "HotChocolate.Types.Pagination.ConnectionFlagsHelper";
+    public const string Shareable = "HotChocolate.Types.Composite.Shareable";
+    public const string Inaccessible = "HotChocolate.Types.Composite.Inaccessible";
+    public const string ArgumentConfiguration = "HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration";
+    public const string ArgumentDescriptor = "HotChocolate.Types.Descriptors.ArgumentDescriptor";
+    public const string ParameterDescriptor = "HotChocolate.Internal.ParameterDescriptor";
+    public const string TypeContext = "HotChocolate.Types.TypeContext";
+    public const string ConfigurationHelper = "HotChocolate.Internal.ConfigurationHelper";
+    public const string InterfaceFieldDescriptor = "HotChocolate.Types.Descriptors.InterfaceFieldDescriptor";
+    public const string ObjectFieldDescriptor = "HotChocolate.Types.Descriptors.ObjectFieldDescriptor";
+    public const string NonNullTypeNode = "HotChocolate.Language.NonNullTypeNode";
+    public const string ListTypeNode = "HotChocolate.Language.ListTypeNode";
+    public const string NamedTypeNode = "HotChocolate.Language.NamedTypeNode";
+    public const string BatchFieldDelegate = "HotChocolate.Resolvers.BatchFieldDelegate";
+    public const string ImmutableArrayOfMiddlewareContext = "System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext>";
+    public const string IList = "System.Collections.IList";
+    public const string MiddlewareContext = "HotChocolate.Resolvers.IMiddlewareContext";
+    public const string ISelection = "HotChocolate.Execution.ISelection";
 
     public static HashSet<string> TypeClass { get; } =
     [
@@ -117,6 +133,7 @@ public static class WellKnownTypes
 
     public static HashSet<string> SupportedListInterfaces { get; } =
         [
+            "System.Collections.Generic.IEnumerable<>",
             "System.Collections.Generic.IReadOnlyCollection<>",
             "System.Collections.Generic.IReadOnlyList<>",
             "System.Collections.Generic.ICollection<>",
@@ -137,7 +154,43 @@ public static class WellKnownTypes
             "System.Collections.Immutable.ImmutableStack<>",
             "System.Collections.Immutable.ImmutableHashSet<>",
             "HotChocolate.Execution.ISourceStream<>",
-            "HotChocolate.IExecutable<>"
+            "HotChocolate.IExecutable<>",
+            "HotChocolate.Types.Pagination.IConnection<>",
+            "HotChocolate.Types.Pagination.Connection<>",
+            "HotChocolate.Types.Pagination.CollectionSegment<>"
+        ];
+
+    public static HashSet<string> ListInterfaceTypes { get; } =
+        [
+            "System.Collections.Generic.IEnumerable<>",
+            "System.Collections.Generic.IReadOnlyCollection<>",
+            "System.Collections.Generic.IReadOnlyList<>",
+            "System.Collections.Generic.ICollection<>",
+            "System.Collections.Generic.IList<>",
+            "System.Collections.Generic.ISet<>",
+            "System.Linq.IQueryable<>",
+            "System.Collections.Generic.IAsyncEnumerable<>",
+            "System.IObservable<>",
+            "HotChocolate.Execution.ISourceStream<>",
+            "HotChocolate.IExecutable<>",
+            "HotChocolate.Types.Pagination.IConnection<>"
+        ];
+
+    public static HashSet<string> ListClassTypes { get; } =
+        [
+            "System.Collections.Generic.List<>",
+            "System.Collections.ObjectModel.Collection<>",
+            "System.Collections.Generic.Stack<>",
+            "System.Collections.Generic.HashSet<>",
+            "System.Collections.Generic.Queue<>",
+            "System.Collections.Concurrent.ConcurrentBag<>",
+            "System.Collections.Immutable.ImmutableArray<>",
+            "System.Collections.Immutable.ImmutableList<>",
+            "System.Collections.Immutable.ImmutableQueue<>",
+            "System.Collections.Immutable.ImmutableStack<>",
+            "System.Collections.Immutable.ImmutableHashSet<>",
+            "HotChocolate.Types.Pagination.Connection<>",
+            "HotChocolate.Types.Pagination.CollectionSegment<>"
         ];
 
     public static HashSet<string> TaskWrapper { get; } =

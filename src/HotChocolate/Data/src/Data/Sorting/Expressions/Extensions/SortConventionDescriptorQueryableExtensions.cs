@@ -12,9 +12,9 @@ public static class SortConventionDescriptorQueryableExtensions
     public static ISortProviderDescriptor<QueryableSortContext> AddDefaultFieldHandlers(
         this ISortProviderDescriptor<QueryableSortContext> descriptor)
     {
-        descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-        descriptor.AddOperationHandler<QueryableDescendingSortOperationHandler>();
-        descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+        descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+        descriptor.AddOperationHandler(QueryableDescendingSortOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
         return descriptor;
     }
 }

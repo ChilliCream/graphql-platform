@@ -77,7 +77,7 @@ public static class DataLoaderExtensions
 
         var values = await dataLoader.LoadAsync(keys, cancellationToken).ConfigureAwait(false);
 
-        if(values.Any(t => t is null))
+        if (values.Any(t => t is null))
         {
             throw new KeyNotFoundException(CreateMissingKeyValueMessage(keys, values));
         }
@@ -99,7 +99,7 @@ public static class DataLoaderExtensions
         {
             if (values[i] == null)
             {
-                if(!first)
+                if (!first)
                 {
                     multipleMissing = true;
                     buffer.Append(", ");
@@ -177,51 +177,6 @@ public static class DataLoaderExtensions
         ArgumentNullException.ThrowIfNull(key);
 
         dataLoader.SetCacheEntry(key, Task.FromResult(value));
-    }
-
-    /// <summary>
-    /// Adds a new entry to the cache if not already exists.
-    /// </summary>
-    /// <typeparam name="TKey">A key type.</typeparam>
-    /// <typeparam name="TValue">A value type.</typeparam>
-    /// <param name="dataLoader">A data loader instance.</param>
-    /// <param name="key">A cache entry key.</param>
-    /// <param name="value">A cache entry value.</param>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="key"/> is <c>null</c>.
-    /// </exception>
-    [Obsolete("Use SetCacheEntry instead.")]
-    public static void Set<TKey, TValue>(
-        this IDataLoader<TKey, TValue> dataLoader,
-        TKey key,
-        TValue? value)
-        where TKey : notnull
-    {
-        SetCacheEntry(dataLoader, key, value);
-    }
-
-    /// <summary>
-    /// Adds a new entry to the cache if not already exists.
-    /// </summary>
-    /// <param name="dataLoader">A data loader instance.</param>
-    /// <param name="key">A cache entry key.</param>
-    /// <param name="value">A cache entry value.</param>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="key"/> is <c>null</c>.
-    /// </exception>
-    [Obsolete("Use SetCacheEntry instead.")]
-    public static void Set(
-        this IDataLoader dataLoader,
-        object key,
-        object? value)
-    {
-        SetCacheEntry(dataLoader, key, value);
     }
 
     /// <summary>
@@ -416,7 +371,7 @@ public static class DataLoaderExtensions
 
         var key = typeof(TState).FullName ?? typeof(TState).Name;
 
-        if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
+        if (!dataLoader.ContextData.TryGetValue(key, out var internalValue))
         {
             internalValue = createValue(key);
             dataLoader.ContextData = dataLoader.ContextData.SetItem(key, internalValue);
@@ -465,7 +420,7 @@ public static class DataLoaderExtensions
         ArgumentNullException.ThrowIfNull(dataLoader);
         ArgumentException.ThrowIfNullOrEmpty(key);
 
-        if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
+        if (!dataLoader.ContextData.TryGetValue(key, out var internalValue))
         {
             internalValue = createValue(key);
             dataLoader.ContextData = dataLoader.ContextData.SetItem(key, internalValue);

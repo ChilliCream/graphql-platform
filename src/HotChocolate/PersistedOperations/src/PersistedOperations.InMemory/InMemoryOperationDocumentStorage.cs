@@ -47,7 +47,7 @@ public class InMemoryOperationDocumentStorage : IOperationDocumentStorage
 
         ArgumentNullException.ThrowIfNull(document);
 
-        _cache.GetOrCreate<OperationDocument>(
+        _cache.GetOrCreate(
             documentId.Value,
             _ =>
             {

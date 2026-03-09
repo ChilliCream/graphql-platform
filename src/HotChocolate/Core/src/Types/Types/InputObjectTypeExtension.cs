@@ -4,8 +4,6 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -19,7 +17,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
     private Action<IInputObjectTypeDescriptor>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectTypeExtension"/>.
+    /// Initializes a new instance of <see cref="InputObjectTypeExtension"/>.
     /// </summary>
     protected InputObjectTypeExtension()
     {
@@ -27,7 +25,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectTypeExtension"/>.
+    /// Initializes a new instance of <see cref="InputObjectTypeExtension"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.

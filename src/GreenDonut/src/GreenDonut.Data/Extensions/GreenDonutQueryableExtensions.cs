@@ -311,7 +311,7 @@ public static class GreenDonutQueryableExtensions
         }
 
         var sorting = queryContext.Sorting;
-        if(modifySortDefinition is not null)
+        if (modifySortDefinition is not null)
         {
             sorting ??= SortDefinition<T>.Empty;
             sorting = modifySortDefinition(sorting);

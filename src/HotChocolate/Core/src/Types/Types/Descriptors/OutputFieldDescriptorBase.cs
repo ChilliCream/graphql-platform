@@ -1,13 +1,11 @@
 using System.Collections.Immutable;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
-using static HotChocolate.DirectiveNames;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors;
 

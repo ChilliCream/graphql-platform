@@ -87,7 +87,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
             Names.Items,
             CollectionSegmentType_Items_Description,
             pureResolver: GetItems)
-            { Flags = CoreFieldFlags.CollectionSegmentItemsField });
+        { Flags = CoreFieldFlags.CollectionSegmentItemsField });
 
         if (withTotalCount)
         {

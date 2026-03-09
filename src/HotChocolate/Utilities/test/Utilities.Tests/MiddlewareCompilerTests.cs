@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 

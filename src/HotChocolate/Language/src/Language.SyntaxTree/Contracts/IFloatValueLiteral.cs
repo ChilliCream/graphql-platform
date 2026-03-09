@@ -6,17 +6,17 @@ namespace HotChocolate.Language;
 public interface IFloatValueLiteral : IHasSpan
 {
     /// <summary>
-    /// Parses the literal as <see cref="float"/> .
+    /// Parses the literal as <see cref="float"/>.
     /// </summary>
     float ToSingle();
 
     /// <summary>
-    /// Parses the literal as <see cref="double"/> .
+    /// Parses the literal as <see cref="double"/>.
     /// </summary>
     double ToDouble();
 
     /// <summary>
-    /// Parses the literal as <see cref="decimal"/> .
+    /// Parses the literal as <see cref="decimal"/>.
     /// </summary>
     decimal ToDecimal();
 }

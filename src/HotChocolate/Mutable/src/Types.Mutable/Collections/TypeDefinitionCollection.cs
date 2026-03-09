@@ -53,7 +53,7 @@ public sealed class TypeDefinitionCollection
     [return: NotNull]
     public T GetType<T>(string typeName) where T : ITypeDefinition
     {
-        if(_types[typeName] is T type)
+        if (_types[typeName] is T type)
         {
             return type;
         }
@@ -62,11 +62,11 @@ public sealed class TypeDefinitionCollection
             $"The type `{typeName}` is not a `{typeof(T).Name}`.");
     }
 
-    public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? definition)
+    public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? typeDefinition)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        return _types.TryGetValue(name, out definition);
+        return _types.TryGetValue(name, out typeDefinition);
     }
 
     public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : ITypeDefinition
@@ -121,7 +121,7 @@ public sealed class TypeDefinitionCollection
     {
         ArgumentNullException.ThrowIfNull(definition);
 
-        if(_types.TryGetValue(definition.Name, out var existing))
+        if (_types.TryGetValue(definition.Name, out var existing))
         {
             if (ReferenceEquals(existing, definition))
             {

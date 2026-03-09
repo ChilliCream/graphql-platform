@@ -1,4 +1,3 @@
-using HotChocolate;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -66,7 +65,7 @@ public class DefaultInMemoryClientBuilderTests
         var wasCalled = false;
         var executorResolver = new Mock<IRequestExecutorProvider>().Object;
         var optionsMonitor = new ServiceCollection()
-            .Configure<InMemoryClientFactoryOptions>("Foo", _ => { wasCalled = true; })
+            .Configure<InMemoryClientFactoryOptions>("Foo", _ => wasCalled = true)
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
         var factory = new DefaultInMemoryClientFactory(executorResolver, optionsMonitor);
@@ -102,7 +101,7 @@ public class DefaultInMemoryClientBuilderTests
     public async Task CreateClientAsync_SchemaNameSet_CreateExecutorForSchema()
     {
         // arrange
-        var nameString = "FooBar";
+        const string nameString = "FooBar";
         var executor = new Mock<IRequestExecutor>().Object;
         Mock<IRequestExecutorProvider> executorResolverMock = new();
         var executorResolver = executorResolverMock.Object;

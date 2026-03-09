@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Caching.Memory;
 
 public class CacheTests
@@ -182,7 +180,7 @@ public class CacheTests
     [Fact]
     public void TryGet_ReturnsFalse_WhenKeyIsAbsent()
     {
-        var diag  = new TestDiagnostics();
+        var diag = new TestDiagnostics();
         var cache = new Cache<int>(capacity: 8, diagnostics: diag);
 
         var found = cache.TryGet("unknown", out _);

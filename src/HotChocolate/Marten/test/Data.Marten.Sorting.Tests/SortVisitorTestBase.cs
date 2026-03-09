@@ -13,7 +13,7 @@ namespace HotChocolate.Data;
 public sealed class ResourceContainer : IAsyncDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private int _testClassInstances = 0;
+    private int _testClassInstances;
 
     public PostgreSqlResource Resource { get; } = new();
 
@@ -124,11 +124,8 @@ public class SortVisitorTestBase : IAsyncLifetime
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("sql", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("sql", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

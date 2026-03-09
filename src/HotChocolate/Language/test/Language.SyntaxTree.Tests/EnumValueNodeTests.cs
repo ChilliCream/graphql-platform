@@ -1,4 +1,4 @@
-using Xunit;
+using System.Text;
 
 namespace HotChocolate.Language.SyntaxTree;
 
@@ -9,13 +9,13 @@ public class EnumValueNodeTests
     {
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
@@ -36,13 +36,13 @@ public class EnumValueNodeTests
         // arrange
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location2,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
@@ -63,16 +63,16 @@ public class EnumValueNodeTests
         // arrange
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location2,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
         var d = new EnumValueNode(
             TestLocations.Location2,
-            new("AB"));
+            "AB");
 
         // act
         var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
@@ -85,5 +85,16 @@ public class EnumValueNodeTests
         Assert.NotEqual(aHash, cHash);
         Assert.Equal(cHash, dHash);
         Assert.NotEqual(aHash, dHash);
+    }
+
+    [Fact]
+    public void AsMemorySegment_LongValue()
+    {
+        var value = new string('A', 64);
+        var node = new EnumValueNode(value);
+
+        var segment = node.AsMemorySegment();
+
+        Assert.Equal(value, Encoding.UTF8.GetString(segment.Span));
     }
 }

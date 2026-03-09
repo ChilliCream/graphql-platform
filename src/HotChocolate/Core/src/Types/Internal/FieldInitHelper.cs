@@ -6,8 +6,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.ErrorHelper;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 public static class FieldInitHelper
@@ -22,7 +20,7 @@ public static class FieldInitHelper
 
         try
         {
-            if(defaultValue is null && argumentDefinition.RuntimeDefaultValue is not null)
+            if (defaultValue is null && argumentDefinition.RuntimeDefaultValue is not null)
             {
                 defaultValue =
                     context.DescriptorContext.InputFormatter.FormatValue(
@@ -175,11 +173,11 @@ public static class FieldInitHelper
 
         if (duplicates?.Count > 0)
         {
-           context.ReportError(
-               DuplicateFieldName(
-                   context.Type,
-                   declaringMember,
-                   duplicates));
+            context.ReportError(
+                DuplicateFieldName(
+                    context.Type,
+                    declaringMember,
+                    duplicates));
         }
     }
 
@@ -188,10 +186,10 @@ public static class FieldInitHelper
 
     internal static Type CompleteRuntimeType(IType type, Type? runtimeType, out bool isOptional)
     {
-        runtimeType ??= (type as IHasRuntimeType)?.RuntimeType ?? typeof(object);
+        runtimeType ??= (type as IRuntimeTypeProvider)?.RuntimeType ?? typeof(object);
 
-        if (runtimeType.IsGenericType &&
-            runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
+        if (runtimeType.IsGenericType
+            && runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
         {
             isOptional = true;
             return runtimeType.GetGenericArguments()[0];

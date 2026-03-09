@@ -116,8 +116,8 @@ public static class JsonErrorParser
 
         // if we do not have a top level error code we will check if the extensions
         // dictionary has any field called code.
-        if (extensions is not null && extensions.TryGetValue("code", out var value) &&
-            value is string s)
+        if (extensions is not null && extensions.TryGetValue("code", out var value)
+            && value is string s)
         {
             return s;
         }

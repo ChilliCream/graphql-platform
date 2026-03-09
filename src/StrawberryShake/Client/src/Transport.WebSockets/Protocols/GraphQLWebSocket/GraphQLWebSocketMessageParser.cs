@@ -10,7 +10,6 @@ namespace StrawberryShake.Transport.WebSockets.Protocols;
 /// </summary>
 internal ref struct GraphQLWebSocketMessageParser
 {
-    private readonly ReadOnlySequence<byte> _messageData;
     private const byte A = (byte)'a';
     private const byte C = (byte)'c';
     private const byte D = (byte)'d';
@@ -22,30 +21,11 @@ internal ref struct GraphQLWebSocketMessageParser
     private const byte S = (byte)'s';
     private const byte T = (byte)'t';
 
-    private static ReadOnlySpan<byte> Type =>
-    [
-        (byte)'t',
-        (byte)'y',
-        (byte)'p',
-        (byte)'e'
-    ];
+    private static ReadOnlySpan<byte> Type => "type"u8;
 
-    private static ReadOnlySpan<byte> Id =>
-    [
-        (byte)'i',
-        (byte)'d'
-    ];
+    private static ReadOnlySpan<byte> Id => "id"u8;
 
-    private static ReadOnlySpan<byte> Payload =>
-    [
-        (byte)'p',
-        (byte)'a',
-        (byte)'y',
-        (byte)'l',
-        (byte)'o',
-        (byte)'a',
-        (byte)'d'
-    ];
+    private static ReadOnlySpan<byte> Payload => "payload"u8;
 
     private Utf8JsonReader _reader;
 
@@ -57,7 +37,6 @@ internal ref struct GraphQLWebSocketMessageParser
     /// </param>
     private GraphQLWebSocketMessageParser(ReadOnlySequence<byte> messageData)
     {
-        _messageData = messageData;
         _reader = new Utf8JsonReader(messageData);
     }
 
@@ -66,7 +45,7 @@ internal ref struct GraphQLWebSocketMessageParser
     /// </summary>
     /// <returns></returns>
     /// <exception cref="SerializationException">
-    /// Thrown when a invalid token, a unknown field or the type is not specified
+    /// Thrown when an invalid token, an unknown field or the type is not specified
     /// </exception>
     private GraphQLWebSocketMessage ParseMessage()
     {
@@ -231,7 +210,7 @@ internal ref struct GraphQLWebSocketMessageParser
     /// The sequence of bytes containing the data of the message
     /// </param>
     /// <exception cref="SerializationException">
-    /// Thrown when a invalid token, a unknown field or the type is not specified
+    /// Thrown when an invalid token, an unknown field or the type is not specified
     /// </exception>
     /// <returns>The parsed message</returns>
     public static GraphQLWebSocketMessage Parse(ReadOnlySequence<byte> messageData)

@@ -1,8 +1,7 @@
-#nullable enable
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 [Flags]
-internal enum CoreFieldFlags
+internal enum CoreFieldFlags : long
 {
     None = 0,
 
@@ -45,5 +44,7 @@ internal enum CoreFieldFlags
     SourceGenerator = 1 << 28,
     MutationQueryField = 1 << 29,
     WithRequirements = 1 << 30,
-    UsesProjections = 1 << 31
+    UsesProjections = 1L << 31,
+    ImplicitField = 1L << 32,
+    BatchResolver = 1L << 33
 }

@@ -6,8 +6,6 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
@@ -17,9 +15,11 @@ namespace HotChocolate.Types.Descriptors.Configurations;
 public class ObjectFieldConfiguration : OutputFieldConfiguration
 {
     private List<FieldMiddlewareConfiguration>? _middlewareDefinitions;
+    private List<BatchFieldMiddlewareConfiguration>? _batchMiddlewareDefinitions;
     private List<ResultFormatterConfiguration>? _resultConverters;
     private List<IParameterExpressionBuilder>? _expressionBuilders;
     private bool _middlewareDefinitionsCleaned;
+    private bool _batchMiddlewareDefinitionsCleaned;
     private bool _resultConvertersCleaned;
 
     /// <summary>
@@ -92,6 +92,23 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// The delegate that represents an optional pure resolver.
     /// </summary>
     public PureFieldDelegate? PureResolver { get; set; }
+
+    /// <summary>
+    /// The delegate that represents the batch resolver.
+    /// </summary>
+    public BatchFieldDelegate? BatchResolver { get; set; }
+
+    /// <summary>
+    /// A list of batch middleware components which will be used to form the batch field pipeline.
+    /// </summary>
+    public IList<BatchFieldMiddlewareConfiguration> BatchMiddlewareConfigurations
+    {
+        get
+        {
+            _batchMiddlewareDefinitionsCleaned = false;
+            return _batchMiddlewareDefinitions ??= [];
+        }
+    }
 
     /// <summary>
     /// Gets or sets all resolvers at once.
@@ -247,6 +264,21 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     }
 
     /// <summary>
+    /// A list of batch middleware components which will be used to form the batch field pipeline.
+    /// </summary>
+    internal IReadOnlyList<BatchFieldMiddlewareConfiguration> GetBatchMiddlewareDefinitions()
+    {
+        if (_batchMiddlewareDefinitions is null)
+        {
+            return Array.Empty<BatchFieldMiddlewareConfiguration>();
+        }
+
+        CleanMiddlewareDefinitions(_batchMiddlewareDefinitions, ref _batchMiddlewareDefinitionsCleaned);
+
+        return _batchMiddlewareDefinitions;
+    }
+
+    /// <summary>
     /// A list of parameter expression builders that shall be applied when compiling
     /// the resolver or when arguments are inferred from a method.
     /// </summary>
@@ -269,19 +301,25 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
 
         if (_middlewareDefinitions is { Count: > 0 })
         {
-            target._middlewareDefinitions = [.._middlewareDefinitions];
+            target._middlewareDefinitions = [.. _middlewareDefinitions];
             _middlewareDefinitionsCleaned = false;
+        }
+
+        if (_batchMiddlewareDefinitions is { Count: > 0 })
+        {
+            target._batchMiddlewareDefinitions = [.. _batchMiddlewareDefinitions];
+            _batchMiddlewareDefinitionsCleaned = false;
         }
 
         if (_resultConverters is { Count: > 0 })
         {
-            target._resultConverters = [.._resultConverters];
+            target._resultConverters = [.. _resultConverters];
             _resultConvertersCleaned = false;
         }
 
         if (_expressionBuilders is { Count: > 0 })
         {
-            target._expressionBuilders = [.._expressionBuilders];
+            target._expressionBuilders = [.. _expressionBuilders];
         }
 
         target.SourceType = SourceType;
@@ -292,6 +330,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
         target.Expression = Expression;
         target.Resolver = Resolver;
         target.PureResolver = PureResolver;
+        target.BatchResolver = BatchResolver;
         target.SubscribeResolver = SubscribeResolver;
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
@@ -312,6 +351,13 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
             _middlewareDefinitionsCleaned = false;
         }
 
+        if (_batchMiddlewareDefinitions is { Count: > 0 })
+        {
+            target._batchMiddlewareDefinitions ??= [];
+            target._batchMiddlewareDefinitions.AddRange(_batchMiddlewareDefinitions);
+            _batchMiddlewareDefinitionsCleaned = false;
+        }
+
         if (_resultConverters is { Count: > 0 })
         {
             target._resultConverters ??= [];
@@ -330,7 +376,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
             target.IsParallelExecutable = false;
         }
 
-        if(DependencyInjectionScope.HasValue)
+        if (DependencyInjectionScope.HasValue)
         {
             target.DependencyInjectionScope = DependencyInjectionScope;
         }
@@ -370,6 +416,11 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
             target.PureResolver = PureResolver;
         }
 
+        if (BatchResolver is not null)
+        {
+            target.BatchResolver = BatchResolver;
+        }
+
         if (SubscribeResolver is not null)
         {
             target.SubscribeResolver = SubscribeResolver;
@@ -400,19 +451,19 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
                 definitionsCleaned = true;
             }
 
-            if (count == 3 &&
-                definitions[0].IsRepeatable &&
-                definitions[1].IsRepeatable &&
-                definitions[2].IsRepeatable)
+            if (count == 3
+                && definitions[0].IsRepeatable
+                && definitions[1].IsRepeatable
+                && definitions[2].IsRepeatable)
             {
                 definitionsCleaned = true;
             }
 
-            if (count == 4 &&
-                definitions[0].IsRepeatable &&
-                definitions[1].IsRepeatable &&
-                definitions[2].IsRepeatable &&
-                definitions[3].IsRepeatable)
+            if (count == 4
+                && definitions[0].IsRepeatable
+                && definitions[1].IsRepeatable
+                && definitions[2].IsRepeatable
+                && definitions[3].IsRepeatable)
             {
                 definitionsCleaned = true;
             }

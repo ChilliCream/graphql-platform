@@ -12,12 +12,13 @@ public static class ValidationUtils
         DocumentNode document,
         ISchemaDefinition? schema = null,
         IFeatureCollection? features = null,
-        int maxAllowedErrors = 5)
+        int maxAllowedErrors = 5,
+        int maxLocationsPerError = 5)
     {
         schema ??= CreateSchema();
 
         var context = new DocumentValidatorContext();
-        context.Initialize(schema, default, document, maxAllowedErrors, features);
+        context.Initialize(schema, default, document, maxAllowedErrors, maxLocationsPerError, features);
         return context;
     }
 
@@ -70,18 +71,17 @@ public static class ValidationUtils
             .AddDirectiveType("onFragmentDefinition", DirectiveLocation.FragmentDefinition)
             .AddDirectiveType("onVariableDefinition", DirectiveLocation.VariableDefinition)
             .AddDirectiveType("directiveA",
-                DirectiveLocation.Field |
-                DirectiveLocation.FragmentDefinition)
+                DirectiveLocation.Field
+                | DirectiveLocation.FragmentDefinition)
             .AddDirectiveType("directiveB",
-                DirectiveLocation.Field |
-                DirectiveLocation.FragmentDefinition)
+                DirectiveLocation.Field
+                | DirectiveLocation.FragmentDefinition)
             .AddDirectiveType("directiveC",
-                DirectiveLocation.Field |
-                DirectiveLocation.FragmentDefinition)
+                DirectiveLocation.Field
+                | DirectiveLocation.FragmentDefinition)
             .AddDirectiveType("repeatable",
-                DirectiveLocation.Field |
-                DirectiveLocation.FragmentDefinition,
+                DirectiveLocation.Field
+                | DirectiveLocation.FragmentDefinition,
                 x => x.Repeatable())
-            .ModifyOptions(o => o.EnableOneOf = true)
             .Create();
 }

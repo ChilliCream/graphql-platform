@@ -49,7 +49,7 @@ public class SyntaxTypeReferenceTests
             TypeContext.None);
 
         // act
-        var result = x.Equals((SyntaxTypeReference)null);
+        var result = x.Equals(null);
 
         // assert
         Assert.False(result);
@@ -64,7 +64,7 @@ public class SyntaxTypeReferenceTests
             TypeContext.None);
 
         // act
-        var xx = x.Equals((SyntaxTypeReference)x);
+        var xx = x.Equals(x);
 
         // assert
         Assert.True(xx);
@@ -135,7 +135,7 @@ public class SyntaxTypeReferenceTests
             TypeContext.None);
 
         // act
-        var result = x.Equals((TypeReference)null);
+        var result = x.Equals((TypeReference)null!);
 
         // assert
         Assert.False(result);
@@ -236,7 +236,7 @@ public class SyntaxTypeReferenceTests
             TypeContext.None);
 
         // act
-        var result = x.Equals((object)null);
+        var result = x.Equals((object)null!);
 
         // assert
         Assert.False(result);
@@ -516,7 +516,7 @@ public class SyntaxTypeReferenceTests
             scope: "foo");
 
         // act
-        Action action = () => typeReference1.With(null);
+        Action action = () => typeReference1.With(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

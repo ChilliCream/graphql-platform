@@ -154,15 +154,15 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barShort: ASC}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(order: { foo: { barShort: ASC}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barShort: DESC}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(order: { foo: { barShort: DESC}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // assert
@@ -184,15 +184,15 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barShort: ASC}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(order: { foo: { barShort: ASC}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barShort: DESC}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(order: { foo: { barShort: DESC}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // assert
@@ -213,15 +213,15 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barEnum: ASC}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(order: { foo: { barEnum: ASC}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barEnum: DESC}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(order: { foo: { barEnum: DESC}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -243,15 +243,15 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barEnum: ASC}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(order: { foo: { barEnum: ASC}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barEnum: DESC}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(order: { foo: { barEnum: DESC}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -272,15 +272,15 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barString: ASC}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(order: { foo: { barString: ASC}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barString: DESC}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(order: { foo: { barString: DESC}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         // assert
@@ -302,15 +302,15 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barString: ASC}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(order: { foo: { barString: ASC}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barString: DESC}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(order: { foo: { barString: DESC}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         // assert
@@ -331,15 +331,15 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: ASC}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(order: { foo: { barBool: ASC}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: DESC}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(order: { foo: { barBool: DESC}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         // assert
@@ -361,15 +361,15 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: ASC}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(order: { foo: { barBool: ASC}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: DESC}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(order: { foo: { barBool: DESC}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         // assert
@@ -390,8 +390,8 @@ public class QueryableSortVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) " +
-                    "{ foo{ barBool barShort}}}")
+                    "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) "
+                    + "{ foo{ barBool barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -414,8 +414,8 @@ public class QueryableSortVisitorObjectTests
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) " +
-                    "{ foo{ barBool barShort}}}")
+                    "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) "
+                    + "{ foo{ barBool barShort}}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(

@@ -1,0 +1,10 @@
+{
+  "operationName": null,
+  "variables": {},
+  "extensions": {
+    "persistedQuery": {
+      "version": 1,
+      "sha256Hash": "hashOfQuery"
+    }
+  }
+}

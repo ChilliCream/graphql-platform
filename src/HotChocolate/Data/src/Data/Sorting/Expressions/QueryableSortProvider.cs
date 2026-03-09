@@ -124,9 +124,9 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     {
         if (fieldConfiguration.Expression is not null)
         {
-            if (fieldConfiguration.Expression is not LambdaExpression lambda ||
-                lambda.Parameters.Count != 1 ||
-                lambda.Parameters[0].Type != typeConfiguration.EntityType)
+            if (fieldConfiguration.Expression is not LambdaExpression lambda
+                || lambda.Parameters.Count != 1
+                || lambda.Parameters[0].Type != typeConfiguration.EntityType)
             {
                 throw ThrowHelper.QueryableSortProvider_ExpressionParameterInvalid(
                     context.Type,

@@ -1,108 +1,137 @@
 ---
-title: "Introduction to Fusion"
+title: "Overview"
 ---
 
-![Fusion Logo](../../shared/fusion/nitro-0.webp)
+Fusion lets you split one GraphQL API into multiple smaller services, without changing how clients consume it. Clients still send queries to one endpoint, and Fusion combines data from all services into one response. Teams can deploy independently, and contract conflicts are caught during build time.
 
-Fusion combines different source schemas into a single unified schema. This allows multiple GraphQL services to work together seamlessly, providing a unified API experience while preserving the independence of each service.
+# What Is Fusion
 
-At its core, Fusion adopts a distributed architecture that combines multiple GraphQL services, into a single, cohesive API. This architecture allows each source to own its domain-specific schema and logic, keeping autonomy and independent development across different teams.
+Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Composite Schemas specification (draft)](https://graphql.github.io/composite-schemas-spec/draft/), an open standard being developed under the GraphQL Foundation.
 
-In an era where microservices and distributed systems are the norm, managing and scaling APIs efficiently becomes a significant challenge. Fusion addresses these challenges by allowing teams to develop, deploy, and scale their GraphQL services independently while still contributing to a cohesive and unified API.
+The architecture has three parts:
 
-Fusion introduces a gateway component that acts as the single entry point for client requests. When a client queries the gateway, Fusion intelligently routes parts of the query to the appropriate domain services, aggregates the results, and returns a unified response. This process is transparent to the client, which interacts with the supergraph as if it were a monolithic GraphQL API.
+![Fusion Architecture Overview](../../shared/fusion/fusion-overview.png)
 
-![Fusion Overview](../../shared/fusion/fusion-overview-1.png)
+**Subgraphs** are the upstream services behind the Fusion gateway: GraphQL services, OpenAPI-based REST services, and gRPC services. Each subgraph owns part of the API surface and implementation logic, and can be developed and deployed independently.
 
-# Video Walkthrough
+A **source schema** is the contract document for a subgraph, such as a GraphQL schema, an OpenAPI document, or a gRPC/protobuf definition.
 
-Join Michael in this video as he introduces Fusion and explains you how to get started with it:
+**Composition** processes all source schemas and produces a Fusion archive (`.far`) that contains the composite schema and gateway configuration.
 
-<Video videoId="peMdejyrKD4" />
+The **gateway** receives client requests, determines which subgraphs to call, executes those calls, and merges the results.
 
-# Benefits of Using Fusion
+The result: clients send one request to one endpoint and receive one unified response, while Fusion handles routing and aggregation across upstream services.
 
-## Autonomous Team Development
+The following query touches three services, but the client doesn't know or care about this implementation detail.
 
-Fusion makes it easy for teams to work independently on their own services while still contributing to a unified schema. By clearly separating schemas, Fusion allows each team to develop, test, and deploy their services without being tightly connected to what other teams are doing. This reduces the need for constant coordination and makes it easier for teams to focus on their own goals.
-
-Schema boundaries act like agreements between teams, ensuring that everything works together without requiring teams to be tightly linked. This approach speeds up development, simplifies teamwork, and helps teams deliver their services without unnecessary delays.
-
-## Scalability and Modularity
-
-Fusion is designed to support the modularity of your domain. By enabling the composition of different bounded contexts into a unified schema, Fusion allows each service to reflect its specific domain while remaining independently developed, deployed, and scaled. This modular approach ensures that teams can evolve their services to meet unique performance and domain needs without disrupting the broader system.
-
-## Unified API Experience
-
-By consolidating multiple GraphQL APIs into a single endpoint, Fusion allows clients to fetch all the required data with a single request. This eliminates the need for clients to manage multiple endpoints or coordinate several requests, leading to improved performance and a simplified client-side codebase.
-
-Clients interact with a single, unified GraphQL API, simplifying the development of frontend applications. Fusion handles the complexity of distributed systems behind the scenes, providing a seamless API experience.
-
-## Alignment with Industry Standards
-
-Fusion is a key contributor to the Composite Schema Specification, an open standard under the GraphQL Foundation that aims to standardize the composition and execution of distributed GraphQL services. Backed by industry leaders, this specification seeks to create a unified approach for federated GraphQL schemas.
-
-Although the specification is still in development, Fusion actively aligns with its evolving guidelines and is committed to full compliance once finalized. This ensures that Fusion remains interoperable, up-to-date with industry best practices, and at the forefront of GraphQL innovation.
-
-# When to Use Fusion
-
-Fusion is a powerful choice for organizations looking to streamline and enhance their GraphQL architecture. Here are some scenarios where Fusion shines:
-
-- **Operate Multiple Domains**: If your application spans multiple domains, each managed by separate teams or departments, Fusion simplifies integration by unifying these services under a single GraphQL schema. This allows teams to focus on their specific domain without worrying about breaking the overall API.
-
-- **Embrace Microservices**: Fusion is an excellent fit for organizations adopting a microservices architecture. It enables each service to be independently developed, deployed, and maintained, while still offering a seamless, unified API for clients. This reduces complexity and promotes clear service boundaries.
-
-- **Require Scalability**: Applications often have components with different scaling needs. Fusion lets you scale individual services independently based on their specific load requirements, avoiding the overhead of scaling the entire system unnecessarily.
-
-- **Seek Team Autonomy**: For organizations with large or decentralized teams, Fusion empowers each team to work autonomously on their own services. Teams can adopt their preferred technologies, workflows, and development schedules while Fusion ensures everything integrates smoothly. This minimizes interdependencies, speeds up development, and reduces coordination challenges.
-
-- **Simplify API Maintenance**: Fusion helps reduce the operational overhead of managing multiple APIs by consolidating them into a single, cohesive GraphQL schema. This makes it easier to track changes, troubleshoot issues, and evolve the API as business requirements grow.
-
-Whether you're looking to unify a complex domain, scale individual services, or enable independent team workflows, Fusion provides the tools to achieve these goals effectively.
-
-# Composition
-
-Composition in Fusion refer to the process of combining multiple GraphQL schemas from different services into a single, unified schema. This involves merging types, resolving conflicts, and establishing relationships between types defined in different services.
-
-This process occurs at build time rather than runtime. If there are any issues with the composition, Fusion provides feedback during the build phase, allowing you to identify and resolve conflicts or inconsistencies before deploying the composed schema.
-
-Consider an e-commerce platform with separate services for users, products, and orders. Each service defines its own GraphQL schema:
-
-- **Users Service**: Defines the User type with fields like id, name, and orders.
-- **Products Service**: Defines the Product type with fields like id, title, price, and inStock.
-- **Orders Service**: Defines the Order type and references the Product type.
-
-During composition, Fusion merges these schemas into a unified schema that clients can query seamlessly. The gateway understands how to fetch and assemble data across these services, making cross-service relationships transparent to the client.
-
-A client might execute a query like:
-
+<!-- prettier-ignore-start -->
 ```graphql
 query {
-  user(id: "123") {
-    name
-    orders {
-      id
-      products {
-        title
-        price
+  products(first: 5) {
+    nodes {
+      name          # from Products service
+      price         # from Products service
+      reviews {     # from Reviews service
+        stars
+        author {
+          username  # from Accounts service
+        }
       }
     }
   }
 }
 ```
+<!-- prettier-ignore-end -->
 
-The Fusion gateway routes parts of this query to the appropriate services, collects the responses, and assembles them into a single, cohesive result.
+## Three Things That Make Fusion Different
 
-# Thinking in Fusion
+A _lookup_ is a central concept in Fusion. It specifies how an entity can be resolved by a stable key. This concept also extends beyond federation and is useful in standard client-server communication.
 
-Fusion introduces a new way of GraphQL API development by emphasizing entities and their relationships across different services.
+**Lookups use standard Query fields.** For GraphQL subgraphs, when the gateway needs to resolve an entity, it calls a normal Query field annotated with the `@lookup` directive. You can call the same field in tests, debug it with standard tools, and see exactly what it returns. There is no hidden internal protocol to implement, and the security model is the same as for any other GraphQL field.
 
-Entities are central to Fusion’s approach. They are types that can be extended across multiple services, identified by a unique key, and can be referenced and resolved by different services. This allows services to extend types defined elsewhere, adding fields or resolvers specific to their domain.
+```graphql
+type Query {
+  productById(id: ID!): Product @lookup
+}
+```
 
-For example, the Orders service might define an Order type and reference a Product type defined in the Products service. Through entities, the gateway understands how to fetch and assemble data for Product when included in an Order.
+If you are using Hot Chocolate, support for the composite schema specification is built in. Add the `[Lookup]` attribute to your resolver and you are ready to go.
 
-# Relationship with Schema Stitching
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    [Lookup]
+    public static async Task<Product?> GetProductById(
+        [ID] int id,
+        IProductByIdDataLoader productById,
+        CancellationToken cancellationToken)
+        => await productById.LoadAsync(id, cancellationToken);
+}
+```
 
-Schema stitching was an early method of combining multiple GraphQL schemas, but it has some significant limitations. Changes to a service often require corresponding updates to the central gateway, increasing maintenance overhead. Additionally, schema stitching is resolver-based rather than entity-based. Without the concept of entities, schema stitching cannot optimize data fetching effectively, often leading to less efficient query execution and increased complexity.
+**Composition catches errors at build time.** When you run `nitro fusion compose`, the composition engine validates source schemas against each other. Type conflicts, missing fields, and incompatible enums are caught in CI before deployment.
 
-Fusion addresses these limitations by introducing automated schema composition and leveraging an entity-based approach. This enables optimized data fetching and better handling of relationships between types across services.
+**No special runtime for GraphQL subgraphs.** The [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
+
+# Key Terminology
+
+| Term                 | Definition                                                                                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Subgraph**         | An upstream service behind the Fusion gateway. A subgraph can be a GraphQL service, an OpenAPI-based REST service, or a gRPC service.                    |
+| **Source schema**    | The contract document published by one subgraph (for example a GraphQL schema, OpenAPI document, or gRPC/protobuf definition).                           |
+| **Composite schema** | The unified, client-facing GraphQL schema produced during composition. Clients query this schema as if it were a single API.                             |
+| **Gateway**          | The public entry point for client requests. It receives queries against the composite schema, routes requests across subgraphs, and assembles responses. |
+| **Entity**           | A type with a stable key that can be referenced across GraphQL subgraphs. A subgraph can define an entity without resolving it locally.                  |
+| **Lookup**           | A Query field annotated with a `@lookup` directive that resolves an entity by key in that subgraph.                                                      |
+| **Composition**      | The offline step that validates source schemas and produces the composite schema and gateway configuration. Runs via the Nitro CLI or Aspire.            |
+
+# When to Use Fusion
+
+Fusion adds operational complexity, including a gateway process, a composition step in your build pipeline, and distributed debugging. That complexity pays off in specific situations:
+
+- **Multiple teams need to ship independently.** If different teams own different parts of your API (e.g., a product catalog team and a reviews team), Fusion lets each team deploy on their own schedule without coordinating schema changes through a shared codebase.
+
+- **You need to scale services differently.** Your product search might need 10 instances while your user profile service needs 2. With separate services, you scale each one based on its actual load.
+
+- **Your domain has clear boundaries.** If your data naturally splits into distinct areas (accounts, products, orders, reviews), separate services map well to those boundaries. Each service owns its data store and its API contract.
+
+- **You want build-time validation of distributed contracts.** Composition catches conflicts between source schemas before deployment. Your CI pipeline can validate that a change in one service does not break the composed API.
+
+# When NOT to Use Fusion
+
+Fusion is not the right choice for every project. Evaluate whether the additional complexity is justified:
+
+- **One team, one service.** If one team owns the entire API and deploys it as a single unit, a standard Hot Chocolate server is simpler and has lower operational overhead. You likely do not need a gateway, a composition pipeline, or distributed tracing.
+
+- **A small or early-stage API.** If your API has a handful of types and modest traffic, a distributed gateway setup often adds more complexity than value. Start with a monolith and split later when needed. Hot Chocolate supports an incremental path from monolith to modular monolith to distributed architecture.
+
+- **No clear domain boundaries.** If your types are deeply intertwined and most queries touch most of the schema, splitting into many services can create more cross-service calls than it removes. Fusion works best when services are relatively self-contained and have clear data contracts.
+
+- **Your team is just getting started with GraphQL.** Learn GraphQL and Hot Chocolate first. Get comfortable with types, resolvers, DataLoaders, and the execution pipeline. Fusion adds concepts on top of that foundation and is easier to adopt once the basics are understood.
+
+The cost of premature distribution is real: more services to deploy, more infrastructure to monitor, and harder debugging when something goes wrong. Start simple, and add Fusion when the pain of a monolith outweighs the cost of distribution.
+
+# Migrating from a Monolith
+
+If you already have a Hot Chocolate server, you can adopt Fusion incrementally.
+
+**Start with one upstream service.** Point the Fusion gateway at your existing Hot Chocolate server as the only subgraph. Composition works with one source schema. Your clients connect to the gateway instead of directly to your server, but behavior stays the same.
+
+**Add services incrementally.** When a new team or domain needs its own service, add another subgraph. The new service can extend types from the original service with entity stubs where needed. Composition merges both source schemas, and the gateway handles cross-service execution automatically. Your original service does not need a rewrite.
+
+**Clients see no difference.** Whether you have one subgraph or ten, clients still call one endpoint and keep the same query surface. You can split your monolith over weeks or months without breaking the client contract.
+
+The key insight: this is not a rewrite. It is a gradual process. You move types and fields to new services over time, and the gateway smooths over the transition.
+
+# Next Steps
+
+Where you go from here depends on what you need:
+
+- **"I want to build something."** Start with the [Getting Started](/docs/fusion/v16/getting-started) tutorial. You will create two services and a gateway from scratch.
+
+- **"I want to add another service to an existing project."** Go to [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph). It covers creating a new service (subgraph) that extends existing entity types.
+
+- **"I'm migrating from another distributed GraphQL framework."** Read [Coming from Apollo Federation](/docs/fusion/v16/coming-from-apollo-federation) or [Migrating from Schema Stitching](/docs/fusion/v16/migrating-from-schema-stitching). These guides map familiar concepts to Fusion equivalents and walk through a migration.
+
+- **"I need to deploy this."** See [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for pipeline setup, schema management, and gateway configuration.

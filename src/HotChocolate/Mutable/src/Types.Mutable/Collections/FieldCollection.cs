@@ -7,7 +7,7 @@ public abstract class FieldDefinitionCollection<TField> : IList<TField> where TF
 {
     private readonly OrderedDictionary<string, TField> _fields = [];
 
-    public FieldDefinitionCollection(ITypeSystemMember declaringMember)
+    protected FieldDefinitionCollection(ITypeSystemMember declaringMember)
     {
         ArgumentNullException.ThrowIfNull(declaringMember);
         DeclaringMember = declaringMember;
@@ -74,8 +74,8 @@ public abstract class FieldDefinitionCollection<TField> : IList<TField> where TF
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        if (_fields.TryGetValue(item.Name, out var itemToDelete) &&
-            ReferenceEquals(item, itemToDelete))
+        if (_fields.TryGetValue(item.Name, out var itemToDelete)
+            && ReferenceEquals(item, itemToDelete))
         {
             _fields.Remove(item.Name);
             return true;

@@ -51,7 +51,7 @@ public class SortInputType
         InputObjectTypeConfiguration configuration)
     {
         base.OnRegisterDependencies(context, configuration);
-        if (configuration is SortInputTypeConfiguration {EntityType: { } } sortDefinition)
+        if (configuration is SortInputTypeConfiguration { EntityType: { } } sortDefinition)
         {
             SetTypeIdentity(
                 typeof(SortInputType<>).MakeGenericType(sortDefinition.EntityType));
@@ -74,24 +74,23 @@ public class SortInputType
         ITypeCompletionContext context,
         InputObjectTypeConfiguration configuration)
     {
-        var fields = new InputField[configuration.Fields.Count];
-        var index = 0;
+        var fieldConfigurations = new List<SortFieldConfiguration>(configuration.Fields.Count);
 
         foreach (var fieldDefinition in configuration.Fields)
         {
-            if (fieldDefinition is SortFieldConfiguration {Ignore: false } field)
+            if (fieldDefinition is SortFieldConfiguration { Ignore: false } field)
             {
-                fields[index] = new SortField(field, index);
-                index++;
+                fieldConfigurations.Add(field);
             }
         }
 
-        if (fields.Length < index)
-        {
-            Array.Resize(ref fields, index);
-        }
-
-        return new InputFieldCollection(CompleteFields(context, this, fields));
+        return new InputFieldCollection(
+            CompleteFields(
+                context,
+                this,
+                fieldConfigurations,
+                CreateField));
+        static InputField CreateField(SortFieldConfiguration fieldDef, int index) => new SortField(fieldDef, index);
     }
 
     // we are disabling the default configure method so
