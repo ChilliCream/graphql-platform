@@ -5,6 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -60,12 +61,9 @@ internal sealed class ValueCompletion
             }
 
             // TODO: Maybe we should also attempt to see if we can get an error by going up the path here.
-            var error = errorTrie?.FindFirstError() ??
-                ErrorBuilder.New()
-                    .SetMessage("Unexpected Execution Error")
-                    .Build();
+            var error = errorTrie?.FindFirstError() ?? _unexpectedExecutionError;
 
-            return BuildErrorResult(target, selectionSetNode, error, target.Path);
+            return BuildErrorResult(target, selectionSetNode, error);
         }
 
         foreach (var property in source.EnumerateObject())
@@ -118,63 +116,46 @@ internal sealed class ValueCompletion
     public bool BuildErrorResult(
         CompositeResultElement target,
         SelectionSetNode selectionSetNode,
-        IError error,
-        Path path)
+        IError error)
     {
-        var parentSelection = target.AssertSelection();
-        var parentType = parentSelection.Type.NamedType();
-
-        var selectionsNodes = new Queue<ISelectionNode>(selectionSetNode.Selections);
-
-        while (selectionsNodes.TryDequeue(out var selectionNode))
+        if (_errorHandlingMode is ErrorHandlingMode.Halt)
         {
-            if (selectionNode is FieldNode field)
+            ProduceError(error, target.Path);
+
+            return false;
+        }
+
+        var parentType = target.Path.IsRoot
+            ? target.Operation.RootType
+            : target.AssertSelection().Type.NamedType();
+
+        if (CouldFieldHaveOutstandingPartialPatches(parentType))
+        {
+            // TODO: Needs to handle inline fragments
+            foreach (var field in selectionSetNode.Selections.OfType<FieldNode>())
             {
                 var responseName = field.Alias?.Value ?? field.Name.Value;
 
+                // TODO: Needs to handle skipped
                 if (!target.TryGetProperty(responseName, out var fieldResult)
-                    || fieldResult.IsInternal)
+                    || fieldResult.IsInternal
+                    || fieldResult.IsNullOrInvalidated)
                 {
                     continue;
                 }
 
                 var selection = fieldResult.AssertSelection();
             }
-            else if (selectionNode is InlineFragmentNode { TypeCondition: null } inlineFragment)
+        }
+        else
+        {
+            ProduceError(error, target.Path);
+
+            if (_errorHandlingMode is ErrorHandlingMode.Propagate)
             {
-                foreach (var inlineFragmentSelectionNode in inlineFragment.SelectionSet.Selections)
-                {
-                    selectionsNodes.Enqueue(inlineFragmentSelectionNode);
-                }
+                return false;
             }
         }
-
-        // foreach (var responseName in responseNames)
-        // {
-        //     if (!target.TryGetProperty(responseName, out var fieldResult)
-        //         || fieldResult.IsInternal)
-        //     {
-        //         continue;
-        //     }
-        //
-        //     var selection = fieldResult.AssertSelection();
-        //     var errorWithPath = ErrorBuilder.FromError(error)
-        //         .SetPath(path.Append(responseName))
-        //         .Build();
-        //     errorWithPath = _errorHandler.Handle(errorWithPath);
-        //
-        //     _store.AddError(errorWithPath);
-        //
-        //     switch (_errorHandlingMode)
-        //     {
-        //         case ErrorHandlingMode.Halt:
-        //             return false;
-        //
-        //         case ErrorHandlingMode.Propagate when selection.Type.Kind is TypeKind.NonNull:
-        //             var didPropagateToRoot = PropagateNullValues(fieldResult);
-        //             return !didPropagateToRoot;
-        //     }
-        // }
 
         return true;
     }
@@ -205,6 +186,15 @@ internal sealed class ValueCompletion
         return true;
     }
 
+    private static readonly IError _nonNullViolationError = ErrorBuilder.New()
+        .SetMessage("Cannot return null for non-nullable field.")
+        .SetCode(ErrorCodes.Execution.NonNullViolation)
+        .Build();
+
+    private static readonly IError _unexpectedExecutionError = ErrorBuilder.New()
+        .SetMessage("Unexpected Execution Error")
+        .Build();
+
     private bool TryCompleteValue(
         SourceResultElement source,
         CompositeResultElement target,
@@ -218,32 +208,34 @@ internal sealed class ValueCompletion
         {
             if (source.IsNullOrUndefined())
             {
-                IError error;
-                if (errorTrie?.FindFirstError() is { } errorFromPath)
-                {
-                    error = ErrorBuilder.FromError(errorFromPath)
-                        .SetPath(target.Path)
-                        .Build();
-                }
-                else
-                {
-                    error = ErrorBuilder.New()
-                        .SetMessage("Cannot return null for non-nullable field.")
-                        .SetCode(ErrorCodes.Execution.NonNullViolation)
-                        .SetPath(target.Path)
-                        .Build();
-                }
+                var error = errorTrie?.FindFirstError() ?? _nonNullViolationError;
 
-                error = _errorHandler.Handle(error);
-
-                _store.AddError(error);
-
-                if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                // If we're in halting mode, we don't care about any special cases, we just produce an error and abort.
+                if (_errorHandlingMode is ErrorHandlingMode.Halt)
                 {
+                    ProduceError(error, target.Path);
+
                     return false;
                 }
 
-                return true;
+                if (CouldFieldHaveOutstandingPartialPatches(type))
+                {
+                    // TODO: We need to try and do a null-propagation of child properties
+                    _store.AddPendingError(target.Path, error, selectionSetNode);
+
+                    return true;
+                }
+                else
+                {
+                    ProduceError(error, target.Path);
+
+                    if (_errorHandlingMode is ErrorHandlingMode.Propagate)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
             }
 
             type = type.InnerType();
@@ -255,32 +247,27 @@ internal sealed class ValueCompletion
             // So we try to get an error that is associated with this field or with a path below it.
             if (errorTrie?.FindFirstError() is { } error)
             {
+                // If we're in halting mode, we don't care about any special cases, we just produce an error and abort.
+                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                {
+                    ProduceError(error, target.Path);
+
+                    return false;
+                }
+
                 // If the field has an error, we need to check if this field is a "shared" field like `viewer`.
                 if (CouldFieldHaveOutstandingPartialPatches(type))
                 {
-                    // TODO: If the field is a "shared" field, we need to check if producing errors for the child selections
-                    //       contributed by the current execution node would cause a null propagation that erases the field.
+                    // TODO: We need to try and do a null-propagation of child properties
                     _store.AddPendingError(target.Path, error, selectionSetNode);
-
-                    return true;
                 }
                 else
                 {
                     // If the field isn't a "shared" field, we can just produce an error for it.
-                    var errorWithPath = ErrorBuilder.FromError(error)
-                        .SetPath(target.Path)
-                        .Build();
-                    errorWithPath = _errorHandler.Handle(errorWithPath);
-
-                    _store.AddError(errorWithPath);
-
-                    if (_errorHandlingMode is ErrorHandlingMode.Halt)
-                    {
-                        return false;
-                    }
-
-                    return true;
+                    ProduceError(error, target.Path);
                 }
+
+                return true;
             }
 
             target.SetNullValue();
@@ -308,9 +295,20 @@ internal sealed class ValueCompletion
         }
     }
 
+    private void ProduceError(IError error, Path path)
+    {
+        var errorWithPath = ErrorBuilder.FromError(error)
+            .SetPath(path)
+            .Build();
+        errorWithPath = _errorHandler.Handle(errorWithPath);
+
+        _store.AddError(errorWithPath);
+    }
+
+    // TODO: Implement
     private static bool CouldFieldHaveOutstandingPartialPatches(IType type)
     {
-        return true;
+        return false;
     }
 
     private bool TryCompleteList(

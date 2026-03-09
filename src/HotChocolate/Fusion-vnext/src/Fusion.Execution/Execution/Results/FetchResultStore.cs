@@ -298,8 +298,7 @@ internal sealed class FetchResultStore : IDisposable
                     _valueCompletion.BuildErrorResult(
                         element,
                         selectionSetNode,
-                        error,
-                        path);
+                        error);
                 if (!canExecutionContinue)
                 {
                     resultData.Invalidate();
