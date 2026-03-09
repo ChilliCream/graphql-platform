@@ -118,7 +118,7 @@ You should see `10.0.100` or higher.
 The Nitro CLI is a .NET tool that handles schema composition. Install it globally:
 
 ```bash
-dotnet tool install -g ChilliCream.Nitro.CommandLine --version "16.0.0-p.11.35"
+dotnet tool install -g ChilliCream.Nitro.CommandLine --version "16.0.0-p.11.36"
 ```
 
 Verify the installation:
@@ -132,7 +132,7 @@ nitro version
 Install the Hot Chocolate templates at the same preview version used in this guide:
 
 ```bash
-dotnet new install HotChocolate.Templates@16.0.0-p.11.35
+dotnet new install HotChocolate.Templates@16.0.0-p.11.36
 ```
 
 ## Create Your First Subgraph (Products)
@@ -169,9 +169,9 @@ Your `Products/Products.csproj` should now look like this:
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.0-p.11.35" />
-    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="16.0.0-p.11.35" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="16.0.0-p.11.35">
+    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.0-p.11.36" />
+    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="16.0.0-p.11.36" />
+    <PackageReference Include="HotChocolate.Types.Analyzers" Version="16.0.0-p.11.36">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -739,7 +739,7 @@ Your `Gateway/Gateway.csproj` should look like this:
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.Fusion.AspNetCore" Version="16.0.0-p.11.35" />
+    <PackageReference Include="HotChocolate.Fusion.AspNetCore" Version="16.0.0-p.11.36" />
   </ItemGroup>
 
 </Project>
@@ -766,7 +766,7 @@ ls Gateway/gateway.far
 
 ### Configure the Gateway
 
-The template generates `Gateway/Program.cs`. It should look like this:
+The template generates `Gateway/Program.cs`. For this tutorial, enable operation-plan telemetry so Nitro can show execution metrics in the Operation Plan view:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -776,7 +776,8 @@ builder.Services
 
 builder
     .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddFileSystemConfiguration("./gateway.far")
+    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
 
 var app = builder.Build();
 
@@ -789,6 +790,7 @@ Three things to notice:
 - **`AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The gateway uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
 - **`AddGraphQLGateway()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
 - **`AddFileSystemConfiguration("./gateway.far")`** tells the gateway to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
+- **`ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enables operation-plan telemetry. This is off by default.
 
 ### Start Everything
 
@@ -919,13 +921,13 @@ Look at what happened: `name` and `price` came from the Products subgraph, while
 
 Behind the scenes, the gateway executed a query plan with multiple steps:
 
-To inspect the plan in Nitro, open the **Operation Plan** tab and enable it:
+To inspect the plan in Nitro, open the **Operation Plan** tab and enable it.
 
 ![Enable Fusion operation plan in Nitro](../../shared/fusion/getting-started-enable-query-planner.png)
 
-You should then see a plan similar to this:
+With `CollectOperationPlanTelemetry` enabled on the gateway, the plan includes telemetry such as step duration and status:
 
-![Fusion operation plan for the cross-subgraph query](../../shared/fusion/getting-started-query-planner.png)
+![Fusion operation plan telemetry for the cross-subgraph query](../../shared/fusion/getting-started-query-planner-telemetry.png)
 
 1. **Fetched the products** from the Products subgraph. This returned `id`, `name`, and `price` for each product.
 2. **Resolved the reviews** from the Reviews subgraph. Using each product's `id`, the gateway called the Reviews subgraph's internal `productById` lookup to get a `Product` stub, then resolved the `reviews` field on each stub.
