@@ -153,6 +153,11 @@ internal static class ExpressionHelpers
         Expression cursorExpr)
     {
         var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+        var enumType = Nullable.GetUnderlyingType(cursorKey.Expression.ReturnType)
+            ?? cursorKey.Expression.ReturnType;
+        var enumUnderlyingType = enumType.IsEnum
+            ? Enum.GetUnderlyingType(enumType)
+            : null;
 
         // Access the value of the key if it is a nullable value type.
         var keyValueExpr = cursorKey.Expression.ReturnType.IsValueType && keyIsNullable
@@ -173,15 +178,29 @@ internal static class ExpressionHelpers
             else
             {
                 // SQL: WHERE key IS NOT NULL AND key = cursorValue.
+                var equalExpr = enumUnderlyingType is null
+                    ? Expression.Equal(
+                        Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                        s_zero)
+                    : Expression.Equal(
+                        Expression.Convert(keyValueExpr, enumUnderlyingType),
+                        Expression.Convert(cursorExpr, enumUnderlyingType));
+
                 keyExpr = Expression.AndAlso(
                     Expression.NotEqual(keyExpr, nullConst),
-                    BuildEqualToCursorExpr(cursorKey, keyValueExpr, cursorExpr));
+                    equalExpr);
             }
         }
         else
         {
             // SQL: WHERE key = cursorValue.
-            keyExpr = BuildEqualToCursorExpr(cursorKey, keyExpr, cursorExpr);
+            keyExpr = enumUnderlyingType is null
+                ? Expression.Equal(
+                    Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+                    s_zero)
+                : Expression.Equal(
+                    Expression.Convert(keyExpr, enumUnderlyingType),
+                    Expression.Convert(cursorExpr, enumUnderlyingType));
         }
 
         return keyExpr;
@@ -196,6 +215,11 @@ internal static class ExpressionHelpers
         Expression cursorExpr)
     {
         var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+        var enumType = Nullable.GetUnderlyingType(cursorKey.Expression.ReturnType)
+            ?? cursorKey.Expression.ReturnType;
+        var enumUnderlyingType = enumType.IsEnum
+            ? Enum.GetUnderlyingType(enumType)
+            : null;
 
         // Access the value of the key if it is a nullable value type.
         var keyValueExpr =
@@ -224,22 +248,42 @@ internal static class ExpressionHelpers
                 if (nullOrdering == NullOrdering.NativeNullsFirst)
                 {
                     // SQL: WHERE key > cursorValue.
-                    keyExpr = BuildGreaterThanCursorExpr(cursorKey, keyValueExpr, cursorExpr);
+                    keyExpr = enumUnderlyingType is null
+                        ? Expression.GreaterThan(
+                            Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                            s_zero)
+                        : Expression.GreaterThan(
+                            Expression.Convert(keyValueExpr, enumUnderlyingType),
+                            Expression.Convert(cursorExpr, enumUnderlyingType));
                 }
                 else
                 {
                     // When nulls are last, null is greater than any non-null value.
                     // SQL: WHERE key IS NULL OR key > cursorValue.
+                    var greaterThanExpr = enumUnderlyingType is null
+                        ? Expression.GreaterThan(
+                            Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                            s_zero)
+                        : Expression.GreaterThan(
+                            Expression.Convert(keyValueExpr, enumUnderlyingType),
+                            Expression.Convert(cursorExpr, enumUnderlyingType));
+
                     keyExpr = Expression.OrElse(
                         Expression.Equal(keyExpr, nullConst),
-                        BuildGreaterThanCursorExpr(cursorKey, keyValueExpr, cursorExpr));
+                        greaterThanExpr);
                 }
             }
         }
         else
         {
             // SQL: WHERE key > cursorValue.
-            keyExpr = BuildGreaterThanCursorExpr(cursorKey, keyExpr, cursorExpr);
+            keyExpr = enumUnderlyingType is null
+                ? Expression.GreaterThan(
+                    Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+                    s_zero)
+                : Expression.GreaterThan(
+                    Expression.Convert(keyExpr, enumUnderlyingType),
+                    Expression.Convert(cursorExpr, enumUnderlyingType));
         }
 
         return keyExpr;
@@ -254,6 +298,11 @@ internal static class ExpressionHelpers
         Expression cursorExpr)
     {
         var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+        var enumType = Nullable.GetUnderlyingType(cursorKey.Expression.ReturnType)
+            ?? cursorKey.Expression.ReturnType;
+        var enumUnderlyingType = enumType.IsEnum
+            ? Enum.GetUnderlyingType(enumType)
+            : null;
 
         // Access the value of the key if it is a nullable value type.
         var keyValueExpr =
@@ -283,89 +332,44 @@ internal static class ExpressionHelpers
                 {
                     // With nulls first, null is less than any non-null value.
                     // SQL: WHERE key IS NULL OR key < cursorValue.
+                    var lessThanExpr = enumUnderlyingType is null
+                        ? Expression.LessThan(
+                            Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                            s_zero)
+                        : Expression.LessThan(
+                            Expression.Convert(keyValueExpr, enumUnderlyingType),
+                            Expression.Convert(cursorExpr, enumUnderlyingType));
+
                     keyExpr = Expression.OrElse(
                         Expression.Equal(keyExpr, nullConst),
-                        BuildLessThanCursorExpr(cursorKey, keyValueExpr, cursorExpr));
+                        lessThanExpr);
                 }
                 else
                 {
                     // SQL: WHERE key < cursorValue.
-                    keyExpr = BuildLessThanCursorExpr(cursorKey, keyValueExpr, cursorExpr);
+                    keyExpr = enumUnderlyingType is null
+                        ? Expression.LessThan(
+                            Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                            s_zero)
+                        : Expression.LessThan(
+                            Expression.Convert(keyValueExpr, enumUnderlyingType),
+                            Expression.Convert(cursorExpr, enumUnderlyingType));
                 }
             }
         }
         else
         {
             // SQL: WHERE key < cursorValue.
-            keyExpr = BuildLessThanCursorExpr(cursorKey, keyExpr, cursorExpr);
+            keyExpr = enumUnderlyingType is null
+                ? Expression.LessThan(
+                    Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+                    s_zero)
+                : Expression.LessThan(
+                    Expression.Convert(keyExpr, enumUnderlyingType),
+                    Expression.Convert(cursorExpr, enumUnderlyingType));
         }
 
         return keyExpr;
-    }
-
-    private static Expression BuildEqualToCursorExpr(
-        CursorKey cursorKey,
-        Expression keyExpr,
-        Expression cursorExpr)
-    {
-        if (TryGetEnumUnderlyingType(cursorKey.Expression.ReturnType, out var enumUnderlyingType))
-        {
-            return Expression.Equal(
-                Expression.Convert(keyExpr, enumUnderlyingType),
-                Expression.Convert(cursorExpr, enumUnderlyingType));
-        }
-
-        return Expression.Equal(
-            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-            s_zero);
-    }
-
-    private static Expression BuildGreaterThanCursorExpr(
-        CursorKey cursorKey,
-        Expression keyExpr,
-        Expression cursorExpr)
-    {
-        if (TryGetEnumUnderlyingType(cursorKey.Expression.ReturnType, out var enumUnderlyingType))
-        {
-            return Expression.GreaterThan(
-                Expression.Convert(keyExpr, enumUnderlyingType),
-                Expression.Convert(cursorExpr, enumUnderlyingType));
-        }
-
-        return Expression.GreaterThan(
-            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-            s_zero);
-    }
-
-    private static Expression BuildLessThanCursorExpr(
-        CursorKey cursorKey,
-        Expression keyExpr,
-        Expression cursorExpr)
-    {
-        if (TryGetEnumUnderlyingType(cursorKey.Expression.ReturnType, out var enumUnderlyingType))
-        {
-            return Expression.LessThan(
-                Expression.Convert(keyExpr, enumUnderlyingType),
-                Expression.Convert(cursorExpr, enumUnderlyingType));
-        }
-
-        return Expression.LessThan(
-            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-            s_zero);
-    }
-
-    private static bool TryGetEnumUnderlyingType(Type keyType, out Type enumUnderlyingType)
-    {
-        var enumType = Nullable.GetUnderlyingType(keyType) ?? keyType;
-
-        if (enumType.IsEnum)
-        {
-            enumUnderlyingType = Enum.GetUnderlyingType(enumType);
-            return true;
-        }
-
-        enumUnderlyingType = default!;
-        return false;
     }
 
     private static bool IsNullable(LambdaExpression expression)
