@@ -53,14 +53,7 @@ public sealed class ConsumeInboxMiddleware
 
         if (feature.SkipInbox)
         {
-            using var skipActivity = OpenTelemetry.Source.StartActivity(
-                "Inbox Check Message",
-                ActivityKind.Consumer,
-                Activity.Current?.Context ?? new ActivityContext());
-            skipActivity?.SetTag("messaging.message_id", context.MessageId);
-            skipActivity?.SetTag("inbox.skipped", true);
-            skipActivity?.SetTag("inbox.claimed", false);
-
+            Activity.Current?.SetTag("inbox.skipped", true);
             await next(context);
             return;
         }
@@ -75,15 +68,6 @@ public sealed class ConsumeInboxMiddleware
         }
 
         var consumerType = GetConsumerType(context);
-
-        using var activity = OpenTelemetry.Source.StartActivity(
-            "Inbox Check Message",
-            ActivityKind.Consumer,
-            Activity.Current?.Context ?? new ActivityContext());
-        activity?.SetTag("messaging.message_id", messageId);
-        activity?.SetTag("inbox.skipped", false);
-        activity?.SetTag("inbox.consumer_type", consumerType);
-
         var inbox = context.Services.GetRequiredService<IMessageInbox>();
 
         if (context.Envelope is null)
@@ -94,7 +78,7 @@ public sealed class ConsumeInboxMiddleware
             {
                 if (await inbox.ExistsAsync(messageId, consumerType, context.CancellationToken))
                 {
-                    activity?.SetTag("inbox.claimed", false);
+                    Activity.Current?.SetTag("inbox.claimed", false);
                     return;
                 }
             }
@@ -108,7 +92,7 @@ public sealed class ConsumeInboxMiddleware
                 logger?.InboxExistsCheckFailed(messageId, ex);
             }
 
-            activity?.SetTag("inbox.claimed", true);
+            Activity.Current?.SetTag("inbox.claimed", true);
             await next(context);
             return;
         }
@@ -120,7 +104,7 @@ public sealed class ConsumeInboxMiddleware
             if (!await inbox.TryClaimAsync(context.Envelope, consumerType, context.CancellationToken))
             {
                 // This consumer type already claimed this message, skip.
-                activity?.SetTag("inbox.claimed", false);
+                Activity.Current?.SetTag("inbox.claimed", false);
                 return;
             }
         }
@@ -136,7 +120,7 @@ public sealed class ConsumeInboxMiddleware
             logger?.InboxClaimFailed(messageId, ex);
         }
 
-        activity?.SetTag("inbox.claimed", true);
+        Activity.Current?.SetTag("inbox.claimed", true);
         await next(context);
     }
 
