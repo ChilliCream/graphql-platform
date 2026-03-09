@@ -18,7 +18,7 @@ namespace HotChocolate.Types;
 /// <code>
 /// public class InputWithComplexDefault
 /// {
-///     [DefaultValueSyntax("[ { user:  { enabled: true }}]")]
+///     [DefaultValueSyntax("[{ user:  { enabled: true }}]")]
 ///     public List&lt;User>? WithComplexDefault { get; set; }
 ///
 ///     public string? WithoutDefault { get; set; }
@@ -47,7 +47,7 @@ public sealed class DefaultValueSyntaxAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {

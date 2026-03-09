@@ -1,6 +1,8 @@
 using System.Globalization;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -8,380 +10,273 @@ namespace HotChocolate.Types;
 public class DateTimeTypeTests
 {
     [Fact]
-    public void Serialize_Utc_DateTimeOffset()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
-        DateTimeOffset dateTime = new DateTime(
-            2018,
-            6,
-            11,
-            8,
-            46,
-            14,
-            DateTimeKind.Utc);
-
-        const string expectedValue = "2018-06-11T08:46:14.000Z";
-
         // act
-        var serializedValue = (string)dateTimeType.Serialize(dateTime);
+        var type = new DateTimeType();
 
         // assert
-        Assert.Equal(expectedValue, serializedValue);
+        Assert.Equal("DateTime", type.Name);
     }
 
     [Fact]
-    public void Serialize_DateTimeOffset()
+    public void CoerceInputLiteral()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14),
-            new TimeSpan(4, 0, 0));
-        const string expectedValue = "2018-06-11T08:46:14.000+04:00";
-
-        // act
-        var serializedValue = (string)dateTimeType.Serialize(dateTime);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-
-        // act
-        var serializedValue = dateTimeType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_String_Exception()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-
-        // act
-        Action a = () => dateTimeType.Serialize("foo");
-
-        // assert
-        Assert.Throws<SerializationException>(a);
-    }
-
-    [Fact]
-    public void ParseLiteral_StringValueNode()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-        var literal = new StringValueNode(
-            "2018-06-29T08:46:14+04:00");
+        var type = new DateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14+04:00");
         var expectedDateTime = new DateTimeOffset(
             new DateTime(2018, 6, 29, 8, 46, 14),
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
     }
 
     [Theory]
-    [MemberData(nameof(ValidDateTimeScalarStrings))]
-    public void ParseLiteral_StringValueNode_Valid(string dateTime, DateTimeOffset result)
+    [MemberData(nameof(ValidInput))]
+    public void CoerceInputLiteral_Valid(byte precision, string dateTime, DateTimeOffset result)
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType(new DateTimeOptions { InputPrecision = precision });
         var literal = new StringValueNode(dateTime);
 
         // act
-        var dateTimeOffset = (DateTimeOffset?)dateTimeType.ParseLiteral(literal);
+        var dateTimeOffset = (DateTimeOffset?)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(result, dateTimeOffset);
     }
 
     [Theory]
-    [MemberData(nameof(InvalidDateTimeScalarStrings))]
-    public void ParseLiteral_StringValueNode_Invalid(string dateTime)
+    [MemberData(nameof(InvalidInput))]
+    public void CoerceInputLiteral_Invalid(byte precision, string dateTime)
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType(new DateTimeOptions { InputPrecision = precision });
         var literal = new StringValueNode(dateTime);
 
         // act
-        void Act()
-        {
-            dateTimeType.ParseLiteral(literal);
-        }
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(
-            "DateTime cannot parse the given literal of type `StringValueNode`.",
-            Assert.Throws<SerializationException>(Act).Message);
+            "DateTime cannot coerce the given literal of type `StringValue` to a runtime value.",
+            Assert.Throws<LeafCoercionException>(Action).Message);
     }
 
+    [Theory]
     [InlineData("en-US")]
     [InlineData("en-AU")]
     [InlineData("en-GB")]
     [InlineData("de-CH")]
     [InlineData("de-de")]
-    [Theory]
-    public void ParseLiteral_StringValueNode_DifferentCulture(string cultureName)
+    public void CoerceInputLiteral_DifferentCulture(string cultureName)
     {
         // arrange
         Thread.CurrentThread.CurrentCulture =
             CultureInfo.GetCultureInfo(cultureName);
 
-        var dateTimeType = new DateTimeType();
-        var literal = new StringValueNode(
-            "2018-06-29T08:46:14+04:00");
+        var type = new DateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14+04:00");
         var expectedDateTime = new DateTimeOffset(
             new DateTime(2018, 6, 29, 8, 46, 14),
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
     }
 
     [Fact]
-    public void Deserialize_IsoString_DateTimeOffset()
+    public void CoerceInputValue_IsoString()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
-        var dateTime = new DateTimeOffset(
+        var type = new DateTimeType();
+        var inputValue = JsonDocument.Parse("\"2018-06-11T08:46:14+04:00\"").RootElement;
+        var expectedDateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
 
         // act
-        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14+04:00")!;
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Equal(dateTime, deserializedValue);
+        Assert.Equal(expectedDateTime, runtimeValue);
     }
 
     [Fact]
-    public void Deserialize_ZuluString_DateTimeOffset()
+    public void CoerceInputValue_ZuluString()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
-        var dateTime = new DateTimeOffset(
+        var type = new DateTimeType();
+        var inputValue = JsonDocument.Parse("\"2018-06-11T08:46:14.000Z\"").RootElement;
+        var expectedDateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
-            new TimeSpan(0, 0, 0));
+            TimeSpan.Zero);
 
         // act
-        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14.000Z")!;
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Equal(dateTime, deserializedValue);
+        Assert.Equal(expectedDateTime, runtimeValue);
     }
 
     [Fact]
-    public void Deserialize_IsoString_DateTime()
+    public void CoerceInputValue_Invalid_Format()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
-        var dateTime = new DateTime(
-            2018,
-            6,
-            11,
-            8,
-            46,
-            14,
-            DateTimeKind.Unspecified);
+        var type = new DateTimeType();
+        var inputValue = JsonDocument.Parse("\"abc\"").RootElement;
 
         // act
-        var deserializedValue = ((DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14+04:00")!).DateTime;
+        void Action() => type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Equal(dateTime, deserializedValue);
-        Assert.Equal(DateTimeKind.Unspecified, deserializedValue.Kind);
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidOutput))]
+    public void CoerceOutputValue_Valid(byte precision, DateTimeOffset dateTime, string result)
+    {
+        // arrange
+        var type = new DateTimeType(new DateTimeOptions { OutputPrecision = precision });
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot($"\"{result}\"");
     }
 
     [Fact]
-    public void Deserialize_ZuluString_DateTime()
+    public void CoerceOutputValue_Utc_DateTimeOffset()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType();
         DateTimeOffset dateTime = new DateTime(
-            2018,
-            6,
-            11,
-            8,
-            46,
-            14,
-            DateTimeKind.Utc);
+            2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
         // act
-        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14.000Z")!;
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        Assert.Equal(dateTime, deserializedValue.UtcDateTime);
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14Z\"");
     }
 
     [Fact]
-    public void Deserialize_InvalidString_To_DateTimeOffset()
+    public void CoerceOutputValue_DateTimeOffset()
     {
         // arrange
         var type = new DateTimeType();
-
-        // act
-        var success = type.TryDeserialize("abc", out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void Deserialize_DateTimeOffset_To_DateTimeOffset()
-    {
-        // arrange
-        var type = new DateTimeType();
-        var time = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(time, deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_DateTime_To_DateTimeOffset()
-    {
-        // arrange
-        var type = new DateTimeType();
-        var time = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(time,
-            Assert.IsType<DateTimeOffset>(deserialized).UtcDateTime);
-    }
-
-    [Fact]
-    public void Deserialize_NullableDateTime_To_DateTimeOffset()
-    {
-        // arrange
-        var type = new DateTimeType();
-        DateTime? time =
-            new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(time,
-            Assert.IsType<DateTimeOffset>(deserialized).UtcDateTime);
-    }
-
-    [Fact]
-    public void Deserialize_NullableDateTime_To_DateTimeOffset_2()
-    {
-        // arrange
-        var type = new DateTimeType();
-        DateTime? time = null;
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_Null_To_Null()
-    {
-        // arrange
-        var type = new DateTimeType();
-
-        // act
-        var success = type.TryDeserialize(null, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void ParseLiteral_NullValueNode()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = dateTimeType.ParseLiteral(literal);
-
-        // assert
-        Assert.Null(value);
-    }
-
-    [Fact]
-    public void ParseValue_DateTimeOffset()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
-        const string expectedLiteralValue = "2018-06-11T08:46:14.000+04:00";
 
         // act
-        var stringLiteral =
-            (StringValueNode)dateTimeType.ParseValue(dateTime);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14+04:00\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new DateTimeType();
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue("foo", resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral_DateTimeOffset()
+    {
+        // arrange
+        var type = new DateTimeType();
+        var dateTime = new DateTimeOffset(
+            new DateTime(2018, 6, 11, 8, 46, 14),
+            new TimeSpan(4, 0, 0));
+        const string expectedLiteralValue = "2018-06-11T08:46:14+04:00";
+
+        // act
+        var stringLiteral = (StringValueNode)type.ValueToLiteral(dateTime);
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
     }
 
     [Fact]
-    public void ParseValue_Utc_DateTimeOffset()
+    public void ValueToLiteral_Utc_DateTimeOffset()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType();
         DateTimeOffset dateTime =
             new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        const string expectedLiteralValue = "2018-06-11T08:46:14.000Z";
+        const string expectedLiteralValue = "2018-06-11T08:46:14Z";
 
         // act
-        var stringLiteral =
-            (StringValueNode)dateTimeType.ParseValue(dateTime);
+        var stringLiteral = (StringValueNode)type.ValueToLiteral(dateTime);
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void ParseLiteral()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14+04:00");
+        var expectedDateTime = new DateTimeOffset(
+            new DateTime(2018, 6, 29, 8, 46, 14),
+            new TimeSpan(4, 0, 0));
 
         // act
-        var literal = dateTimeType.ParseValue(null);
+        var dateTime = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.IsType<NullValueNode>(literal);
+        Assert.Equal(expectedDateTime, Assert.IsType<DateTimeOffset>(dateTime));
     }
 
     [Fact]
-    public void EnsureDateTimeTypeKindIsCorrect()
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new DateTimeType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void Ensure_TypeKind_Is_Scalar()
     {
         // arrange
         var type = new DateTimeType();
@@ -416,11 +311,30 @@ public class DateTimeTypeTests
         const string s = "2011-08-30";
 
         // act
-        var dateTimeType = new DateTimeType(disableFormatCheck: true);
-        var result = dateTimeType.Deserialize(s);
+        var type = new DateTimeType(new DateTimeOptions { ValidateInputFormat = false });
+        var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
+        var result = type.CoerceInputValue(inputValue, null!);
 
         // assert
         Assert.IsType<DateTimeOffset>(result);
+    }
+
+    [Theory]
+    [InlineData(0, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(1, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,1})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(2, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,2})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(3, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(4, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,4})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(5, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,5})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(6, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(7, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    public void Pattern_Should_Match_InputPrecision(byte precision, string expectedPattern)
+    {
+        // arrange & act
+        var type = new DateTimeType(new DateTimeOptions { InputPrecision = precision });
+
+        // assert
+        Assert.Equal(expectedPattern, type.Pattern);
     }
 
     public class DefaultDateTime
@@ -428,79 +342,116 @@ public class DateTimeTypeTests
         public DateTime Test => default;
     }
 
-    public static TheoryData<string, DateTimeOffset> ValidDateTimeScalarStrings()
+    public static TheoryData<byte, string, DateTimeOffset> ValidInput()
     {
-        return new TheoryData<string, DateTimeOffset>
+        return new TheoryData<byte, string, DateTimeOffset>
         {
-            // https://www.graphql-scalars.com/date-time/#test-cases (valid strings)
+            // https://scalars.graphql.org/chillicream/date-time.html#sec-Input-spec.Examples (Valid input values)
             {
-                // A DateTime with UTC offset (+00:00).
-                "2011-08-30T13:22:53.108Z",
-                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24T15:30:00Z",
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 0, TimeSpan.Zero)
             },
             {
-                // A DateTime with +00:00 which is the same as UTC.
-                "2011-08-30T13:22:53.108+00:00",
-                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
-            },
-            {
-                // The z and t may be lower case.
-                "2011-08-30t13:22:53.108z",
-                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
-            },
-            {
-                // A DateTime with -3h offset.
-                "2011-08-30T13:22:53.108-03:00",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan(-3, 0, 0))
-            },
-            {
-                // A DateTime with +3h 30min offset.
-                "2011-08-30T13:22:53.108+03:30",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan(3, 30, 0))
-            },
-            // Additional test cases.
-            {
-                // A DateTime with 7 fractional digits.
-                "2011-08-30T13:22:53.1230000+03:30",
-                new(2011, 8, 30, 13, 22, 53, 123, new TimeSpan(3, 30, 0))
-            },
-            {
-                // A DateTime with no fractional seconds.
-                "2011-08-30T13:22:53+03:30",
-                new(2011, 8, 30, 13, 22, 53, 0, new TimeSpan(3, 30, 0))
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24T15:30:00.1234567+01:00",
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.FromHours(1)).AddTicks(7)
             }
         };
     }
 
-    public static TheoryData<string> InvalidDateTimeScalarStrings()
+    public static TheoryData<byte, string> InvalidInput()
     {
-        return
-        [
-            // https://www.graphql-scalars.com/date-time/#test-cases (invalid strings)
-            // The minutes of the offset are missing.
-            "2011-08-30T13:22:53.108-03",
-            // Too many digits for fractions of a second. Exactly three expected.
-            // -> We diverge from the specification here, and allow up to 7 fractional digits.
-            // Fractions of a second are missing.
-            // -> We diverge from the specification here, and do not require fractional seconds.
-            // No offset provided.
-            "2011-08-30T13:22:53.108",
-            // No time provided.
-            "2011-08-30",
-            // Negative offset (-00:00) is not allowed.
-            "2011-08-30T13:22:53.108-00:00",
-            // Seconds are not allowed for the offset.
-            "2011-08-30T13:22:53.108+03:30:15",
-            // 24 is not allowed as hour of the time.
-            "2011-08-30T24:22:53.108Z",
+        return new TheoryData<byte, string>
+        {
+            // https://scalars.graphql.org/chillicream/date-time.html#sec-Input-spec.Examples (Invalid input values)
+            // Missing time zone offset.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00" },
+            // Space instead of T or t separator.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24 15:30:00Z" },
+            // Invalid hour (25).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T25:00:00Z" },
+            // Invalid minute (60).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:60:00Z" },
             // ReSharper disable once GrammarMistakeInComment
-            // 30th of February is not a valid date.
-            "2010-02-30T21:22:53.108Z",
-            // 25 is not a valid hour for offset.
-            "2010-02-11T21:22:53.108+25:11",
-            // Additional test cases.
-            // A DateTime with 8 fractional digits.
-            "2011-08-30T13:22:53.12345678+03:30"
-        ];
+            // Invalid date (February 30th).
+            { DateTimeOptions.DefaultInputPrecision, "2023-02-30T15:30:00Z" },
+            // More than 7 fractional second digits.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.12345678Z" },
+            // Invalid offset (exceeds maximum).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00+25:00" },
+            // Invalid offset format.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00 UTC" },
+            // Additional cases.
+            // More than 6 fractional second digits with precision set to 6.
+            { 6, "2023-12-24T15:30:00.1234567Z" },
+            // More than 5 fractional second digits with precision set to 5.
+            { 5, "2023-12-24T15:30:00.123456Z" },
+            // More than 4 fractional second digits with precision set to 4.
+            { 4, "2023-12-24T15:30:00.12345Z" },
+            // More than 3 fractional second digits with precision set to 3.
+            { 3, "2023-12-24T15:30:00.1234Z" },
+            // More than 2 fractional second digits with precision set to 2.
+            { 2, "2023-12-24T15:30:00.123Z" },
+            // More than 1 fractional second digit with precision set to 1.
+            { 1, "2023-12-24T15:30:00.12Z" },
+            // Fractional second digits with precision set to 0.
+            { 0, "2023-12-24T15:30:00.1Z" }
+        };
+    }
+
+    public static TheoryData<byte, DateTimeOffset, string> ValidOutput()
+    {
+        return new TheoryData<byte, DateTimeOffset, string>
+        {
+            // Up to 7 fractional second digits with default precision.
+            {
+                DateTimeOptions.DefaultOutputPrecision,
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.Zero).AddTicks(7),
+                "2023-12-24T15:30:00.1234567Z"
+            },
+            // Up to 6 fractional second digits with precision set to 6.
+            {
+                6,
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.Zero).AddTicks(7),
+                "2023-12-24T15:30:00.123456Z"
+            },
+            // Up to 5 fractional second digits with precision set to 5.
+            {
+                5,
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.Zero).AddTicks(7),
+                "2023-12-24T15:30:00.12345Z"
+            },
+            // Up to 4 fractional second digits with precision set to 4.
+            {
+                4,
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.Zero).AddTicks(7),
+                "2023-12-24T15:30:00.1234Z"
+            },
+            // Up to 3 fractional second digits with precision set to 3.
+            {
+                3,
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.Zero).AddTicks(7),
+                "2023-12-24T15:30:00.123Z"
+            },
+            // Up to 2 fractional second digits with precision set to 2.
+            {
+                2,
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.Zero).AddTicks(7),
+                "2023-12-24T15:30:00.12Z"
+            },
+            // Up to 1 fractional second digit with precision set to 1.
+            {
+                1,
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.Zero).AddTicks(7),
+                "2023-12-24T15:30:00.1Z"
+            },
+            // No fractional second digits with precision set to 0.
+            {
+                0,
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.Zero).AddTicks(7),
+                "2023-12-24T15:30:00Z"
+            }
+        };
     }
 }

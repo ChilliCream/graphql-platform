@@ -1,0 +1,34 @@
+{
+  "data": {
+    "withNullableVariables": {
+      "any": null,
+      "base64String": null,
+      "boolean": null,
+      "byte": null,
+      "date": null,
+      "dateTime": null,
+      "decimal": null,
+      "enum": null,
+      "float": null,
+      "id": null,
+      "int": null,
+      "list": null,
+      "localDate": null,
+      "localDateTime": null,
+      "localTime": null,
+      "long": null,
+      "object": null,
+      "short": null,
+      "string": null,
+      "timeSpan": null,
+      "unknown": null,
+      "unsignedByte": null,
+      "unsignedInt": null,
+      "unsignedLong": null,
+      "unsignedShort": null,
+      "uri": null,
+      "url": null,
+      "uuid": null
+    }
+  }
+}

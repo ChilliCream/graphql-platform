@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Validators;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
@@ -15,24 +16,26 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Provides-Invalid-Fields">
 /// Specification
 /// </seealso>
-internal sealed class ProvidesInvalidFieldsRule : IEventHandler<ProvidesFieldsEvent>
+internal sealed class ProvidesInvalidFieldsRule : IEventHandler<OutputFieldEvent>
 {
-    public void Handle(ProvidesFieldsEvent @event, CompositionContext context)
+    public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (selectionSet, providesDirective, field, type, schema) = @event;
-
+        var (field, _, schema) = @event;
         var validator = new SelectionSetValidator(schema);
-        var errors = validator.Validate(selectionSet, field.Type.AsTypeDefinition());
 
-        if (errors.Any())
+        if (field.ProvidesInfo is { SelectionSet: { } selectionSet } providesInfo)
         {
-            context.Log.Write(
-                ProvidesInvalidFields(
-                    providesDirective,
-                    field.Name,
-                    type.Name,
-                    schema,
-                    errors));
+            var errors = validator.Validate(selectionSet, field.Type.AsTypeDefinition());
+
+            if (errors.Any())
+            {
+                context.Log.Write(
+                    ProvidesInvalidFields(
+                        providesInfo.Directive,
+                        field,
+                        schema,
+                        errors));
+            }
         }
     }
 }

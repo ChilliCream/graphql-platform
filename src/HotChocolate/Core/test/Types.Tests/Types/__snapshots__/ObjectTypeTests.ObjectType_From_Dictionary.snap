@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: FooWithDict
 }
 
@@ -7,7 +7,7 @@ type Bar {
 }
 
 type FooWithDict {
-  map: [KeyValuePairOfStringAndBar!]
+  map: [KeyValuePairOfStringAndBar!]!
 }
 
 type KeyValuePairOfStringAndBar {

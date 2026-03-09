@@ -1,56 +1,41 @@
-[
-  {
-    "Message": "The argument `unknown` does not exist.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 21
-      }
-    ],
-    "Extensions": {
-      "type": "Dog",
-      "field": "doesKnowCommand",
-      "argument": "unknown",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The argument `dogCommand` is required.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "type": "Dog",
-      "field": "doesKnowCommand",
-      "argument": "dogCommand",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
+---------------
+{
+  "message": "The argument \u0060unknown\u0060 does not exist.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 21
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "type": "Dog",
+    "field": "doesKnowCommand",
+    "argument": "unknown",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "The argument \u0060dogCommand\u0060 is required.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 5
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "type": "Dog",
+    "field": "doesKnowCommand",
+    "argument": "dogCommand",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+  }
+}
+---------------

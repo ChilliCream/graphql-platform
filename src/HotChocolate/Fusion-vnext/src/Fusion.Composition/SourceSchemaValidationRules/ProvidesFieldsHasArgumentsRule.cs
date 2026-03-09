@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -13,22 +14,26 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Provides-Fields-Has-Arguments">
 /// Specification
 /// </seealso>
-internal sealed class ProvidesFieldsHasArgumentsRule : IEventHandler<ProvidesFieldEvent>
+internal sealed class ProvidesFieldsHasArgumentsRule : IEventHandler<OutputFieldEvent>
 {
-    public void Handle(ProvidesFieldEvent @event, CompositionContext context)
+    public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (providedField, providedType, providesDirective, field, type, schema) = @event;
+        var (field, _, schema) = @event;
 
-        if (providedField.Arguments.Count != 0)
+        if (field.ProvidesInfo is { } providesInfo)
         {
-            context.Log.Write(
-                ProvidesFieldsHasArguments(
-                    providedField.Name,
-                    providedType.Name,
-                    providesDirective,
-                    field.Name,
-                    type.Name,
-                    schema));
+            foreach (var providedField in providesInfo.Fields)
+            {
+                if (providedField.Arguments.Count != 0)
+                {
+                    context.Log.Write(
+                        ProvidesFieldsHasArguments(
+                            providedField,
+                            providesInfo.Directive,
+                            field,
+                            schema));
+                }
+            }
         }
     }
 }

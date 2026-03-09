@@ -1,5 +1,8 @@
 using System.Globalization;
-using HotChocolate.Execution;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
 
@@ -7,149 +10,111 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class ZonedDateTimeTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public ZonedDateTime Rome =>
-                new ZonedDateTime(
-                    LocalDateTime.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
-                    DateTimeZoneProviders.Tzdb["Asia/Kathmandu"],
-                    Offset.FromHoursAndMinutes(5, 45));
-
-            public ZonedDateTime Utc =>
-                new ZonedDateTime(
-                    LocalDateTime.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
-                    DateTimeZoneProviders.Tzdb["UTC"],
-                    Offset.FromHours(0));
-        }
-
-        public class Mutation
-        {
-            public ZonedDateTime Test(ZonedDateTime arg)
-            {
-                return arg + Duration.FromMinutes(10);
-            }
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor =
-        SchemaBuilder.New()
-            .AddQueryType<Schema.Query>()
-            .AddMutationType<Schema.Mutation>()
-            .AddNodaTime()
-            .Create()
-            .MakeExecutable();
-
     [Fact]
-    public void QueryReturns()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: rome }");
+        var type = new ZonedDateTimeType();
+        var inputValue = new StringValueNode("2020-12-31T18:30:13 Asia/Kathmandu +05:45");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
         Assert.Equal(
-            "2020-12-31T18:30:13 Asia/Kathmandu +05:45",
-            Assert.IsType<OperationResult>(result).Data!["test"]);
+            new ZonedDateTime(
+                LocalDateTime.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
+                DateTimeZoneProviders.Tzdb["Asia/Kathmandu"],
+                Offset.FromHoursAndMinutes(5, 45)),
+            Assert.IsType<ZonedDateTime>(runtimeValue));
     }
 
     [Fact]
-    public void QueryReturnsUtc()
+    public void CoerceInputLiteral_Utc()
     {
-        var result = _testExecutor.Execute("query { test: utc }");
+        var type = new ZonedDateTimeType();
+        var inputValue = new StringValueNode("2020-12-31T18:30:13 UTC +00");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
         Assert.Equal(
-            "2020-12-31T18:30:13 UTC +00",
-            Assert.IsType<OperationResult>(result).Data!["test"]);
+            new ZonedDateTime(
+                LocalDateTime.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
+                DateTimeZoneProviders.Tzdb["UTC"],
+                Offset.FromHours(0)),
+            Assert.IsType<ZonedDateTime>(runtimeValue));
     }
 
     [Fact]
-    public void ParsesVariable()
+    public void CoerceInputLiteral_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
-                    .SetVariableValues(
-                        new Dictionary<string, object?>
-                        {
-                            { "arg", "2020-12-31T19:30:13 Asia/Kathmandu +05:45" }
-                        })
-                    .Build());
+        var type = new ZonedDateTimeType();
+        var valueLiteral = new StringValueNode("2020-12-31T19:30:13 UTC");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceInputValue()
+    {
+        var type = new ZonedDateTimeType();
+        var inputValue = ParseInputValue("\"2020-12-31T18:30:13 Asia/Kathmandu +05:45\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
         Assert.Equal(
-            "2020-12-31T19:40:13 Asia/Kathmandu +05:45",
-            Assert.IsType<OperationResult>(result).Data!["test"]);
+            new ZonedDateTime(
+                LocalDateTime.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
+                DateTimeZoneProviders.Tzdb["Asia/Kathmandu"],
+                Offset.FromHoursAndMinutes(5, 45)),
+            Assert.IsType<ZonedDateTime>(runtimeValue));
     }
 
     [Fact]
-    public void ParsesVariableWithUtc()
+    public void CoerceInputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
-                    .SetVariableValues(
-                        new Dictionary<string, object?>
-                        {
-                            { "arg", "2020-12-31T19:30:13 UTC +00" }
-                        })
-                    .Build());
-        Assert.Equal(
-            "2020-12-31T19:40:13 UTC +00",
-            Assert.IsType<OperationResult>(result).Data!["test"]);
+        var type = new ZonedDateTimeType();
+        var inputValue = ParseInputValue("\"2020-12-31T19:30:13 UTC\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void DoesntParseAnIncorrectVariable()
+    public void CoerceOutputValue()
     {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
-                    .SetVariableValues(
-                        new Dictionary<string, object?>
-                        {
-                            { "arg", "2020-12-31T19:30:13 UTC" }
-                        })
-                    .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
+        var type = new ZonedDateTimeType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(
+            new ZonedDateTime(
+                LocalDateTime.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
+                DateTimeZoneProviders.Tzdb["UTC"],
+                Offset.FromHours(0)),
+            resultValue);
+        Assert.Equal("2020-12-31T18:30:13 UTC +00", resultValue.GetString());
     }
 
     [Fact]
-    public void ParsesLiteral()
+    public void CoerceOutputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation{test(arg:\"2020-12-31T19:30:13 Asia/Kathmandu +05:45\")}")
-                    .Build());
-        Assert.Equal(
-            "2020-12-31T19:40:13 Asia/Kathmandu +05:45",
-            result.ExpectOperationResult().Data!["test"]);
+        var type = new ZonedDateTimeType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("2020-12-31T18:30:13 UTC +00", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void ParsesLiteralWithUtc()
+    public void ValueToLiteral()
     {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC +00\") }")
-                    .Build());
-        Assert.Equal("2020-12-31T19:40:13 UTC +00", result.ExpectOperationResult().Data!["test"]);
+        var type = new ZonedDateTimeType();
+        var valueLiteral = type.ValueToLiteral(
+            new ZonedDateTime(
+                LocalDateTime.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
+                DateTimeZoneProviders.Tzdb["UTC"],
+                Offset.FromHours(0)));
+        Assert.Equal("\"2020-12-31T18:30:13 UTC +00\"", valueLiteral.ToString());
     }
 
     [Fact]
-    public void DoesntParseIncorrectLiteral()
+    public void ValueToLiteral_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC\") }")
-                    .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
-        Assert.Equal(
-            "Unable to deserialize string to ZonedDateTime",
-            result.ExpectOperationResult().Errors![0].Message);
+        var type = new ZonedDateTimeType();
+        Action error = () => type.ValueToLiteral("2020-12-31T18:30:13 UTC +00");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -197,5 +162,11 @@ public class ZonedDateTimeTypeIntegrationTests
             A LocalDateTime in a specific time zone and with a particular offset to distinguish between otherwise-ambiguous instants.
             A ZonedDateTime is global, in that it maps to a single Instant.
             """);
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

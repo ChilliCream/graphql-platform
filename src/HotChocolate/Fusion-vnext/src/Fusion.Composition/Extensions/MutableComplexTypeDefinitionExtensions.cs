@@ -1,17 +1,30 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
 internal static class MutableComplexTypeDefinitionExtensions
 {
-    public static void ApplyKeyDirective(this MutableComplexTypeDefinition type, string[] fields)
+    extension(MutableComplexTypeDefinition complexType)
     {
-        var fieldsArgument = new ArgumentAssignment(ArgumentNames.Fields, string.Join(" ", fields));
-        var keyDirective =
-            new Directive(new MutableDirectiveDefinition(WellKnownDirectiveNames.Key), fieldsArgument);
+        public void ApplyKeyDirective(string keyFields)
+        {
+            var keyDirectiveExists =
+                complexType.Directives.AsEnumerable().Any(
+                    d =>
+                        d.Name == DirectiveNames.Key
+                        && ((StringValueNode)d.Arguments[ArgumentNames.Fields]).Value.Equals(keyFields));
 
-        type.Directives.Add(keyDirective);
+            if (!keyDirectiveExists)
+            {
+                complexType.Directives.Add(
+                    new Directive(
+                        FusionBuiltIns.SourceSchemaDirectives[DirectiveNames.Key],
+                        new ArgumentAssignment(ArgumentNames.Fields, keyFields)));
+            }
+        }
     }
 }

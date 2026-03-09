@@ -1,10 +1,14 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed record ExecutionNodeResult(
+internal sealed record ExecutionNodeResult(
     int Id,
     Activity? Activity,
     ExecutionStatus Status,
     TimeSpan Duration,
-    Exception? Exception = null);
+    Exception? Exception,
+    ImmutableArray<ExecutionNode> DependentsToExecute,
+    ImmutableArray<VariableValues> VariableValueSets,
+    (Uri? Uri, string? ContentType) TransportDetails = default);

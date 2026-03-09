@@ -1,24 +1,48 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Composite;
 
+/// <summary>
+/// A scalar type that represents a GraphQL selection set.
+/// This type parses and serializes selection set syntax as strings.
+/// </summary>
 public sealed class FieldSelectionSetType : ScalarType<SelectionSetNode, StringValueNode>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FieldSelectionSetType"/> class
+    /// with the default name "FieldSelectionSet".
+    /// </summary>
     public FieldSelectionSetType() : this("FieldSelectionSet")
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FieldSelectionSetType"/> class.
+    /// </summary>
+    /// <param name="name">
+    /// The name that this scalar shall have.
+    /// </param>
+    /// <param name="bind">
+    /// Defines the binding behavior of this scalar type.
+    /// </param>
     public FieldSelectionSetType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
     }
 
     /// <inheritdoc />
-    protected override SelectionSetNode ParseLiteral(StringValueNode valueSyntax)
+    protected override bool ApplySerializeAsToScalars => false;
+
+    /// <inheritdoc />
+    protected override SelectionSetNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         try
         {
-            return ParseSelectionSet(valueSyntax.Value);
+            return ParseSelectionSet(valueLiteral.Value);
         }
         catch (SyntaxException)
         {
@@ -30,93 +54,54 @@ public sealed class FieldSelectionSetType : ScalarType<SelectionSetNode, StringV
     }
 
     /// <inheritdoc />
-    protected override StringValueNode ParseValue(SelectionSetNode runtimeValue)
-        => new(SerializeSelectionSet(runtimeValue));
-
-    /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue)
+    protected override SelectionSetNode OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (resultValue is null)
+        try
         {
-            return NullValueNode.Default;
+            return ParseSelectionSet(inputValue.GetString()!);
         }
-
-        if (resultValue is string s)
+        catch (SyntaxException)
         {
-            return new StringValueNode(s);
+            throw Scalar_Cannot_CoerceInputValue(this, inputValue);
         }
-
-        if (resultValue is SelectionSetNode selectionSet)
-        {
-            return new StringValueNode(SerializeSelectionSet(selectionSet));
-        }
-
-        throw new SerializationException(
-            ErrorBuilder.New()
-                .SetMessage("The field selection set syntax is invalid.")
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .Build(),
-            this);
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is SelectionSetNode selectionSet)
-        {
-            resultValue = SerializeSelectionSet(selectionSet);
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
+    protected override void OnCoerceOutputValue(SelectionSetNode runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(SerializeSelectionSet(runtimeValue));
 
     /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
+    protected override StringValueNode OnValueToLiteral(SelectionSetNode runtimeValue)
+        => new StringValueNode(SerializeSelectionSet(runtimeValue));
 
-        if (resultValue is SelectionSetNode selectionSet)
-        {
-            runtimeValue = selectionSet;
-            return true;
-        }
-
-        if (resultValue is string serializedSelectionSet)
-        {
-            try
-            {
-                runtimeValue = ParseSelectionSet(serializedSelectionSet);
-                return true;
-            }
-            catch (SyntaxException)
-            {
-                runtimeValue = null;
-                return false;
-            }
-        }
-
-        runtimeValue = null;
-        return false;
-    }
-
+    /// <summary>
+    /// Parses a GraphQL selection set from a string representation.
+    /// </summary>
+    /// <param name="s">
+    /// The source text containing the selection set syntax.
+    /// Braces are optional and will be added if not present.
+    /// </param>
+    /// <returns>
+    /// A <see cref="SelectionSetNode"/> representing the parsed selection set.
+    /// </returns>
+    /// <exception cref="SyntaxException">
+    /// Thrown when the source text contains invalid selection set syntax.
+    /// </exception>
     internal static SelectionSetNode ParseSelectionSet(string s)
     {
         s = $"{{ {s.Trim('{', '}')} }}";
         return Utf8GraphQLParser.Syntax.ParseSelectionSet(s);
     }
 
+    /// <summary>
+    /// Serializes a selection set node into its string representation.
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The selection set node to serialize.
+    /// </param>
+    /// <returns>
+    /// A string representation of the selection set without the outer braces.
+    /// </returns>
     private static string SerializeSelectionSet(SelectionSetNode selectionSet)
     {
         var s = selectionSet.ToString(false);

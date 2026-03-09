@@ -32,4 +32,18 @@ public class IntrospectionFormatterTests
         // assert
         schema.ToString(true).MatchSnapshot();
     }
+
+    [Fact]
+    public void DeserializeIntrospectionWithNullDeprecationReason()
+    {
+        // arrange
+        var json = FileResource.Open("IntrospectionWithNullDeprecationReason.json");
+        var result = JsonSerializer.Deserialize<IntrospectionResult>(json, SerializerOptions);
+
+        // act
+        var schema = IntrospectionFormatter.Format(result!);
+
+        // assert
+        schema.ToString(true).MatchSnapshot();
+    }
 }

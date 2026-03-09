@@ -23,10 +23,19 @@ internal record InputTypeGroupEvent(
     string InputTypeName,
     ImmutableArray<InputTypeInfo> InputTypeGroup) : IEvent;
 
+internal record ObjectFieldGroupEvent(
+    string FieldName,
+    ImmutableArray<ObjectFieldInfo> FieldGroup,
+    string TypeName) : IEvent;
+
 internal record OutputFieldGroupEvent(
     string FieldName,
     ImmutableArray<OutputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
+
+internal record ScalarTypeGroupEvent(
+    string TypeName,
+    ImmutableArray<ScalarTypeInfo> TypeGroup) : IEvent;
 
 internal record TypeGroupEvent(
     string TypeName,

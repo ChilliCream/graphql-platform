@@ -27,7 +27,7 @@ public sealed class QueryTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         descriptor.Name(OperationTypeNames.Query);
 

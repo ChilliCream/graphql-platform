@@ -27,4 +27,3 @@ WHERE "p"."BrandId" IN (
   }
 }
 ```
-

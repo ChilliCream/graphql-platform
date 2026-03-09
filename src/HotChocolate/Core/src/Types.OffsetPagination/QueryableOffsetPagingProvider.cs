@@ -16,7 +16,9 @@ public class QueryableOffsetPagingProvider
 
     public override bool CanHandle(IExtendedType source)
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.IsArrayOrList;
     }
 
     protected override OffsetPagingHandler CreateHandler(

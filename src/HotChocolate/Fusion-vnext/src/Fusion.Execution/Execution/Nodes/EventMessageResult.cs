@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -9,7 +10,8 @@ public sealed record EventMessageResult(
     IDisposable Scope,
     long StartTimestamp,
     long EndTimestamp,
-    Exception? Exception = null)
+    Exception? Exception,
+    ImmutableArray<VariableValues> VariableValueSets)
     : IDisposable
 {
     public TimeSpan Duration => Stopwatch.GetElapsedTime(StartTimestamp, EndTimestamp);

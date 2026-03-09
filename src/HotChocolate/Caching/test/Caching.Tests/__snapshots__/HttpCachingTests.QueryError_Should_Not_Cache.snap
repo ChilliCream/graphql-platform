@@ -8,5 +8,5 @@
       ]
     }
   ],
-  "Body": "{\"errors\":[{\"message\":\"Unexpected Execution Error\",\"locations\":[{\"line\":1,\"column\":3}],\"path\":[\"field\"]}],\"data\":{\"field\":null}}"
+  "Body": "{\"errors\":[{\"message\":\"Unexpected Execution Error\",\"path\":[\"field\"]}],\"data\":{\"field\":null}}"
 }

@@ -1,3 +1,6 @@
+using System.Buffers;
+using HotChocolate.Fusion.Rewriters;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -7,12 +10,14 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class OperationCompiler
 {
-    private readonly ISchemaDefinition _schema;
+    private readonly FusionSchemaDefinition _schema;
+    private readonly DocumentRewriter _documentRewriter;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly TypeNameField _typeNameField;
+    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     public OperationCompiler(
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -20,7 +25,8 @@ public sealed class OperationCompiler
 
         _schema = schema;
         _fieldsPool = fieldsPool;
-        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String));
+        _documentRewriter = new(schema, removeStaticallyExcludedSelections: true);
+        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String.Name));
         _typeNameField = new TypeNameField(nonNullStringType);
     }
 
@@ -29,13 +35,19 @@ public sealed class OperationCompiler
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
+        var document = new DocumentNode(new IDefinitionNode[] { operationDefinition });
+        document = _documentRewriter.RewriteDocument(document);
+        operationDefinition = (OperationDefinitionNode)document.Definitions[0];
+
         var includeConditions = new IncludeConditionCollection();
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
         var fields = _fieldsPool.Get();
 
+        var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
+
         try
         {
-            var lastId = 0u;
+            var lastId = 0;
             const ulong parentIncludeFlags = 0ul;
             var rootType = _schema.GetOperationType(operationDefinition.Operation);
 
@@ -49,7 +61,10 @@ public sealed class OperationCompiler
             var selectionSet = BuildSelectionSet(
                 fields,
                 rootType,
+                compilationContext,
                 ref lastId);
+
+            compilationContext.Register(selectionSet, selectionSet.Id);
 
             return new Operation(
                 id,
@@ -60,7 +75,8 @@ public sealed class OperationCompiler
                 selectionSet,
                 this,
                 includeConditions,
-                lastId);
+                lastId,
+                compilationContext.ElementsById); // Pass the populated array
         }
         finally
         {
@@ -70,11 +86,14 @@ public sealed class OperationCompiler
 
     internal SelectionSet CompileSelectionSet(
         Selection selection,
-        IObjectTypeDefinition objectType,
+        FusionObjectTypeDefinition objectType,
         IncludeConditionCollection includeConditions,
-        ref uint lastId)
+        ref object[] elementsById,
+        ref int lastId)
     {
+        var compilationContext = new CompilationContext(elementsById);
         var fields = _fieldsPool.Get();
+        fields.Clear();
 
         try
         {
@@ -103,7 +122,10 @@ public sealed class OperationCompiler
                 }
             }
 
-            return BuildSelectionSet(fields, objectType, ref lastId);
+            var selectionSet = BuildSelectionSet(fields, objectType, compilationContext, ref lastId);
+            compilationContext.Register(selectionSet, selectionSet.Id);
+            elementsById = compilationContext.ElementsById;
+            return selectionSet;
         }
         finally
         {
@@ -165,13 +187,15 @@ public sealed class OperationCompiler
 
     private SelectionSet BuildSelectionSet(
         OrderedDictionary<string, List<FieldSelectionNode>> fieldMap,
-        IObjectTypeDefinition typeContext,
-        ref uint lastId)
+        FusionObjectTypeDefinition typeContext,
+        CompilationContext compilationContext,
+        ref int lastId)
     {
         var i = 0;
         var selections = new Selection[fieldMap.Count];
         var isConditional = false;
         var includeFlags = new List<ulong>();
+        var selectionSetId = ++lastId;
 
         foreach (var (responseName, nodes) in fieldMap)
         {
@@ -214,11 +238,11 @@ public sealed class OperationCompiler
                 CollapseIncludeFlags(includeFlags);
             }
 
-            var field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+            IOutputFieldDefinition field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
                 ? _typeNameField
-                : typeContext.Fields[first.Node.Name.Value];
+                : typeContext.Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
 
-            selections[i++] = new Selection(
+            var selection = new Selection(
                 ++lastId,
                 responseName,
                 field,
@@ -226,13 +250,17 @@ public sealed class OperationCompiler
                 includeFlags.ToArray(),
                 isInternal);
 
-            if (includeFlags.Count > 1)
+            // Register the selection in the elements array
+            compilationContext.Register(selection, selection.Id);
+            selections[i++] = selection;
+
+            if (includeFlags.Count > 0)
             {
                 isConditional = true;
             }
         }
 
-        return new SelectionSet(++lastId, typeContext, selections, isConditional);
+        return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
@@ -307,9 +335,10 @@ public sealed class OperationCompiler
         return false;
     }
 
-    private bool IsInternal(FieldNode fieldNode)
+    private static bool IsInternal(FieldNode fieldNode)
     {
-        const string isInternal = "fusion__requirement";
+        const string requirementDirective = "fusion__requirement";
+        const string emptyDirective = "fusion__empty";
         var directives = fieldNode.Directives;
 
         if (directives.Count == 0)
@@ -319,27 +348,41 @@ public sealed class OperationCompiler
 
         if (directives.Count == 1)
         {
-            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+            var name = directives[0].Name.Value;
+            return name.Equals(requirementDirective, StringComparison.Ordinal)
+                || name.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
         if (directives.Count == 2)
         {
-            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal)
-                || directives[1].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+            var name1 = directives[0].Name.Value;
+            var name2 = directives[1].Name.Value;
+            return name1.Equals(requirementDirective, StringComparison.Ordinal)
+                || name1.Equals(emptyDirective, StringComparison.Ordinal)
+                || name2.Equals(requirementDirective, StringComparison.Ordinal)
+                || name2.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
         if (directives.Count == 3)
         {
-            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal)
-                || directives[1].Name.Value.Equals(isInternal, StringComparison.Ordinal)
-                || directives[2].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+            var name1 = directives[0].Name.Value;
+            var name2 = directives[1].Name.Value;
+            var name3 = directives[2].Name.Value;
+            return name1.Equals(requirementDirective, StringComparison.Ordinal)
+                || name1.Equals(emptyDirective, StringComparison.Ordinal)
+                || name2.Equals(requirementDirective, StringComparison.Ordinal)
+                || name2.Equals(emptyDirective, StringComparison.Ordinal)
+                || name3.Equals(requirementDirective, StringComparison.Ordinal)
+                || name3.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
         for (var i = 0; i < directives.Count; i++)
         {
             var directive = directives[i];
+            var name = directive.Name.Value;
 
-            if (directive.Name.Value.Equals(isInternal, StringComparison.Ordinal))
+            if (name.Equals(requirementDirective, StringComparison.Ordinal)
+                || name.Equals(emptyDirective, StringComparison.Ordinal))
             {
                 return true;
             }
@@ -374,6 +417,26 @@ public sealed class OperationCompiler
             }
 
             return base.Enter(node, context);
+        }
+    }
+
+    private class CompilationContext(object[] elementsById)
+    {
+        private object[] _elementsById = elementsById;
+
+        public object[] ElementsById => _elementsById;
+
+        public void Register(object element, int id)
+        {
+            if (id >= _elementsById.Length)
+            {
+                var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
+                _elementsById.AsSpan().CopyTo(newArray);
+                s_objectArrayPool.Return(_elementsById);
+                _elementsById = newArray;
+            }
+
+            _elementsById[id] = element;
         }
     }
 }

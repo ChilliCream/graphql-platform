@@ -36,4 +36,14 @@ internal sealed class AggregateCompositeTypeInterceptor : CompositeTypeIntercept
             interceptor.OnCompleteOutputField(context, type, field, operationType, ref features);
         }
     }
+
+    public override void OnAfterCompleteSchema(
+        ICompositeSchemaBuilderContext context,
+        FusionSchemaDefinition schema)
+    {
+        foreach (var interceptor in _interceptors)
+        {
+            interceptor.OnAfterCompleteSchema(context, schema);
+        }
+    }
 }

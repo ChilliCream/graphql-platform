@@ -1,29 +1,35 @@
-import { graphql, useStaticQuery } from "gatsby";
+"use client";
+
 import React, { FC } from "react";
 
 import { ContentSection, SrOnly } from "@/components/misc";
-import { GetMostRecentBlogPostsDataQuery } from "@/graphql-types";
 import { BlogArticleTeaser } from "./blog-article-teaser";
 import { Boxes } from "./box-elements";
 
-export const MostRecentBlogPostsSection: FC = () => {
-  const data = useStaticQuery<GetMostRecentBlogPostsDataQuery>(graphql`
-    query getMostRecentBlogPostsData {
-      allMdx(
-        limit: 3
-        filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
-        sort: { fields: [frontmatter___date], order: DESC }
-      ) {
-        edges {
-          node {
-            id
-            ...BlogArticleTeaser
-          }
-        }
-      }
-    }
-  `);
+export interface RecentBlogPost {
+  id: string;
+  frontmatter?: {
+    featuredImage?: string;
+    path?: string;
+    title?: string;
+    author?: string;
+    authorImageUrl?: string;
+    date?: string;
+  };
+  fields?: {
+    readingTime?: {
+      text?: string;
+    };
+  };
+}
 
+export interface MostRecentBlogPostsSectionProps {
+  posts?: RecentBlogPost[];
+}
+
+export const MostRecentBlogPostsSection: FC<
+  MostRecentBlogPostsSectionProps
+> = ({ posts = [] }) => {
   return (
     <ContentSection title="From Our Blog" noBackground>
       <SrOnly>
@@ -31,7 +37,7 @@ export const MostRecentBlogPostsSection: FC = () => {
         GraphQL Platform.
       </SrOnly>
       <Boxes>
-        {data.allMdx.edges.map(({ node }) => (
+        {posts.map((node) => (
           <BlogArticleTeaser key={`article-${node.id}`} data={node} />
         ))}
       </Boxes>

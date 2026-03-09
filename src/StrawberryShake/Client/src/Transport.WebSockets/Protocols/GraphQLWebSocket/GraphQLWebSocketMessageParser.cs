@@ -21,30 +21,11 @@ internal ref struct GraphQLWebSocketMessageParser
     private const byte S = (byte)'s';
     private const byte T = (byte)'t';
 
-    private static ReadOnlySpan<byte> Type =>
-    [
-        (byte)'t',
-        (byte)'y',
-        (byte)'p',
-        (byte)'e'
-    ];
+    private static ReadOnlySpan<byte> Type => "type"u8;
 
-    private static ReadOnlySpan<byte> Id =>
-    [
-        (byte)'i',
-        (byte)'d'
-    ];
+    private static ReadOnlySpan<byte> Id => "id"u8;
 
-    private static ReadOnlySpan<byte> Payload =>
-    [
-        (byte)'p',
-        (byte)'a',
-        (byte)'y',
-        (byte)'l',
-        (byte)'o',
-        (byte)'a',
-        (byte)'d'
-    ];
+    private static ReadOnlySpan<byte> Payload => "payload"u8;
 
     private Utf8JsonReader _reader;
 

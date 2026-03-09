@@ -9,13 +9,12 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
-    public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { }
-        && selection.SelectionSet is not null;
+    public override bool CanHandle(Selection selection)
+        => !selection.IsLeaf && CanProjectMember(selection);
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
@@ -48,7 +47,7 @@ public class QueryableProjectionFieldHandler
 
     public override bool TryHandleLeave(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
@@ -70,8 +69,6 @@ public class QueryableProjectionFieldHandler
             return false;
         }
 
-        var memberInit = queryableScope.CreateMemberInit();
-
         if (!context.TryGetQueryableScope(out var parentScope))
         {
             throw ThrowHelper.ProjectionVisitor_InvalidState_NoParentScope();
@@ -89,7 +86,23 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
-        if (context.InMemory)
+        // If the nested scope has no projectable members we keep the original value.
+        // This happens for members like JsonDocument where selected subfields are read-only.
+        if (!queryableScope.HasAbstractTypes() && queryableScope.Level.Peek().Count == 0)
+        {
+            parentScope.Level
+                .Peek()
+                .Enqueue(Expression.Bind(field.Member, nestedProperty));
+
+            action = SelectionVisitor.Continue;
+
+            return true;
+        }
+
+        var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
+        var memberInit = queryableScope.CreateMemberInit();
+
+        if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
         {
             parentScope.Level
                 .Peek()
@@ -106,4 +119,6 @@ public class QueryableProjectionFieldHandler
 
         return true;
     }
+
+    public static QueryableProjectionFieldHandler Create(ProjectionProviderContext context) => new();
 }

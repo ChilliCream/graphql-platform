@@ -105,14 +105,14 @@ public class InputValueFormatterTests
 
     public class Foo
     {
-        public string Bar { get; set; }
+        public string? Bar { get; set; }
 
-        public string Baz { get; set; }
+        public string? Baz { get; set; }
     }
 
     public class UpperCaseInputValueFormatter : IInputValueFormatter
     {
-        public object Format(object originalValue)
+        public object? Format(object? originalValue)
         {
             return originalValue is string s ? s.ToUpperInvariant() : originalValue;
         }
@@ -120,7 +120,7 @@ public class InputValueFormatterTests
 
     public class AddTwoInputValueFormatter : IInputValueFormatter
     {
-        public object Format(object originalValue)
+        public object? Format(object? originalValue)
         {
             return originalValue is string s ? s + "2" : originalValue;
         }

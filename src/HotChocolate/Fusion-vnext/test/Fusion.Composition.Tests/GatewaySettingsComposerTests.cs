@@ -501,6 +501,51 @@ public class SettingsComposerTests
         Assert.Equal(JsonValueKind.True, nestedValue.ValueKind);
     }
 
+    [Fact]
+    public void Compose_With_Environments_Replace_ApiUrl()
+    {
+        // Arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        const string sourceSchemaJson =
+            """
+            {
+              "name": "accounts-api",
+              "transports": {
+                "http": {
+                  "url": "{{API_URL}}"
+                }
+              },
+              "extensions": {
+                "nitro": {
+                  "apiId": "QXBpCmcwMTk5MGE4ZGMxYjA3OWZhYjM1Y2M2ZTE3NDY1Yzg1Yw=="
+                }
+              },
+              "environments": {
+                "aspire": {
+                  "API_URL": "http://localhost:5102/graphql"
+                },
+                "dev": {
+                  "API_URL": "https://ccc-eu-fusion-demo-accounts-api.calmbeach-1836b252.westeurope.azurecontainerapps.io/graphql"
+                },
+                "prod": {
+                  "API_URL": "https://api.example.com"
+                }
+              }
+            }
+            """;
+
+        var sourceSchema = JsonDocument.Parse(sourceSchemaJson).RootElement;
+        JsonElement[] sourceSchemas = [sourceSchema];
+
+        // Act
+        _composer.Compose(buffer, sourceSchemas, "dev");
+
+        // Assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        var gatewaySettings = JsonDocument.Parse(result);
+        gatewaySettings.RootElement.ToString().MatchSnapshot(extension: ".json");
+    }
+
     private static JsonElement CreateSimpleSourceSchema(string name, string url)
     {
         var json = $$"""

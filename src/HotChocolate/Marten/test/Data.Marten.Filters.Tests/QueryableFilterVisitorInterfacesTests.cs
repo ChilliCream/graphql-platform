@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -71,6 +72,8 @@ public class QueryableFilterVisitorInterfacesTests
             .AddObjectType<InterfaceImpl2>(x => x.Implements<InterfaceType<Test>>())
             .AddInterfaceType<Test>();
 
+    [JsonDerivedType(typeof(InterfaceImpl1), typeDiscriminator: "impl1")]
+    [JsonDerivedType(typeof(InterfaceImpl2), typeDiscriminator: "impl2")]
     public abstract class Test
     {
         [Key]

@@ -8,7 +8,7 @@ public class RequirementTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -16,13 +16,13 @@ public class RequirementTests : FusionTestBase
               books: [Book]
             }
 
-            type Book {
+            type Book @key(fields: "id") {
               id: String!
               title: String!
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -57,7 +57,7 @@ public class RequirementTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """"
-            schema @schemaName(value: "catalog") {
+            schema {
               query: Query
             }
 
@@ -66,7 +66,7 @@ public class RequirementTests : FusionTestBase
               name: String!
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: Int!
               name: String!
               brand: Brand
@@ -77,7 +77,7 @@ public class RequirementTests : FusionTestBase
             }
             """",
             """"
-            schema @schemaName(value: "reviews") {
+            schema {
               query: Query
             }
 
@@ -99,6 +99,207 @@ public class RequirementTests : FusionTestBase
               products {
                 brand { name }
                 nameAndId
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Requirement_SelectionMap_Object()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """"
+            schema {
+              query: Query
+            }
+
+            type Brand {
+              id: Int!
+              name: String!
+            }
+
+            type Product @key(fields: "id") {
+              id: Int!
+              name: String!
+              brand: Brand
+            }
+
+            type Query {
+              products: [Product]
+            }
+            """",
+            """"
+            schema {
+              query: Query
+            }
+
+            type Product {
+              nameAndId(
+                input: NameInput
+                  @require(field:
+                    """
+                    {
+                      name
+                      brandName: brand.name
+                    }
+                    """)): String!
+              id: Int!
+            }
+
+            type Query {
+              productById(id: Int!): Product! @lookup @internal
+            }
+
+            input NameInput {
+              name: String!
+              brandName: String
+            }
+            """");
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                brand { name }
+                nameAndId
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Requirement_SelectionMap_Object_Shop()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              users {
+                nodes {
+                  reviews {
+                    nodes {
+                      product {
+                        deliveryEstimate(zip: "123")
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Complex_Operation()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query getReviews($userId: ID!) {
+              userById(id: $userId) {
+                name
+              }
+              users {
+                nodes {
+                  id
+                  reviews {
+                    nodes {
+                      product {
+                        deliveryEstimate(zip: "123")
+                      }
+                    }
+                  }
+                }
+              }
+              node(id: $userId) {
+                id
+                ... on User {
+                  name
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Requirement_Directive_Leaks_Into_SourceSchema_Request_Shop()
+    {
+        // assert
+        var schema = ComposeShoppingSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query findMe($skip: Boolean = true) {
+              users {
+                nodes {
+                  id
+                  birthdate
+                  reviews {
+                    nodes {
+                      author {
+                        id
+                        name
+                      }
+                      product {
+                        id
+
+                        weight
+                        deliveryEstimate(zip: "4383")
+                        pictureFileName
+                        price
+
+                        quantity @skip(if: $skip)
+
+                        reviews {
+                          nodes {
+                            author {
+                              birthdate
+                              reviews {
+                                nodes {
+                                  stars
+                                  product {
+                                    weight
+                                    item {
+                                       quantity
+                                       product {
+                                        name
+                                       }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
             """);

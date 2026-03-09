@@ -48,15 +48,16 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(options);
 
-        builder.Services.TryAddSingleton(
-            sp =>
-            {
-                var optionInst = new InstrumentationOptions();
-                options(sp, optionInst);
-                return optionInst;
-            });
-
+        builder.Services.TryAddSingleton(sp =>
+        {
+            var optionInst = new InstrumentationOptions();
+            options(sp, optionInst);
+            return optionInst;
+        });
         builder.Services.TryAddSingleton<InternalActivityEnricher>();
+
+        builder.AddApplicationService<InstrumentationOptions>();
+        builder.AddApplicationService<InternalActivityEnricher>();
 
         builder.AddDiagnosticEventListener(
             sp => new ActivityExecutionDiagnosticListener(
@@ -79,13 +80,8 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         return builder;
     }
 
-    private sealed class InternalActivityEnricher : ActivityEnricher
-    {
-        public InternalActivityEnricher(
-            ObjectPool<StringBuilder> stringBuilderPoolPool,
-            InstrumentationOptions options)
-            : base(stringBuilderPoolPool, options)
-        {
-        }
-    }
+    private sealed class InternalActivityEnricher(
+        ObjectPool<StringBuilder> stringBuilderPool,
+        InstrumentationOptions options)
+        : ActivityEnricher(stringBuilderPool, options);
 }

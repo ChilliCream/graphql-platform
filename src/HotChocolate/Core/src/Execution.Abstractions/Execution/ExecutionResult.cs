@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Collections.Immutable;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -7,55 +9,70 @@ namespace HotChocolate.Execution;
 /// </summary>
 public abstract class ExecutionResult : IExecutionResult
 {
-    private Func<ValueTask>[] _cleanupTasks = [];
+    private static readonly ArrayPool<Func<ValueTask>> s_cleanUpTaskPool = ArrayPool<Func<ValueTask>>.Shared;
+    private Func<ValueTask>[] _cleanUpTasks = [];
+    private int _cleanupTasksLength;
     private bool _disposed;
-
-    protected ExecutionResult()
-    {
-    }
-
-    protected ExecutionResult(Func<ValueTask>[] cleanupTasks)
-    {
-        _cleanupTasks = cleanupTasks ?? throw new ArgumentNullException(nameof(cleanupTasks));
-    }
 
     /// <inheritdoc cref="IExecutionResult" />
     public abstract ExecutionResultKind Kind { get; }
 
     /// <inheritdoc cref="IExecutionResult" />
-    public abstract IReadOnlyDictionary<string, object?>? ContextData { get; }
+    public ImmutableDictionary<string, object?> ContextData
+    {
+        get => Features.Get<ImmutableDictionary<string, object?>>() ?? ImmutableDictionary<string, object?>.Empty;
+        set => Features.Set(value);
+    }
 
     /// <inheritdoc cref="IFeatureProvider" />
     public IFeatureCollection Features { get; } = new FeatureCollection();
-
-    private protected Func<ValueTask>[] CleanupTasks => _cleanupTasks;
 
     /// <inheritdoc cref="IExecutionResult" />
     public void RegisterForCleanup(Func<ValueTask> clean)
     {
         ArgumentNullException.ThrowIfNull(clean);
 
-        var length = _cleanupTasks.Length;
-        Array.Resize(ref _cleanupTasks, length + 1);
-        _cleanupTasks[length] = clean;
+        if (_cleanUpTasks.Length == 0)
+        {
+            _cleanUpTasks = s_cleanUpTaskPool.Rent(8);
+            _cleanupTasksLength = 0;
+        }
+        else if (_cleanupTasksLength >= _cleanUpTasks.Length)
+        {
+            var buffer = s_cleanUpTaskPool.Rent(_cleanupTasksLength * 2);
+            var currentBuffer = _cleanUpTasks.AsSpan();
+
+            currentBuffer.CopyTo(buffer);
+            currentBuffer.Clear();
+            s_cleanUpTaskPool.Return(_cleanUpTasks);
+
+            _cleanUpTasks = buffer;
+        }
+
+        _cleanUpTasks[_cleanupTasksLength++] = clean;
     }
 
     /// <summary>
     /// Will throw an <see cref="ObjectDisposedException"/> if the result is already disposed.
     /// </summary>
-    protected void EnsureNotDisposed()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-    }
+    protected void EnsureNotDisposed() => ObjectDisposedException.ThrowIf(_disposed, this);
 
     /// <inheritdoc cref="IAsyncDisposable"/>
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
         {
-            for (var i = 0; i < _cleanupTasks.Length; i++)
+            if (_cleanupTasksLength > 0)
             {
-                await _cleanupTasks[i].Invoke();
+                var tasks = _cleanUpTasks;
+
+                for (var i = 0; i < _cleanupTasksLength; i++)
+                {
+                    await tasks[i]().ConfigureAwait(false);
+                }
+
+                tasks.AsSpan(0, _cleanupTasksLength).Clear();
+                s_cleanUpTaskPool.Return(tasks);
             }
 
             _disposed = true;

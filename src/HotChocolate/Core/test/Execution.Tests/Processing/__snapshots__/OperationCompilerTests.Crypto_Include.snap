@@ -1,4 +1,4 @@
-﻿query Crypto {
+query Crypto {
   assetBySymbol(symbol: "BTC") {
     price {
       lastPrice
@@ -15,13 +15,13 @@ fragment PriceInfo on Asset {
 
 ---------------------------------------------------------
 
-query Crypto @includeCondition(flag: 2, include: false) {
+query Crypto {
   ... on Query {
-    assetBySymbol(symbol: "BTC") @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+    assetBySymbol(symbol: "BTC") @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
       ... on Asset {
-        price @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
+        price @__execute(id: 4, kind: DEFAULT, type: COMPOSITE) {
           ... on AssetPrice {
-            lastPrice @__execute(id: 2, kind: DEFAULT, type: LEAF)
+            lastPrice @__execute(id: 6, kind: DEFAULT, type: LEAF)
           }
         }
       }

@@ -33,18 +33,21 @@ type Product
       key: "{ id }"
       field: "productById(id: ID!): Product"
       map: ["id"]
+      internal: false
   )
   @fusion__lookup(
       schema: SHIPPING
       key: "{ id }"
       field: "productById(id: ID!): Product"
       map: ["id"]
+      internal: false
   )
   @fusion__lookup(
       schema: REVIEWS
       key: "{ id }"
       field: "productById(id: ID!): Product"
       map: ["id"]
+      internal: false
   ) {
   id: ID!
     @fusion__field(schema: PRODUCTS)
@@ -86,6 +89,7 @@ type Review
     key: "{ id }"
     field: "reviewById(id: ID!): Review"
     map: ["id"]
+    internal: false
   ) {
   id: ID!
     @fusion__field(schema: REVIEWS)
@@ -107,12 +111,14 @@ type UserProfile
     key: "{ id }"
     field: "authorById(id: ID!): UserProfile"
     map: ["id"]
+    internal: false
   )
   @fusion__lookup(
     schema: ACCOUNTS
     key: "{ id }"
     field: "userById(id: ID!): UserProfile"
     map: ["id"]
+    internal: false
   ) {
   id: ID!
     @fusion__field(schema: ACCOUNTS)
@@ -235,4 +241,5 @@ directive @fusion__lookup(
   key: fusion__FieldSelectionSet!
   field: fusion__FieldDefinition!
   map: [fusion__FieldSelectionMap!]!
+  internal: Boolean! = false
 ) repeatable on OBJECT | INTERFACE

@@ -612,8 +612,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        // at the moment we do not support projections on lists
-        // so products will be empty, and we will just select the brand.Id
+        // Brand.Products is getter-only and cannot be assigned by AsSelector,
+        // so products will be empty and the selector falls back to brand.Id.
         Snapshot
             .Create(
                 postFix: TestEnvironment.TargetFramework == "NET10_0"

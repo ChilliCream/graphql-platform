@@ -7,23 +7,28 @@ namespace HotChocolate.Types;
     AttributeTargets.Class | AttributeTargets.Interface,
     Inherited = true,
     AllowMultiple = true)]
-public abstract class InterfaceTypeDescriptorAttribute
-    : DescriptorAttribute
+public abstract class InterfaceTypeDescriptorAttribute : DescriptorAttribute
 {
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IInterfaceTypeDescriptor d
-            && element is Type t)
+        var type = attributeProvider as Type;
+
+        if (RequiresAttributeProvider && type is null)
         {
-            OnConfigure(context, d, t);
+            throw new InvalidOperationException("The attribute provider is required to be a type.");
+        }
+
+        if (descriptor is IInterfaceTypeDescriptor interfaceTypeDescriptor)
+        {
+            OnConfigure(context, interfaceTypeDescriptor, type);
         }
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IInterfaceTypeDescriptor descriptor,
-        Type type);
+        Type? type);
 }

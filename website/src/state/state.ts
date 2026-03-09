@@ -1,4 +1,4 @@
-import { combineReducers, createStore as createReduxStore } from "redux";
+import { combineReducers, legacy_createStore as createReduxStore } from "redux";
 
 import { commonReducer as common, CommonState } from "./common";
 import { workshopsReducer as workshops, WorkshopsState } from "./workshops";

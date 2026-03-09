@@ -1,0 +1,8 @@
+{
+  "name": "accounts-api",
+  "transports": {
+    "http": {
+      "url": "http://localhost:5221/graphql"
+    }
+  }
+}

@@ -1,21 +1,23 @@
 operation:
-  - document: >-
+  - document: |
       query GetTopProducts {
         topProduct {
           id
+          id @fusion__requirement
           name
           price
-          id @fusion__requirement
         }
       }
     name: GetTopProducts
-    hash: 123
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
-      query GetTopProducts_123_1 {
+    operation: |
+      query GetTopProducts_123456789101112_1 {
         topProduct {
           id
           name
@@ -24,20 +26,22 @@ nodes:
   - id: 2
     type: Operation
     schema: b
-    operation: >-
-      query GetTopProducts_123_2(
+    operation: |
+      query GetTopProducts_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         node(id: $__fusion_1_id) {
+          __typename
           ... on Product {
             price
           }
         }
       }
-    source: $.node.<Product>
+    source: $.node<Product>
     target: $.topProduct
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

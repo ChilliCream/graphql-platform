@@ -9,12 +9,14 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
-internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
+internal sealed class RequirementsValidator(
+    MutableSchemaDefinition schema,
+    bool includeSatisfiabilityPaths = false)
 {
     public ImmutableArray<SatisfiabilityError> Validate(
         SelectionSetNode requirements,
         MutableObjectTypeDefinition contextType,
-        SatisfiabilityPathItem parentPathItem,
+        SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
@@ -62,14 +64,19 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                     if (fieldErrors.Length != 0)
                     {
                         var type = context.TypeContext.Peek();
+                        var message =
+                            includeSatisfiabilityPaths
+                                ? string.Format(
+                                    RequirementsValidator_UnableToAccessFieldOnPath,
+                                    type.Name,
+                                    fieldNode.Name.Value,
+                                    context.Path)
+                                : string.Format(
+                                    RequirementsValidator_UnableToAccessField,
+                                    type.Name,
+                                    fieldNode.Name.Value);
 
-                        errors.Add(new SatisfiabilityError(
-                            string.Format(
-                                RequirementsValidator_UnableToAccessFieldOnPath,
-                                type.Name,
-                                fieldNode.Name.Value,
-                                context.Path),
-                            [.. fieldErrors]));
+                        errors.Add(new SatisfiabilityError(message, [.. fieldErrors]));
                     }
 
                     break;
@@ -191,7 +198,7 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
             if (requirements is not null)
             {
                 var requirementErrors =
-                    new RequirementsValidator(schema).Validate(
+                    new RequirementsValidator(schema, includeSatisfiabilityPaths).Validate(
                         requirements,
                         type,
                         context.Path.Peek(),
@@ -284,15 +291,10 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
     {
         var errors = new List<SatisfiabilityError>();
 
-        // Get the list of union types that contain the current type.
-        var unionTypes =
-            schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
-
-        // Get the list of lookups for the current type in the destination schema.
         var lookupDirectives =
-            type.GetFusionLookupDirectives(transitionToSchemaName, unionTypes).ToImmutableArray();
+            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
-        if (!lookupDirectives.Any() && !HasPathInSchema(context.Path, transitionToSchemaName))
+        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
         {
             errors.Add(
                 new SatisfiabilityError(
@@ -344,13 +346,31 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
         return [.. errors];
     }
 
-    private bool HasPathInSchema(SatisfiabilityPath path, string schemaName)
+    /// <summary>
+    /// We check whether the path we're currently on exists one-to-one
+    /// on the given schema or whether a type on the path has a lookup
+    /// on the given schema.
+    /// </summary>
+    private bool CanTransitionToSchemaThroughPath(
+        SatisfiabilityPath path,
+        string schemaName)
     {
-        var stack = new Stack<SatisfiabilityPathItem>(path);
-
-        while (stack.TryPop(out var item))
+        foreach (var pathItem in path)
         {
-            if (!item.Field.ExistsInSchema(schemaName))
+            var lookupDirectives =
+                schema.GetPossibleFusionLookupDirectives(
+                    pathItem.Type,
+                    schemaName);
+
+            var hasLookups = lookupDirectives.Count > 0;
+            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
+
+            if (hasLookups && fieldExists)
+            {
+                return true;
+            }
+
+            if (!fieldExists)
             {
                 return false;
             }
@@ -364,12 +384,17 @@ internal sealed class RequirementsValidatorContext
 {
     public RequirementsValidatorContext(
         MutableObjectTypeDefinition contextType,
-        SatisfiabilityPathItem parentPathItem,
+        SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
         TypeContext.Push(contextType);
-        Path.Push(parentPathItem);
+
+        if (parentPathItem is not null)
+        {
+            Path.Push(parentPathItem);
+        }
+
         ExcludeSchemaName = excludeSchemaName;
         CycleDetectionPath = cycleDetectionPath ?? [];
     }

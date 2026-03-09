@@ -52,8 +52,8 @@ nullAnd6124e80f3f5fc839830c1f6b
       "message": "The provided value for filter `nin` of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
-          "line": 5,
-          "column": 34
+          "line": 2,
+          "column": 36
         }
       ],
       "path": [

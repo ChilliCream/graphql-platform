@@ -30,6 +30,10 @@ internal sealed class QueryContextParameterExpressionBuilder()
         => parameter.ParameterType.IsGenericType
             && parameter.ParameterType.GetGenericTypeDefinition() == typeof(QueryContext<>);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type.IsGenericType
+            && parameter.Type.GetGenericTypeDefinition() == typeof(QueryContext<>);
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var resolverContext = context.ResolverContext;
@@ -56,7 +60,7 @@ internal sealed class QueryContextParameterExpressionBuilder()
         return factory;
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
@@ -80,7 +84,7 @@ internal sealed class QueryContextParameterExpressionBuilder()
         var sortContext = context.GetSortingContext();
 
         return new QueryContext<T>(
-            selection.AsSelector<T>(),
+            selection.AsSelector<T>(context.IncludeFlags),
             filterContext?.AsPredicate<T>(),
             sortContext?.AsSortDefinition<T>());
     }

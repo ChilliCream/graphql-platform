@@ -34,7 +34,7 @@ internal sealed class PreMergeValidator(
         {
             foreach (var type in schema.Types)
             {
-                if (type is MutableObjectTypeDefinition t && t.HasInternalDirective())
+                if (type is MutableObjectTypeDefinition { IsInternal: true })
                 {
                     continue;
                 }
@@ -50,7 +50,9 @@ internal sealed class PreMergeValidator(
             MultiValueDictionary<string, InputTypeInfo> inputTypeGroupByName = [];
             MultiValueDictionary<string, InputFieldInfo> inputFieldGroupByName = [];
             MultiValueDictionary<string, OutputFieldInfo> outputFieldGroupByName = [];
+            MultiValueDictionary<string, ObjectFieldInfo> objectFieldGroupByName = [];
             MultiValueDictionary<string, EnumTypeInfo> enumTypeGroupByName = [];
+            MultiValueDictionary<string, ScalarTypeInfo> scalarTypeGroupByName = [];
 
             foreach (var (type, schema) in typeGroup)
             {
@@ -73,7 +75,7 @@ internal sealed class PreMergeValidator(
                     case MutableComplexTypeDefinition complexType:
                         foreach (var field in complexType.Fields)
                         {
-                            if (field.HasInternalDirective())
+                            if (field.IsInternal)
                             {
                                 continue;
                             }
@@ -81,12 +83,23 @@ internal sealed class PreMergeValidator(
                             outputFieldGroupByName.Add(
                                 field.Name,
                                 new OutputFieldInfo(field, complexType, schema));
+
+                            if (complexType is MutableObjectTypeDefinition objectType)
+                            {
+                                objectFieldGroupByName.Add(
+                                    field.Name,
+                                    new ObjectFieldInfo(field, objectType, schema));
+                            }
                         }
 
                         break;
 
                     case MutableEnumTypeDefinition enumType:
                         enumTypeGroupByName.Add(enumType.Name, new EnumTypeInfo(enumType, schema));
+                        break;
+
+                    case MutableScalarTypeDefinition scalarType:
+                        scalarTypeGroupByName.Add(scalarType.Name, new ScalarTypeInfo(scalarType, schema));
                         break;
                 }
             }
@@ -131,9 +144,20 @@ internal sealed class PreMergeValidator(
                 }
             }
 
+            foreach (var (fieldName, fieldGroup) in objectFieldGroupByName)
+            {
+                PublishEvent(
+                    new ObjectFieldGroupEvent(fieldName, [.. fieldGroup], typeName), context);
+            }
+
             foreach (var (enumName, enumGroup) in enumTypeGroupByName)
             {
                 PublishEvent(new EnumTypeGroupEvent(enumName, [.. enumGroup]), context);
+            }
+
+            foreach (var (scalarName, scalarGroup) in scalarTypeGroupByName)
+            {
+                PublishEvent(new ScalarTypeGroupEvent(scalarName, [.. scalarGroup]), context);
             }
         }
     }

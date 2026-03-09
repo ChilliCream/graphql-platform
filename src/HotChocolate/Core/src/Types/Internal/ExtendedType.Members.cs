@@ -1,9 +1,10 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     private static class Members
     {
@@ -27,7 +28,10 @@ internal sealed partial class ExtendedType
             };
         }
 
-        public static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
+        public static ExtendedMethodInfo FromMethod(
+            MethodInfo method,
+            ParameterInfo[] parameters,
+            TypeCache cache)
         {
             var helper = new NullableHelper(method.DeclaringType!);
             var context = helper.GetContext(method);
@@ -39,8 +43,8 @@ internal sealed partial class ExtendedType
                     method,
                     cache));
 
-            var parameters = method.GetParameters();
-            var parameterTypes = new Dictionary<ParameterInfo, IExtendedType>();
+            var parameterTypes = ImmutableDictionary.CreateBuilder<ParameterInfo, IExtendedType>(
+                ParameterInfoComparer.Instance);
 
             foreach (var parameter in parameters)
             {
@@ -57,7 +61,7 @@ internal sealed partial class ExtendedType
                             cache)));
             }
 
-            return new ExtendedMethodInfo(returnType, parameterTypes);
+            return new ExtendedMethodInfo(returnType, parameterTypes.ToImmutable());
         }
 
         private static ExtendedType Rewrite(
@@ -92,6 +96,16 @@ internal sealed partial class ExtendedType
                         elementType = extendedArguments[0];
                     }
                 }
+                else if (extendedType.TypeArguments.Count == 2
+                    && itemType.IsGenericType
+                    && itemType.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
+                {
+                    elementType = CreateDictionaryItemType(
+                        itemType,
+                        extendedArguments[0],
+                        extendedArguments[1],
+                        cache);
+                }
 
                 elementType ??= FromType(itemType, cache);
             }
@@ -116,6 +130,26 @@ internal sealed partial class ExtendedType
                 : cache.GetType(rewritten.Id);
         }
 
+        private static ExtendedType CreateDictionaryItemType(
+            Type itemType,
+            IExtendedType keyType,
+            IExtendedType valueType,
+            TypeCache cache)
+        {
+            var keyNullability = Tools.CollectNullability(keyType);
+            var valueNullability = Tools.CollectNullability(valueType);
+            var nullability = new bool?[1 + keyNullability.Length + valueNullability.Length];
+
+            nullability[0] = false;
+            keyNullability.CopyTo(nullability, 1);
+            valueNullability.CopyTo(nullability, 1 + keyNullability.Length);
+
+            return (ExtendedType)Tools.ChangeNullability(
+                FromType(itemType, cache),
+                nullability,
+                cache);
+        }
+
         private static ExtendedType CreateExtendedType(
             bool? context,
             ReadOnlySpan<bool?> flags,
@@ -131,9 +165,9 @@ internal sealed partial class ExtendedType
             Type type,
             ref int position)
         {
-            var state = position == -1 || (type.IsValueType && !type.IsGenericType)
+            var state = position == -1 || type is { IsValueType: true, IsGenericType: false }
                 ? null
-                : GetNextState(flags, ref position);
+                : GetNextState(context, flags, ref position);
 
             if (type.IsValueType)
             {
@@ -183,9 +217,10 @@ internal sealed partial class ExtendedType
                 source: type,
                 isNullable: state ?? false);
 
-            bool? GetNextState(ReadOnlySpan<bool?> flags, ref int position)
+            static bool? GetNextState(bool? context, ReadOnlySpan<bool?> flags, ref int position)
             {
                 var state = context;
+
                 if (!flags.IsEmpty)
                 {
                     if (flags.Length > position)

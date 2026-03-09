@@ -1,6 +1,4 @@
 using HotChocolate.Types;
-using System.CommandLine.IO;
-using System.CommandLine.Parsing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
@@ -16,14 +14,14 @@ public class SchemaExportCommandTests : IDisposable
     {
         // arrange
         var host = new Mock<IHost>().Object;
-        var console = new TestConsole();
-        var app = new App(host).Build();
+        var output = new StringWriter();
+        var app = new App(host);
 
         // act
-        await app.InvokeAsync("schema export -h", console);
+        await app.InvokeAsync("schema export -h", output);
 
         // assert
-        console.Out.ToString().MatchSnapshot();
+        OutputHelper.ReplaceExecutableName(output.ToString()).MatchSnapshot();
     }
 
     [Fact]
@@ -31,14 +29,14 @@ public class SchemaExportCommandTests : IDisposable
     {
         // arrange
         var host = new Mock<IHost>().Object;
-        var console = new TestConsole();
-        var app = new App(host).Build();
+        var output = new StringWriter();
+        var app = new App(host);
 
         // act
-        await app.InvokeAsync("schema print -h", console);
+        await app.InvokeAsync("schema print -h", output);
 
         // assert
-        console.Out.ToString().MatchSnapshot();
+        OutputHelper.ReplaceExecutableName(output.ToString()).MatchSnapshot();
     }
 
     [Fact]
@@ -55,14 +53,14 @@ public class SchemaExportCommandTests : IDisposable
             .Returns(services.BuildServiceProvider());
 
         var host = hostMock.Object;
-        var console = new TestConsole();
-        var app = new App(host).Build();
+        var output = new StringWriter();
+        var app = new App(host);
 
         // act
-        await app.InvokeAsync("schema print", console);
+        await app.InvokeAsync("schema print", output);
 
         // assert
-        console.Out.ToString().MatchSnapshot();
+        output.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -80,12 +78,12 @@ public class SchemaExportCommandTests : IDisposable
             .Returns(services.BuildServiceProvider());
 
         var host = hostMock.Object;
-        var console = new TestConsole();
-        var app = new App(host).Build();
+        var output = new StringWriter();
+        var app = new App(host);
         var tempFile = CreateSchemaFileName();
 
         // act
-        await app.InvokeAsync($"schema export --output {tempFile}", console);
+        await app.InvokeAsync($"schema export --output {tempFile}", output);
 
         // assert
         snapshot.Add(await File.ReadAllTextAsync(tempFile + ".graphqls"), "Schema", markdownLanguage: "graphql");
@@ -107,14 +105,36 @@ public class SchemaExportCommandTests : IDisposable
             .Returns(services.BuildServiceProvider());
 
         var host = hostMock.Object;
-        var console = new TestConsole();
-        var app = new App(host).Build();
+        var output = new StringWriter();
+        var app = new App(host);
 
         // act
-        await app.InvokeAsync("schema print --schema-name Foo", console);
+        await app.InvokeAsync("schema print --schema-name Foo", output);
 
         // assert
-        console.Out.ToString().MatchSnapshot();
+        output.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task App_Should_Return_ExitCode_1_If_Schema_Is_Invalid()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        // We're intentionally no specifying any fields here to create an invalid schema.
+        services.AddGraphQL().AddQueryType();
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+
+        // act
+        var exitCode = await host.RunWithGraphQLCommandsAsync(["schema", "print"]);
+
+        // assert
+        Assert.Equal(1, exitCode);
     }
 
     public string CreateSchemaFileName()

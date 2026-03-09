@@ -44,7 +44,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(TimeoutMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.Timeout);
     }
 
     public static IFusionGatewayBuilder UseInstrumentation(
@@ -60,7 +60,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationPlanCacheMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.OperationPlanCache);
     }
 
     public static IFusionGatewayBuilder UseOperationPlan(
@@ -68,7 +68,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationPlanMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.OperationPlan);
     }
 
     public static IFusionGatewayBuilder UseOperationExecution(
@@ -76,7 +76,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationExecutionMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.OperationExecution);
     }
 
     public static IFusionGatewayBuilder UseOperationVariableCoercion(
@@ -84,7 +84,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationVariableCoercionMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.OperationVariableCoercion);
     }
 
     public static IFusionGatewayBuilder UseSkipWarmupExecution(
@@ -102,27 +102,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if (after is not null && before is not null)
-        {
-            throw new ArgumentException(
-                "You cannot specify both 'after' and 'before' parameters.");
-        }
-
-        if (after is not null)
-        {
-            return builder.AppendUseRequest(
-                after,
-                PersistedOperationMiddleware.ReadPersistedOperation);
-        }
-
-        if (before is not null)
-        {
-            return builder.InsertUseRequest(
-                before,
-                PersistedOperationMiddleware.ReadPersistedOperation);
-        }
-
-        return builder.UseRequest(PersistedOperationMiddleware.ReadPersistedOperation);
+        return builder.UseRequest(
+            PersistedOperationMiddleware.ReadPersistedOperation,
+            before: before,
+            after: after);
     }
 
     public static IFusionGatewayBuilder UseAutomaticPersistedOperationNotFound(
@@ -132,27 +115,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if (after is not null && before is not null)
-        {
-            throw new ArgumentException(
-                "You cannot specify both 'after' and 'before' parameters.");
-        }
-
-        if (after is not null)
-        {
-            return builder.AppendUseRequest(
-                after,
-                PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
-        }
-
-        if (before is not null)
-        {
-            return builder.InsertUseRequest(
-                before,
-                PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
-        }
-
-        return builder.UseRequest(PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
+        return builder.UseRequest(
+            PersistedOperationMiddleware.AutomaticPersistedOperationNotFound,
+            before: before,
+            after: after);
     }
 
     public static IFusionGatewayBuilder UseWritePersistedOperation(
@@ -162,27 +128,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if (after is not null && before is not null)
-        {
-            throw new ArgumentException(
-                "You cannot specify both 'after' and 'before' parameters.");
-        }
-
-        if (after is not null)
-        {
-            return builder.AppendUseRequest(
-                after,
-                PersistedOperationMiddleware.WritePersistedOperation);
-        }
-
-        if (before is not null)
-        {
-            return builder.InsertUseRequest(
-                before,
-                PersistedOperationMiddleware.WritePersistedOperation);
-        }
-
-        return builder.UseRequest(PersistedOperationMiddleware.WritePersistedOperation);
+        return builder.UseRequest(
+            PersistedOperationMiddleware.WritePersistedOperation,
+            before: before,
+            after: after);
     }
 
     public static IFusionGatewayBuilder UsePersistedOperationNotFound(
@@ -192,27 +141,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if (after is not null && before is not null)
-        {
-            throw new ArgumentException(
-                "You cannot specify both 'after' and 'before' parameters.");
-        }
-
-        if (after is not null)
-        {
-            return builder.AppendUseRequest(
-                after,
-                PersistedOperationMiddleware.PersistedOperationNotFound);
-        }
-
-        if (before is not null)
-        {
-            return builder.InsertUseRequest(
-                before,
-                PersistedOperationMiddleware.PersistedOperationNotFound);
-        }
-
-        return builder.UseRequest(PersistedOperationMiddleware.PersistedOperationNotFound);
+        return builder.UseRequest(
+            PersistedOperationMiddleware.PersistedOperationNotFound,
+            before: before,
+            after: after);
     }
 
     public static IFusionGatewayBuilder UseOnlyPersistedOperationAllowed(
@@ -222,27 +154,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if (after is not null && before is not null)
-        {
-            throw new ArgumentException(
-                "You cannot specify both 'after' and 'before' parameters.");
-        }
-
-        if (after is not null)
-        {
-            return builder.AppendUseRequest(
-                after,
-                PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
-        }
-
-        if (before is not null)
-        {
-            return builder.InsertUseRequest(
-                before,
-                PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
-        }
-
-        return builder.UseRequest(PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
+        return builder.UseRequest(
+            PersistedOperationMiddleware.OnlyPersistedOperationsAllowed,
+            before: before,
+            after: after);
     }
 
     public static IFusionGatewayBuilder UseDefaultPipeline(
@@ -261,7 +176,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentValidation()
             .UseOperationPlanCache()
             .UseOperationPlan()
-            .UseOperationExecution()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseOperationExecution();

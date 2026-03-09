@@ -1,5 +1,8 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -119,8 +122,10 @@ internal sealed class __Type : ITypeResolverInterceptor
         if (type is IComplexTypeDefinition ct)
         {
             var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var count = includeDeprecated
+                ? ct.Fields.Count(t => !t.IsIntrospectionField)
+                : ct.Fields.Count(t => !t.IsDeprecated && !t.IsIntrospectionField);
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
             foreach (var field in ct.Fields)
             {
@@ -129,8 +134,14 @@ internal sealed class __Type : ITypeResolverInterceptor
                     continue;
                 }
 
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
                 context.AddRuntimeResult(field);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -139,13 +150,15 @@ internal sealed class __Type : ITypeResolverInterceptor
     {
         if (context.Parent<IType>() is IComplexTypeDefinition complexType)
         {
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var implements = complexType.Implements;
+            var list = context.FieldResult.CreateListValue(implements.Count);
 
-            foreach (var type in complexType.Implements)
+            var index = 0;
+            foreach (var element in list.EnumerateArray())
             {
+                var type = complexType.Implements[index++];
                 context.AddRuntimeResult(type);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                element.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -154,13 +167,16 @@ internal sealed class __Type : ITypeResolverInterceptor
     {
         if (context.Parent<IType>() is ITypeDefinition nt && nt.IsAbstractType())
         {
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var schema = Unsafe.As<FusionSchemaDefinition>(context.Schema);
+            var possibleTypes = schema.GetPossibleTypes(nt);
+            var list = context.FieldResult.CreateListValue(possibleTypes.Length);
 
-            foreach (var type in context.Schema.GetPossibleTypes(nt))
+            var index = 0;
+            foreach (var element in list.EnumerateArray())
             {
+                var type = possibleTypes[index++];
                 context.AddRuntimeResult(type);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                element.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -170,8 +186,10 @@ internal sealed class __Type : ITypeResolverInterceptor
         if (context.Parent<IType>() is IEnumTypeDefinition et)
         {
             var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var count = includeDeprecated
+                ? et.Values.Count
+                : et.Values.Count(t => !t.IsDeprecated);
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
             foreach (var value in et.Values)
             {
@@ -180,8 +198,14 @@ internal sealed class __Type : ITypeResolverInterceptor
                     continue;
                 }
 
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
                 context.AddRuntimeResult(value);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -191,18 +215,26 @@ internal sealed class __Type : ITypeResolverInterceptor
         if (context.Parent<IType>() is IInputObjectTypeDefinition iot)
         {
             var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var count = includeDeprecated
+                ? iot.Fields.Count
+                : iot.Fields.Count(t => !t.IsDeprecated);
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
-            foreach (var value in iot.Fields)
+            foreach (var field in iot.Fields)
             {
-                if (!includeDeprecated && value.IsDeprecated)
+                if (!includeDeprecated && field.IsDeprecated)
                 {
                     continue;
                 }
 
-                context.AddRuntimeResult(value);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
+                context.AddRuntimeResult(field);
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -212,20 +244,14 @@ internal sealed class __Type : ITypeResolverInterceptor
         switch (context.Parent<IType>())
         {
             case ListType lt:
-            {
-                var obj = context.RentInitializedObjectResult();
-                context.FieldResult.SetNextValue(obj);
+                context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
                 context.AddRuntimeResult(lt.ElementType);
                 break;
-            }
 
             case NonNullType nnt:
-            {
-                var obj = context.ResultPool.RentObjectListResult();
-                context.FieldResult.SetNextValue(obj);
+                context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
                 context.AddRuntimeResult(nnt.NullableType);
                 break;
-            }
         }
     }
 

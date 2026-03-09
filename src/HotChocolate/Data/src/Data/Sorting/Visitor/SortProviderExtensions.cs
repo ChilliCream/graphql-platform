@@ -60,14 +60,14 @@ public abstract class SortProviderExtensions<TContext>
         // Provider extensions should be applied by default before the default handlers, as
         // the interceptor picks up the first handler. A provider extension should add more
         // specific handlers than the default providers
-        for (var i = Configuration.Handlers.Count - 1; i >= 0; i--)
+        for (var i = Configuration.FieldHandlerConfigurations.Count - 1; i >= 0; i--)
         {
-            target.Handlers.Insert(0, Configuration.Handlers[i]);
+            target.FieldHandlerConfigurations.Insert(0, Configuration.FieldHandlerConfigurations[i]);
         }
 
-        for (var i = Configuration.OperationHandlers.Count - 1; i >= 0; i--)
+        for (var i = Configuration.OperationHandlerConfigurations.Count - 1; i >= 0; i--)
         {
-            target.OperationHandlers.Insert(0, Configuration.OperationHandlers[i]);
+            target.OperationHandlerConfigurations.Insert(0, Configuration.OperationHandlerConfigurations[i]);
         }
     }
 }

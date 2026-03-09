@@ -155,7 +155,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     }
 
                     using var archive = FusionArchive.Open(_fileName);
-                    using var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0), ct);
+                    using var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion, ct);
 
                     if (config is null)
                     {

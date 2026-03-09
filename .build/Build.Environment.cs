@@ -14,8 +14,9 @@ partial class Build
     AbsolutePath TestSolutionFile => TemporaryDirectory / "Build.Test.sln";
     AbsolutePath PackSolutionFile => SourceDirectory / "Build.Pack.sln";
     AbsolutePath NitroCommandLineOperations
-        => SourceDirectory / "Nitro" / "CommandLine" / "src" / "CommandLine.Cloud" / "persisted" / "operations.json";
+        => SourceDirectory / "Nitro" / "CommandLine" / "src" / "CommandLine" / "persisted" / "operations.json";
 
+    AbsolutePath PublishDirectory => RootDirectory / "publish";
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coverage-reports";

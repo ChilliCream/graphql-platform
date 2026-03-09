@@ -1,24 +1,26 @@
 operation:
-  - document: >-
+  - document: |
       {
         productBySlug(slug: "1") {
           id
+          id @fusion__requirement
           name
           estimatedDelivery(postCode: "12345")
-          id @fusion__requirement
           dimension @fusion__requirement {
             height
             width
           }
         }
       }
-    hash: 123
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: PRODUCTS
-    operation: >-
-      query Op_123_1 {
+    operation: |
+      query Op_123456789101112_1 {
         productBySlug(slug: "1") {
           id
           name
@@ -31,11 +33,11 @@ nodes:
   - id: 2
     type: Operation
     schema: SHIPPING
-    operation: >-
-      query Op_123_2(
+    operation: |
+      query Op_123456789101112_2(
         $__fusion_1_id: ID!
-        $__fusion_2_height: Int!
-        $__fusion_2_width: Int!
+          $__fusion_2_height: Int!
+          $__fusion_2_width: Int!
       ) {
         productById(id: $__fusion_1_id) {
           estimatedDelivery(postCode: "12345", height: $__fusion_2_height, width: $__fusion_2_width)
@@ -45,10 +47,13 @@ nodes:
     target: $.productBySlug
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
       - name: __fusion_2_height
-        selectionMap: dimension.height
+        selectionMap: >-
+          dimension.height
       - name: __fusion_2_width
-        selectionMap: dimension.width
+        selectionMap: >-
+          dimension.width
     dependencies:
       - id: 1

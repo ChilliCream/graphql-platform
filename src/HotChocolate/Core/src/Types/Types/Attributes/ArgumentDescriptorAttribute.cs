@@ -12,17 +12,23 @@ public abstract class ArgumentDescriptorAttribute : DescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IArgumentDescriptor d
-            && element is ParameterInfo p)
+        var parameter = attributeProvider as ParameterInfo;
+
+        if (RequiresAttributeProvider && parameter is null)
         {
-            OnConfigure(context, d, p);
+            throw new InvalidOperationException("The attribute provider is required to be a parameter.");
+        }
+
+        if (descriptor is IArgumentDescriptor argumentDescriptor)
+        {
+            OnConfigure(context, argumentDescriptor, parameter);
         }
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IArgumentDescriptor descriptor,
-        ParameterInfo parameter);
+        ParameterInfo? parameter);
 }

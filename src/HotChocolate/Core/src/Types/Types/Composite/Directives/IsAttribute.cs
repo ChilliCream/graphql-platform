@@ -46,9 +46,8 @@ public sealed class IsAttribute : ArgumentDescriptorAttribute
     public string Field { get; }
 
     /// <inheritdoc />
-    protected override void OnConfigure(
-        IDescriptorContext context,
+    protected override void OnConfigure(IDescriptorContext context,
         IArgumentDescriptor descriptor,
-        ParameterInfo parameter)
+        ParameterInfo? parameter)
         => descriptor.Is(Field);
 }

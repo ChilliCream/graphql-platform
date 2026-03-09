@@ -1,13 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "Name cannot serialize the given value.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
+      "message": "Not a valid name.",
       "path": [
         "stringToName"
       ],

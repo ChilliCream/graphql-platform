@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Reflection;
 using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake;

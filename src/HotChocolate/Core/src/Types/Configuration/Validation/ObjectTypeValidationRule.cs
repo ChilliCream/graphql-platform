@@ -21,7 +21,7 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
 
         if (context.Options.StrictValidation)
         {
-            if (context.Options.EnsureAllNodesCanBeResolved)
+            if (schema.Features.Get<NodeSchemaFeature>() is { Options.EnsureAllNodesCanBeResolved: true })
             {
                 foreach (var type in schema.Types)
                 {

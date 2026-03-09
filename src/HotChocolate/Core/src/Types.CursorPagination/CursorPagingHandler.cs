@@ -60,7 +60,14 @@ public abstract class CursorPagingHandler : IPagingHandler
 
         if (RequirePagingBoundaries && first is null && last is null)
         {
-            throw ThrowHelper.PagingHandler_NoBoundariesSet(
+            if (AllowBackwardPagination)
+            {
+                throw ThrowHelper.PagingHandler_NoBoundariesSet(
+                    context.Selection.Field,
+                    context.Path);
+            }
+
+            throw ThrowHelper.PagingHandler_FirstValueNotSet(
                 context.Selection.Field,
                 context.Path);
         }

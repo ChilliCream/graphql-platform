@@ -4,9 +4,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class ValueSelectionToSelectionSetRewriter(ISchemaDefinition schema)
+public sealed class ValueSelectionToSelectionSetRewriter(
+    ISchemaDefinition schema,
+    bool ignoreMissingTypeSystemMembers = false)
 {
-    private readonly MergeSelectionSetRewriter _mergeSelectionSetRewriter = new(schema);
+    private readonly MergeSelectionSetRewriter _mergeSelectionSetRewriter
+        = new(schema, ignoreMissingTypeSystemMembers);
 
     public SelectionSetNode Rewrite(IValueSelectionNode node, ITypeDefinition type)
     {

@@ -144,21 +144,21 @@ public class QueryableFilterVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [12, 13]}}}) "
                     + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [13, 14]}}}) "
                     + "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [null, 14]}}}) "
                     + "{ foo{ barShort}}}")
                 .Build());
 
@@ -224,21 +224,21 @@ public class QueryableFilterVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [12, 13]}}}) "
                     + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [13, 14]}}}) "
                     + "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [13, null]}}}) "
                     + "{ foo{ barShort}}}")
                 .Build());
 
@@ -373,21 +373,21 @@ public class QueryableFilterVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [BAR FOO]}}}) "
                     + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [FOO]}}}) "
                     + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [null FOO]}}}) "
                     + "{ foo{ barEnum}}}")
                 .Build());
 
@@ -454,21 +454,21 @@ public class QueryableFilterVisitorObjectTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [BAR FOO]}}}) "
                     + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [FOO]}}}) "
                     + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [null FOO]}}}) "
                     + "{ foo{ barEnum}}}")
                 .Build());
 
@@ -531,7 +531,7 @@ public class QueryableFilterVisitorObjectTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { in: "
-                    + "[ \"testatest\"  \"testbtest\" ]}}}) "
+                    + "[\"testatest\"  \"testbtest\"]}}}) "
                     + "{ foo{ barString}}}")
                 .Build());
 
@@ -545,7 +545,7 @@ public class QueryableFilterVisitorObjectTests
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) "
+                    "{ root(where: { foo: { barString: { in: [\"testatest\"]}}}) "
                     + "{ foo{ barString}}}")
                 .Build());
 
@@ -669,9 +669,9 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(res1).Errors);
-        Assert.Null(Assert.IsType<OperationResult>(res2).Errors);
-        Assert.Null(Assert.IsType<OperationResult>(res3).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res1).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res2).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res3).Errors);
         await Snapshot
             .Create(
                 postFix: TestEnvironment.TargetFramework == "NET10_0"
@@ -712,9 +712,9 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(res1).Errors);
-        Assert.Null(Assert.IsType<OperationResult>(res2).Errors);
-        Assert.Null(Assert.IsType<OperationResult>(res3).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res1).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res2).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res3).Errors);
         await Snapshot
             .Create(
                 postFix: TestEnvironment.TargetFramework == "NET10_0"

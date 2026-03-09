@@ -1,6 +1,7 @@
 using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -52,7 +53,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
         return FusionSetupUtilities.Configure(
             builder,
-            setup => setup.DocumentProvider = _ => new FileSystemFusionConfigurationProvider(fileName));
+            setup => setup.DocumentProvider =
+                _ => new FileSystemFusionConfigurationProvider(
+                    fileName));
     }
 
     public static IFusionGatewayBuilder AddInMemoryConfiguration(
@@ -65,6 +68,20 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
         return FusionSetupUtilities.Configure(
             builder,
-            setup => setup.DocumentProvider = _ => new InMemoryFusionConfigurationProvider(schemaDocument, schemaSettings));
+            setup => setup.DocumentProvider =
+                _ => new InMemoryFusionConfigurationProvider(
+                    schemaDocument,
+                    schemaSettings));
+    }
+
+    public static IFusionGatewayBuilder AddOperationPlannerInterceptor(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, IOperationPlannerInterceptor> factory)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        builder.ConfigureSchemaServices((_, sc) => sc.AddSingleton(factory));
+        return builder;
     }
 }

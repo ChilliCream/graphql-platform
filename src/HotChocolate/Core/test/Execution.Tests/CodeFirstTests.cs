@@ -23,7 +23,7 @@ public class CodeFirstTests
         var result = await schema.MakeExecutable().ExecuteAsync("{ test }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -42,7 +42,7 @@ public class CodeFirstTests
         var result = await executor.ExecuteAsync("{ a: test }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class CodeFirstTests
         var result = await executor.ExecuteAsync("{ a: test }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class CodeFirstTests
             await schema.MakeExecutable().ExecuteAsync("{ test }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -133,7 +133,7 @@ public class CodeFirstTests
             await schema.MakeExecutable().ExecuteAsync("{ query }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -157,7 +157,7 @@ public class CodeFirstTests
                         ");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -247,7 +247,7 @@ public class CodeFirstTests
                 "{ drink { ... on Tea { kind } } }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -281,7 +281,7 @@ public class CodeFirstTests
                 "{ dog { name } }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -297,7 +297,7 @@ public class CodeFirstTests
                 "{ dog { desc } }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -313,7 +313,7 @@ public class CodeFirstTests
                 "{ dog { name2 } }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -329,7 +329,7 @@ public class CodeFirstTests
                 "{ dog { names } }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 

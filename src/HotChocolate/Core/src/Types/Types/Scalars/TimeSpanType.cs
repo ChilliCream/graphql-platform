@@ -1,16 +1,23 @@
+using System.Text.Json;
 using System.Xml;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The TimeSpan scalar type represented in two formats:
-/// <see cref="TimeSpanFormat.Iso8601"/> and <see cref="TimeSpanFormat.DotNet"/>
+/// The <c>TimeSpan</c> scalar type represents a duration of time. It is intended for scenarios
+/// where you need to represent time intervals, such as elapsed time, timeout durations, scheduling
+/// intervals, or any measurement of time that is not tied to a specific date or time.
 /// </summary>
-public class TimeSpanType
-    : ScalarType<TimeSpan, StringValueNode>
+/// <seealso href="https://scalars.graphql.org/chillicream/time-span.html">Specification</seealso>
+public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/time-span.html";
+
     public TimeSpanFormat Format { get; }
 
     public TimeSpanType(
@@ -29,6 +36,19 @@ public class TimeSpanType
     {
         Format = format;
         Description = description;
+        Pattern = format switch
+        {
+            TimeSpanFormat.Iso8601
+                => @"^-?P(?:\d+W|(?=\d|T(?:\d|$))(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?)$",
+            TimeSpanFormat.DotNet
+                => @"^-?(?:(?:\d{1,8})\.)?(?:[0-1]?\d|2[0-3]):(?:[0-5]?\d):(?:[0-5]?\d)(?:\.(?:\d{1,7}))?$",
+            _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
+        };
+
+        if (format == TimeSpanFormat.Iso8601)
+        {
+            SpecifiedBy = new Uri(SpecifiedByUri);
+        }
     }
 
     [ActivatorUtilitiesConstructor]
@@ -37,122 +57,74 @@ public class TimeSpanType
     {
     }
 
-    protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
+    /// <inheritdoc />
+    protected override TimeSpan OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, Format, out var value)
-            && value != null)
+        if (TryParseStringValue(valueLiteral.Value, Format, out var value))
         {
-            return value.Value;
+            return value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    protected override StringValueNode ParseValue(TimeSpan runtimeValue)
+    /// <inheritdoc />
+    protected override TimeSpan OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    {
+        if (TryParseStringValue(inputValue.GetString()!, Format, out var value))
+        {
+            return value;
+        }
+
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+    }
+
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(TimeSpan runtimeValue, ResultElement resultValue)
+    {
+        var serialized = Format == TimeSpanFormat.Iso8601
+            ? XmlConvert.ToString(runtimeValue)
+            : runtimeValue.ToString("c");
+        resultValue.SetStringValue(serialized);
+    }
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(TimeSpan runtimeValue)
     {
         return Format == TimeSpanFormat.Iso8601
             ? new StringValueNode(XmlConvert.ToString(runtimeValue))
             : new StringValueNode(runtimeValue.ToString("c"));
     }
 
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s
-            && TryDeserializeFromString(s, Format, out var timeSpan))
-        {
-            return ParseValue(timeSpan);
-        }
-
-        if (resultValue is TimeSpan ts)
-        {
-            return ParseValue(ts);
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
-    }
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is TimeSpan timeSpan)
-        {
-            if (Format == TimeSpanFormat.Iso8601)
-            {
-                resultValue = XmlConvert.ToString(timeSpan);
-                return true;
-            }
-
-            resultValue = timeSpan.ToString("c");
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is string s
-            && TryDeserializeFromString(s, Format, out var timeSpan))
-        {
-            runtimeValue = timeSpan;
-            return true;
-        }
-
-        if (resultValue is TimeSpan ts)
-        {
-            runtimeValue = ts;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
-    }
-
-    private static bool TryDeserializeFromString(
+    private static bool TryParseStringValue(
         string serialized,
         TimeSpanFormat format,
-        out TimeSpan? value)
+        out TimeSpan value)
     {
         return format == TimeSpanFormat.Iso8601
-            ? TryDeserializeIso8601(serialized, out value)
-            : TryDeserializeDotNet(serialized, out value);
+            ? TryParseIso8601(serialized, out value)
+            : TryParseDotNet(serialized, out value);
     }
 
-    private static bool TryDeserializeIso8601(string serialized, out TimeSpan? value)
+    private static bool TryParseIso8601(string serialized, out TimeSpan value)
     {
         try
         {
-            return Iso8601Duration.TryParse(serialized, out value);
+            if (Iso8601Duration.TryParse(serialized, out var nullable) && nullable.HasValue)
+            {
+                value = nullable.Value;
+                return true;
+            }
         }
         catch (FormatException)
         {
-            value = null;
-            return false;
         }
+
+        value = default;
+        return false;
     }
 
-    private static bool TryDeserializeDotNet(string serialized, out TimeSpan? value)
+    private static bool TryParseDotNet(string serialized, out TimeSpan value)
     {
         if (TimeSpan.TryParse(serialized, out var timeSpan))
         {
@@ -160,7 +132,7 @@ public class TimeSpanType
             return true;
         }
 
-        value = null;
+        value = default;
         return false;
     }
 }

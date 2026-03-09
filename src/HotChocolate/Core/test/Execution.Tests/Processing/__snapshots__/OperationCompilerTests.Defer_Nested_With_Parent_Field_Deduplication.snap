@@ -1,0 +1,36 @@
+{
+  hero {
+    ... @defer {
+      nestedObject {
+        deeperObject {
+          foo
+          ... @defer {
+            foo
+            bar
+          }
+        }
+      }
+    }
+  }
+}
+
+---------------------------------------------------------
+
+{
+  ... on Query {
+    hero @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
+      ... on Hero {
+        nestedObject @__execute(id: 4, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+          ... on NestedObject {
+            deeperObject @__execute(id: 6, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+              ... on DeeperObject {
+                foo @__execute(id: 8, kind: DEFAULT, type: LEAF, isDeferred: true)
+                bar @__execute(id: 9, kind: DEFAULT, type: LEAF, isDeferred: true)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

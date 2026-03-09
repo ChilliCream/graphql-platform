@@ -30,7 +30,7 @@ public readonly struct ReadOnlyMemorySegment
 #if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentOutOfRangeException.ThrowIfLessThan(start, 0);
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(length, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThan(length, 0);
 #else
         if (owner is null)
         {
@@ -81,7 +81,7 @@ public readonly struct ReadOnlyMemorySegment
 #if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(buffer);
         ArgumentOutOfRangeException.ThrowIfLessThan(start, 0);
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(length, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThan(length, 0);
 #else
         if (buffer is null)
         {

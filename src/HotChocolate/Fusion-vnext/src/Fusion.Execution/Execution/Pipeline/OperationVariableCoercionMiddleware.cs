@@ -9,15 +9,12 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationVariableCoercionMiddleware
 {
-    private static readonly Dictionary<string, object?> s_empty = [];
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
 
-    public OperationVariableCoercionMiddleware(
+    private OperationVariableCoercionMiddleware(
         ICoreExecutionDiagnosticEvents diagnosticEvents)
     {
-        ArgumentNullException.ThrowIfNull(diagnosticEvents);
-
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -62,9 +59,10 @@ internal sealed class OperationVariableCoercionMiddleware
             using (diagnosticEvents.CoerceVariables(context))
             {
                 if (VariableCoercionHelper.TryCoerceVariableValues(
+                    context,
                     context.Schema,
                     variableDefinitions,
-                    operationRequest.VariableValues ?? s_empty,
+                    operationRequest.VariableValues?.Document.RootElement ?? default,
                     out var coercedValues,
                     out var error))
                 {
@@ -72,7 +70,7 @@ internal sealed class OperationVariableCoercionMiddleware
                     return true;
                 }
 
-                context.Result = OperationResultBuilder.CreateError(error);
+                context.Result = OperationResult.FromError(error);
                 return false;
             }
         }
@@ -81,29 +79,30 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
-                var variableSetInput = variableBatchRequest.VariableValues!;
-                var variableSet = new IVariableValueCollection[variableSetCount];
+                var variableValuesSetInput = variableBatchRequest.VariableValues.Document.RootElement;
+                var variableValuesSet = new IVariableValueCollection[variableValuesSetInput.GetArrayLength()];
+                var i = 0;
 
-                for (var i = 0; i < variableSetCount; i++)
+                foreach (var variableValuesInput in variableValuesSetInput.EnumerateArray())
                 {
                     if (VariableCoercionHelper.TryCoerceVariableValues(
+                        context,
                         context.Schema,
                         variableDefinitions,
-                        variableSetInput[i],
+                        variableValuesInput,
                         out var coercedValues,
                         out var error))
                     {
-                        variableSet[i] = new VariableValueCollection(coercedValues);
+                        variableValuesSet[i++] = new VariableValueCollection(coercedValues);
                     }
                     else
                     {
-                        context.Result = OperationResultBuilder.CreateError(error);
+                        context.Result = OperationResult.FromError(error);
                         return false;
                     }
                 }
 
-                context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableSet);
+                context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableValuesSet);
                 return true;
             }
         }
@@ -112,14 +111,12 @@ internal sealed class OperationVariableCoercionMiddleware
     }
 
     public static RequestMiddlewareConfiguration Create()
-    {
-        return new RequestMiddlewareConfiguration(
+        => new RequestMiddlewareConfiguration(
             (fc, next) =>
             {
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
                 var middleware = new OperationVariableCoercionMiddleware(diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
-            nameof(OperationVariableCoercionMiddleware));
-    }
+            WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);
 }

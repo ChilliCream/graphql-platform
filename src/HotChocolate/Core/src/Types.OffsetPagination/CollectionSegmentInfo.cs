@@ -1,7 +1,7 @@
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
-/// Represents the offset paging page info.
+/// Represents the offset paging info.
 /// This class provides additional information about the selected page.
 /// </summary>
 public class CollectionSegmentInfo : IPageInfo

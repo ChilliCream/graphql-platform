@@ -15,7 +15,7 @@ internal static class FusionBuiltIns
 
     private static readonly MutableScalarTypeDefinition s_stringType = BuiltIns.String.Create();
 
-    public static FrozenSet<MutableDirectiveDefinition> SourceSchemaDirectives { get; } =
+    public static FrozenDictionary<string, MutableDirectiveDefinition> SourceSchemaDirectives { get; } =
         new HashSet<MutableDirectiveDefinition>(
         [
             new ExternalMutableDirectiveDefinition(),
@@ -28,11 +28,11 @@ internal static class FusionBuiltIns
             new ProvidesMutableDirectiveDefinition(s_fieldSelectionSetType),
             new RequireMutableDirectiveDefinition(s_fieldSelectionMapType),
             new ShareableMutableDirectiveDefinition()
-        ]).ToFrozenSet();
+        ]).ToFrozenDictionary(d => d.Name);
 
-    public static FrozenSet<MutableScalarTypeDefinition> SourceSchemaScalars { get; } =
+    public static FrozenDictionary<string, MutableScalarTypeDefinition> SourceSchemaScalars { get; } =
         new HashSet<MutableScalarTypeDefinition>([s_fieldSelectionMapType, s_fieldSelectionSetType])
-            .ToFrozenSet();
+            .ToFrozenDictionary(s => s.Name);
 
     public static bool IsBuiltInSourceSchemaScalar(string typeName)
     {

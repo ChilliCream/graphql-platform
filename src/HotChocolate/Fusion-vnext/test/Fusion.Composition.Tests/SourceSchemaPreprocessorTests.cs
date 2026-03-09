@@ -1,61 +1,469 @@
-using HotChocolate.Types.Mutable.Serialization;
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Comparers;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
 public sealed class SourceSchemaPreprocessorTests
 {
     [Fact]
-    public void Node_Field_Should_Be_Turned_Into_A_Lookup()
+    public void Preprocess_ExcludeByTag_RemovesTaggedMembers()
     {
         // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-              node(id: ID!): Node
-            }
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Object1 @tag(name: "remove") {
+                    field1: ID!
+                }
 
-            interface Node {
-              id: ID!
-            }
+                type Object2 {
+                    field1: ID!
+                    field2: Int @tag(name: "remove")
+                }
 
-            type Product implements Node {
-              id: ID!
-              other: String!
-            }
+                type Object3 {
+                    field1: ID!
+                    field2(argument1: Int, argument2: Int @tag(name: "remove")): Int
+                }
 
-            type Review implements Node {
-              id: ID!
-              title: String!
-            }
-            """);
-        var preprocessor = new SourceSchemaPreprocessor(schema);
+                interface Interface1 @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                interface Interface2 {
+                    field1: ID!
+                    field2: Int @tag(name: "remove")
+                }
+
+                union Union1 @tag(name: "remove") = Object1 | Object2
+
+                input Input1 @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                input Input2 {
+                    field1: ID!
+                    field2: Int @tag(name: "remove")
+                }
+
+                enum Enum1 @tag(name: "remove") {
+                    VALUE1
+                }
+
+                enum Enum2 {
+                    VALUE1
+                    VALUE2 @tag(name: "remove")
+                }
+
+                scalar Scalar1 @tag(name: "remove")
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] });
 
         // act
-        var result = preprocessor.Process();
+        preprocessor.Preprocess();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
 
         // assert
-        SchemaFormatter.FormatAsString(result).MatchInlineSnapshot(
+        schema.ToString().MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public void Preprocess_ExcludeByTagInvalidSchema_ReturnsError()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    field1: Object
+                    field2(argument: Input): Int
+                }
+
+                type Object @tag(name: "remove") {
+                    field: ID!
+                }
+
+                input Input @tag(name: "remove") {
+                    field: ID!
+                }
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] });
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("Source schema preprocessing failed.", error.Message);
+        Assert.Collection(
+            compositionLog,
+            logEntry =>
+            {
+                Assert.Equal("HCV0021", logEntry.Code);
+                Assert.Equal(
+                    "The type 'Object' of field 'Query.field1' is not defined in the schema. (Schema: 'A')",
+                    logEntry.Message);
+                Assert.Equal(LogSeverity.Error, logEntry.Severity);
+            },
+            logEntry =>
+            {
+                Assert.Equal("HCV0022", logEntry.Code);
+                Assert.Equal(
+                    "The type 'Input' of argument 'Query.field2(argument:)' is not defined in the schema. "
+                    + "(Schema: 'A')",
+                    logEntry.Message);
+                Assert.Equal(LogSeverity.Error, logEntry.Severity);
+            });
+    }
+
+    [Fact]
+    public void Preprocess_InferKeysFromLookupsEnabled_AppliesInferredKeyDirectives()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    personById(id: ID!): Person @lookup
+                    personByAddressId(id: ID! @is(field: "address.id")): Person @lookup
+                    productById(id: ID!): Product @lookup
+                    productByIdAgain(id: ID!): Product @lookup
+                    productByIdAndCategoryId(id: ID!, categoryId: Int): Product @lookup
+                    productByIdOrCategoryId(
+                        idOrCategoryId: IdOrCategoryIdInput! @is(field: "{ id } | { categoryId }")
+                    ): Product @lookup
+                    petById(id: ID!): Pet @lookup # interface
+                    fruitById(id: ID!): Fruit @lookup # union
+                }
+
+                type Person @key(fields: "id") { # Existing key should not be duplicated.
+                    id: ID!
+                    address: Address!
+                }
+
+                type Address {
+                    id: ID!
+                }
+
+                type Product {
+                    id: ID!
+                    categoryId: Int
+                }
+
+                input IdOrCategoryIdInput @oneOf {
+                    id: ID
+                    categoryId: Int
+                }
+
+                interface Pet {
+                    id: ID!
+                }
+
+                type Dog implements Pet {
+                    id: ID!
+                }
+
+                type Cat implements Pet {
+                    id: ID!
+                }
+
+                union Fruit = Apple | Orange
+
+                type Apple {
+                    id: ID!
+                }
+
+                type Orange {
+                    id: ID!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor = new SourceSchemaPreprocessor(schema, [], compositionLog);
+
+        // act
+        preprocessor.Preprocess();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
+
+        // assert
+        schema.MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public void Preprocess_InferKeysFromLookupsDisabled_DoesNotApplyInferredKeyDirectives()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    personById(id: ID!): Person @lookup
+                }
+
+                type Person {
+                    id: ID!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { InferKeysFromLookups = false });
+
+        // act
+        preprocessor.Preprocess();
+
+        // assert
+        Assert.False(schema.Types["Person"].Directives.ContainsName(WellKnownDirectiveNames.Key));
+    }
+
+    [Fact]
+    public void Preprocess_InheritInterfaceKeysEnabled_InheritsInterfaceKeys()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                interface Animal @key(fields: "id") @key(fields: "age") {
+                    id: ID!
+                    age: Int
+                }
+
+                interface Pet implements Animal @key(fields: "name") {
+                    id: ID!
+                    age: Int
+                    name: String
+                }
+
+                type Dog implements Pet & Animal {
+                    id: ID!
+                    age: Int
+                    name: String
+                }
+
+                type Cat implements Pet & Animal {
+                    id: ID!
+                    age: Int
+                    name: String
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor = new SourceSchemaPreprocessor(schema, [], compositionLog);
+
+        // act
+        preprocessor.Preprocess();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            // lang=graphql
+            """
+            type Cat implements Pet & Animal
+                @key(fields: "name")
+                @key(fields: "id")
+                @key(fields: "age") {
+                age: Int
+                id: ID!
+                name: String
+            }
+
+            type Dog implements Pet & Animal
+                @key(fields: "name")
+                @key(fields: "id")
+                @key(fields: "age") {
+                age: Int
+                id: ID!
+                name: String
+            }
+
+            interface Animal
+                @key(fields: "id")
+                @key(fields: "age") {
+                age: Int
+                id: ID!
+            }
+
+            interface Pet implements Animal
+                @key(fields: "name")
+                @key(fields: "id")
+                @key(fields: "age") {
+                age: Int
+                id: ID!
+                name: String
+            }
+            """);
+    }
+
+    [Fact]
+    public void Preprocess_InheritInterfaceKeysDisabled_DoesNotInheritInterfaceKeys()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                interface Pet @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Cat implements Pet {
+                    id: ID!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { InheritInterfaceKeys = false });
+
+        // act
+        preprocessor.Preprocess();
+
+        // assert
+        Assert.False(schema.Types["Cat"].Directives.ContainsName(WellKnownDirectiveNames.Key));
+    }
+
+    [Fact]
+    public void FusionV1CompatibilityMode_Should_Infer_Lookups()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                  node(id: ID!): Node
+                  productById(id: ID!): Product
+                  productByName(productName: String!): Product
+                }
+
+                interface Node {
+                  id: ID!
+                }
+
+                type Product implements Node {
+                  id: ID!
+                  name: String!
+                }
+
+                type Review implements Node {
+                  id: ID!
+                  title: String!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                new Version(1, 0, 0));
+
+        // act
+        preprocessor.Preprocess();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            // lang=graphql
             """
             schema {
               query: Query
             }
 
-            type Query
-              @shareable {
+            type Query {
               node(id: ID!): Node
+                @lookup
+              productById(id: ID!): Product
+                @lookup
+              productByName(productName: String!
+                @is(field: "name")): Product
                 @lookup
             }
 
             type Product implements Node
               @key(fields: "id")
-              @shareable {
+              @key(fields: "name") {
               id: ID!
-              other: String!
+              name: String!
             }
 
             type Review implements Node
-              @key(fields: "id")
-              @shareable {
+              @key(fields: "id") {
               id: ID!
               title: String!
             }
@@ -68,249 +476,206 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
-    public void ById_Field_Should_Be_Turned_Into_Lookup()
+    public void FusionV1CompatibilityMode_Should_Not_Infer_Lookups()
     {
         // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-              productById(id: ID!): Product
-            }
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                  # gtin does not exist as a field on Product
+                  productByGtin(gtin: String!): Product
+                  # non-null return type
+                  productById(id: ID!): Product!
+                  # multiple arguments
+                  productByIdAndOther(id: ID!, other: String): Product
+                  # list return type
+                  productsById(ids: [ID!]!): [Product]
+                  # does not follow typeNameByFieldName convention
+                  product(id: ID!): Product
+                }
 
-            type Product {
-              id: ID!
-              other: String
-            }
-            """);
-        var preprocessor = new SourceSchemaPreprocessor(schema);
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                new Version(1, 0, 0));
 
         // act
-        var result = preprocessor.Process();
+        preprocessor.Preprocess();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
 
         // assert
-        SchemaFormatter.FormatAsString(result).MatchInlineSnapshot(
+        schema.ToString().MatchInlineSnapshot(
+            // lang=graphql
             """
             schema {
               query: Query
             }
 
-            type Query
-              @shareable {
-              productById(id: ID!): Product
-                @lookup
-            }
-
-            type Product
-              @key(fields: "id")
-              @shareable {
-              id: ID!
-              other: String
-            }
-            """);
-    }
-
-    [Fact]
-    public void Multiple_By_Fields_Should_Be_Turned_Into_Lookups()
-    {
-        // arrange
-        var schema = SchemaParser.Parse(
-            """
             type Query {
-              productById(id: ID!): Product
-              productByName(name: String!): Product
+              product(id: ID!): Product
+              productByGtin(gtin: String!): Product
+              productById(id: ID!): Product!
+              productByIdAndOther(id: ID! other: String): Product
+              productsById(ids: [ID!]!): [Product]
             }
 
             type Product {
               id: ID!
-              other: String
               name: String!
             }
             """);
-        var preprocessor = new SourceSchemaPreprocessor(schema);
+    }
+
+    [Fact]
+    public void FusionV1CompatibilityMode_Should_Strip_Batching_Fields()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                  productsById(ids: [ID!]! @is(field: "id")): [Product] @lookup
+                  reviewsById(ids: [ID!]! @is(field: "id")): [Review] @lookup @internal
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+
+                type Review {
+                  id: ID!
+                  name: String!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                new Version(1, 0, 0));
 
         // act
-        var result = preprocessor.Process();
+        preprocessor.Preprocess();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
 
         // assert
-        SchemaFormatter.FormatAsString(result).MatchInlineSnapshot(
+        schema.ToString().MatchInlineSnapshot(
+            // lang=graphql
             """
             schema {
               query: Query
             }
 
-            type Query
-              @shareable {
-              productById(id: ID!): Product
-                @lookup
-              productByName(name: String!): Product
-                @lookup
+            type Query {
+              productsById(ids: [ID!]!): [Product]
             }
 
-            type Product
-              @key(fields: "id")
-              @key(fields: "name")
-              @shareable {
+            type Product {
               id: ID!
               name: String!
-              other: String
+            }
+
+            type Review {
+              id: ID!
+              name: String!
             }
             """);
     }
 
     [Fact]
-    public void By_Field_Should_Not_Be_Turned_Into_Lookup_If_Field_Does_Not_Exist_On_Result_Type()
+    public void FusionV1CompatibilityMode_Should_Apply_Shareable()
     {
         // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-              productByGtin(gtin: String!): Product
-            }
+        var sourceSchemaTextA =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup
+                }
 
-            type Product {
-              id: ID!
-              other: String
-            }
-            """);
-        var preprocessor = new SourceSchemaPreprocessor(schema);
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+                """);
+
+        var sourceSchemaTextB =
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                  price: Float!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser1 = new SourceSchemaParser(sourceSchemaTextA, compositionLog);
+        var sourceSchemaParser2 = new SourceSchemaParser(sourceSchemaTextB, compositionLog);
+        var schema1 = sourceSchemaParser1.Parse().Value;
+        var schema2 = sourceSchemaParser2.Parse().Value;
+        var schemas =
+            ImmutableSortedSet.Create(
+                new SchemaByNameComparer<MutableSchemaDefinition>(), schema1, schema2);
+        var schema = schemas[0];
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                schemas,
+                compositionLog,
+                new Version(1, 0, 0));
 
         // act
-        var result = preprocessor.Process();
+        preprocessor.Preprocess();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
 
         // assert
-        SchemaFormatter.FormatAsString(result).MatchInlineSnapshot(
+        schema.ToString().MatchInlineSnapshot(
+            // lang=graphql
             """
             schema {
               query: Query
             }
 
-            type Query
-              @shareable {
-              productByGtin(gtin: String!): Product
-            }
-
-            type Product
-              @shareable {
-              id: ID!
-              other: String
-            }
-            """);
-    }
-
-    [Fact]
-    public void By_Field_With_Non_Null_Result_Type_Should_Not_Be_Turned_Into_Lookup()
-    {
-        // arrange
-        var schema = SchemaParser.Parse(
-            """
             type Query {
-              productById(id: ID!): Product!
-            }
-
-            type Product {
-              id: ID!
-              other: String
-            }
-            """);
-        var preprocessor = new SourceSchemaPreprocessor(schema);
-
-        // act
-        var result = preprocessor.Process();
-
-        // assert
-        SchemaFormatter.FormatAsString(result).MatchInlineSnapshot(
-            """
-            schema {
-              query: Query
-            }
-
-            type Query
-              @shareable {
-              productById(id: ID!): Product!
+              productById(id: ID!): Product
+                @lookup
+                @shareable
             }
 
             type Product
-              @shareable {
+              @key(fields: "id") {
               id: ID!
-              other: String
-            }
-            """);
-    }
-
-    [Fact]
-    public void By_Field_With_Multiple_Arguments_Should_Not_Be_Turned_Into_Lookup()
-    {
-        // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-              productById(id: ID! other: String): Product
-            }
-
-            type Product {
-              id: ID!
-              other: String
-            }
-            """);
-        var preprocessor = new SourceSchemaPreprocessor(schema);
-
-        // act
-        var result = preprocessor.Process();
-
-        // assert
-        SchemaFormatter.FormatAsString(result).MatchInlineSnapshot(
-            """
-            schema {
-              query: Query
-            }
-
-            type Query
-              @shareable {
-              productById(id: ID! other: String): Product
-            }
-
-            type Product
-              @shareable {
-              id: ID!
-              other: String
-            }
-            """);
-    }
-
-    [Fact]
-    public void By_Field_With_List_Result_Type_Should_Not_Be_Turned_Into_Lookup()
-    {
-        // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-              productById(ids: [ID!]!): [Product]
-            }
-
-            type Product {
-              id: ID!
-            }
-            """);
-        var preprocessor = new SourceSchemaPreprocessor(schema);
-
-        // act
-        var result = preprocessor.Process();
-
-        // assert
-        SchemaFormatter.FormatAsString(result).MatchInlineSnapshot(
-            """
-            schema {
-              query: Query
-            }
-
-            type Query
-              @shareable {
-              productById(ids: [ID!]!): [Product]
-            }
-
-            type Product
-              @shareable {
-              id: ID!
+              name: String!
+                @shareable
             }
             """);
     }

@@ -53,7 +53,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -109,7 +110,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -168,7 +170,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -307,7 +310,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -362,7 +366,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -967,7 +972,7 @@ public sealed class SatisfiabilityValidatorTests
                     pId: ID!
                     compositeId: CompositeID!
                     name: String! @external
-                    nameInB: String! @requires(fields: "name")
+                    nameInB: String! @require(fields: "name")
                 }
 
                 type CompositeID {
@@ -1026,7 +1031,7 @@ public sealed class SatisfiabilityValidatorTests
                 type Product @key(fields: "id") {
                     id: ID!
                     price: Float! @external
-                    isExpensive: Boolean! @requires(fields: "price")
+                    isExpensive: Boolean! @require(fields: "price")
                     isAvailable: Boolean!
                 }
 
@@ -1456,7 +1461,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -1562,6 +1568,83 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void InterfaceLookup_Implementing_Type_Is_Not_Implementing_Interface_In_Specific_Source_Schema()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    animalById(id: ID!): Animal @lookup
+                    myCat: Cat
+                }
+
+                type Cat {
+                    id: ID!
+                    age: Int!
+                }
+
+                type Dog implements Animal {
+                    id: ID!
+                    age: Int!
+                }
+
+                interface Animal {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    # it's important the name of the lookup here is different,
+                    # otherwise it still works, since the path is the same.
+                    animal(id: ID!): Animal @lookup
+                    myDog: Dog
+                }
+
+                type Cat implements Animal {
+                    id: ID!
+                    name: String!
+                }
+
+                type Dog {
+                    id: ID!
+                    name: String!
+                }
+
+                interface Animal {
+                    id: ID!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsSuccess);
+        string.Join("\n\n", log.Select(e => e.Message))
+            .MatchInlineSnapshot(
+                """
+                Unable to access the field 'Dog.name' on path 'A:Query.animalById<Animal>'.
+                  Unable to transition between schemas 'A' and 'B' for access to field 'B:Dog.name<String>'.
+                    No lookups found for type 'Dog' in schema 'B'.
+
+                Unable to access the field 'Cat.age' on path 'B:Query.animal<Animal>'.
+                  Unable to transition between schemas 'B' and 'A' for access to field 'A:Cat.age<Int>'.
+                    No lookups found for type 'Cat' in schema 'A'.
+                """);
+    }
+
+    [Fact]
     public void InterfaceLookupUsingSecondLookup()
     {
         // arrange
@@ -1647,6 +1730,68 @@ public sealed class SatisfiabilityValidatorTests
                 type Product {
                     id: ID!
                     name: String
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void OneOf()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                schema {
+                    query: Query
+                }
+
+                type Query {
+                    brand(by: BrandByInput @is(field: "{ id } | { key }")): Brand @lookup
+                }
+
+                type Brand @key(fields: "id") {
+                    id: Int!
+                    key: String!
+                    name: String!
+                }
+
+                input BrandByInput @oneOf {
+                    id: Int
+                    key: String
+                }
+                """,
+                """
+                # Schema B
+                schema {
+                    query: Query
+                }
+
+                type Query {
+                    products: [Product]
+                }
+
+                type Brand @key(fields: "id") {
+                    id: Int!
+                }
+
+                type Product @key(fields: "id") {
+                    id: Int!
+                    name: String!
+                    brand: Brand
                 }
                 """
             ]),
@@ -1777,6 +1922,77 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void UnionLookup_Member_Type_Is_Not_Member_In_Specific_Source_Schema()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    animalById(id: ID!): Animal @lookup
+                }
+
+                type Cat {
+                    id: ID!
+                    age: Int!
+                }
+
+                type Dog {
+                    id: ID!
+                    age: Int!
+                }
+
+                union Animal = Dog
+                """,
+                """
+                # Schema B
+                type Query {
+                    # it's important the name of the lookup here is different,
+                    # otherwise it still works, since the path is the same.
+                    animal(id: ID!): Animal @lookup
+                }
+
+                type Cat {
+                    id: ID!
+                    name: String!
+                }
+
+                type Dog {
+                    id: ID!
+                    name: String!
+                }
+
+                union Animal = Cat
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsSuccess);
+        string.Join("\n\n", log.Select(e => e.Message))
+            .MatchInlineSnapshot(
+                """
+                Unable to access the field 'Dog.name' on path 'A:Query.animalById<Animal>'.
+                  Unable to transition between schemas 'A' and 'B' for access to field 'B:Dog.name<String>'.
+                    No lookups found for type 'Dog' in schema 'B'.
+
+                Unable to access the field 'Cat.age' on path 'B:Query.animal<Animal>'.
+                  Unable to transition between schemas 'B' and 'A' for access to field 'A:Cat.age<Int>'.
+                    No lookups found for type 'Cat' in schema 'A'.
+                """);
+    }
+
+    [Fact]
     public void UnsatisfiableRequirements()
     {
         // arrange
@@ -1807,7 +2023,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -1894,7 +2111,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -1940,7 +2158,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Type_Without_Lookup_But_Shared_Path()
+    public void Type_Without_Lookup_But_Path_Matches_Up_To_Root()
     {
         // arrange
         var merger = new SourceSchemaMerger(
@@ -1991,7 +2209,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Type_Without_Lookup_But_Shared_Path_With_Requirement()
+    public void Type_Without_Lookup_But_Path_Matches_Up_To_Root_With_Requirement()
     {
         // arrange
         var merger = new SourceSchemaMerger(
@@ -2032,7 +2250,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Type_Without_Lookup_Not_All_Schemas_Share_Path()
+    public void Type_Without_Lookup_Not_All_Schemas_Share_Path_Up_To_Root()
     {
         // arrange
         var merger = new SourceSchemaMerger(
@@ -2073,7 +2291,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -2101,7 +2320,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Type_Without_Lookup_Not_All_Schemas_Share_Path_With_Requirement()
+    public void Type_Without_Lookup_Not_All_Schemas_Share_Path_Up_To_Root_With_Requirement()
     {
         // arrange
         var merger = new SourceSchemaMerger(
@@ -2132,7 +2351,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -2158,6 +2378,197 @@ public sealed class SatisfiabilityValidatorTests
             """);
     }
 
+    [Fact]
+    public void Type_Without_Lookup_But_Parent_Has_Lookup()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                    id: ID!
+                    name: String!
+                    availability: ProductAvailability!
+                }
+
+                type ProductAvailability {
+                    date: String
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    node(id: ID!): Node @lookup
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Product implements Node {
+                    id: ID!
+                    availability: ProductAvailability!
+                }
+
+                type ProductAvailability {
+                    quantityOnHand: Int
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    product(id: ID!): Product @lookup
+                }
+
+                type Product {
+                    id: ID!
+                    availability: ProductAvailability!
+                }
+
+                type ProductAvailability {
+                    details: String
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsFailure);
+    }
+
+    [Fact]
+    public void IgnoredNonAccessibleFields()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                    id: ID!
+                    title(
+                        input: String @require(field: "{ a: category.name, b: section.name }")
+                    ): String
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                    id: ID!
+                    category: Category
+                    section: Section
+                }
+
+                type Category {
+                    id: ID!
+                }
+
+                type Section {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema C
+                type Category {
+                    id: ID!
+                    name: String!
+                }
+
+                type Section {
+                    id: ID!
+                    name: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var options = new SatisfiabilityOptions
+        {
+            IgnoredNonAccessibleFields =
+            {
+                {
+                    "Product.title",
+                    ["A:Query.productById<Product>", "B:Query.productById<Product>"]
+                },
+                {
+                    "Section.name",
+                    ["A:Query.productById<Product> -> B:Product.section<Section>"]
+                }
+            },
+            IncludeSatisfiabilityPaths = true
+        };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsFailure);
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Category.name' on path 'A:Query.productById<Product> -> B:Product.category<Category>'.
+              Unable to transition between schemas 'B' and 'C' for access to field 'C:Category.name<String>'.
+                No lookups found for type 'Category' in schema 'C'.
+            """);
+    }
+
+    [Fact]
+    public void RootRequirement()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    optionalField: String
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    requiredField(value: String @require(field: "optionalField")): String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
     [Theory]
     [MemberData(nameof(GlobalObjectIdentificationExamplesData))]
     public void GlobalObjectIdentification_Examples(string[] sdl, bool success, string? logs = null)
@@ -2169,7 +2580,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -2207,7 +2619,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
             },
             // A source schema has a lookup but not by ID for a type implementing Node
             {
@@ -2229,7 +2641,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
             },
             // A source schema has a lookup by ID but not the Query.node field for a type implementing Node
             {
@@ -2266,7 +2678,72 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
+            },
+            // A source schema has a lookup by ID, but it's internal
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup @internal
+                        myDog: Dog
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Dog implements Node {
+                        id: ID!
+                        age: Int!
+                    }
+                    """
+                ],
+                false,
+                "Type 'Dog' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
+            },
+            // Type implements Node in another source schema than where a lookup for Node is
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                    }
+
+                    # Node and Dog are both in this schema, but Dog doesn't implement Node
+                    type Dog {
+                        id: ID!
+                        age: Int!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                        topProduct: Product
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Dog implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ],
+                false,
+                "Type 'Dog' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
             },
             // A source schema is missing a lookup for an exclusive field
             {
@@ -2274,7 +2751,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema A
                     type Query {
-                        node(id: ID!): Node @lookup @inaccessible
+                        node(id: ID!): Node @lookup
                     }
 
                     interface Node {
@@ -2343,13 +2820,34 @@ public sealed class SatisfiabilityValidatorTests
                           No other schemas contain the field 'Cat.name'.
                 """
             },
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ],
+                true,
+                null
+            },
             // A source schema is missing a lookup, but the fields it's contributing aren't exclusive
             {
                 [
                     """
                     # Schema A
                     type Query {
-                        node(id: ID!): Node @lookup @inaccessible
+                        node(id: ID!): Node @lookup
                     }
 
                     interface Node {
@@ -2383,7 +2881,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema B
                     type Query {
-                        node(id: ID!): Node @lookup @inaccessible
+                        node(id: ID!): Node @lookup
                     }
 
                     interface Node {
