@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Fusion\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>
