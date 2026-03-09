@@ -121,9 +121,21 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
             .AddGraphQLServer()
             .AddQueryContext()
             .AddGlobalObjectIdentification()
-            .AddQueryType<RecordStoreQuery>()
-            .AddType<StoreRecordType>()
-            .AddTypeExtension(typeof(RecordStoreNode))
+            .AddQueryType(
+                descriptor => descriptor
+                    .Name(OperationTypeNames.Query)
+                    .Field("stores")
+                    .ResolveWith<RecordStoreQueryResolver>(
+                        t => t.GetStoresAsync(default!, default!, default))
+                    .Type<ListType<NonNullType<ObjectType<StoreRecord>>>>())
+            .AddObjectType<StoreRecord>(
+                descriptor => descriptor
+                    .Name("Store")
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith(
+                        typeof(RecordStoreNodeResolver).GetMethod(
+                            nameof(RecordStoreNodeResolver.GetStoreByIdAsync))!))
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .Services
             .BuildServiceProvider();
@@ -199,19 +211,13 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
         }
     }
 
-    public sealed record StoreRecord(
+    private sealed record StoreRecord(
         int Id,
         string Name,
         string Region,
         string CountryCode);
 
-    public sealed class StoreRecordType : ObjectType<StoreRecord>
-    {
-        protected override void Configure(IObjectTypeDescriptor<StoreRecord> descriptor)
-            => descriptor.Name("Store");
-    }
-
-    public sealed class RecordStoreContext(DbContextOptions<RecordStoreContext> options)
+    private sealed class RecordStoreContext(DbContextOptions<RecordStoreContext> options)
         : DbContext(options)
     {
         public DbSet<StoreRecord> Stores => Set<StoreRecord>();
@@ -220,7 +226,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
             => modelBuilder.Entity<StoreRecord>().HasKey(t => t.Id);
     }
 
-    public sealed class RecordSelectorCapture
+    private sealed class RecordSelectorCapture
     {
         public Expression<Func<StoreRecord, StoreRecord>>? StandardFieldSelector { get; set; }
 
@@ -231,7 +237,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
         public string? NodeFieldSql { get; set; }
     }
 
-    public sealed class RecordStoreService(RecordStoreContext context, RecordSelectorCapture capture)
+    private sealed class RecordStoreService(RecordStoreContext context, RecordSelectorCapture capture)
     {
         public async Task<IReadOnlyList<StoreRecord>> GetStoresAsync(
             QueryContext<StoreRecord> query,
@@ -263,24 +269,21 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
         }
     }
 
-    public sealed class RecordStoreQuery
+    private sealed class RecordStoreQueryResolver
     {
         public Task<IReadOnlyList<StoreRecord>> GetStoresAsync(
             QueryContext<StoreRecord> query,
-            RecordStoreService service,
+            [Service] RecordStoreService service,
             CancellationToken cancellationToken)
             => service.GetStoresAsync(query, cancellationToken);
     }
 
-    [Node]
-    [ExtendObjectType(typeof(StoreRecord))]
-    public static class RecordStoreNode
+    private sealed class RecordStoreNodeResolver
     {
-        [NodeResolver]
         public static Task<StoreRecord?> GetStoreByIdAsync(
             int id,
             QueryContext<StoreRecord> query,
-            RecordStoreService service,
+            [Service] RecordStoreService service,
             CancellationToken cancellationToken)
             => service.GetStoreByIdAsync(id, query, cancellationToken);
     }
