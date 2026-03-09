@@ -2,20 +2,18 @@
 title: "Entities and Lookups"
 ---
 
-# Entities and Lookups
+Entities are the mechanism that makes distributed GraphQL work. They are types with stable keys that can be referenced and resolved across subgraphs. For example, the Products subgraph defines the `Product` type, and the Reviews subgraph contributes the `reviews` field to `Product`. The Accounts subgraph defines the `User` type, and other subgraphs can contribute additional fields to `User`. Without entities, each subgraph would be an isolated API. With entities, those subgraphs compose into one unified API.
 
-Entities are the mechanism that makes distributed GraphQL work. They are types that can be uniquely identified and resolved across multiple subgraphs -- the `Product` that the Products subgraph defines and the Reviews subgraph extends, the `User` that the Accounts subgraph owns and the Reviews subgraph adds reviews to. Without entities, each subgraph would be an isolated API. With them, you get one unified graph.
-
-This page covers entity resolution in depth: how entities work, how lookups enable cross-subgraph resolution, how field ownership works, and how to optimize entity fetching. If you completed the [Getting Started](/docs/fusion/v16/getting-started) tutorial, you already used entities and lookups. This page goes deeper.
+This page explains entity resolution in more detail: how entities are defined, how lookups resolve them across subgraphs, and how field ownership is enforced. If you completed the [Getting Started](/docs/fusion/v16/getting-started) tutorial, you already used these concepts. Here, you will focus on the mechanics and patterns behind them.
 
 ## What Makes a Type an Entity
 
-A regular GraphQL type lives in one subgraph and is resolved entirely by that subgraph. An entity is different -- it appears in multiple subgraphs, each contributing different fields.
+A regular GraphQL type lives in one subgraph and is resolved entirely by that subgraph. An entity is identified by a stable key that can be referenced across subgraphs.
 
-For a type to work as an entity, two things must be true:
+For practical use in Fusion, separate these concerns:
 
-1. **It has key fields** that uniquely identify each instance (like `id` or `sku`).
-2. **At least one subgraph provides a lookup** -- a query field that can resolve the entity given its key fields.
+1. **Entity identity:** one or more key fields uniquely identify each instance, like `id` or `sku`.
+2. **Entity resolution:** at least one lookup exists in the composed system so the gateway can resolve references by key.
 
 In the Products subgraph, `Product` is a full type with `id`, `name`, `price`, and other fields:
 
@@ -31,7 +29,7 @@ public class Product
 }
 ```
 
-In the Reviews subgraph, `Product` is an entity stub -- a lightweight declaration with just the key field and the new fields this subgraph contributes:
+In the Reviews subgraph, `Product` is an entity stub, a lightweight declaration with just the key field and the new fields this subgraph contributes:
 
 ```csharp
 // Reviews/Types/Product.cs
@@ -74,7 +72,7 @@ public static partial class ProductQueries
 
 The `[Lookup]` attribute tells Fusion that `GetProductByIdAsync` resolves a `Product` entity by its `id` argument. The composition engine infers from this that `id` is a key field for `Product`.
 
-Public lookups return nullable types (`Product?`). If a client passes an ID that does not exist, the lookup returns `null`. This is correct because clients can call the lookup directly with arbitrary IDs.
+Lookups should return nullable entity types (`Product?`). This allows unresolved keys to return `null` and helps avoid cascading failures when one or more subgraphs cannot provide additional fields for an entity.
 
 ### Internal Lookups
 
@@ -87,14 +85,14 @@ An internal lookup is hidden from the composite schema. Clients cannot call it. 
 public static partial class ProductQueries
 {
     [Lookup, Internal]
-    public static Product GetProductById([ID<Product>] int id)
+    public static Product? GetProductById([ID<Product>] int id)
         => new(id);
 }
 ```
 
 The `[Internal]` attribute hides this lookup from the composite schema. The gateway uses it when it needs to enter the Reviews subgraph to resolve `Product.reviews`, but clients never see or call it.
 
-Internal lookups typically construct a stub object from the key without checking whether the entity actually exists (note the non-nullable return type `Product` and the simple `new(id)`). This is safe because the gateway only calls internal lookups during entity resolution, after another subgraph has already confirmed the entity exists.
+Lookups should return nullable entity types (`Product?`) so unresolved keys can return `null` and avoid cascading failures across subgraphs. Internal lookups often still construct a stub from the key without checking existence, because the gateway calls them during entity resolution with already-known keys.
 
 ### When to Use Internal vs. Public Lookups
 
@@ -108,9 +106,9 @@ Use an **internal lookup** when:
 
 - Your subgraph extends an entity from another subgraph (the Reviews subgraph extending `Product`)
 - You do not want clients to enter your subgraph through this lookup
-- The lookup just constructs a stub -- it does not need to validate existence
+- The lookup just constructs a stub. It does not need to validate existence.
 
-Every entity that your subgraph references must have a lookup in at least one subgraph. If your subgraph extends `Product`, either your subgraph provides a lookup or another subgraph does. The gateway needs at least one lookup per entity to resolve cross-subgraph references.
+For cross-subgraph resolution to work, the composed API needs at least one lookup per referenced entity. If your subgraph extends `Product`, either your subgraph defines that lookup or another subgraph does.
 
 ### Multiple Lookups Per Entity
 
@@ -122,7 +120,7 @@ An entity can have multiple lookups, even in the same subgraph. This is useful w
 [QueryType]
 public static partial class UserQueries
 {
-    [Lookup, NodeResolver]
+    [Lookup]
     public static async Task<User?> GetUserById(
         int id,
         IUserByIdDataLoader userById,
@@ -138,9 +136,7 @@ public static partial class UserQueries
 }
 ```
 
-The Accounts subgraph provides two lookups for `User`: one by `id` and one by `username`. The gateway can resolve a User reference using whichever key is available. If another subgraph references a User by username (rather than by numeric ID), the gateway uses the `GetUserByUsername` lookup.
-
-The `[NodeResolver]` attribute on `GetUserById` marks it as the Relay node resolver, enabling `node(id: "...")` queries for this entity. You can have at most one `[NodeResolver]` per entity type per subgraph.
+The Accounts subgraph defines two lookups for `User`: one by `id` and one by `username`. The gateway can resolve a User reference using whichever key is available. If another subgraph references a User by username, the gateway uses `GetUserByUsername`.
 
 ### Argument Mapping with `@is`
 
@@ -152,13 +148,13 @@ type Query {
 }
 ```
 
-The `@is` directive tells the composition engine that the `productId` argument corresponds to the `id` field on the `Person` type. When argument names match field names (which is the common case), you can omit `@is` -- the mapping is inferred automatically.
+The `@is` directive tells the composition engine that the `productId` argument corresponds to the `id` field on the `Person` type. When argument names match field names, which is the common case, you can omit `@is` because the mapping is inferred automatically.
 
 ### Batch Lookups and the N+1 Problem
 
-When the gateway resolves a list of entities (for example, fetching reviews for 10 products), it needs to call the lookup once per entity. Without batching, this creates an N+1 problem -- 1 call to get the product list, then N calls to get reviews for each product.
+When the gateway resolves a list of entities (for example, fetching reviews for 10 products), it needs to call the lookup once per entity. Without batching, this creates an N+1 problem: one call to get the product list, then N calls to get reviews for each product.
 
-HotChocolate's `[DataLoader]` attribute solves this by automatically batching entity resolution. Instead of N individual calls, the gateway sends one batched request with all N keys.
+Hot Chocolate's `[DataLoader]` attribute solves this by automatically batching entity resolution.
 
 ```csharp
 // Products/Data/ProductDataLoader.cs
@@ -253,15 +249,7 @@ Do **not** use `[Shareable]` when:
 
 A common use case: the Reviews subgraph stores a local copy of `User.name` for display purposes. Both the Accounts and Reviews subgraphs can resolve it, so both mark it `[Shareable]`. The gateway can resolve `User.name` from whichever subgraph it is already calling for that query, avoiding an extra cross-subgraph hop.
 
-### The Incorrect "All Types Shareable by Default" Claim
-
-Some earlier documentation stated that "all object types are shareable by default" in Fusion. This is incorrect. The correct behavior:
-
-- **Key fields** (referenced by lookups) are automatically shareable -- you do not need `[Shareable]`.
-- **All other fields** must be explicitly marked `[Shareable]` if defined in multiple subgraphs.
-- Without `[Shareable]`, duplicate non-key fields cause a composition error.
-
-This matches the GraphQL Composite Schemas specification: `@shareable` permits multiple subgraphs to define the same field, and without it, a field may only exist in one subgraph.
+In short: key fields used for entity identity are implicitly shareable, while duplicate non-key fields require `[Shareable]` on every definition.
 
 ## `[EntityKey]` for Explicit Key Declaration
 
@@ -276,107 +264,12 @@ Sometimes you need to declare the key explicitly. Use `[EntityKey]` when:
 // Shipping/Types/Product.cs
 
 [EntityKey("id")]
-public sealed record Product([property: ID<Product>] int Id)
-{
-    public int GetDeliveryEstimate(
-        string zip,
-        [Require("{ weight }")] int weight)
-    {
-        return CalculateShipping(zip, weight);
-    }
-}
+public sealed record Product([property: ID<Product>] int Id);
 ```
 
 The `[EntityKey("id")]` attribute explicitly declares that `Product` is an entity identified by the `id` field. This is needed in the Shipping subgraph because it does not define its own lookup that would let the composition engine infer the key.
 
 The argument to `[EntityKey]` is the GraphQL field name (lowercase `"id"`), not the C# property name.
-
-## Optimization Hints: `@provides` and `@external`
-
-In most cases, you do not need these directives. They are optimization hints that help the gateway avoid unnecessary cross-subgraph calls.
-
-### `@provides`
-
-The `@provides` directive (expressed in C# through `[Parent(requires: "...")]` patterns) tells the composition engine that a field resolver can supply certain subfields of its return type locally, avoiding a separate cross-subgraph call.
-
-For example, if the Reviews subgraph stores a local copy of the user's name alongside each review:
-
-```csharp
-// Reviews/Types/ReviewNode.cs
-
-[ObjectType<Review>]
-internal static partial class ReviewNode
-{
-    [BindMember(nameof(Review.AuthorId))]
-    public static async Task<User?> GetAuthorAsync(
-        [Parent(requires: nameof(Review.AuthorId))] Review review,
-        IUserByIdDataLoader userById,
-        CancellationToken cancellationToken)
-        => await userById.LoadAsync(review.AuthorId, cancellationToken);
-}
-```
-
-When the Reviews subgraph resolves `Review.author`, it can also supply the author's `name` from its local data. The gateway knows it does not need a separate call to the Accounts subgraph just to get `User.name` -- the Reviews subgraph already has it.
-
-### `@external`
-
-The `@external` directive indicates that a field is defined and primarily resolved by another subgraph. It is used in conjunction with `@provides` to mark fields that this subgraph can supply in specific contexts but does not own.
-
-In HotChocolate, you typically do not need to write `@external` explicitly. The composition engine infers external fields from entity stubs and `@provides` declarations. If you are writing schemas in SDL rather than C#, you would use `@external` on fields that another subgraph owns but that your subgraph can provide as an optimization.
-
-## Node Pattern (Relay Global Object Identification)
-
-The [Relay Global Object Identification specification](https://relay.dev/graphql/objectidentification.htm) defines a standard way to fetch any entity by a globally unique ID using a `node(id: "...")` query. Fusion supports this pattern through the `[NodeResolver]` attribute and `AddGlobalObjectIdentification()`.
-
-### Enabling the Node Pattern
-
-**In each subgraph**, register global object identification:
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddGlobalObjectIdentification()
-    .AddTypes();
-```
-
-Then mark one lookup per entity type with `[NodeResolver]`:
-
-```csharp
-[QueryType]
-public static partial class ProductQueries
-{
-    [Lookup, NodeResolver]
-    public static async Task<Product?> GetProductByIdAsync(
-        int id,
-        IProductByIdDataLoader productById,
-        CancellationToken cancellationToken)
-        => await productById.LoadAsync(id, cancellationToken);
-}
-```
-
-`[NodeResolver]` tells HotChocolate that this lookup is the Relay node resolver for `Product`. The `node(id: "...")` query decodes the global ID, determines the entity type, and dispatches to the correct `[NodeResolver]` lookup.
-
-**During composition**, enable global object identification with the `--enable-global-object-identification` flag:
-
-```bash
-nitro fusion compose \
-  --source-schema-file Products/schema.graphqls \
-  --source-schema-file Reviews/schema.graphqls \
-  --archive gateway.far \
-  --enable-global-object-identification
-```
-
-This adds the `node` and `nodes` query fields to the composite schema. Without this flag, `[NodeResolver]` annotations are ignored during composition.
-
-### When to Use It
-
-The node pattern is useful when:
-
-- Your clients use Relay or a client that expects global object identification
-- You want a uniform way to refetch any entity by a single opaque ID
-- The fusion-demo uses `[NodeResolver]` on every entity lookup as a standard practice
-
-You can have at most one `[NodeResolver]` per entity type per subgraph. If an entity has multiple lookups (by ID, by username, etc.), only the primary one should be the `[NodeResolver]`.
 
 ## Putting It All Together
 
@@ -385,7 +278,7 @@ Here is a summary of the patterns for the most common entity scenarios:
 **You own the entity (primary subgraph):**
 
 - Define the full type with all fields
-- Add a public `[Lookup]` resolver (with `[NodeResolver]` if using Relay)
+- Add a public `[Lookup]` resolver
 - Use `[DataLoader]` for batch resolution
 
 **You extend the entity (secondary subgraph):**
@@ -394,12 +287,6 @@ Here is a summary of the patterns for the most common entity scenarios:
 - Add an internal `[Lookup, Internal]` resolver
 - Use `[BindMember]` if replacing a foreign key with an entity reference
 - Mark any duplicated non-key fields with `[Shareable]`
-
-**You need data from another subgraph in a resolver:**
-
-- Use `[Require(...)]` on the resolver argument to declare the dependency
-- The gateway fetches the required data automatically
-- Required arguments are hidden from the composite schema
 
 **Your entity can be identified by multiple keys:**
 
