@@ -4,13 +4,23 @@ namespace Mocha.Transport.RabbitMQ;
 /// Manages the RabbitMQ topology model (exchanges, queues, and bindings) for a transport instance,
 /// providing thread-safe mutation and lookup of topology resources.
 /// </summary>
-public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transport, Uri baseAddress)
+public sealed class RabbitMQMessagingTopology(
+    RabbitMQMessagingTransport transport,
+    Uri baseAddress,
+    RabbitMQBusDefaults defaults,
+    bool autoProvision)
     : MessagingTopology<RabbitMQMessagingTransport>(transport, baseAddress)
 {
     private readonly object _lock = new();
     private readonly List<RabbitMQExchange> _exchanges = [];
     private readonly List<RabbitMQQueue> _queues = [];
     private readonly List<RabbitMQBinding> _bindings = [];
+
+    /// <summary>
+    /// Gets a value indicating whether topology resources should be auto-provisioned by default.
+    /// Individual resources may override this setting via their own <c>AutoProvision</c> property.
+    /// </summary>
+    public bool AutoProvision => autoProvision;
 
     /// <summary>
     /// Gets the list of exchanges registered in this topology.
@@ -26,6 +36,11 @@ public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transpo
     /// Gets the list of bindings connecting exchanges to queues or other exchanges in this topology.
     /// </summary>
     public IReadOnlyList<RabbitMQBinding> Bindings => _bindings;
+
+    /// <summary>
+    /// Gets the bus-level defaults applied to all auto-provisioned queues and exchanges.
+    /// </summary>
+    public RabbitMQBusDefaults Defaults => defaults;
 
     /// <summary>
     /// Adds a new exchange to the topology, initializing it from the given configuration.
@@ -46,6 +61,7 @@ public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transpo
             exchange = new RabbitMQExchange();
 
             configuration.Topology = this;
+            defaults.Exchange.ApplyTo(configuration);
             exchange.Initialize(configuration);
 
             _exchanges.Add(exchange);
@@ -75,6 +91,9 @@ public sealed class RabbitMQMessagingTopology(RabbitMQMessagingTransport transpo
             }
 
             configuration.Topology = this;
+
+            defaults.Queue.ApplyTo(configuration);
+
             queue = new RabbitMQQueue();
             queue.Initialize(configuration);
 

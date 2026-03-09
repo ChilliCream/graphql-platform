@@ -82,7 +82,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Executes a complex query with:\n- Multiple lines\n- Special chars: \"quotes\", 'apostrophes', `backticks`\n- Paths: C:\\Program Files\\App\n- Tab\tseparated\tvalues";
+                    configuration.Description = GetDescription("Executes a complex query with:\n- Multiple lines\n- Special chars: \"quotes\", 'apostrophes', `backticks`\n- Paths: C:\\Program Files\\App\n- Tab\tseparated\tvalues", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
@@ -99,7 +99,7 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("query", global::HotChocolate.Types.MemberKind.Argument),
-                            Description = "SQL query like: SELECT * FROM \"Users\" WHERE name = 'John'",
+                            Description = GetDescription("SQL query like: SELECT * FROM \"Users\" WHERE name = 'John'", true, field.Context.Options.UseXmlDocumentation),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string"))),
@@ -117,7 +117,7 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("timeout", global::HotChocolate.Types.MemberKind.Argument),
-                            Description = "Timeout in ms (default: 30000)",
+                            Description = GetDescription("Timeout in ms (default: 30000)", true, field.Context.Options.UseXmlDocumentation),
                             RuntimeDefaultValue = 30000,
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
@@ -178,6 +178,10 @@ namespace TestNamespace
                 return result;
             }
         }
+
+        [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static string? GetDescription(string value, bool isXmlDocumentation, bool useXmlDocumentation)
+            => !isXmlDocumentation || useXmlDocumentation ? value : null;
     }
 }
 

@@ -12,6 +12,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 {
     public CodeWriter Writer { get; } = new(sb);
 
+    private bool _hasDescription;
+
     protected abstract string OutputFieldDescriptorType { get; }
 
     public void WriteHeader()
@@ -276,13 +278,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         var description = resolver.Description;
         if (!string.IsNullOrEmpty(description))
         {
-            Writer.WriteIndentedLine("configuration.Description = \"{0}\";", GeneratorUtils.EscapeForStringLiteral(description));
+            _hasDescription = true;
+            Writer.WriteIndentedLine(
+                "configuration.Description = GetDescription(\"{0}\", {1}, field.Context.Options.UseXmlDocumentation);",
+                GeneratorUtils.EscapeForStringLiteral(description),
+                resolver.IsDescriptionFromAttribute ? "false" : "true");
         }
 
         var deprecationReason = resolver.DeprecationReason;
         if (!string.IsNullOrEmpty(deprecationReason))
         {
-            Writer.WriteIndentedLine("configuration.DeprecationReason = \"{0}\";", GeneratorUtils.EscapeForStringLiteral(deprecationReason));
+            Writer.WriteIndentedLine(
+                "configuration.DeprecationReason = \"{0}\";",
+                GeneratorUtils.EscapeForStringLiteral(deprecationReason));
         }
 
         WriteResolverBindingDescriptor(type, resolver);
@@ -381,9 +389,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         description = parameter.Description;
                         if (!string.IsNullOrEmpty(description))
                         {
+                            _hasDescription = true;
                             Writer.WriteIndentedLine(
-                                "Description = \"{0}\",",
-                                GeneratorUtils.EscapeForStringLiteral(description));
+                                "Description = GetDescription(\"{0}\", {1}, field.Context.Options.UseXmlDocumentation),",
+                                GeneratorUtils.EscapeForStringLiteral(description),
+                                parameter.IsDescriptionFromAttribute ? "false" : "true");
                         }
 
                         deprecationReason = parameter.DeprecationReason;
@@ -616,6 +626,22 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     {
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("}");
+    }
+
+    public void WriteGetDescriptionHelper()
+    {
+        if (!_hasDescription)
+        {
+            return;
+        }
+
+        Writer.WriteLine();
+        Writer.WriteIndentedLine("[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+        Writer.WriteIndentedLine("private static string? GetDescription(string value, bool isXmlDocumentation, bool useXmlDocumentation)");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine("=> !isXmlDocumentation || useXmlDocumentation ? value : null;");
+        }
     }
 
     public virtual void WriteResolverFields(IOutputTypeInfo type)
@@ -1091,6 +1117,39 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             i,
                             parameter.Type.ToFullyQualified(),
                             parameter.Key);
+                        break;
+
+                    case ResolverParameterKind.Selection:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = contexts[0].Selection;",
+                            i);
+                        break;
+
+                    case ResolverParameterKind.QueryContext:
+                        var entityType = parameter.TypeParameters[0].ToFullyQualified();
+                        Writer.WriteIndentedLine("var args{0}_selection = contexts[0].Selection;", i);
+                        Writer.WriteIndentedLine("var args{0}_filter = global::{1}.GetFilterContext(contexts[0]);",
+                            i,
+                            WellKnownTypes.FilterContextResolverContextExtensions);
+                        Writer.WriteIndentedLine("var args{0}_sorting = global::{1}.GetSortingContext(contexts[0]);",
+                            i,
+                            WellKnownTypes.SortingContextResolverContextExtensions);
+                        Writer.WriteIndentedLine(
+                            "var args{0} = new global::{1}<{2}>(",
+                            i,
+                            WellKnownTypes.QueryContext,
+                            entityType);
+                        using (Writer.IncreaseIndent())
+                        {
+                            Writer.WriteIndentedLine(
+                                "global::{0}.AsSelector<{1}>(args{2}_selection, contexts[0].IncludeFlags),",
+                                WellKnownTypes.HotChocolateExecutionSelectionExtensions,
+                                entityType,
+                                i);
+                            Writer.WriteIndentedLine("args{0}_filter?.AsPredicate<{1}>(),", i, entityType);
+                            Writer.WriteIndentedLine("args{0}_sorting?.AsSortDefinition<{1}>());", i, entityType);
+                        }
+
                         break;
 
                     default:
@@ -1625,6 +1684,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         "var args{0} = global::{1}.GetConnectionFlags(context);",
                         i,
                         WellKnownTypes.ConnectionFlagsHelper);
+                    break;
+
+                case ResolverParameterKind.Selection:
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.Selection;",
+                        i);
                     break;
 
                 case ResolverParameterKind.Unknown:

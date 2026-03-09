@@ -82,7 +82,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Type description.";
+                    configuration.Description = GetDescription("Type description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 
@@ -101,7 +101,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Field description.";
+                    configuration.Description = GetDescription("Field description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 
@@ -120,7 +120,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Property description.";
+                    configuration.Description = GetDescription("Property description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 
@@ -139,7 +139,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Method description.";
+                    configuration.Description = GetDescription("Method description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 
@@ -158,7 +158,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Event description.";
+                    configuration.Description = GetDescription("Event description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 
@@ -177,7 +177,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Nested type instance field description.";
+                    configuration.Description = GetDescription("Nested type instance field description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 
@@ -196,7 +196,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Int-overloaded method description.";
+                    configuration.Description = GetDescription("Int-overloaded method description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 
@@ -327,6 +327,10 @@ namespace TestNamespace
                 return result;
             }
         }
+
+        [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static string? GetDescription(string value, bool isXmlDocumentation, bool useXmlDocumentation)
+            => !isXmlDocumentation || useXmlDocumentation ? value : null;
     }
 }
 

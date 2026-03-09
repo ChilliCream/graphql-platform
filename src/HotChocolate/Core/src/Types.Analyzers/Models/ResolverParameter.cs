@@ -12,10 +12,12 @@ public sealed class ResolverParameter
         SchemaTypeReference schemaTypeRef,
         string? description,
         string? deprecationReason,
-        string? key)
+        string? key,
+        bool isDescriptionFromAttribute = false)
         : this(parameter, kind, schemaTypeRef, deprecationReason, key)
     {
         Description = description;
+        IsDescriptionFromAttribute = isDescriptionFromAttribute;
     }
 
     public ResolverParameter(
@@ -48,6 +50,8 @@ public sealed class ResolverParameter
     public string Name { get; }
 
     public string? Description { get; set; }
+
+    public bool IsDescriptionFromAttribute { get; set; }
 
     public string? DeprecationReason { get; }
 
@@ -84,7 +88,8 @@ public sealed class ResolverParameter
             ResolverParameterKind.FieldNode or
             ResolverParameterKind.OutputField or
             ResolverParameterKind.ClaimsPrincipal or
-            ResolverParameterKind.ConnectionFlags;
+            ResolverParameterKind.ConnectionFlags or
+            ResolverParameterKind.Selection;
 
     public bool RequiresBinding
         => Kind == ResolverParameterKind.Unknown;
@@ -100,7 +105,8 @@ public sealed class ResolverParameter
             SchemaTypeRef,
             Description,
             DeprecationReason,
-            Key);
+            Key,
+            IsDescriptionFromAttribute);
 
     private static ImmutableArray<ITypeSymbol> GetGenericTypeArgument(ITypeSymbol typeSymbol)
     {

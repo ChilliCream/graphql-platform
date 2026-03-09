@@ -50,4 +50,25 @@ public static partial class BrandNode
 
         return brands.Select(b => counts.GetValueOrDefault(b.Id, 0)).ToList();
     }
+
+    [BindMember(nameof(Brand.SupplierId))]
+    [BatchResolver]
+    public static async Task<List<Supplier?>> GetSupplierAsync(
+        [Parent(requires: nameof(Brand.SupplierId))] List<Brand> brands,
+        QueryContext<Supplier> query,
+        [Service] CatalogContext context,
+        CancellationToken cancellationToken)
+    {
+        var supplierIds = brands.Select(b => b.SupplierId).Distinct().ToList();
+
+        var queryable = context.Suppliers
+            .Where(s => supplierIds.Contains(s.Id))
+            .With(query.Include(s => s.Id));
+        PagingQueryInterceptor.Publish(queryable);
+
+        var suppliers = await queryable
+            .ToDictionaryAsync(s => s.Id, cancellationToken);
+
+        return brands.Select(b => suppliers.GetValueOrDefault(b.SupplierId)).ToList();
+    }
 }

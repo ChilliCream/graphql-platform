@@ -11,12 +11,7 @@ public class MochaRabbitMQResource : RabbitMQResource
 {
     public Task<string?> InvokeCommandAsync(string[] command)
         => Manager.InvokeCommandAsync(
-            new ContainerExecCreateParameters
-            {
-                Cmd = command,
-                AttachStdout = true,
-                AttachStderr = true
-            });
+            new ContainerExecCreateParameters { Cmd = command, AttachStdout = true, AttachStderr = true });
 }
 
 public sealed class RabbitMQFixture : IAsyncLifetime
@@ -41,8 +36,15 @@ public sealed class RabbitMQFixture : IAsyncLifetime
     {
         var vhostName = GenerateVhostName(testName, filePath);
         await _resource.InvokeCommandAsync(["rabbitmqctl", "add_vhost", vhostName]);
-        await _resource.InvokeCommandAsync(["rabbitmqctl", "set_permissions", "-p", vhostName, "guest", ".*", ".*", ".*"]);
+        await _resource.InvokeCommandAsync([
+            "rabbitmqctl", "set_permissions", "-p", vhostName, "guest", ".*", ".*", ".*"
+        ]);
         return new VhostContext(this, vhostName);
+    }
+
+    internal async Task<string?> InvokeCommandAsync(string[] command)
+    {
+        return await _resource.InvokeCommandAsync(command);
     }
 
     internal async Task CloseAllConnectionsAsync(string reason = "test")
@@ -62,12 +64,22 @@ public sealed class RabbitMQFixture : IAsyncLifetime
     }
 }
 
-public sealed class VhostContext(RabbitMQFixture fixture, string vhostName) : IAsyncDisposable
+public sealed class VhostContext : IAsyncDisposable
 {
-    public IConnectionFactory ConnectionFactory { get; } =
-        new ConnectionFactory { Uri = new Uri(fixture.ConnectionString), VirtualHost = vhostName };
+    private readonly RabbitMQFixture _fixture;
 
-    public async ValueTask DisposeAsync() => await fixture.DeleteVhostAsync(vhostName);
+    public VhostContext(RabbitMQFixture fixture, string vhostName)
+    {
+        _fixture = fixture;
+        VhostName = vhostName;
+        ConnectionFactory = new ConnectionFactory { Uri = new Uri(fixture.ConnectionString), VirtualHost = vhostName };
+    }
+
+    public string VhostName { get; }
+
+    public IConnectionFactory ConnectionFactory { get; }
+
+    public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);
 }
 
 [CollectionDefinition("RabbitMQ")]
