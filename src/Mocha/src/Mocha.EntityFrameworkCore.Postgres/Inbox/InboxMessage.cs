@@ -7,7 +7,7 @@ namespace Mocha.Inbox;
 /// <param name="consumerType">The consumer type name that processed this message.</param>
 /// <param name="messageType">The message type for diagnostics.</param>
 /// <param name="processedAt">The UTC timestamp when this message was processed.</param>
-public sealed class InboxMessage(string messageId, string consumerType, string? messageType, DateTime processedAt)
+public sealed class InboxMessage(string messageId, string consumerType, string messageType, DateTimeOffset processedAt)
 {
     /// <summary>
     /// Gets the unique message identifier.
@@ -22,16 +22,16 @@ public sealed class InboxMessage(string messageId, string consumerType, string? 
     /// <summary>
     /// Gets the message type for diagnostics.
     /// </summary>
-    public string? MessageType { get; private set; } = messageType;
+    public string MessageType { get; private set; } = messageType;
 
     /// <summary>
     /// Gets the UTC timestamp when this message was processed.
     /// </summary>
-    public DateTime ProcessedAt { get; private set; } = processedAt;
+    public DateTimeOffset ProcessedAt { get; private set; } = processedAt;
 
     // needed for EF Core
     // ReSharper disable once UnusedMember.Local
-    private InboxMessage() : this(default!, default!, default, default)
+    private InboxMessage() : this(default!, default!, default!, default)
     {
     }
 }

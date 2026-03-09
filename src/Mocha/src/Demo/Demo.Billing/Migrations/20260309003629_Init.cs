@@ -18,8 +18,8 @@ namespace HotChocolate.Demo.Billing.Migrations
                 {
                     message_id = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
                     consumer_type = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
-                    message_type = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
-                    processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
+                    message_type = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    processed_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
                 },
                 constraints: table =>
                 {

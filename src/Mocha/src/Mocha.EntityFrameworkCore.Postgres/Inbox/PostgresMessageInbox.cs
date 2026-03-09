@@ -52,13 +52,14 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
         CancellationToken cancellationToken)
     {
         await _semaphore.WaitAsync(cancellationToken);
+
         try
         {
             await EnsureConnectionOpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(_queries.Exists, _connection);
 
-            var activeTransaction = GetActiveTransaction();
+            var activeTransaction = _dbContext.GetActiveTransaction();
 
             if (activeTransaction is not null)
             {
@@ -69,7 +70,9 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
             command.Parameters.AddWithValue("consumer_type", consumerType);
 
             await command.PrepareAsync(cancellationToken);
+
             var result = await command.ExecuteScalarAsync(cancellationToken);
+
             return result is not null && (bool)result;
         }
         finally
@@ -85,13 +88,14 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
         CancellationToken cancellationToken)
     {
         await _semaphore.WaitAsync(cancellationToken);
+
         try
         {
             await EnsureConnectionOpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(_queries.TryClaim, _connection);
 
-            var activeTransaction = GetActiveTransaction();
+            var activeTransaction = _dbContext.GetActiveTransaction();
 
             if (activeTransaction is not null)
             {
@@ -100,11 +104,12 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
 
             command.Parameters.AddWithValue("message_id", envelope.MessageId ?? string.Empty);
             command.Parameters.AddWithValue("consumer_type", consumerType);
-            command.Parameters.AddWithValue("message_type",
-                (object?)envelope.MessageType ?? DBNull.Value);
+            command.Parameters.AddWithValue("message_type", envelope.MessageType ?? string.Empty);
 
             await command.PrepareAsync(cancellationToken);
+
             var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
             return rowsAffected > 0;
         }
         finally
@@ -120,13 +125,14 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
         CancellationToken cancellationToken)
     {
         await _semaphore.WaitAsync(cancellationToken);
+
         try
         {
             await EnsureConnectionOpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(_queries.Insert, _connection);
 
-            var activeTransaction = GetActiveTransaction();
+            var activeTransaction = _dbContext.GetActiveTransaction();
 
             if (activeTransaction is not null)
             {
@@ -135,8 +141,7 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
 
             command.Parameters.AddWithValue("message_id", envelope.MessageId ?? string.Empty);
             command.Parameters.AddWithValue("consumer_type", consumerType);
-            command.Parameters.AddWithValue("message_type",
-                (object?)envelope.MessageType ?? DBNull.Value);
+            command.Parameters.AddWithValue("message_type", envelope.MessageType ?? string.Empty);
 
             await command.PrepareAsync(cancellationToken);
             await command.ExecuteNonQueryAsync(cancellationToken);
@@ -153,13 +158,14 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
         CancellationToken cancellationToken)
     {
         await _semaphore.WaitAsync(cancellationToken);
+
         try
         {
             await EnsureConnectionOpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(_queries.Cleanup, _connection);
 
-            var activeTransaction = GetActiveTransaction();
+            var activeTransaction = _dbContext.GetActiveTransaction();
 
             if (activeTransaction is not null)
             {
@@ -169,6 +175,7 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
             command.Parameters.AddWithValue("cutoff", _timeProvider.GetUtcNow().UtcDateTime - maxAge);
 
             await command.PrepareAsync(cancellationToken);
+
             return await command.ExecuteNonQueryAsync(cancellationToken);
         }
         finally
@@ -176,16 +183,6 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
             _semaphore.Release();
         }
     }
-
-    /// <summary>
-    /// Retrieves the active <see cref="NpgsqlTransaction"/> from the DbContext, if one exists.
-    /// </summary>
-    /// <returns>The active transaction, or <c>null</c> if no transaction is in progress.</returns>
-    private NpgsqlTransaction? GetActiveTransaction()
-        => _dbContext
-            .Database
-            .CurrentTransaction
-            ?.GetDbTransaction() as NpgsqlTransaction;
 
     /// <summary>
     /// Ensures the underlying Npgsql connection is open before executing a command.
@@ -225,8 +222,8 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
     public static PostgresMessageInbox Create(Type contextType, string optionsName, IServiceProvider services)
     {
         var dbContext = (DbContext)services.GetRequiredService(contextType);
-        var connection = dbContext.Database.GetDbConnection() as NpgsqlConnection
-            ?? throw new InvalidOperationException("Not an Npgsql connection.");
+        var connection = dbContext.Database.GetDbConnection() as NpgsqlConnection ??
+            throw new InvalidOperationException("Not an Npgsql connection.");
 
         var optionsMonitor = services.GetRequiredService<IOptionsMonitor<PostgresMessageInboxOptions>>();
         var options = optionsMonitor.Get(optionsName);
@@ -234,4 +231,17 @@ internal sealed class PostgresMessageInbox : IMessageInbox, IDisposable
 
         return new PostgresMessageInbox(dbContext, connection, options.Queries, timeProvider);
     }
+}
+
+file static class Extensions
+{
+    /// <summary>
+    /// Retrieves the active <see cref="NpgsqlTransaction"/> from the DbContext, if one exists.
+    /// </summary>
+    /// <returns>The active transaction, or <c>null</c> if no transaction is in progress.</returns>
+    public static NpgsqlTransaction? GetActiveTransaction(this DbContext context)
+        => context
+            .Database
+            .CurrentTransaction
+            ?.GetDbTransaction() as NpgsqlTransaction;
 }

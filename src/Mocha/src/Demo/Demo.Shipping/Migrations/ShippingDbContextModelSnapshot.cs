@@ -173,11 +173,12 @@ namespace HotChocolate.Demo.Shipping.Migrations
                         .HasColumnName("consumer_type");
 
                     b.Property<string>("MessageType")
+                        .IsRequired()
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)")
                         .HasColumnName("message_type");
 
-                    b.Property<DateTime>("ProcessedAt")
+                    b.Property<DateTimeOffset>("ProcessedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("processed_at")
