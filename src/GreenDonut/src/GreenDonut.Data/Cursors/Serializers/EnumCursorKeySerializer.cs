@@ -9,7 +9,10 @@ internal sealed class EnumCursorKeySerializer<T> : ICursorKeySerializer where T 
     private static readonly MethodInfo _compareTo = CompareToResolver.GetCompareToMethod<T>();
 
     public bool IsSupported(Type type)
-        => type.IsEnum && Enum.GetUnderlyingType(type) == typeof(T);
+    {
+        var enumType = Nullable.GetUnderlyingType(type) ?? type;
+        return enumType.IsEnum && Enum.GetUnderlyingType(enumType) == typeof(T);
+    }
 
     public MethodInfo GetCompareToMethod(Type type)
         => _compareTo;
