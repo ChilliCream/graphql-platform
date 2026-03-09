@@ -700,9 +700,7 @@ Merging schemas...
 Fusion archive created: gateway.far
 ```
 
-The exact output may vary by Nitro CLI version, but you should see confirmation that the archive was created. The `gateway.far` file is a binary package containing the composed gateway configuration. You do not need to look inside this file; the gateway reads it directly. You will pass it to the gateway in the next section.
-
-Notice that composition validates your schemas at build time. If there were conflicts between subgraphs, for example two subgraphs defining the same field without the `@sharable` directive, you would find out now, not when a user hits a broken query path in production.
+The exact output may vary by Nitro CLI version. Confirm that `Gateway/gateway.far` was created. This file contains the composed gateway configuration, and the gateway loads it directly.
 
 ### What Happens During Composition
 
@@ -712,10 +710,6 @@ The Nitro CLI performs four steps:
 2. **Merge** source schemas: combine matching types and enforce field ownership rules.
 3. **Check satisfiability**: verify that cross-subgraph selections can actually be fulfilled with the available keys and lookups.
 4. **Produce** output: create the composite schema plus routing metadata for the gateway.
-
-In this tutorial, composition merges `Product` from Products (`id`, `name`, `price`) with the Reviews contribution (`reviews`) into one composite `Product`.
-
-Composition also records lookup routes. The gateway can resolve `Product` by key from Products for full product fields, or from Reviews for the local entity stub. The Reviews internal lookup (`@internal`) is excluded from the composite schema but still available to the gateway.
 
 ## Run the Fusion Gateway
 
@@ -728,7 +722,6 @@ From the `fusion-getting-started` directory:
 ```bash
 cd Gateway
 dotnet new graphql-gateway
-
 cd ..
 ```
 
@@ -763,7 +756,7 @@ Edit `Gateway/Properties/launchSettings.json` and set `launchUrl` and `applicati
 
 The gateway runs on port 5000. The subgraphs run on ports 5001 (Products) and 5002 (Reviews).
 
-### Copy the Fusion Archive
+### Verify the Fusion Archive
 
 The composition step already wrote `gateway.far` into the `Gateway` directory (`--f Gateway/gateway.far`). Verify that the file exists before continuing:
 
@@ -773,7 +766,7 @@ ls Gateway/gateway.far
 
 ### Configure the Gateway
 
-Set `Gateway/Program.cs` to:
+The template generates `Gateway/Program.cs`. It should look like this:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -781,8 +774,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddHttpClient("fusion");
 
-builder.Services
-    .AddGraphQLGatewayServer()
+builder
+    .AddGraphQLGateway()
     .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
@@ -794,7 +787,7 @@ app.Run();
 Three things to notice:
 
 - **`AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The gateway uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
-- **`AddGraphQLGatewayServer()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
+- **`AddGraphQLGateway()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
 - **`AddFileSystemConfiguration("./gateway.far")`** tells the gateway to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
 
 ### Start Everything
