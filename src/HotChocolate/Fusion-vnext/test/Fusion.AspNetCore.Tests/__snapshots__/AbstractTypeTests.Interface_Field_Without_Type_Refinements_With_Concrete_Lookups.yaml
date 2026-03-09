@@ -1,0 +1,65 @@
+title: Interface_Field_Without_Type_Refinements_With_Concrete_Lookups
+request:
+  document: |
+    {
+      votable {
+        id
+        viewerCanVote
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error"
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+      }
+
+      type Comment implements Votable @key(fields: "id") {
+        id: ID!
+      }
+
+      type Discussion implements Votable @key(fields: "id") {
+        id: ID!
+      }
+
+      type Query {
+        votable: Votable
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+
+      type Comment implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+
+      type Discussion implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+
+      type Query {
+        discussionById(id: ID!): Discussion @lookup
+        commentById(id: ID!): Comment @lookup
+      }
