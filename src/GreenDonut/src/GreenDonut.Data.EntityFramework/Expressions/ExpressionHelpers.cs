@@ -304,63 +304,6 @@ internal static class ExpressionHelpers
         return keyExpr;
     }
 
-    private static Expression BuildEqualComparison(
-        CursorKey cursorKey,
-        Expression keyExpr,
-        Expression cursorExpr)
-    {
-        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
-
-        if (comparisonType.IsEnum)
-        {
-            return Expression.Equal(keyExpr, cursorExpr);
-        }
-
-        return Expression.Equal(
-            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-            s_zero);
-    }
-
-    private static Expression BuildGreaterThanComparison(
-        CursorKey cursorKey,
-        Expression keyExpr,
-        Expression cursorExpr)
-    {
-        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
-
-        if (comparisonType.IsEnum)
-        {
-            var underlyingType = Enum.GetUnderlyingType(comparisonType);
-            return Expression.GreaterThan(
-                Expression.Convert(keyExpr, underlyingType),
-                Expression.Convert(cursorExpr, underlyingType));
-        }
-
-        return Expression.GreaterThan(
-            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-            s_zero);
-    }
-
-    private static Expression BuildLessThanComparison(
-        CursorKey cursorKey,
-        Expression keyExpr,
-        Expression cursorExpr)
-    {
-        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
-
-        if (comparisonType.IsEnum)
-        {
-            var underlyingType = Enum.GetUnderlyingType(comparisonType);
-            return Expression.LessThan(
-                Expression.Convert(keyExpr, underlyingType),
-                Expression.Convert(cursorExpr, underlyingType));
-        }
-
-        return Expression.LessThan(
-            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-            s_zero);
-    }
-
     private static bool IsNullable(LambdaExpression expression)
     {
         if (expression.ReturnType.IsValueType)
@@ -678,6 +621,63 @@ internal static class ExpressionHelpers
     {
         Expression<Func<T>> lambda = () => value;
         return lambda.Body;
+    }
+
+    private static Expression BuildEqualComparison(
+        CursorKey cursorKey,
+        Expression keyExpr,
+        Expression cursorExpr)
+    {
+        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
+
+        if (comparisonType.IsEnum)
+        {
+            return Expression.Equal(keyExpr, cursorExpr);
+        }
+
+        return Expression.Equal(
+            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+            s_zero);
+    }
+
+    private static Expression BuildGreaterThanComparison(
+        CursorKey cursorKey,
+        Expression keyExpr,
+        Expression cursorExpr)
+    {
+        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
+
+        if (comparisonType.IsEnum)
+        {
+            var underlyingType = Enum.GetUnderlyingType(comparisonType);
+            return Expression.GreaterThan(
+                Expression.Convert(keyExpr, underlyingType),
+                Expression.Convert(cursorExpr, underlyingType));
+        }
+
+        return Expression.GreaterThan(
+            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+            s_zero);
+    }
+
+    private static Expression BuildLessThanComparison(
+        CursorKey cursorKey,
+        Expression keyExpr,
+        Expression cursorExpr)
+    {
+        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
+
+        if (comparisonType.IsEnum)
+        {
+            var underlyingType = Enum.GetUnderlyingType(comparisonType);
+            return Expression.LessThan(
+                Expression.Convert(keyExpr, underlyingType),
+                Expression.Convert(cursorExpr, underlyingType));
+        }
+
+        return Expression.LessThan(
+            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+            s_zero);
     }
 
     private static Expression ReplaceParameter(
