@@ -1,0 +1,17 @@
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Mocha.Tests")]
+[assembly: InternalsVisibleTo("Mocha.Sagas")]
+[assembly: InternalsVisibleTo("Mocha.Sagas.TestHelpers")]
+[assembly: InternalsVisibleTo("Mocha.Sagas.Tests")]
+[assembly: InternalsVisibleTo("Mocha.Outbox")]
+[assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres")]
+[assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore")]
+[assembly: InternalsVisibleTo("Mocha.Transport.RabbitMQ")]
+[assembly: InternalsVisibleTo("Mocha.Tests")]
+[assembly: InternalsVisibleTo("Mocha.Sagas.TestHelpers")]
+[assembly: InternalsVisibleTo("Mocha.Sagas.Tests")]
+[assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore")]
+[assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres")]
+[assembly: InternalsVisibleTo("Mocha.Transport.RabbitMQ.Tests")]
+[assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres.Tests")]

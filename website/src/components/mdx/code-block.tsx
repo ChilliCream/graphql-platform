@@ -21,16 +21,26 @@ import styled, { css } from "styled-components";
 
 import { FONT_FAMILY_CODE, THEME_COLORS } from "@/style";
 import { Copy } from "./copy";
+import { MermaidDiagram } from "./mermaid-diagram";
 
 export interface CodeBlockProps {
   readonly children: any;
+  readonly className?: string;
   readonly language?: Language;
 }
 
 export const CodeBlock: FC<CodeBlockProps> = ({
   children,
+  className,
   language: fallbackLanguage,
 }) => {
+  // rehype-mermaid with pre-mermaid strategy outputs <pre class="mermaid">code</pre>
+  // without a <code> wrapper. Detect this and render client-side.
+  if (className === "mermaid") {
+    const code = typeof children === "string" ? children : String(children);
+    return <MermaidDiagram code={code.trim()} />;
+  }
+
   const language =
     (children.props?.className?.replace(/language-/, "") as Language) ||
     fallbackLanguage;

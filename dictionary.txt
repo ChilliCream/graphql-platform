@@ -17,6 +17,7 @@ backplane
 backpressure
 Badurina
 bananacakepop
+basicsaga
 bbox
 BCPROCKS
 bfnrt
@@ -38,7 +39,9 @@ colocated
 combinators
 contentfiles
 Contoso
+conv
 CQRS
+CUST
 creds
 dataloaders
 debuggable
@@ -80,6 +83,7 @@ Hmac
 hotchocolate
 Includable
 inheritdocs
+inmemory
 initializable
 inspectable
 Kellner
@@ -147,6 +151,7 @@ reencode
 refetched
 relayjs
 reprojected
+requestreply
 resharper
 resheader
 resmimetype
@@ -171,6 +176,7 @@ sortings
 Specwise
 sqft
 srid
+sszzz
 Staib
 Starships
 starwars
@@ -195,6 +201,7 @@ Trimmable
 Tzdb
 unlisten
 unpublish
+unserialized
 Unsubscriber
 uppercased
 Upsert
@@ -207,3 +214,5 @@ Wilhuff
 Wunder
 xunit
 Expando
+traceparent
+tracestate

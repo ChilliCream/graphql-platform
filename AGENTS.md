@@ -68,7 +68,7 @@ src/HotChocolate/              # GraphQL Server
     Subscriptions/             # Real-time updates
   AspNetCore/                  # HTTP integration
   Language/                    # Parser, syntax tree
-  Fusion-vnext/                # Distributed GraphQL
+  Fusion/                      # Distributed GraphQL
   Data/                        # Database integrations
 
 src/GreenDonut/                # Data fetching primitives

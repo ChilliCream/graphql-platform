@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -65,6 +66,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         return new Selection(
             context.NewSelectionId(),
             CombinedEdgeField,
+            SelectionPath.Root,
             nodesField,
             [new FieldSelectionNode(combinedField, 0)],
             [],

@@ -485,6 +485,32 @@ public class FilterInputTypeTest : FilterTestBase
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public void FilterInputType_Honors_SortFieldsByName()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s
+                .AddType(new FilterInputType<FilterWithNonAlphabeticallyMembers>())
+                .ModifyOptions(x => x.SortFieldsByName = true));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_ShouldInferDeprecatedDirective_ForDeprecatedFields()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s.AddType(new FilterInputType<TypeWithDeprecatedField>()));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
     public class FooDirectiveType
         : DirectiveType<FooDirective>
     {
@@ -701,6 +727,12 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     public record struct ExampleValueType(string Foo, string Bar);
+
+    public record FilterWithNonAlphabeticallyMembers(int X, int A, int Y, int Z, int B);
+
+    public record TypeWithDeprecatedField(
+        string Foo,
+        [property: GraphQLDeprecated("old")] string? DeprecatedField = null);
 
     private class BookFilterInput : FilterInputType<Book>
     {

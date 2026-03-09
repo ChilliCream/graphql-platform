@@ -483,6 +483,7 @@ public class ResolverCompilerTests
         var selection = new Selection(
             id: 1,
             "abc",
+            SelectionPath.Root,
             schema.Types.GetType<ObjectType>("Query").Fields["abc"],
             [new FieldSelectionNode(fieldSyntax, 1)],
             []);
@@ -525,6 +526,7 @@ public class ResolverCompilerTests
         var selection = new Selection(
             id: 1,
             "abc",
+            SelectionPath.Root,
             schema.Types.GetType<ObjectType>("Query").Fields["abc"],
             [new FieldSelectionNode(fieldSyntax, 1)],
             []);
@@ -625,6 +627,7 @@ public class ResolverCompilerTests
         var selection = new Selection(
             id: 1,
             "a",
+            SelectionPath.Root,
             queryType.Fields.First(),
             [new FieldSelectionNode(fieldSyntax, 1)],
             []);
@@ -668,6 +671,7 @@ public class ResolverCompilerTests
         var selection = new Selection(
             id: 1,
             "a",
+            SelectionPath.Root,
             queryType.Fields.First(),
             [new FieldSelectionNode(fieldSyntax, 1)],
             []);

@@ -82,7 +82,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Gets a user by ID.\nReturns null if not found.";
+                    configuration.Description = GetDescription("Gets a user by ID.\nReturns null if not found.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
@@ -99,7 +99,7 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("userId", global::HotChocolate.Types.MemberKind.Argument),
-                            Description = "The user's unique identifier with \"quotes\"",
+                            Description = GetDescription("The user's unique identifier with \"quotes\"", true, field.Context.Options.UseXmlDocumentation),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
@@ -117,7 +117,7 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("includeDeleted", global::HotChocolate.Types.MemberKind.Argument),
-                            Description = "Include deleted users (default: false)",
+                            Description = GetDescription("Include deleted users (default: false)", true, field.Context.Options.UseXmlDocumentation),
                             RuntimeDefaultValue = false,
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(bool), HotChocolate.Types.TypeContext.Input),
@@ -178,6 +178,10 @@ namespace TestNamespace
                 return result;
             }
         }
+
+        [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static string? GetDescription(string value, bool isXmlDocumentation, bool useXmlDocumentation)
+            => !isXmlDocumentation || useXmlDocumentation ? value : null;
     }
 }
 

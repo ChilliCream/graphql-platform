@@ -17,7 +17,9 @@ type BillingStatementTransaction implements StatementTransaction {
 }
 
 type Brand implements Node {
-  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): BrandProductsConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): BrandProductsConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
+  productCount: Int! @cost(weight: "10")
+  supplier: Supplier @cost(weight: "10")
   id: ID!
   name: String!
 }
@@ -166,19 +168,27 @@ type Query {
   node("ID of the object." id: ID!): Node @shareable @cost(weight: "10")
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @cost(weight: "10")
-  hiddenNameProductTypes("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductTypeFilterInput @cost(weight: "10") order: [ProductTypeSortInput!] @cost(weight: "10")): ProductTypeConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
-  brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  hiddenNameProductTypes("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductTypeFilterInput @cost(weight: "10") order: [ProductTypeSortInput!] @cost(weight: "10")): ProductTypeConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
+  brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
   brandById(id: ID!): Brand @lookup @cost(weight: "10")
   brandByIdWithDL(id: ID!): Brand @lookup @cost(weight: "10")
-  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
   productById(id: ID!): Product @lookup @internal @cost(weight: "10")
-  productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
   singleProperties: [SingleProperty!]! @cost(weight: "10")
   statementTransaction: StatementTransaction!
 }
 
 type SingleProperty {
   id: String!
+}
+
+type Supplier {
+  id: Int!
+  name: String!
+  website: String
+  contactEmail: String
+  brands: [Brand!]!
 }
 
 input BooleanOperationFilterInput {
@@ -191,6 +201,7 @@ input BrandFilterInput {
   or: [BrandFilterInput!]
   id: IntOperationFilterInput
   name: StringOperationFilterInput
+  supplier: SupplierFilterInput
   products: ListFilterInputTypeOfProductFilterInput
 }
 
@@ -232,6 +243,13 @@ input IntOperationFilterInput {
   nlt: Int @cost(weight: "10")
   lte: Int @cost(weight: "10")
   nlte: Int @cost(weight: "10")
+}
+
+input ListFilterInputTypeOfBrandFilterInput {
+  all: BrandFilterInput @cost(weight: "10")
+  none: BrandFilterInput @cost(weight: "10")
+  some: BrandFilterInput @cost(weight: "10")
+  any: Boolean @cost(weight: "10")
 }
 
 input ListFilterInputTypeOfProductFilterInput {
@@ -286,6 +304,16 @@ input StringOperationFilterInput {
   nstartsWith: String @cost(weight: "20")
   endsWith: String @cost(weight: "20")
   nendsWith: String @cost(weight: "20")
+}
+
+input SupplierFilterInput {
+  and: [SupplierFilterInput!]
+  or: [SupplierFilterInput!]
+  id: IntOperationFilterInput
+  name: StringOperationFilterInput
+  website: StringOperationFilterInput
+  contactEmail: StringOperationFilterInput
+  brands: ListFilterInputTypeOfBrandFilterInput
 }
 
 "Defines the possible serialization types for GraphQL scalar values."
