@@ -21,7 +21,6 @@
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Language" />
-    <InternalsVisibleTo Include="HotChocolate.OpenApi" />
     <InternalsVisibleTo Include="HotChocolate.Transport.Http" />
     <InternalsVisibleTo Include="HotChocolate.Transport.Sockets.Client" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
