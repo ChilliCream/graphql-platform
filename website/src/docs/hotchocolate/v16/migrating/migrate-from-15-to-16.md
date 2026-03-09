@@ -438,6 +438,61 @@ builder.Services
         value => JsonSerializer.SerializeToElement(value.Id));
 ```
 
+### Any input fields now deserialize complex types as `JsonElement`
+
+Previously, complex input values for `Any`-typed input variables were deserialized as `IDictionary<string, object?>`.  
+They are now deserialized as `JsonElement`, aligning input behavior with arbitrary output types.
+
+```csharp
+public string Foo([GraphQLType<AnyType>]object? input) => input?.GetType().Name;
+```
+
+```graphql
+query {
+  foo(input: { key: "value" })
+  # Now returns: "JsonElement"
+  # Previously (v15): "Dictionary`2"
+}
+```
+
+### Runtime objects passed as variables to OperationRequestBuilder are now serialized as JSON
+
+Passing CLR objects via `OperationRequestBuilder.SetVariableValues(Dictionary<string, object?>)` now serializes the values as JSON.
+
+You may prefer providing variables directly as JSON:
+
+```csharp
+var requestBuilder = new OperationRequestBuilder();
+requestBuilder.SetVariableValues("""{ "id": 42 }""");
+```
+
+Note that this can lead to errors if the emitted JSON for a type is not valid for the corresponding GraphQL scalar, f. e. du to format restrictions.
+For example, a `DateTime` value can no longer be used to fill a `Date` scalar since the JSON format does not match the expected yyyy-MM-dd format.
+
+You can also bypass this by annotating your types with custom JsonConverters.
+
+If you need to pass an Upload scalar value, you can do the following:
+```csharp
+var requestBuilder = new OperationRequestBuilder();
+requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
+requestBuilder.Features.Set<IFileLookup>(fileLookup);
+
+public class FileLookup : IFileLookup
+{
+    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
+    {
+        if (name == "yourKey")
+        {
+            file = new StreamFile("Foo.txt", () => new MemoryStream());
+            return true;
+        }
+        
+        file = null;
+        return false;
+    }
+}
+```  
+
 ## `Byte` and `SignedByte` types renamed
 
 - The GraphQL type `Byte` has been renamed to `UnsignedByte` (CLR type: `byte`).
@@ -615,6 +670,8 @@ builder.Services
         new HttpResponseFormatterOptions { /* ... */ },
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
+## `OperationRequestBuilder.AddVariableValues` renamed to `SetVariableValues`
+`OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
 
 # Deprecations
 
