@@ -1,6 +1,6 @@
 ---
 title: "Reliability"
-description: "Configure fault handling, dead-letter routing, message expiry, concurrency limits, circuit breakers, and the transactional outbox in Mocha to build resilient messaging pipelines."
+description: "Configure fault handling, dead-letter routing, message expiry, concurrency limits, circuit breakers, the transactional outbox, and the idempotent inbox in Mocha to build resilient messaging pipelines."
 ---
 
 Messaging systems fail. Handlers throw exceptions, brokers go offline, databases lock up, and messages arrive faster than consumers can process them. Mocha's reliability features handle these failures at the infrastructure level so your handler code stays focused on business logic.
@@ -17,24 +17,26 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UseTransaction();
+        p.UsePostgresInbox();
     })
     .AddRabbitMQ();
 ```
 
-That configuration adds circuit breaking, concurrency limiting, transactional outbox, and database transaction wrapping - all as middleware in the receive and dispatch pipelines.
+That configuration adds circuit breaking, concurrency limiting, transactional outbox, idempotent inbox, and database transaction wrapping - all as middleware in the receive and dispatch pipelines.
 
 # Delivery guarantees
 
-The outbox changes what delivery guarantee your system provides:
+The outbox and inbox change what delivery guarantee your system provides:
 
-| Configuration  | Guarantee     | What it means                                                                                                                                  |
-| -------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Without outbox | At-most-once  | A message may be lost if the broker or handler crashes after receipt but before processing completes.                                          |
-| With outbox    | At-least-once | Every message is persisted before dispatch. Your handlers may be invoked more than once if a crash occurs between dispatch and acknowledgment. |
+| Configuration       | Guarantee                | What it means                                                                                                                                  |
+| ------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Without outbox      | At-most-once             | A message may be lost if the broker or handler crashes after receipt but before processing completes.                                          |
+| With outbox         | At-least-once            | Every message is persisted before dispatch. Your handlers may be invoked more than once if a crash occurs between dispatch and acknowledgment. |
+| With outbox + inbox | Effectively exactly-once | The outbox guarantees every message is delivered. The inbox deduplicates on the receiving side, so each message is processed exactly once.     |
 
-At-least-once delivery is the right default for most production systems. It shifts the burden from "did this message arrive?" to "is my handler safe to run twice?" Design handlers to be idempotent.
+At-least-once delivery is the right default for most production systems. Adding the inbox on the consumer side upgrades the guarantee to effectively exactly-once processing - the outbox ensures delivery and the inbox ensures your handler runs only once per message. If you use the outbox without the inbox, design handlers to be idempotent.
 
 # The receive pipeline and failure flow
 
@@ -51,10 +53,13 @@ TransportCircuitBreaker
               -> MessageTypeSelection
                 -> Routing
                   -> Consumer pipeline
-                    -> Your handler
+                    -> Transaction middleware (BEGIN)
+                      -> Inbox (claim inside transaction)
+                        -> Your handler
+                    -> Transaction middleware (COMMIT/ROLLBACK)
 ```
 
-Each middleware can intercept failures from downstream, transform them, or short-circuit the pipeline. The reliability middlewares - dead-letter, fault, circuit breaker, expiry, and concurrency limiter - are all enabled by default with sensible defaults. You tune them when the defaults do not match your workload.
+Each middleware can intercept failures from downstream, transform them, or short-circuit the pipeline. The reliability middlewares - dead-letter, fault, circuit breaker, expiry, inbox, and concurrency limiter - are all enabled by default with sensible defaults. You tune them when the defaults do not match your workload.
 
 # Handle faults
 
@@ -290,7 +295,7 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UseTransaction();
     })
     .AddRabbitMQ();
@@ -299,7 +304,7 @@ builder.Services
 | Call                             | Purpose                                                                                            |
 | -------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `AddEntityFramework<TContext>()` | Registers your DbContext with the bus for persistence features.                                    |
-| `AddPostgresOutbox()`            | Registers the Postgres outbox processor, background worker, and `IMessageOutbox`.                  |
+| `UsePostgresOutbox()`            | Registers the Postgres outbox processor, background worker, and `IMessageOutbox`.                  |
 | `UseTransaction()`               | Wraps each consumer invocation in a database transaction (commit on success, rollback on failure). |
 
 **4. Publish inside a transaction.**
@@ -331,7 +336,7 @@ public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
 After the transaction commits, the outbox processor detects the new message (via EF Core interceptors that signal on save and transaction commit) and dispatches it to the transport.
 
 :::note Idempotency requirement
-The outbox guarantees at-least-once delivery. Your handlers may be invoked more than once for the same message if the outbox dispatches successfully but the transport acknowledgment is lost before the message is deleted from the outbox table. Design handlers to be idempotent. See the [Idempotent Consumer](https://microservices.io/patterns/communication-style/idempotent-consumer.html) pattern for strategies.
+The outbox guarantees at-least-once delivery. Your handlers may be invoked more than once for the same message if the outbox dispatches successfully but the transport acknowledgment is lost before the message is deleted from the outbox table. You can handle this in two ways: design handlers to be idempotent manually (see the [Idempotent Consumer](https://microservices.io/patterns/communication-style/idempotent-consumer.html) pattern), or enable the [inbox](#deduplicate-messages-with-the-transactional-inbox) on the receiving side to let Mocha deduplicate automatically.
 :::
 
 ## Use execution strategy resilience
@@ -344,7 +349,7 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
+        p.UsePostgresOutbox();
         p.UseResilience(); // Wraps consumer execution with the EF Core execution strategy
         p.UseTransaction();
     })
@@ -365,9 +370,188 @@ Some messages - like internal system events or replies that do not need durabili
 
 The outbox middleware also only intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
 
+# Deduplicate messages with the transactional inbox
+
+The transactional outbox guarantees at-least-once delivery. The transactional inbox completes the picture: it provides exactly-once processing by deduplicating messages on the receiving side.
+
+When a transport redelivers a message - because of a broker retry, a network hiccup, or an outbox re-dispatch - the inbox detects the duplicate `MessageId` and silently skips it. Your handler never runs twice for the same message.
+
+Deduplication is scoped per consumer type: when a message is routed to multiple handlers, each handler independently claims and processes the message. The inbox uses a composite key of `(MessageId, ConsumerType)` so that handler A and handler B each process the same message exactly once, even though they share the same inbox table.
+
+```mermaid
+sequenceDiagram
+    participant T as Transport
+    participant TX as Transaction Middleware
+    participant I as Inbox Middleware
+    participant DB as Inbox Table
+    participant H as Handler
+
+    T->>TX: Deliver message (MessageId: abc-123)
+    TX->>TX: BEGIN TRANSACTION
+    TX->>I: Pass to inbox
+    I->>DB: TryClaimAsync("abc-123", "OrderPlacedHandler") [inside transaction]
+    DB-->>I: true (claimed)
+    I->>H: Process message
+    H->>DB: Write business data [same transaction]
+    H-->>I: Handler completed
+    I-->>TX: Return
+    TX->>TX: COMMIT (inbox claim + business data atomic)
+    Note over T,DB: Later, transport redelivers the same message
+    T->>TX: Deliver message (MessageId: abc-123)
+    TX->>TX: BEGIN TRANSACTION
+    TX->>I: Pass to inbox
+    I->>DB: TryClaimAsync("abc-123", "OrderPlacedHandler") [inside transaction]
+    DB-->>I: false (already claimed)
+    I-->>TX: Skip (message not processed again)
+    TX->>TX: COMMIT (no-op)
+```
+
+The inbox middleware runs in the **consumer pipeline**, after the transaction middleware. This means the inbox claim INSERT participates in the same database transaction as the handler's business data. Both commit or rollback atomically: if the process crashes between the claim and the commit, the claim is rolled back and the message can be safely redelivered.
+
+Messages without a `MessageId` pass through the inbox without deduplication - there is no identifier to check against.
+
+See [Idempotent Consumer](https://microservices.io/patterns/communication-style/idempotent-consumer.html) for the canonical description of this pattern.
+
+## Set up the Postgres inbox
+
+**1. Add the NuGet packages.**
+
+```bash
+dotnet add package Mocha.EntityFrameworkCore
+dotnet add package Mocha.EntityFrameworkCore.Postgres
+```
+
+These are the same packages used by the outbox. If you already have them installed for the outbox, skip this step.
+
+**2. Add the `InboxMessage` entity to your DbContext.**
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Mocha.Inbox;
+
+public class AppDbContext : DbContext
+{
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+
+    // Your existing DbSets
+    public DbSet<Order> Orders => Set<Order>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.AddPostgresInbox();
+    }
+}
+```
+
+`InboxMessage` has four columns: `MessageId` (string), `ConsumerType` (string, the handler type name), `MessageType` (string, nullable, for diagnostics), and `ProcessedAt` (DateTime, defaults to `NOW()`). The primary key is the composite `(MessageId, ConsumerType)`, enabling per-handler deduplication when a message is routed to multiple consumers.
+
+**3. Register the inbox middleware.**
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEntityFramework<AppDbContext>(p =>
+    {
+        p.UseTransaction();
+        p.UsePostgresInbox();
+    })
+    .AddRabbitMQ();
+```
+
+| Call                             | Purpose                                                                                                              |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `AddEntityFramework<TContext>()` | Registers your DbContext with the bus for persistence features.                                                      |
+| `UsePostgresInbox()`             | Registers the Postgres inbox, background cleanup worker, and `IMessageInbox`. Inserts the inbox consumer middleware. |
+| `UseTransaction()`               | Wraps each consumer invocation in a database transaction (commit on success, rollback on failure).                   |
+
+**4. Combine outbox and inbox for full exactly-once processing.**
+
+When you use both together, the outbox guarantees delivery and the inbox guarantees deduplication:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEntityFramework<AppDbContext>(p =>
+    {
+        p.UsePostgresOutbox();
+        p.UseTransaction();
+        p.UsePostgresInbox();
+    })
+    .AddRabbitMQ();
+```
+
+With this configuration, the inbox record and your business data are committed in the same database transaction. If the transaction rolls back, the inbox entry is not persisted and the message can be reprocessed on the next delivery attempt.
+
+## Configure inbox retention
+
+The inbox stores a record for every processed message. A background worker (`MessageBusInboxWorker`) periodically cleans up old records to prevent unbounded table growth.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEntityFramework<AppDbContext>(p =>
+    {
+        p.UseTransaction();
+        p.UsePostgresInbox(opts =>
+        {
+            opts.RetentionPeriod = TimeSpan.FromDays(14);
+            opts.CleanupInterval = TimeSpan.FromMinutes(30);
+        });
+    })
+    .AddRabbitMQ();
+```
+
+| Option            | Default | Description                                                                                              |
+| ----------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `RetentionPeriod` | 7 days  | How long processed message records are kept. Messages older than this are deleted by the cleanup worker. |
+| `CleanupInterval` | 1 hour  | How often the background worker runs the cleanup sweep.                                                  |
+
+Set `RetentionPeriod` long enough to cover the maximum redelivery window of your transport. If your transport can redeliver messages up to 3 days after initial delivery, a 7-day retention period provides a comfortable safety margin.
+
+The cleanup worker deletes expired rows in batches to avoid long-running locks on the inbox table.
+
+## Skip the inbox for specific messages
+
+Some messages do not need deduplication - internal system events, heartbeats, or messages from transports that guarantee exactly-once delivery natively. The inbox middleware checks for an `InboxMiddlewareFeature` on the consume context. Messages with `SkipInbox = true` pass straight through without an inbox lookup.
+
+Set the feature from a custom consumer middleware that runs before the inbox:
+
+```csharp
+builder.Services
+    .AddMessageBus(bus =>
+    {
+        bus.PrependConsume(
+            "Inbox",
+            new ConsumerMiddlewareConfiguration(
+                static (_, next) => ctx =>
+                {
+                    var feature = ctx.Features.GetOrSet<InboxMiddlewareFeature>();
+                    feature.SkipInbox = true;
+                    return next(ctx);
+                },
+                "SkipInboxCheck"));
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEntityFramework<AppDbContext>(p =>
+    {
+        p.UseTransaction();
+        p.UsePostgresInbox();
+    })
+    .AddRabbitMQ();
+```
+
+`PrependConsume("Inbox", ...)` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
+
+## How the inbox cleanup worker works
+
+The inbox cleanup worker is a background hosted service (`IHostedService`). It runs in a continuous loop: wait for `CleanupInterval`, then delete all inbox records where `ProcessedAt` is older than `RetentionPeriod`. Deletions happen in batches to minimize lock contention. The worker logs at `Information` level when records are deleted and at `Error` level if cleanup fails.
+
 # Next steps
 
-Your messaging pipeline now handles failures, limits concurrency, breaks circuits on sustained errors, and guarantees delivery through the outbox. To monitor your messaging system, see [Observability](/docs/mocha/v1/observability).
+Your messaging pipeline now handles failures, limits concurrency, breaks circuits on sustained errors, guarantees delivery through the outbox, and deduplicates messages through the inbox. To monitor your messaging system, see [Observability](/docs/mocha/v1/observability).
 
 - [**Middleware and Pipelines**](/docs/mocha/v1/middleware-and-pipelines) - Write custom middleware, control pipeline ordering, and understand the three pipeline stages.
 - [**Sagas**](/docs/mocha/v1/sagas) - Coordinate multi-step workflows with state machine sagas that use compensation when steps fail.
@@ -375,4 +559,4 @@ Your messaging pipeline now handles failures, limits concurrency, breaks circuit
 
 > **Runnable examples:** [OutboxInbox](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Reliability/OutboxInbox), [CircuitBreaker](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Reliability/CircuitBreaker)
 >
-> **Full demo:** All three Demo services ([Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog), [Billing](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Billing), [Shipping](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Shipping)) use the PostgreSQL transactional outbox with `UseTransaction()` and `UseResilience()` for reliable message delivery.
+> **Full demo:** All three Demo services ([Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog), [Billing](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Billing), [Shipping](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Shipping)) use the PostgreSQL transactional outbox and inbox with `UseTransaction()` and `UseResilience()` for reliable, exactly-once message processing.

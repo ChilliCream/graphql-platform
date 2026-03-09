@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Demo.Catalog.Migrations
+namespace HotChocolate.Demo.Catalog.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
     partial class CatalogDbContextModelSnapshot : ModelSnapshot
@@ -22,76 +22,6 @@ namespace Demo.Catalog.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Mocha.Outbox.OutboxMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<JsonDocument>("Envelope")
-                        .IsRequired()
-                        .HasColumnType("json")
-                        .HasColumnName("envelope");
-
-                    b.Property<int>("TimesSent")
-                        .HasColumnType("integer")
-                        .HasColumnName("times_sent");
-
-                    b.HasKey("Id")
-                        .HasName("ix_outbox_messages_primary_key");
-
-                    b.HasIndex("CreatedAt")
-                        .IsDescending()
-                        .HasDatabaseName("ix_outbox_messages_created_at");
-
-                    b.HasIndex("TimesSent")
-                        .HasDatabaseName("ix_outbox_messages_times_sent");
-
-                    b.ToTable("outbox_messages", (string)null);
-                });
-
-            modelBuilder.Entity("Mocha.Sagas.EfCore.SagaState", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("SagaName")
-                        .HasColumnType("text")
-                        .HasColumnName("saga_name");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<JsonDocument>("State")
-                        .IsRequired()
-                        .HasColumnType("json")
-                        .HasColumnName("state");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid>("Version")
-                        .IsConcurrencyToken()
-                        .HasColumnType("uuid")
-                        .HasColumnName("version");
-
-                    b.HasKey("Id", "SagaName")
-                        .HasName("ix_saga_states_primary_key");
-
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("ix_saga_states_created_at");
-
-                    b.ToTable("saga_states", (string)null);
-                });
 
             modelBuilder.Entity("Demo.Catalog.Entities.Category", b =>
                 {
@@ -244,6 +174,109 @@ namespace Demo.Catalog.Migrations
                             StockQuantity = 200,
                             UpdatedAt = new DateTimeOffset(new DateTime(2026, 1, 4, 23, 11, 57, 852, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
+                });
+
+            modelBuilder.Entity("Mocha.Inbox.InboxMessage", b =>
+                {
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("message_id");
+
+                    b.Property<string>("ConsumerType")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("consumer_type");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("message_type");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("MessageId", "ConsumerType")
+                        .HasName("ix_inbox_messages_primary_key");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("ix_inbox_messages_processed_at");
+
+                    b.ToTable("inbox_messages", (string)null);
+                });
+
+            modelBuilder.Entity("Mocha.Outbox.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<JsonDocument>("Envelope")
+                        .IsRequired()
+                        .HasColumnType("json")
+                        .HasColumnName("envelope");
+
+                    b.Property<int>("TimesSent")
+                        .HasColumnType("integer")
+                        .HasColumnName("times_sent");
+
+                    b.HasKey("Id")
+                        .HasName("ix_outbox_messages_primary_key");
+
+                    b.HasIndex("CreatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("ix_outbox_messages_created_at");
+
+                    b.HasIndex("TimesSent")
+                        .HasDatabaseName("ix_outbox_messages_times_sent");
+
+                    b.ToTable("outbox_messages", (string)null);
+                });
+
+            modelBuilder.Entity("Mocha.Sagas.EfCore.SagaState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("SagaName")
+                        .HasColumnType("text")
+                        .HasColumnName("saga_name");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<JsonDocument>("State")
+                        .IsRequired()
+                        .HasColumnType("json")
+                        .HasColumnName("state");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id", "SagaName")
+                        .HasName("ix_saga_states_primary_key");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_saga_states_created_at");
+
+                    b.ToTable("saga_states", (string)null);
                 });
 
             modelBuilder.Entity("Demo.Catalog.Entities.OrderRecord", b =>

@@ -10,11 +10,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Demo.Billing.Migrations
+namespace HotChocolate.Demo.Billing.Migrations
 {
     [DbContext(typeof(BillingDbContext))]
-    [Migration("20260111233102_AddRefundSaga")]
-    partial class AddRefundSaga
+    [Migration("20260309003629_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,39 +25,6 @@ namespace Demo.Billing.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Mocha.Outbox.OutboxMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<JsonDocument>("Envelope")
-                        .IsRequired()
-                        .HasColumnType("json")
-                        .HasColumnName("envelope");
-
-                    b.Property<int>("TimesSent")
-                        .HasColumnType("integer")
-                        .HasColumnName("times_sent");
-
-                    b.HasKey("Id")
-                        .HasName("ix_outbox_messages_primary_key");
-
-                    b.HasIndex("CreatedAt")
-                        .IsDescending()
-                        .HasDatabaseName("ix_outbox_messages_created_at");
-
-                    b.HasIndex("TimesSent")
-                        .HasDatabaseName("ix_outbox_messages_times_sent");
-
-                    b.ToTable("outbox_messages", (string)null);
-                });
 
             modelBuilder.Entity("Demo.Billing.Entities.Invoice", b =>
                 {
@@ -186,6 +153,111 @@ namespace Demo.Billing.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("Refunds");
+                });
+
+            modelBuilder.Entity("Demo.Billing.Entities.RevenueSummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AverageOrderAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("CompletionMode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OrderCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("PeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("PeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("TotalItemsSold")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("TotalRevenue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RevenueSummaries");
+                });
+
+            modelBuilder.Entity("Mocha.Inbox.InboxMessage", b =>
+                {
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("message_id");
+
+                    b.Property<string>("ConsumerType")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("consumer_type");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("message_type");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("MessageId", "ConsumerType")
+                        .HasName("ix_inbox_messages_primary_key");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("ix_inbox_messages_processed_at");
+
+                    b.ToTable("inbox_messages", (string)null);
+                });
+
+            modelBuilder.Entity("Mocha.Outbox.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<JsonDocument>("Envelope")
+                        .IsRequired()
+                        .HasColumnType("json")
+                        .HasColumnName("envelope");
+
+                    b.Property<int>("TimesSent")
+                        .HasColumnType("integer")
+                        .HasColumnName("times_sent");
+
+                    b.HasKey("Id")
+                        .HasName("ix_outbox_messages_primary_key");
+
+                    b.HasIndex("CreatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("ix_outbox_messages_created_at");
+
+                    b.HasIndex("TimesSent")
+                        .HasDatabaseName("ix_outbox_messages_times_sent");
+
+                    b.ToTable("outbox_messages", (string)null);
                 });
 
             modelBuilder.Entity("Demo.Billing.Entities.Payment", b =>
