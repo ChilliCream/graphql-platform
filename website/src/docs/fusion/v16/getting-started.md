@@ -288,7 +288,7 @@ cd Products
 dotnet run
 ```
 
-Open your browser to `http://localhost:5001/graphql/` to access the Banana Cake Pop GraphQL IDE. Try this query:
+Open your browser to `http://localhost:5001/graphql/` to access the Nitro GraphQL IDE. Try this query:
 
 ```graphql
 query {
@@ -341,7 +341,7 @@ This generates two files in the Products project directory:
 - **`schema.graphqls`**: The Products subgraph's source schema, describing its types and fields.
 - **`schema-settings.json`**: A companion file that tells Fusion the subgraph's name and runtime URL and other subgraph options.
 
-Because `Program.cs` uses `AddGraphQL("Products")`, `Products/schema-settings.json` already contains `"name": "Products"`. Update the transport URL to match port 5001:
+Because `Program.cs` uses `AddGraphQL("Products")`, `Products/schema-settings.json` already contains `"name": "Products"`. The generated transport URL still defaults to `http://localhost:5000/graphql`, so update it to match port 5001:
 
 ```json
 {
@@ -529,15 +529,15 @@ This follows the same pattern as the Products subgraph, but sets the subgraph na
 
 ### Add the ObjectType Extension
 
-There is one more piece needed. The `Product` record defines the `reviews` field, but Hot Chocolate needs to know that this is an **extension** of the existing `Product` type, not a new type. Create `ProductNode.cs`:
+There is one more piece needed. The `Review` type currently exposes a raw `ProductId`. To expose `review.product` instead, add a type extension for `Review`. Create `ReviewNode.cs`:
 
 ```csharp
 using HotChocolate.Types;
 
 namespace Reviews;
 
-[ObjectType<Product>]
-public static partial class ProductNode
+[ObjectType<Review>]
+public static partial class ReviewNode
 {
     [BindMember(nameof(Review.ProductId))]
     public static Product GetProduct([Parent] Review review)
@@ -545,7 +545,7 @@ public static partial class ProductNode
 }
 ```
 
-- **`[ObjectType<Product>]`** tells Hot Chocolate that this class extends the `Product` type. Fields defined on the `Product` record (like `GetReviews()`) become part of the `Product` type in GraphQL.
+- **`[ObjectType<Review>]`** tells Hot Chocolate that this class extends the `Review` type.
 - **`[BindMember(nameof(Review.ProductId))]`** replaces the raw `ProductId` integer on `Review` with a resolved `Product` object. In the exported schema, clients see `review.product` (returning a full `Product`) instead of `review.productId` (returning a raw integer).
 - **`[Parent]`** tells Hot Chocolate to inject the parent object (the `Review`) into the resolver. This is how `GetProduct()` accesses the `ProductId` from the review it belongs to.
 
@@ -621,7 +621,7 @@ This generates two files in the Reviews project directory:
 - **`schema.graphqls`**: The Reviews subgraph's source schema, describing its types and fields.
 - **`schema-settings.json`**: A companion file that tells Fusion the subgraph's name and runtime URL and other subgraph options.
 
-Because `Program.cs` uses `AddGraphQL("Reviews")`, `Reviews/schema-settings.json` already contains `"name": "Reviews"`. Update the transport URL to match port 5002:
+Because `Program.cs` uses `AddGraphQL("Reviews")`, `Reviews/schema-settings.json` already contains `"name": "Reviews"`. The generated transport URL still defaults to `http://localhost:5000/graphql`, so update it to match port 5002:
 
 ```json
 {
@@ -674,7 +674,7 @@ fusion-getting-started/
     ├── ReviewQueries.cs
     ├── ProductQueries.cs
     ├── Product.cs
-    ├── ProductNode.cs
+    ├── ReviewNode.cs
     ├── Program.cs
     ├── Reviews.csproj
     ├── schema.graphqls          <-- exported schema
@@ -830,7 +830,7 @@ The port number will differ for each service (5001, 5002, and 5000). If you see 
 
 ### Verify the Gateway
 
-Open your browser to `http://localhost:5000/graphql/` to access the Banana Cake Pop GraphQL IDE on the gateway. Try a simple query to verify the gateway is working:
+Open your browser to `http://localhost:5000/graphql/` to access the Nitro GraphQL IDE on the gateway. Try a simple query to verify the gateway is working:
 
 ```graphql
 query {
@@ -861,7 +861,7 @@ This is the moment everything comes together. With all three services running (P
 
 ### The Cross-Subgraph Query
 
-Open the Banana Cake Pop IDE at `http://localhost:5000/graphql/` and run this query:
+Open Nitro at `http://localhost:5000/graphql/` and run this query:
 
 ```graphql
 query {
@@ -876,6 +876,10 @@ query {
   }
 }
 ```
+
+Example in Nitro:
+
+![Cross-subgraph query result in Nitro](../../shared/fusion/getting-started-query-result.png)
 
 You should see:
 
@@ -914,6 +918,14 @@ Look at what happened: `name` and `price` came from the Products subgraph, while
 ### What the Gateway Did
 
 Behind the scenes, the gateway executed a query plan with multiple steps:
+
+To inspect the plan in Nitro, open the **Operation Plan** tab and enable it:
+
+![Enable Fusion operation plan in Nitro](../../shared/fusion/getting-started-enable-query-planner.png)
+
+You should then see a plan similar to this:
+
+![Fusion operation plan for the cross-subgraph query](../../shared/fusion/getting-started-query-planner.png)
 
 1. **Fetched the products** from the Products subgraph. This returned `id`, `name`, and `price` for each product.
 2. **Resolved the reviews** from the Reviews subgraph. Using each product's `id`, the gateway called the Reviews subgraph's internal `productById` lookup to get a `Product` stub, then resolved the `reviews` field on each stub.
