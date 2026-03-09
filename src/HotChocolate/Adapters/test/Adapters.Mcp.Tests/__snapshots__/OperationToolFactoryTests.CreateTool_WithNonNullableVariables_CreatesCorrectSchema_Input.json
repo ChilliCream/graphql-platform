@@ -43,6 +43,12 @@
       "type": "number",
       "description": "Decimal description"
     },
+    "duration": {
+      "type": "string",
+      "format": "duration",
+      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+      "description": "Duration description"
+    },
     "enum": {
       "type": "string",
       "enum": [
@@ -141,12 +147,6 @@
       "type": "string",
       "description": "String description"
     },
-    "timeSpan": {
-      "type": "string",
-      "format": "duration",
-      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
-      "description": "TimeSpan description"
-    },
     "unknown": {
       "type": "string",
       "description": "Unknown description"
@@ -200,6 +200,7 @@
     "date",
     "dateTime",
     "decimal",
+    "duration",
     "enum",
     "float",
     "id",
@@ -212,7 +213,6 @@
     "object",
     "short",
     "string",
-    "timeSpan",
     "unknown",
     "unsignedByte",
     "unsignedInt",

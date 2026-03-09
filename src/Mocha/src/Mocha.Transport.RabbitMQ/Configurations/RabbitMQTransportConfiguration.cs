@@ -52,6 +52,13 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     public List<RabbitMQBindingConfiguration> Bindings { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets a value indicating whether topology resources (queues, exchanges, bindings)
+    /// should be automatically provisioned on the broker. When <c>null</c>, defaults to <c>true</c>.
+    /// Individual resources can override this setting.
+    /// </summary>
+    public bool? AutoProvision { get; set; }
+
+    /// <summary>
     /// Gets or sets the bus-level defaults applied to all auto-provisioned queues and exchanges.
     /// </summary>
     public RabbitMQBusDefaults Defaults { get; set; } = new();
