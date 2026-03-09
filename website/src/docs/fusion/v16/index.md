@@ -10,28 +10,7 @@ Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple u
 
 The architecture has three parts:
 
-```text
-                    ┌──────────┐
-                    │  Client  │
-                    └────┬─────┘
-                         │
-                         ▼
-                ┌────────────────┐
-                │ Fusion Gateway │
-                └──┬────┬────┬───┘
-                   │    │    │
-          ┌────────┘    │    └────────┐
-          ▼             ▼             ▼
-   ┌────────────┐  ┌────────────┐  ┌────────────┐
-   │  Products  │  │  Accounts  │  │  Reviews   │
-   │  Service   │  │  Service   │  │  Service   │
-   └──────┬─────┘  └──────┬─────┘  └──────┬─────┘
-          │               │               │
-          ▼               ▼               ▼
-   ┌────────────┐  ┌────────────┐  ┌────────────┐
-   │ Database A │  │ Database B │  │ Database C │
-   └────────────┘  └────────────┘  └────────────┘
-```
+![Fusion Architecture Overview](../../shared/fusion/fusion-overview.png)
 
 **Subgraphs** are the upstream services behind the Fusion gateway: GraphQL services, OpenAPI-based REST services, and gRPC services. Each subgraph owns part of the API surface and implementation logic, and can be developed and deployed independently.
 
@@ -43,9 +22,10 @@ The **gateway** receives client requests, determines which subgraphs to call, ex
 
 The result: clients send one request to one endpoint and receive one unified response, while Fusion handles routing and aggregation across upstream services.
 
+The following query touches three services, but the client doesn't know or care about this implementation detail.
+
 <!-- prettier-ignore-start -->
 ```graphql
-# This query touches three services, but the client doesn't know or care.
 query {
   products(first: 5) {
     nodes {
@@ -65,7 +45,17 @@ query {
 
 ## Three Things That Make Fusion Different
 
-**Lookups use standard Query fields.** For GraphQL subgraphs, when the gateway needs to resolve an entity, it calls a normal Query field annotated with `[Lookup]`. You can call the same field yourself in testing, debug it with standard tools, and see exactly what it returns. There is no hidden internal protocol you need to implement.
+A \*_lookup_ is a central concept in Fusion it specifies how an entity can be resolved by a stable key. This concept event transcends the federation use case and is useful on its own in the standard client/server communication.
+
+**Lookups use standard Query fields.** For GraphQL subgraphs, when the gateway needs to resolve an entity, it calls a normal Query field annotated with `@lookup` directive. You can call the same field yourself in testing, debug it with standard tools, and see exactly what it returns. There is no hidden internal protocol you need to implement its simply GraphQL.
+
+```graphql
+type Query {
+  productById(id: ID!): Product @lookup
+}
+```
+
+If you are using Hot Chocolate, the composite schema specification is supported by default, simply add the `[Lookup]` attribute to your resolver and you are ready to go.
 
 ```csharp
 [QueryType]
@@ -73,7 +63,7 @@ public static partial class ProductQueries
 {
     [Lookup]
     public static async Task<Product?> GetProductById(
-        int id,
+        [ID] int id,
         IProductByIdDataLoader productById,
         CancellationToken cancellationToken)
         => await productById.LoadAsync(id, cancellationToken);
@@ -82,7 +72,7 @@ public static partial class ProductQueries
 
 **Composition catches errors at build time.** When you run `nitro fusion compose`, the composition engine validates source schemas against each other. Type conflicts, missing fields, and incompatible enums are caught in CI before deployment.
 
-**No special runtime for HotChocolate subgraphs.** In the common HotChocolate setup, subgraphs are standard HotChocolate servers with normal resolvers. You do not install a separate distributed-runtime package or vendor-specific protocol layer. The GraphQL parts of this model follow the open [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) being developed under the GraphQL Foundation.
+**No special runtime for GraphQL subgraphs.** The [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common HotChocolate setup, subgraphs remain normal HotChocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
 
 # Key Terminology
 
@@ -92,13 +82,13 @@ public static partial class ProductQueries
 | **Source schema**    | The contract document published by one subgraph (for example a GraphQL schema, OpenAPI document, or gRPC/protobuf definition).                           |
 | **Composite schema** | The unified, client-facing GraphQL schema produced during composition. Clients query this schema as if it were a single API.                             |
 | **Gateway**          | The public entry point for client requests. It receives queries against the composite schema, routes requests across subgraphs, and assembles responses. |
-| **Entity**           | GraphQL term: a type represented in more than one GraphQL subgraph.                                                                                      |
-| **Lookup**           | GraphQL term: a Query field annotated with `[Lookup]` that the gateway uses for entity resolution.                                                       |
+| **Entity**           | A type with a stable key that can be referenced across GraphQL subgraphs.                                                                                |
+| **Lookup**           | A Query field annotated with a `@lookup` directive that resolves an entity by key in that subgraph.                                                      |
 | **Composition**      | The offline step that validates source schemas and produces the composite schema and gateway configuration. Runs via the Nitro CLI or Aspire.            |
 
 # When to Use Fusion
 
-Fusion adds operational complexity -- a gateway process, a composition step in your build pipeline, distributed debugging. That complexity pays off in specific situations:
+Fusion adds operational complexity, including a gateway process, a composition step in your build pipeline, and distributed debugging. That complexity pays off in specific situations:
 
 - **Multiple teams need to ship independently.** If different teams own different parts of your API (e.g., a product catalog team and a reviews team), Fusion lets each team deploy on their own schedule without coordinating schema changes through a shared codebase.
 
@@ -110,17 +100,17 @@ Fusion adds operational complexity -- a gateway process, a composition step in y
 
 # When NOT to Use Fusion
 
-Fusion is not the right choice for every project. Be honest about whether you need it:
+Fusion is not the right choice for every project. Evaluate whether the additional complexity is justified:
 
-- **One team, one service.** If a single team owns the entire API and deploys it as one unit, a standard HotChocolate server is simpler and has less operational overhead. You do not need a gateway, a composition pipeline, or distributed tracing for a single service.
+- **One team, one service.** If one team owns the entire API and deploys it as a single unit, a standard Hot Chocolate server is simpler and has lower operational overhead. You likely do not need a gateway, a composition pipeline, or distributed tracing.
 
-- **A small or early-stage API.** If your API has a handful of types and a few hundred queries per second, the added complexity of a distributed gateway setup is not justified. Start with a monolith. You can split it later.
+- **A small or early-stage API.** If your API has a handful of types and modest traffic, a distributed gateway setup often adds more complexity than value. Start with a monolith and split later when needed. Hot Chocolate supports an incremental path from monolith to modular monolith to distributed architecture.
 
-- **No clear domain boundaries.** If your types are deeply intertwined and nearly every query touches every part of the schema, splitting into many services will create more cross-service calls than it eliminates. Fusion works best when services are relatively self-contained.
+- **No clear domain boundaries.** If your types are deeply intertwined and most queries touch most of the schema, splitting into many services can create more cross-service calls than it removes. Fusion works best when services are relatively self-contained and have clear data contracts.
 
-- **Your team is just getting started with GraphQL.** Learn HotChocolate first. Get comfortable with types, resolvers, DataLoaders, and the execution pipeline. Fusion adds concepts on top of that foundation -- it is easier to adopt once the basics are solid.
+- **Your team is just getting started with GraphQL.** Learn GraphQL and Hot Chocolate first. Get comfortable with types, resolvers, DataLoaders, and the execution pipeline. Fusion adds concepts on top of that foundation and is easier to adopt once the basics are understood.
 
-The cost of premature distribution is real: more services to deploy, more infrastructure to monitor, harder debugging when something goes wrong. Start simple, and add Fusion when the pain of a monolith outweighs the cost of distribution.
+The cost of premature distribution is real: more services to deploy, more infrastructure to monitor, and harder debugging when something goes wrong. Start simple, and add Fusion when the pain of a monolith outweighs the cost of distribution.
 
 # Migrating from a Monolith
 
