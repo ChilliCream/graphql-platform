@@ -280,13 +280,9 @@ internal sealed class SelectionExpressionBuilder
                     return Expression.Convert(Expression.Constant(p.DefaultValue), p.ParameterType);
                 }
 
-                if (!p.ParameterType.IsValueType && IsMarkedAsExplicitlyNonNullable(p))
-                {
-                    throw new InvalidOperationException(
-                        $"Cannot construct '{context.ParentType.Name}': missing required argument '{p.Name}' "
-                        + "(non-nullable reference type with no default value).");
-                }
-
+                // Partial projections can omit constructor arguments that are not selected.
+                // We fall back to default values for missing arguments to keep selector
+                // construction non-throwing for record-like types.
                 return Expression.Default(p.ParameterType);
             }).ToArray();
 
@@ -637,7 +633,4 @@ internal sealed class SelectionExpressionBuilder
         => type.GetConstructor(Type.EmptyTypes) is not null
             && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
                 .Any(t => t.GetParameters().Length > 0);
-
-    private static bool IsMarkedAsExplicitlyNonNullable(ParameterInfo parameter)
-        => new NullabilityInfoContext().Create(parameter).WriteState is NullabilityState.NotNull;
 }
