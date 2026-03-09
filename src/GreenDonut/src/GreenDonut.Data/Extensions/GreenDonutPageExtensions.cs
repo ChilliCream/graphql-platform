@@ -30,7 +30,7 @@ public static class GreenDonutPageExtensions
     /// </exception>
     /// <remarks>
     /// This method creates cursors for the previous pages based on the current page.
-    /// The cursors are created using the <see cref="Page{T}.CreateCursor(T, int)"/> method.
+    /// The cursors are created using the <see cref="Page{T}.CreateCursor(int, int)"/> method.
     /// </remarks>
     public static ImmutableArray<PageCursor> CreateRelativeBackwardCursors<T>(this Page<T> page, int maxCursors = 5)
     {
@@ -43,7 +43,7 @@ public static class GreenDonutPageExtensions
                 "Max cursors must be greater than or equal to 0.");
         }
 
-        if (page.First is null || page.Index is null || page.Index == 1)
+        if (page.FirstIndex is null || page.Index is null || page.Index == 1)
         {
             return [];
         }
@@ -58,7 +58,7 @@ public static class GreenDonutPageExtensions
             cursors.Insert(
                 0,
                 new PageCursor(
-                    page.CreateCursor(page.First, i),
+                    page.CreateCursor(page.FirstIndex.Value, i),
                     previousPages + i));
         }
 
@@ -88,7 +88,7 @@ public static class GreenDonutPageExtensions
     /// </exception>
     /// <remarks>
     /// This method creates cursors for the next pages based on the current page.
-    /// The cursors are created using the <see cref="Page{T}.CreateCursor(T, int)"/> method.
+    /// The cursors are created using the <see cref="Page{T}.CreateCursor(int, int)"/> method.
     /// </remarks>
     public static ImmutableArray<PageCursor> CreateRelativeForwardCursors<T>(this Page<T> page, int maxCursors = 5)
     {
@@ -101,7 +101,7 @@ public static class GreenDonutPageExtensions
                 "Max cursors must be greater than or equal to 0.");
         }
 
-        if (page.Last is null || page.Index is null)
+        if (page.LastIndex is null || page.Index is null)
         {
             return [];
         }
@@ -114,13 +114,14 @@ public static class GreenDonutPageExtensions
         }
 
         var cursors = ImmutableArray.CreateBuilder<PageCursor>();
-        cursors.Add(new PageCursor(page.CreateCursor(page.Last, 0), page.Index.Value + 1));
+        var lastIndex = page.LastIndex.Value;
+        cursors.Add(new PageCursor(page.CreateCursor(lastIndex, 0), page.Index.Value + 1));
 
         for (var i = 1; i < maxCursors && page.Index + i < totalPages; i++)
         {
             cursors.Add(
                 new PageCursor(
-                    page.CreateCursor(page.Last, i),
+                    page.CreateCursor(lastIndex, i),
                     page.Index.Value + i + 1));
         }
 
