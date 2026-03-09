@@ -176,17 +176,13 @@ internal static class ExpressionHelpers
                 // SQL: WHERE key IS NOT NULL AND key = cursorValue.
                 keyExpr = Expression.AndAlso(
                     Expression.NotEqual(keyExpr, nullConst),
-                    Expression.Equal(
-                        Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
-                        s_zero));
+                    BuildEqualComparison(cursorKey, keyValueExpr, cursorExpr));
             }
         }
         else
         {
             // SQL: WHERE key = cursorValue.
-            keyExpr = Expression.Equal(
-                Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-                s_zero);
+            keyExpr = BuildEqualComparison(cursorKey, keyExpr, cursorExpr);
         }
 
         return keyExpr;
@@ -229,9 +225,7 @@ internal static class ExpressionHelpers
                 if (nullOrdering == NullOrdering.NativeNullsFirst)
                 {
                     // SQL: WHERE key > cursorValue.
-                    keyExpr = Expression.GreaterThan(
-                        Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
-                        s_zero);
+                    keyExpr = BuildGreaterThanComparison(cursorKey, keyValueExpr, cursorExpr);
                 }
                 else
                 {
@@ -239,18 +233,14 @@ internal static class ExpressionHelpers
                     // SQL: WHERE key IS NULL OR key > cursorValue.
                     keyExpr = Expression.OrElse(
                         Expression.Equal(keyExpr, nullConst),
-                        Expression.GreaterThan(
-                            Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
-                            s_zero));
+                        BuildGreaterThanComparison(cursorKey, keyValueExpr, cursorExpr));
                 }
             }
         }
         else
         {
             // SQL: WHERE key > cursorValue.
-            keyExpr = Expression.GreaterThan(
-                Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-                s_zero);
+            keyExpr = BuildGreaterThanComparison(cursorKey, keyExpr, cursorExpr);
         }
 
         return keyExpr;
@@ -296,25 +286,19 @@ internal static class ExpressionHelpers
                     // SQL: WHERE key IS NULL OR key < cursorValue.
                     keyExpr = Expression.OrElse(
                         Expression.Equal(keyExpr, nullConst),
-                        Expression.LessThan(
-                            Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
-                            s_zero));
+                        BuildLessThanComparison(cursorKey, keyValueExpr, cursorExpr));
                 }
                 else
                 {
                     // SQL: WHERE key < cursorValue.
-                    keyExpr = Expression.LessThan(
-                        Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
-                        s_zero);
+                    keyExpr = BuildLessThanComparison(cursorKey, keyValueExpr, cursorExpr);
                 }
             }
         }
         else
         {
             // SQL: WHERE key < cursorValue.
-            keyExpr = Expression.LessThan(
-                Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
-                s_zero);
+            keyExpr = BuildLessThanComparison(cursorKey, keyExpr, cursorExpr);
         }
 
         return keyExpr;
@@ -637,6 +621,63 @@ internal static class ExpressionHelpers
     {
         Expression<Func<T>> lambda = () => value;
         return lambda.Body;
+    }
+
+    private static Expression BuildEqualComparison(
+        CursorKey cursorKey,
+        Expression keyExpr,
+        Expression cursorExpr)
+    {
+        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
+
+        if (comparisonType.IsEnum)
+        {
+            return Expression.Equal(keyExpr, cursorExpr);
+        }
+
+        return Expression.Equal(
+            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+            s_zero);
+    }
+
+    private static Expression BuildGreaterThanComparison(
+        CursorKey cursorKey,
+        Expression keyExpr,
+        Expression cursorExpr)
+    {
+        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
+
+        if (comparisonType.IsEnum)
+        {
+            var underlyingType = Enum.GetUnderlyingType(comparisonType);
+            return Expression.GreaterThan(
+                Expression.Convert(keyExpr, underlyingType),
+                Expression.Convert(cursorExpr, underlyingType));
+        }
+
+        return Expression.GreaterThan(
+            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+            s_zero);
+    }
+
+    private static Expression BuildLessThanComparison(
+        CursorKey cursorKey,
+        Expression keyExpr,
+        Expression cursorExpr)
+    {
+        var comparisonType = Nullable.GetUnderlyingType(keyExpr.Type) ?? keyExpr.Type;
+
+        if (comparisonType.IsEnum)
+        {
+            var underlyingType = Enum.GetUnderlyingType(comparisonType);
+            return Expression.LessThan(
+                Expression.Convert(keyExpr, underlyingType),
+                Expression.Convert(cursorExpr, underlyingType));
+        }
+
+        return Expression.LessThan(
+            Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+            s_zero);
     }
 
     private static Expression ReplaceParameter(

@@ -485,8 +485,8 @@ Type: `{0}`</value>
   <data name="SchemaBuilder_Convention_NotSupported" xml:space="preserve">
     <value>The specified convention type is not supported.</value>
   </data>
-  <data name="TimeSpanType_Description" xml:space="preserve">
-    <value>The `TimeSpan` scalar type represents a duration of time.</value>
+  <data name="DurationType_Description" xml:space="preserve">
+    <value>The `Duration` scalar type represents a duration of time.</value>
   </data>
   <data name="DefaultDataLoaderRegistry_GetOrRegister" xml:space="preserve">
     <value>The DataLoader `{0}` was not of the requested type `{1}`.</value>

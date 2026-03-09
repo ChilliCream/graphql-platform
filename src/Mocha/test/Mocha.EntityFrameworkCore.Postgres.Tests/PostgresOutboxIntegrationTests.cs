@@ -106,7 +106,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.AddPostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
         builder.AddEventHandler<TestEventHandler>();
         builder.AddInMemory();
 
@@ -182,7 +182,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.AddPostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
         builder.AddEventHandler<TestEventHandler>();
         builder.AddInMemory();
 
@@ -331,14 +331,14 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddLogging();
         services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString));
 
-        // Register the resilient signal BEFORE AddPostgresOutbox() so that
+        // Register the resilient signal BEFORE UsePostgresOutbox() so that
         // TryAddSingleton<IOutboxSignal> in AddOutboxCore() is a no-op.
         // This prevents ObjectDisposedException during teardown when the
         // outbox processor's own transaction commits fire the interceptor.
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.AddPostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
         builder.AddEventHandler<TestEventHandler>();
         builder.AddInMemory();
 
