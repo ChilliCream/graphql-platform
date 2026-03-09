@@ -689,7 +689,7 @@ From the `fusion-getting-started` directory, run:
 
 ```bash
 mkdir Gateway
-nitro fusion compose --s Products/schema.graphqls --s Reviews/schema.graphqls --f Gateway/gateway.far
+nitro fusion compose -s Products/schema.graphqls -s Reviews/schema.graphqls -f Gateway/gateway.far
 ```
 
 If composition succeeds, you will see output similar to:
@@ -758,7 +758,7 @@ The gateway runs on port 5000. The subgraphs run on ports 5001 (Products) and 50
 
 ### Verify the Fusion Archive
 
-The composition step already wrote `gateway.far` into the `Gateway` directory (`--f Gateway/gateway.far`). Verify that the file exists before continuing:
+The composition step already wrote `gateway.far` into the `Gateway` directory (`-f Gateway/gateway.far`). Verify that the file exists before continuing:
 
 ```bash
 ls Gateway/gateway.far
