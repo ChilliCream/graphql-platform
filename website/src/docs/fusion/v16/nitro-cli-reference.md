@@ -448,7 +448,7 @@ This command:
 
 1. Starts a local Fusion gateway
 2. Loads the configuration from `gateway.far`
-3. Opens a browser with the Nitro IDE (Banana Cake Pop) at `http://localhost:5000/graphql`
+3. Opens a browser with the Nitro IDE at `http://localhost:5000/graphql`
 
 Use this for local testing of composed configurations without deploying to cloud infrastructure.
 

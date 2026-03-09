@@ -278,7 +278,7 @@ cd Products
 dotnet run
 ```
 
-Open your browser to `http://localhost:5001/graphql/` to access the Banana Cake Pop GraphQL IDE. Try this query:
+Open your browser to `http://localhost:5001/graphql/` to access the Nitro GraphQL IDE. Try this query:
 
 ```graphql
 query {
@@ -856,7 +856,7 @@ The port number will differ for each service (5001, 5002, and 5000). If you see 
 
 ### Verify the Gateway
 
-Open your browser to `http://localhost:5000/graphql/` to access the Banana Cake Pop GraphQL IDE on the gateway. Try a simple query to verify the gateway is working:
+Open your browser to `http://localhost:5000/graphql/` to access the Nitro GraphQL IDE on the gateway. Try a simple query to verify the gateway is working:
 
 ```graphql
 query {
@@ -887,7 +887,7 @@ This is the moment everything comes together. With all three services running (P
 
 ### The Cross-Subgraph Query
 
-Open the Banana Cake Pop IDE at `http://localhost:5000/graphql/` and run this query:
+Open the Nitro IDE at `http://localhost:5000/graphql/` and run this query:
 
 ```graphql
 query {

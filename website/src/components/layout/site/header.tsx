@@ -468,8 +468,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
               </IconContainer>
               <SubNavLinkTextGroup>
                 <div className="title">
-                  Nitro (<abbr title="Formerly Known As">fka</abbr> Banana Cake
-                  Pop)
+                  Nitro
                 </div>
                 <div className="desc">GraphQL IDE / API Cockpit</div>
               </SubNavLinkTextGroup>

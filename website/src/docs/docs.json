@@ -1,7 +1,7 @@
 [
   {
     "path": "nitro",
-    "title": "Nitro (fka Banana Cake Pop)",
+    "title": "Nitro",
     "description": "GraphQL API Management",
     "metaDescription": "Nitro is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
     "latestStableVersion": "",

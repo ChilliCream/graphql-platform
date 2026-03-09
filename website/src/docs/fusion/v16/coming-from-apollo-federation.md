@@ -92,7 +92,7 @@ query {
 }
 ```
 
-The practical benefit: you can call `productById` directly in your GraphQL IDE (like Nitro / Banana Cake Pop) to test entity resolution. In Apollo, `_entities` is hidden and awkward to test manually.
+The practical benefit: you can call `productById` directly in your GraphQL IDE (like Nitro) to test entity resolution. In Apollo, `_entities` is hidden and awkward to test manually.
 
 **Multiple lookups per entity.** In Apollo, an entity can have multiple `@key` directives to support different keys. In Fusion, you define multiple `[Lookup]` fields -- one per key:
 
