@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text.Json;
 using Basic.Reference.Assemblies;
 using GreenDonut;
 using GreenDonut.Data;
@@ -146,6 +147,52 @@ public class SourceGeneratorOffsetPagingReproTests
         Assert.Contains("type FoosCollectionSegment", sourceGenerated.Schema, StringComparison.Ordinal);
         Assert.Contains("items: [Foo!]", sourceGenerated.Schema, StringComparison.Ordinal);
         Assert.Equal(addQueryType.Result, sourceGenerated.Result);
+    }
+
+    [Fact]
+    public async Task Module_AnyType_Output_Does_Not_Double_Escape_Json_Escape_Sequences()
+    {
+        var assembly = CompileModuleAnyTypeEscapingReproAssembly();
+
+        var sourceGenerated = await ExecuteWithSourceGeneratorRegistrationAsync(
+            assembly,
+            registrationMethodName: "AddDemo",
+            query:
+            """
+            {
+              foo
+            }
+            """,
+            configureBuilder: static b => b.AddJsonTypeConverter());
+
+        var addQueryType = await ExecuteWithAddQueryTypeRegistrationAsync(
+            assembly,
+            runtimeQueryTypeName: "Repro.RuntimeQuery",
+            query:
+            """
+            {
+              foo
+            }
+            """,
+            configureBuilder: static b => b.AddJsonTypeConverter());
+
+        using var sourceGeneratedJson = JsonDocument.Parse(sourceGenerated.Result);
+        using var addQueryTypeJson = JsonDocument.Parse(addQueryType.Result);
+
+        var sourceGeneratedDescription = sourceGeneratedJson.RootElement
+            .GetProperty("data")
+            .GetProperty("foo")
+            .GetProperty("description")
+            .GetString();
+
+        var addQueryTypeDescription = addQueryTypeJson.RootElement
+            .GetProperty("data")
+            .GetProperty("foo")
+            .GetProperty("description")
+            .GetString();
+
+        Assert.Equal("Special char: ü", sourceGeneratedDescription);
+        Assert.Equal("Special char: ü", addQueryTypeDescription);
     }
 
     private static async Task<Exception?> BuildSchemaWithSourceGeneratorRegistrationAsync(Assembly assembly)
@@ -428,6 +475,37 @@ public class SourceGeneratorOffsetPagingReproTests
             """;
 
         return CompileReproAssembly(source, "SourceGeneratorOffsetPagingNullabilityRepro");
+    }
+
+    private static Assembly CompileModuleAnyTypeEscapingReproAssembly()
+    {
+        const string source = """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                [GraphQLType<AnyType>]
+                public static object GetFoo()
+                    => new Foo("Special char: ü");
+            }
+
+            public class RuntimeQuery
+            {
+                [GraphQLType<AnyType>]
+                public object GetFoo()
+                    => new Foo("Special char: ü");
+            }
+
+            public record Foo(string Description);
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorAnyTypeEscapingRepro");
     }
 
     private static Assembly CompileReproAssembly(string source, string assemblyName)
