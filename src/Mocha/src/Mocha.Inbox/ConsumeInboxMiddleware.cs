@@ -19,7 +19,7 @@ namespace Mocha.Inbox;
 /// process the same message. This supports fan-out scenarios where a single message is
 /// routed to multiple consumers.
 /// </remarks>
-public sealed class ConsumeInboxMiddleware
+public sealed class ConsumeInboxMiddleware(ILogger<ConsumeInboxMiddleware> logger)
 {
     /// <summary>
     /// Atomically claims the incoming message via the inbox before processing.
@@ -49,12 +49,15 @@ public sealed class ConsumeInboxMiddleware
     /// <returns>A value task that completes when the message has been processed or skipped.</returns>
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
+        var activity = Activity.Current;
         var feature = context.Features.GetOrSet<InboxMiddlewareFeature>();
 
         if (feature.SkipInbox)
         {
-            Activity.Current?.SetTag("inbox.skipped", true);
+            activity?.SetTag("inbox.skipped", true);
+
             await next(context);
+
             return;
         }
 
@@ -64,6 +67,7 @@ public sealed class ConsumeInboxMiddleware
         {
             // No message ID, cannot deduplicate - pass through.
             await next(context);
+
             return;
         }
 
@@ -78,7 +82,10 @@ public sealed class ConsumeInboxMiddleware
             {
                 if (await inbox.ExistsAsync(messageId, consumerType, context.CancellationToken))
                 {
-                    Activity.Current?.SetTag("inbox.claimed", false);
+                    logger.MessageSkippedDueToInboxExists(messageId, consumerType);
+
+                    activity?.SetTag("inbox.claimed", false);
+
                     return;
                 }
             }
@@ -88,12 +95,13 @@ public sealed class ConsumeInboxMiddleware
             }
             catch (Exception ex)
             {
-                var logger = context.Services.GetService<ILogger<ConsumeInboxMiddleware>>();
-                logger?.InboxExistsCheckFailed(messageId, ex);
+                logger.InboxExistsCheckFailed(messageId, ex);
             }
 
-            Activity.Current?.SetTag("inbox.claimed", true);
+            activity?.SetTag("inbox.claimed", true);
+
             await next(context);
+
             return;
         }
 
@@ -104,7 +112,9 @@ public sealed class ConsumeInboxMiddleware
             if (!await inbox.TryClaimAsync(context.Envelope, consumerType, context.CancellationToken))
             {
                 // This consumer type already claimed this message, skip.
-                Activity.Current?.SetTag("inbox.claimed", false);
+                logger.MessageSkippedDueToInboxExists(messageId, consumerType);
+
+                activity?.SetTag("inbox.claimed", false);
                 return;
             }
         }
@@ -116,11 +126,10 @@ public sealed class ConsumeInboxMiddleware
         {
             // The claim failed (e.g. transient DB error). We pass through to the handler
             // rather than dropping the message, preferring at-least-once over at-most-once delivery.
-            var logger = context.Services.GetService<ILogger<ConsumeInboxMiddleware>>();
-            logger?.InboxClaimFailed(messageId, ex);
+            logger.InboxClaimFailed(messageId, ex);
         }
 
-        Activity.Current?.SetTag("inbox.claimed", true);
+        activity?.SetTag("inbox.claimed", true);
         await next(context);
     }
 
@@ -133,7 +142,7 @@ public sealed class ConsumeInboxMiddleware
     private static string GetConsumerType(IConsumeContext context)
     {
         var consumer = context.Features.Get<ReceiveConsumerFeature>()?.CurrentConsumer;
-        return consumer?.Identity?.FullName ?? "unknown";
+        return consumer?.Identity.FullName ?? "unknown";
     }
 
     /// <summary>
@@ -142,9 +151,10 @@ public sealed class ConsumeInboxMiddleware
     /// <returns>A <see cref="ConsumerMiddlewareConfiguration"/> named "Inbox" for pipeline registration.</returns>
     public static ConsumerMiddlewareConfiguration Create()
         => new(
-            static (_, next) =>
+            static (ctx, next) =>
             {
-                var middleware = new ConsumeInboxMiddleware();
+                var logger = ctx.Services.GetRequiredService<ILogger<ConsumeInboxMiddleware>>();
+                var middleware = new ConsumeInboxMiddleware(logger);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Inbox");
@@ -156,34 +166,26 @@ public sealed class ConsumeInboxMiddleware
 internal static partial class InboxMiddlewareLogs
 {
     [LoggerMessage(
-        1,
         LogLevel.Warning,
         "Inbox exists check failed for message {MessageId}. Message will be processed to avoid data loss.")]
     public static partial void InboxExistsCheckFailed(
-        this ILogger logger, string messageId, Exception exception);
+        this ILogger logger,
+        string messageId,
+        Exception exception);
 
     [LoggerMessage(
-        2,
         LogLevel.Warning,
         "Inbox claim failed for message {MessageId}. Message will be processed to avoid data loss.")]
     public static partial void InboxClaimFailed(
-        this ILogger logger, string messageId, Exception exception);
-}
+        this ILogger logger,
+        string messageId,
+        Exception exception);
 
-// Preserve the old name as a type alias so that external code referencing
-// ReceiveInboxMiddleware by name continues to compile.
-// The Create() factory now returns ConsumerMiddlewareConfiguration instead of
-// ReceiveMiddlewareConfiguration, which is the intentional breaking change.
-
-/// <summary>
-/// Obsolete alias for <see cref="ConsumeInboxMiddleware"/> retained for source compatibility.
-/// </summary>
-[System.Obsolete("Use ConsumeInboxMiddleware instead. The inbox now runs in the consumer pipeline.")]
-public sealed class ReceiveInboxMiddleware
-{
-    /// <summary>
-    /// Creates the middleware configuration that wires the inbox middleware into the consumer pipeline.
-    /// </summary>
-    /// <returns>A <see cref="ConsumerMiddlewareConfiguration"/> named "Inbox" for pipeline registration.</returns>
-    public static ConsumerMiddlewareConfiguration Create() => ConsumeInboxMiddleware.Create();
+    [LoggerMessage(
+        LogLevel.Information,
+        "Message {MessageId} skipped by inbox for consumer {ConsumerType}.")]
+    public static partial void MessageSkippedDueToInboxExists(
+        this ILogger logger,
+        string messageId,
+        string consumerType);
 }
