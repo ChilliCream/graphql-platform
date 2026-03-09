@@ -38,7 +38,7 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     /// <summary>
     /// Gets or sets whether the transport should automatically provision infrastructure for this endpoint.
     /// </summary>
-    public bool? AutoProvision { get; set; } = false;
+    public bool? AutoProvision { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum number of messages that can be processed concurrently on this endpoint.

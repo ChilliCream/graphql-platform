@@ -9,8 +9,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\..\..\Fusion\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Fusion\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\src\Adapters.Mcp\HotChocolate.Adapters.Mcp.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Adapters.Mcp\HotChocolate.Fusion.Adapters.Mcp.csproj" />
   </ItemGroup>

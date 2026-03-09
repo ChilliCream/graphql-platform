@@ -15,7 +15,7 @@ public sealed class RabbitMQQueueConfiguration : TopologyConfiguration<RabbitMQM
     /// When true, the queue is persisted to disk and will be restored after a broker restart.
     /// Default is true.
     /// </summary>
-    public bool? Durable { get; set; } = true;
+    public bool? Durable { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the queue can only be accessed by the connection that created it.

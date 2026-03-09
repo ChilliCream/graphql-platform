@@ -200,6 +200,60 @@ public class RabbitMQMessageEnvelopeParserTests
     }
 
     [Fact]
+    public void Parse_Should_UseXDeliveryCount_When_QuorumQueueHeaderPresent()
+    {
+        // arrange — quorum queues set x-delivery-count as a long
+        var args = CreateDeliverEventArgs(
+            props => props.Headers = new Dictionary<string, object?>
+            {
+                ["x-delivery-count"] = 3L
+            },
+            redelivered: true);
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert — exact count from header, not the boolean fallback
+        Assert.Equal(3, envelope.DeliveryCount);
+    }
+
+    [Fact]
+    public void Parse_Should_UseXDeliveryCount_When_ValueIsZero()
+    {
+        // arrange — first delivery on a quorum queue
+        var args = CreateDeliverEventArgs(
+            props => props.Headers = new Dictionary<string, object?>
+            {
+                ["x-delivery-count"] = 0L
+            },
+            redelivered: false);
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert
+        Assert.Equal(0, envelope.DeliveryCount);
+    }
+
+    [Fact]
+    public void Parse_Should_FallbackToRedelivered_When_XDeliveryCountAbsent()
+    {
+        // arrange — classic queue, no x-delivery-count header
+        var args = CreateDeliverEventArgs(
+            props => props.Headers = new Dictionary<string, object?>
+            {
+                ["x-some-other-header"] = "value"u8.ToArray()
+            },
+            redelivered: true);
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert — falls back to redelivered flag
+        Assert.Equal(1, envelope.DeliveryCount);
+    }
+
+    [Fact]
     public void Parse_Should_ExtractEnclosedMessageTypes_When_HeaderPresent()
     {
         // arrange

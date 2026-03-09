@@ -18,6 +18,8 @@ type BillingStatementTransaction implements StatementTransaction {
 
 type Brand implements Node {
   products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): BrandProductsConnection! @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false) @cost(weight: "10")
+  productCount: Int! @cost(weight: "10")
+  supplier: Supplier @cost(weight: "10")
   id: ID!
   name: String!
 }
@@ -181,6 +183,14 @@ type SingleProperty {
   id: String!
 }
 
+type Supplier {
+  id: Int!
+  name: String!
+  website: String
+  contactEmail: String
+  brands: [Brand!]!
+}
+
 input BooleanOperationFilterInput {
   eq: Boolean @cost(weight: "10")
   neq: Boolean @cost(weight: "10")
@@ -191,6 +201,7 @@ input BrandFilterInput {
   or: [BrandFilterInput!]
   id: IntOperationFilterInput
   name: StringOperationFilterInput
+  supplier: SupplierFilterInput
   products: ListFilterInputTypeOfProductFilterInput
 }
 
@@ -232,6 +243,13 @@ input IntOperationFilterInput {
   nlt: Int @cost(weight: "10")
   lte: Int @cost(weight: "10")
   nlte: Int @cost(weight: "10")
+}
+
+input ListFilterInputTypeOfBrandFilterInput {
+  all: BrandFilterInput @cost(weight: "10")
+  none: BrandFilterInput @cost(weight: "10")
+  some: BrandFilterInput @cost(weight: "10")
+  any: Boolean @cost(weight: "10")
 }
 
 input ListFilterInputTypeOfProductFilterInput {
@@ -288,6 +306,16 @@ input StringOperationFilterInput {
   nendsWith: String @cost(weight: "20")
 }
 
+input SupplierFilterInput {
+  and: [SupplierFilterInput!]
+  or: [SupplierFilterInput!]
+  id: IntOperationFilterInput
+  name: StringOperationFilterInput
+  website: StringOperationFilterInput
+  contactEmail: StringOperationFilterInput
+  brands: ListFilterInputTypeOfBrandFilterInput
+}
+
 "Defines the possible serialization types for GraphQL scalar values."
 enum ScalarSerializationType {
   "The scalar serializes to a string value."
@@ -328,7 +356,7 @@ type User @internal {
   id: ID!
   name: String!
 }
-
+            
 directive @internal on OBJECT | FIELD_DEFINITION
 """
 directive @internal on OBJECT | FIELD_DEFINITION
@@ -349,11 +377,11 @@ directive @serializeAs("The primitive type a scalar is serialized to." type: [Sc
 By default, only a single source schema is allowed to contribute
 a particular field to an object type.
 
-
+            
 This prevents source schemas from inadvertently defining similarly named
 fields that are not semantically equivalent.
 
-
+            
 Fields must be explicitly marked as @shareable to allow multiple source
 schemas to define them, ensuring that the decision to serve a field from
 more than one source schema is intentional and coordinated.

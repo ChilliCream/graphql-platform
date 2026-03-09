@@ -15,10 +15,16 @@ internal static class OpenTelemetry
             return headers;
         }
 
-        headers.TryAdd(MessageHeaders.TraceId, activity.TraceId.ToHexString());
-        headers.TryAdd(MessageHeaders.SpanId, activity.SpanId.ToHexString());
-        headers.TryAdd(MessageHeaders.TraceState, activity.TraceStateString);
-        headers.TryAdd(MessageHeaders.ParentId, activity.ParentId);
+        var traceparent = TraceparentHelper.FormatTraceparent(activity);
+        if (traceparent is not null)
+        {
+            headers.TryAdd(MessageHeaders.Traceparent, traceparent);
+        }
+
+        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            headers.TryAdd(MessageHeaders.Tracestate, activity.TraceStateString);
+        }
 
         return headers;
     }

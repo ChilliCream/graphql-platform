@@ -171,6 +171,14 @@ public interface IReadOnlySchemaOptions
     bool EnableTag { get; }
 
     /// <summary>
+    /// Enables opt-in features functionality, including the <c>@requiresOptIn</c> and
+    /// <c>@optInFeatureStability</c> directives. When enabled, schema elements can be marked as
+    /// requiring explicit opt-in, and introspection queries can filter results based on opted-in
+    /// features.
+    /// </summary>
+    bool EnableOptInFeatures { get; }
+
+    /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
     DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
