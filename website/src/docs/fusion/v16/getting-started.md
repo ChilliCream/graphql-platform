@@ -2,8 +2,6 @@
 title: "Getting Started"
 ---
 
-# Getting Started with Hot Chocolate Fusion
-
 In this tutorial, you will build and run a small Fusion setup locally.
 
 By the end, you will have:
