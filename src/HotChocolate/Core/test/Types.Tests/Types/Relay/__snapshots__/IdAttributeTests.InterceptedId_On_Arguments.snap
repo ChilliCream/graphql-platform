@@ -1,6 +1,9 @@
-﻿{
+{
   "data": {
-    "interceptedId": "1",
-    "interceptedIds": "1, 2"
+    "interceptedId": 1,
+    "interceptedIds": [
+      1,
+      2
+    ]
   }
 }

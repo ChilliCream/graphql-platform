@@ -6,36 +6,6 @@ type Query {
   foo(test: FooFilterInput): String
 }
 
-input ByteOperationFilterInput {
-  eq: Byte
-  neq: Byte
-  in: [Byte]
-  nin: [Byte]
-  gt: Byte
-  ngt: Byte
-  gte: Byte
-  ngte: Byte
-  lt: Byte
-  nlt: Byte
-  lte: Byte
-  nlte: Byte
-}
-
-input DateOperationFilterInput {
-  eq: Date
-  neq: Date
-  in: [Date]
-  nin: [Date]
-  gt: Date
-  ngt: Date
-  gte: Date
-  ngte: Date
-  lt: Date
-  nlt: Date
-  lte: Date
-  nlte: Date
-}
-
 input DecimalOperationFilterInput {
   eq: Decimal
   neq: Decimal
@@ -82,21 +52,21 @@ input FooFilterInput {
   barFloat: FloatOperationFilterInput
   barDouble: FloatOperationFilterInput
   barDecimal: DecimalOperationFilterInput
-  barUri: UrlOperationFilterInput
-  barByte: ByteOperationFilterInput
-  barUriNullable: UrlOperationFilterInput
+  barUri: UriOperationFilterInput
+  barByte: UnsignedByteOperationFilterInput
+  barUriNullable: UriOperationFilterInput
   barShortNullable: ShortOperationFilterInput
   barIntNullable: IntOperationFilterInput
   barLongNullable: LongOperationFilterInput
   barFloatNullable: FloatOperationFilterInput
   barDoubleNullable: FloatOperationFilterInput
   barDecimalNullable: DecimalOperationFilterInput
-  barByteNullable: ByteOperationFilterInput
+  barByteNullable: UnsignedByteOperationFilterInput
   fooBar: FooBarOperationFilterInput
-  dateOnly: DateOperationFilterInput
-  dateOnlyNullable: DateOperationFilterInput
-  timeOnly: TimeSpanOperationFilterInput
-  timeOnlyNullable: TimeSpanOperationFilterInput
+  dateOnly: LocalDateOperationFilterInput
+  dateOnlyNullable: LocalDateOperationFilterInput
+  timeOnly: LocalTimeOperationFilterInput
+  timeOnlyNullable: LocalTimeOperationFilterInput
 }
 
 input IntOperationFilterInput {
@@ -112,6 +82,36 @@ input IntOperationFilterInput {
   nlt: Int
   lte: Int
   nlte: Int
+}
+
+input LocalDateOperationFilterInput {
+  eq: LocalDate
+  neq: LocalDate
+  in: [LocalDate]
+  nin: [LocalDate]
+  gt: LocalDate
+  ngt: LocalDate
+  gte: LocalDate
+  ngte: LocalDate
+  lt: LocalDate
+  nlt: LocalDate
+  lte: LocalDate
+  nlte: LocalDate
+}
+
+input LocalTimeOperationFilterInput {
+  eq: LocalTime
+  neq: LocalTime
+  in: [LocalTime]
+  nin: [LocalTime]
+  gt: LocalTime
+  ngt: LocalTime
+  gte: LocalTime
+  ngte: LocalTime
+  lt: LocalTime
+  nlt: LocalTime
+  lte: LocalTime
+  nlte: LocalTime
 }
 
 input LongOperationFilterInput {
@@ -144,34 +144,34 @@ input ShortOperationFilterInput {
   nlte: Short
 }
 
-input TimeSpanOperationFilterInput {
-  eq: TimeSpan
-  neq: TimeSpan
-  in: [TimeSpan]
-  nin: [TimeSpan]
-  gt: TimeSpan
-  ngt: TimeSpan
-  gte: TimeSpan
-  ngte: TimeSpan
-  lt: TimeSpan
-  nlt: TimeSpan
-  lte: TimeSpan
-  nlte: TimeSpan
+input UnsignedByteOperationFilterInput {
+  eq: UnsignedByte
+  neq: UnsignedByte
+  in: [UnsignedByte]
+  nin: [UnsignedByte]
+  gt: UnsignedByte
+  ngt: UnsignedByte
+  gte: UnsignedByte
+  ngte: UnsignedByte
+  lt: UnsignedByte
+  nlt: UnsignedByte
+  lte: UnsignedByte
+  nlte: UnsignedByte
 }
 
-input UrlOperationFilterInput {
-  eq: URL
-  neq: URL
-  in: [URL]
-  nin: [URL]
-  gt: URL
-  ngt: URL
-  gte: URL
-  ngte: URL
-  lt: URL
-  nlt: URL
-  lte: URL
-  nlte: URL
+input UriOperationFilterInput {
+  eq: URI
+  neq: URI
+  in: [URI]
+  nin: [URI]
+  gt: URI
+  ngt: URI
+  gte: URI
+  ngte: URI
+  lt: URI
+  nlt: URI
+  lte: URI
+  nlte: URI
 }
 
 enum FooBar {
@@ -182,22 +182,23 @@ enum FooBar {
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
-"The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
-scalar Byte
+"The `Decimal` scalar type represents a decimal floating-point number with high precision."
+scalar Decimal @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
 
-"The `Date` scalar represents an ISO-8601 compliant date type."
-scalar Date
+"The `LocalDate` scalar type represents a date without time or time zone information."
+scalar LocalDate @specifiedBy(url: "https://scalars.graphql.org/chillicream/local-date.html")
 
-"The `Decimal` scalar type represents a decimal floating-point number."
-scalar Decimal
+"The `LocalTime` scalar type represents a time of day without date or time zone information."
+scalar LocalTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/local-time.html")
 
-"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
-scalar Long
+"The `Long` scalar type represents a signed 64-bit integer."
+scalar Long @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
 
-"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
-scalar Short
+"The `Short` scalar type represents a signed 16-bit integer."
+scalar Short @specifiedBy(url: "https://scalars.graphql.org/chillicream/short.html")
 
-"The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
-scalar TimeSpan
+"The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986."
+scalar URI @specifiedBy(url: "https://scalars.graphql.org/chillicream/uri.html")
 
-scalar URL @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc3986")
+"The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
+scalar UnsignedByte @specifiedBy(url: "https://scalars.graphql.org/chillicream/unsigned-byte.html")

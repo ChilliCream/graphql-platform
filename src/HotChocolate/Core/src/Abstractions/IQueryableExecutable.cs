@@ -23,7 +23,6 @@ public interface IQueryableExecutable<T> : IExecutable<T>
     /// <returns>The new instance of an enumerable executable</returns>
     IQueryableExecutable<T> WithSource(IQueryable<T> source);
 
-
     /// <summary>
     /// Returns a new executable with the provided source
     /// </summary>

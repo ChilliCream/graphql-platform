@@ -324,3 +324,7 @@ conferences.db-wal
 .nuke/
 .mono/
 packages.lock.json
+
+Directory.Build.user.props
+.generated/
+.claude/

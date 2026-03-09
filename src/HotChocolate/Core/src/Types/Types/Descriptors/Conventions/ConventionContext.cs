@@ -1,37 +1,53 @@
-#nullable enable
+using HotChocolate.Features;
 
 namespace HotChocolate.Types.Descriptors;
 
-internal sealed class ConventionContext : IConventionContext
+/// <summary>
+/// The convention context is available during the convention initialization process.
+/// </summary>
+/// <param name="scope">
+/// The scope of the convention.
+/// </param>
+/// <param name="services">
+/// The services.
+/// </param>
+/// <param name="descriptorContext">
+/// The descriptor context.
+/// </param>
+internal sealed class ConventionContext(
+    string? scope,
+    IServiceProvider services,
+    IDescriptorContext descriptorContext)
+    : IConventionContext
 {
-    public ConventionContext(
-        string? scope,
-        IServiceProvider services,
-        IDescriptorContext descriptorContext)
-    {
-        Scope = scope;
-        Services = services;
-        DescriptorContext = descriptorContext;
-    }
+    /// <inheritdoc />
+    public string? Scope { get; } = scope;
 
     /// <inheritdoc />
-    public string? Scope { get; }
+    public IServiceProvider Services { get; } = services;
 
     /// <inheritdoc />
-    public IServiceProvider Services { get; }
+    public IFeatureCollection Features => DescriptorContext.Features;
 
     /// <inheritdoc />
-    public IDictionary<string, object?> ContextData => DescriptorContext.ContextData;
+    public IDescriptorContext DescriptorContext { get; } = descriptorContext;
 
-    /// <inheritdoc />
-    public IDescriptorContext DescriptorContext { get; }
-
+    /// <summary>
+    /// Creates a new convention context.
+    /// </summary>
+    /// <param name="scope">
+    /// The scope of the convention.
+    /// </param>
+    /// <param name="services">
+    /// The services.
+    /// </param>
+    /// <param name="descriptorContext">
+    /// The descriptor context.
+    /// </param>
+    /// <returns></returns>
     public static ConventionContext Create(
         string? scope,
         IServiceProvider services,
-        IDescriptorContext descriptorContext) =>
-        new ConventionContext(
-            scope,
-            services,
-            descriptorContext);
+        IDescriptorContext descriptorContext)
+        => new(scope, services, descriptorContext);
 }

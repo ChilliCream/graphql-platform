@@ -10,17 +10,17 @@ public class MongoDbSortVisitorBooleanTests
     : SchemaCache,
       IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = null, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
     ];
 
     public MongoDbSortVisitorBooleanTests(MongoResource resource)
@@ -32,7 +32,7 @@ public class MongoDbSortVisitorBooleanTests
     public async Task Create_Boolean_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -58,7 +58,7 @@ public class MongoDbSortVisitorBooleanTests
     {
         // arrange
         var tester = CreateSchema<FooNullable, FooNullableSortType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -97,11 +97,7 @@ public class MongoDbSortVisitorBooleanTests
         public bool? Bar { get; set; }
     }
 
-    public class FooSortType : SortInputType<Foo>
-    {
-    }
+    public class FooSortType : SortInputType<Foo>;
 
-    public class FooNullableSortType : SortInputType<FooNullable>
-    {
-    }
+    public class FooNullableSortType : SortInputType<FooNullable>;
 }

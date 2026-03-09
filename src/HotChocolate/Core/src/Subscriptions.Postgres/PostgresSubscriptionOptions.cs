@@ -25,7 +25,7 @@ public sealed class PostgresSubscriptionOptions
     /// </list>
     /// </summary>
     public Func<CancellationToken, ValueTask<NpgsqlConnection>> ConnectionFactory { get; set; } =
-        default!;
+        null!;
 
     /// <summary>
     /// The name of the postgres channel that is used to send/receive messages.

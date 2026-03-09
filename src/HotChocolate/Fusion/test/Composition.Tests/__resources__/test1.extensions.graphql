@@ -1,3 +1,0 @@
-extend type Query {
-  userByUsername(username: String! @is(field: "name")): User
-}

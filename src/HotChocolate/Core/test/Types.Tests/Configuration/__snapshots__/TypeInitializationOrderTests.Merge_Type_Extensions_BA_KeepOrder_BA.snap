@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -8,5 +8,5 @@ type Query {
 }
 
 type Word {
-  value: String
+  value: String!
 }

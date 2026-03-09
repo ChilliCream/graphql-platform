@@ -1,8 +1,0 @@
-request:
-  - document: >-
-      query($slug: String!) {
-        productBySlug(slug: $slug) @skip(if: true) {
-          name
-        }
-      }
-nodes:

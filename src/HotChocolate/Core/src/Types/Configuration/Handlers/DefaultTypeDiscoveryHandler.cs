@@ -1,10 +1,10 @@
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using System.Diagnostics;
 
 namespace HotChocolate.Configuration;
 
@@ -18,6 +18,11 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
         TypeDiscoveryInfo typeInfo,
         [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
     {
+        if (TryCreateKeyValuePairTypeRef(typeReference, typeInfo, out schemaTypeRefs))
+        {
+            return true;
+        }
+
         TypeReference? schemaType;
 
         if (typeInfo.IsStatic)
@@ -98,8 +103,185 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
             return false;
         }
 
-        schemaTypeRefs = [schemaType,];
+        schemaTypeRefs = [schemaType];
         return true;
+    }
+
+    private static bool TryCreateKeyValuePairTypeRef(
+        TypeReference typeReference,
+        TypeDiscoveryInfo typeInfo,
+        [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
+    {
+        // Only extended type references can represent dictionaries.
+        if (typeReference is not ExtendedTypeReference { Type: { } extendedType })
+        {
+            schemaTypeRefs = null;
+            return false;
+        }
+
+        // We only handle generic KeyValuePair<TKey, TValue> types here.
+        if (!extendedType.IsGeneric
+            || extendedType.Definition != typeof(KeyValuePair<,>))
+        {
+            schemaTypeRefs = null;
+            return false;
+        }
+
+        // For output types we create an object type to represent the key-value pair.
+        if (typeInfo.Context is TypeContext.Output or TypeContext.None)
+        {
+            var typeName = CreateKeyValuePairTypeName(
+                extendedType,
+                TypeKind.Object);
+
+            schemaTypeRefs =
+            [
+                TypeReference.Create(
+                    typeName,
+                    typeReference,
+                    _ => CreateKeyValuePairObjectType(extendedType, typeName),
+                    typeReference.Context,
+                    typeReference.Scope)
+            ];
+            return true;
+        }
+
+        // For input types we create an input object type instead.
+        if (typeInfo.Context is TypeContext.Input)
+        {
+            var typeName = CreateKeyValuePairTypeName(
+                extendedType,
+                TypeKind.InputObject);
+
+            schemaTypeRefs =
+            [
+                TypeReference.Create(
+                    typeName,
+                    typeReference,
+                    _ => CreateKeyValuePairInputObjectType(extendedType, typeName),
+                    typeReference.Context,
+                    typeReference.Scope)
+            ];
+            return true;
+        }
+
+        // We should never get here as all context options are exhausted above.
+        Debug.Fail("Unexpected TypeContext value.");
+        schemaTypeRefs = null;
+        return false;
+    }
+
+    private static ObjectType CreateKeyValuePairObjectType(
+        IExtendedType keyValuePairType,
+        string typeName)
+    {
+        var runtimeType = keyValuePairType.Type;
+        var keyType = keyValuePairType.TypeArguments[0];
+        var valueType = keyValuePairType.TypeArguments[1];
+        var keyProperty = runtimeType.GetProperty("Key")!;
+        var valueProperty = runtimeType.GetProperty("Value")!;
+
+        return new ObjectType(
+            descriptor =>
+            {
+                descriptor.Name(typeName);
+
+                descriptor.Field(keyProperty)
+                    .Name("key")
+                    .Extend()
+                    .OnBeforeCreate(
+                        (_, field) =>
+                        {
+                            field.SetMoreSpecificType(keyType, TypeContext.Output);
+                            field.SourceType = runtimeType;
+                            field.ResolverType = runtimeType;
+                        });
+
+                descriptor.Field(valueProperty)
+                    .Name("value")
+                    .Extend()
+                    .OnBeforeCreate(
+                        (_, field) =>
+                        {
+                            field.SetMoreSpecificType(valueType, TypeContext.Output);
+                            field.SourceType = runtimeType;
+                            field.ResolverType = runtimeType;
+                        });
+
+                descriptor.Extend()
+                    .OnBeforeCreate(
+                        (_, type) =>
+                        {
+                            type.RuntimeType = runtimeType;
+                            type.FieldBindingType = typeof(object);
+                        });
+            });
+    }
+
+    private static InputObjectType CreateKeyValuePairInputObjectType(
+        IExtendedType keyValuePairType,
+        string typeName)
+    {
+        var runtimeType = keyValuePairType.Type;
+        var keyType = keyValuePairType.TypeArguments[0];
+        var valueType = keyValuePairType.TypeArguments[1];
+        var keyProperty = runtimeType.GetProperty("Key")!;
+        var valueProperty = runtimeType.GetProperty("Value")!;
+        var keyGetter = keyProperty.GetMethod!;
+        var valueGetter = valueProperty.GetMethod!;
+
+        return new InputObjectType(
+            descriptor =>
+            {
+                descriptor.Name(typeName);
+
+                descriptor.Field("key")
+                    .Extend()
+                    .OnBeforeCreate(
+                        (_, field) => field.SetMoreSpecificType(keyType, TypeContext.Input));
+
+                descriptor.Field("value")
+                    .Extend()
+                    .OnBeforeCreate(
+                        (_, field) => field.SetMoreSpecificType(valueType, TypeContext.Input));
+
+                descriptor.Extend()
+                    .OnBeforeCreate(
+                        (_, type) =>
+                        {
+                            type.RuntimeType = runtimeType;
+                            type.CreateInstance =
+                                values => Activator.CreateInstance(runtimeType, values[0], values[1])!;
+                            type.GetFieldData =
+                                (obj, values) =>
+                                {
+                                    values[0] = keyGetter.Invoke(obj, []);
+                                    values[1] = valueGetter.Invoke(obj, []);
+                                };
+                        });
+            });
+    }
+
+    private static string CreateKeyValuePairTypeName(IExtendedType type, TypeKind kind)
+    {
+        var keyType = type.TypeArguments[0];
+        var valueType = type.TypeArguments[1];
+        var keyName = keyType.Type.Name;
+        var valueName = valueType.Type.Name;
+
+        if (keyType.IsNullable && keyType.Type.IsValueType)
+        {
+            keyName = $"Nullable{keyName}";
+        }
+
+        if (valueType.IsNullable && valueType.Type.IsValueType)
+        {
+            valueName = $"Nullable{valueName}";
+        }
+
+        return kind is TypeKind.InputObject
+            ? $"KeyValuePairOf{keyName}And{valueName}Input"
+            : $"KeyValuePairOf{keyName}And{valueName}";
     }
 
     public override bool TryInferKind(
@@ -155,44 +337,43 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsStaticObjectTypeExtension(TypeDiscoveryInfo typeInfo)
-        => typeInfo.IsStatic &&
-            typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true, };
+        => typeInfo.IsStatic && typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsObjectTypeExtension(TypeDiscoveryInfo typeInfo)
-        => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true, };
+        => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsObjectType(TypeDiscoveryInfo typeInfo)
-        => !typeInfo.IsDirectiveRef &&
-            (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false, } ||
-                typeInfo.Attribute is null && typeInfo.IsComplex) &&
-            typeInfo is { Context: TypeContext.Output or TypeContext.None, };
+        => !typeInfo.IsDirectiveRef
+            && (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false }
+                || (typeInfo.Attribute is null && typeInfo.IsComplex))
+            && typeInfo is { Context: TypeContext.Output or TypeContext.None };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsUnionType(TypeDiscoveryInfo typeInfo)
-        => typeInfo.Attribute is { Kind: TypeKind.Union, IsTypeExtension: false, } &&
-            typeInfo is { Context: TypeContext.Output or TypeContext.None, };
+        => typeInfo.Attribute is { Kind: TypeKind.Union, IsTypeExtension: false }
+            && typeInfo is { Context: TypeContext.Output or TypeContext.None };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInterfaceType(TypeDiscoveryInfo typeInfo)
-        => (typeInfo.Attribute is { Kind: TypeKind.Interface, IsTypeExtension: false, } ||
-                typeInfo.Attribute is null && typeInfo.IsInterface) &&
-            typeInfo is { Context: TypeContext.Output or TypeContext.None, };
+        => (typeInfo.Attribute is { Kind: TypeKind.Interface, IsTypeExtension: false }
+                || (typeInfo.Attribute is null && typeInfo.IsInterface))
+            && typeInfo is { Context: TypeContext.Output or TypeContext.None };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInputObjectType(TypeDiscoveryInfo typeInfo)
-        => (typeInfo.Attribute is { Kind: TypeKind.InputObject, IsTypeExtension: false, } ||
-                typeInfo.Attribute is null && typeInfo.IsComplex) &&
-            typeInfo is { IsAbstract: false, Context: TypeContext.Input, };
+        => (typeInfo.Attribute is { Kind: TypeKind.InputObject, IsTypeExtension: false }
+                || (typeInfo.Attribute is null && typeInfo.IsComplex))
+            && typeInfo is { IsAbstract: false, Context: TypeContext.Input };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsEnumType(TypeDiscoveryInfo typeInfo)
-        => (typeInfo.Attribute is { Kind: TypeKind.Enum, IsTypeExtension: false, } ||
-                typeInfo.Attribute is null && typeInfo.IsEnum) &&
-            typeInfo.IsPublic;
+        => (typeInfo.Attribute is { Kind: TypeKind.Enum, IsTypeExtension: false }
+                || (typeInfo.Attribute is null && typeInfo.IsEnum))
+            && typeInfo.IsPublic;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsDirectiveType(TypeDiscoveryInfo typeInfo)
-        => typeInfo.Attribute is { Kind: TypeKind.Directive, IsTypeExtension: false, };
+        => typeInfo.Attribute is { Kind: TypeKind.Directive, IsTypeExtension: false };
 }

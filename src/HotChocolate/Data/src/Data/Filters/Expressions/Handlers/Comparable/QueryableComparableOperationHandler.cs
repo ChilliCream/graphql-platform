@@ -8,10 +8,9 @@ namespace HotChocolate.Data.Filters.Expressions;
 /// <summary>
 /// The base of a <see cref="IQueryable{T}"/> operation handler specific for
 /// <see cref="IComparableOperationFilterInputType "/>
-/// If the <see cref="FilterTypeInterceptor"/> encounters a operation field that implements
+/// If the <see cref="FilterTypeInterceptor"/> encounters an operation field that implements
 /// <see cref="IComparableOperationFilterInputType "/> and matches the operation identifier
-/// defined in <see cref="QueryableComparableOperationHandler.Operation"/> the handler is bound
-/// to the field
+/// defined in <see cref="Operation"/> the handler is bound to the field
 /// </summary>
 public abstract class QueryableComparableOperationHandler : QueryableOperationHandlerBase
 {
@@ -36,20 +35,20 @@ public abstract class QueryableComparableOperationHandler : QueryableOperationHa
     /// <summary>
     /// Checks if the <see cref="FilterField"/> implements
     /// <see cref="IComparableOperationFilterInputType "/> and has the operation identifier
-    /// defined in <see cref="QueryableComparableOperationHandler.Operation"/>
+    /// defined in <see cref="Operation"/>
     /// </summary>
     /// <param name="context">The discovery context of the schema</param>
-    /// <param name="typeDefinition">The definition of the declaring type of the field</param>
-    /// <param name="fieldDefinition">The definition of the field</param>
+    /// <param name="typeConfiguration">The configuration of the declaring type of the field</param>
+    /// <param name="fieldConfiguration">The configuration of the field</param>
     /// <returns>Returns true if the field can be handled</returns>
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IComparableOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
-            operationField.Id == Operation;
+        return context.Type is IComparableOperationFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 
     /// <summary>

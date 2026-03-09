@@ -32,7 +32,7 @@ public class FilterVisitorTestBase
         return new ExecutorBuilder(type);
     }
 
-    protected ISchema CreateSchema<T>(T type)
+    protected Schema CreateSchema<T>(T type)
         where T : IFilterInputType
     {
         var convention = new FilterConvention(x => x

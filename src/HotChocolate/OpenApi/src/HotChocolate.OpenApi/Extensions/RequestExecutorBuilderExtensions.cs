@@ -1,8 +1,8 @@
 using HotChocolate.Execution.Configuration;
 using HotChocolate.OpenApi.FieldMiddleware;
 using HotChocolate.OpenApi.TypeInterceptors;
-using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Readers;
 
@@ -18,8 +18,8 @@ public static class RequestExecutorBuilderExtensions
         MutationConventionOptions mutationConventionOptions = default)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrEmpty(nameof(httpClientName));
-        ArgumentException.ThrowIfNullOrEmpty(nameof(openApiDocumentText));
+        ArgumentException.ThrowIfNullOrEmpty(httpClientName);
+        ArgumentException.ThrowIfNullOrEmpty(openApiDocumentText);
 
         // Create OpenAPI document from the provided string.
         var openApiStringReader = new OpenApiStringReader();

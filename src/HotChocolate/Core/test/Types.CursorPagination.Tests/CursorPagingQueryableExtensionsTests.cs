@@ -24,7 +24,7 @@ public class CursorPagingQueryableExtensionsTests
     {
         var mock = new Mock<IQueryable<Person>>();
 
-        async Task Fail() => await mock.Object.ApplyCursorPaginationAsync(default!);
+        async Task Fail() => await mock.Object.ApplyCursorPaginationAsync(null!);
 
         await Assert.ThrowsAsync<ArgumentNullException>(Fail);
     }
@@ -65,7 +65,7 @@ public class CursorPagingQueryableExtensionsTests
     {
         var mock = new Mock<IEnumerable<Person>>();
 
-        async Task Fail() => await mock.Object.ApplyCursorPaginationAsync(default!);
+        async Task Fail() => await mock.Object.ApplyCursorPaginationAsync(null!);
 
         await Assert.ThrowsAsync<ArgumentNullException>(Fail);
     }
@@ -102,7 +102,7 @@ public class CursorPagingQueryableExtensionsTests
                 new(name: "Foo"),
                 new(name: "Bar"),
                 new(name: "Baz"),
-                new(name: "Qux"),
+                new(name: "Qux")
             };
 
             return await list.AsQueryable().ApplyCursorPaginationAsync(
@@ -123,7 +123,7 @@ public class CursorPagingQueryableExtensionsTests
                 new(name: "Foo"),
                 new(name: "Bar"),
                 new(name: "Baz"),
-                new(name: "Qux"),
+                new(name: "Qux")
             };
 
             return await list.ApplyCursorPaginationAsync(

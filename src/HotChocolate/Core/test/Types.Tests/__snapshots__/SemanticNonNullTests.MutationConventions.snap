@@ -8,11 +8,12 @@ interface Error {
 
 type DoSomethingPayload {
   boolean: Boolean
-  errors: [DoSomethingError] @semanticNonNull(levels: [ 1 ])
+  errors: [DoSomethingError] @semanticNonNull(levels: [1])
 }
 
 type Mutation {
   doSomething: DoSomethingPayload!
+  doSomethingElse: Boolean!
 }
 
 type MyError implements Error {
@@ -21,4 +22,6 @@ type MyError implements Error {
 
 union DoSomethingError = MyError
 
-directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!] = [
+  0
+]) on FIELD_DEFINITION

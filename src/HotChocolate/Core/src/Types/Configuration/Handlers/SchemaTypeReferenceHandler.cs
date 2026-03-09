@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class SchemaTypeReferenceHandler : ITypeRegistrarHandler
@@ -26,7 +24,7 @@ internal sealed class SchemaTypeReferenceHandler : ITypeRegistrarHandler
             tsm = type.NamedType();
         }
 
-        if (tsm is TypeSystemObjectBase tso)
+        if (tsm is TypeSystemObject tso)
         {
             typeRegistrar.Register(tso, typeReference.Scope);
         }

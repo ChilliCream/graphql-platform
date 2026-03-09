@@ -12,13 +12,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Pipeline" />
     <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Language.Web" />
     <InternalsVisibleTo Include="HotChocolate.Language" />
     <InternalsVisibleTo Include="HotChocolate.Subscriptions" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Benchmarks" />
   </ItemGroup>
 
   <ItemGroup>
@@ -72,6 +74,9 @@
       <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
     </Compile>
     <Compile Update="Utf8GraphQLReader.Utilities.cs">
+      <DependentUpon>Utf8GraphQLReader.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLReader.MultiSegment.cs">
       <DependentUpon>Utf8GraphQLReader.cs</DependentUpon>
     </Compile>
   </ItemGroup>

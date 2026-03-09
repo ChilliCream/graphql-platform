@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 
@@ -13,34 +15,41 @@ internal sealed class FilterContextParameterExpressionBuilder
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private const string _getFilterContext =
+    private const string GetFilterContext =
         nameof(FilterContextResolverContextExtensions.GetFilterContext);
 
-    private static readonly MethodInfo _getFilterContextMethod =
+    private static readonly MethodInfo s_getFilterContextMethod =
         typeof(FilterContextResolverContextExtensions)
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(method => method.Name.Equals(_getFilterContext, StringComparison.Ordinal));
+            .First(method => method.Name.Equals(GetFilterContext, StringComparison.Ordinal));
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.Kind" />
     public ArgumentKind Kind => ArgumentKind.Service;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.IsPure" />
     public bool IsPure => false;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.IsDefaultHandler" />
     public bool IsDefaultHandler => false;
 
     /// <inheritdoc />
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(IFilterContext);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(IFilterContext);
+
     /// <inheritdoc />
     public Expression Build(ParameterExpressionBuilderContext context)
-        => Expression.Call(_getFilterContextMethod, context.ResolverContext);
+        => Expression.Call(s_getFilterContextMethod, context.ResolverContext);
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor context)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.GetFilterContext()!;
+    {
+        Debug.Assert(typeof(IFilterContext) == typeof(T));
+        var filterContext = context.GetFilterContext()!;
+        return Unsafe.As<IFilterContext, T>(ref filterContext);
+    }
 }

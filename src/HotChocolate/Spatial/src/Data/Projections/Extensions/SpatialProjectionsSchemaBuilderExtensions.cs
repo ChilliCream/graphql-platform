@@ -7,10 +7,7 @@ public static class SpatialProjectionsSchemaBuilderExtensions
 {
     public static ISchemaBuilder AddSpatialProjections(this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.AddConvention<IProjectionConvention>(
             new ProjectionConventionExtension(

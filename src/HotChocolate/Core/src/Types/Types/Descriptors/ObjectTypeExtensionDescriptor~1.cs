@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class ObjectTypeExtensionDescriptor<T>
@@ -8,11 +6,11 @@ public class ObjectTypeExtensionDescriptor<T>
     protected internal ObjectTypeExtensionDescriptor(IDescriptorContext context)
         : base(context)
     {
-        Definition.Name = context.Naming.GetTypeName(typeof(T), TypeKind.Object);
-        Definition.Description = context.Naming.GetTypeDescription(typeof(T), TypeKind.Object);
-        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
-        Definition.FieldBindingFlags = context.Options.DefaultFieldBindingFlags;
-        Definition.FieldBindingType = typeof(T);
-        Definition.IsExtension = true;
+        Configuration.Name = context.Naming.GetTypeName(typeof(T), TypeKind.Object);
+        Configuration.Description = context.Naming.GetTypeDescription(typeof(T), TypeKind.Object);
+        Configuration.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.FieldBindingFlags = context.Options.DefaultFieldBindingFlags;
+        Configuration.FieldBindingType = typeof(T);
+        Configuration.IsExtension = true;
     }
 }

@@ -4,7 +4,7 @@
 {
   "errors": [
     {
-      "message": "Invalid query id format."
+      "message": "The GraphQL document ID contains invalid characters."
     }
   ]
 }

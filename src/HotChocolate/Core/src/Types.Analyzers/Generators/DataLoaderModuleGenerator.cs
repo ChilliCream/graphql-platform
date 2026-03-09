@@ -10,8 +10,9 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        string assemblyName,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, string> addSource)
     {
         var module = GetDataLoaderModuleInfo(syntaxInfos);
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
@@ -26,12 +27,12 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
 
         generator.WriteHeader();
         generator.WriteBeginNamespace();
-        generator.WriteBeginClass();
+        generator.WriteBeginClass(module.IsInternal);
         generator.WriteBeginRegistrationMethod();
 
         foreach (var syntaxInfo in syntaxInfos)
         {
-            if(syntaxInfo.Diagnostics.Length > 0)
+            if (syntaxInfo.Diagnostics.Length > 0)
             {
                 continue;
             }
@@ -47,7 +48,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
                     var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
                     generator.WriteAddDataLoader(typeName, interfaceTypeName, dataLoaderDefaults.GenerateInterfaces);
 
-                    if(dataLoader.Groups.Count > 0)
+                    if (dataLoader.Groups.Count > 0)
                     {
                         groups ??= [];
                         foreach (var groupName in dataLoader.Groups)
@@ -71,7 +72,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
         generator.WriteEndClass();
         generator.WriteEndNamespace();
 
-        context.AddSource(WellKnownFileNames.DataLoaderModuleFile, generator.ToSourceText());
+        addSource(WellKnownFileNames.DataLoaderModuleFile, generator.ToString());
     }
 
     private static DataLoaderModuleInfo? GetDataLoaderModuleInfo(
@@ -81,7 +82,9 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
         {
             if (syntaxInfo is DataLoaderModuleInfo module)
             {
-                return new DataLoaderModuleInfo(GeneratorUtils.SanitizeIdentifier(module.ModuleName));
+                return new DataLoaderModuleInfo(
+                    GeneratorUtils.SanitizeIdentifier(module.ModuleName),
+                    module.IsInternal);
             }
         }
 

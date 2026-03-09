@@ -1,37 +1,92 @@
-using HotChocolate.Skimmed;
-using static HotChocolate.Fusion.WellKnownDirectiveNames;
+using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
+using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
 internal static class DirectivesProviderExtensions
 {
-    public static bool HasExternalDirective(this IDirectivesProvider type)
+    extension(IDirectivesProvider member)
     {
-        return type.Directives.ContainsName(External);
-    }
+        public void AddDirective(Directive directive)
+        {
+            switch (member)
+            {
+                case IMutableFieldDefinition field:
+                    field.Directives.Add(directive);
+                    break;
+                case IMutableTypeDefinition type:
+                    type.Directives.Add(directive);
+                    break;
+                case MutableEnumValue enumValue:
+                    enumValue.Directives.Add(directive);
+                    break;
+                case MutableSchemaDefinition schema:
+                    schema.Directives.Add(directive);
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
 
-    public static bool HasInaccessibleDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(Inaccessible);
-    }
+        public string? GetIsFieldSelectionMap()
+        {
+            var isDirective = member.Directives.FirstOrDefault(d => d.Name == WellKnownDirectiveNames.Is);
 
-    public static bool HasInternalDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(Internal);
-    }
+            if (isDirective?.Arguments[ArgumentNames.Field] is StringValueNode fieldArgument)
+            {
+                return fieldArgument.Value;
+            }
 
-    public static bool HasLookupDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(Lookup);
-    }
+            return null;
+        }
 
-    public static bool HasOverrideDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(Override);
-    }
+        public string? GetProvidesSelectionSet()
+        {
+            var providesDirective =
+                member.Directives.FirstOrDefault(d => d.Name == WellKnownDirectiveNames.Provides);
 
-    public static bool HasProvidesDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(Provides);
+            if (providesDirective?.Arguments[ArgumentNames.Fields] is StringValueNode fieldsArgument)
+            {
+                return fieldsArgument.Value;
+            }
+
+            return null;
+        }
+
+        public HashSet<string> GetTags()
+        {
+            var tags = new HashSet<string>();
+            var tagDirectives = member.Directives.Where(d => d.Name == WellKnownDirectiveNames.Tag);
+
+            foreach (var tagDirective in tagDirectives)
+            {
+                if (tagDirective.Arguments[ArgumentNames.Name] is StringValueNode name)
+                {
+                    tags.Add(name.Value);
+                }
+            }
+
+            return tags;
+        }
+
+        public bool ExistsInSchema(string schemaName)
+        {
+            return member.Directives.AsEnumerable().Any(
+                d =>
+                    d.Name == WellKnownDirectiveNames.FusionType
+                    && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+        }
+
+        public bool HasFusionInaccessibleDirective()
+        {
+            return member.Directives.ContainsName(WellKnownDirectiveNames.FusionInaccessible);
+        }
+
+        public bool HasInaccessibleDirective()
+        {
+            return member.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
+        }
     }
 }

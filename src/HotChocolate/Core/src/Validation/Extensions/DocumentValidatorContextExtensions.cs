@@ -4,7 +4,7 @@ namespace HotChocolate.Validation;
 
 internal static class DocumentValidatorContextExtensions
 {
-    public static Path? CreateErrorPath(this IDocumentValidatorContext context)
+    public static Path? CreateErrorPath(this DocumentValidatorContext context)
     {
         if (context.Path.Count == 0)
         {

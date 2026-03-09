@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types;
 
 internal sealed class AggregateInputValueFormatter : IInputValueFormatter
@@ -8,10 +6,7 @@ internal sealed class AggregateInputValueFormatter : IInputValueFormatter
 
     public AggregateInputValueFormatter(IEnumerable<IInputValueFormatter> formatters)
     {
-        if (formatters is null)
-        {
-            throw new ArgumentNullException(nameof(formatters));
-        }
+        ArgumentNullException.ThrowIfNull(formatters);
 
         if (formatters is IInputValueFormatter[] array)
         {

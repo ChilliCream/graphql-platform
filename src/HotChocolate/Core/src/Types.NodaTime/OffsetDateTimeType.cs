@@ -41,19 +41,23 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
     {
         // Backwards compatibility with the original code's behavior
         _serializationPattern = OffsetDateTimePattern.GeneralIso;
-        _allowedPatterns = [OffsetDateTimePattern.ExtendedIso,];
+        _allowedPatterns = [OffsetDateTimePattern.ExtendedIso];
     }
 
     /// <inheritdoc />
-    protected override string Serialize(OffsetDateTime runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out OffsetDateTime? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        OffsetDateTime runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
 
     protected override Dictionary<IPattern<OffsetDateTime>, string> PatternMap => new()
     {

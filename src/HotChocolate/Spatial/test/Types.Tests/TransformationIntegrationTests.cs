@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
@@ -10,20 +10,20 @@ namespace HotChocolate.Types.Spatial;
 public class TransformationIntegrationTests
 {
     private const string WKT4326 =
-        "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563," +
-        "AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\"," +
-        "0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\"," +
-        "\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]";
+        "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,"
+        + "AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\","
+        + "0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\","
+        + "\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]";
     private const string WKT26918 =
-        "PROJCS[\"NAD83 \\/ UTM zone 18N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\"," +
-        "SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],TOWGS84" +
-        "[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\"," +
-        "\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[" +
-        "\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[" +
-        "\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[" +
-        "\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[" +
-        "\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\"," +
-        "EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26918\"]]";
+        "PROJCS[\"NAD83 \\/ UTM zone 18N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\","
+        + "SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],TOWGS84"
+        + "[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\","
+        + "\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY["
+        + "\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER["
+        + "\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER["
+        + "\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER["
+        + "\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\","
+        + "EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26918\"]]";
 
     [Fact]
     public void Execute_UnknownDefaultCRS()
@@ -37,7 +37,7 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>();
 
         // act
-        var ex = Record.Exception(() => builder.Create());
+        var ex = Record.Exception(builder.Create);
 
         // assert
         Assert.IsType<SchemaException>(ex).MatchSnapshot();
@@ -87,7 +87,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -132,7 +132,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateZM(10, 30, 12, 15),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -178,7 +178,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateM(10, 30, 12),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -224,7 +224,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateZ(10, 30, 12),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -403,7 +403,7 @@ public class TransformationIntegrationTests
             new Coordinate(30, 10),
                 new Coordinate(10, 30),
                 new CoordinateZ(10, 30, 12),
-                new Coordinate(40, 40),
+                new Coordinate(40, 40)
         ]);
 
         var schema = SchemaBuilder.New()
@@ -518,7 +518,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -563,7 +563,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -646,15 +646,15 @@ public class TransformationIntegrationTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is ObjectTypeDefinition o)
+            if (configuration is ObjectTypeConfiguration o)
             {
                 foreach (var field in o.Fields)
                 {
                     if (field.Name.EqualsOrdinal("test"))
                     {
-                        field.MiddlewareDefinitions.Insert(0,
+                        field.MiddlewareConfigurations.Insert(0,
                             new(next => async context =>
                             {
                                 await next(context);

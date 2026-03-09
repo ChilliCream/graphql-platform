@@ -20,7 +20,7 @@ public delegate ValueTask OnReceiveAsync(
 public interface ISocketProtocol : IAsyncDisposable
 {
     /// <summary>
-    ///  A even that is called when the <see cref="ISocketProtocol"/> is disposed
+    /// An event that is called when the <see cref="ISocketProtocol"/> is disposed
     /// </summary>
     event EventHandler Disposed;
 
@@ -43,7 +43,7 @@ public interface ISocketProtocol : IAsyncDisposable
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Stops a operation on the server
+    /// Stops an operation on the server
     /// </summary>
     /// <param name="operationId">The id of the operation to stop</param>
     /// <param name="cancellationToken">

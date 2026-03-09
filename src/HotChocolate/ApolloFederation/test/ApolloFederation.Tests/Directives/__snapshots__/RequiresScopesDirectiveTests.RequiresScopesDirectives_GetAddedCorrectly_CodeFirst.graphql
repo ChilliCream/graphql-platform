@@ -1,14 +1,14 @@
-schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@requiresScopes", "@key", "@tag", "FieldSet" ]) {
+schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@requiresScopes", "@key", "@tag", "FieldSet"]) {
   query: Query
 }
 
 type Query {
-  someField: Review! @requiresScopes(scopes: [ [ "s1,s1_1", "s2" ] ])
+  someField: Review! @requiresScopes(scopes: [["s1,s1_1", "s2"]])
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
-type Review @key(fields: "id") @key(fields: "id") @requiresScopes(scopes: [ [ "s3" ] ]) {
+type Review @key(fields: "id") @key(fields: "id") @requiresScopes(scopes: [["s3"]]) {
   id: Int!
 }
 

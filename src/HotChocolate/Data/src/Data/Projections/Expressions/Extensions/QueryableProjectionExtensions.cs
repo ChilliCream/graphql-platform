@@ -54,8 +54,8 @@ public static class QueryableProjectExtensions
     {
         if (context.LocalContextData.TryGetValue(
             QueryableProjectionProvider.ContextApplyProjectionKey,
-            out var applicatorObj) &&
-            applicatorObj is ApplyProjection applicator)
+            out var applicatorObj)
+            && applicatorObj is ApplyProjection applicator)
         {
             var resultObj = applicator(context, input);
             if (resultObj is T result)

@@ -59,13 +59,15 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                ... @defer(label: ""abc"") {
-                    person(id: ""UGVyc29uOjE="") {
+            """
+            {
+                ... @defer(label: "abc") {
+                    person(id: "UGVyc29uOjE=") {
                         id
                     }
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
@@ -114,7 +116,7 @@ public class DeferTests
                 .SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "defer", false },
+                        { "defer", false }
                     })
                 .Build());
 
@@ -241,7 +243,7 @@ public class DeferTests
                 .SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "defer", false },
+                        { "defer", false }
                     })
                 .Build());
 

@@ -6,38 +6,35 @@ public static class LiteralExtensions
 {
     public static bool TryGetValueKind(this IValueNode literal, out ValueKind kind)
     {
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(literal);
 
         switch (literal)
         {
-            case StringValueNode _:
+            case StringValueNode:
                 kind = ValueKind.String;
                 return true;
-            case IntValueNode _:
+            case IntValueNode:
                 kind = ValueKind.Integer;
                 return true;
-            case FloatValueNode _:
+            case FloatValueNode:
                 kind = ValueKind.Float;
                 return true;
-            case BooleanValueNode _:
+            case BooleanValueNode:
                 kind = ValueKind.Boolean;
                 return true;
-            case EnumValueNode _:
+            case EnumValueNode:
                 kind = ValueKind.Enum;
                 return true;
-            case ObjectValueNode _:
+            case ObjectValueNode:
                 kind = ValueKind.Object;
                 return true;
-            case ListValueNode _:
+            case ListValueNode:
                 kind = ValueKind.List;
                 return true;
-            case NullValueNode _:
+            case NullValueNode:
                 kind = ValueKind.Null;
                 return true;
-            case VariableNode _:
+            case VariableNode:
                 kind = ValueKind.Unknown;
                 return true;
             default:

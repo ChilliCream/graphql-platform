@@ -6,5 +6,5 @@ public enum RequestMiddlewareParameterKind
     SchemaService,
     Schema,
     Context,
-    Next,
+    Next
 }

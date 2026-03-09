@@ -1,6 +1,5 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
-using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
@@ -44,10 +43,11 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteBeginClass()
+    public void WriteBeginClass(bool isInternal)
     {
         _writer.WriteIndentedLine(
-            "public static partial class {0}DataLoaderServiceExtensions",
+            "{0} static partial class {1}DataLoaderServiceExtensions",
+            isInternal ? "internal" : "public",
             _moduleName);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
@@ -117,9 +117,6 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
     public override string ToString()
         => _sb.ToString();
 
-    public SourceText ToSourceText()
-        => SourceText.From(ToString(), Encoding.UTF8);
-
     public void Dispose()
     {
         if (_disposed)
@@ -128,8 +125,8 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
         }
 
         PooledObjects.Return(_sb);
-        _sb = default!;
-        _writer = default!;
+        _sb = null!;
+        _writer = null!;
         _disposed = true;
     }
 }

@@ -1,5 +1,5 @@
-using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 
 namespace HotChocolate.Execution;
 
@@ -24,7 +24,7 @@ public class SchemaFirstTests
                 "{ test testProp }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -56,7 +56,7 @@ public class SchemaFirstTests
                 "{ foo(bar: { baz: \"hello\"}) }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -83,7 +83,7 @@ public class SchemaFirstTests
                 "{ enumValue }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -110,7 +110,7 @@ public class SchemaFirstTests
                 "{ setEnumValue(value:BAZ_BAR) }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -144,7 +144,7 @@ public class SchemaFirstTests
                 "{ enumInInputObject(payload: { value:BAZ } ) }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -194,7 +194,7 @@ public class SchemaFirstTests
                     """
                     mutation {
                       changeChannelParameters(input: {
-                        parameterChangeInfo: [ { value: { a: "b" } } ]
+                        parameterChangeInfo: [{ value: { a: "b" } }]
                       }) {
                         message
                       }
@@ -233,7 +233,7 @@ public class SchemaFirstTests
 
     public class Bar
     {
-        public string Baz { get; set; } = default!;
+        public string Baz { get; set; } = null!;
     }
 
     public class EnumQuery
@@ -263,7 +263,7 @@ public class SchemaFirstTests
     {
         Bar,
         Baz,
-        BazBar,
+        BazBar
     }
 
     public class Query5730
@@ -277,11 +277,10 @@ public class SchemaFirstTests
             ChangeChannelParameterInput input,
             CancellationToken _)
         {
-            var message = Assert.IsType<string>(
-                Assert.IsType<Dictionary<string, object>>(
-                    input.ParameterChangeInfo[0].Value)["a"]);
+            var value = Assert.IsType<JsonElement>(input.ParameterChangeInfo[0].Value);
+            var message = Assert.IsType<string>(value.GetProperty("a").GetString());
 
-            return Task.FromResult(new ChangeChannelParameterPayload { Message = message, });
+            return Task.FromResult(new ChangeChannelParameterPayload { Message = message });
         }
     }
 

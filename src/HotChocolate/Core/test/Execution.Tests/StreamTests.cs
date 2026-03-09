@@ -77,6 +77,26 @@ public class StreamTests
     }
 
     [LocalFact]
+    public async Task Stream_InitialCount_Exceeds_Total_Count()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... @defer {
+                    wait(m: 300)
+                }
+                persons @stream(initialCount: 7) {
+                    id
+                }
+            }");
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
+
+    [LocalFact]
     public async Task Stream_Label_Set_To_abc()
     {
         // arrange
@@ -135,7 +155,7 @@ public class StreamTests
                         }
                     }
                     """)
-                .SetVariableValues(new Dictionary<string, object?> { {"stream", false},})
+                .SetVariableValues(new Dictionary<string, object?> { { "stream", false } })
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();

@@ -1,11 +1,11 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
 /// Represents a handler that can be bound to a <see cref="SortField"/>. The handler is
-/// executed during the visitation of a input object.
+/// executed during the visitation of an input object.
 /// </summary>
 public interface ISortOperationHandler
 {
@@ -14,11 +14,11 @@ public interface ISortOperationHandler
     /// will be attached to the <see cref="SortField"/>
     /// </summary>
     /// <param name="context">The discovery context of the schema</param>
-    /// <param name="typeDefinition">The definition of the declaring type of the field</param>
-    /// <param name="valueDefinition">The definition of the field</param>
+    /// <param name="typeDefinition">The configuration of the declaring type of the field</param>
+    /// <param name="valueConfiguration">The configuration of the field</param>
     /// <returns>Returns true if the field can be handled</returns>
     bool CanHandle(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
-        SortEnumValueDefinition valueDefinition);
+        EnumTypeConfiguration typeDefinition,
+        SortEnumValueConfiguration valueConfiguration);
 }

@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Buffers.Text</AssemblyName>
+    <RootNamespace>HotChocolate.Buffers.Text</RootNamespace>
+    <PackageId>HotChocolate.Utilities.Base36</PackageId>
+    <Description>This package contains the HotChocolate.Text.Buffers.Base36 encoder.</Description>
+  </PropertyGroup>
+
+</Project>

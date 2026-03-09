@@ -1,0 +1,17 @@
+schema {
+  query: Query
+}
+
+type Query {
+  products: [Product]
+}
+
+type Brand {
+  name: String!
+}
+
+type Product {
+  brand: Brand
+  id: Int!
+  name: String!
+}

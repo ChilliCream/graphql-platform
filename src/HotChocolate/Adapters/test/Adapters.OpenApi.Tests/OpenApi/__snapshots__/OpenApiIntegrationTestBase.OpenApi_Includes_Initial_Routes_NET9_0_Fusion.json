@@ -1,0 +1,1028 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "HotChocolate.Adapters.OpenApi.Tests | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/complex": {
+      "post": {
+        "operationId": "complexObjectQuery",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "any",
+                  "base64String",
+                  "boolean",
+                  "byte",
+                  "date",
+                  "dateTime",
+                  "decimal",
+                  "enum",
+                  "float",
+                  "id",
+                  "int",
+                  "json",
+                  "list",
+                  "localDate",
+                  "localDateTime",
+                  "localTime",
+                  "long",
+                  "object",
+                  "short",
+                  "string",
+                  "timeSpan",
+                  "unknown",
+                  "uri",
+                  "url",
+                  "uuid"
+                ],
+                "type": "object",
+                "properties": {
+                  "any": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "array"
+                      }
+                    ],
+                    "description": "The `Any` scalar type represents any valid GraphQL value."
+                  },
+                  "base64String": {
+                    "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
+                    "type": "string",
+                    "description": "The `Base64String` scalar type represents an array of bytes encoded as a Base64 string."
+                  },
+                  "boolean": {
+                    "type": "boolean"
+                  },
+                  "byte": {
+                    "type": "integer",
+                    "description": "The `Byte` scalar type represents a signed 8-bit integer.",
+                    "format": "int32"
+                  },
+                  "date": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                    "type": "string",
+                    "description": "The `Date` scalar type represents a date in UTC.",
+                    "format": "date"
+                  },
+                  "dateTime": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
+                    "type": "string",
+                    "description": "The `DateTime` scalar type represents a date and time with time zone offset information.",
+                    "format": "date-time"
+                  },
+                  "decimal": {
+                    "type": "number",
+                    "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision.",
+                    "format": "float"
+                  },
+                  "enum": {
+                    "enum": [
+                      "VALUE1",
+                      "VALUE2"
+                    ],
+                    "type": "string"
+                  },
+                  "float": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "int": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "json": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "array"
+                      }
+                    ],
+                    "description": "The `Any` scalar type represents any valid GraphQL value."
+                  },
+                  "list": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "localDate": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                    "type": "string",
+                    "description": "The `LocalDate` scalar type represents a date without time or time zone information.",
+                    "format": "date"
+                  },
+                  "localDateTime": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+                    "type": "string",
+                    "description": "The `LocalDateTime` scalar type represents a date and time without time zone information."
+                  },
+                  "localTime": {
+                    "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+                    "type": "string",
+                    "description": "The `LocalTime` scalar type represents a time of day without date or time zone information."
+                  },
+                  "long": {
+                    "type": "integer",
+                    "description": "The `Long` scalar type represents a signed 64-bit integer.",
+                    "format": "int32"
+                  },
+                  "object": {
+                    "required": [
+                      "field1A"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "field1A": {
+                        "required": [
+                          "field1B"
+                        ],
+                        "type": "object",
+                        "properties": {
+                          "field1B": {
+                            "required": [
+                              "field1C"
+                            ],
+                            "type": "object",
+                            "properties": {
+                              "field1C": {
+                                "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+                                "type": "string",
+                                "description": "field1C description"
+                              }
+                            },
+                            "description": "field1B description"
+                          }
+                        },
+                        "description": "field1A description"
+                      }
+                    }
+                  },
+                  "short": {
+                    "type": "integer",
+                    "description": "The `Short` scalar type represents a signed 16-bit integer.",
+                    "format": "int32"
+                  },
+                  "string": {
+                    "type": "string"
+                  },
+                  "timeSpan": {
+                    "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+                    "type": "string",
+                    "description": "The `TimeSpan` scalar type represents a duration of time.",
+                    "format": "duration"
+                  },
+                  "unknown": {
+                    "type": "string"
+                  },
+                  "uri": {
+                    "type": "string",
+                    "description": "The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.",
+                    "format": "uri"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.",
+                    "format": "uri"
+                  },
+                  "uuid": {
+                    "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
+                    "type": "string",
+                    "description": "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "any",
+                    "base64String",
+                    "boolean",
+                    "byte",
+                    "date",
+                    "dateTime",
+                    "decimal",
+                    "enum",
+                    "float",
+                    "id",
+                    "int",
+                    "json",
+                    "list",
+                    "localDate",
+                    "localDateTime",
+                    "localTime",
+                    "long",
+                    "object",
+                    "short",
+                    "string",
+                    "timeSpan",
+                    "unknown",
+                    "url",
+                    "uuid"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "any": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "array"
+                        }
+                      ],
+                      "description": "The `Any` scalar type represents any valid GraphQL value.",
+                      "nullable": true
+                    },
+                    "base64String": {
+                      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
+                      "type": "string",
+                      "description": "The `Base64String` scalar type represents an array of bytes encoded as a Base64 string.",
+                      "nullable": true
+                    },
+                    "boolean": {
+                      "type": "boolean",
+                      "nullable": true
+                    },
+                    "byte": {
+                      "type": "integer",
+                      "description": "The `Byte` scalar type represents a signed 8-bit integer.",
+                      "format": "int32",
+                      "nullable": true
+                    },
+                    "date": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                      "type": "string",
+                      "description": "The `Date` scalar type represents a date in UTC.",
+                      "format": "date",
+                      "nullable": true
+                    },
+                    "dateTime": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
+                      "type": "string",
+                      "description": "The `DateTime` scalar type represents a date and time with time zone offset information.",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "decimal": {
+                      "type": "number",
+                      "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision.",
+                      "format": "float",
+                      "nullable": true
+                    },
+                    "enum": {
+                      "enum": [
+                        "VALUE1",
+                        "VALUE2"
+                      ],
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "float": {
+                      "type": "number",
+                      "format": "float",
+                      "nullable": true
+                    },
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ],
+                      "nullable": true
+                    },
+                    "int": {
+                      "type": "integer",
+                      "format": "int32",
+                      "nullable": true
+                    },
+                    "json": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "array"
+                        }
+                      ],
+                      "description": "The `Any` scalar type represents any valid GraphQL value.",
+                      "nullable": true
+                    },
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "nullable": true
+                    },
+                    "localDate": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                      "type": "string",
+                      "description": "The `LocalDate` scalar type represents a date without time or time zone information.",
+                      "format": "date",
+                      "nullable": true
+                    },
+                    "localDateTime": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+                      "type": "string",
+                      "description": "The `LocalDateTime` scalar type represents a date and time without time zone information.",
+                      "nullable": true
+                    },
+                    "localTime": {
+                      "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+                      "type": "string",
+                      "description": "The `LocalTime` scalar type represents a time of day without date or time zone information.",
+                      "nullable": true
+                    },
+                    "long": {
+                      "type": "integer",
+                      "description": "The `Long` scalar type represents a signed 64-bit integer.",
+                      "format": "int32",
+                      "nullable": true
+                    },
+                    "object": {
+                      "required": [
+                        "field1A"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "field1A": {
+                          "required": [
+                            "field1B"
+                          ],
+                          "type": "object",
+                          "properties": {
+                            "field1B": {
+                              "required": [
+                                "field1C"
+                              ],
+                              "type": "object",
+                              "properties": {
+                                "field1C": {
+                                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+                                  "type": "string",
+                                  "description": "The `LocalTime` scalar type represents a time of day without date or time zone information.",
+                                  "nullable": true
+                                }
+                              },
+                              "nullable": true
+                            }
+                          },
+                          "nullable": true
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "short": {
+                      "type": "integer",
+                      "description": "The `Short` scalar type represents a signed 16-bit integer.",
+                      "format": "int32",
+                      "nullable": true
+                    },
+                    "string": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "timeSpan": {
+                      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+                      "type": "string",
+                      "description": "The `TimeSpan` scalar type represents a duration of time.",
+                      "format": "duration",
+                      "nullable": true
+                    },
+                    "unknown": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.",
+                      "format": "uri",
+                      "nullable": true
+                    },
+                    "uuid": {
+                      "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
+                      "type": "string",
+                      "description": "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.",
+                      "format": "uuid",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "post": {
+        "description": "Creates a user",
+        "operationId": "createUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "email",
+                  "id",
+                  "name"
+                ],
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "The user's email"
+                  },
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "description": "Fetches all users",
+        "operationId": "getUsers",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "integer"
+                          }
+                        ]
+                      }
+                    },
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/details": {
+      "get": {
+        "operationId": "getFullUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          },
+          {
+            "name": "includeAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "address": {
+                      "$ref": "#/components/schemas/UserAddress"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "description": "Fetches a user by their id",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Updates a user's details",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "email",
+                  "name"
+                ],
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "The user's email"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/interface": {
+      "get": {
+        "operationId": "interfaceQuery",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "required": [
+                        "petType",
+                        "name"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "petType": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isPurring": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isBarking": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/union": {
+      "get": {
+        "operationId": "unionQuery",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "required": [
+                        "petType"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "petType": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isPurring": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isBarking": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/object/{userId}": {
+      "put": {
+        "operationId": "updateDeeplyNestedObject",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "field",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "DefaultValue"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "field",
+                  "object"
+                ],
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "object": {
+                    "required": [
+                      "otherField"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "otherField": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "userId",
+                    "field",
+                    "object"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    },
+                    "object": {
+                      "required": [
+                        "otherField",
+                        "field2"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "otherField": {
+                          "type": "string"
+                        },
+                        "field2": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserAddress": {
+        "required": [
+          "street"
+        ],
+        "type": "object",
+        "properties": {
+          "street": {
+            "type": "string"
+          }
+        },
+        "description": "The user's address"
+      }
+    }
+  }
+}

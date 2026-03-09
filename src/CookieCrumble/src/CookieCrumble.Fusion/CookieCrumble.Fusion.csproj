@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CookieCrumble\CookieCrumble.csproj" />
-    <ProjectReference Include="..\..\..\HotChocolate\Fusion\src\Core\HotChocolate.Fusion.csproj" />
   </ItemGroup>
 
 </Project>

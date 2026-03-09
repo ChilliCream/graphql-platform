@@ -5,7 +5,7 @@ namespace HotChocolate.Utilities;
 
 public sealed class ServiceParameterHandler : IParameterHandler
 {
-    private static readonly MethodInfo _getService =
+    private static readonly MethodInfo s_getService =
         typeof(IServiceProvider).GetMethod(nameof(IServiceProvider.GetService))!;
     private readonly Expression _services;
 
@@ -18,14 +18,11 @@ public sealed class ServiceParameterHandler : IParameterHandler
 
     public Expression CreateExpression(ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         return Expression.Convert(Expression.Call(
             _services,
-            _getService,
+            s_getService,
             Expression.Constant(parameter.ParameterType)),
             parameter.ParameterType);
     }

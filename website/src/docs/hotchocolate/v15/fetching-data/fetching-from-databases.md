@@ -9,6 +9,8 @@ In this section, you find a simple example on how you can fetch data from a data
 You can couple your business logic close to the GraphQL server, or cleanly decouple your domain layer from the GraphQL layer over abstractions.
 The GraphQL server only knows its schema, types and resolvers, what you do in these resolvers and what types you expose, is up to you.
 
+<Video videoId="FhNK7KMAnXc" />
+
 In this example, we will directly fetch data from MongoDB in a resolver.
 
 # Setting up the Query

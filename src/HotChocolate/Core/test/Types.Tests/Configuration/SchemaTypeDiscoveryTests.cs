@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration;
@@ -15,10 +18,10 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        Assert.NotNull(schema.GetType<INamedOutputType>("Foo"));
-        Assert.NotNull(schema.GetType<INamedOutputType>("Bar"));
-        Assert.NotNull(schema.GetType<INamedInputType>("FooInput"));
-        Assert.NotNull(schema.GetType<INamedInputType>("BarInput"));
+        Assert.NotNull(schema.Types.GetType<IOutputTypeDefinition>("Foo"));
+        Assert.NotNull(schema.Types.GetType<IOutputTypeDefinition>("Bar"));
+        Assert.NotNull(schema.Types.GetType<IInputTypeDefinition>("FooInput"));
+        Assert.NotNull(schema.Types.GetType<IInputTypeDefinition>("BarInput"));
     }
 
     [Fact]
@@ -31,13 +34,13 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var query = schema.GetType<ObjectType>("QueryField");
+        var query = schema.Types.GetType<ObjectType>("QueryField");
         Assert.NotNull(query);
         Assert.Collection(
             query.Fields.Where(t => !t.IsIntrospectionField),
             t => Assert.Equal("foo", t.Name));
-        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
-        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Bar"));
     }
 
     [Fact]
@@ -50,13 +53,13 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var query = schema.GetType<ObjectType>("QueryProperty");
+        var query = schema.Types.GetType<ObjectType>("QueryProperty");
         Assert.NotNull(query);
         Assert.Collection(
             query.Fields.Where(t => !t.IsIntrospectionField),
             t => Assert.Equal("foo", t.Name));
-        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
-        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Bar"));
     }
 
     [Fact]
@@ -69,12 +72,12 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var query = schema.GetType<ObjectType>("QueryMethodVoid");
+        var query = schema.Types.GetType<ObjectType>("QueryMethodVoid");
         Assert.NotNull(query);
         Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
             t => Assert.Equal("foo", t.Name));
-        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
-        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Bar"));
     }
 
     [Fact]
@@ -88,7 +91,7 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var fooBar = schema.GetType<EnumType>("FooBar");
+        var fooBar = schema.Types.GetType<EnumType>("FooBar");
         Assert.NotNull(fooBar);
         Assert.Collection(fooBar.Values,
             t => Assert.Equal("FOO", t.Name),
@@ -102,20 +105,20 @@ public class SchemaTypeDiscoveryTests
         // act
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithCustomScalar>()
-            .AddType<ByteArrayType>()
+            .AddType<Base64StringType>()
             .Create();
 
         // assert
-        var fooByte = schema.GetType<ObjectType>("FooByte");
+        var fooByte = schema.Types.GetType<ObjectType>("FooByte");
         Assert.NotNull(fooByte);
 
         var field = fooByte.Fields["bar"];
-        Assert.Equal("ByteArray", field.Type.NamedType().Name);
+        Assert.Equal("Base64String", field.Type.NamedType().Name);
     }
 
-    public class QueryFieldArgument
+    public class QueryFieldArgument(Bar bar)
     {
-        public Bar Bar { get; }
+        public Bar Bar { get; } = bar;
 
         public Foo GetFoo(Foo foo)
         {
@@ -125,20 +128,20 @@ public class SchemaTypeDiscoveryTests
 
     public class QueryField
     {
-        public Foo GetFoo()
+        public Foo? GetFoo()
         {
             return null;
         }
     }
 
-    public class QueryProperty
+    public class QueryProperty(Foo foo)
     {
-        public Foo Foo { get; }
+        public Foo Foo { get; } = foo;
     }
 
     public class QueryMethodVoid
     {
-        public Foo GetFoo()
+        public Foo? GetFoo()
         {
             return null;
         }
@@ -150,7 +153,7 @@ public class SchemaTypeDiscoveryTests
 
     public class QueryWithCustomScalar
     {
-        public FooByte GetFoo(FooByte foo)
+        public FooByte? GetFoo(FooByte foo)
         {
             return null;
         }
@@ -158,69 +161,51 @@ public class SchemaTypeDiscoveryTests
 
     public class Foo
     {
-        public Bar Bar { get; set; }
+        public required Bar Bar { get; set; }
     }
 
     public class FooByte
     {
-        public byte[] Bar { get; set; }
+        public required byte[] Bar { get; set; }
     }
 
     public class Bar
     {
-        public string Baz { get; set; }
+        public required string Baz { get; set; }
     }
 
     public enum FooBar
     {
         Foo,
-        Bar,
+        Bar
     }
 
-    public class ByteArrayType : ScalarType
+    public class Base64StringType : ScalarType
     {
-        public ByteArrayType() : base("ByteArray", BindingBehavior.Implicit)
+        public Base64StringType() : base("Base64String", BindingBehavior.Implicit)
         {
         }
 
         public override Type RuntimeType => typeof(byte[]);
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.String;
+
+        public override object CoerceInputLiteral(IValueNode literal)
         {
             throw new NotSupportedException();
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         {
             throw new NotSupportedException();
         }
 
-        public override IValueNode ParseValue(object value)
+        public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
         {
             throw new NotSupportedException();
         }
 
-        public override IValueNode ParseResult(object resultValue)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override object Serialize(object runtimeValue)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override object Deserialize(object resultValue)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override bool TryDeserialize(object resultValue, out object runtimeValue)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override bool TrySerialize(object runtimeValue, out object resultValue)
+        public override IValueNode ValueToLiteral(object runtimeValue)
         {
             throw new NotSupportedException();
         }

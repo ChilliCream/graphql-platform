@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,7 +7,7 @@ namespace HotChocolate.Types;
 
 public class ErrorMiddlewareTests
 {
-    private const string _query = @"
+    private const string Query = @"
         mutation {
             throw {
                 errors {
@@ -28,7 +29,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<InvalidOperationException>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -47,7 +48,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomException>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -66,7 +67,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomError>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -91,7 +92,7 @@ public class ErrorMiddlewareTests
                     .Error<ArgumentException>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -110,7 +111,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithFactory>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -129,7 +130,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithMultipleFactory>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -148,7 +149,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithMultipleFactoriesOfDifferentType>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -167,7 +168,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithMultipleFactoriesOfDifferentType>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -186,13 +187,45 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorNonStatic>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
             .MatchAsync();
+    }
+
+    [Fact]
+    public async Task ErrorMiddleware_Should_MapMultipleConstructors_FirstEx()
+    {
+        // Arrange
+        var executor =
+            await BuildSchemaAsync(
+                () => throw new InvalidOperationException(),
+                field => field.Error<CustomErrorWithMultipleConstructors>());
+
+        // Act
+        var res = await executor.ExecuteAsync(Query);
+
+        // Assert
+        AssertMappedPayloadError(res, "InvalidOperationException");
+    }
+
+    [Fact]
+    public async Task ErrorMiddleware_Should_MapMultipleConstructors_SecondEx()
+    {
+        // Arrange
+        var executor =
+            await BuildSchemaAsync(
+                () => throw new NullReferenceException(),
+                field => field.Error<CustomErrorWithMultipleConstructors>());
+
+        // Act
+        var res = await executor.ExecuteAsync(Query);
+
+        // Assert
+        AssertMappedPayloadError(res, "NullReferenceException");
     }
 
     [Fact]
@@ -205,7 +238,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorPayloadErrorFactory>());
 
         // Act
-        var res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(Query);
 
         // Assert
         await Snapshot.Create()
@@ -366,6 +399,21 @@ public class ErrorMiddlewareTests
         }
     }
 
+    public class CustomErrorWithMultipleConstructors
+    {
+        public CustomErrorWithMultipleConstructors(InvalidOperationException _)
+        {
+            Message = "InvalidOperationException";
+        }
+
+        public CustomErrorWithMultipleConstructors(NullReferenceException _)
+        {
+            Message = "NullReferenceException";
+        }
+
+        public string Message { get; }
+    }
+
     public class CustomErrorPayloadErrorFactory
         : IPayloadErrorFactory<InvalidOperationException, CustomError>
         , IPayloadErrorFactory<NullReferenceException, CustomNullRef>
@@ -428,5 +476,21 @@ public class ErrorMiddlewareTests
     public class Payload
     {
         public string Foo() => "Bar";
+    }
+
+    private static void AssertMappedPayloadError(IExecutionResult result, string expectedMessage)
+    {
+        using var document = JsonDocument.Parse(result.ToJson());
+
+        Assert.False(document.RootElement.TryGetProperty("errors", out _));
+
+        var message = document.RootElement
+            .GetProperty("data")
+            .GetProperty("throw")
+            .GetProperty("errors")[0]
+            .GetProperty("message")
+            .GetString();
+
+        Assert.Equal(expectedMessage, message);
     }
 }

@@ -68,7 +68,7 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             VariableDefinitionNode n => RewriteVariableDefinition(n, context),
             VariableNode n => RewriteVariable(n, context),
             IValueNode n => RewriteCustomValue(n, context),
-            _ => throw new ArgumentOutOfRangeException(nameof(node)),
+            _ => throw new ArgumentOutOfRangeException(nameof(node))
         };
 
     protected virtual void OnLeave(
@@ -84,8 +84,8 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var name = RewriteNode(node.Name, context);
         var value = RewriteNode(node.Value, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(value, node.Value))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(value, node.Value))
         {
             return new ArgumentNode(node.Location, name, value);
         }
@@ -107,10 +107,10 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var arguments = RewriteList(node.Arguments, context);
         var locations = RewriteList(node.Locations, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(arguments, node.Arguments) ||
-            !ReferenceEquals(locations, node.Locations))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(arguments, node.Arguments)
+            || !ReferenceEquals(locations, node.Locations))
         {
             return new DirectiveDefinitionNode(
                 node.Location,
@@ -152,10 +152,10 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var directives = RewriteList(node.Directives, context);
         var values = RewriteList(node.Values, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(values, node.Values))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(values, node.Values))
         {
             return new EnumTypeDefinitionNode(
                 node.Location,
@@ -176,9 +176,9 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var directives = RewriteList(node.Directives, context);
         var values = RewriteList(node.Values, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(values, node.Values))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(values, node.Values))
         {
             return new EnumTypeExtensionNode(
                 node.Location,
@@ -198,9 +198,9 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var description = RewriteNodeOrDefault(node.Description, context);
         var directives = RewriteList(node.Directives, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(directives, node.Directives))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(directives, node.Directives))
         {
             return new EnumValueDefinitionNode(
                 node.Location,
@@ -227,11 +227,11 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var type = RewriteNode(node.Type, context);
         var directives = RewriteList(node.Directives, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(arguments, node.Arguments) ||
-            !ReferenceEquals(type, node.Type) ||
-            !ReferenceEquals(directives, node.Directives))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(arguments, node.Arguments)
+            || !ReferenceEquals(type, node.Type)
+            || !ReferenceEquals(directives, node.Directives))
         {
             return new FieldDefinitionNode(
                 node.Location,
@@ -255,11 +255,11 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var arguments = RewriteList(node.Arguments, context);
         var selectionSet = RewriteNodeOrDefault(node.SelectionSet, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(alias, node.Alias) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(arguments, node.Arguments) ||
-            !ReferenceEquals(selectionSet, node.SelectionSet))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(alias, node.Alias)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(arguments, node.Arguments)
+            || !ReferenceEquals(selectionSet, node.SelectionSet))
         {
             return new FieldNode(
                 node.Location,
@@ -283,20 +283,23 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         TContext context)
     {
         var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
         var variableDefinitions = RewriteList(node.VariableDefinitions, context);
         var typeCondition = RewriteNode(node.TypeCondition, context);
         var directives = RewriteList(node.Directives, context);
         var selectionSet = RewriteNode(node.SelectionSet, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(variableDefinitions, node.VariableDefinitions) ||
-            !ReferenceEquals(typeCondition, node.TypeCondition) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(selectionSet, node.SelectionSet))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(variableDefinitions, node.VariableDefinitions)
+            || !ReferenceEquals(typeCondition, node.TypeCondition)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(selectionSet, node.SelectionSet))
         {
             return new FragmentDefinitionNode(
                 node.Location,
                 name,
+                description,
                 variableDefinitions,
                 typeCondition,
                 directives,
@@ -313,8 +316,8 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var name = RewriteNode(node.Name, context);
         var directives = RewriteList(node.Directives, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(directives, node.Directives))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(directives, node.Directives))
         {
             return new FragmentSpreadNode(
                 node.Location,
@@ -333,9 +336,9 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var directives = RewriteList(node.Directives, context);
         var selectionSet = RewriteNode(node.SelectionSet, context);
 
-        if (!ReferenceEquals(typeCondition, node.TypeCondition) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(selectionSet, node.SelectionSet))
+        if (!ReferenceEquals(typeCondition, node.TypeCondition)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(selectionSet, node.SelectionSet))
         {
             return new InlineFragmentNode(
                 node.Location,
@@ -356,10 +359,10 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var directives = RewriteList(node.Directives, context);
         var fields = RewriteList(node.Fields, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(fields, node.Fields))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(fields, node.Fields))
         {
             return new InputObjectTypeDefinitionNode(
                 node.Location,
@@ -380,9 +383,9 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var directives = RewriteList(node.Directives, context);
         var fields = RewriteList(node.Fields, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(fields, node.Fields))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(fields, node.Fields))
         {
             return new InputObjectTypeExtensionNode(
                 node.Location,
@@ -404,11 +407,11 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var defaultValue = RewriteNodeOrDefault(node.DefaultValue, context);
         var directives = RewriteList(node.Directives, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(type, node.Type) ||
-            !ReferenceEquals(defaultValue, node.DefaultValue) ||
-            !ReferenceEquals(directives, node.Directives))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(type, node.Type)
+            || !ReferenceEquals(defaultValue, node.DefaultValue)
+            || !ReferenceEquals(directives, node.Directives))
         {
             return new InputValueDefinitionNode(
                 node.Location,
@@ -432,11 +435,11 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var interfaces = RewriteList(node.Interfaces, context);
         var fields = RewriteList(node.Fields, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(interfaces, node.Interfaces) ||
-            !ReferenceEquals(fields, node.Fields))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(interfaces, node.Interfaces)
+            || !ReferenceEquals(fields, node.Fields))
         {
             return new InterfaceTypeDefinitionNode(
                 node.Location,
@@ -459,10 +462,10 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var interfaces = RewriteList(node.Interfaces, context);
         var fields = RewriteList(node.Fields, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(interfaces, node.Interfaces) ||
-            !ReferenceEquals(fields, node.Fields))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(interfaces, node.Interfaces)
+            || !ReferenceEquals(fields, node.Fields))
         {
             return new InterfaceTypeExtensionNode(
                 node.Location,
@@ -553,8 +556,8 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var name = RewriteNode(node.Name, context);
         var value = RewriteNode(node.Value, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(value, node.Value))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(value, node.Value))
         {
             return new ObjectFieldNode(node.Location, name, value);
         }
@@ -572,11 +575,11 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var interfaces = RewriteList(node.Interfaces, context);
         var fields = RewriteList(node.Fields, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(interfaces, node.Interfaces) ||
-            !ReferenceEquals(fields, node.Fields))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(interfaces, node.Interfaces)
+            || !ReferenceEquals(fields, node.Fields))
         {
             return new ObjectTypeDefinitionNode(
                 node.Location,
@@ -599,10 +602,10 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var interfaces = RewriteList(node.Interfaces, context);
         var fields = RewriteList(node.Fields, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(interfaces, node.Interfaces) ||
-            !ReferenceEquals(fields, node.Fields))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(interfaces, node.Interfaces)
+            || !ReferenceEquals(fields, node.Fields))
         {
             return new ObjectTypeExtensionNode(
                 node.Location,
@@ -634,18 +637,21 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         TContext context)
     {
         var name = RewriteNodeOrDefault(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
         var variableDefinitions = RewriteList(node.VariableDefinitions, context);
         var directives = RewriteList(node.Directives, context);
         var selectionSet = RewriteNode(node.SelectionSet, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(variableDefinitions, node.VariableDefinitions) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(selectionSet, node.SelectionSet))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(variableDefinitions, node.VariableDefinitions)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(selectionSet, node.SelectionSet))
         {
             return new OperationDefinitionNode(
                 node.Location,
                 name,
+                description,
                 node.Operation,
                 variableDefinitions,
                 directives,
@@ -680,9 +686,9 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var description = RewriteNodeOrDefault(node.Description, context);
         var directives = RewriteList(node.Directives, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(directives, node.Directives))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(directives, node.Directives))
         {
             return new ScalarTypeDefinitionNode(
                 node.Location,
@@ -701,8 +707,8 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var name = RewriteNode(node.Name, context);
         var directives = RewriteList(node.Directives, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(directives, node.Directives))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(directives, node.Directives))
         {
             return new ScalarTypeExtensionNode(
                 node.Location,
@@ -721,9 +727,9 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var memberName = RewriteNodeOrDefault(node.MemberName, context);
         var argumentName = RewriteNodeOrDefault(node.ArgumentName, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(memberName, node.MemberName) ||
-            !ReferenceEquals(argumentName, node.ArgumentName))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(memberName, node.MemberName)
+            || !ReferenceEquals(argumentName, node.ArgumentName))
         {
             return new SchemaCoordinateNode(
                 node.Location,
@@ -745,9 +751,9 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var operationTypes =
             RewriteList(node.OperationTypes, context);
 
-        if (!ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(operationTypes, node.OperationTypes))
+        if (!ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(operationTypes, node.OperationTypes))
         {
             return new SchemaDefinitionNode(
                 node.Location,
@@ -767,8 +773,8 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var operationTypes =
             RewriteList(node.OperationTypes, context);
 
-        if (!ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(operationTypes, node.OperationTypes))
+        if (!ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(operationTypes, node.OperationTypes))
         {
             return new SchemaExtensionNode(
                 node.Location,
@@ -812,10 +818,10 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var directives = RewriteList(node.Directives, context);
         var types = RewriteList(node.Types, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(description, node.Description) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(types, node.Types))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(types, node.Types))
         {
             return new UnionTypeDefinitionNode(
                 node.Location,
@@ -836,9 +842,9 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var directives = RewriteList(node.Directives, context);
         var types = RewriteList(node.Types, context);
 
-        if (!ReferenceEquals(name, node.Name) ||
-            !ReferenceEquals(directives, node.Directives) ||
-            !ReferenceEquals(types, node.Types))
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(directives, node.Directives)
+            || !ReferenceEquals(types, node.Types))
         {
             return new UnionTypeExtensionNode(
                 node.Location,
@@ -855,18 +861,21 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         TContext context)
     {
         var variable = RewriteNode(node.Variable, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
         var type = RewriteNode(node.Type, context);
         var defaultValue = RewriteNodeOrDefault(node.DefaultValue, context);
         var directives = RewriteList(node.Directives, context);
 
-        if (!ReferenceEquals(variable, node.Variable) ||
-            !ReferenceEquals(type, node.Type) ||
-            !ReferenceEquals(defaultValue, node.DefaultValue) ||
-            !ReferenceEquals(directives, node.Directives))
+        if (!ReferenceEquals(variable, node.Variable)
+            || !ReferenceEquals(description, node.Description)
+            || !ReferenceEquals(type, node.Type)
+            || !ReferenceEquals(defaultValue, node.DefaultValue)
+            || !ReferenceEquals(directives, node.Directives))
         {
             return new VariableDefinitionNode(
                 node.Location,
                 variable,
+                description,
                 type,
                 defaultValue,
                 directives);

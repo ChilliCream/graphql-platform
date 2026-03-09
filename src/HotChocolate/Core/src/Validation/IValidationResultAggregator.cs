@@ -20,7 +20,7 @@ public interface IValidationResultAggregator
     /// The cancellation token.
     /// </param>
     ValueTask AggregateAsync(
-        IDocumentValidatorContext context,
+        DocumentValidatorContext context,
         DocumentNode document,
         CancellationToken cancellationToken = default);
 }

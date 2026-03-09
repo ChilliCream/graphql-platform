@@ -42,40 +42,43 @@ public static class UploadSchemaHelpers
         {
             if (single is not null)
             {
-                return single?.ReadContents() ?? "null";
+                return Format(single);
             }
 
             if (list is not null)
             {
-                return string.Join(",", list.Select(x => x?.ReadContents() ?? "null"));
+                return string.Join(",", list.Select(Format));
             }
 
             if (nested is not null)
             {
                 return string.Join(",",
-                    nested.SelectMany(y => y!.Select(x => x?.ReadContents() ?? "null")));
+                    nested.SelectMany(y => y!.Select(Format)));
             }
 
             if (objectSingle is not null)
             {
-                return objectSingle.Bar!.Baz!.File!.ReadContents() ?? "null";
+                return Format(objectSingle.Bar!.Baz!.File);
             }
 
             if (objectList is not null)
             {
                 return string.Join(",",
-                    objectList.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null"));
+                    objectList.Select(x => Format(x?.Bar!.Baz!.File)));
             }
 
             if (objectNested is not null)
             {
                 return string.Join(",",
                     objectNested.SelectMany(y
-                        => y!.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
+                        => y!.Select(x => Format(x?.Bar!.Baz!.File))));
             }
 
             return "error";
         }
+
+        private static string Format(IFile? file) =>
+            $"[{file?.ReadContents()}|{file?.ContentType}]";
     }
 
     public record Test(Bar? Bar);

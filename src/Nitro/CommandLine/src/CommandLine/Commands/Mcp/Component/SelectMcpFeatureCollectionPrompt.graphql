@@ -1,0 +1,25 @@
+query SelectMcpFeatureCollectionPromptQuery($apiId: ID!, $after: String, $first: Int) {
+  apiById(id: $apiId) {
+    mcpFeatureCollections(after: $after, first: $first) {
+      edges {
+        ...SelectMcpFeatureCollectionPrompt_McpFeatureCollectionEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment SelectMcpFeatureCollectionPrompt_McpFeatureCollectionEdge on ApiMcpFeatureCollectionsEdge {
+  cursor
+  node {
+    ...SelectMcpFeatureCollectionPrompt_McpFeatureCollection
+  }
+}
+
+fragment SelectMcpFeatureCollectionPrompt_McpFeatureCollection on McpFeatureCollection {
+  id
+  name
+  ...McpFeatureCollectionDetailPrompt_McpFeatureCollection
+}

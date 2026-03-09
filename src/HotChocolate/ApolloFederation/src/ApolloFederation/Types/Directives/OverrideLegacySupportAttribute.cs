@@ -7,7 +7,7 @@ internal sealed class OverrideLegacySupportAttribute : DirectiveTypeDescriptorAt
     protected override void OnConfigure(
         IDescriptorContext context,
         IDirectiveTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         // prior to version 2.7 @override only specified "from" parameter
         if (descriptor.GetFederationVersion() < FederationVersion.Federation27)

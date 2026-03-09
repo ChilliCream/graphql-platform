@@ -8,6 +8,8 @@ public class MatchAnyQueryableFieldHandler : FilterFieldHandler<QueryableFilterC
 {
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition) => true;
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration) => true;
+
+    public static MatchAnyQueryableFieldHandler Create(FilterProviderContext context) => new();
 }

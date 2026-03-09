@@ -1,0 +1,7 @@
+schema {
+  query: IgnoreObjectLists
+}
+
+type IgnoreObjectLists {
+  hello: String!
+}

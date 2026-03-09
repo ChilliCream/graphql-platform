@@ -20,7 +20,7 @@ internal static class ListExtensions
     {
         if (list.Count == 0)
         {
-            item = default;
+            item = null;
             return false;
         }
 

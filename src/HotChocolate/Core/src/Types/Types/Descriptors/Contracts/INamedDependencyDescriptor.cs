@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors;
+
 namespace HotChocolate.Types;
 
 public interface INamedDependencyDescriptor
@@ -15,4 +17,8 @@ public interface INamedDependencyDescriptor
     INamedDependencyDescriptor DependsOn(string typeName);
 
     INamedDependencyDescriptor DependsOn(string typeName, bool mustBeNamed);
+
+    INamedDependencyDescriptor DependsOn(TypeReference typeReference);
+
+    INamedDependencyDescriptor DependsOn(TypeReference typeReference, bool mustBeNamed);
 }

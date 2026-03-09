@@ -13,10 +13,11 @@ public sealed partial class SyntaxSerializer
 
         if (writeOperation)
         {
+            WriteDescription(node.Description, writer);
             writer.Write(node.Operation.ToString().ToLowerInvariant());
         }
 
-        if (node.Name is { })
+        if (node.Name is not null)
         {
             writer.WriteSpace();
             writer.WriteName(node.Name);
@@ -25,7 +26,28 @@ public sealed partial class SyntaxSerializer
         if (node.VariableDefinitions.Count > 0)
         {
             writer.Write('(');
-            writer.WriteMany(node.VariableDefinitions, VisitVariableDefinition);
+
+            string separator;
+            if (_indented)
+            {
+                writer.WriteLine();
+                writer.Indent();
+                separator = Environment.NewLine;
+            }
+            else
+            {
+                separator = ", ";
+            }
+
+            writer.WriteMany(node.VariableDefinitions, VisitVariableDefinition, separator);
+
+            if (_indented)
+            {
+                writer.WriteLine();
+                writer.Unindent();
+            }
+
+            writer.WriteIndent();
             writer.Write(')');
         }
 
@@ -40,16 +62,20 @@ public sealed partial class SyntaxSerializer
 
     private void VisitVariableDefinition(VariableDefinitionNode node, ISyntaxWriter writer)
     {
+        writer.WriteIndent();
+
+        WriteDescription(node.Description, writer);
+
         writer.WriteVariable(node.Variable);
 
         writer.Write(": ");
 
         writer.WriteType(node.Type);
 
-        if (node.DefaultValue is { })
+        if (node.DefaultValue is not null)
         {
             writer.Write(" = ");
-            writer.WriteValue(node.DefaultValue);
+            writer.WriteValue(node.DefaultValue, _indented);
         }
 
         WriteDirectives(node.Directives, writer);
@@ -57,6 +83,8 @@ public sealed partial class SyntaxSerializer
 
     private void VisitFragmentDefinition(FragmentDefinitionNode node, ISyntaxWriter writer)
     {
+        WriteDescription(node.Description, writer);
+
         writer.Write(Keywords.Fragment);
         writer.WriteSpace();
 
@@ -67,10 +95,30 @@ public sealed partial class SyntaxSerializer
         {
             writer.Write('(');
 
+            string separator;
+            if (_indented)
+            {
+                writer.WriteLine();
+                writer.Indent();
+                separator = Environment.NewLine;
+            }
+            else
+            {
+                separator = ", ";
+            }
+
             writer.WriteMany(
                 node.VariableDefinitions,
-                VisitVariableDefinition);
+                VisitVariableDefinition,
+                separator);
 
+            if (_indented)
+            {
+                writer.WriteLine();
+                writer.Unindent();
+            }
+
+            writer.WriteIndent();
             writer.Write(')');
             writer.WriteSpace();
         }
@@ -95,6 +143,7 @@ public sealed partial class SyntaxSerializer
         {
             writer.WriteLine();
             writer.Indent();
+            writer.WriteIndent();
             separator = Environment.NewLine;
         }
         else
@@ -139,8 +188,6 @@ public sealed partial class SyntaxSerializer
 
     private void VisitField(FieldNode node, ISyntaxWriter writer)
     {
-        writer.WriteIndent();
-
         if (node.Alias is not null)
         {
             writer.WriteName(node.Alias);
@@ -167,8 +214,6 @@ public sealed partial class SyntaxSerializer
 
     private void VisitFragmentSpread(FragmentSpreadNode node, ISyntaxWriter writer)
     {
-        writer.WriteIndent();
-
         writer.Write("... ");
         writer.WriteName(node.Name);
 
@@ -177,11 +222,9 @@ public sealed partial class SyntaxSerializer
 
     private void VisitInlineFragment(InlineFragmentNode node, ISyntaxWriter writer)
     {
-        writer.WriteIndent();
-
         writer.Write("...");
 
-        if (node.TypeCondition is { })
+        if (node.TypeCondition is not null)
         {
             writer.WriteSpace();
             writer.Write(Keywords.On);

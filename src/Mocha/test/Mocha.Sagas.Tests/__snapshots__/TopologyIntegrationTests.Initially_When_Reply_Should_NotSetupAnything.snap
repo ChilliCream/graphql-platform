@@ -1,0 +1,10 @@
+﻿{
+  "Queues": [
+    {
+      "Name": "postgres://queue/Saga.FluentSaga<TopologyIntegrationTests.TestState>",
+      "HasConsumer": false
+    }
+  ],
+  "Topics": [],
+  "Subscriptions": []
+}

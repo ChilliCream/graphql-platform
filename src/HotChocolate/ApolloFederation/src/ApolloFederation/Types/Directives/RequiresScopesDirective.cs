@@ -28,11 +28,11 @@ namespace HotChocolate.ApolloFederation.Types;
 [Package(FederationVersionUrls.Federation25)]
 [DirectiveType(
     RequiresScopesDirective_Name,
-    DirectiveLocation.Enum |
-    DirectiveLocation.FieldDefinition |
-    DirectiveLocation.Interface |
-    DirectiveLocation.Object |
-    DirectiveLocation.Scalar)]
+    DirectiveLocation.Enum
+    | DirectiveLocation.FieldDefinition
+    | DirectiveLocation.Interface
+    | DirectiveLocation.Object
+    | DirectiveLocation.Scalar)]
 [GraphQLDescription(FederationResources.RequiresScopesDirective_Description)]
 public sealed class RequiresScopesDirective(List<IReadOnlySet<Scope>> scopes)
 {

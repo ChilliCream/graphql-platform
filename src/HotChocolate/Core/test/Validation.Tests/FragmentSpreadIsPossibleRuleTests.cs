@@ -13,17 +13,18 @@ public class FragmentSpreadIsPossibleRuleTests
     [Fact]
     public void FragmentDoesNotMatchType()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                        ...fragmentDoesNotMatchType
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              dog {
+                ...fragmentDoesNotMatchType
+              }
+            }
 
-                fragment fragmentDoesNotMatchType on Human {
-                    name
-                }
-            ",
+            fragment fragmentDoesNotMatchType on Human {
+              name
+            }
+            """,
             t => Assert.Equal(
                 "The parent type does not match the type condition on the fragment.",
                 t.Message));
@@ -32,49 +33,55 @@ public class FragmentSpreadIsPossibleRuleTests
     [Fact]
     public void InterfaceTypeDoesMatch()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ...interfaceTypeDoesMatch
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ...interfaceTypeDoesMatch
+              }
+            }
 
-                fragment interfaceTypeDoesMatch on Pet {
-                    name
-                }
-            ");
+            fragment interfaceTypeDoesMatch on Pet {
+              name
+            }
+            """
+        );
     }
 
     [Fact]
     public void UnionTypeDoesMatch()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ...unionTypeDoesMatch
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ...unionTypeDoesMatch
+              }
+            }
 
-                fragment unionTypeDoesMatch on CatOrDog {
-                    __typename
-                }
-            ");
+            fragment unionTypeDoesMatch on CatOrDog {
+              __typename
+            }
+            """
+        );
     }
 
     [Fact]
     public void ObjectTypeDoesMatch()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ...objectTypeDoesMatch
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ...objectTypeDoesMatch
+              }
+            }
 
-                fragment objectTypeDoesMatch on Dog {
-                    name
-                }
-            ");
+            fragment objectTypeDoesMatch on Dog {
+              name
+            }
+            """
+        );
     }
 
     [Fact]
@@ -82,392 +89,399 @@ public class FragmentSpreadIsPossibleRuleTests
     {
         ExpectValid(
             StarWars,
-            @"
-                query ExecutionDepthShouldNotLeadToEmptyObects {
-                    hero(episode: NEW_HOPE) {
+            """
+            query ExecutionDepthShouldNotLeadToEmptyObects {
+              hero(episode: NEW_HOPE) {
+                __typename
+                id
+                name
+                ... on Human {
+                  __typename
+                  homePlanet
+                }
+                ... on Droid {
+                  __typename
+                  primaryFunction
+                }
+                friends {
+                  nodes {
+                    __typename
+                    ... on Human {
+                      __typename
+                      homePlanet
+                      friends {
                         __typename
-                        id
-                        name
-                        ... on Human {
-                            __typename
-                            homePlanet
-                        }
-                        ... on Droid {
-                            __typename
-                            primaryFunction
-                        }
-                        friends {
-                            nodes {
-                                __typename
-                                ... on Human {
-                                    __typename
-                                    homePlanet
-                                    friends {
-                                        __typename
-                                    }
-                                }
-                                ... on Droid {
-                                    __typename
-                                    primaryFunction
-                                    friends {
-                                        __typename
-                                    }
-                                }
-                            }
-                        }
+                      }
                     }
-                }");
+                    ... on Droid {
+                      __typename
+                      primaryFunction
+                      friends {
+                        __typename
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
     }
 
     [Fact]
     public void OfTheSameObject()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ...objectWithinObject
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ...objectWithinObject
+              }
+            }
 
-                fragment objectWithinObject on Dog { ...dogFragment }
-                fragment dogFragment on Dog { barkVolume }
-            ");
+            fragment objectWithinObject on Dog { ...dogFragment }
+            fragment dogFragment on Dog { barkVolume }
+            """);
     }
 
     [Fact]
     public void OfTheSameObjectWithInlineFragment()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ...objectWithinObjectAnon
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ...objectWithinObjectAnon
+              }
+            }
 
-                fragment objectWithinObjectAnon on Dog { ... on Dog { barkVolume } }
-            ");
+            fragment objectWithinObjectAnon on Dog { ... on Dog { barkVolume } }
+            """);
     }
 
     [Fact]
     public void ObjectIntoAnImplementedInterface()
     {
-        ExpectValid(@"
-                {
-                    human{
-                        pets {
-                        ...objectWithinInterface
-                        }
-                    }
+        ExpectValid(
+            """
+            {
+              human{
+                pets {
+                  ...objectWithinInterface
                 }
+              }
+            }
 
-                fragment objectWithinInterface on Pet { ...dogFragment }
-                fragment dogFragment on Dog { barkVolume }
-            ");
+            fragment objectWithinInterface on Pet { ...dogFragment }
+            fragment dogFragment on Dog { barkVolume }
+            """);
     }
 
     [Fact]
     public void ObjectIntoContainingUnion()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ...objectWithinUnion
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              catOrDog {
+                ...objectWithinUnion
+              }
+            }
 
-                fragment objectWithinUnion on CatOrDog { ...dogFragment }
-                fragment dogFragment on Dog { barkVolume }
-            ");
+            fragment objectWithinUnion on CatOrDog { ...dogFragment }
+            fragment dogFragment on Dog { barkVolume }
+            """);
     }
 
     [Fact]
     public void UnionIntoContainedObject()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ...unionWithinObject
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ...unionWithinObject
+              }
+            }
 
-                fragment unionWithinObject on Dog { ...catOrDogFragment }
-                fragment catOrDogFragment on CatOrDog { __typename }
-            ");
+            fragment unionWithinObject on Dog { ...catOrDogFragment }
+            fragment catOrDogFragment on CatOrDog { __typename }
+            """);
     }
 
     [Fact]
     public void UnionIntoOverlappingInterface()
     {
-        ExpectValid(@"
-                {
-                    human{
-                        pets {
-                        ...unionWithinInterface
-                        }
-                    }
+        ExpectValid(
+            """
+            {
+              human{
+                pets {
+                  ...unionWithinInterface
                 }
+              }
+            }
 
-                fragment unionWithinInterface on Pet { ...catOrDogFragment }
-                fragment catOrDogFragment on CatOrDog { __typename }
-            ");
+            fragment unionWithinInterface on Pet { ...catOrDogFragment }
+            fragment catOrDogFragment on CatOrDog { __typename }
+            """);
     }
 
     [Fact]
     public void UnionIntoOverlappingUnion()
     {
-        ExpectValid(@"
-                {
-                    dogOrHuman {
-                        ...unionWithinUnion
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dogOrHuman {
+                ...unionWithinUnion
+              }
+            }
 
-                fragment unionWithinUnion on DogOrHuman { ...catOrDogFragment }
-                fragment catOrDogFragment on CatOrDog { __typename }
-            ");
-    }
-
-    [Fact]
-    public void InterfaceIntoImplementedObject()
-    {
-        ExpectValid(@"
-                {
-                    dog {
-                        ...interfaceWithinObject
-                    }
-                }
-
-                fragment interfaceWithinObject on Dog { ...petFragment }
-                fragment petFragment on Pet { name }
-            ");
+            fragment unionWithinUnion on DogOrHuman { ...catOrDogFragment }
+            fragment catOrDogFragment on CatOrDog { __typename }
+            """);
     }
 
     [Fact]
     public void InterfaceIntoOverlappingInterface()
     {
-        ExpectValid(@"
-                {
-                    human{
-                        pets {
-                            ...interfaceWithinInterface
-                        }
-                    }
+        ExpectValid(
+            """
+            {
+              human{
+                pets {
+                  ...interfaceWithinInterface
                 }
+              }
+            }
 
-                fragment interfaceWithinInterface on Pet { ...beingFragment }
-                fragment beingFragment on Being { name }
-            ");
+            fragment interfaceWithinInterface on Pet { ...beingFragment }
+            fragment beingFragment on Being { name }
+            """);
     }
 
     [Fact]
     public void InterfaceIntoOverlappingInterfaceInInlineFragment()
     {
-        ExpectValid(@"
-                {
-                    human{
-                        pets {
-                            ...interfaceWithinInterface
-                        }
-                    }
+        ExpectValid(
+            """
+            {
+              human{
+                pets {
+                  ...interfaceWithinInterface
                 }
+              }
+            }
 
-                fragment interfaceWithinInterface on Pet { ... on Being { name } }
-            ");
+            fragment interfaceWithinInterface on Pet { ... on Being { name } }
+            """);
     }
 
     [Fact]
     public void InterfaceIntoOverlappingUnion()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ...objectWithinUnion
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              catOrDog {
+                ...objectWithinUnion
+              }
+            }
 
-                fragment objectWithinUnion on CatOrDog { ...dogFragment }
-                fragment dogFragment on Dog { barkVolume }
-            ");
+            fragment objectWithinUnion on CatOrDog { ...dogFragment }
+            fragment dogFragment on Dog { barkVolume }
+            """);
     }
 
     [Fact]
     public void DifferentObjectIntoObject()
     {
-        ExpectErrors(@"
-                {
-                    human{
-                        pets {
-                            ...invalidObjectWithinObject
-                        }
-                    }
+        ExpectErrors(
+            """
+            {
+              human{
+                pets {
+                  ...invalidObjectWithinObject
                 }
+              }
+            }
 
-                fragment invalidObjectWithinObject on Cat { ...dogFragment }
-                fragment dogFragment on Dog { barkVolume }
-            ");
+            fragment invalidObjectWithinObject on Cat { ...dogFragment }
+            fragment dogFragment on Dog { barkVolume }
+            """);
     }
 
     [Fact]
     public void DifferentObjectIntoObjectInInlineFragment()
     {
-        ExpectErrors(@"
-                {
-                    human{
-                        pets {
-                            ...invalidObjectWithinObjectAnon
-                        }
-                    }
+        ExpectErrors(
+            """
+            {
+              human{
+                pets {
+                  ...invalidObjectWithinObjectAnon
                 }
+              }
+            }
 
-                fragment invalidObjectWithinObjectAnon on Cat {
-                    ... on Dog { barkVolume }
-                }
-            ");
+            fragment invalidObjectWithinObjectAnon on Cat {
+              ... on Dog { barkVolume }
+            }
+            """);
     }
 
     [Fact]
     public void ObjectIntoNotImplementingInterface()
     {
-        ExpectErrors(@"
-                {
-                    human{
-                        pets {
-                            ...invalidObjectWithinInterface
-                        }
-                    }
+        ExpectErrors(
+            """
+            {
+              human{
+                pets {
+                  ...invalidObjectWithinInterface
                 }
+              }
+            }
 
-                fragment invalidObjectWithinInterface on Pet { ...humanFragment }
-                fragment humanFragment on Human { pets { name } }
-            ");
+            fragment invalidObjectWithinInterface on Pet { ...humanFragment }
+            fragment humanFragment on Human { pets { name } }
+            """);
     }
 
     [Fact]
     public void ObjectIntoNotContainingUnion()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ...invalidObjectWithinUnion
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              catOrDog {
+                ...invalidObjectWithinUnion
+              }
+            }
 
-                fragment invalidObjectWithinUnion on CatOrDog { ...humanFragment }
-                fragment humanFragment on Human { pets { name } }
-            ");
+            fragment invalidObjectWithinUnion on CatOrDog { ...humanFragment }
+            fragment humanFragment on Human { pets { name } }
+            """);
     }
 
     [Fact]
     public void UnionIntoNotContainedObject()
     {
-        ExpectErrors(@"
-                {
-                    human {
-                        ...invalidUnionWithinObject
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              human {
+                ...invalidUnionWithinObject
+              }
+            }
 
-                fragment invalidUnionWithinObject on Human { ...catOrDogFragment }
-                fragment catOrDogFragment on CatOrDog { __typename }
-            ");
+            fragment invalidUnionWithinObject on Human { ...catOrDogFragment }
+            fragment catOrDogFragment on CatOrDog { __typename }
+            """);
     }
 
     [Fact]
     public void UnionIntoNonOverlappingInterface()
     {
-        ExpectErrors(@"
-                {
-                    human{
-                        pets {
-                            ...invalidUnionWithinInterface
-                        }
-                    }
+        ExpectErrors(
+            """
+            {
+              human{
+                pets {
+                  ...invalidUnionWithinInterface
                 }
+              }
+            }
 
-                fragment invalidUnionWithinInterface on Pet { ...humanOrAlienFragment }
-                fragment humanOrAlienFragment on HumanOrAlien { __typename }
-            ");
+            fragment invalidUnionWithinInterface on Pet { ...humanOrAlienFragment }
+            fragment humanOrAlienFragment on HumanOrAlien { __typename }
+            """);
     }
 
     [Fact]
     public void UnionIntoNonOverlappingUnion()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ...invalidUnionWithinUnion
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              catOrDog {
+                ...invalidUnionWithinUnion
+              }
+            }
 
-                fragment invalidUnionWithinUnion on CatOrDog { ...humanOrAlienFragment }
-                fragment humanOrAlienFragment on HumanOrAlien { __typename }
-            ");
+            fragment invalidUnionWithinUnion on CatOrDog { ...humanOrAlienFragment }
+            fragment humanOrAlienFragment on HumanOrAlien { __typename }
+            """);
     }
 
     [Fact]
     public void InterfaceIntoNonImplementingObject()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ...invalidInterfaceWithinObject
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              catOrDog {
+                ...invalidInterfaceWithinObject
+              }
+            }
 
-                fragment invalidInterfaceWithinObject on Cat { ...intelligentFragment }
-                fragment intelligentFragment on Intelligent { iq }
-            ");
+            fragment invalidInterfaceWithinObject on Cat { ...intelligentFragment }
+            fragment intelligentFragment on Intelligent { iq }
+            """);
     }
 
     [Fact]
     public void InterfaceIntoNonOverlappingInterface()
     {
-        ExpectErrors(@"
-                {
-                    human{
-                        pets {
-                            ...invalidInterfaceWithinInterface
-                        }
-                    }
+        ExpectErrors(
+            """
+            {
+              human{
+                pets {
+                  ...invalidInterfaceWithinInterface
                 }
+              }
+            }
 
-                fragment invalidInterfaceWithinInterface on Pet {
-                    ...intelligentFragment
-                }
-                fragment intelligentFragment on Intelligent { iq }
-            ");
+            fragment invalidInterfaceWithinInterface on Pet {
+              ...intelligentFragment
+            }
+            fragment intelligentFragment on Intelligent { iq }
+            """);
     }
 
     [Fact]
     public void InterfaceIntoNonOverlappingInterfaceInInlineFragment()
     {
-        ExpectErrors(@"
-                {
-                    human{
-                        pets {
-                            ...invalidInterfaceWithinInterfaceAnon
-                        }
-                    }
+        ExpectErrors(
+            """
+            {
+              human{
+                pets {
+                  ...invalidInterfaceWithinInterfaceAnon
                 }
+              }
+            }
 
-                fragment invalidInterfaceWithinInterfaceAnon on Pet {
-                    ...on Intelligent { iq }
-                }
-            ");
+            fragment invalidInterfaceWithinInterfaceAnon on Pet {
+              ...on Intelligent { iq }
+            }
+            """);
     }
 
     [Fact]
     public void InterfaceIntoNonOverlappingUnion()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ...invalidInterfaceWithinUnion
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              catOrDog {
+                ...invalidInterfaceWithinUnion
+              }
+            }
 
-                fragment invalidInterfaceWithinUnion on CatOrDog { ...petFragment }
-                fragment petFragment on HumanOrAlien { name }
-            ");
+            fragment invalidInterfaceWithinUnion on CatOrDog { ...petFragment }
+            fragment petFragment on HumanOrAlien { name }
+            """);
     }
 }

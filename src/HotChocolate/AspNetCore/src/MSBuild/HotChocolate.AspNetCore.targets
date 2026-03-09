@@ -1,12 +1,14 @@
 <Project>
   <PropertyGroup>
     <HotChocolateImplicitUsings Condition="'$(ImplicitUsings)' == 'enable' AND '$(HotChocolateImplicitUsings)' != 'disable'">enable</HotChocolateImplicitUsings>
+    <HotChocolateCompositeImplicitUsings Condition="'$(ImplicitUsings)' == 'enable' AND '$(HotChocolateCompositeImplicitUsings)' != 'disable'">enable</HotChocolateCompositeImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(HotChocolateImplicitUsings)' == 'enable'">
     <Using Include="HotChocolate" />
     <Using Include="HotChocolate.Types" />
     <Using Include="HotChocolate.Types.Relay" />
+    <Using Include="HotChocolate.Types.Composite" Condition="'$(HotChocolateCompositeImplicitUsings)' == 'enable'"/>
     <Using Include="GreenDonut" />
   </ItemGroup>
 </Project>

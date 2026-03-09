@@ -12,7 +12,7 @@ public static class TypeExtensions
             IPageType t => t.ItemType.UnwrapRuntimeType(),
             IEdgeType t => t.NodeType.UnwrapRuntimeType(),
             NonNullType t => t.InnerType().UnwrapRuntimeType(),
-            INamedType t => t.ToRuntimeType(),
-            _ => throw ThrowHelper.ProjectionVisitor_CouldNotUnwrapType(type),
+            ITypeDefinition t => t.ToRuntimeType(),
+            _ => throw ThrowHelper.ProjectionVisitor_CouldNotUnwrapType(type)
         };
 }

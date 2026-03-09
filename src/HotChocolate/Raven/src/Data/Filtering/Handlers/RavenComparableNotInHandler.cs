@@ -19,6 +19,9 @@ public class RavenComparableNotInHandler : QueryableComparableOperationHandler
 
     protected override int Operation => DefaultFilterOperations.NotIn;
 
+    public static RavenComparableNotInHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
+
     public override Expression HandleOperation(
         QueryableFilterContext context,
         IFilterOperationField field,

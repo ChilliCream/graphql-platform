@@ -30,7 +30,7 @@ public class EntityIdOrDataTest : ServerTestBase
         var client = services.GetRequiredService<EntityIdOrDataClient>();
 
         // act
-        IOperationResult<IGetFooResult> result = await client.GetFoo.ExecuteAsync(ct);
+        var result = await client.GetFoo.ExecuteAsync(ct);
 
         // assert
         result.MatchSnapshot();
@@ -40,35 +40,33 @@ public class EntityIdOrDataTest : ServerTestBase
     {
         public IBar[] GetFoo() =>
         [
-            new Baz { Id = "BarId", },
-            new Baz2 { Id = "Bar2Id", },
-            new Quox { Foo = "QuoxFoo", },
-            new Quox2 { Foo = "Quox2Foo", },
+            new Baz { Id = "BarId" },
+            new Baz2 { Id = "Bar2Id" },
+            new Quox { Foo = "QuoxFoo" },
+            new Quox2 { Foo = "Quox2Foo" }
         ];
     }
 
     [UnionType("Bar")]
-    public interface IBar
-    {
-    }
+    public interface IBar;
 
     public class Baz : IBar
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 
     public class Baz2 : IBar
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 
     public class Quox : IBar
     {
-        public string Foo { get; set; } = default!;
+        public string Foo { get; set; } = null!;
     }
 
     public class Quox2 : IBar
     {
-        public string Foo { get; set; } = default!;
+        public string Foo { get; set; } = null!;
     }
 }

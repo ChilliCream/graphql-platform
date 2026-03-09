@@ -20,7 +20,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -424,6 +424,39 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Executable_With_QueryableOffsetPagingProvider()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<ExecutableQueryType>()
+                .AddQueryableOffsetPagingProvider()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                fooExecutable {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    totalCount
+                }
+            }
+            """);
+
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
+        Assert.NotNull(operationResult.Data);
+    }
+
+    [Fact]
     public async Task Attribute_Nested_List_With_Field_Settings()
     {
         var executor =
@@ -558,7 +591,7 @@ public class IntegrationTests
                 .AddInterfaceType<ISome>(d => d
                     .Field(t => t.ExplicitType())
                     .UseOffsetPaging(
-                        options: new PagingOptions { InferCollectionSegmentNameFromField = false, }))
+                        options: new PagingOptions { InferCollectionSegmentNameFromField = false }))
                 .ModifyOptions(o =>
                 {
                     o.RemoveUnreachableTypes = false;
@@ -568,7 +601,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -588,7 +621,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -662,6 +695,20 @@ public class IntegrationTests
         Assert.Equal("Cannot handle the specified data source.", error.Message);
     }
 
+    [Fact]
+    public async Task Attribute_Dictionary_ReturnType_ThrowsSchemaException()
+    {
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<UglyLegacyQuery>()
+                .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
     public class QueryType : ObjectType<Query>
     {
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -679,7 +726,7 @@ public class IntegrationTests
                 .Field(t => t.Foos())
                 .Name("nestedObjectList")
                 .UseOffsetPaging(
-                    options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true, });
+                    options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
 
             descriptor
                 .Field("extendedTypeRef")
@@ -701,7 +748,7 @@ public class IntegrationTests
                 .Field(t => t.FoosExecutable())
                 .Name("fooExecutable")
                 .UseOffsetPaging(
-                    options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true, });
+                    options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
         }
     }
 
@@ -709,16 +756,16 @@ public class IntegrationTests
     {
         public string[] Letters =>
         [
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
         ];
 
         public List<List<Foo>> Foos() =>
         [
-            [new Foo { Bar = "a", },],
-            [new Foo { Bar = "b", }, new Foo { Bar = "c", },],
-            [new Foo { Bar = "d", },],
-            [new Foo { Bar = "e", },],
-            [new Foo { Bar = "f", },],
+            [new Foo { Bar = "a" }],
+            [new Foo { Bar = "b" }, new Foo { Bar = "c" }],
+            [new Foo { Bar = "d" }],
+            [new Foo { Bar = "e" }],
+            [new Foo { Bar = "f" }]
         ];
     }
 
@@ -727,18 +774,18 @@ public class IntegrationTests
         public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
             new List<Foo>
             {
-                new Foo { Bar = "a", },
-                new Foo { Bar = "b", },
-                new Foo { Bar = "c", },
-                new Foo { Bar = "d", },
-                new Foo { Bar = "e", },
-                new Foo { Bar = "f", },
+                new Foo { Bar = "a" },
+                new Foo { Bar = "b" },
+                new Foo { Bar = "c" },
+                new Foo { Bar = "d" },
+                new Foo { Bar = "e" },
+                new Foo { Bar = "f" }
             }.AsQueryable());
     }
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class FluentPaging
@@ -748,7 +795,7 @@ public class IntegrationTests
             int? skip,
             int? take,
             CancellationToken cancellationToken)
-            => await new[] { "a", "b", "c", "d", }
+            => await new[] { "a", "b", "c", "d" }
                 .AsQueryable()
                 .ApplyOffsetPaginationAsync(skip, take, cancellationToken);
     }
@@ -758,7 +805,7 @@ public class IntegrationTests
         [UseOffsetPaging]
         public string[] Letters =>
         [
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
         ];
 
         [UseOffsetPaging(typeof(NonNullType<StringType>))]
@@ -770,23 +817,23 @@ public class IntegrationTests
             IncludeTotalCount = true)]
         public List<List<Foo>> Foos() =>
         [
-            [new Foo { Bar = "a", },],
-            [new Foo { Bar = "b", }, new Foo { Bar = "c", },],
-            [new Foo { Bar = "d", },],
-            [new Foo { Bar = "e", },],
-            [new Foo { Bar = "f", },],
+            [new Foo { Bar = "a" }],
+            [new Foo { Bar = "b" }, new Foo { Bar = "c" }],
+            [new Foo { Bar = "d" }],
+            [new Foo { Bar = "e" }],
+            [new Foo { Bar = "f" }]
         ];
     }
 
     public interface ISome
     {
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public interface ISome2
     {
         [UseOffsetPaging(typeof(NonNullType<StringType>))]
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public class QueryEnumerableValueType
@@ -794,7 +841,17 @@ public class IntegrationTests
         [UseOffsetPaging]
         public ImmutableArray<int> Test()
         {
-            return ImmutableArray<int>.Empty;
+            return [];
+        }
+    }
+
+    public class UglyLegacyQuery
+    {
+        [UseOffsetPaging]
+        public async Task<Dictionary<string, string>> UglyLegacyResolver()
+        {
+            await Task.Yield();
+            return [];
         }
     }
 }
@@ -854,5 +911,5 @@ public class CustomCollectionSegmentQuery
 {
     [UseOffsetPaging(IncludeTotalCount = true)]
     public CollectionSegment<string> GetFoos(int? first, string? after)
-        => new(new[] { "asd", "asd2", }, new CollectionSegmentInfo(false, false), 2);
+        => new(["asd", "asd2"], new CollectionSegmentInfo(false, false), 2);
 }

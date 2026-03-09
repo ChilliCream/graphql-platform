@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Pagination;
 
 internal sealed class EfQueryableCursorPagingProvider : CursorPagingProvider
 {
-    private static readonly MethodInfo _createHandler =
+    private static readonly MethodInfo s_createHandler =
         typeof(EfQueryableCursorPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -18,14 +18,11 @@ internal sealed class EfQueryableCursorPagingProvider : CursorPagingProvider
         IExtendedType source,
         PagingOptions options)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
-        return (CursorPagingHandler)_createHandler
+        return (CursorPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-            .Invoke(null, [options,])!;
+            .Invoke(null, [options])!;
     }
 
     private static EfQueryableCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

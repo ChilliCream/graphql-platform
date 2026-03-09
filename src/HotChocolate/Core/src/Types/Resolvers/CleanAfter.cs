@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 /// <summary>
@@ -15,5 +13,5 @@ public enum CleanAfter
     /// <summary>
     /// The cleanup task shall be applied when the query result is being disposed.
     /// </summary>
-    Request,
+    Request
 }

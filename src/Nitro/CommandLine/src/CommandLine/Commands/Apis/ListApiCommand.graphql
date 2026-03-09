@@ -1,0 +1,26 @@
+query ListApiCommandQuery($workspaceId: ID!, $after: Version, $first: Int) {
+  workspaceById(workspaceId: $workspaceId) {
+    apis(after: $after, first: $first) {
+      edges {
+        ...ListApiCommand_ApiEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment ListApiCommand_ApiEdge on ApisEdge {
+  cursor
+  node {
+    ...ListApiCommand_Api
+  }
+}
+
+fragment ListApiCommand_Api on Api {
+  id
+  name
+  path
+  ...ApiDetailPrompt_Api
+}

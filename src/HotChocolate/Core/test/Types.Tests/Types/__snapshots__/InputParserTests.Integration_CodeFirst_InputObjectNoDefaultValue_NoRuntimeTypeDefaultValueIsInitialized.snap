@@ -1,0 +1,32 @@
+﻿{
+  "allSet": {
+    "string": "allSet",
+    "int": 1,
+    "bool": true
+  },
+  "boolExplicitlyNull": {
+    "string": "boolExplicitlyNull",
+    "int": null,
+    "bool": null
+  },
+  "boolSetIntNull": {
+    "string": "boolSetIntNull",
+    "int": null,
+    "bool": true
+  },
+  "intExplicitlyNull": {
+    "string": "intExplicitlyNull",
+    "int": null,
+    "bool": null
+  },
+  "intSetBoolNull": {
+    "string": "intSetBoolNull",
+    "int": 1,
+    "bool": null
+  },
+  "noneSet": {
+    "string": "noneSet",
+    "int": null,
+    "bool": null
+  }
+}

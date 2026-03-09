@@ -1,0 +1,11 @@
+{
+  "document": "{ foo }",
+  "operationName": "bar",
+  "contextData": {
+    "one": "foo"
+  },
+  "hasServices": true,
+  "variableValues": {
+    "two": "bar"
+  }
+}

@@ -4986,9 +4986,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false"
                 }
@@ -5315,9 +5319,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false"
                 }
@@ -5648,9 +5656,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false"
                 }
@@ -5719,9 +5731,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false"
                 }
@@ -5750,9 +5766,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false"
                 }
@@ -5798,7 +5818,7 @@
               "deprecationReason": null
             },
             {
-              "name": "oneOf",
+              "name": "isOneOf",
               "description": null,
               "args": [],
               "type": {
@@ -5918,7 +5938,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "SCALAR",
-                      "name": "JSON",
+                      "name": "Any",
                       "ofType": null
                     }
                   },
@@ -6399,7 +6419,7 @@
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "JSON",
+                "name": "Any",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6564,7 +6584,7 @@
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "JSON",
+                "name": "Any",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6614,7 +6634,7 @@
         {
           "kind": "SCALAR",
           "name": "String",
-          "description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "description": "The `String` scalar type represents textual data, represented as a sequence of Unicode code points.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -6743,7 +6763,7 @@
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "JSON",
+                "name": "Any",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6892,7 +6912,7 @@
         {
           "kind": "SCALAR",
           "name": "ID",
-          "description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID.",
+          "description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -6965,7 +6985,7 @@
         {
           "kind": "SCALAR",
           "name": "Int",
-          "description": "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
+          "description": "The `Int` scalar type represents a signed 32-bit numeric non-fractional value.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -6975,7 +6995,7 @@
         {
           "kind": "SCALAR",
           "name": "Float",
-          "description": "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).",
+          "description": "The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -7007,8 +7027,8 @@
         },
         {
           "kind": "SCALAR",
-          "name": "JSON",
-          "description": null,
+          "name": "Any",
+          "description": "The `Any` scalar type represents any valid GraphQL value.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -7252,6 +7272,29 @@
                 "ofType": null
               },
               "defaultValue": "\"No longer supported.\""
+            }
+          ],
+          "onOperation": false,
+          "onFragment": false,
+          "onField": false
+        },
+        {
+          "name": "specifiedBy",
+          "description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "args": [
+            {
+              "name": "url",
+              "description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "defaultValue": null
             }
           ],
           "onOperation": false,

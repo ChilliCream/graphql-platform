@@ -13,5 +13,5 @@
     "*.targets": "xml",
     "*.tasks": "xml"
   },
-  "dotnet.defaultSolution": "src/All.sln"
+  "dotnet.defaultSolution": "src/All.slnx"
 }

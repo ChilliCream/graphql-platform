@@ -1,10 +1,11 @@
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Buffers;
 using HotChocolate.Transport.Sockets;
-using HotChocolate.Utilities;
-using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
@@ -20,9 +21,10 @@ public static class WebSocketExtensions
         Dictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        using var writer = new PooledArrayWriter();
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionInitialize, payload);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static async Task SendSubscribeAsync(
@@ -58,9 +60,10 @@ public static class WebSocketExtensions
             map["extensions"] = payload.Extensions;
         }
 
-        using var writer = new ArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Subscribe, map, subscriptionId);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        using var writer = new PooledArrayWriter();
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Subscribe, map, subscriptionId);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static async Task SendCompleteAsync(
@@ -68,9 +71,10 @@ public static class WebSocketExtensions
         string subscriptionId,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Complete, id: subscriptionId);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        using var writer = new PooledArrayWriter();
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Complete, id: subscriptionId);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static Task SendPingAsync(
@@ -83,9 +87,10 @@ public static class WebSocketExtensions
         Dictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Ping, payload);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        using var writer = new PooledArrayWriter();
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Ping, payload);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static Task SendPongAsync(
@@ -98,9 +103,10 @@ public static class WebSocketExtensions
         Dictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Pong, payload);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        using var writer = new PooledArrayWriter();
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Pong, payload);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static Task SendMessageAsync(
@@ -115,7 +121,7 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
         => await webSocket.SendAsync(message, WebSocketMessageType.Text, true, cancellationToken);
 
-    public static async Task<IReadOnlyDictionary<string, object?>?> ReceiveServerMessageAsync(
+    public static async Task<JsonDocument?> ReceiveServerMessageAsync(
         this WebSocket webSocket,
         CancellationToken cancellationToken)
     {
@@ -136,6 +142,6 @@ public static class WebSocketExtensions
             return null;
         }
 
-        return (IReadOnlyDictionary<string, object?>?)ParseJson(stream.ToArray());
+        return JsonDocument.Parse(stream.ToArray());
     }
 }

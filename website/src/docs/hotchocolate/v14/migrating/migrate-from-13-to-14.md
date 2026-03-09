@@ -53,7 +53,6 @@ Things that have been removed or had a change in behavior that may cause your co
 - Since the `RegisterService` method is no longer required, it has been removed, along with the `ServiceKind` enum.
 - Scoped services injected into query resolvers are now resolver-scoped by default (not request scoped). For mutation resolvers, services are request-scoped by default.
 - The default scope can be changed in two ways:
-
   1. Globally, using `ModifyOptions`:
 
      ```csharp
@@ -202,6 +201,14 @@ The `DateTime` scalar will now enforce a specific format. The time and offset ar
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
 
+You can opt out of the format check with the following code:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new DateTimeType(disableFormatCheck: true));
+```
+
 ## Persisted Queries renamed to Persisted Operations
 
 ### Packages renamed
@@ -314,6 +321,16 @@ public Connection<MyType> GetMyTypes(
         totalCount: totalCount)
 }
 ```
+
+# Other changes
+
+## Change to `SingleOrDefaultMiddleware`
+
+As a side-effect of fixing [a bug](https://github.com/ChilliCream/graphql-platform/issues/5566) in the `SingleOrDefaultMiddleware`, usage of this middleware along with EF Core may result in a warning being logged, as follows:
+
+> The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+
+We are looking at fixing this in a different way in the future (see [#8070](https://github.com/ChilliCream/graphql-platform/issues/8070)), but for now you can work around this by returning an `IExecutable` from your resolver by calling `AsDbContextExecutable()` on your `IQueryable` or `DbSet`, or by using `Executable.From(...)`.
 
 # Deprecations
 

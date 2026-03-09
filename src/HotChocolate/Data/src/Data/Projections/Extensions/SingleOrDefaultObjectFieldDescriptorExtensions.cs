@@ -1,47 +1,45 @@
 using HotChocolate.Data.Projections;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 public static class SingleOrDefaultObjectFieldDescriptorExtensions
 {
-    private static readonly Type _firstMiddleware = typeof(FirstOrDefaultMiddleware<>);
-    private static readonly Type _singleMiddleware = typeof(SingleOrDefaultMiddleware<>);
+    private static readonly Type s_firstMiddleware = typeof(FirstOrDefaultMiddleware<>);
+    private static readonly Type s_singleMiddleware = typeof(SingleOrDefaultMiddleware<>);
 
     public static IObjectFieldDescriptor UseFirstOrDefault(
         this IObjectFieldDescriptor descriptor) =>
-        ApplyMiddleware(descriptor, SelectionOptions.FirstOrDefault, _firstMiddleware);
+        ApplyMiddleware(descriptor, SelectionFlags.FirstOrDefault, s_firstMiddleware);
 
     public static IObjectFieldDescriptor UseSingleOrDefault(
         this IObjectFieldDescriptor descriptor) =>
-        ApplyMiddleware(descriptor, SelectionOptions.SingleOrDefault, _singleMiddleware);
+        ApplyMiddleware(descriptor, SelectionFlags.SingleOrDefault, s_singleMiddleware);
 
     private static IObjectFieldDescriptor ApplyMiddleware(
         this IObjectFieldDescriptor descriptor,
-        string optionName,
+        SelectionFlags selectionFlags,
         Type middlewareDefinition)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
-        FieldMiddlewareDefinition placeholder =
+        FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.SingleOrDefault);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareConfigurations.Add(placeholder);
 
         descriptor
             .Extend()
             .OnBeforeCreate(
                 (context, definition) =>
                 {
-                    definition.ContextData[optionName] = true;
-                    definition.ContextData[SelectionOptions.MemberIsList] = true;
+                    definition.AddSelectionFlags(selectionFlags | SelectionFlags.MemberIsList);
 
-                    if (definition.ResultType is null ||
-                        !context.TypeInspector.TryCreateTypeInfo(
+                    if (definition.ResultType is null
+                        || !context.TypeInspector.TryCreateTypeInfo(
                             definition.ResultType,
                             out var typeInfo))
                     {
@@ -53,11 +51,13 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
 
                     var selectionType = typeInfo.NamedType;
                     definition.ResultType = selectionType;
-                    definition.Type =
-                        context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
+                    if (ShouldRewriteFieldType(definition.Type))
+                    {
+                        definition.Type = context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
+                    }
 
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (_, d) =>
                             {
                                 CompileMiddleware(
@@ -73,16 +73,26 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
         return descriptor;
     }
 
+    private static bool ShouldRewriteFieldType(TypeReference? typeReference)
+        => typeReference switch
+        {
+            null => true,
+            ExtendedTypeReference extended => extended.Type.IsArrayOrList,
+            SyntaxTypeReference syntax => syntax.Type.IsListType(),
+            FactoryTypeReference factory => factory.TypeStructure.IsListType(),
+            _ => false
+        };
+
     private static void CompileMiddleware(
         Type type,
-        ObjectFieldDefinition definition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        FieldMiddlewareConfiguration placeholder,
         Type middlewareDefinition)
     {
         var middlewareType = middlewareDefinition.MakeGenericType(type);
         var middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] =
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] =
             new(middleware, key: WellKnownMiddleware.SingleOrDefault);
     }
 }

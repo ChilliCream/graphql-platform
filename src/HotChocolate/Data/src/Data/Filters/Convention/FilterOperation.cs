@@ -1,21 +1,14 @@
 namespace HotChocolate.Data.Filters;
 
-public class FilterOperation
+public class FilterOperation(int id, string name, string? description)
 {
-    public FilterOperation(int id, string name, string? description)
-    {
-        Id = id;
-        Name = name;
-        Description = description;
-    }
+    public int Id { get; } = id;
 
-    public int Id { get; }
+    public string Name { get; } = name;
 
-    public string Name { get; }
+    public string? Description { get; } = description;
 
-    public string? Description { get; }
-
-    internal static FilterOperation FromDefinition(
-        FilterOperationConventionDefinition definition) =>
-        new(definition.Id, definition.Name, definition.Description);
+    internal static FilterOperation FromConfiguration(
+        FilterOperationConventionConfiguration configuration) =>
+        new(configuration.Id, configuration.Name, configuration.Description);
 }

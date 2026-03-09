@@ -2,14 +2,17 @@ namespace HotChocolate.Types;
 
 internal sealed class ResolverArgument(
     string name,
+    string inputName,
     SchemaCoordinate coordinate,
     IInputType type,
     Type runtimeType,
     IValueNode? defaultValue,
     IInputValueFormatter? formatter)
-    : IInputFieldInfo
+    : IInputValueInfo
 {
     public string Name { get; } = name;
+
+    public string InputName { get; } = inputName;
 
     public SchemaCoordinate Coordinate { get; } = coordinate;
 

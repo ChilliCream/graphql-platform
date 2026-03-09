@@ -75,9 +75,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -404,9 +408,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -737,9 +745,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -808,9 +820,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -839,9 +855,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -887,7 +907,7 @@
               "DeprecationReason": null
             },
             {
-              "Name": "oneOf",
+              "Name": "isOneOf",
               "Description": null,
               "Args": [],
               "Type": {
@@ -1007,7 +1027,7 @@
                     "Name": null,
                     "OfType": {
                       "Kind": "Scalar",
-                      "Name": "JSON",
+                      "Name": "Any",
                       "OfType": null
                     }
                   },
@@ -1488,7 +1508,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1653,7 +1673,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1703,7 +1723,7 @@
         {
           "Kind": "Scalar",
           "Name": "String",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "Description": "The `String` scalar type represents textual data, represented as a sequence of Unicode code points.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -1723,7 +1743,7 @@
         {
           "Kind": "Scalar",
           "Name": "Int",
-          "Description": "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
+          "Description": "The `Int` scalar type represents a signed 32-bit numeric non-fractional value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -1842,7 +1862,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1991,7 +2011,7 @@
         {
           "Kind": "Scalar",
           "Name": "ID",
-          "Description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID.",
+          "Description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -2064,7 +2084,7 @@
         {
           "Kind": "Scalar",
           "Name": "Float",
-          "Description": "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).",
+          "Description": "The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -2096,8 +2116,8 @@
         },
         {
           "Kind": "Scalar",
-          "Name": "JSON",
-          "Description": null,
+          "Name": "Any",
+          "Description": "The `Any` scalar type represents any valid GraphQL value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -2506,15 +2526,34 @@
               "Name": "requireOneSlicingArgument",
               "Description": "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.",
               "Type": {
+                "Kind": "Scalar",
+                "Name": "Boolean",
+                "OfType": null
+              },
+              "DefaultValue": "true"
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
+        },
+        {
+          "Name": "specifiedBy",
+          "Description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "Args": [
+            {
+              "Name": "url",
+              "Description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "Type": {
                 "Kind": "NonNull",
                 "Name": null,
                 "OfType": {
                   "Kind": "Scalar",
-                  "Name": "Boolean",
+                  "Name": "String",
                   "OfType": null
                 }
               },
-              "DefaultValue": "true"
+              "DefaultValue": null
             }
           ],
           "OnOperation": false,
@@ -2685,15 +2724,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3206,15 +3256,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3820,15 +3881,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3965,15 +4037,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -4026,15 +4109,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -4118,7 +4212,7 @@
             },
             {
               "__typename": "__Field",
-              "Name": "oneOf",
+              "Name": "isOneOf",
               "Description": null,
               "Args": [],
               "Type": {
@@ -4289,7 +4383,7 @@
                     "PossibleTypes": null,
                     "OfType": {
                       "__typename": "__Type",
-                      "Name": "JSON",
+                      "Name": "Any",
                       "Kind": "Scalar",
                       "Description": null,
                       "Fields": null,
@@ -5201,7 +5295,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5492,7 +5586,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5563,7 +5657,7 @@
           "__typename": "__Type",
           "Name": "String",
           "Kind": "Scalar",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "Description": "The `String` scalar type represents textual data, represented as a sequence of Unicode code points.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -5587,7 +5681,7 @@
           "__typename": "__Type",
           "Name": "Int",
           "Kind": "Scalar",
-          "Description": "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
+          "Description": "The `Int` scalar type represents a signed 32-bit numeric non-fractional value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -5794,7 +5888,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -6055,7 +6149,7 @@
           "__typename": "__Type",
           "Name": "ID",
           "Kind": "Scalar",
-          "Description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID.",
+          "Description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -6184,7 +6278,7 @@
           "__typename": "__Type",
           "Name": "Float",
           "Kind": "Scalar",
-          "Description": "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).",
+          "Description": "The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -6221,9 +6315,9 @@
         },
         {
           "__typename": "__Type",
-          "Name": "JSON",
+          "Name": "Any",
           "Kind": "Scalar",
-          "Description": null,
+          "Description": "The `Any` scalar type represents any valid GraphQL value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -6930,6 +7024,34 @@
               "Description": "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.",
               "Type": {
                 "__typename": "__Type",
+                "Name": "Boolean",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "DefaultValue": "true"
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "specifiedBy",
+          "Description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "url",
+              "Description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "Type": {
+                "__typename": "__Type",
                 "Name": null,
                 "Kind": "NonNull",
                 "Description": null,
@@ -6940,7 +7062,7 @@
                 "PossibleTypes": null,
                 "OfType": {
                   "__typename": "__Type",
-                  "Name": "Boolean",
+                  "Name": "String",
                   "Kind": "Scalar",
                   "Description": null,
                   "Fields": null,
@@ -6951,7 +7073,7 @@
                   "OfType": null
                 }
               },
-              "DefaultValue": "true"
+              "DefaultValue": null
             }
           ],
           "OnOperation": false,

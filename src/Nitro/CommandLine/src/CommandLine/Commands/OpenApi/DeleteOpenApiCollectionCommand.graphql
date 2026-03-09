@@ -1,0 +1,20 @@
+mutation DeleteOpenApiCollectionByIdCommandMutation(
+  $input: DeleteOpenApiCollectionByIdInput!
+) {
+  deleteOpenApiCollectionById(input: $input) {
+    openApiCollection {
+      ...DeleteOpenApiCollectionByIdCommandMutation_OpenApiCollection
+    }
+    errors {
+      ...Error
+      ...OpenApiCollectionNotFoundError
+      ...UnauthorizedOperation
+    }
+  }
+}
+
+fragment DeleteOpenApiCollectionByIdCommandMutation_OpenApiCollection on OpenApiCollection {
+  name
+  id
+  ...OpenApiCollectionDetailPrompt_OpenApiCollection
+}

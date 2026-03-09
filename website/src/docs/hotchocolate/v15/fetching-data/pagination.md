@@ -12,6 +12,8 @@ _Connections_ are a standardized way to expose pagination to clients.
 
 Instead of returning a list of entries, we return a _Connection_.
 
+<Video videoId="8TQ2oDUQ1ng" />
+
 ```sdl
 type Query {
   users(first: Int after: String last: Int before: String): UsersConnection
@@ -818,15 +820,18 @@ If no paging providers have been registered, a default paging provider capable o
 
 The following options can be configured.
 
-| Property                       | Default | Description                                                                         |
-| ------------------------------ | ------- | ----------------------------------------------------------------------------------- |
-| `MaxPageSize`                  | `50`    | Maximum number of items a client can request via `first`, `last` or `take`.         |
-| `DefaultPageSize`              | `10`    | The default number of items, if a client does not specify`first`, `last` or `take`. |
-| `IncludeTotalCount`            | `false` | Add a `totalCount` field for clients to request the total number of items.          |
-| `AllowBackwardPagination`      | `true`  | Include `before` and `last` arguments on the _Connection_.                          |
-| `RequirePagingBoundaries`      | `false` | Clients need to specify either `first`, `last` or `take`.                           |
-| `InferConnectionNameFromField` | `true`  | Infer the name of the _Connection_ from the field name rather than its type.        |
-| `ProviderName`                 | `null`  | The name of the pagination provider to use.                                         |
+| Property                       | Default       | Description                                                                                      |
+| ------------------------------ | ------------- | ------------------------------------------------------------------------------------------------ |
+| `MaxPageSize`                  | `50`          | Maximum number of items a client can request via `first`, `last` or `take`.                      |
+| `DefaultPageSize`              | `10`          | The default number of items, if a client does not specify`first`, `last` or `take`.              |
+| `IncludeTotalCount`            | `false`       | Add a `totalCount` field for clients to request the total number of items.                       |
+| `AllowBackwardPagination`      | `true`        | Include `before` and `last` arguments on the _Connection_.                                       |
+| `RequirePagingBoundaries`      | `false`       | Clients need to specify either `first`, `last` or `take`.                                        |
+| `InferConnectionNameFromField` | `true`        | Infer the name of the _Connection_ from the field name rather than its type.                     |
+| `ProviderName`                 | `null`        | The name of the pagination provider to use.                                                      |
+| `NullOrdering`                 | `Unspecified` | The database null sort order for nullable cursor keys (`NativeNullsFirst` or `NativeNullsLast`). |
+
+When paging over nullable cursor keys, configure `NullOrdering` to match your database's native null sorting behavior.
 
 # Pagination defaults
 
@@ -835,7 +840,11 @@ If we want to enforce consistent pagination defaults throughout our app, we can 
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .ModifyPagingOptions(opt => opt.MaxPageSize = 100);
+    .ModifyPagingOptions(opt =>
+    {
+        opt.MaxPageSize = 100;
+        opt.NullOrdering = NullOrdering.NativeNullsLast;
+    });
 ```
 
 [Learn more about possible PagingOptions](#pagingoptions)

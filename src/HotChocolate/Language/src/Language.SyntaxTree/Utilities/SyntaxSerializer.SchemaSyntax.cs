@@ -398,12 +398,12 @@ public sealed partial class SyntaxSerializer
 
         writer.WriteType(node.Type);
 
-        if (node.DefaultValue is { Kind: not SyntaxKind.NullValue, } value)
+        if (node.DefaultValue is { Kind: not SyntaxKind.NullValue } value)
         {
             writer.WriteSpace();
             writer.Write("=");
             writer.WriteSpace();
-            writer.WriteValue(value);
+            writer.WriteValue(value, _indented);
         }
 
         WriteDirectives(node.Directives, writer);

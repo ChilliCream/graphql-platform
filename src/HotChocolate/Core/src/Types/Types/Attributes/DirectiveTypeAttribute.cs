@@ -1,4 +1,3 @@
-#nullable enable
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
@@ -44,7 +43,7 @@ public sealed class DirectiveTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IDirectiveTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (!string.IsNullOrEmpty(Name))
         {
@@ -58,6 +57,6 @@ public sealed class DirectiveTypeAttribute
             descriptor.Repeatable();
         }
 
-        descriptor.Extend().Definition.Arguments.BindingBehavior = BindingBehavior.Implicit;
+        descriptor.Extend().Configuration.Arguments.BindingBehavior = BindingBehavior.Implicit;
     }
 }

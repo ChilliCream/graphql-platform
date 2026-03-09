@@ -1,7 +1,7 @@
 namespace HotChocolate.OpenApi;
 
 /// <summary>
-/// Skimmed Type Metadata
+/// OpenAPI Type Metadata
 /// </summary>
 internal sealed class OpenApiTypeMetadata
 {

@@ -1,5 +1,3 @@
 namespace HotChocolate.Execution.DependencyInjection;
 
-public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
-{
-}
+public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests;

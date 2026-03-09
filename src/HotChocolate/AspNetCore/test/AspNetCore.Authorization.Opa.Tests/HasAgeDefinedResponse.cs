@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace HotChocolate.AspNetCore.Authorization;
 
 public class HasAgeDefinedResponse
 {
-    public bool Allow { get; set; } = default!;
+    [JsonPropertyName("allow")]
+    public bool Allow { get; set; }
 
-    public Claims Claims { get; set; } = default!;
+    [JsonPropertyName("claims")]
+    public Claims Claims { get; set; } = null!;
 }

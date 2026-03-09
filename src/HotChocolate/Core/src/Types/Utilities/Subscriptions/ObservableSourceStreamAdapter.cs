@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Collections.Concurrent;
 using static System.Threading.Tasks.TaskCreationOptions;
 
@@ -45,7 +47,7 @@ internal sealed class ObservableSourceStreamAdapter<T>
                     await _wait.Task.ConfigureAwait(false);
                 }
 
-                if (_exception is { })
+                if (_exception is not null)
                 {
                     _isCompleted = true;
                     throw _exception;
@@ -62,7 +64,7 @@ internal sealed class ObservableSourceStreamAdapter<T>
     {
         _isCompleted = true;
 
-        if (_wait != null && !_wait.Task.IsCompleted)
+        if (_wait is { Task.IsCompleted: false })
         {
             _wait.SetResult(null);
         }
@@ -72,7 +74,7 @@ internal sealed class ObservableSourceStreamAdapter<T>
     {
         _exception = error;
 
-        if (_wait != null && !_wait.Task.IsCompleted)
+        if (_wait is { Task.IsCompleted: false })
         {
             _wait.SetResult(null);
         }
@@ -82,7 +84,7 @@ internal sealed class ObservableSourceStreamAdapter<T>
     {
         _queue.Enqueue(value);
 
-        if (_wait != null && !_wait.Task.IsCompleted)
+        if (_wait is { Task.IsCompleted: false })
         {
             _wait.SetResult(null);
         }

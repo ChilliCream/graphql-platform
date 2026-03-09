@@ -34,7 +34,7 @@ internal static class OpenApiParameterSerializer
                     parameter.Style ?? ParameterStyle.Simple,
                     parameter.Name,
                     value?.ToString() ?? "",
-                    escape),
+                    escape)
         };
     }
 
@@ -63,7 +63,7 @@ internal static class OpenApiParameterSerializer
                                     value,
                                     DelimiterComma,
                                     escape)
-                            },
+                            }
                         },
                     delimiter: null,
                     escape: escape && parameter.Explode),
@@ -95,7 +95,7 @@ internal static class OpenApiParameterSerializer
                                     value,
                                     DelimiterComma,
                                     escape)
-                            },
+                            }
                         },
                     DelimiterAmpersand,
                     escape: escape && parameter.Explode),
@@ -136,7 +136,7 @@ internal static class OpenApiParameterSerializer
                     DelimiterAmpersand,
                     escape: escape),
 
-            _ => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException()
         };
     }
 
@@ -210,7 +210,7 @@ internal static class OpenApiParameterSerializer
 
             ParameterStyle.DeepObject => throw new InvalidOperationException(),
 
-            _ => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException()
         };
     }
 
@@ -227,7 +227,7 @@ internal static class OpenApiParameterSerializer
             ParameterStyle.Matrix => value is "" ? $";{name}" : $";{name}={value}",
             ParameterStyle.Label => $".{value}",
             ParameterStyle.Form => $"{name}={value}",
-            _ => value,
+            _ => value
         };
     }
 
@@ -296,7 +296,7 @@ internal static class OpenApiParameterSerializer
             ParameterStyle.Form => $"{key}={value}",
             ParameterStyle.SpaceDelimited => $"{key}%20{value}",
             ParameterStyle.PipeDelimited => $"{key}|{value}",
-            _ => explode ? $"{key}={value}" : $"{key},{value}",
+            _ => explode ? $"{key}={value}" : $"{key},{value}"
         };
     }
 

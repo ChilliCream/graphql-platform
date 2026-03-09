@@ -3,9 +3,9 @@
     {
       "message": "The maximum allowed type cost was exceeded.",
       "extensions": {
-        "typeCost": 2,
+        "code": "HC0047",
         "maxTypeCost": 1,
-        "code": "HC0047"
+        "typeCost": 2
       }
     }
   ]

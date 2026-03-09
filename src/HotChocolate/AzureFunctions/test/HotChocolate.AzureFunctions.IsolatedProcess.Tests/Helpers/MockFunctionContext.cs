@@ -12,7 +12,7 @@ public class MockFunctionContext : FunctionContext, IDisposable
 {
     public MockFunctionContext(
         IServiceProvider serviceProvider,
-        FunctionDefinition? functionDefinition= null,
+        FunctionDefinition? functionDefinition = null,
         IInvocationFeatures? features = null,
         TraceContext? traceContext = null,
         BindingContext? bindingContext = null,

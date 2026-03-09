@@ -1,6 +1,5 @@
-import { graphql, Link } from "gatsby";
-import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FC, useMemo } from "react";
+import { Link } from "@/components/misc";
+import React, { FC, ReactNode, useMemo } from "react";
 import semverCoerce from "semver/functions/coerce";
 import semverCompare from "semver/functions/compare";
 import styled from "styled-components";
@@ -11,7 +10,6 @@ import {
   ArticleTitle,
 } from "@/components/article-elements";
 import { ArticleLayout } from "@/components/layout";
-import { DocArticleFragment, DocsJson, Maybe } from "@/graphql-types";
 import { THEME_COLORS } from "@/style";
 import { ArticleContentFooter } from "./article-content-footer";
 import { ArticleTableOfContent } from "./article-table-of-content";
@@ -20,16 +18,54 @@ import { DocArticleLegacy } from "./doc-article-legacy";
 import { DocArticleNavigation } from "./doc-article-navigation";
 import { ResponsiveArticleMenu } from "./responsive-article-menu";
 
-export interface DocArticleProps {
-  readonly data: DocArticleFragment;
-  readonly originPath: string;
+interface DocArticleMdx {
+  fields?: {
+    slug?: string;
+    lastUpdated?: string;
+    lastAuthorName?: string;
+  };
+  frontmatter?: {
+    title?: string;
+    description?: string;
+  };
+  headings?: Array<{
+    depth?: number;
+    value?: string;
+  } | null>;
 }
 
-export const DocArticle: FC<DocArticleProps> = ({ data, originPath }) => {
-  const { fields, frontmatter, body } = data.file!.childMdx!;
-  const slug = fields!.slug!;
-  const title = frontmatter!.title!;
-  const description = frontmatter!.description;
+interface Product {
+  path?: string;
+  title?: string;
+  description?: string;
+  metaDescription?: string;
+  latestStableVersion?: string;
+}
+
+interface DocArticleData {
+  file?: {
+    childMdx?: DocArticleMdx;
+  };
+  productsConfig?: {
+    products?: Array<Product | null>;
+  };
+}
+
+export interface DocArticleProps {
+  readonly data: DocArticleData;
+  readonly originPath: string;
+  readonly content: ReactNode;
+}
+
+export const DocArticle: FC<DocArticleProps> = ({
+  data,
+  originPath,
+  content,
+}) => {
+  const { fields, frontmatter } = data.file?.childMdx || {};
+  const slug = fields?.slug || "";
+  const title = frontmatter?.title || "";
+  const description = frontmatter?.description;
 
   const product = useProductInformation(slug, data.productsConfig?.products);
 
@@ -51,8 +87,8 @@ export const DocArticle: FC<DocArticleProps> = ({ data, originPath }) => {
       }
       aside={
         <>
-          <DocArticleCommunity data={data} originPath={originPath} />
-          <ArticleTableOfContent data={data.file!.childMdx!} />
+          <DocArticleCommunity originPath={originPath} />
+          <ArticleTableOfContent data={data.file?.childMdx || {}} />
         </>
       }
     >
@@ -64,52 +100,15 @@ export const DocArticle: FC<DocArticleProps> = ({ data, originPath }) => {
       </ArticleHeader>
       <ArticleContent>
         {description && <p>{description}</p>}
-        <MDXRenderer>{body}</MDXRenderer>
+        {content}
         <ArticleContentFooter
-          lastUpdated={fields!.lastUpdated!}
-          lastAuthorName={fields!.lastAuthorName!}
+          lastUpdated={fields?.lastUpdated || ""}
+          lastAuthorName={fields?.lastAuthorName || ""}
         />
       </ArticleContent>
     </ArticleLayout>
   );
 };
-
-export const DocArticleGraphQLFragment = graphql`
-  fragment DocArticle on Query {
-    file(
-      sourceInstanceName: { eq: "docs" }
-      relativePath: { eq: $originPath }
-    ) {
-      childMdx {
-        fields {
-          slug
-          lastUpdated
-          lastAuthorName
-        }
-        frontmatter {
-          title
-          description
-        }
-        body
-        ...ArticleSections
-      }
-    }
-    productsConfig: file(
-      sourceInstanceName: { eq: "docs" }
-      relativePath: { eq: "docs.json" }
-    ) {
-      products: childrenDocsJson {
-        path
-        title
-        description
-        metaDescription
-        latestStableVersion
-      }
-    }
-    ...DocArticleCommunity
-    ...DocArticleNavigation
-  }
-`;
 
 const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
 
@@ -121,14 +120,9 @@ interface ProductInformation {
   readonly description: string | null;
 }
 
-type Product = Pick<
-  DocsJson,
-  "path" | "title" | "description" | "metaDescription" | "latestStableVersion"
->;
-
 export function useProductInformation(
   slug: string,
-  products: Maybe<Array<Maybe<Product>>> | undefined
+  products?: Array<Product | null>
 ): ProductInformation | null {
   if (!slug) {
     return null;

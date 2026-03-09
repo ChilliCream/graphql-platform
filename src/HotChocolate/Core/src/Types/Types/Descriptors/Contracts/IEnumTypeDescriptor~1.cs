@@ -1,5 +1,5 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// The runtime type.
 /// </typeparam>"
 public interface IEnumTypeDescriptor<TRuntimeType>
-    : IDescriptor<EnumTypeDefinition>
+    : IDescriptor<EnumTypeConfiguration>
     , IFluent
 {
     /// <summary>

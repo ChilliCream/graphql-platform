@@ -18,7 +18,7 @@ public class ProjectionVisitorTestBase
 
         collection.InsertMany(results);
 
-        return ctx => collection.AsExecutable();
+        return _ => collection.AsExecutable();
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
@@ -59,24 +59,21 @@ public class ProjectionVisitorTestBase
                             useOffsetPaging);
                     }))
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("query", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("query", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 

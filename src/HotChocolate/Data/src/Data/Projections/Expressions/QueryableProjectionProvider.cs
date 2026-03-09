@@ -80,7 +80,7 @@ public class QueryableProjectionProvider : ProjectionProvider
             IQueryable<TEntityType> q => q.Select(projection),
             IEnumerable<TEntityType> q => q.AsQueryable().Select(projection),
             IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
-            _ => input,
+            _ => input
         };
 
     private ApplyProjection CreateApplicator<TEntityType>()

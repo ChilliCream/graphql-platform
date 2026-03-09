@@ -8,7 +8,7 @@ namespace HotChocolate.CostAnalysis.Types;
 /// <summary>
 /// Applies the <c>@listSize</c> directive. The purpose of the <c>@listSize</c> directive is to
 /// either inform the static analysis of the size of returned lists (if that information is
-/// statically available), or to point the analysis to where to find that information.
+/// statically available) or to point the analysis to where to find that information.
 /// </summary>
 public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
 {
@@ -49,7 +49,7 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         descriptor.Directive(
             new ListSizeDirective(

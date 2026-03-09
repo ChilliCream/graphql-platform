@@ -1,4 +1,4 @@
-﻿input BarInput {
+input BarInput {
   qux: String
-  baz: String
+  baz: String!
 }

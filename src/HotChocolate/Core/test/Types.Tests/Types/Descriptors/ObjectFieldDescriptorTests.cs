@@ -1,5 +1,7 @@
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Introspection;
 using Moq;
 
@@ -18,7 +20,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Type<StringType>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -36,7 +38,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Type(typeof(StringType));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -53,10 +55,10 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // act
         descriptor
             .Type<ListType<StringType>>()
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>();
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(typeof(ListType<StringType>),
             Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
@@ -71,11 +73,11 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
 
         // act
         descriptor
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>()
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>()
             .Type<ListType<StringType>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(typeof(ListType<StringType>),
             Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
@@ -97,7 +99,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
             .Resolve(c => c.Parent<ObjectField>().Arguments);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(NonNullType<ListType<NonNullType<__InputValue>>>),
@@ -117,7 +119,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Name("args");
 
         // assert
-        Assert.Equal("args", descriptor.CreateDefinition().Name);
+        Assert.Equal("args", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
@@ -135,7 +137,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
 
         // assert
         Assert.Equal(expectedDescription,
-            descriptor.CreateDefinition().Description);
+            descriptor.CreateConfiguration().Description);
     }
 
     [Fact]
@@ -152,7 +154,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Resolve(() => "ThisIsAString");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(string),
@@ -165,7 +167,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void SetResolverAndInferTypeIsAlwaysRecognisedAsDotNetType()
+    public void SetResolverAndInferTypeIsAlwaysRecognizedAsDotNetType()
     {
         // arrange
         var descriptor =
@@ -177,11 +179,10 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // act
         descriptor
             .Type<__Type>()
-            .Resolve(ctx => ctx.Schema
-                .GetType<INamedType>(ctx.ArgumentValue<string>("type")));
+            .Resolve(ctx => ctx.Schema.Types[ctx.ArgumentValue<string>("type")]);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(__Type),
@@ -192,15 +193,15 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     [Fact]
     public void Type_Syntax_Type_Null()
     {
-        void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null);
+        void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null!);
         Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
     public void Type_Syntax_Descriptor_Null()
     {
-        void Error() => default(IObjectFieldDescriptor).Type("foo");
-        Assert.Throws<ArgumentNullException>(Error);
+        void Error() => default(IObjectFieldDescriptor)!.Type("foo");
+        Assert.Throws<NullReferenceException>(Error);
     }
 
     [Fact]
@@ -216,7 +217,103 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
                 typeof(string));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal(typeof(string), description.ResolverType);
+    }
+
+    [Fact]
+    public void ExpressionSelectionSetFormatter_Format_PrimitiveProperty()
+    {
+        // arrange & act
+        // When the property type is a value type (int), the compiler wraps
+        // the member access in a Convert expression to box it to object.
+        // The formatter must unwrap this to extract the member name.
+        var result = ObjectFieldDescriptor.ExpressionSelectionSetFormatter
+            .Format<ParentRequiresTestEntity, object>(e => e.Type);
+
+        // assert
+        Assert.Equal("Type", result);
+    }
+
+    [Fact]
+    public void ExpressionSelectionSetFormatter_Format_EnumProperty()
+    {
+        // arrange & act
+        var result = ObjectFieldDescriptor.ExpressionSelectionSetFormatter
+            .Format<ParentRequiresTestEntity, object>(e => e.Provider);
+
+        // assert
+        Assert.Equal("Provider", result);
+    }
+
+    [Fact]
+    public void ExpressionSelectionSetFormatter_Format_StringProperty()
+    {
+        // arrange & act
+        // String is a reference type, so no Convert wrapping occurs.
+        var result = ObjectFieldDescriptor.ExpressionSelectionSetFormatter
+            .Format<ParentRequiresTestEntity, object>(e => e.Name);
+
+        // assert
+        Assert.Equal("Name", result);
+    }
+
+    [Fact]
+    public void ExpressionSelectionSetFormatter_Format_AnonymousObject()
+    {
+        // arrange & act
+        var result = ObjectFieldDescriptor.ExpressionSelectionSetFormatter
+            .Format<ParentRequiresTestEntity, object>(e => new { e.Type, e.Provider });
+
+        // assert
+        Assert.Equal("Type Provider", result);
+    }
+
+    [Fact]
+    public void ParentRequires_WithPrimitiveProperty_SetsRequirements()
+    {
+        // arrange
+        var descriptor = ObjectFieldDescriptor.New(Context, "field");
+
+        // act
+        descriptor.ParentRequires<ParentRequiresTestEntity>(e => e.Type);
+
+        // assert
+        var config = descriptor.CreateConfiguration();
+        Assert.True(config.Flags.HasFlag(CoreFieldFlags.WithRequirements));
+        var feature = config.Features.Get<FieldRequirementFeature>();
+        Assert.NotNull(feature);
+        Assert.Equal("Type", feature.Requirements);
+    }
+
+    [Fact]
+    public void ParentRequires_WithEnumProperty_SetsRequirements()
+    {
+        // arrange
+        var descriptor = ObjectFieldDescriptor.New(Context, "field");
+
+        // act
+        descriptor.ParentRequires<ParentRequiresTestEntity>(e => e.Provider);
+
+        // assert
+        var config = descriptor.CreateConfiguration();
+        Assert.True(config.Flags.HasFlag(CoreFieldFlags.WithRequirements));
+        var feature = config.Features.Get<FieldRequirementFeature>();
+        Assert.NotNull(feature);
+        Assert.Equal("Provider", feature.Requirements);
+    }
+
+    private enum TestProvider
+    {
+        None,
+        Google,
+        Facebook
+    }
+
+    private sealed class ParentRequiresTestEntity
+    {
+        public int Type { get; set; }
+        public TestProvider Provider { get; set; }
+        public string Name { get; set; } = default!;
     }
 }

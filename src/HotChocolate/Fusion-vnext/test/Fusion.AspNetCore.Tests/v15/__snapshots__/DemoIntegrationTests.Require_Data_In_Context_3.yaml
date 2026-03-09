@@ -1,0 +1,1023 @@
+title: Require_Data_In_Context_3
+request:
+  document: |
+    query Large {
+      users {
+        id
+        name
+        birthdate
+        reviews {
+          body
+          author {
+            name
+            birthdate
+          }
+          product {
+            id
+            name
+            deliveryEstimate(zip: "abc") {
+              max
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "users": [
+          {
+            "id": "VXNlcjox",
+            "name": "User: VXNlcjox",
+            "birthdate": "User: VXNlcjox",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjE=",
+                "author": {
+                  "name": "User: VXNlcjoyMg==",
+                  "birthdate": "User: VXNlcjoyMg=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoyMw==",
+                  "name": "Product: UHJvZHVjdDoyMw==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjI=",
+                "author": {
+                  "name": "User: VXNlcjoyNA==",
+                  "birthdate": "User: VXNlcjoyNA=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoyNQ==",
+                  "name": "Product: UHJvZHVjdDoyNQ==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjM=",
+                "author": {
+                  "name": "User: VXNlcjoyNg==",
+                  "birthdate": "User: VXNlcjoyNg=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoyNw==",
+                  "name": "Product: UHJvZHVjdDoyNw==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "VXNlcjoy",
+            "name": "User: VXNlcjoy",
+            "birthdate": "User: VXNlcjoy",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjQ=",
+                "author": {
+                  "name": "User: VXNlcjoxNg==",
+                  "birthdate": "User: VXNlcjoxNg=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoxNw==",
+                  "name": "Product: UHJvZHVjdDoxNw==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjU=",
+                "author": {
+                  "name": "User: VXNlcjoxOA==",
+                  "birthdate": "User: VXNlcjoxOA=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoxOQ==",
+                  "name": "Product: UHJvZHVjdDoxOQ==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjY=",
+                "author": {
+                  "name": "User: VXNlcjoyMA==",
+                  "birthdate": "User: VXNlcjoyMA=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoyMQ==",
+                  "name": "Product: UHJvZHVjdDoyMQ==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "VXNlcjoz",
+            "name": "User: VXNlcjoz",
+            "birthdate": "User: VXNlcjoz",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3Ojc=",
+                "author": {
+                  "name": "User: VXNlcjoxMA==",
+                  "birthdate": "User: VXNlcjoxMA=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoxMQ==",
+                  "name": "Product: UHJvZHVjdDoxMQ==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3Ojg=",
+                "author": {
+                  "name": "User: VXNlcjoxMg==",
+                  "birthdate": "User: VXNlcjoxMg=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoxMw==",
+                  "name": "Product: UHJvZHVjdDoxMw==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3Ojk=",
+                "author": {
+                  "name": "User: VXNlcjoxNA==",
+                  "birthdate": "User: VXNlcjoxNA=="
+                },
+                "product": {
+                  "id": "UHJvZHVjdDoxNQ==",
+                  "name": "Product: UHJvZHVjdDoxNQ==",
+                  "deliveryEstimate": {
+                    "max": 123
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Large_62d57bc0_1 {
+              users {
+                id
+                name
+                birthdate
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjox",
+                      "name": "User: VXNlcjox",
+                      "birthdate": "User: VXNlcjox"
+                    },
+                    {
+                      "id": "VXNlcjoy",
+                      "name": "User: VXNlcjoy",
+                      "birthdate": "User: VXNlcjoy"
+                    },
+                    {
+                      "id": "VXNlcjoz",
+                      "name": "User: VXNlcjoz",
+                      "birthdate": "User: VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+      - request:
+          document: |
+            query Large_62d57bc0_5(
+              $__fusion_4_id: ID!
+            ) {
+              node(id: $__fusion_4_id) {
+                __typename
+                ... on User {
+                  name
+                  birthdate
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_4_id": "VXNlcjoyMg=="
+              },
+              {
+                "__fusion_4_id": "VXNlcjoyNA=="
+              },
+              {
+                "__fusion_4_id": "VXNlcjoyNg=="
+              },
+              {
+                "__fusion_4_id": "VXNlcjoxNg=="
+              },
+              {
+                "__fusion_4_id": "VXNlcjoxOA=="
+              },
+              {
+                "__fusion_4_id": "VXNlcjoyMA=="
+              },
+              {
+                "__fusion_4_id": "VXNlcjoxMA=="
+              },
+              {
+                "__fusion_4_id": "VXNlcjoxMg=="
+              },
+              {
+                "__fusion_4_id": "VXNlcjoxNA=="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyMg==",
+                    "birthdate": "User: VXNlcjoyMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyNA==",
+                    "birthdate": "User: VXNlcjoyNA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyNg==",
+                    "birthdate": "User: VXNlcjoyNg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxNg==",
+                    "birthdate": "User: VXNlcjoxNg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxOA==",
+                    "birthdate": "User: VXNlcjoxOA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyMA==",
+                    "birthdate": "User: VXNlcjoyMA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMA==",
+                    "birthdate": "User: VXNlcjoxMA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMg==",
+                    "birthdate": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxNA==",
+                    "birthdate": "User: VXNlcjoxNA=="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+    interactions:
+      - request:
+          document: |
+            query Large_62d57bc0_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on User {
+                  reviews {
+                    body
+                    author {
+                      id
+                    }
+                    product {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "VXNlcjox"
+              },
+              {
+                "__fusion_1_id": "VXNlcjoy"
+              },
+              {
+                "__fusion_1_id": "VXNlcjoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjE=",
+                        "author": {
+                          "id": "VXNlcjoyMg=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoyMw=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjI=",
+                        "author": {
+                          "id": "VXNlcjoyNA=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoyNQ=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjM=",
+                        "author": {
+                          "id": "VXNlcjoyNg=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoyNw=="
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjQ=",
+                        "author": {
+                          "id": "VXNlcjoxNg=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoxNw=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjU=",
+                        "author": {
+                          "id": "VXNlcjoxOA=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoxOQ=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjY=",
+                        "author": {
+                          "id": "VXNlcjoyMA=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoyMQ=="
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3Ojc=",
+                        "author": {
+                          "id": "VXNlcjoxMA=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoxMQ=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojg=",
+                        "author": {
+                          "id": "VXNlcjoxMg=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoxMw=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojk=",
+                        "author": {
+                          "id": "VXNlcjoxNA=="
+                        },
+                        "product": {
+                          "id": "UHJvZHVjdDoxNQ=="
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+    interactions:
+      - request:
+          document: |
+            query Large_62d57bc0_4(
+              $__fusion_3_id: ID!
+            ) {
+              productById(id: $__fusion_3_id) {
+                name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "UHJvZHVjdDoyMw=="
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoyNQ=="
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoyNw=="
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoxNw=="
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoxOQ=="
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoyMQ=="
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoxMQ=="
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoxMw=="
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoxNQ=="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoyMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoyNQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoyNw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxNw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxOQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoyMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxNQ=="
+                  }
+                }
+              }
+  - name: D
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type DeliveryEstimate {
+        min: Int!
+        max: Int!
+      }
+
+      type Product implements Node {
+        id: ID!
+        size: Int! @shareable
+        weight: Int! @shareable
+        deliveryEstimate(size: Int weight: Int zip: String!): DeliveryEstimate!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query Large_62d57bc0_3(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  deliveryEstimate(zip: "abc") {
+                    max
+                  }
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDoyMw=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoyNQ=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoyNw=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoxNw=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoyMQ=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoxMQ=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoxMw=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "max": 123
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query Large {
+          users {
+            id
+            id @fusion__requirement
+            name
+            birthdate
+            reviews {
+              body
+              author {
+                name
+                birthdate
+                id @fusion__requirement
+              }
+              product {
+                id
+                id @fusion__requirement
+                name
+                deliveryEstimate(zip: "abc") {
+                  max
+                }
+              }
+            }
+          }
+        }
+      name: Large
+      hash: 62d57bc09d841d72c3b2971bc4f29f40
+      searchSpace: 2
+      expandedNodes: 4
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Large_62d57bc0_1 {
+          users {
+            id
+            name
+            birthdate
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Large_62d57bc0_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on User {
+              reviews {
+                body
+                author {
+                  id
+                }
+                product {
+                  id
+                }
+              }
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.users
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: D
+      operation: |
+        query Large_62d57bc0_3(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              deliveryEstimate(zip: "abc") {
+                max
+              }
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.users.reviews.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+    - id: 4
+      type: Operation
+      schema: C
+      operation: |
+        query Large_62d57bc0_4(
+          $__fusion_3_id: ID!
+        ) {
+          productById(id: $__fusion_3_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.users.reviews.product
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+    - id: 5
+      type: Operation
+      schema: A
+      operation: |
+        query Large_62d57bc0_5(
+          $__fusion_4_id: ID!
+        ) {
+          node(id: $__fusion_4_id) {
+            __typename
+            ... on User {
+              name
+              birthdate
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.users.reviews.author
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2

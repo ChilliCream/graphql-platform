@@ -1,11 +1,16 @@
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Validation.Rules;
 
 namespace HotChocolate.Validation;
 
-public class FieldSelectionMergingRuleTests()
-    : DocumentValidatorVisitorTestBase(builder => builder.AddFieldRules())
+public class FieldSelectionMergingRuleTests
+    : DocumentValidatorVisitorTestBase
 {
+    public FieldSelectionMergingRuleTests()
+        : base(builder => builder.AddRule<OverlappingFieldsCanBeMergedRule>())
+    {
+    }
+
     [Fact]
     public void MergeIdenticalFields()
     {
@@ -57,10 +62,7 @@ public class FieldSelectionMergingRuleTests()
                 name: nickname
                 name
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -114,10 +116,7 @@ public class FieldSelectionMergingRuleTests()
                 doesKnowCommand(dogCommand: SIT)
                 doesKnowCommand(dogCommand: HEEL)
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -135,10 +134,7 @@ public class FieldSelectionMergingRuleTests()
                 doesKnowCommand(dogCommand: SIT)
                 doesKnowCommand(dogCommand: $dogCommand)
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -156,10 +152,7 @@ public class FieldSelectionMergingRuleTests()
                 doesKnowCommand(dogCommand: $varOne)
                 doesKnowCommand(dogCommand: $varTwo)
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -177,10 +170,7 @@ public class FieldSelectionMergingRuleTests()
                 doesKnowCommand(dogCommand: SIT)
                 doesKnowCommand
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -200,10 +190,7 @@ public class FieldSelectionMergingRuleTests()
             fragment dog on Dog {
                 doesKnowCommand
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -269,10 +256,7 @@ public class FieldSelectionMergingRuleTests()
                     someValue: meowVolume
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -333,10 +317,7 @@ public class FieldSelectionMergingRuleTests()
                     }
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -357,10 +338,7 @@ public class FieldSelectionMergingRuleTests()
                     }
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -382,10 +360,7 @@ public class FieldSelectionMergingRuleTests()
             fragment FooLevel2 on Dog {
                 doesKnowCommand(dogCommand: HEEL)
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -695,14 +670,12 @@ public class FieldSelectionMergingRuleTests()
         ExpectErrors(
             """
             {
-                catOrDog {
-                    ... conflictingArgs
-                }
+                ... conflictingArgs
             }
 
-            fragment conflictingArgs on Dog {
-                isAtLocation(x: 0)
-                isAtLocation(y: 0)
+            fragment conflictingArgs on Query {
+                field(a: "a")
+                field(b: "b")
             }
             """);
     }
@@ -926,7 +899,7 @@ public class FieldSelectionMergingRuleTests()
     public void ConflictingReturnTypesWhichPotentiallyOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -945,11 +918,11 @@ public class FieldSelectionMergingRuleTests()
     public void CompatibleReturnShapesOnDifferentReturnTypes()
     {
         ExpectValid(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
-                    ... on SomeBox {
+                    ... on IntBox {
                         deepBox {
                             unrelatedField
                         }
@@ -968,7 +941,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingReturnTypesDespiteNoOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -987,7 +960,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingReturnTypeNullabilityDespiteNoOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1006,7 +979,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingReturnTypeListDespiteNoOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1029,7 +1002,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingReturnTypeListDespiteNoOverlapReverse()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1052,7 +1025,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingSubfields()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1072,12 +1045,11 @@ public class FieldSelectionMergingRuleTests()
             """);
     }
 
-    // TODO : Fix this issue
-    [Fact(Skip = "This one needs fixing!")]
+    [Fact]
     public void DisallowsDifferingDeepReturnTypesDespiteNoOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1100,7 +1072,7 @@ public class FieldSelectionMergingRuleTests()
     public void AllowsNonConflictingOverlappingTypes()
     {
         ExpectValid(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1115,12 +1087,10 @@ public class FieldSelectionMergingRuleTests()
             """);
     }
 
-    // TODO : we need to analyze this validation issue further.
-    [Fact(Skip = "This one needs to be analyzed further.")]
+    [Fact]
     public void SameWrappedScalarReturnTypes()
     {
-        ExpectErrors(
-            TestSchema,
+        ExpectValid(
             """
             {
                 someBox {
@@ -1139,7 +1109,7 @@ public class FieldSelectionMergingRuleTests()
     public void AllowsInlineFragmentsWithoutTypeCondition()
     {
         ExpectValid(
-            TestSchema,
+            s_testSchema,
             """
             {
                 a
@@ -1154,7 +1124,7 @@ public class FieldSelectionMergingRuleTests()
     public void ComparesDeepTypesIncludingList()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 connection {
@@ -1189,14 +1159,150 @@ public class FieldSelectionMergingRuleTests()
             }
 
             fragment sameAliasesWithDifferentFieldTargets on Dog {
-                ...sameAliasesWithDifferentFieldTargets
+                ... sameAliasesWithDifferentFieldTargets
                 fido: name
                 fido: nickname
             }
             """);
     }
 
-    private static readonly ISchema TestSchema =
+    [Fact]
+    public void IdenticalInputFieldValuesButDifferentOrdering()
+    {
+        ExpectValid(
+            """
+            {
+                findDog(complex: { name: "A", owner: "B", child: { owner: "D", name: "C" } }) {
+                  name
+                }
+                ... fragment
+            }
+
+            fragment fragment on Query {
+                findDog(complex: { owner: "B", name: "A", child: { name: "C", owner: "D" } }) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ObjectValueWithNoFields()
+    {
+        ExpectValid(
+            """
+            {
+                findDog(complex: { }) {
+                  name
+                }
+                ... fragment
+            }
+
+            fragment fragment on Query {
+                findDog(complex: { }) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ConflictingInputFieldValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: { name: "A", owner: "B" }) {
+                  name
+                }
+                ... fragment
+            }
+
+            fragment fragment on Query {
+                findDog(complex: { owner: "OTHER", name: "A" }) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ConflictingNestedInputFieldValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: { name: "A", owner: "B", child: { owner: "D", name: "C" } }) {
+                  name
+                }
+                ... fragment
+            }
+
+            fragment fragment on Query {
+                findDog(complex: { owner: "B", name: "A", child: { name: "C", owner: "OTHER" } }) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void IdenticalInputFieldListValuesButDifferentOrdering()
+    {
+        ExpectValid(
+            """
+            {
+                findDog3(complexList: [
+                  { name: "A", owner: "B", childList: [{ name: "A1", owner: "B1" }, { owner: "C1", name: "D1" }] },
+                  { owner: "C", name: "D", childList: [{ name: "A1", owner: "B1" }, { owner: "C1", name: "D1" }] }]) {
+                  name
+                }
+                findDog3(complexList: [
+                  { owner: "B", name: "A", childList: [{ owner: "B1", name: "A1" }, { name: "D1", owner: "C1" }] },
+                  { name: "D", owner: "C", childList: [{ owner: "B1", name: "A1" }, { name: "D1", owner: "C1" }] }]) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ConflictingInputFieldListValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog3(complexList: [{ name: "A", owner: "B" }, { owner: "C", name: "D" }]) {
+                  name
+                }
+                findDog3(complexList: [{ owner: "B", name: "A" }, { name: "OTHER", owner: "C" }]) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ConflictingNestedInputFieldListValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog3(complexList: [
+                  { name: "A", owner: "B", childList: [{ name: "A1", owner: "B1" }, { owner: "C1", name: "D1" }] },
+                  { owner: "C", name: "D", childList: [{ name: "A1", owner: "B1" }, { owner: "C1", name: "D1" }] }]) {
+                  name
+                }
+                findDog3(complexList: [
+                  { owner: "B", name: "A", childList: [{ owner: "B1", name: "A1" }, { name: "D1", owner: "C1" }] },
+                  { name: "D", owner: "C", childList: [{ owner: "B1", name: "A1" }, { name: "D1", owner: "OTHER" }] }]) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    private static readonly ISchemaDefinition s_testSchema =
         SchemaBuilder.New()
             .AddDocumentFromString(
                 """

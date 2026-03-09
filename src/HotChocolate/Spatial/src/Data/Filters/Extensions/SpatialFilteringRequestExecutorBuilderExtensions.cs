@@ -8,10 +8,7 @@ public static class SpatialFilteringRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddSpatialFiltering(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(x => x.AddSpatialFiltering());
     }

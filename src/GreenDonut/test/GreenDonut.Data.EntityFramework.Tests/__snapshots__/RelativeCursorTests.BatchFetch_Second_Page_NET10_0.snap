@@ -1,0 +1,33 @@
+---------------
+{
+  "Page": 2,
+  "TotalCount": 20,
+  "Items": [
+    "Celestara",
+    "Dynamova"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @value='Brightex'
+-- @value1='2'
+SELECT b1."GroupId", b3."Id", b3."GroupId", b3."Name"
+FROM (
+    SELECT b."GroupId"
+    FROM "Brands" AS b
+    WHERE b."GroupId" = 1
+    GROUP BY b."GroupId"
+) AS b1
+LEFT JOIN (
+    SELECT b2."Id", b2."GroupId", b2."Name"
+    FROM (
+        SELECT b0."Id", b0."GroupId", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name", b0."Id") AS row
+        FROM "Brands" AS b0
+        WHERE b0."GroupId" = 1 AND (b0."Name" > @value OR (b0."Name" = @value AND b0."Id" > @value1))
+    ) AS b2
+    WHERE b2.row <= 3
+) AS b3 ON b1."GroupId" = b3."GroupId"
+ORDER BY b1."GroupId", b3."GroupId", b3."Name", b3."Id"
+---------------

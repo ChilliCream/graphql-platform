@@ -1,10 +1,8 @@
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     private static class SchemaType
     {
@@ -31,21 +29,20 @@ internal sealed partial class ExtendedType
                 if (definition == typeof(ListType<>))
                 {
                     return cache.GetOrCreateType(
-                        source is not null ? source : type,
+                        source ?? type,
                         () =>
                         {
-                            var elementType =
-                                FromType(type.GetGenericArguments()[0], null, true, cache);
+                            var elementType = FromType(type.GetGenericArguments()[0], null, true, cache);
 
                             return new ExtendedType(
                                 type,
                                 ExtendedTypeKind.Schema,
-                                typeArguments: new[] { elementType, },
+                                typeArguments: new[] { elementType },
                                 source: source,
                                 definition: typeof(ListType<>),
-                                isNullable: nullable,
+                                elementType: elementType,
                                 isList: true,
-                                elementType: elementType);
+                                isNullable: nullable);
                         });
                 }
             }
@@ -64,8 +61,8 @@ internal sealed partial class ExtendedType
                         typeArguments: SystemType.GetGenericArguments(type, cache),
                         source: source,
                         definition: definition,
-                        isNullable: nullable,
-                        isNamedType: true);
+                        isNamedType: true,
+                        isNullable: nullable);
                 });
         }
     }

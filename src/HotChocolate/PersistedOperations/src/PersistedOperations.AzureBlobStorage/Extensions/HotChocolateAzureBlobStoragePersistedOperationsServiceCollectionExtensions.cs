@@ -1,5 +1,5 @@
 using Azure.Storage.Blobs;
-using HotChocolate.Execution;
+using HotChocolate.PersistedOperations;
 using HotChocolate.PersistedOperations.AzureBlobStorage;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,15 +24,8 @@ public static class HotChocolateAzureBlobStoragePersistedOperationsServiceCollec
         this IServiceCollection services,
         Func<IServiceProvider, BlobContainerClient> containerClientFactory)
     {
-        if(services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if(containerClientFactory == null)
-        {
-            throw new ArgumentNullException(nameof(containerClientFactory));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(containerClientFactory);
 
         return services
             .RemoveService<IOperationDocumentStorage>()

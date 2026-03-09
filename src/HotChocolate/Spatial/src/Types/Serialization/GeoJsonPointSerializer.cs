@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -13,26 +14,25 @@ internal class GeoJsonPointSerializer
     {
     }
 
-    public override bool TrySerializeCoordinates(
+    public override void CoerceOutputCoordinates(
         IType type,
         object runtimeValue,
-        out object? serialized)
+        ResultElement resultElement)
     {
-        serialized = null;
         if (runtimeValue is Point point)
         {
-            serialized = GeoJsonPositionSerializer.Default.Serialize(type, point.Coordinate);
-            return true;
+            GeoJsonPositionSerializer.Default.CoerceOutputCoordinates(type, point.Coordinate, resultElement);
+            return;
         }
 
-        return false;
+        throw Serializer_CouldNotParseValue(type);
     }
 
-    public override IValueNode ParseCoordinateValue(IType type, object? runtimeValue)
+    public override IValueNode CoordinateToLiteral(IType type, object? runtimeValue)
     {
         if (runtimeValue is Point point)
         {
-            return GeoJsonPositionSerializer.Default.ParseValue(type, point.Coordinate);
+            return GeoJsonPositionSerializer.Default.ValueToLiteral(type, point.Coordinate);
         }
 
         throw Serializer_CouldNotParseValue(type);
@@ -43,10 +43,7 @@ internal class GeoJsonPointSerializer
         object? coordinates,
         int? crs)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (coordinates is not Coordinate coordinate)
         {
@@ -62,10 +59,7 @@ internal class GeoJsonPointSerializer
 
     public override object CreateInstance(IType type, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (fieldValues[0] is not GeoJsonGeometryType.Point)
         {
@@ -77,10 +71,7 @@ internal class GeoJsonPointSerializer
 
     public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is not Point geometry)
         {

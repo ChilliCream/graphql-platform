@@ -1,5 +1,5 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters;
@@ -20,7 +20,7 @@ public class FilterInputType<T> : FilterInputType
         _configure = Configure;
     }
 
-    protected override InputObjectTypeDefinition CreateDefinition(
+    protected override InputObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = FilterInputTypeDescriptor.New<T>(
@@ -31,7 +31,7 @@ public class FilterInputType<T> : FilterInputType
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IFilterInputTypeDescriptor<T> descriptor)

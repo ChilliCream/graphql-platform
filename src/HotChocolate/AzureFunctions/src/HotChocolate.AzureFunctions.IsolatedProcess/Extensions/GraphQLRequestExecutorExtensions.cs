@@ -9,15 +9,8 @@ public static class GraphQLRequestExecutorExtensions
         this IGraphQLRequestExecutor executor,
         HttpRequestData requestData)
     {
-        if (executor is null)
-        {
-            throw new ArgumentNullException(nameof(executor));
-        }
-
-        if (requestData is null)
-        {
-            throw new ArgumentNullException(nameof(requestData));
-        }
+        ArgumentNullException.ThrowIfNull(executor);
+        ArgumentNullException.ThrowIfNull(requestData);
 
         return ExecuteGraphQLRequestInternalAsync(executor, requestData);
     }
@@ -28,6 +21,6 @@ public static class GraphQLRequestExecutorExtensions
     {
         var context = new AzureHttpContext(requestData);
         await executor.ExecuteAsync(context).ConfigureAwait(false);
-        return context.CreateResponseData();
+        return await context.CreateResponseDataAsync().ConfigureAwait(false);
     }
 }

@@ -1,4 +1,4 @@
-#nullable enable
+#nullable disable
 
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;

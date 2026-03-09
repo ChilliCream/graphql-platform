@@ -14,7 +14,7 @@ public class SchemaCache
         where T : class
         where TType : SortInputType<T>
     {
-        (Type, Type, T?[] entites) key = (typeof(T), typeof(TType), entites);
+        var key = (typeof(T), typeof(TType), entites);
         return _cache.GetOrAdd(key, (k) => base.CreateSchema<T, TType>(entites));
     }
 

@@ -1,11 +1,9 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class ObjectValueNodeTests
 {
     [Fact]
-    public void GetHashCode_FieldOrder_DoesMatter()
+    public void GetHashCode_FieldOrder_DoesNotMatter()
     {
         // arrange
         var a = new ObjectValueNode(
@@ -36,8 +34,8 @@ public class ObjectValueNodeTests
 
         // assert
         Assert.Equal(aHash, bHash);
-        Assert.NotEqual(aHash, cHash);
-        Assert.NotEqual(aHash, dHash);
+        Assert.Equal(aHash, cHash);
+        Assert.Equal(aHash, dHash);
     }
 
     [Fact]
@@ -63,7 +61,7 @@ public class ObjectValueNodeTests
     }
 
     [Fact]
-    public void Equals_FieldOrder_DoesMatter()
+    public void Equals_FieldOrder_DoesNotMatter()
     {
         // arrange
         var a = new ObjectValueNode(
@@ -91,13 +89,13 @@ public class ObjectValueNodeTests
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
         var adResult = SyntaxComparer.BySyntax.Equals(a, d);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
         Assert.True(aaResult);
-        Assert.False(acResult);
-        Assert.False(adResult);
+        Assert.True(acResult);
+        Assert.True(adResult);
         Assert.False(aNullResult);
     }
 
@@ -128,19 +126,19 @@ public class ObjectValueNodeTests
         // arrange
         var a = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 1), });
+            new[] { new ObjectFieldNode("a", 1) });
         var b = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 1), });
+            new[] { new ObjectFieldNode("a", 1) });
         var c = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 2), });
+            new[] { new ObjectFieldNode("a", 2) });
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(aaResult);
@@ -155,19 +153,19 @@ public class ObjectValueNodeTests
         // arrange
         var a = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 1), });
+            new[] { new ObjectFieldNode("a", 1) });
         var b = new ObjectValueNode(
             TestLocations.Location2,
-            new[] { new ObjectFieldNode("a", 1), });
+            new[] { new ObjectFieldNode("a", 1) });
         var c = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 2), });
+            new[] { new ObjectFieldNode("a", 2) });
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(aaResult);
@@ -182,16 +180,16 @@ public class ObjectValueNodeTests
         // arrange
         var a = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 1), });
+            new[] { new ObjectFieldNode("a", 1) });
         var b = new ObjectValueNode(
             TestLocations.Location2,
-            new[] { new ObjectFieldNode("a", 1), });
+            new[] { new ObjectFieldNode("a", 1) });
         var c = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 2), });
+            new[] { new ObjectFieldNode("a", 2) });
         var d = new ObjectValueNode(
             TestLocations.Location2,
-            new[] { new ObjectFieldNode("a", 2), });
+            new[] { new ObjectFieldNode("a", 2) });
 
         // act
         var aHash = SyntaxComparer.BySyntax.GetHashCode(a);

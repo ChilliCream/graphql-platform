@@ -1,0 +1,18 @@
+{
+  "errors": [
+    {
+      "message": "The cursor specified in `after` has an invalid format.",
+      "path": [
+        "letters"
+      ],
+      "extensions": {
+        "code": "HC0078",
+        "argument": "after",
+        "cursor": ""
+      }
+    }
+  ],
+  "data": {
+    "letters": null
+  }
+}

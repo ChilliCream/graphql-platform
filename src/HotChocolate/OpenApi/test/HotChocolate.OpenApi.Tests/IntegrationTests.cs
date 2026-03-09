@@ -175,7 +175,7 @@ public sealed class IntegrationTests
                     }
                 }
                 """
-            },
+            }
         };
     }
 
@@ -266,7 +266,7 @@ public sealed class IntegrationTests
                     }
                 }
                 """
-            },
+            }
         };
     }
 
@@ -309,7 +309,7 @@ public sealed class IntegrationTests
                     }
                 }
                 """
-            },
+            }
         };
     }
 

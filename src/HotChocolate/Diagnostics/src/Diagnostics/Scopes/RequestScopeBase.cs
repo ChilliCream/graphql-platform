@@ -9,7 +9,7 @@ internal class RequestScopeBase : IDisposable
 
     protected RequestScopeBase(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
     {
         Enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
@@ -19,7 +19,7 @@ internal class RequestScopeBase : IDisposable
 
     protected ActivityEnricher Enricher { get; }
 
-    protected IRequestContext Context { get; }
+    protected RequestContext Context { get; }
 
     protected Activity Activity { get; }
 

@@ -60,7 +60,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         schema.MatchSnapshot();
     }
 
-    private static string[][] GetSinglePoliciesArgument(IDirectiveCollection directives)
+    private static string[][] GetSinglePoliciesArgument(DirectiveCollection directives)
     {
         foreach (var directive in directives)
         {
@@ -69,7 +69,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
                 continue;
             }
 
-            var argument = directive.AsSyntaxNode().Arguments.Single();
+            var argument = directive.ToSyntaxNode().Arguments.Single();
             return ParsingHelper.ParsePolicyDirectiveNode(argument.Value);
         }
 
@@ -77,9 +77,9 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         return null!;
     }
 
-    private static void CheckQueryType(ISchema schema)
+    private static void CheckQueryType(Schema schema)
     {
-        var testType = schema.GetType<ObjectType>(nameof(Query));
+        var testType = schema.Types.GetType<ObjectType>(nameof(Query));
         var directives = testType
             .Fields
             .Single(f => f.Name == "someField")
@@ -96,9 +96,9 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             t2 => Assert.Equal("p2", t2[0]));
     }
 
-    private static void CheckReviewType(ISchema schema)
+    private static void CheckReviewType(Schema schema)
     {
-        var testType = schema.GetType<ObjectType>(nameof(Review));
+        var testType = schema.Types.GetType<ObjectType>(nameof(Review));
         var directives = testType.Directives;
         var policyCollection = GetSinglePoliciesArgument(directives);
         var t1 = Assert.Single(policyCollection);
@@ -123,7 +123,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
     public class Query
     {
         [Policy(["p1, p1_1", "p2"])]
-        public Review SomeField(int id) => default!;
+        public Review SomeField(int id) => null!;
     }
 
     [Key("id")]

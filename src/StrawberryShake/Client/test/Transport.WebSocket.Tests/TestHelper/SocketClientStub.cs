@@ -22,7 +22,7 @@ public sealed class SocketClientStub : ISocketClient
     public ISocketConnectionInterceptor ConnectionInterceptor { get; set; } =
         DefaultSocketConnectionInterceptor.Instance;
 
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 
     public Queue<string> MessagesReceive { get; } = new();
 
@@ -51,7 +51,7 @@ public sealed class SocketClientStub : ISocketClient
         ReadOnlyMemory<byte> message,
         CancellationToken cancellationToken = default)
     {
-        Increment(x => x.SendAsync(default!, default!));
+        Increment(x => x.SendAsync(default!, CancellationToken.None));
 
         SentMessages.Enqueue(Encoding.UTF8.GetString(message.Span));
         LatestCancellationToken = cancellationToken;
@@ -62,7 +62,7 @@ public sealed class SocketClientStub : ISocketClient
         PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
-        Increment(x => x.ReceiveAsync(default!, default!));
+        Increment(x => x.ReceiveAsync(null!, CancellationToken.None));
 
         LatestCancellationToken = cancellationToken;
         if (MessagesReceive.TryDequeue(out var message))
@@ -80,7 +80,7 @@ public sealed class SocketClientStub : ISocketClient
 
     public Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
     {
-        Increment(x => x.OpenAsync(default!));
+        Increment(x => x.OpenAsync(CancellationToken.None));
 
         IsClosed = false;
         return Task.FromResult(Protocol!);
@@ -91,7 +91,7 @@ public sealed class SocketClientStub : ISocketClient
         SocketCloseStatus closeStatus,
         CancellationToken cancellationToken = default)
     {
-        Increment(x => x.CloseAsync(default!, default!, default!));
+        Increment(x => x.CloseAsync(null!, default!, CancellationToken.None));
 
         CloseMessage = message;
         CloseStatus = closeStatus;
@@ -112,7 +112,7 @@ public sealed class SocketClientStub : ISocketClient
 
     public void Increment(Expression<Action<ISocketClient>> member)
     {
-        if (member.Body is MethodCallExpression { Method: { } m, })
+        if (member.Body is MethodCallExpression { Method: { } m })
         {
             _callCount.AddOrUpdate(m, _ => 1, (m, c) => c + 1);
         }
@@ -120,7 +120,7 @@ public sealed class SocketClientStub : ISocketClient
 
     public int GetCallCount(Expression<Action<ISocketClient>> member)
     {
-        if (member.Body is MethodCallExpression { Method: { } m, })
+        if (member.Body is MethodCallExpression { Method: { } m })
         {
             _callCount.TryGetValue(m, out var counter);
             return counter;
