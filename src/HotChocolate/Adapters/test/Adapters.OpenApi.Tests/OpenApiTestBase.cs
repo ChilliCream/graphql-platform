@@ -128,6 +128,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 date
                 dateTime
                 decimal
+                duration
                 enum
                 float
                 id
@@ -147,7 +148,6 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 }
                 short
                 string
-                timeSpan
                 unknown
                 url
                 uuid

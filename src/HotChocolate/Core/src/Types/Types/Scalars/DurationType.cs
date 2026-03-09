@@ -9,28 +9,28 @@ using static HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The <c>TimeSpan</c> scalar type represents a duration of time. It is intended for scenarios
+/// The <c>Duration</c> scalar type represents a duration of time. It is intended for scenarios
 /// where you need to represent time intervals, such as elapsed time, timeout durations, scheduling
 /// intervals, or any measurement of time that is not tied to a specific date or time.
 /// </summary>
-/// <seealso href="https://scalars.graphql.org/chillicream/time-span.html">Specification</seealso>
-public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
+/// <seealso href="https://scalars.graphql.org/chillicream/duration.html">Specification</seealso>
+public class DurationType : ScalarType<TimeSpan, StringValueNode>
 {
-    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/time-span.html";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/duration.html";
 
-    public TimeSpanFormat Format { get; }
+    public DurationFormat Format { get; }
 
-    public TimeSpanType(
-        TimeSpanFormat format = TimeSpanFormat.Iso8601,
+    public DurationType(
+        DurationFormat format = DurationFormat.Iso8601,
         BindingBehavior bind = BindingBehavior.Implicit)
-        : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description, format, bind)
+        : this(ScalarNames.Duration, TypeResources.DurationType_Description, format, bind)
     {
     }
 
-    public TimeSpanType(
+    public DurationType(
         string name,
         string? description = null,
-        TimeSpanFormat format = TimeSpanFormat.Iso8601,
+        DurationFormat format = DurationFormat.Iso8601,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
@@ -38,22 +38,22 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
         Description = description;
         Pattern = format switch
         {
-            TimeSpanFormat.Iso8601
+            DurationFormat.Iso8601
                 => @"^-?P(?:\d+W|(?=\d|T(?:\d|$))(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?)$",
-            TimeSpanFormat.DotNet
+            DurationFormat.DotNet
                 => @"^-?(?:(?:\d{1,8})\.)?(?:[0-1]?\d|2[0-3]):(?:[0-5]?\d):(?:[0-5]?\d)(?:\.(?:\d{1,7}))?$",
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
         };
 
-        if (format == TimeSpanFormat.Iso8601)
+        if (format == DurationFormat.Iso8601)
         {
             SpecifiedBy = new Uri(SpecifiedByUri);
         }
     }
 
     [ActivatorUtilitiesConstructor]
-    public TimeSpanType()
-        : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description)
+    public DurationType()
+        : this(ScalarNames.Duration, TypeResources.DurationType_Description)
     {
     }
 
@@ -82,7 +82,7 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
     /// <inheritdoc />
     protected override void OnCoerceOutputValue(TimeSpan runtimeValue, ResultElement resultValue)
     {
-        var serialized = Format == TimeSpanFormat.Iso8601
+        var serialized = Format == DurationFormat.Iso8601
             ? XmlConvert.ToString(runtimeValue)
             : runtimeValue.ToString("c");
         resultValue.SetStringValue(serialized);
@@ -91,17 +91,17 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
     /// <inheritdoc />
     protected override StringValueNode OnValueToLiteral(TimeSpan runtimeValue)
     {
-        return Format == TimeSpanFormat.Iso8601
+        return Format == DurationFormat.Iso8601
             ? new StringValueNode(XmlConvert.ToString(runtimeValue))
             : new StringValueNode(runtimeValue.ToString("c"));
     }
 
     private static bool TryParseStringValue(
         string serialized,
-        TimeSpanFormat format,
+        DurationFormat format,
         out TimeSpan value)
     {
-        return format == TimeSpanFormat.Iso8601
+        return format == DurationFormat.Iso8601
             ? TryParseIso8601(serialized, out value)
             : TryParseDotNet(serialized, out value);
     }
