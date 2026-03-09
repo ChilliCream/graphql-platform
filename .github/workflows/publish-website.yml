@@ -27,8 +27,6 @@ jobs:
           username: ${{ secrets.CONTAINER_REG_USERNAME }}
           password: ${{ secrets.CONTAINER_REG_PASSWORD }}
 
-      - run: echo ${{ secrets.CONTAINER_REG_URL }}
-
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
@@ -36,23 +34,13 @@ jobs:
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
-      - name: Cache Yarn Packages
+      - name: Cache Next.js Build Artifacts
         uses: actions/cache@v5
         with:
-          path: |
-            website/.yarn/cache
-            website/.next/cache
-          key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+          path: website/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Cache Optimized Images
-        uses: actions/cache@v5
-        with:
-          path: website/.next/cache/images
-          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/public/docs/**/*.png', 'website/public/docs/**/*.jpg', 'website/public/docs/**/*.webp') }}
-          restore-keys: |
-            ${{ runner.os }}-optimized-images-
+            ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-
 
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
@@ -69,10 +57,6 @@ jobs:
           unzip -P ${{ secrets.ICON_PASSWORD }} src/images/icons.zip -d src/images/
         working-directory: website
 
-      - name: Clean Website
-        run: yarn clean
-        working-directory: website
-
       - name: Optimize Images
         run: yarn optimize-images
         working-directory: website
@@ -84,7 +68,7 @@ jobs:
       - name: Build WebSite Container
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./website
           file: .docker/website/dockerfile
           push: true
           tags: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
