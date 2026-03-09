@@ -62,6 +62,15 @@
       ],
       "description": "Decimal description"
     },
+    "duration": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "duration",
+      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+      "description": "Duration description"
+    },
     "enum": {
       "type": [
         "string",
@@ -200,15 +209,6 @@
         "null"
       ],
       "description": "String description"
-    },
-    "timeSpan": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "format": "duration",
-      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
-      "description": "TimeSpan description"
     },
     "unknown": {
       "type": [

@@ -675,6 +675,18 @@ builder.Services
 
 `OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
 
+## `TimeSpan` scalar renamed to `Duration`
+
+The `TimeSpan` scalar has been renamed to `Duration` to better reflect the underlying specification (ISO 8601), and move away from .NET-oriented naming.
+
+For backwards compatibility, you can rename the type as follows:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddType(new DurationType("TimeSpan"));
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

@@ -223,7 +223,7 @@ public class DateTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDate1>()
-            .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
+            .AddType(() => new DurationType(DurationFormat.DotNet))
             .ExecuteRequestAsync(
                 """
                 {
@@ -251,7 +251,7 @@ public class DateTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDate2>()
-            .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
+            .AddType(() => new DurationType(DurationFormat.DotNet))
             .ExecuteRequestAsync(
                 """
                 {

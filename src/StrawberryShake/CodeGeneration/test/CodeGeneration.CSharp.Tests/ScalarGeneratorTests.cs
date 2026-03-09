@@ -164,7 +164,7 @@ public class ScalarGeneratorTests
     }
 
     [Fact]
-    public void TimeSpan_Not_Detected()
+    public void Duration_Not_Detected()
     {
         AssertResult(
             strictValidation: false,
