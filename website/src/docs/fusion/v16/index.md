@@ -6,7 +6,7 @@ Fusion lets you split one GraphQL API into multiple smaller services, without ch
 
 # What Is Fusion
 
-Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the GraphQL Composite Schemas specification (draft), an open standard being developed under the GraphQL Foundation.
+Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Composite Schemas specification (draft)](https://graphql.github.io/composite-schemas-spec/draft/), an open standard being developed under the GraphQL Foundation.
 
 The architecture has three parts:
 
@@ -45,9 +45,9 @@ query {
 
 ## Three Things That Make Fusion Different
 
-A \*_lookup_ is a central concept in Fusion it specifies how an entity can be resolved by a stable key. This concept event transcends the federation use case and is useful on its own in the standard client/server communication.
+A _lookup_ is a central concept in Fusion. It specifies how an entity can be resolved by a stable key. This concept also extends beyond federation and is useful in standard client-server communication.
 
-**Lookups use standard Query fields.** For GraphQL subgraphs, when the gateway needs to resolve an entity, it calls a normal Query field annotated with `@lookup` directive. You can call the same field yourself in testing, debug it with standard tools, and see exactly what it returns. There is no hidden internal protocol you need to implement its simply GraphQL.
+**Lookups use standard Query fields.** For GraphQL subgraphs, when the gateway needs to resolve an entity, it calls a normal Query field annotated with the `@lookup` directive. You can call the same field in tests, debug it with standard tools, and see exactly what it returns. There is no hidden internal protocol to implement, and the security model is the same as for any other GraphQL field.
 
 ```graphql
 type Query {
@@ -55,7 +55,7 @@ type Query {
 }
 ```
 
-If you are using Hot Chocolate, the composite schema specification is supported by default, simply add the `[Lookup]` attribute to your resolver and you are ready to go.
+If you are using Hot Chocolate, support for the composite schema specification is built in. Add the `[Lookup]` attribute to your resolver and you are ready to go.
 
 ```csharp
 [QueryType]
@@ -72,7 +72,7 @@ public static partial class ProductQueries
 
 **Composition catches errors at build time.** When you run `nitro fusion compose`, the composition engine validates source schemas against each other. Type conflicts, missing fields, and incompatible enums are caught in CI before deployment.
 
-**No special runtime for GraphQL subgraphs.** The [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common HotChocolate setup, subgraphs remain normal HotChocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
+**No special runtime for GraphQL subgraphs.** The [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
 
 # Key Terminology
 
@@ -82,7 +82,7 @@ public static partial class ProductQueries
 | **Source schema**    | The contract document published by one subgraph (for example a GraphQL schema, OpenAPI document, or gRPC/protobuf definition).                           |
 | **Composite schema** | The unified, client-facing GraphQL schema produced during composition. Clients query this schema as if it were a single API.                             |
 | **Gateway**          | The public entry point for client requests. It receives queries against the composite schema, routes requests across subgraphs, and assembles responses. |
-| **Entity**           | A type with a stable key that can be referenced across GraphQL subgraphs.                                                                                |
+| **Entity**           | A type with a stable key that can be referenced across GraphQL subgraphs. A subgraph can define an entity without resolving it locally.                  |
 | **Lookup**           | A Query field annotated with a `@lookup` directive that resolves an entity by key in that subgraph.                                                      |
 | **Composition**      | The offline step that validates source schemas and produces the composite schema and gateway configuration. Runs via the Nitro CLI or Aspire.            |
 
@@ -114,9 +114,9 @@ The cost of premature distribution is real: more services to deploy, more infras
 
 # Migrating from a Monolith
 
-If you already have a HotChocolate server, you can adopt Fusion incrementally.
+If you already have a Hot Chocolate server, you can adopt Fusion incrementally.
 
-**Start with one upstream service.** Point the Fusion gateway at your existing HotChocolate server as the only subgraph. Composition works with one source schema. Your clients connect to the gateway instead of directly to your server, but behavior stays the same.
+**Start with one upstream service.** Point the Fusion gateway at your existing Hot Chocolate server as the only subgraph. Composition works with one source schema. Your clients connect to the gateway instead of directly to your server, but behavior stays the same.
 
 **Add services incrementally.** When a new team or domain needs its own service, add another subgraph. The new service can extend types from the original service with entity stubs where needed. Composition merges both source schemas, and the gateway handles cross-service execution automatically. Your original service does not need a rewrite.
 
