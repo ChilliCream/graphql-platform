@@ -1,6 +1,7 @@
 using Demo.Shipping.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Mocha.Inbox;
 using Mocha.Outbox;
 
 namespace Demo.Shipping.Data;
@@ -10,12 +11,14 @@ public class ShippingDbContext(DbContextOptions<ShippingDbContext> options) : Db
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<ShipmentItem> ShipmentItems => Set<ShipmentItem>();
     public DbSet<ReturnShipment> ReturnShipments => Set<ReturnShipment>();
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.AddPostgresOutbox();
+        modelBuilder.AddPostgresInbox();
 
         modelBuilder.Entity<Shipment>(entity =>
         {

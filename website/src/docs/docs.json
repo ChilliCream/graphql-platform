@@ -189,6 +189,10 @@
             "title": "Entities and Lookups"
           },
           {
+            "path": "data-requirements-and-mapping",
+            "title": "Data Requirements and Mapping"
+          },
+          {
             "path": "composition",
             "title": "Composition"
           },
@@ -209,12 +213,18 @@
             "title": "Attribute and Directive Reference"
           },
           {
-            "path": "coming-from-apollo-federation",
-            "title": "Coming from Apollo Federation"
-          },
-          {
-            "path": "migrating-from-schema-stitching",
-            "title": "Migrating from Schema Stitching"
+            "path": "migration",
+            "title": "Migration",
+            "items": [
+              {
+                "path": "coming-from-apollo-federation",
+                "title": "Coming from Apollo Federation"
+              },
+              {
+                "path": "migrating-from-schema-stitching",
+                "title": "Migrating from Schema Stitching"
+              }
+            ]
           }
         ]
       },

@@ -323,6 +323,8 @@ public class LocalTimeTypeTests
     [InlineData(5, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,5})?$")]
     [InlineData(6, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?$")]
     [InlineData(7, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?$")]
+    [InlineData(8, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,8})?$")]
+    [InlineData(9, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?$")]
     public void Pattern_Should_Match_InputPrecision(byte precision, string expectedPattern)
     {
         // arrange & act
@@ -372,8 +374,8 @@ public class LocalTimeTypeTests
             },
             {
                 DateTimeOptions.DefaultInputPrecision,
-                "07:30:00.1234567",
-                new TimeOnly(7, 30, 0, 123, 456).Add(TimeSpan.FromTicks(7))
+                "07:30:00.123456789", // Rounded to ".1234568".
+                new TimeOnly(7, 30, 0, 123, 456).Add(TimeSpan.FromTicks(8))
             }
         };
     }
@@ -395,9 +397,13 @@ public class LocalTimeTypeTests
             { DateTimeOptions.DefaultInputPrecision, "24:00:00" },
             // Invalid minute (60).
             { DateTimeOptions.DefaultInputPrecision, "15:60:00" },
-            // More than 7 fractional second digits.
-            { DateTimeOptions.DefaultInputPrecision, "15:30:00.12345678" },
+            // More than 9 fractional second digits.
+            { DateTimeOptions.DefaultInputPrecision, "15:30:00.1234567890" },
             // Additional cases.
+            // More than 8 fractional second digits with precision set to 8.
+            { 8, "15:30:00.123456789" },
+            // More than 7 fractional second digits with precision set to 7.
+            { 7, "15:30:00.12345678" },
             // More than 6 fractional second digits with precision set to 6.
             { 6, "15:30:00.1234567" },
             // More than 5 fractional second digits with precision set to 5.

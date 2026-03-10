@@ -1,6 +1,7 @@
 using Demo.Billing.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Mocha.Inbox;
 using Mocha.Outbox;
 
 namespace Demo.Billing.Data;
@@ -11,12 +12,14 @@ public class BillingDbContext(DbContextOptions<BillingDbContext> options) : DbCo
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Refund> Refunds => Set<Refund>();
     public DbSet<RevenueSummary> RevenueSummaries => Set<RevenueSummary>();
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.AddPostgresOutbox();
+        modelBuilder.AddPostgresInbox();
 
         modelBuilder.Entity<Invoice>(entity =>
         {

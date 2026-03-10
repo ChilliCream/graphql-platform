@@ -6,7 +6,7 @@ Fusion lets you split one GraphQL API into multiple smaller services, without ch
 
 # What Is Fusion
 
-Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Composite Schemas specification (draft)](https://graphql.github.io/composite-schemas-spec/draft/), an open standard being developed under the GraphQL Foundation.
+Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/), an open standard being developed under the GraphQL Foundation.
 
 The architecture has three parts:
 
@@ -16,9 +16,11 @@ The architecture has three parts:
 
 A **source schema** is the contract document for a subgraph, such as a GraphQL schema, an OpenAPI document, or a gRPC/protobuf definition.
 
-**Composition** processes all source schemas and produces a Fusion archive (`.far`) that contains the composite schema and gateway configuration.
+**Composition** processes all source schemas, validates them against each other, and produces a Fusion archive (`.far`) that contains the composite schema and gateway configuration. Type conflicts, missing fields, and incompatible enums are caught in CI before deployment.
 
 The **gateway** receives client requests, determines which subgraphs to call, executes those calls, and merges the results.
+
+**GraphQL subgraphs stay standard GraphQL servers.** The [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
 
 The result: clients send one request to one endpoint and receive one unified response, while Fusion handles routing and aggregation across upstream services.
 
@@ -42,37 +44,6 @@ query {
 }
 ```
 <!-- prettier-ignore-end -->
-
-## Three Things That Make Fusion Different
-
-A _lookup_ is a central concept in Fusion. It specifies how an entity can be resolved by a stable key. This concept also extends beyond federation and is useful in standard client-server communication.
-
-**Lookups use standard Query fields.** For GraphQL subgraphs, when the gateway needs to resolve an entity, it calls a normal Query field annotated with the `@lookup` directive. You can call the same field in tests, debug it with standard tools, and see exactly what it returns. There is no hidden internal protocol to implement, and the security model is the same as for any other GraphQL field.
-
-```graphql
-type Query {
-  productById(id: ID!): Product @lookup
-}
-```
-
-If you are using Hot Chocolate, support for the composite schema specification is built in. Add the `[Lookup]` attribute to your resolver and you are ready to go.
-
-```csharp
-[QueryType]
-public static partial class ProductQueries
-{
-    [Lookup]
-    public static async Task<Product?> GetProductById(
-        [ID] int id,
-        IProductByIdDataLoader productById,
-        CancellationToken cancellationToken)
-        => await productById.LoadAsync(id, cancellationToken);
-}
-```
-
-**Composition catches errors at build time.** When you run `nitro fusion compose`, the composition engine validates source schemas against each other. Type conflicts, missing fields, and incompatible enums are caught in CI before deployment.
-
-**No special runtime for GraphQL subgraphs.** The [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
 
 # Key Terminology
 
@@ -132,6 +103,6 @@ Where you go from here depends on what you need:
 
 - **"I want to add another service to an existing project."** Go to [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph). It covers creating a new service (subgraph) that extends existing entity types.
 
-- **"I'm migrating from another distributed GraphQL framework."** Read [Coming from Apollo Federation](/docs/fusion/v16/coming-from-apollo-federation) or [Migrating from Schema Stitching](/docs/fusion/v16/migrating-from-schema-stitching). These guides map familiar concepts to Fusion equivalents and walk through a migration.
+- **"I'm migrating from another distributed GraphQL framework."** Read [Coming from Apollo Federation](/docs/fusion/v16/migration/coming-from-apollo-federation) or [Migrating from Schema Stitching](/docs/fusion/v16/migration/migrating-from-schema-stitching). These guides map familiar concepts to Fusion equivalents and walk through a migration.
 
 - **"I need to deploy this."** See [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for pipeline setup, schema management, and gateway configuration.
