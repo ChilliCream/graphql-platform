@@ -6,7 +6,6 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using StrawberryShake;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
@@ -22,17 +21,30 @@ internal sealed class PublishSchemaCommand : Command
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<ForceOption>.Instance);
         AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<TagOption>.Instance,
-            Opt<StageNameOption>.Instance,
-            Opt<ApiIdOption>.Instance,
-            Opt<ForceOption>.Instance,
-            Opt<OptionalWaitForApprovalOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.SetHandler(async context =>
+        {
+            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var client = context.BindingContext.GetRequiredService<IApiClient>();
+            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
+            var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
+            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
+            var force = context.ParseResult.GetValueForOption(Opt<ForceOption>.Instance);
+            var waitForApproval = context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
+
+            context.ExitCode = await ExecuteAsync(
+                console,
+                client,
+                tag,
+                stage,
+                apiId,
+                force,
+                waitForApproval,
+                sourceMetadataJson,
+                context.GetCancellationToken());
+        });
     }
 
     private static async Task<int> ExecuteAsync(
@@ -43,6 +55,7 @@ internal sealed class PublishSchemaCommand : Command
         string apiId,
         bool force,
         bool waitForApproval,
+        string? sourceMetadataJson,
         CancellationToken ct)
     {
         console.Title(
@@ -74,7 +87,8 @@ internal sealed class PublishSchemaCommand : Command
                 ApiId = apiId,
                 Stage = stage,
                 Tag = tag,
-                WaitForApproval = waitForApproval
+                WaitForApproval = waitForApproval,
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             if (force)
@@ -97,11 +111,7 @@ internal sealed class PublishSchemaCommand : Command
 
             await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
             {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request ID returned");
-                }
+                console.EnsureNoErrors(x);
 
                 switch (x.Data?.OnSchemaVersionPublishingUpdate)
                 {

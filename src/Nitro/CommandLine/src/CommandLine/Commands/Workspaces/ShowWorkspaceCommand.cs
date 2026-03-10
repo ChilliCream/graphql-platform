@@ -35,8 +35,8 @@ internal sealed class ShowWorkspaceCommand : Command
         CancellationToken cancellationToken)
     {
         var result = await client.ShowWorkspaceCommandQuery.ExecuteAsync(id, cancellationToken);
-
-        var data = result.EnsureData();
+        console.EnsureNoErrors(result);
+        var data = console.EnsureData(result);
 
         if (data.Node is IWorkspaceDetailPrompt_Workspace node)
         {
