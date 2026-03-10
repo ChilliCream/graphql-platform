@@ -4,6 +4,9 @@ using Demo.Billing.Handlers;
 using Demo.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
+using Mocha.EntityFrameworkCore;
+using Mocha.Inbox;
+using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +40,14 @@ builder
     // Request handlers for saga commands
     .AddRequestHandler<ProcessRefundCommandHandler>()
     .AddRequestHandler<ProcessPartialRefundCommandHandler>()
+    .AddEntityFramework<BillingDbContext>(p =>
+    {
+        p.UsePostgresOutbox();
+
+        p.UseResilience();
+        p.UseTransaction();
+        p.UsePostgresInbox();
+    })
     .AddRabbitMQ();
 
 var app = builder.Build();

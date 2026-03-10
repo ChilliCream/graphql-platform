@@ -8,7 +8,9 @@ namespace HotChocolate.Types;
 /// </summary>
 public struct DateTimeOptions
 {
-    public const byte DefaultInputPrecision = 7;
+    public const byte DefaultInputPrecision = 9;
+
+    // DateTimeOffset, DateTime, and TimeOnly all have a maximum of 7 fractional second digits.
     public const byte DefaultOutputPrecision = 7;
 
     public DateTimeOptions()
@@ -17,17 +19,20 @@ public struct DateTimeOptions
 
     /// <summary>
     /// Gets the maximum number of fractional second digits to expect when parsing date and time
-    /// input values.
+    /// input values. Note that the underlying .NET types (<see cref="DateTimeOffset"/>,
+    /// <see cref="DateTime"/>, and <see cref="TimeOnly"/>) have a maximum resolution of 7
+    /// fractional digits (100-nanosecond ticks), so digits beyond the 7th are rounded during
+    /// parsing.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when the value is greater than 7.
+    /// Thrown when the value is greater than 9.
     /// </exception>
     public byte InputPrecision
     {
         get;
         init
         {
-            if (value > 7)
+            if (value > 9)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(InputPrecision),

@@ -17,7 +17,7 @@ public static class OutboxCoreServiceCollectionExtensions
     /// </remarks>
     /// <param name="builder">The message bus host builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
-    public static IMessageBusHostBuilder AddOutboxCore(this IMessageBusHostBuilder builder)
+    public static IMessageBusHostBuilder UseOutboxCore(this IMessageBusHostBuilder builder)
     {
         builder.Services.TryAddSingleton<IOutboxSignal, MessageBusOutboxSignal>();
         builder.ConfigureMessageBus(x => x.UseDispatch(DispatchOutboxMiddleware.Create()));

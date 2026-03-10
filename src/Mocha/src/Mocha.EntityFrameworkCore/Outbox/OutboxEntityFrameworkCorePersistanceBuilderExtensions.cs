@@ -16,21 +16,20 @@ public static class OutboxEntityFrameworkCorePersistanceBuilderExtensions
     /// </summary>
     /// <param name="builder">The Entity Framework Core builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
-    public static IEntityFrameworkCoreBuilder AddOutboxCore(this IEntityFrameworkCoreBuilder builder)
+    public static IEntityFrameworkCoreBuilder UseOutboxCore(this IEntityFrameworkCoreBuilder builder)
     {
-        builder.HostBuilder.AddOutboxCore();
+        builder.HostBuilder.UseOutboxCore();
 
-        builder.ConfigureEntityFrameworkServices(
-            (sp, services) =>
+        builder.ConfigureEntityFrameworkServices((sp, services) =>
+        {
+            var signal = sp.GetService<IOutboxSignal>();
+
+            if (signal is not null)
             {
-                var signal = sp.GetService<IOutboxSignal>();
-
-                if (signal is not null)
-                {
-                    services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
-                    services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
-                }
-            });
+                services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
+                services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
+            }
+        });
         return builder;
     }
 }

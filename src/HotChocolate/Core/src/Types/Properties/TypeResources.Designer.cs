@@ -121,16 +121,16 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Base64StringType_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to The parameter &apos;{0}&apos; on a batch resolver must be a list type ....
+        ///   Looks up a localized string similar to The parameter &apos;{0}&apos; on a batch resolver must be a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers receive one value per parent object, so all argument parameters must be collections..
         /// </summary>
         internal static string BatchResolver_ArgumentMustBeList {
             get {
                 return ResourceManager.GetString("BatchResolver_ArgumentMustBeList", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to A batch resolver must return exactly one result per context. Expected {0} results but got {1}..
         /// </summary>
@@ -139,16 +139,16 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("BatchResolver_ResultCountMismatch", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to The batch resolver method '{0}.{1}' must return a list type ....
+        ///   Looks up a localized string similar to The batch resolver method &apos;{0}.{1}&apos; must return a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers return one result per parent object, so the return type must be a collection..
         /// </summary>
         internal static string BatchResolver_ReturnTypeMustBeList {
             get {
                 return ResourceManager.GetString("BatchResolver_ReturnTypeMustBeList", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified binding cannot be handled..
         /// </summary>
@@ -321,7 +321,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 7..
+        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 9..
         /// </summary>
         internal static string DateTimeOptions_InputPrecision_InvalidValue {
             get {
@@ -742,6 +742,15 @@ namespace HotChocolate.Properties {
         internal static string DirectiveTypeDescriptor_OnlyProperties {
             get {
                 return ResourceManager.GetString("DirectiveTypeDescriptor_OnlyProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `Duration` scalar type represents a duration of time..
+        /// </summary>
+        internal static string DurationType_Description {
+            get {
+                return ResourceManager.GetString("DurationType_Description", resourceCulture);
             }
         }
         
@@ -2776,15 +2785,6 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
             get {
                 return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The `TimeSpan` scalar type represents a duration of time..
-        /// </summary>
-        internal static string TimeSpanType_Description {
-            get {
-                return ResourceManager.GetString("TimeSpanType_Description", resourceCulture);
             }
         }
         
