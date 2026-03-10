@@ -180,7 +180,7 @@ Use an **internal lookup** when:
 - You do not want clients to enter your subgraph through this lookup
 - The lookup just constructs a stub. It does not validate the existence of the entity.
 
-For cross-subgraph resolution to work, each subgraph that extends an entity by contributing fields must provide a lookup for that entity. For example, if a subgraph extends `Product` but has no `Product` lookup, transitions into that subgraph are unsatisfiable.
+For cross-subgraph resolution to work, a subgraph that contributes fields to an entity must expose a compatible lookup path for that entity. This can be a direct lookup field or a nested lookup under an internal root object. If no lookup path exists, transitions into that subgraph are unsatisfiable.
 
 ### Multiple Lookups Per Entity
 
@@ -327,8 +327,8 @@ In most cases, you do not need to declare entity keys explicitly. The compositio
 
 Sometimes you need or want to declare the key explicitly. Use the `@key` directive when:
 
-- Your subgraph extends an entity but does not have its own lookup for it
 - You want to be explicit about which fields form the key on the entity itself
+- You want to declare key identity on a type independently of local lookup inference
 
 **GraphQL schema**
 
@@ -345,7 +345,9 @@ type Product @key(fields: "id") {
 public sealed record Product([property: ID<Product>] int Id);
 ```
 
-The `@key(fields: "id")` directive explicitly declares that `Product` is identified by the `id` field. This is useful in a subgraph that extends `Product` but does not define its own lookup, so composition cannot infer the key from lookup arguments.
+The `@key(fields: "id")` directive explicitly declares that `Product` is identified by the `id` field. This is useful when key identity should be declared explicitly instead of inferred from lookup arguments.
+
+`@key` declares identity. It does not replace lookup paths. If a subgraph contributes fields and needs to be entered during planning, it still needs a compatible lookup route.
 
 The `fields` value uses GraphQL field names, not C# member names.
 
@@ -406,6 +408,6 @@ builder
 ## Next Steps
 
 - **Need field ownership rules?** See [Composition](/docs/fusion/v16/composition) for how field ownership, `@shareable`, and composition validation work.
-- **Need argument mapping and cross-subgraph dependencies?** The `@is` and `@require` directives are covered in dedicated pages.
+- **Need argument mapping and cross-subgraph dependencies?** See [Data Requirements and Mapping](/docs/fusion/v16/data-requirements-and-mapping) for `@is`, `@require`, and FieldSelectionMap patterns.
 - **Need runtime performance guidance?** See Hot Chocolate docs for DataLoader and batching patterns used inside lookup resolvers.
 - **Ready to go to production?** See [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization) for securing your gateway and subgraphs, or [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for setting up independent subgraph deployments.
