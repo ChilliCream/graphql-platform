@@ -17,7 +17,7 @@ public class DateTimeOptionsTests
     public void DefaultConstants_ShouldBeCorrect()
     {
         // assert
-        Assert.Equal(7, DateTimeOptions.DefaultInputPrecision);
+        Assert.Equal(9, DateTimeOptions.DefaultInputPrecision);
         Assert.Equal(7, DateTimeOptions.DefaultOutputPrecision);
     }
 
@@ -30,6 +30,8 @@ public class DateTimeOptionsTests
     [InlineData(5)]
     [InlineData(6)]
     [InlineData(7)]
+    [InlineData(8)]
+    [InlineData(9)]
     public void InputPrecision_ValidValues_ShouldSet(byte precision)
     {
         // arrange & act
@@ -58,8 +60,6 @@ public class DateTimeOptionsTests
     }
 
     [Theory]
-    [InlineData(8)]
-    [InlineData(9)]
     [InlineData(10)]
     [InlineData(255)]
     public void InputPrecision_InvalidValues_ShouldThrow(byte precision)

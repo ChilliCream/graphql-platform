@@ -176,7 +176,9 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
             4 => LocalDateTimeRegex4(),
             5 => LocalDateTimeRegex5(),
             6 => LocalDateTimeRegex6(),
-            _ => LocalDateTimeRegex7()
+            7 => LocalDateTimeRegex7(),
+            8 => LocalDateTimeRegex8(),
+            _ => LocalDateTimeRegex9()
         };
 
     [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\z",
@@ -210,4 +212,12 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
     [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex7();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex8();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex9();
 }

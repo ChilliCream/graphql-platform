@@ -21,14 +21,14 @@ public sealed class EdgeTypeInfo
         ImmutableArray<AttributeData> attributes)
     {
         Name = name;
+        RuntimeTypeName = TypeNameInfo.Create(runtimeType);
+        NodeFullyQualifiedName = runtimeType.IsGenericType ? runtimeType.TypeArguments[0].ToFullyQualified() : null;
         NameFormat = nameFormat;
-        RuntimeTypeFullName = runtimeType.ToDisplayString();
-        RuntimeType = runtimeType;
         Namespace = @namespace;
         Description = description;
+        IsPublic = runtimeType.DeclaredAccessibility == Accessibility.Public;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
-        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
         DescriptorAttributes = attributes.GetUserAttributes();
@@ -36,23 +36,23 @@ public sealed class EdgeTypeInfo
 
     public string Name { get; }
 
+    public TypeNameInfo? SchemaTypeName => null;
+
+    public TypeNameInfo RuntimeTypeName { get; }
+
+    public string? NodeFullyQualifiedName { get; }
+
+    public string? RegistrationKey => null;
+
     public string? NameFormat { get; }
 
     public string Namespace { get; }
 
     public string? Description { get; }
 
-    public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
-
-    public INamedTypeSymbol? SchemaSchemaType => null;
-
-    public string? SchemaTypeFullName => null;
+    public bool IsPublic { get; }
 
     public bool HasSchemaType => false;
-
-    public INamedTypeSymbol RuntimeType { get; }
-
-    public string RuntimeTypeFullName { get; }
 
     public bool HasRuntimeType => true;
 
@@ -64,11 +64,9 @@ public sealed class EdgeTypeInfo
 
     public DirectiveScope Inaccessible { get; private set; }
 
-    public ImmutableArray<AttributeData> Attributes { get; }
-
     public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
-    public override string OrderByKey => RuntimeTypeFullName;
+    public override string OrderByKey => RuntimeTypeName.FullName;
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);

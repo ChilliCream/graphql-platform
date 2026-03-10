@@ -174,7 +174,9 @@ public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
             4 => LocalTimeRegex4(),
             5 => LocalTimeRegex5(),
             6 => LocalTimeRegex6(),
-            _ => LocalTimeRegex7()
+            7 => LocalTimeRegex7(),
+            8 => LocalTimeRegex8(),
+            _ => LocalTimeRegex9()
         };
 
     [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}\z", RegexOptions.ExplicitCapture)]
@@ -200,4 +202,10 @@ public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
 
     [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex7();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex8();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex9();
 }
