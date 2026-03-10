@@ -166,6 +166,8 @@ In this pattern, clients cannot access `internalLookups` from the composite sche
 
 ### When to Use Internal vs. Public Lookups
 
+![Public vs internal lookup visibility: clients can call public lookups, only the gateway can call internal lookups](../../shared/fusion/entities-public-vs-internal-lookup.png)
+
 Use a **public lookup** when:
 
 - Your subgraph is the primary owner of the entity. For example, the Products subgraph owns `Product`, and the Accounts subgraph owns `User`.
