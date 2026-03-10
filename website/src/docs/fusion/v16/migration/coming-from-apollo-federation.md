@@ -48,7 +48,7 @@ Several things from Apollo's model have no Fusion equivalent because the archite
 
 Beyond naming, several concepts work fundamentally differently in Fusion. Understanding these differences is important for a successful migration.
 
-### Entity Resolution: Lookups vs. `_entities`
+### Entity Resolution: Lookups vs. the Entities Query
 
 This is the most significant architectural difference between Apollo Federation and Fusion.
 
@@ -135,7 +135,7 @@ The `[Internal]` attribute hides this field from the composite schema. Only the 
 
 For more on lookups and entity resolution patterns, see [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
 
-### `@require` Operates on Arguments, Not Fields
+### Requirements Operate on Arguments, Not Fields
 
 In Apollo Federation, `@requires` is a field-level directive. It declares that a field depends on data from another subgraph:
 
@@ -304,7 +304,7 @@ app.RunWithGraphQLCommands(args);
 
 The call to `RunWithGraphQLCommands(args)` enables `dotnet run -- schema export`, which is how Fusion extracts the subgraph schema for composition.
 
-#### Step 2: Convert `@key` + `__resolveReference` to `[Lookup]`
+#### Step 2: Convert Entity Resolution to Lookups
 
 This is the core conversion. For every entity type that has a `@key` directive and a `__resolveReference` resolver, create a `[Lookup]` query field.
 
@@ -363,7 +363,7 @@ public static Product GetProductById(int id) => new(id);
 
 **Key point:** You do not need a `@key` directive. The gateway infers the entity key from the lookup's arguments. If your lookup takes `int id`, the gateway knows `id` is the key.
 
-#### Step 3: Convert `@requires` to `[Require]`
+#### Step 3: Convert Field Requirements
 
 Replace field-level `@requires` with argument-level `[Require]`.
 
@@ -423,7 +423,7 @@ public int GetDeliveryEstimate(
 }
 ```
 
-#### Step 4: Convert `@external` / `@provides`
+#### Step 4: Convert External Fields and Provides
 
 **`@external`** has a direct equivalent in `[External]`, but it is less frequently needed. In Apollo, you must mark any field referenced by `@requires` as `@external`. In Fusion, the `[Require]` selection syntax references fields from the composed graph directly -- no `@external` annotation is needed on the entity type.
 
@@ -454,7 +454,7 @@ public static partial class ReviewNode
 }
 ```
 
-#### Step 5: Handle `[Shareable]`
+#### Step 5: Handle Shared Fields
 
 `[Shareable]` works the same in both systems. If multiple subgraphs define the same field on the same type, each definition must be marked as shareable.
 
@@ -481,7 +481,7 @@ public static partial class UserNode
 
 One difference: in Fusion, key fields (like `id`) are automatically shareable. You do not need to annotate them.
 
-#### Step 6: Create `schema-settings.json`
+#### Step 6: Create Schema Settings
 
 Every Fusion subgraph needs a `schema-settings.json` file that tells composition where the subgraph lives and how to connect to it:
 
@@ -624,7 +624,7 @@ Replace Apollo's `rover` commands with Nitro CLI equivalents.
 | `rover subgraph publish`   | `nitro fusion upload` + `nitro fusion publish` |
 | `rover supergraph compose` | `nitro fusion compose`                         |
 
-#### Schema Upload (Replaces `rover subgraph publish`)
+#### Schema Upload (Replaces Rover Subgraph Publish)
 
 In Apollo, publishing a subgraph triggers server-side composition. In Fusion, this is a two-step process: upload the schema, then publish to trigger composition.
 
@@ -656,7 +656,7 @@ nitro fusion publish \
   --api-key $NITRO_API_KEY
 ```
 
-#### Schema Validation (Replaces `rover subgraph check`)
+#### Schema Validation (Replaces Rover Subgraph Check)
 
 **Apollo:**
 
@@ -676,7 +676,7 @@ nitro fusion validate \
   --api-key $NITRO_API_KEY
 ```
 
-#### Local Composition (Replaces `rover supergraph compose`)
+#### Local Composition (Replaces Rover Supergraph Compose)
 
 **Apollo:**
 
@@ -763,7 +763,7 @@ nitro fusion compose --archive gateway.far
 
 You can run this on your machine, see the output, inspect errors, and fix them before pushing. There is no cloud service in the loop unless you choose to use Nitro cloud.
 
-### `@require` Operates on Arguments, Not Fields
+### Requirements Operate on Arguments, Not Fields
 
 This changes resolver design. In Apollo, required data appears on the entity object. In Fusion, it arrives as a method parameter:
 
@@ -807,7 +807,7 @@ No. Apollo Federation and Fusion use different gateway protocols and composition
 
 No. Nitro cloud provides managed composition and gateway configuration delivery (similar to Apollo's GraphOS), but everything works without it. You can compose schemas locally with `nitro fusion compose`, load the `.far` file from disk with `AddFileSystemConfiguration()`, and never touch a cloud service. Nitro cloud is optional for teams that want managed schema delivery.
 
-### What about Apollo Federation directives like `@authenticated` and `@policy`?
+### What About Apollo Federation Auth Directives?
 
 Fusion uses standard ASP.NET Core authentication and authorization. You configure JWT/cookie authentication in the gateway's middleware pipeline and use HotChocolate's `[Authorize]` attribute on fields and types in your subgraphs. There is no Fusion-specific auth directive -- you use the same patterns you already know from ASP.NET Core.
 

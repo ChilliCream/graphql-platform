@@ -1,5 +1,5 @@
 ---
-title: "Data Requirements and Mapping"
+title: "Data Requirements"
 ---
 
 In traditional distributed systems, dependencies between services hide beneath the surface. A service assumes another service provides certain fields, responds in a certain shape, or is available at a certain time. These assumptions are invisible: they live in code, not in contracts. You discover them when something breaks in production. A field gets renamed, a service changes its response format, or a new team removes data another team depended on without knowing.
@@ -235,11 +235,11 @@ type Product {
 
 The path `seller.addresses[countryCode]` means: navigate to `seller.addresses` (a list), then select `countryCode` from each element. If the seller has three addresses with country codes `"US"`, `"DE"`, and `"US"`, the resolver receives `["US", "DE", "US"]` as the `countryCodes` argument.
 
-## `@provides`: Declaring Contextually Available Fields
+## Declaring Contextually Available Fields
 
 Use `@provides` on a field that returns an entity to tell the gateway that certain subfields of that entity are available when resolved through this specific field. The subgraph does not own those fields globally, but it can provide them in this context.
 
-### When `@provides` Helps
+### When Contextual Availability Helps
 
 Consider a Reviews subgraph where the `author` field returns a `User` entity. The `User` type and its `username` field are owned by the Accounts subgraph. Normally the gateway would need to call the Accounts subgraph to fetch `username`. But the Reviews subgraph already has the author's username available when resolving `Review.author`. By annotating the `author` field with `@provides(fields: "username")`, the subgraph tells the gateway: "When you resolve `author` through the `Review` entity on my subgraph, I can also give you `username`."
 
@@ -298,7 +298,7 @@ type Review {
 }
 ```
 
-### When to Use `@provides`
+### When to Provide Fields Contextually
 
 Use `@provides` when:
 
@@ -389,5 +389,5 @@ If a `@require` argument appears in the composite schema when it should not, che
 ## Next Steps
 
 - **Need entity identity and lookup patterns?** See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for the full guide to keys, public vs. internal lookups, and composite keys.
-- **Need field ownership and merging rules?** See [Composition](/docs/fusion/v16/composition) for how `@shareable`, `@inaccessible`, and composition validation work.
+- **Need field ownership contracts and sharing semantics?** See [Field Ownership and Sharing](/docs/fusion/v16/field-ownership-and-sharing).
 - **Need the directive and attribute quick reference?** See the [Attribute and Directive Reference](/docs/fusion/v16/attribute-and-directive-reference).
