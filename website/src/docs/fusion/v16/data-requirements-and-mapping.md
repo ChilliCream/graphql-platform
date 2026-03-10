@@ -4,33 +4,17 @@ title: "Data Requirements and Mapping"
 
 In traditional distributed systems, dependencies between services hide beneath the surface. A service assumes another service provides certain fields, responds in a certain shape, or is available at a certain time. These assumptions are invisible: they live in code, not in contracts. You discover them when something breaks in production. A field gets renamed, a service changes its response format, or a new team removes data another team depended on without knowing.
 
-Fusion makes these dependencies **declarative and validated at build time**. When a resolver in one subgraph needs data from another subgraph, it declares that dependency explicitly in the schema using directives like `@require`. The composition step validates that every declared dependency is satisfiable before any code reaches production: the required fields must exist, be reachable, and have compatible types. If a dependency cannot be satisfied, composition fails and tells you exactly what is missing and where.
+Fusion makes these dependencies **declarative and validated at build time**. When a resolver in one subgraph needs data from another subgraph, it declares that dependency explicitly in the schema using the `@require` directive. The composition step validates that every declared dependency is satisfiable before any code reaches production: the required fields must exist, be reachable, and have compatible types. If a dependency cannot be satisfied, composition fails and tells you exactly what is missing and where.
 
 This shifts cross-service data dependencies from hidden runtime failures to visible, validated build-time contracts.
 
-This chapter covers the directives and attributes that make this work: `@require` for declaring resolver input dependencies, `@is` for mapping lookup arguments to entity fields, and `@provides` for declaring fields that a subgraph can resolve locally alongside an entity reference. If you completed the [Getting Started](/docs/fusion/v16/getting-started) tutorial or the [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph) guide, you already used `@require`. Here, you will focus on the full range of patterns and the syntax behind them.
+This chapter covers the directives and attributes that make this work: `@require` for declaring data requirements and `@provides` for declaring fields that a subgraph can resolve locally alongside an entity reference. You will learn the full range of patterns and the syntax behind each directive.
 
-## How Cross-Subgraph Data Dependencies Work
+## Declaring Data Dependencies
 
-When a resolver declares a data requirement with `@require`, three things happen during composition and execution:
+Use `@require` on a resolver argument when that argument's value must come from fields owned by other subgraphs. Instead of calling another service yourself, you declare what data you need and the gateway fetches it for you.
 
-1. **Composition** reads the `@require` directive and removes the annotated argument from the composite schema. Clients never see it.
-2. **Query planning** detects the dependency. The gateway plans an additional fetch to retrieve the required fields from whichever subgraph owns them.
-3. **Execution** fetches the required data first, then passes it as a resolver argument when invoking the downstream subgraph.
-
-The resolver receives the data as if it were a normal argument. It does not know or care where the data came from.
-
-![The gateway fetches required data from the Products subgraph first, then passes it to the Shipping subgraph as resolved @require arguments](../../shared/fusion/data-requirements-require-flow.png)
-
-The client query includes only `zip` because that is a normal argument. The `weight` and dimension arguments are hidden from clients because they are annotated with `@require`. The gateway resolves them automatically from the Products subgraph before calling the Shipping subgraph.
-
-## `@require`: Declaring Data Dependencies
-
-Use `@require` on a resolver argument when that argument's value must come from fields owned by other subgraphs. The gateway resolves these values automatically during execution.
-
-### Simple Scalar Requirements
-
-The most common case: a resolver needs a single field from another subgraph.
+Here is the simplest case: a resolver in the Shipping subgraph needs the product's `weight` to calculate a shipping estimate. The Products subgraph owns `weight`, not the Shipping subgraph. With `@require`, the Shipping subgraph declares this dependency directly in its schema:
 
 **GraphQL schema**
 
@@ -46,7 +30,7 @@ type Query {
 }
 ```
 
-The `weight` field lives in the Products subgraph. The Shipping subgraph declares it as a requirement, and the gateway fetches it before calling the resolver.
+The `@require(field: "weight")` directive on the `weight` argument tells the gateway: "Before calling this resolver, fetch `weight` from whichever subgraph can provide it and pass it in as the `weight` argument."
 
 **C# resolver**
 
@@ -57,24 +41,14 @@ public static partial class ProductNode
     public static int GetShippingEstimate(
         [Parent] Product product,
         string zip,
-        [Require("weight")] float weight)
+        [Require] float weight)
         => ShippingCalculator.Estimate(zip, weight);
 }
 ```
 
-The `[Require("weight")]` attribute maps to `@require(field: "weight")` in the exported schema. The argument name in C# does not need to match the field name when you provide an explicit field path.
+The `[Require]` attribute maps to `@require(field: "weight")` in the exported schema. Because the C# argument name `weight` matches the entity field name, the field path is inferred automatically. When the names differ, you provide the path explicitly: `[Require("weight")]`.
 
-When the argument name matches the entity field name, you can omit the field path:
-
-```csharp
-public static int GetShippingEstimate(
-    [Parent] Product product,
-    string zip,
-    [Require] float weight) // inferred: @require(field: "weight")
-    => ShippingCalculator.Estimate(zip, weight);
-```
-
-**Composite schema (what clients see)**
+**Public facing composite schema (what clients see)**
 
 ```graphql
 type Product {
@@ -82,11 +56,23 @@ type Product {
 }
 ```
 
-The `weight` argument is gone. Clients pass only `zip`. The gateway handles `weight` transparently.
+The `weight` argument is gone. Clients pass only `zip`. The gateway handles the resolution of `weight` transparently.
+
+### How the Gateway Resolves Requirements
+
+When a resolver declares a data requirement with `@require`, three things happen during composition and execution:
+
+1. **Composition** reads the `@require` directive and removes the annotated argument from the composite schema. Clients never see it.
+2. **Query planning** detects the dependency. The gateway plans an additional fetch to retrieve the required fields from whichever subgraph can provide it.
+3. **Execution** fetches the required data first, then passes it as a resolver argument when invoking the downstream subgraph.
+
+The resolver receives the data as if it were a normal argument. It does not know or care where the data came from. Services are not coupled to each other. The contract is between a resolver and the data it needs, not between one service and another.
+
+![The gateway fetches required data from the Products subgraph first, then passes it to the Shipping subgraph as resolved @require arguments](../../shared/fusion/data-requirements-require-flow.png)
 
 ### Complex Requirements with Input Objects
 
-When a resolver needs multiple fields, you can gather them into a single input object argument using FieldSelectionMap syntax.
+When a resolver needs multiple fields, you can gather them into a single input object using FieldSelectionMap syntax. This is a clean approach as it puts all the requirements for a resolver into a single argument.
 
 **GraphQL schema**
 
@@ -98,7 +84,14 @@ type Product {
     zip: String!
     dimension: ProductDimensionInput!
       @require(
-        field: "{ weight, length: dimensions.length, width: dimensions.width, height: dimensions.height }"
+        field: """
+        {
+          weight,
+          length: dimensions.length,
+          width: dimensions.width,
+          height: dimensions.height
+        }
+        """
       )
   ): Int!
 }
@@ -111,10 +104,12 @@ input ProductDimensionInput {
 }
 ```
 
-The FieldSelectionMap inside `@require` tells the gateway how to reshape data from the Products subgraph into the `ProductDimensionInput` shape the resolver expects:
+The FieldSelectionMap inside `@require` tells the gateway how to populate the `ProductDimensionInput` from fields on the `Product` entity:
 
-- `weight` maps directly (the input field name matches the entity field name)
-- `length: dimensions.length` maps the `length` input field from the nested `dimensions.length` entity field
+- `weight` maps directly because the input field name matches the entity field name.
+- `length: dimensions.length` maps the input field `length` from the nested entity path `dimensions.length`. The same applies to `width` and `height`.
+
+The fields referenced in the map do not all have to come from the same subgraph. The gateway resolves each field from whichever subgraph owns it. Your resolver declares what data it needs, not which services to call.
 
 **C# resolver**
 
@@ -149,7 +144,7 @@ public sealed class ProductDimensionInput
 }
 ```
 
-**Composite schema (what clients see)**
+**Public facing composite schema (what clients see)**
 
 ```graphql
 type Product {
@@ -161,7 +156,7 @@ The `dimension` requirement argument is hidden from clients. Clients see only `z
 
 ### Multiple Scalar Requirements
 
-You can annotate multiple arguments with `@require` on the same field. Each one declares an independent data dependency.
+You can annotate multiple arguments with `@require` on the same field. Each one declares an independent data dependency. So, while you can aggregate them into a single input object like explained above you also can spread them across arguments.
 
 **GraphQL schema**
 
@@ -170,6 +165,7 @@ You can annotate multiple arguments with `@require` on the same field. Each one 
 type Product {
   id: ID!
   shippingEstimate(
+    zip: String!
     weight: Float! @require(field: "weight")
     price: Float! @require(field: "price")
   ): Int!
@@ -184,6 +180,7 @@ public static partial class ProductNode
 {
     public static int GetShippingEstimate(
         [Parent] Product product,
+        string zip,
         [Require] float weight,
         [Require] float price)
         => weight > 500 || price > 1000
@@ -210,93 +207,33 @@ type Product {
 
 The gateway traverses `seller.address.countryCode` on the entity and passes the resolved value as the `countryCode` argument.
 
-## `@is`: Mapping Lookup Arguments to Entity Fields
+### List Aggregation Paths
 
-Use `@is` on lookup arguments when the argument name does not match the entity field it maps to. The [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) page covers `@is` in the context of lookup definitions. This section summarizes the mapping patterns and shows the FieldSelectionMap syntax they share with `@require`.
-
-### Simple Name Mapping
-
-When a lookup argument has a different name than the entity field:
+When an entity field is a list, you can use bracket notation to select a field from each element. The gateway collects the selected values into a flat list.
 
 **GraphQL schema**
 
 ```graphql
-type Query {
-  product(productId: ID! @is(field: "id")): Product @lookup
+type Product {
+  id: ID!
+  taxEstimate(
+    countryCodes: [String!]! @require(field: "seller.addresses[countryCode]")
+    price: Float! @require(field: "price")
+  ): Float!
 }
 ```
 
-**C# resolver**
+The path `seller.addresses[countryCode]` means: navigate to `seller.addresses` (a list), then select `countryCode` from each element. If the seller has three addresses with country codes `"US"`, `"DE"`, and `"US"`, the resolver receives `["US", "DE", "US"]` as the `countryCodes` argument.
 
-```csharp
-[QueryType]
-public static partial class ProductQueries
-{
-    [Lookup]
-    public static async Task<Product?> GetProductAsync(
-        [Is(nameof(Product.Id))] int productId,
-        IProductByIdDataLoader productById,
-        CancellationToken cancellationToken)
-        => await productById.LoadAsync(productId, cancellationToken);
-}
-```
+## `@provides`: Declaring Contextually Available Fields
 
-If the argument name already matches the field name (e.g., `id` to `id`), you can omit `@is`.
-
-### Nested Field Mapping
-
-`@is` supports the same dot notation as `@require` for reaching into nested objects:
-
-```graphql
-type Query {
-  product(
-    tenantId: ID! @is(field: "tenant.id")
-    sku: String! @is(field: "sku")
-  ): Product @lookup
-}
-```
-
-### Input Object Mapping
-
-For composite keys, you can map an input object to multiple entity fields:
-
-```graphql
-input ProductKeyInput {
-  tenantId: ID!
-  sku: String!
-}
-
-type Query {
-  product(
-    key: ProductKeyInput! @is(field: "{ tenantId: tenant.id, sku }")
-  ): Product @lookup
-}
-```
-
-### Choice Mapping with `@oneOf`
-
-When an entity can be looked up by different keys, use `@is` with the choice operator `|` and a `@oneOf` input:
-
-```graphql
-input UserByInput @oneOf {
-  id: ID
-  username: String
-}
-
-type Query {
-  user(by: UserByInput! @is(field: "{ id } | { username }")): User @lookup
-}
-```
-
-The gateway uses whichever key is available at planning time. See [Entities and Lookups: Multiple Lookups Per Entity](/docs/fusion/v16/entities-and-lookups#multiple-lookups-per-entity) for the full pattern.
-
-## `@provides`: Declaring Locally Available Fields
-
-Use `@provides` on a field that returns an entity when your subgraph can resolve specific subfields of that entity locally, without an additional round-trip to the owning subgraph.
+Use `@provides` on a field that returns an entity to tell the gateway that certain subfields of that entity are available when resolved through this specific field. The subgraph does not own those fields globally, but it can provide them in this context.
 
 ### When `@provides` Helps
 
-Consider a Reviews subgraph that stores the author's username alongside each review. The `User` entity is owned by the Accounts subgraph, but the Reviews subgraph already has the username in its database. Without `@provides`, the gateway would make a separate call to the Accounts subgraph to fetch `username` for every review author. With `@provides`, the gateway knows the Reviews subgraph can resolve `username` directly.
+Consider a Reviews subgraph where the `author` field returns a `User` entity. The `User` type and its `username` field are owned by the Accounts subgraph. Normally the gateway would need to call the Accounts subgraph to fetch `username`. But the Reviews subgraph already has the author's username available when resolving `Review.author`. By annotating the `author` field with `@provides(fields: "username")`, the subgraph tells the gateway: "When you resolve `author` through the `Review` entity on my subgraph, I can also give you `username`."
+
+This is different from `@shareable`, which declares that a subgraph can always resolve a field. `@provides` is conditional: the data is only available when coming through a specific field path.
 
 **GraphQL schema**
 
@@ -318,9 +255,9 @@ type Query {
 }
 ```
 
-The `@provides(fields: "username")` on `author` tells composition that when the gateway fetches `author` from the Reviews subgraph, it can also get `username` without calling the Accounts subgraph.
+The `@provides(fields: "username")` on `author` tells the gateway that when it resolves `author` from the Reviews subgraph, it can also get `username` without a separate call to the Accounts subgraph.
 
-The `@external` on `username` declares that this field is defined and owned by another subgraph (Accounts), but the Reviews subgraph can resolve it locally in the context of `Review.author`.
+The `@external` on `username` declares that this field is owned by another subgraph (Accounts), but the Reviews subgraph can provide it in the context of `Review.author`.
 
 **C# resolver**
 
@@ -359,29 +296,11 @@ Use `@provides` when:
 - Avoiding the extra round-trip measurably improves performance
 - The locally stored data is kept in sync with the owning subgraph
 
-Do not use `@provides` as a substitute for proper entity ownership. If your subgraph is the authoritative source for a field, that field should be defined as a regular field, not as `@external` with `@provides`.
-
-## `@external`: Referencing External Fields
-
-Use `@external` on a field definition when your subgraph recognizes a field but does not own it. The field is defined and resolved by another subgraph. In Fusion v16, `@external` is primarily used together with `@provides` to declare fields your subgraph can return locally in a specific context (as shown above).
-
-**GraphQL schema**
-
-```graphql
-# Reviews subgraph
-type User {
-  id: ID!
-  username: String! @external
-}
-```
-
-This tells composition: "I know `User` has a `username` field, but I don't own it. Another subgraph does."
-
-Every `@external` field must be referenced by a `@provides` directive. An unused `@external` field causes an `EXTERNAL_UNUSED` composition error.
+Do not use `@provides` as a substitute for proper entity ownership. If your subgraph is the authoritative source for a field, that field should be defined as a regular field, not as `@external` with `@provides`. Similarly, if your subgraph can resolve a field on every path, use `@shareable` instead of marking it `@external` and adding `@provides` to each field that returns the entity.
 
 ## FieldSelectionMap Syntax Reference
 
-Both `@require` and `@is` use the FieldSelectionMap scalar for their `field` argument. This is a mini-language for describing how to map entity fields to argument shapes.
+`@require` uses the FieldSelectionMap scalar for its `field` argument. This is a mini-language for describing how to map entity fields to argument shapes.
 
 | Syntax           | Example                                | Meaning                                                          |
 | ---------------- | -------------------------------------- | ---------------------------------------------------------------- |
@@ -390,11 +309,12 @@ Both `@require` and `@is` use the FieldSelectionMap scalar for their `field` arg
 | Object selection | `"{ weight, height }"`                 | Selects multiple fields into an object shape                     |
 | Mapped selection | `"{ w: dimensions.weight }"`           | Renames: maps entity's `dimensions.weight` to argument field `w` |
 | Mixed selection  | `"{ weight, len: dimensions.length }"` | Combines direct and renamed mappings                             |
-| Choice (union)   | `"{ id } \| { username }"`             | The gateway can use either `id` or `username`                    |
+| List aggregation | `"addresses[countryCode]"`             | Selects `countryCode` from each element in the `addresses` list  |
+| List projection  | `"dimensions[{ weight, height }]"`     | Selects multiple fields from each list element into an object    |
 
 ### When to Use Which Syntax
 
-**Simple path.** Use when `@require` or `@is` maps one argument to one field.
+**Simple path.** Use when `@require` maps one argument to one field.
 
 ```graphql
 weight: Float! @require(field: "weight")
@@ -412,10 +332,16 @@ dimension: DimensionInput! @require(field: "{ weight, length, width, height }")
 dimension: DimensionInput! @require(field: "{ w: weight, l: dimensions.length }")
 ```
 
-**Choice.** Use with `@is` on `@oneOf` lookups where the entity can be identified by different keys.
+**List aggregation.** Use when you need to collect a single field from each element of a list.
 
 ```graphql
-by: UserByInput! @is(field: "{ id } | { username }")
+countryCodes: [String!]! @require(field: "seller.addresses[countryCode]")
+```
+
+**List projection.** Use when you need multiple fields from each element but want to drop the rest.
+
+```graphql
+dims: [DimensionInput!]! @require(field: "dimensions[{ weight, height }]")
 ```
 
 > For the full FieldSelectionMap grammar, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
@@ -431,24 +357,15 @@ which does not exist on type "Product".
 
 The field path in `@require(field: "...")` points to a field that does not exist on the entity type after composition. Check that the field name matches exactly (GraphQL field names, not C# property names) and that the owning subgraph is included in composition.
 
-### `IS_INVALID_FIELDS`: Lookup argument mapping is invalid
-
-The `@is(field: "...")` path does not match a valid field on the lookup's return type. Verify that the path uses GraphQL field names and that nested paths (like `tenant.id`) match the actual type structure.
-
 ### Required argument still visible in composite schema
 
 If a `@require` argument appears in the composite schema when it should not, check that:
 
 - The `@require` directive is on the argument, not on the field
-- The `field` value is a valid FieldSelectionMap (invalid syntax triggers composition errors like `REQUIRE_INVALID_SYNTAX` or `IS_INVALID_SYNTAX`)
-
-### `EXTERNAL_UNUSED`: External field is not referenced
-
-Every `@external` field must be referenced in a `@provides` directive. Remove unused `@external` declarations or add the corresponding `@provides`.
+- The `field` value is a valid FieldSelectionMap (invalid syntax triggers a `REQUIRE_INVALID_SYNTAX` composition error)
 
 ## Next Steps
 
 - **Need entity identity and lookup patterns?** See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for the full guide to keys, public vs. internal lookups, and composite keys.
 - **Need field ownership and merging rules?** See [Composition](/docs/fusion/v16/composition) for how `@shareable`, `@inaccessible`, and composition validation work.
-- **Want to see `@require` in a full walkthrough?** The [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph) guide builds a Shipping subgraph that uses `@require` to fetch product dimensions from another subgraph.
 - **Need the directive and attribute quick reference?** See the [Attribute and Directive Reference](/docs/fusion/v16/attribute-and-directive-reference).

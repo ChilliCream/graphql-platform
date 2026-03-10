@@ -19,7 +19,7 @@ Composition is a three-phase process that transforms multiple source schemas int
 Each source schema is validated in isolation. The composition engine checks:
 
 - The schema is valid GraphQL according to the base specification.
-- All Fusion directives and attributes are used correctly (e.g., `@external` fields are referenced by `@key` or `@provides`).
+- All Fusion directives and attributes are used correctly (e.g., `@external` fields are referenced by `@provides`).
 - Key fields reference valid scalar or object types.
 - Lookup fields have the correct argument-to-entity-field mappings.
 
