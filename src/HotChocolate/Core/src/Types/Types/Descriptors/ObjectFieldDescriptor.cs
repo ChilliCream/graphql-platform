@@ -403,10 +403,7 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     public IObjectFieldDescriptor ResolveWith(Delegate @delegate)
     {
-        if (@delegate is null)
-        {
-            throw new ArgumentNullException(nameof(@delegate));
-        }
+        ArgumentNullException.ThrowIfNull(@delegate);
 
         return ResolveWithInternal(@delegate.Method, resolverType: null);
     }
