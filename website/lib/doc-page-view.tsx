@@ -38,8 +38,7 @@ export function DocPageView({
   headings,
 }: DocPageViewProps) {
   const productPath = slug[0];
-  const versionPath =
-    slug.length > 1 && /^v\d+/.test(slug[1]) ? slug[1] : "";
+  const versionPath = slug.length > 1 && /^v\d+/.test(slug[1]) ? slug[1] : "";
   const selectedPath = "/docs/" + slug.join("/");
   const title = page.frontmatter?.title || slug[slug.length - 1];
   const description = page.frontmatter?.description;
@@ -171,8 +170,7 @@ function DocumentationNotes({ product, slug }: DocumentationNotesProps) {
           This is documentation for <strong>{product.version}</strong>, which is
           currently in preview.
           <br />
-          See the <Link to={stableDocsUrl}>latest stable version</Link>{" "}
-          instead.
+          See the <Link to={stableDocsUrl}>latest stable version</Link> instead.
         </DocumentationVersionWarning>
       );
     }

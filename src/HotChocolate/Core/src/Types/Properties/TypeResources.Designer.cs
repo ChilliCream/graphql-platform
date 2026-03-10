@@ -123,6 +123,33 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The parameter &apos;{0}&apos; on a batch resolver must be a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers receive one value per parent object, so all argument parameters must be collections..
+        /// </summary>
+        internal static string BatchResolver_ArgumentMustBeList {
+            get {
+                return ResourceManager.GetString("BatchResolver_ArgumentMustBeList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A batch resolver must return exactly one result per context. Expected {0} results but got {1}..
+        /// </summary>
+        internal static string BatchResolver_ResultCountMismatch {
+            get {
+                return ResourceManager.GetString("BatchResolver_ResultCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The batch resolver method &apos;{0}.{1}&apos; must return a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers return one result per parent object, so the return type must be a collection..
+        /// </summary>
+        internal static string BatchResolver_ReturnTypeMustBeList {
+            get {
+                return ResourceManager.GetString("BatchResolver_ReturnTypeMustBeList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified binding cannot be handled..
         /// </summary>
         internal static string BindingCompiler_AddBinding_BindingCannotBeHandled {
@@ -290,6 +317,24 @@ namespace HotChocolate.Properties {
         internal static string DataLoaderResolverContextExtensions_UnableToRegister {
             get {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_UnableToRegister", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 9..
+        /// </summary>
+        internal static string DateTimeOptions_InputPrecision_InvalidValue {
+            get {
+                return ResourceManager.GetString("DateTimeOptions_InputPrecision_InvalidValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OutputPrecision must be less than or equal to 7..
+        /// </summary>
+        internal static string DateTimeOptions_OutputPrecision_InvalidValue {
+            get {
+                return ResourceManager.GetString("DateTimeOptions_OutputPrecision_InvalidValue", resourceCulture);
             }
         }
         
@@ -701,6 +746,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The `Duration` scalar type represents a duration of time..
+        /// </summary>
+        internal static string DurationType_Description {
+            get {
+                return ResourceManager.GetString("DurationType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A cursor for use in pagination..
         /// </summary>
         internal static string EdgeType_Cursor_Description {
@@ -1039,6 +1093,24 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_RequiredFieldCannotBeDeprecated {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequiredFieldCannotBeDeprecated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must not appear on required (non-null without a default) arguments..
+        /// </summary>
+        internal static string ErrorHelper_RequiresOptInOnRequiredArgument {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequiresOptInOnRequiredArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must not appear on required (non-null without a default) input object field definitions..
+        /// </summary>
+        internal static string ErrorHelper_RequiresOptInOnRequiredInputField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequiresOptInOnRequiredInputField", resourceCulture);
             }
         }
         
@@ -1556,6 +1628,60 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An OptInFeatureStability object describes the stability level of an opt-in feature..
+        /// </summary>
+        internal static string OptInFeatureStability_Description {
+            get {
+                return ResourceManager.GetString("OptInFeatureStability_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The feature name must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_FeatureName_NotValid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_FeatureName_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stability must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_Stability_NotValid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_Stability_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the feature for which to set the stability..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_FeatureDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_FeatureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stability level of the feature..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_StabilityDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_StabilityDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sets the stability level of an opt-in feature..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The member expression must specify a property or method that is public and that belongs to the type {0}.
         /// </summary>
         internal static string Reflection_MemberMust_BeMethodOrProperty {
@@ -1642,6 +1768,42 @@ namespace HotChocolate.Properties {
         internal static string Relay_NodesField_Ids_Description {
             get {
                 return ResourceManager.GetString("Relay_NodesField_Ids_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RequiresOptIn is not supported on the specified descriptor..
+        /// </summary>
+        internal static string RequiresOptInDirective_Descriptor_NotSupported {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_Descriptor_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The feature name must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string RequiresOptInDirective_FeatureName_NotValid {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_FeatureName_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the feature that requires opt in..
+        /// </summary>
+        internal static string RequiresOptInDirectiveType_FeatureDescription {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirectiveType_FeatureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used..
+        /// </summary>
+        internal static string RequiresOptInDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirectiveType_TypeDescription", resourceCulture);
             }
         }
         
@@ -2623,15 +2785,6 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
             get {
                 return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The `TimeSpan` scalar type represents a duration of time..
-        /// </summary>
-        internal static string TimeSpanType_Description {
-            get {
-                return ResourceManager.GetString("TimeSpanType_Description", resourceCulture);
             }
         }
         

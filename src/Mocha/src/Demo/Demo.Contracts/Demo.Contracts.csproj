@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Demo.Contracts</AssemblyName>
+    <RootNamespace>HotChocolate.Demo.Contracts</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Mocha\Mocha.csproj" />
+  </ItemGroup>
+</Project>

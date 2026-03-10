@@ -25,7 +25,7 @@ fragment DashboardFeaturedCardFragment_asset on Asset {
 }
 
 fragment DashboardFeaturedFragment_query on Query {
-  featured: assets(where: { symbol: { in: [ "BTC", "ADA", "ALGO" ] } }) {
+  featured: assets(where: { symbol: { in: ["BTC", "ADA", "ALGO"] } }) {
     nodes {
       id
       ... DashboardFeaturedCardFragment_asset
@@ -115,7 +115,7 @@ query DashboardContainerQuery {
         }
       }
     }
-    featured: assets(where: { symbol: { in: [ "BTC", "ADA", "ALGO" ] } }) @__execute(id: 3, kind: DEFAULT, type: COMPOSITE) {
+    featured: assets(where: { symbol: { in: ["BTC", "ADA", "ALGO"] } }) @__execute(id: 3, kind: DEFAULT, type: COMPOSITE) {
       ... on AssetsConnection {
         nodes @__execute(id: 19, kind: DEFAULT, type: COMPOSITE_LIST) {
           ... on Asset {

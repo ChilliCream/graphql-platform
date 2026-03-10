@@ -5,7 +5,7 @@ query queryName(
   "$site description"
   $site: Site = MOBILE
 ) {
-  whoever123is: node(id: [ 123, 456 ]) {
+  whoever123is: node(id: [123, 456]) {
     id
     ... on User @defer {
       field2 {

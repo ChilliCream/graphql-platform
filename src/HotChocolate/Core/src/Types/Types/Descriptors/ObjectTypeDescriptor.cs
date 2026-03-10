@@ -64,6 +64,16 @@ public class ObjectTypeDescriptor
             Configuration.ConfigurationsAreApplied = true;
         }
 
+        var explicitFieldNames = TypeMemHelper.RentNameSet();
+
+        foreach (var field in _fields)
+        {
+            if (!field.Configuration.Ignore && !string.IsNullOrEmpty(field.Configuration.Name))
+            {
+                explicitFieldNames.Add(field.Configuration.Name);
+            }
+        }
+
         foreach (var field in _fields)
         {
             if (field.Configuration.Ignore)
@@ -71,8 +81,14 @@ public class ObjectTypeDescriptor
                 // if this definition is used for a type extension we need a
                 // binding to a field which shall be ignored. In case this is a
                 // definition for the type it will be ignored by the type initialization.
-                Configuration.FieldIgnores.Add(
-                    new ObjectFieldBinding(field.Configuration.Name, ObjectFieldBindingType.Field));
+                if (!string.IsNullOrEmpty(field.Configuration.Name)
+                    && !explicitFieldNames.Contains(field.Configuration.Name))
+                {
+                    Configuration.FieldIgnores.Add(
+                        new ObjectFieldBinding(
+                            field.Configuration.Name,
+                            ObjectFieldBindingType.Field));
+                }
             }
         }
 
@@ -106,6 +122,7 @@ public class ObjectTypeDescriptor
         Configuration.Fields.Clear();
         Configuration.Fields.AddRange(fields.Values);
 
+        TypeMemHelper.Return(explicitFieldNames);
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(handledMembers);
 
@@ -321,6 +338,17 @@ public class ObjectTypeDescriptor
         Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
     {
         ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        if (propertyOrMethod.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
+        {
+            var fieldDescriptor = ObjectFieldDescriptor.New(
+                Context,
+                propertyOrMethod,
+                Configuration.RuntimeType,
+                typeof(TResolver));
+            _fields.Add(fieldDescriptor);
+            return fieldDescriptor;
+        }
 
         var member = propertyOrMethod.TryExtractMember();
 

@@ -4,7 +4,7 @@ title: "Scalars"
 
 Scalars are the leaf types of a GraphQL schema — they represent concrete values like strings, numbers, and dates. Unlike object types, scalars cannot be decomposed further; they are where the query ends and actual data is returned.
 
-Every scalar defines how values are converted between their GraphQL wire format (JSON) and .NET runtime representation. GraphQL includes five built-in scalars (`String`, `Int`, `Float`, `Boolean`, and `ID`), but you can also define custom scalars like `DateTime`, `Uuid`, or `EmailAddress` to add domain-specific validation and improve the clarity of your API. Hot Chocolate already comes with lots of additional scalars.
+Every scalar defines how values are converted between their GraphQL wire format (JSON) and .NET runtime representation. GraphQL includes five built-in scalars (`String`, `Int`, `Float`, `Boolean`, and `ID`), but you can also define custom scalars like `DateTime`, `UUID`, or `EmailAddress` to add domain-specific validation and improve the clarity of your API. Hot Chocolate already comes with lots of additional scalars.
 
 # Built-in Scalars
 
@@ -14,7 +14,7 @@ The GraphQL specification defines five scalar types that every implementation mu
 
 ```sdl
 type Product {
-  description: String;
+  description: String
 }
 ```
 
@@ -26,7 +26,7 @@ It is automatically inferred from the usage of the .NET [string type](https://do
 
 ```sdl
 type Product {
-  purchasable: Boolean;
+  purchasable: Boolean
 }
 ```
 
@@ -38,7 +38,7 @@ It is automatically inferred from the usage of the .NET [bool type](https://docs
 
 ```sdl
 type Product {
-  quantity: Int;
+  quantity: Int
 }
 ```
 
@@ -50,7 +50,7 @@ It is automatically inferred from the usage of the .NET [int type](https://docs.
 
 ```sdl
 type Product {
-  price: Float;
+  price: Float
 }
 ```
 
@@ -64,11 +64,11 @@ It is automatically inferred from the usage of the .NET [float](https://docs.mic
 
 ```sdl
 type Product {
-  id: ID!;
+  id: ID!
 }
 ```
 
-This scalar is used to facilitate technology-specific Ids, like `int`, `string` or `Guid`.
+This scalar is used to facilitate technology-specific IDs, like `int`, `string`, or `Guid`.
 
 It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/v16/defining-a-schema/object-types#explicit-types).
 
@@ -78,13 +78,14 @@ It is **not** automatically inferred and the `IdType` needs to be [explicitly sp
 <Implementation>
 
 ```csharp
-public class Product
+public sealed class Product
 {
     [GraphQLType<IdType>]
     public int Id { get; set; }
 }
 
-public class Query
+[QueryType]
+public sealed class Query
 {
     public Product GetProduct([GraphQLType<IdType>] int id)
     {
@@ -97,12 +98,12 @@ public class Query
 <Code>
 
 ```csharp
-public class Product
+public sealed class Product
 {
     public int Id { get; set; }
 }
 
-public class ProductType : ObjectType<Product>
+public sealed class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
@@ -112,7 +113,7 @@ public class ProductType : ObjectType<Product>
     }
 }
 
-public class QueryType : ObjectType
+public sealed class QueryType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
@@ -136,7 +137,7 @@ public class QueryType : ObjectType
 <Schema>
 
 ```csharp
-public class Product
+public sealed class Product
 {
     public int Id { get; set; }
 }
@@ -145,15 +146,16 @@ public class Product
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .AddDocumentFromString(@"
+    .AddDocumentFromString(
+        """
         type Query {
-          product(id: ID): Product
+            product(id: ID): Product
         }
 
         type Product {
-          id: ID
+            id: ID
         }
-    ")
+        """)
     .BindRuntimeType<Product>()
     .AddResolver("Query", "product", context =>
     {
@@ -166,33 +168,33 @@ builder.Services
 </Schema>
 </ExampleTabs>
 
-Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
+Notice how our code uses `int` for the ID, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our ID, without affecting the schema and our clients.
 
 # .NET Scalars
 
 In addition to the scalars defined by the specification, Hot Chocolate also supports the following set of scalar types:
 
-| Type          | Description                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
-| Any           | The [Any][1] scalar type represents any valid GraphQL value.                                           |
-| Base64String  | The [Base64String][2] scalar type represents an array of bytes encoded as a Base64 string.             |
-| Byte          | The [Byte][3] scalar type represents a signed 8-bit integer.                                           |
-| Date          | The [Date][4] scalar type represents a date in UTC.                                                    |
-| DateTime      | The [DateTime][5] scalar type represents a date and time with time zone offset information.            |
-| Decimal       | The [Decimal][6] scalar type represents a decimal floating-point number with high precision.           |
-| LocalDate     | The [LocalDate][7] scalar type represents a date without time or time zone information.                |
-| LocalDateTime | The [LocalDateTime][8] scalar type represents a date and time without time zone information.           |
-| LocalTime     | The [LocalTime][9] scalar type represents a time of day without date or time zone information.         |
-| Long          | The [Long][10] scalar type represents a signed 64-bit integer.                                         |
-| Short         | The [Short][11] scalar type represents a signed 16-bit integer.                                        |
-| TimeSpan      | The [TimeSpan][12] scalar type represents a duration of time.                                          |
-| UnsignedByte  | The [UnsignedByte][13] scalar type represents an unsigned 8-bit integer.                               |
-| UnsignedInt   | The [UnsignedInt][14] scalar type represents an unsigned 32-bit integer.                               |
-| UnsignedLong  | The [UnsignedLong][15] scalar type represents an unsigned 64-bit integer.                              |
-| UnsignedShort | The [UnsignedShort][16] scalar type represents an unsigned 16-bit integer.                             |
-| URI           | The [URI][17] scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.       |
-| URL           | The [URL][18] scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.          |
-| UUID          | The [UUID][19] scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.   |
+| Type          | Description                                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| Any           | The [Any][1] scalar type represents any valid GraphQL value.                                         |
+| Base64String  | The [Base64String][2] scalar type represents an array of bytes encoded as a Base64 string.           |
+| Byte          | The [Byte][3] scalar type represents a signed 8-bit integer.                                         |
+| Date          | The [Date][4] scalar type represents a date in UTC.                                                  |
+| DateTime      | The [DateTime][5] scalar type represents a date and time with time zone offset information.          |
+| Decimal       | The [Decimal][6] scalar type represents a decimal floating-point number with high precision.         |
+| Duration      | The [Duration][7] scalar type represents a duration of time.                                         |
+| LocalDate     | The [LocalDate][8] scalar type represents a date without time or time zone information.              |
+| LocalDateTime | The [LocalDateTime][9] scalar type represents a date and time without time zone information.         |
+| LocalTime     | The [LocalTime][10] scalar type represents a time of day without date or time zone information.      |
+| Long          | The [Long][11] scalar type represents a signed 64-bit integer.                                       |
+| Short         | The [Short][12] scalar type represents a signed 16-bit integer.                                      |
+| UnsignedByte  | The [UnsignedByte][13] scalar type represents an unsigned 8-bit integer.                             |
+| UnsignedInt   | The [UnsignedInt][14] scalar type represents an unsigned 32-bit integer.                             |
+| UnsignedLong  | The [UnsignedLong][15] scalar type represents an unsigned 64-bit integer.                            |
+| UnsignedShort | The [UnsignedShort][16] scalar type represents an unsigned 16-bit integer.                           |
+| URI           | The [URI][17] scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.     |
+| URL           | The [URL][18] scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.        |
+| UUID          | The [UUID][19] scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562. |
 
 [1]: https://scalars.graphql.org/chillicream/any.html
 [2]: https://scalars.graphql.org/chillicream/base64-string.html
@@ -200,12 +202,12 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 [4]: https://scalars.graphql.org/chillicream/date.html
 [5]: https://scalars.graphql.org/chillicream/date-time.html
 [6]: https://scalars.graphql.org/chillicream/decimal.html
-[7]: https://scalars.graphql.org/chillicream/local-date.html
-[8]: https://scalars.graphql.org/chillicream/local-date-time.html
-[9]: https://scalars.graphql.org/chillicream/local-time.html
-[10]: https://scalars.graphql.org/chillicream/long.html
-[11]: https://scalars.graphql.org/chillicream/short.html
-[12]: https://scalars.graphql.org/chillicream/time-span.html
+[7]: https://scalars.graphql.org/chillicream/duration.html
+[8]: https://scalars.graphql.org/chillicream/local-date.html
+[9]: https://scalars.graphql.org/chillicream/local-date-time.html
+[10]: https://scalars.graphql.org/chillicream/local-time.html
+[11]: https://scalars.graphql.org/chillicream/long.html
+[12]: https://scalars.graphql.org/chillicream/short.html
 [13]: https://scalars.graphql.org/chillicream/unsigned-byte.html
 [14]: https://scalars.graphql.org/chillicream/unsigned-int.html
 [15]: https://scalars.graphql.org/chillicream/unsigned-long.html
@@ -276,9 +278,65 @@ public enum ValueKind
 }
 ```
 
-If we want to access an object dynamically without serializing it to a strongly typed model we can get it as `IReadOnlyDictionary<string, object>` or as `ObjectValueNode`.
+To access the argument value dynamically, use `JsonElement`, which lets you navigate the structure without deserializing to a strongly typed model:
 
-Lists can be accessed generically by getting them as `IReadOnlyList<object>` or as `ListValueNode`.
+```csharp
+JsonElement value = context.ArgumentValue<JsonElement>("bar");
+
+if (value.ValueKind == JsonValueKind.Object)
+{
+    string? name = value.GetProperty("name").GetString();
+}
+```
+
+To deserialize directly into a strongly typed model, pass the target type to `ArgumentValue<T>`:
+
+```csharp
+Foo foo = context.ArgumentValue<Foo>("bar");
+```
+
+### Runtime Type
+
+The `Any` scalar uses `System.Text.Json.JsonElement` as its .NET runtime type. Fields inferred as or annotated with `Any` expect resolvers to return a `JsonElement`.
+
+### Returning Dictionaries and Arbitrary .NET Types
+
+To return common .NET types such as `Dictionary<string, object>` or `ExpandoObject` from an `Any` field, register the JSON type converter. It handles the conversion from arbitrary .NET types to `JsonElement` automatically:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddJsonTypeConverter();
+```
+
+With the converter registered, resolvers can return dictionaries or any JSON-serializable object directly:
+
+```csharp
+[GraphQLType<AnyType>]
+public object GetData() => new Dictionary<string, object>
+{
+    { "name", "John" },
+    { "age", 30 }
+};
+```
+
+### Custom Type Serialization
+
+For custom reference types, you can register a dedicated converter to control exactly how the type is serialized. For example, to serialize `TimeZoneInfo` as its string ID instead of a full JSON object:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeConverter<TimeZoneInfo, JsonElement>(
+        value => JsonSerializer.SerializeToElement(value.Id));
+```
+
+The resolver can then return the type directly and it will be serialized using the registered converter:
+
+```csharp
+[GraphQLType<AnyType>]
+public TimeZoneInfo GetTimezone() => TimeZoneInfo.Utc; // serializes as "UTC"
+```
 
 ## UUID Type
 
@@ -333,10 +391,10 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 [21]: https://tools.ietf.org/html/rfc7042#page-19
 [22]: https://tools.ietf.org/html/rfc7043
 
-Most of these scalars are built on top of native .NET types. An Email Address for example is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
+Most of these scalars are built on top of native .NET types. An email address, for example, is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
 
 ```csharp
-[GraphQLType(typeof(EmailAddressType))]
+[GraphQLType<EmailAddressType>]
 public string GetEmail() => "test@example.com";
 ```
 
@@ -371,7 +429,7 @@ It can be installed like the following.
 When returning a NodaTime type from one of our resolvers, for example a `NodaTime.Duration`, we also need to explicitly register the corresponding scalar type. In the case of a `NodaTime.Duration` this would be the `DurationType` scalar.
 
 ```csharp
-public class Query
+public sealed class Query
 {
     public Duration GetDuration() => Duration.FromMinutes(3);
 }
@@ -416,7 +474,7 @@ We can reuse existing scalar types and bind them to different runtime types by s
 We could for example register converters between [NodaTime](https://nodatime.org/)'s `OffsetDateTime` and .NET's `DateTimeOffset` to reuse the existing `DateTimeType`.
 
 ```csharp
-public class Query
+public sealed class Query
 {
     public OffsetDateTime GetDateTime(OffsetDateTime offsetDateTime)
     {
@@ -438,7 +496,7 @@ builder.Services
 
 # Scalar Options
 
-Some scalars like `TimeSpan` or `Uuid` have options like their serialization format.
+Some scalars like `Duration` or `UUID` have options like their serialization format.
 
 We can specify these options by registering the scalar explicitly.
 
@@ -505,7 +563,7 @@ public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
         return new StringValueNode(runtimeValue);
     }
 
-    private void AssertCreditCardNumberFormat(string number)
+    private void AssertCreditCardNumberFormat(string value)
     {
         if (!_validator.ValidateCreditCard(value))
         {
@@ -526,7 +584,7 @@ Hot Chocolate provides specialized base classes for common scalar patterns that 
 Use `IntegerTypeBase<T>` for scalars that represent numeric values with min/max constraints. The base class handles parsing, validation, and range checking automatically.
 
 ```csharp
-public class TcpPortType : IntegerTypeBase<int>
+public sealed class TcpPortType : IntegerTypeBase<int>
 {
     public TcpPortType()
         : base("TcpPort", min: 1, max: 65535)
@@ -540,10 +598,10 @@ public class TcpPortType : IntegerTypeBase<int>
     protected override int OnCoerceInputValue(JsonElement inputValue)
         => inputValue.GetInt32();
 
-    public override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
-    public override IValueNode OnValueToLiteral(int runtimeValue)
+    protected override IValueNode OnValueToLiteral(int runtimeValue)
         => new IntValueNode(runtimeValue);
 }
 ```
@@ -553,7 +611,7 @@ The `IntegerTypeBase` automatically validates that values fall within the specif
 ```csharp
 protected override LeafCoercionException FormatError(int runtimeValue)
     => new LeafCoercionException(
-        $"The value {runtimeValue} is not a valid TCP port. Must be between 1 and 65535.",
+        $"The value '{runtimeValue}' is not a valid TCP port. Must be between 1 and 65535.",
         this);
 ```
 
@@ -564,12 +622,12 @@ Hot Chocolate also provides a `FloatTypeBase<T>` for floating-point scalars (`fl
 Use `RegexType` for string scalars that must match a specific pattern. This is ideal for formats like phone numbers, postal codes, or identifiers.
 
 ```csharp
-public class HexColorType : RegexType
+public sealed class HexColorType : RegexType
 {
     public HexColorType()
         : base(
             "HexColor",
-            @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+            "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
             "A hex color code, e.g. #FF5733 or #F53")
     {
     }

@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeExternalLinks from "rehype-external-links";
+import rehypeMermaid from "rehype-mermaid";
 import rehypeRaw from "rehype-raw";
 
 // Custom components that render as block-level elements (divs).
@@ -23,6 +24,7 @@ const BLOCK_COMPONENTS = [
   "apichoicetabs-minimalapis",
   "apichoicetabs-regular",
   "tabgroups",
+  "topologyvisualization",
   "warning",
 ];
 
@@ -200,6 +202,7 @@ function rehypeOptimizedImages() {
 }
 
 const rehypePlugins = [
+  [rehypeMermaid, { strategy: "pre-mermaid" }],
   rehypeRaw,
   rehypeUnwrapBlockComponents,
   rehypeOptimizedImages,
@@ -265,6 +268,7 @@ const SELF_CLOSING_COMPONENTS = [
   "Video",
   "PackageInstallation",
   "SurveyPrompt",
+  "TopologyVisualization",
 ];
 
 function expandSelfClosingTags(source: string): string {

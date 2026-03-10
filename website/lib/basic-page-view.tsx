@@ -50,10 +50,7 @@ export function BasicPageView({
       <SEO title={title} />
       <ArticleLayout
         navigation={
-          <DefaultArticleNavigation
-            data={navigationData}
-            selectedPath={slug}
-          />
+          <DefaultArticleNavigation data={navigationData} selectedPath={slug} />
         }
         aside={<ArticleTableOfContent data={tocData} />}
       >

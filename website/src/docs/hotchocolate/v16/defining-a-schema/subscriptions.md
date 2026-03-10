@@ -168,7 +168,7 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support two subscription providers.
+To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support four subscription providers.
 
 ## In-Memory Provider
 
@@ -197,6 +197,55 @@ builder.Services
 ```
 
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
+
+## NATS Provider
+
+The NATS subscription provider enables us to run multiple instances of our Hot Chocolate GraphQL server and handle subscription events reliably over NATS.
+
+In order to use the NATS provider we have to add the `HotChocolate.Subscriptions.Nats` and `NATS.Extensions.Microsoft.DependencyInjection` packages.
+
+<PackageInstallation packageName="HotChocolate.Subscriptions.Nats" />
+
+<PackageInstallation packageName="NATS.Extensions.Microsoft.DependencyInjection" external />
+
+After we have added the packages we can setup the NATS subscription provider.
+
+```csharp
+using NATS.Extensions.Microsoft.DependencyInjection;
+
+builder.Services
+    .AddNatsClient(
+        nats => nats.ConfigureOptions(
+            options => options.Configure(
+                opts => opts.Opts = opts.Opts with
+                {
+                    Url = "nats://localhost:4222"
+                })));
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>() // every GraphQL server needs a query
+    .AddSubscriptionType<Subscription>()
+    .AddNatsSubscriptions();
+```
+
+If multiple distinct GraphQL servers share the same NATS broker, configure a `TopicPrefix` to isolate their topics:
+
+```csharp
+using HotChocolate.Subscriptions;
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>() // every GraphQL server needs a query
+    .AddSubscriptionType<Subscription>()
+    .AddNatsSubscriptions(
+        new SubscriptionOptions
+        {
+            TopicPrefix = "orders-service-dev"
+        });
+```
+
+The NATS provider uses NATS core publish/subscribe; JetStream is not required.
 
 ## Postgres Provider
 

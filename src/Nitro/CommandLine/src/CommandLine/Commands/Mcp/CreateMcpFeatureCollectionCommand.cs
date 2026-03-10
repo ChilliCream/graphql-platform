@@ -38,7 +38,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         console.WriteLine("Creating an MCP Feature Collection");
         console.WriteLine();
 
-        const string apiMessage = "For which api do you want to create an MCP Feature Collection?";
+        const string apiMessage = "For which API do you want to create an MCP Feature Collection?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         var name = await context

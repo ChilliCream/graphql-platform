@@ -658,6 +658,7 @@ public abstract class IntegrationTestBase
                 { "date", null },
                 { "dateTime", null },
                 { "decimal", null },
+                { "duration", null },
                 { "enum", null },
                 { "float", null },
                 { "id", null },
@@ -671,7 +672,6 @@ public abstract class IntegrationTestBase
                 { "object", null },
                 { "short", null },
                 { "string", null },
-                { "timeSpan", null },
                 { "unknown", null },
                 { "unsignedByte", null },
                 { "unsignedInt", null },
@@ -712,6 +712,7 @@ public abstract class IntegrationTestBase
                 { "date", "2000-01-01" },
                 { "dateTime", "2000-01-01T12:00:00Z" },
                 { "decimal", 79228162514264337593543950335m },
+                { "duration", "PT5M" },
                 { "enum", "VALUE1" },
                 { "float", 1.5 },
                 { "id", "test" },
@@ -725,7 +726,6 @@ public abstract class IntegrationTestBase
                 { "object", new { field1A = new { field1B = new { field1C = "12:00:00" } } } },
                 { "short", 1 },
                 { "string", "test" },
-                { "timeSpan", "PT5M" },
                 { "unknown", "test" },
                 { "unsignedByte", 1 },
                 { "unsignedInt", 65536 },
@@ -769,7 +769,7 @@ public abstract class IntegrationTestBase
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
                     await File.ReadAllTextAsync("__resources__/GetWithComplexVariables.graphql"))));
-        var server = await CreateTestServerAsync(storage, [new TimeSpanType(TimeSpanFormat.DotNet)]);
+        var server = await CreateTestServerAsync(storage, [new DurationType(DurationFormat.DotNet)]);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -798,7 +798,7 @@ public abstract class IntegrationTestBase
                 { "oneOf", new { field1 = 1 } },
                 { "oneOfList", new object[] { new { field1 = 1 }, new { field2 = "test" } } },
                 { "objectWithOneOfField", new { field = new { field1 = 1 } } },
-                { "timeSpanDotNet", "00:05:00" }
+                { "durationDotNet", "00:05:00" }
             },
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 

@@ -112,6 +112,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableTag"/>
     public bool EnableTag { get; set; } = true;
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOptInFeatures"/>
+    public bool EnableOptInFeatures { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultQueryDependencyInjectionScope"/>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
         DependencyInjectionScope.Resolver;
@@ -218,6 +221,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
+            EnableOptInFeatures = options.EnableOptInFeatures,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
             LazyInitialization = options.LazyInitialization,

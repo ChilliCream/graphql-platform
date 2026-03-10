@@ -40,7 +40,7 @@ internal sealed class CreateApiCommand : Command
         var workspaceId = context.RequireWorkspaceId();
 
         console.WriteLine();
-        console.WriteLine("Creating a api");
+        console.WriteLine("Creating an API");
         console.WriteLine();
 
         var name = await context.OptionOrAskAsync("Name", Opt<ApiNameOption>.Instance, ct);
@@ -65,7 +65,7 @@ internal sealed class CreateApiCommand : Command
         var changeResult = data.PushWorkspaceChanges.Changes?.SingleOrDefault();
         if (changeResult is null)
         {
-            throw Exit("Could not create api.");
+            throw Exit("Could not create API.");
         }
 
         if (changeResult.Error is IError error)
@@ -75,11 +75,11 @@ internal sealed class CreateApiCommand : Command
 
         if (changeResult.Result is not ICreateApiCommandMutation_Api api)
         {
-            throw Exit("Could not create api.");
+            throw Exit("Could not create API.");
         }
 
         console.OkLine(
-            $"Api [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} created");
+            $"API [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} created");
 
         if (changeResult.Result is IApiDetailPrompt_Api detail)
         {

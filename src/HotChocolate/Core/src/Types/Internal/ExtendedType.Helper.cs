@@ -181,6 +181,7 @@ public sealed partial class ExtendedType
         {
             if (cache.TryGetType(id, out var cached))
             {
+                position += CountComponents(cached);
                 return cached;
             }
 
@@ -246,6 +247,18 @@ public sealed partial class ExtendedType
             }
 
             return type;
+        }
+
+        private static int CountComponents(IExtendedType type)
+        {
+            var count = 1;
+
+            foreach (var typeArgument in type.TypeArguments)
+            {
+                count += CountComponents(typeArgument);
+            }
+
+            return count;
         }
 
         internal static ExtendedTypeId CreateIdentifier(IExtendedType type)
