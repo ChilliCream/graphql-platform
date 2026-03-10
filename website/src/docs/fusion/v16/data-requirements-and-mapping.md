@@ -46,7 +46,17 @@ public static partial class ProductNode
 }
 ```
 
-The `[Require]` attribute maps to `@require(field: "weight")` in the exported schema. Because the C# argument name `weight` matches the entity field name, the field path is inferred automatically. When the names differ, you provide the path explicitly: `[Require("weight")]`.
+The `[Require]` attribute maps to `@require(field: "weight")` in the exported schema. Because the C# argument name `weight` matches the entity field name, the field path is inferred automatically.
+
+When the names differ, provide the field path explicitly:
+
+```csharp
+public static int GetShippingEstimate(
+    [Parent] Product product,
+    string zip,
+    [Require("weight")] float packageWeight)
+    => ShippingCalculator.Estimate(zip, packageWeight);
+```
 
 **Public facing composite schema (what clients see)**
 
@@ -323,13 +333,13 @@ weight: Float! @require(field: "weight")
 **Object selection.** Use when mapping multiple entity fields into a single input object argument.
 
 ```graphql
-dimension: DimensionInput! @require(field: "{ weight, length, width, height }")
+dimension: ProductDimensionInput! @require(field: "{ weight, length, width, height }")
 ```
 
 **Mapped selection.** Use when the input field names differ from the entity field names, or when you need to reach into nested fields.
 
 ```graphql
-dimension: DimensionInput! @require(field: "{ w: weight, l: dimensions.length }")
+dimension: ProductDimensionInput! @require(field: "{ w: weight, l: dimensions.length }")
 ```
 
 **List aggregation.** Use when you need to collect a single field from each element of a list.
@@ -341,7 +351,7 @@ countryCodes: [String!]! @require(field: "seller.addresses[countryCode]")
 **List projection.** Use when you need multiple fields from each element but want to drop the rest.
 
 ```graphql
-dims: [DimensionInput!]! @require(field: "dimensions[{ weight, height }]")
+dims: [ProductDimensionInput!]! @require(field: "dimensions[{ weight, height }]")
 ```
 
 > For the full FieldSelectionMap grammar, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
@@ -356,6 +366,18 @@ which does not exist on type "Product".
 ```
 
 The field path in `@require(field: "...")` points to a field that does not exist on the entity type after composition. Check that the field name matches exactly (GraphQL field names, not C# property names) and that the owning subgraph is included in composition.
+
+### `PROVIDES_INVALID_FIELDS`: Invalid field selection in `@provides`
+
+The `@provides(fields: "...")` selection references one or more fields that do not exist on the returned entity type. Verify each field path (including nested fields) against the GraphQL schema.
+
+### `PROVIDES_FIELDS_MISSING_EXTERNAL`: Provided field must be marked `@external`
+
+A field referenced by `@provides(fields: "...")` must be declared as `@external` in the same subgraph. Mark the provided field (and nested fields, when applicable) as `@external`, or remove it from `@provides` if this subgraph owns it globally.
+
+### `EXTERNAL_UNUSED`: External field is not referenced
+
+Every `@external` field must be referenced by a `@provides` directive. Remove unused `@external` declarations or add the corresponding `@provides` selection.
 
 ### Required argument still visible in composite schema
 
