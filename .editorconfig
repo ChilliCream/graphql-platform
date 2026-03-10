@@ -311,11 +311,6 @@ dotnet_diagnostic.RCS9003.severity = warning
 # Use GeneratedRegexAttribute.
 dotnet_diagnostic.SYSLIB1045.severity = warning
 
-[**/Migrations/**.cs]
-dotnet_analyzer_diagnostic.severity = none
-dotnet_diagnostic.IDE0005.severity = none
-dotnet_diagnostic.IDE0300.severity = none
-
 # netstandard2.0
 [src/HotChocolate/{Core/src/Types.Analyzers,Language}/**/*.cs]
 dotnet_diagnostic.CA1510.severity = none
