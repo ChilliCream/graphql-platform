@@ -299,6 +299,7 @@ type Api implements Node {
   openApiCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiOpenApiCollectionsConnection
   operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection
   path: [String!]!
+  referenceName: String!
   schemaVersions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): SchemaVersionsConnection
   settings: ApiSettings!
   stages: [Stage!]!
@@ -3121,7 +3122,7 @@ type Query {
   fusionConfigurationByApiId(id: ID! stage: String!): FusionConfiguration
   me: Viewer
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @lookup @shareable
+  node("ID of the object." id: ID!): Node
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
   organizationById(id: ID!): Organization
@@ -4118,6 +4119,7 @@ input ApiCreateChangeInput {
   name: String!
   path: [String!]!
   referenceId: String!
+  referenceName: String
   workspaceId: ID!
 }
 
@@ -4196,6 +4198,7 @@ input ApiUpdateChangeInput {
   name: String!
   path: [String!]!
   referenceId: String!
+  referenceName: String
   version: Version!
   workspaceId: ID!
 }
@@ -4318,7 +4321,7 @@ input DeleteOpenApiCollectionByIdInput {
 input EnvironmentCreateChangeInput {
   name: String!
   referenceId: String!
-  variables: [EnvironmentVariableInput!]! = []
+  variables: [EnvironmentVariableInput!]! = [  ]
   workspaceId: ID!
 }
 
@@ -4333,7 +4336,7 @@ input EnvironmentUpdateChangeInput {
   id: ID!
   name: String!
   referenceId: String!
-  variables: [EnvironmentVariableInput!]! = []
+  variables: [EnvironmentVariableInput!]! = [  ]
   version: Version!
   workspaceId: ID!
 }
@@ -4555,7 +4558,7 @@ input StageConditionUpdateInput {
 }
 
 input StageUpdateInput {
-  conditions: [StageConditionUpdateInput!]! = []
+  conditions: [StageConditionUpdateInput!]! = [  ]
   displayName: String!
   name: String!
 }
@@ -4942,17 +4945,8 @@ enum WorkspaceUserRole {
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("Deferred when true." if: Boolean "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-"""
-The @lookup directive is used within a source schema to specify output fields
-that can be used by the distributed GraphQL executor to resolve an entity by
-a stable key.
-"""
-directive @lookup on FIELD_DEFINITION
-
 "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
 directive @oneOf on INPUT_OBJECT
-
-directive @shareable on OBJECT | FIELD_DEFINITION
 
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
