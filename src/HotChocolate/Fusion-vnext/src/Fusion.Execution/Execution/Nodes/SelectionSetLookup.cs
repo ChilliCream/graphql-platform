@@ -84,13 +84,7 @@ internal sealed class SelectionLookup
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetSelection(ReadOnlySpan<byte> name, [NotNullWhen(true)] out Selection? selection)
     {
-        var table = _table.AsSpan();
-
-        if (table.Length == 0)
-        {
-            selection = default!;
-            return false;
-        }
+        var table = _table;
 
         var hashCode = ComputeHash(name, _seed);
         var index = hashCode & _mask;
