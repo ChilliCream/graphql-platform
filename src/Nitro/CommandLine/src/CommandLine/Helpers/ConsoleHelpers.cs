@@ -13,7 +13,13 @@ internal static class ConsoleHelpers
         if (result.Errors is { Count: > 0 })
         {
             var firstError = result.Errors[0];
-            console.WriteLine($"{firstError.Message} ({firstError.Code})");
+            var errorMessage = firstError.Message;
+            if (!string.IsNullOrEmpty(firstError.Code))
+            {
+                errorMessage += $" ({firstError.Code})";
+            }
+
+            console.WriteLine(errorMessage);
 
             throw new ExitException();
         }
@@ -386,11 +392,11 @@ internal static class ConsoleHelpers
                 break;
 
             case IError err:
-                ansiConsole.WriteLine(err.Message);
+                ansiConsole.WriteLine("Unexpected mutation error: " + err.Message);
                 break;
 
             default:
-                ansiConsole.WriteLine("Unexpected Error");
+                ansiConsole.WriteLine("Unexpected mutation error");
                 break;
         }
     }

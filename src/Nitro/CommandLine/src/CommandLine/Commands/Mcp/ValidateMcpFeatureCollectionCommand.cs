@@ -7,7 +7,6 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using StrawberryShake;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -113,11 +112,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
             {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request ID returned");
-                }
+                console.EnsureNoErrors(x);
 
                 switch (x.Data?.OnMcpFeatureCollectionVersionValidationUpdate)
                 {
