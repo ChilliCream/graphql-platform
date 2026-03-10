@@ -8,7 +8,9 @@ namespace HotChocolate.Types;
 /// </summary>
 public struct DateTimeOptions
 {
-    public const byte DefaultInputPrecision = 7;
+    public const byte DefaultInputPrecision = 9;
+
+    // DateTimeOffset, DateTime, and TimeOnly all have a maximum of 7 fractional second digits.
     public const byte DefaultOutputPrecision = 7;
 
     public DateTimeOptions()
@@ -20,14 +22,14 @@ public struct DateTimeOptions
     /// input values.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when the value is greater than 7.
+    /// Thrown when the value is greater than 9.
     /// </exception>
     public byte InputPrecision
     {
         get;
         init
         {
-            if (value > 7)
+            if (value > 9)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(InputPrecision),

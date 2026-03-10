@@ -321,7 +321,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 7..
+        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 9..
         /// </summary>
         internal static string DateTimeOptions_InputPrecision_InvalidValue {
             get {
