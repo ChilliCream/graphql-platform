@@ -143,6 +143,25 @@ type InternalLookups @internal {
 }
 ```
 
+**C# declaration**
+
+```csharp
+[QueryType]
+public static partial class Query
+{
+    [Internal]
+    public static InternalLookups GetInternalLookups { get; } = new();
+}
+
+[Internal, ObjectType]
+public partial class InternalLookups
+{
+    [Lookup]
+    public Product? GetProductByTenantAndSku(int tenantId, string sku)
+        => ProductRepository.GetByTenantAndSku(tenantId, sku);
+}
+```
+
 In this pattern, clients cannot access `internalLookups` from the composite schema, but the gateway can still use nested `@lookup` fields for internal transitions.
 
 ### When to Use Internal vs. Public Lookups
@@ -354,9 +373,33 @@ type Tenant {
 }
 ```
 
-## GraphQL Global Object Identification Specification
+## GraphQL Global Object Identification
 
-If your subgraphs implement the GraphQL Global Object Identification Specification that provides the `node` on the query
+If your subgraphs implement GraphQL Global Object Identification, with a `node` field on `Query` and a `Node` interface, you already have a strong entity identity contract. You can build on this by using `node` as a lookup and treating types that implement `Node` as entities.
+
+**GraphQL schema**
+
+```graphql
+type Query {
+  node(id: ID!): Node @lookup
+}
+
+interface Node @key(fields: "id") {
+  id: ID!
+}
+```
+
+If you are using Hot Chocolate as a subgraph, set `MarkNodeFieldAsLookup` and Hot Chocolate will mark the generated `node` field as a lookup automatically.
+
+**C# configuration**
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true);
+```
+
+> If GraphQL Global Object Identification is enabled at the gateway level, every entity resolvable through the `node` field becomes a public entry point. Use explicit internal lookups for entities you do not want exposed as public entry points.
 
 ## Next Steps
 
