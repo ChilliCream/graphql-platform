@@ -45,15 +45,29 @@ In these examples, `id` is the key and `@lookup` defines how `Product` is resolv
 
 ## Lookups
 
-A lookup is a query field that resolves an entity by its key. The gateway uses lookups to fetch entities from the subgraph that owns them. Without a lookup, the gateway has no way to enter a subgraph and resolve an entity.
+A lookup is a query field that resolves an entity by its key. The gateway uses lookups to fetch additional fields for entities. Depending on the requested fields and available routes, it can use any subgraph that provides those fields and a compatible lookup path. Without a lookup, the gateway has no way to enter a subgraph and resolve an entity.
 
 ### Public Lookups
 
 A public lookup serves two purposes: clients can call it directly as a query field, and the gateway uses it for entity resolution behind the scenes.
 
-```csharp
-// Products/Types/ProductQueries.cs
+**GraphQL schema**
 
+```graphql
+type Query {
+  productById(id: ID!): Product @lookup
+}
+```
+
+The `@lookup` directive marks `productById` as a lookup for `Product`. Because the argument is named `id`, composition maps it to the `Product.id` key field. Cross-subgraph transitions depend on this mapping: the source subgraph must provide the key, and the target subgraph must expose a lookup that accepts that key.
+
+Lookups must return nullable entity types. In GraphQL, that means `Product` instead of `Product!`. In C#, use a nullable return type like `Product?`. This allows unresolved keys to return `null` and helps avoid cascading failures when one or more subgraphs cannot provide additional fields for an entity.
+
+In Hot Chocolate, the `@lookup` directive is represented by the `[Lookup]` attribute.
+
+**C# resolver**
+
+```csharp
 [QueryType]
 public static partial class ProductQueries
 {
@@ -66,17 +80,46 @@ public static partial class ProductQueries
 }
 ```
 
-The `[Lookup]` attribute tells Fusion that `GetProductByIdAsync` resolves a `Product` entity by its `id` argument. The composition engine infers from this that `id` is a key field for `Product`.
+If the argument name does not match a field name on the type, the `@is` directive must be used to map the argument to the key field.
 
-Lookups should return nullable entity types (`Product?`). This allows unresolved keys to return `null` and helps avoid cascading failures when one or more subgraphs cannot provide additional fields for an entity.
+```graphql
+type Query {
+  product(productId: ID! @is(field: "id")): Product @lookup
+}
+```
+
+In Hot Chocolate, you can use the `[Is]` attribute with `nameof`.
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    [Lookup]
+    public static async Task<Product?> GetProductAsync(
+        [Is(nameof(Product.Id))] int productId,
+        IProductByIdDataLoader productById,
+        CancellationToken cancellationToken)
+        => await productById.LoadAsync(productId, cancellationToken);
+}
+```
 
 ### Internal Lookups
 
-An internal lookup is hidden from the composite schema. Clients cannot call it. It exists only for the gateway to use during entity resolution.
+An internal lookup is hidden from the composite schema. Clients cannot call it directly. It exists only for the gateway to use during entity resolution.
+
+**GraphQL schema**
+
+```graphql
+type Query {
+  productById(id: ID!): Product @internal @lookup
+}
+```
+
+The `@internal` directive tells the composition to exclude this lookup from the public composite schema. The gateway can still use it when it needs to enter the Reviews subgraph to resolve `Product.reviews`, but clients never see or call it.
+
+**C# resolver**
 
 ```csharp
-// Reviews/Types/ProductQueries.cs
-
 [QueryType]
 public static partial class ProductQueries
 {
@@ -86,33 +129,54 @@ public static partial class ProductQueries
 }
 ```
 
-The `[Internal]` attribute hides this lookup from the composite schema. The gateway uses it when it needs to enter the Reviews subgraph to resolve `Product.reviews`, but clients never see or call it.
+You can also group internal lookups under a dedicated internal root field. This keeps internal routing entry points in one place and avoids repeating `@internal` on every lookup field.
 
-Lookups should return nullable entity types (`Product?`) so unresolved keys can return `null` and avoid cascading failures across subgraphs. Internal lookups often still construct a stub from the key without checking existence, because the gateway calls them during entity resolution with already-known keys.
+**GraphQL schema (grouped internal lookups)**
+
+```graphql
+type Query {
+  internalLookups: InternalLookups @internal
+}
+
+type InternalLookups @internal {
+  productByTenantAndSku(tenantId: ID!, sku: String!): Product @lookup
+}
+```
+
+In this pattern, clients cannot access `internalLookups` from the composite schema, but the gateway can still use nested `@lookup` fields for internal transitions.
 
 ### When to Use Internal vs. Public Lookups
 
 Use a **public lookup** when:
 
-- Your subgraph is the primary owner of the entity (the Products subgraph for `Product`, the Accounts subgraph for `User`)
+- Your subgraph is the primary owner of the entity. For example, the Products subgraph owns `Product`, and the Accounts subgraph owns `User`.
 - Clients should be able to query for this entity directly from your subgraph
 - The lookup validates that the entity exists and returns `null` if it does not
 
 Use an **internal lookup** when:
 
-- Your subgraph extends an entity from another subgraph (the Reviews subgraph extending `Product`)
+- Your subgraph extends an entity and merely contributes extra fields to it, for example the Reviews subgraph adds the `reviews` field to the `Product` entity.
 - You do not want clients to enter your subgraph through this lookup
-- The lookup just constructs a stub. It does not need to validate existence.
+- The lookup just constructs a stub. It does not validate the existence of the entity.
 
-For cross-subgraph resolution to work, the composed API needs at least one lookup per referenced entity. If your subgraph extends `Product`, either your subgraph defines that lookup or another subgraph does.
+For cross-subgraph resolution to work, each subgraph that extends an entity by contributing fields must provide a lookup for that entity. For example, if a subgraph extends `Product` but has no `Product` lookup, transitions into that subgraph are unsatisfiable.
 
 ### Multiple Lookups Per Entity
 
-An entity can have multiple lookups, even in the same subgraph. This is useful when an entity can be identified by different keys.
+An entity can have multiple lookups, even in the same subgraph. This is useful when an entity can be identified by different keys. It is especially helpful when different subgraphs reference the same entity through different keys, for example `User.id` in one place and `User.username` in another. By providing both lookups, the gateway can transition into the target subgraph from either reference shape.
+
+**GraphQL schema**
+
+```graphql
+type Query {
+  userById(id: ID!): User @lookup
+  userByUsername(username: String!): User @lookup
+}
+```
+
+**C# resolver**
 
 ```csharp
-// Accounts/Types/UserQueries.cs
-
 [QueryType]
 public static partial class UserQueries
 {
@@ -134,25 +198,165 @@ public static partial class UserQueries
 
 The Accounts subgraph defines two lookups for `User`: one by `id` and one by `username`. The gateway can resolve a User reference using whichever key is available. If another subgraph references a User by username, the gateway uses `GetUserByUsername`.
 
-## `[EntityKey]` for Explicit Key Declaration
+With more modern GraphQL servers you can also use the finder pattern with the `@oneOf` directive.
 
-In most cases, you do not need to declare entity keys explicitly. The composition engine infers keys from your `[Lookup]` resolvers. If `GetProductById(int id)` is marked `[Lookup]`, Fusion infers that `id` is a key field for `Product`.
+```graphql
+type Query {
+  user(by: UserByInput! @is(field: "{ id } | { username }")): User @lookup
+}
 
-Sometimes you need to declare the key explicitly. Use `[EntityKey]` when:
+input UserByInput @oneOf {
+  id: ID
+  username: String
+}
+```
 
-- Your subgraph extends an entity but does not have its own lookup for it
-- You want to be explicit about which fields form the key
+In this case we use the `@is` directive with the choice operator `|` to signal to Fusion that it can use this lookup either with the `id` or the `username` as a key.
+
+### Composite Keys
+
+Some entities are identified by a combination of fields instead of a single field. In that case, the lookup arguments together form the key.
+
+**GraphQL schema**
+
+```graphql
+# Inventory subgraph
+type Product {
+  tenantId: ID!
+  sku: String!
+  inStock: Boolean!
+}
+
+type Query {
+  productByTenantAndSku(tenantId: ID!, sku: String!): Product @lookup
+}
+```
+
+**C# resolver**
 
 ```csharp
-// Shipping/Types/Product.cs
+[QueryType]
+public static partial class ProductQueries
+{
+    [Lookup]
+    public static Product? GetProductByTenantAndSku(
+        int tenantId,
+        string sku)
+        => ProductRepository.GetByTenantAndSku(tenantId, sku);
+}
+```
 
+Here, `tenantId` and `sku` are both required to identify `Product`. During planning, Fusion can transition to this lookup only when both key values are available.
+
+If the lookup arguments do not match entity field names directly, you can map them with the `@is` directive and even pull up fields.
+
+**GraphQL schema with per-argument mapping**
+
+```graphql
+type Product {
+  sku: String!
+  inStock: Boolean!
+  tenant: Tenant
+}
+
+type Tenant {
+  id: ID!
+}
+
+type Query {
+  product(
+    tenantId: ID! @is(field: "tenant.id")
+    sku: String! @is(field: "sku")
+  ): Product @lookup
+}
+```
+
+**GraphQL schema with input-object mapping**
+
+```graphql
+type Product {
+  sku: String!
+  inStock: Boolean!
+  tenant: Tenant
+}
+
+type Tenant {
+  id: ID!
+}
+
+input ProductKeyInput {
+  tenantId: ID!
+  sku: String!
+}
+
+type Query {
+  product(
+    key: ProductKeyInput! @is(field: "{ tenantId: tenant.id, sku }")
+  ): Product @lookup
+}
+```
+
+Both variants describe the same composite key. The first maps each argument explicitly. The second maps the input object fields in one selection map.
+
+> The FieldSelectionMap syntax from the Composite Schemas specification supports more advanced argument-to-field mappings for lookups. For the full grammar and examples, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
+
+## Explicit Key Declaration
+
+In most cases, you do not need to declare entity keys explicitly. The composition engine infers keys from your lookup fields.
+
+Sometimes you need or want to declare the key explicitly. Use the `@key` directive when:
+
+- Your subgraph extends an entity but does not have its own lookup for it
+- You want to be explicit about which fields form the key on the entity itself
+
+**GraphQL schema**
+
+```graphql
+type Product @key(fields: "id") {
+  id: ID!
+}
+```
+
+**C# type declaration**
+
+```csharp
 [EntityKey("id")]
 public sealed record Product([property: ID<Product>] int Id);
 ```
 
-The `[EntityKey("id")]` attribute explicitly declares that `Product` is an entity identified by the `id` field. This is needed in the Shipping subgraph because it does not define its own lookup that would let the composition engine infer the key.
+The `@key(fields: "id")` directive explicitly declares that `Product` is identified by the `id` field. This is useful in a subgraph that extends `Product` but does not define its own lookup, so composition cannot infer the key from lookup arguments.
 
-The argument to `[EntityKey]` is the GraphQL field name (lowercase `"id"`), not the C# property name.
+The `fields` value uses GraphQL field names, not C# member names.
+
+An entity can have multiple keys. Each `@key` directive on a type represents one key.
+
+**GraphQL schema with scalar composite key**
+
+```graphql
+type Product @key(fields: "id") @key(fields: "sku category") {
+  id: ID!
+  sku: String
+  category: String
+}
+```
+
+**GraphQL schema with nested composite key**
+
+```graphql
+type Product @key(fields: "id") @key(fields: "sku tenant { id }") {
+  id: ID!
+  sku: String
+  tenant: Tenant
+}
+
+type Tenant {
+  id: ID!
+}
+```
+
+## GraphQL Global Object Identification Specification
+
+If your subgraphs implement the GraphQL Global Object Identification Specification that provides the `node` on the query
 
 ## Next Steps
 
