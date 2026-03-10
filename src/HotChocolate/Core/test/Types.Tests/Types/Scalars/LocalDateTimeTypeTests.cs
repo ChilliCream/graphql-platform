@@ -323,6 +323,8 @@ public class LocalDateTimeTypeTests
     [InlineData(5, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,5})?$")]
     [InlineData(6, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?$")]
     [InlineData(7, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?$")]
+    [InlineData(8, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,8})?$")]
+    [InlineData(9, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?$")]
     public void Pattern_Should_Match_InputPrecision(byte precision, string expectedPattern)
     {
         // arrange & act
@@ -375,8 +377,8 @@ public class LocalDateTimeTypeTests
             },
             {
                 DateTimeOptions.DefaultInputPrecision,
-                "2023-12-24t15:30:00.1234567",
-                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(7)
+                "2023-12-24t15:30:00.123456789", // Rounded to ".1234568".
+                new DateTime(2023, 12, 24, 15, 30, 0, 123, 456).AddTicks(8)
             }
         };
     }
@@ -399,9 +401,13 @@ public class LocalDateTimeTypeTests
             // ReSharper disable once GrammarMistakeInComment
             // Invalid date (February 30th).
             { DateTimeOptions.DefaultInputPrecision, "2023-02-30T15:30:00" },
-            // More than 7 fractional second digits.
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.12345678" },
+            // More than 9 fractional second digits.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.1234567890" },
             // Additional cases.
+            // More than 8 fractional second digits with precision set to 8.
+            { 8, "2023-12-24T15:30:00.123456789" },
+            // More than 7 fractional second digits with precision set to 7.
+            { 7, "2023-12-24T15:30:00.12345678" },
             // More than 6 fractional second digits with precision set to 6.
             { 6, "2023-12-24T15:30:00.1234567" },
             // More than 5 fractional second digits with precision set to 5.

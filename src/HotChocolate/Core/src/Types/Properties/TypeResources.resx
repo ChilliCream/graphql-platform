@@ -1069,7 +1069,7 @@ Type: `{0}`</value>
     <value>The stability must follow the GraphQL type name rules.</value>
   </data>
   <data name="DateTimeOptions_InputPrecision_InvalidValue" xml:space="preserve">
-    <value>InputPrecision must be less than or equal to 7.</value>
+    <value>InputPrecision must be less than or equal to 9.</value>
   </data>
   <data name="DateTimeOptions_OutputPrecision_InvalidValue" xml:space="preserve">
     <value>OutputPrecision must be less than or equal to 7.</value>
