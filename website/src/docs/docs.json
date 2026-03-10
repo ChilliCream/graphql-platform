@@ -189,6 +189,10 @@
             "title": "Entities and Lookups"
           },
           {
+            "path": "data-requirements-and-mapping",
+            "title": "Data Requirements and Mapping"
+          },
+          {
             "path": "composition",
             "title": "Composition"
           },
