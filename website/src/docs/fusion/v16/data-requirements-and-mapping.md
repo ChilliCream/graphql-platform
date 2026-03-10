@@ -239,7 +239,7 @@ The path `seller.addresses[countryCode]` means: navigate to `seller.addresses` (
 
 Use `@provides` on a field that returns an entity to tell the gateway that certain subfields of that entity are available when resolved through this specific field. The subgraph does not own those fields globally, but it can provide them in this context.
 
-### When `@provides` Helps
+### When Contextual Availability Helps
 
 Consider a Reviews subgraph where the `author` field returns a `User` entity. The `User` type and its `username` field are owned by the Accounts subgraph. Normally the gateway would need to call the Accounts subgraph to fetch `username`. But the Reviews subgraph already has the author's username available when resolving `Review.author`. By annotating the `author` field with `@provides(fields: "username")`, the subgraph tells the gateway: "When you resolve `author` through the `Review` entity on my subgraph, I can also give you `username`."
 
@@ -298,7 +298,7 @@ type Review {
 }
 ```
 
-### When to Use `@provides`
+### When to Provide Fields Contextually
 
 Use `@provides` when:
 

@@ -15,7 +15,7 @@ For non-key fields, Fusion expects a single owner.
 
 Key fields are special. Fields used for entity identity and lookup mapping can appear in multiple subgraphs as part of entity resolution.
 
-## What `@shareable` Means
+## Shared Fields
 
 Use `@shareable` when the same field is intentionally defined in multiple subgraphs and has the same meaning and value semantics in each definition.
 
