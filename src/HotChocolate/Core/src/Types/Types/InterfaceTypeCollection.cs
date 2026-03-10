@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

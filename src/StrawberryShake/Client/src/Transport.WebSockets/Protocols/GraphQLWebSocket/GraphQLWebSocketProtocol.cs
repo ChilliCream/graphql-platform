@@ -151,8 +151,8 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
 
     private static IClientError CreateError(JsonDocument error)
     {
-        if (error.RootElement.TryGetProperty("message", out var messageProp) &&
-            messageProp.GetString() is { Length: > 0 } message)
+        if (error.RootElement.TryGetProperty("message", out var messageProp)
+            && messageProp.GetString() is { Length: > 0 } message)
         {
             return new ClientError(message);
         }

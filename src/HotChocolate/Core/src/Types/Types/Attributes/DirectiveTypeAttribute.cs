@@ -1,4 +1,3 @@
-#nullable enable
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
@@ -44,7 +43,7 @@ public sealed class DirectiveTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IDirectiveTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (!string.IsNullOrEmpty(Name))
         {

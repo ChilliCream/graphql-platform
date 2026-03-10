@@ -5,8 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.Serialization.InputObjectConstructorResolver;
 
-#nullable enable
-
 namespace HotChocolate.Utilities.Serialization;
 
 internal static class InputObjectCompiler
@@ -173,7 +171,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
+        where T : class, IInputValueDefinition, IPropertyProvider, IRuntimeTypeProvider, IFieldIndexProvider
         => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
@@ -182,7 +180,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
+        where T : class, IInputValueDefinition, IPropertyProvider, IRuntimeTypeProvider, IFieldIndexProvider
     {
         var parameters = constructor.GetParameters();
 
@@ -205,6 +203,11 @@ internal static class InputObjectCompiler
                 if (field is InputField { IsOptional: true })
                 {
                     value = CreateOptional(value, field.RuntimeType);
+                }
+                else if (parameter.ParameterType.IsValueType
+                    && System.Nullable.GetUnderlyingType(parameter.ParameterType) == null)
+                {
+                    value = Expression.Coalesce(value, Expression.Default(parameter.ParameterType));
                 }
 
                 expressions[i] = Expression.Convert(value, parameter.ParameterType);
@@ -234,7 +237,7 @@ internal static class InputObjectCompiler
         IEnumerable<T> fields,
         Expression fieldValues,
         List<Expression> currentBlock)
-        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IHasRuntimeType
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IRuntimeTypeProvider
     {
         foreach (var field in fields)
         {
@@ -244,6 +247,11 @@ internal static class InputObjectCompiler
             if (field is InputField { IsOptional: true })
             {
                 value = CreateOptional(value, field.RuntimeType);
+            }
+            else if (field.Property.PropertyType.IsValueType
+                && System.Nullable.GetUnderlyingType(field.Property.PropertyType) == null)
+            {
+                value = Expression.Coalesce(value, Expression.Default(field.Property.PropertyType));
             }
 
             value = Expression.Convert(value, field.Property.PropertyType);

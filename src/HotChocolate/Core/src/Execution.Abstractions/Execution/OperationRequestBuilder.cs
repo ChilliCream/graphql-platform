@@ -1,6 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
@@ -13,9 +17,9 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     private OperationDocumentId? _documentId;
     private OperationDocumentHash? _documentHash;
     private string? _operationName;
-    private IReadOnlyList<IReadOnlyDictionary<string, object?>>? _readOnlyVariableValues;
-    private List<IReadOnlyDictionary<string, object?>>? _variableValues;
-    private IReadOnlyDictionary<string, object?>? _readOnlyExtensions;
+    private JsonDocumentOwner? _variableValues;
+    private JsonDocumentOwner? _extensions;
+    private ErrorHandlingMode? _errorHandlingMode;
     private Dictionary<string, object?>? _contextData;
     private IReadOnlyDictionary<string, object?>? _readOnlyContextData;
     private IServiceProvider? _services;
@@ -84,8 +88,12 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <summary>
     /// Sets the hash of the GraphQL operation document.
     /// </summary>
-    /// <param name="documentHash"></param>
-    /// <returns></returns>
+    /// <param name="documentHash">
+    /// The hash of the GraphQL operation document.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
     public OperationRequestBuilder SetDocumentHash(OperationDocumentHash? documentHash)
     {
         _documentHash = documentHash;
@@ -108,25 +116,17 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     }
 
     /// <summary>
-    /// Sets the variable values for the GraphQL request.
+    /// Sets the requested error handling mode.
     /// </summary>
-    /// <param name="variableValues">
-    /// The variable values for the GraphQL request.
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
     /// </param>
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder AddVariableValues(
-        IReadOnlyDictionary<string, object?> variableValues)
+    public OperationRequestBuilder SetErrorHandlingMode(ErrorHandlingMode? errorHandlingMode)
     {
-        if (_readOnlyVariableValues is not null)
-        {
-            _variableValues = _readOnlyVariableValues.ToList();
-            _readOnlyVariableValues = null;
-        }
-
-        _variableValues ??= [];
-        _variableValues!.Add(variableValues);
+        _errorHandlingMode = errorHandlingMode;
         return this;
     }
 
@@ -140,19 +140,10 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
     public OperationRequestBuilder SetVariableValues(
-        IReadOnlyDictionary<string, object?>? variableValues)
+        [StringSyntax("json")] string variableValues)
     {
-        if (variableValues is null)
-        {
-            _variableValues = null;
-            _readOnlyVariableValues = null;
-        }
-        else
-        {
-            _variableValues = [variableValues];
-            _readOnlyVariableValues = null;
-        }
-        return this;
+        ArgumentException.ThrowIfNullOrEmpty(variableValues);
+        return SetVariableValues(JsonDocument.Parse(variableValues));
     }
 
     /// <summary>
@@ -164,19 +155,124 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder SetVariableValuesSet(
-        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues)
+    public OperationRequestBuilder SetVariableValues(
+        JsonDocument? variableValues)
     {
         if (variableValues is null)
         {
+            _variableValues?.Dispose();
             _variableValues = null;
-            _readOnlyVariableValues = null;
+            return this;
         }
-        else
+
+        if (variableValues.RootElement.ValueKind is JsonValueKind.Null)
         {
+            variableValues.Dispose();
+            _variableValues?.Dispose();
             _variableValues = null;
-            _readOnlyVariableValues = variableValues;
+            return this;
         }
+
+        if (variableValues.RootElement.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
+        {
+            throw new ArgumentException(
+                OperationRequestBuilder_SetVariableValues_JSONDocumentMustBeObjectOrArray,
+                nameof(variableValues));
+        }
+
+        _variableValues?.Dispose();
+        _variableValues = new JsonDocumentOwner(variableValues);
+        return this;
+    }
+
+    public OperationRequestBuilder SetVariableValues(
+        IEnumerable<KeyValuePair<string, JsonElement>>? variableValues)
+    {
+        _variableValues?.Dispose();
+        _variableValues = null;
+
+        if (variableValues is null)
+        {
+            return this;
+        }
+
+        var buffer = new PooledArrayWriter();
+
+        try
+        {
+            using (var jsonWriter = new Utf8JsonWriter(buffer))
+            {
+                jsonWriter.WriteStartObject();
+                foreach (var (name, value) in variableValues)
+                {
+                    jsonWriter.WritePropertyName(name);
+                    value.WriteTo(jsonWriter);
+                }
+                jsonWriter.WriteEndObject();
+            }
+
+            var document = JsonDocument.Parse(buffer.WrittenMemory);
+            _variableValues = new JsonDocumentOwner(document, buffer);
+            return this;
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request.
+    /// The dictionary will be serialized to JSON internally.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values for the GraphQL request as a dictionary.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+    public OperationRequestBuilder SetVariableValues(IReadOnlyDictionary<string, object?>? variableValues)
+    {
+        _variableValues?.Dispose();
+        _variableValues = null;
+
+        if (variableValues is null)
+        {
+            return this;
+        }
+
+        _variableValues = new(JsonSerializer.SerializeToDocument(variableValues, JsonSerializerOptionDefaults.GraphQL));
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request as a batch operation.
+    /// Each dictionary in the list represents a set of variables for a separate operation execution.
+    /// The list will be serialized to JSON internally.
+    /// </summary>
+    /// <param name="variableValueSets">
+    /// The list of variable value sets for batch GraphQL request execution.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+    public OperationRequestBuilder SetVariableValues(
+        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValueSets)
+    {
+        _variableValues?.Dispose();
+        _variableValues = null;
+
+        if (variableValueSets is null)
+        {
+            return this;
+        }
+
+        _variableValues = new(JsonSerializer.SerializeToDocument(variableValueSets, JsonSerializerOptionDefaults.GraphQL));
         return this;
     }
 
@@ -190,9 +286,42 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
     public OperationRequestBuilder SetExtensions(
-        IReadOnlyDictionary<string, object?>? extensions)
+        JsonDocument? extensions)
     {
-        _readOnlyExtensions = extensions;
+        _extensions?.Dispose();
+        _extensions = null;
+
+        if (extensions is null)
+        {
+            return this;
+        }
+
+        _extensions = new(extensions);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the GraphQL request extension data.
+    /// </summary>
+    /// <param name="extensions">
+    /// The GraphQL request extension data.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+    public OperationRequestBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions)
+    {
+        _extensions?.Dispose();
+        _extensions = null;
+
+        if (extensions is null)
+        {
+            return this;
+        }
+
+        _extensions = new(JsonSerializer.SerializeToDocument(extensions, JsonSerializerOptionDefaults.GraphQL));
         return this;
     }
 
@@ -205,9 +334,10 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder SetGlobalState(IReadOnlyDictionary<string, object?>? contextData)
+    public OperationRequestBuilder SetGlobalState(
+        IReadOnlyDictionary<string, object?>? contextData)
     {
-        _readOnlyContextData = _contextData;
+        _readOnlyContextData = contextData;
         _contextData = null;
         return this;
     }
@@ -370,9 +500,9 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         _documentId = null;
         _documentHash = null;
         _operationName = null;
-        _readOnlyVariableValues = null;
+        _errorHandlingMode = null;
         _variableValues = null;
-        _readOnlyExtensions = null;
+        _extensions = null;
         _contextData = null;
         _readOnlyContextData = null;
         _services = null;
@@ -389,9 +519,13 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// </returns>
     public IOperationRequest Build()
     {
+        if (_document is null && OperationDocumentId.IsNullOrEmpty(_documentId))
+        {
+            throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
+        }
+
         IOperationRequest? request;
 
-        var variableSet = GetVariableValues();
         var features = _features;
 
         if (features is null || features.IsEmpty)
@@ -399,15 +533,16 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             features = FeatureCollection.Empty;
         }
 
-        if (variableSet is { Count: > 1 })
+        if (_variableValues?.Document.RootElement.ValueKind is JsonValueKind.Array)
         {
             request = new VariableBatchRequest(
                 document: _document,
                 documentId: _documentId,
                 documentHash: _documentHash,
                 operationName: _operationName,
-                variableValues: variableSet,
-                extensions: _readOnlyExtensions,
+                errorHandlingMode: _errorHandlingMode,
+                variableValues: _variableValues,
+                extensions: _extensions,
                 contextData: _readOnlyContextData ?? _contextData,
                 features: features,
                 services: _services,
@@ -421,10 +556,9 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             documentId: _documentId,
             documentHash: _documentHash,
             operationName: _operationName,
-            variableValues: variableSet is { Count: 1 }
-                ? variableSet[0]
-                : null,
-            extensions: _readOnlyExtensions,
+            errorHandlingMode: _errorHandlingMode,
+            variableValues: _variableValues,
+            extensions: _extensions,
             contextData: _readOnlyContextData ?? _contextData,
             features: features,
             services: _services,
@@ -433,9 +567,6 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         Reset();
         return request;
     }
-
-    private IReadOnlyList<IReadOnlyDictionary<string, object?>>? GetVariableValues()
-        => _variableValues ?? _readOnlyVariableValues;
 
     /// <summary>
     /// Creates a new instance of <see cref="OperationRequestBuilder" />.
@@ -463,9 +594,10 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _documentId = batch.DocumentId,
                     _documentHash = batch.DocumentHash,
                     _operationName = batch.OperationName,
-                    _readOnlyVariableValues = batch.VariableValues,
+                    _errorHandlingMode = batch.ErrorHandlingMode,
+                    _variableValues = batch.VariableValues,
                     _readOnlyContextData = batch.ContextData,
-                    _readOnlyExtensions = batch.Extensions,
+                    _extensions = batch.Extensions,
                     _services = batch.Services,
                     _flags = batch.Flags
                 },
@@ -476,11 +608,10 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _documentId = operation.DocumentId,
                     _documentHash = operation.DocumentHash,
                     _operationName = operation.OperationName,
-                    _readOnlyVariableValues = operation.VariableValues is not null
-                        ? new List<IReadOnlyDictionary<string, object?>>(1) { operation.VariableValues }
-                        : null,
+                    _errorHandlingMode = operation.ErrorHandlingMode,
+                    _variableValues = operation.VariableValues,
                     _readOnlyContextData = operation.ContextData,
-                    _readOnlyExtensions = operation.Extensions,
+                    _extensions = operation.Extensions,
                     _services = operation.Services,
                     _flags = operation.Flags
                 },
@@ -504,7 +635,8 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             .SetDocumentId(request.DocumentId)
             .SetDocumentHash(request.DocumentHash)
             .SetOperationName(request.OperationName)
-            .SetVariableValuesSet(request.Variables)
+            .SetErrorHandlingMode(request.ErrorHandlingMode)
+            .SetVariableValues(request.Variables)
             .SetExtensions(request.Extensions);
 
         if (request.Document is not null)

@@ -1,0 +1,16 @@
+{
+  "sourceSchemas": {
+    "accounts-api": {
+      "transports": {
+        "http": {
+          "url": "https://ccc-eu-fusion-demo-accounts-api.calmbeach-1836b252.westeurope.azurecontainerapps.io/graphql"
+        }
+      },
+      "extensions": {
+        "nitro": {
+          "apiId": "QXBpCmcwMTk5MGE4ZGMxYjA3OWZhYjM1Y2M2ZTE3NDY1Yzg1Yw=="
+        }
+      }
+    }
+  }
+}

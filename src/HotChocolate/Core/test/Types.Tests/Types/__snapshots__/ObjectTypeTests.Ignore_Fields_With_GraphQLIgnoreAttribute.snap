@@ -1,7 +1,7 @@
-﻿schema {
+schema {
   query: FooIgnore
 }
 
 type FooIgnore {
-  baz: String
+  baz: String!
 }

@@ -8,18 +8,20 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 public class AuthorizationTestData : IEnumerable<object[]>
 {
-    private const string Sdl = $@"
-        type Query {{
+    private const string Sdl =
+        $$"""
+        type Query {
             default: String @authorize
-            age: String @authorize(policy: ""{Policies.HasDefinedAge}"")
-            roles: String @authorize(roles: [""a""])
-            roles_ab: String @authorize(roles: [""a"" ""b""])
+            age: String @authorize(policy: "{{Policies.HasDefinedAge}}")
+            roles: String @authorize(roles: ["a"])
+            roles_ab: String @authorize(roles: ["a", "b"])
             piped: String
-                @authorize(policy: ""a"")
-                @authorize(policy: ""b"")
+                @authorize(policy: "a")
+                @authorize(policy: "b")
             afterResolver: String
-                @authorize(policy: ""a"" apply: AFTER_RESOLVER)
-        }}";
+                @authorize(policy: "a", apply: AFTER_RESOLVER)
+        }
+        """;
 
     private readonly FieldMiddleware _schemaMiddleware = next => context =>
     {

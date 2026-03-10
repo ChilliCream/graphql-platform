@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 
@@ -14,10 +12,10 @@ internal static class FieldMiddlewareCompiler
         FieldResolverDelegate? fieldResolver,
         bool skipMiddleware)
     {
-        if (skipMiddleware ||
-            (globalComponents.Count == 0 &&
-            fieldComponents.Count == 0 &&
-            resultConverters.Count == 0))
+        if (skipMiddleware
+            || (globalComponents.Count == 0
+            && fieldComponents.Count == 0
+            && resultConverters.Count == 0))
         {
             return fieldResolver is null
                 ? null

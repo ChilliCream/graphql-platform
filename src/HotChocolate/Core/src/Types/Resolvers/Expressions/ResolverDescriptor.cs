@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions;
 
 /// <summary>

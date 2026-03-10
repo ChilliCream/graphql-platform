@@ -26,8 +26,8 @@ internal sealed class MessagePipeline : IAsyncDisposable
     /// </summary>
     public void Start()
     {
-        if (Interlocked.CompareExchange(ref _state, State.Running, State.Stopped) ==
-            State.Stopped)
+        if (Interlocked.CompareExchange(ref _state, State.Running, State.Stopped)
+            == State.Stopped)
         {
             try
             {

@@ -41,15 +41,19 @@ public class LocalDateTimeType : StringToStructBaseType<LocalDateTime>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(LocalDateTime runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out LocalDateTime? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        LocalDateTime runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
 
     protected override Dictionary<IPattern<LocalDateTime>, string> PatternMap => new()
     {

@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -13,11 +15,7 @@ public static class ReflectionUtils
     public static MemberInfo TryExtractMember<T, TPropertyType>(
         this Expression<Func<T, TPropertyType>> memberExpression,
         bool allowStatic = false)
-    {
-        ArgumentNullException.ThrowIfNull(memberExpression);
-
-        return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
-    }
+        => TryExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
 
     internal static MemberInfo TryExtractCallMember(
         this Expression expression)
@@ -54,20 +52,12 @@ public static class ReflectionUtils
     public static MemberInfo ExtractMember<T>(
         this Expression<Action<T>> memberExpression,
         bool allowStatic = false)
-    {
-        ArgumentNullException.ThrowIfNull(memberExpression);
-
-        return ExtractMemberInternal<T>(UnwrapAction(memberExpression), allowStatic);
-    }
+        => ExtractMemberInternal<T>(UnwrapAction(memberExpression), allowStatic);
 
     public static MemberInfo ExtractMember<T, TPropertyType>(
         this Expression<Func<T, TPropertyType>> memberExpression,
         bool allowStatic = false)
-    {
-        ArgumentNullException.ThrowIfNull(memberExpression);
-
-        return ExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
-    }
+        => ExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
 
     private static MemberInfo ExtractMemberInternal<T>(
         Expression expression,
@@ -114,8 +104,8 @@ public static class ReflectionUtils
                 return true;
             }
 
-            if (m.Member is MethodInfo mi &&
-                (IsInstanceMethod(type, mi) || allowStatic && IsStaticMethod(mi)))
+            if (m.Member is MethodInfo mi
+                && (IsInstanceMethod(type, mi) || allowStatic && IsStaticMethod(mi)))
             {
                 member = GetBestMatchingMethod(type, mi);
                 return true;
@@ -145,8 +135,8 @@ public static class ReflectionUtils
                 type,
                 unwrappedExpr,
                 allowStatic,
-                out var member) ||
-            TryExtractMemberFromMemberCallExpression(
+                out var member)
+            || TryExtractMemberFromMemberCallExpression(
                 type,
                 unwrappedExpr,
                 allowStatic,
@@ -164,8 +154,8 @@ public static class ReflectionUtils
         bool allowStatic,
         out MemberInfo member)
     {
-        if (memberExpression is MethodCallExpression mc &&
-            (IsInstanceMethod(type, mc.Method) || allowStatic && IsStaticMethod(mc.Method)))
+        if (memberExpression is MethodCallExpression mc
+            && (IsInstanceMethod(type, mc.Method) || allowStatic && IsStaticMethod(mc.Method)))
         {
             member = GetBestMatchingMethod(type, mc.Method);
             return true;
@@ -182,13 +172,9 @@ public static class ReflectionUtils
         => method.IsStatic;
 
     public static string GetTypeName(this Type type)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-
-        return type.IsGenericType
+        => type.IsGenericType
             ? CreateGenericTypeName(type)
             : CreateTypeName(type, type.Name);
-    }
 
     private static string CreateGenericTypeName(Type type)
     {

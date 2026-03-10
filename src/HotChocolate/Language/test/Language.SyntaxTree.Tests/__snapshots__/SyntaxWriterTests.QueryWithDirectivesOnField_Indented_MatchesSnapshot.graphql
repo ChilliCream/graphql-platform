@@ -1,0 +1,7 @@
+{
+  user(id: "123") {
+    id @include(if: true)
+    name @skip(if: false) @deprecated
+    email @custom(arg1: "value1", arg2: 42)
+  }
+}

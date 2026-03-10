@@ -49,11 +49,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
             {
                 if (syntaxInfo is IOutputTypeInfo { HasRuntimeType: true } typeInfo)
                 {
-#if NET8_0_OR_GREATER
-                    connectionTypeLookup[typeInfo.RuntimeTypeFullName] = typeInfo;
-#else
-                    connectionTypeLookup[typeInfo.RuntimeTypeFullName!] = typeInfo;
-#endif
+                    connectionTypeLookup[GetTypeLookupKey(typeInfo)] = typeInfo;
                 }
             }
 
@@ -117,6 +113,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                             compilation,
                             connectionType,
                             null,
+                            connectionType.GetAttributes(),
                             connectionType.ContainingNamespace.ToDisplayString());
                         edgeTypeInfo.AddDiagnosticRange(diagnostics);
                         connectionTypeInfos ??= [];
@@ -129,7 +126,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                             ? EdgeTypeInfo.CreateEdge(
                                 compilation,
                                 edge.Type,
-                                edgeClass.ClassDeclarations,
+                                edgeClass.ClassDeclaration,
+                                edge.Type.GetAttributes(),
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
                                 edge.NameFormat ?? edge.Name)
@@ -137,6 +135,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 compilation,
                                 edge.Type,
                                 null,
+                                connectionType.GetAttributes(),
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
                                 edge.NameFormat ?? edge.Name);
@@ -146,7 +145,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                             ? ConnectionTypeInfo.CreateConnection(
                                 compilation,
                                 connection.Type,
-                                connectionClass.ClassDeclarations,
+                                connectionClass.ClassDeclaration,
                                 edgeTypeInfo.Name,
                                 connection.Name,
                                 connection.NameFormat ?? connection.Name)
@@ -158,8 +157,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connection.Name,
                                 connection.NameFormat ?? connection.Name);
 
-                    var connectionTypeName = "global::" + connectionTypeInfo.Namespace + "." + connectionTypeInfo.Name;
-                    var edgeTypeName = "global::" + edgeTypeInfo.Namespace + "." + edgeTypeInfo.Name;
+                    var connectionTypeName = GetTypeLookupKey(connectionTypeInfo);
+                    var edgeTypeName = GetTypeLookupKey(edgeTypeInfo);
 
                     if (!connectionTypeLookup.ContainsKey(connectionTypeName))
                     {
@@ -213,7 +212,11 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edgeName,
                                 edgeName)
-                            : EdgeTypeInfo.CreateEdge(compilation, edgeType, null,
+                            : EdgeTypeInfo.CreateEdge(
+                                compilation,
+                                edgeType,
+                                null,
+                                connectionType.GetAttributes(),
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edgeName,
                                 edgeName);
@@ -233,8 +236,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connectionName,
                                 connectionName);
 
-                    var connectionTypeName = "global::" + connectionTypeInfo.Namespace + "." + connectionTypeInfo.Name;
-                    var edgeTypeName = "global::" + edgeTypeInfo.Namespace + "." + edgeTypeInfo.Name;
+                    var connectionTypeName = GetTypeLookupKey(connectionTypeInfo);
+                    var edgeTypeName = GetTypeLookupKey(edgeTypeInfo);
 
                     if (!connectionTypeLookup.ContainsKey(connectionTypeName))
                     {
@@ -254,7 +257,11 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                 owner.ReplaceResolver(
                     connectionResolver,
                     connectionResolver.WithSchemaTypeName(
-                        $"{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}"));
+                        new SchemaTypeReference(
+                            SchemaTypeReferenceKind.ExtendedTypeReference,
+                            connectionResolver.ReturnType.IsNullableType()
+                                ? $"global::{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}"
+                                : $"global::{WellKnownTypes.NonNullType}<global::{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}>")));
             }
 
             if (connectionTypeInfos is not null)
@@ -295,6 +302,12 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         [DoesNotReturn]
         static void Throw() => throw new InvalidOperationException("Could not resolve connection base type.");
     }
+
+    private static string GetTypeLookupKey(IOutputTypeInfo typeInfo)
+        => GetTypeLookupKey(typeInfo.Namespace, typeInfo.Name);
+
+    private static string GetTypeLookupKey(string typeNamespace, string typeName)
+        => $"global::{typeNamespace}.{typeName}";
 
     private static GenericTypeInfo? CreateGenericTypeInfo(
         INamedTypeSymbol genericType,

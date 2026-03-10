@@ -232,11 +232,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
+                    Query =
+                        """
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
-                        }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
+                        }
+                        """,
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "d", decimal.MinValue }
+                    }
                 },
                 "/arguments");
 
@@ -307,11 +312,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
-                }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                    o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
 
         // act
         var result =
@@ -350,11 +354,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
-                }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                    o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
 
         // act
         var result =
@@ -392,11 +395,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
-                }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                    o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
 
         // act
         var result =
@@ -587,11 +589,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
-                }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                    o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
 
         // act
         var result =
@@ -630,12 +631,14 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
                 {
-                    EnableGetRequests = false,
-                    Tool = { Enable = false }
-                }));
+                    o.EnableGetRequests = false;
+                    o.Tool.Enable = false;
+                }),
+            configureConventions: e => e.WithOptions(o => o.Enable = false));
 
         // act
         var result =

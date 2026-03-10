@@ -1,16 +1,11 @@
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Validation.Rules;
 
 namespace HotChocolate.Validation;
 
-public class FieldMustBeDefinedRuleTests
-    : DocumentValidatorVisitorTestBase
+public class FieldMustBeDefinedRuleTests()
+    : DocumentValidatorVisitorTestBase(builder => builder.AddRule<FieldSelectionsRule>())
 {
-    public FieldMustBeDefinedRuleTests()
-        : base(builder => builder.AddFieldRules())
-    {
-    }
-
     [Fact]
     public void FieldIsNotDefinedOnTypeInFragment()
     {
@@ -41,12 +36,19 @@ public class FieldMustBeDefinedRuleTests
         // assert
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "The field `meowVolume` does not exist " +
-                "on the type `Dog`.", t.Message),
+                "The field `meowVolume` does not exist "
+                + "on the type `Dog`.", t.Message),
             t => Assert.Equal(
-                "The field `kawVolume` does not exist " +
-                "on the type `Dog`.", t.Message));
-        context.Errors.MatchSnapshot();
+                "The field `kawVolume` does not exist "
+                + "on the type `Dog`.", t.Message));
+        var snapshot = new Snapshot();
+
+        foreach (var error in context.Errors)
+        {
+            snapshot.Add(error);
+        }
+
+        snapshot.Match();
     }
 
     [Fact]
@@ -98,8 +100,8 @@ public class FieldMustBeDefinedRuleTests
         // assert
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "The field `nickname` does not exist " +
-                "on the type `Pet`.", t.Message));
+                "The field `nickname` does not exist "
+                + "on the type `Pet`.", t.Message));
         context.Errors[0].MatchSnapshot();
     }
 
@@ -159,8 +161,8 @@ public class FieldMustBeDefinedRuleTests
         // assert
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "A union type cannot declare a field directly. " +
-                "Use inline fragments or fragments instead.", t.Message));
+                "A union type cannot declare a field directly. "
+                + "Use inline fragments or fragments instead.", t.Message));
         context.Errors[0].MatchSnapshot();
     }
 
@@ -237,41 +239,5 @@ public class FieldMustBeDefinedRuleTests
 
         // assert
         Assert.Empty(context.Errors);
-    }
-
-    [Fact]
-    public void Ensure_Non_Existent_Root_Types_Cause_Error()
-    {
-        // arrange
-        var document = Utf8GraphQLParser.Parse(
-            """
-            subscription {
-                foo
-            }
-            """);
-        var context = ValidationUtils.CreateContext(document, CreateQueryOnlySchema());
-
-        // act
-        Rule.Validate(context, document);
-
-        // assert
-        Assert.Collection(
-            context.Errors,
-            t => Assert.Equal(
-                "This GraphQL schema does not support `Subscription` operations.",
-                t.Message));
-    }
-
-    private static ISchemaDefinition CreateQueryOnlySchema()
-    {
-        return SchemaBuilder.New()
-            .AddDocumentFromString(
-                """
-                type Query {
-                    foo: String
-                }
-                """)
-            .Use(next => next)
-            .Create();
     }
 }

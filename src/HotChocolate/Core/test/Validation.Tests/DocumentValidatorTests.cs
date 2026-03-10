@@ -57,12 +57,12 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "A document containing TypeSystemDefinition " +
-                "is invalid for execution.",
+                "A document containing TypeSystemDefinition "
+                + "is invalid for execution.",
                 t.Message),
             t => Assert.Equal(
-                "The field `color` does not exist " +
-                "on the type `Dog`.",
+                "The field `color` does not exist "
+                + "on the type `Dog`.",
                 t.Message));
     }
 
@@ -88,9 +88,9 @@ public class DocumentValidatorTests
             t =>
             {
                 Assert.Equal(
-                    "GraphQL allows a short‐hand form for defining query " +
-                    "operations when only that one operation exists in " +
-                    "the document.",
+                    "GraphQL allows a short‐hand form for defining query "
+                    + "operations when only that one operation exists in "
+                    + "the document.",
                     t.Message);
             });
     }
@@ -132,9 +132,9 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "A document containing operations that " +
-                "define more than one variable with the same " +
-                "name is invalid for execution.",
+                "A document containing operations that "
+                + "define more than one variable with the same "
+                + "name is invalid for execution.",
                 t.Message));
     }
 
@@ -154,8 +154,8 @@ public class DocumentValidatorTests
                 }
             """,
             t => Assert.Equal(
-                $"More than one argument with the same name in an argument set " +
-                "is ambiguous and invalid.",
+                "More than one argument with the same name in an argument set "
+                + "is ambiguous and invalid.",
                 t.Message));
     }
 
@@ -193,11 +193,11 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must have exactly one root field.",
+                "The field `disallowedSecondRootFieldNonExisting` does not exist "
+                + "on the type `Subscription`.",
                 t.Message),
             t => Assert.Equal(
-                "The field `disallowedSecondRootFieldNonExisting` does not exist " +
-                "on the type `Subscription`.",
+                "Subscription operations must have exactly one root field.",
                 t.Message));
     }
 
@@ -222,12 +222,12 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "The field `meowVolume` does not exist " +
-                "on the type `Dog`.",
+                "The field `meowVolume` does not exist "
+                + "on the type `Dog`.",
                 t.Message),
             t => Assert.Equal(
-                "The field `kawVolume` does not exist " +
-                "on the type `Dog`.",
+                "The field `kawVolume` does not exist "
+                + "on the type `Dog`.",
                 t.Message));
     }
 
@@ -247,8 +247,8 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "The following variables were not used: " +
-                "atOtherHomes.",
+                "The following variables were not used: "
+                + "atOtherHomes.",
                 t.Message));
     }
 
@@ -291,20 +291,20 @@ public class DocumentValidatorTests
                 }
                 """,
             t => Assert.Equal(
-                "Operation `takesCat` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `takesCat` has an empty selection set. Root types without "
+                + "selections are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesDogBang` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `takesDogBang` has an empty selection set. Root types without "
+                + "selections are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesListOfPet` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `takesListOfPet` has an empty selection set. Root types without "
+                + "selections are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesCatOrDog` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `takesCatOrDog` has an empty selection set. Root types without "
+                + "selections are disallowed.",
                 t.Message),
             t => Assert.Equal(
                 "The type of variable `cat` is not an input type.",
@@ -343,8 +343,8 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "The specified fragment `conflictingBecauseAlias` " +
-                "is not used within the current document.",
+                "The specified fragment `conflictingBecauseAlias` "
+                + "is not used within the current document.",
                 t.Message));
     }
 
@@ -387,8 +387,8 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "The specified fragment `nameFragment` " +
-                "is not used within the current document.",
+                "The specified fragment `nameFragment` "
+                + "is not used within the current document.",
                 t.Message));
     }
 
@@ -432,8 +432,8 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "Field \"barkVolume\" must not have a selection since type \"Int\" has no " +
-                "subfields.",
+                "Field \"barkVolume\" must not have a selection since type \"Int\" has no "
+                + "subfields.",
                 t.Message));
     }
 
@@ -481,10 +481,10 @@ public class DocumentValidatorTests
                 }
             """,
             t => Assert.Equal(
-                "The graph of fragment spreads must not form any " +
-                "cycles including spreading itself. Otherwise an " +
-                "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data.",
+                "The graph of fragment spreads must not form any "
+                + "cycles including spreading itself. Otherwise an "
+                + "operation could infinitely spread or infinitely "
+                + "execute on cycles in the underlying data.",
                 t.Message));
     }
 
@@ -500,8 +500,8 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "The specified fragment `undefinedFragment` " +
-                "does not exist.",
+                "The specified fragment `undefinedFragment` "
+                + "does not exist.",
                 t.Message));
     }
 
@@ -521,8 +521,8 @@ public class DocumentValidatorTests
                 }
             """,
             t => Assert.Equal(
-                "The parent type does not match the type condition on " +
-                "the fragment.",
+                "The parent type does not match the type condition on "
+                + "the fragment.",
                 t.Message));
     }
 
@@ -564,8 +564,8 @@ public class DocumentValidatorTests
                 }
             """,
             t => Assert.Equal(
-                "The specified input object field " +
-                "`favoriteCookieFlavor` does not exist.",
+                "The specified input object field "
+                + "`favoriteCookieFlavor` does not exist.",
                 t.Message));
     }
 
@@ -614,8 +614,8 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "The specified directive `foo` " +
-                "is not supported by the current schema.",
+                "The specified directive `foo` "
+                + "is not supported by the current schema.",
                 t.Message));
     }
 
@@ -635,8 +635,8 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "The specified argument value does not match the " +
-                "argument type.",
+                "The specified argument value does not match the "
+                + "argument type.",
                 t.Message));
     }
 
@@ -662,8 +662,8 @@ public class DocumentValidatorTests
             t =>
             {
                 Assert.Equal(
-                    "The GraphQL document has an execution depth of 2 " +
-                    "which exceeds the max allowed execution depth of 1.",
+                    "The GraphQL document has an execution depth of 2 "
+                    + "which exceeds the max allowed execution depth of 1.",
                     t.Message);
             });
     }
@@ -808,39 +808,60 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void Produce_Many_Errors_100_query()
+    public void Too_Many_Errors_Should_Be_Truncated()
     {
-        ExpectErrors(FileResource.Open("100_query.graphql"));
+        ExpectErrors(
+            """
+            {
+              field1: a
+              field1: b
+              field2: a
+              field2: b
+              field3: a
+              field3: b
+              field4: a
+              field4: b
+              field5: a
+              field5: b
+              field6: a
+              field6: b
+              field7: a
+              field7: b
+              field8: a
+              field8: b
+              field9: a
+              field9: b
+              field10: a
+              field10: b
+            }
+            """);
     }
 
     [Fact]
-    public void Produce_Many_Errors_1000_query()
+    public void Too_Many_Error_Locations_Should_Be_Truncated()
     {
-        ExpectErrors(FileResource.Open("1000_query.graphql"));
+        ExpectErrors(
+            """
+            {
+              # 10 locations, but only 5 are allowed per error
+              field: a
+              field: b
+              field: c
+              field: d
+              field: e
+              field: f
+              field: g
+              field: h
+              field: i
+              field: j
+            }
+            """);
     }
 
     [Fact]
-    public void Produce_Many_Errors_10000_query()
+    public void Deep_Fragment_Expansion()
     {
-        ExpectErrors(FileResource.Open("10000_query.graphql"));
-    }
-
-    [Fact]
-    public void Produce_Many_Errors_25000_query()
-    {
-        ExpectErrors(FileResource.Open("25000_query.graphql"));
-    }
-
-    [Fact]
-    public void Produce_Many_Errors_30000_query()
-    {
-        ExpectErrors(FileResource.Open("30000_query.graphql"));
-    }
-
-    [Fact]
-    public void Produce_Many_Errors_50000_query()
-    {
-        ExpectErrors(FileResource.Open("50000_query.graphql"));
+        ExpectValid(FileResource.Open("deep-fragment-expansion.graphql"));
     }
 
     [Fact]
@@ -894,7 +915,14 @@ public class DocumentValidatorTests
             Assert.Collection(result.Errors, elementInspectors);
         }
 
-        result.Errors.MatchSnapshot();
+        var snapshot = Snapshot.Create();
+
+        foreach (var error in result.Errors)
+        {
+            snapshot.Add(error);
+        }
+
+        snapshot.Match();
     }
 
     private static DocumentValidator CreateValidator()

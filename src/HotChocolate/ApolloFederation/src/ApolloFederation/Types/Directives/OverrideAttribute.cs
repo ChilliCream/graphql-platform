@@ -58,7 +58,7 @@ public sealed class OverrideAttribute(string from, string? label = null) : Objec
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         descriptor.Override(From, Label);
     }

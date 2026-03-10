@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -34,11 +35,15 @@ internal static class ArgumentParser
         switch (valueNode.Kind)
         {
             case SyntaxKind.ObjectValue:
-            {
+                if (path.Length <= i)
+                {
+                    break;
+                }
+
                 var current = path[i];
 
-                if (type is not IComplexTypeDefinition complexType ||
-                    !complexType.Fields.TryGetField(current, out var field))
+                if (type is not IComplexTypeDefinition complexType
+                    || !complexType.Fields.TryGetField(current, out var field))
                 {
                     break;
                 }
@@ -56,23 +61,102 @@ internal static class ArgumentParser
                     }
                 }
                 break;
-            }
-            case SyntaxKind.NullValue:
-            {
-                value = default;
-                return true;
-            }
-            case SyntaxKind.StringValue:
-            case SyntaxKind.IntValue:
-            case SyntaxKind.FloatValue:
-            case SyntaxKind.BooleanValue:
-            {
-                if (type.NamedType() is not ScalarType scalarType)
+
+            case SyntaxKind.ListValue:
+                if (type is not ListType listType
+                    || path.Length > i
+                    || !TryGetListElementType(typeof(T), out var elementType))
                 {
                     break;
                 }
 
-                var literal = scalarType.ParseLiteral(valueNode)!;
+                var itemType = typeof(List<>).MakeGenericType(elementType);
+                var items = (IList)Activator.CreateInstance(itemType)!;
+                var listValue = (ListValueNode)valueNode;
+
+                foreach (var itemNode in listValue.Items)
+                {
+                    if (!TryGetValue<object?>(itemNode, listType.ElementType, path, i, out var itemValue))
+                    {
+                        value = default;
+                        return false;
+                    }
+
+                    if (itemValue is null)
+                    {
+                        items.Add(null);
+                        continue;
+                    }
+
+                    if (elementType.IsInstanceOfType(itemValue))
+                    {
+                        items.Add(itemValue);
+                        continue;
+                    }
+
+                    if (DefaultTypeConverter.Default.TryConvert(
+                        elementType,
+                        itemValue,
+                        out var convertedItem))
+                    {
+                        items.Add(convertedItem);
+                        continue;
+                    }
+
+                    value = default;
+                    return false;
+                }
+
+                if (items is T castedItems)
+                {
+                    value = castedItems;
+                    return true;
+                }
+
+                if (DefaultTypeConverter.Default.TryConvert(
+                    typeof(T),
+                    items,
+                    out var convertedList))
+                {
+                    value = (T)convertedList;
+                    return true;
+                }
+
+                break;
+
+            case SyntaxKind.NullValue:
+                value = default;
+                return true;
+
+            case SyntaxKind.StringValue:
+            case SyntaxKind.IntValue:
+            case SyntaxKind.FloatValue:
+            case SyntaxKind.BooleanValue:
+                var namedType = type.NamedType();
+
+                if (namedType is EnumType stringEnumType
+                    && valueNode is StringValueNode stringValue
+                    && stringEnumType.TryGetRuntimeValue(stringValue.Value, out var enumValue))
+                {
+                    if (enumValue is T castedEnum)
+                    {
+                        value = castedEnum;
+                        return true;
+                    }
+
+                    if (DefaultTypeConverter.Default.TryConvert(typeof(T), enumValue, out var convertedEnum))
+                    {
+                        value = (T)convertedEnum;
+                        return true;
+                    }
+                }
+
+                if (namedType is not ScalarType scalarType)
+                {
+                    break;
+                }
+
+                var literal = scalarType.CoerceInputLiteral(valueNode)!;
 
                 if (DefaultTypeConverter.Default.TryConvert(typeof(T), literal, out var converted))
                 {
@@ -81,21 +165,48 @@ internal static class ArgumentParser
                 }
 
                 break;
-            }
 
             case SyntaxKind.EnumValue:
-            {
                 if (type.NamedType() is not EnumType enumType)
                 {
                     break;
                 }
 
-                value = (T)enumType.ParseLiteral(valueNode)!;
+                value = (T)enumType.CoerceInputLiteral(valueNode)!;
                 return true;
-            }
         }
 
         value = default;
+        return false;
+    }
+
+    private static bool TryGetListElementType(Type type, out Type elementType)
+    {
+        if (type.IsArray)
+        {
+            elementType = type.GetElementType()!;
+            return true;
+        }
+
+        if (type.IsGenericType
+            && type.GetGenericArguments() is [var genericElement]
+            && type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+        {
+            elementType = genericElement;
+            return true;
+        }
+
+        var enumerableType = type
+            .GetInterfaces()
+            .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+        if (enumerableType is not null)
+        {
+            elementType = enumerableType.GetGenericArguments()[0];
+            return true;
+        }
+
+        elementType = null!;
         return false;
     }
 
@@ -108,8 +219,8 @@ internal static class ArgumentParser
 
         if (required.Count == 2)
         {
-            return Matches(valueNode, required[0], 0) &&
-                Matches(valueNode, required[1], 0);
+            return Matches(valueNode, required[0], 0)
+                && Matches(valueNode, required[1], 0);
         }
 
         for (var i = 0; i < required.Count; i++)
@@ -129,7 +240,6 @@ internal static class ArgumentParser
         switch (valueNode.Kind)
         {
             case SyntaxKind.ObjectValue:
-            {
                 var current = path[i];
 
                 foreach (var fieldValue in ((ObjectValueNode)valueNode).Fields)
@@ -144,7 +254,6 @@ internal static class ArgumentParser
                     }
                 }
                 break;
-            }
 
             case SyntaxKind.NullValue:
             case SyntaxKind.StringValue:

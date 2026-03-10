@@ -1,0 +1,84 @@
+operation:
+  - document: |
+      {
+        userFromA {
+          permissions
+          id @fusion__requirement
+          profile @fusion__requirement {
+            __typename @fusion__requirement
+            displayName
+            ... on AdminAccount {
+              accountType
+              adminLevel
+            }
+            ... on GuestAccount {
+              accountType
+              guestToken
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        userFromA {
+          id
+          profile {
+            __typename
+            displayName
+            ... on AdminAccount {
+              accountType
+            }
+            ... on GuestAccount {
+              accountType
+            }
+            ... on AdminAccount {
+              adminLevel
+            }
+            ... on GuestAccount {
+              guestToken
+            }
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+          $__fusion_2_accountType: String
+          $__fusion_2_adminLevel: String
+          $__fusion_2_displayName: String!
+          $__fusion_2_guestToken: String
+      ) {
+        userById(id: $__fusion_1_id) {
+          permissions(displayName: $__fusion_2_displayName, accountType: $__fusion_2_accountType, adminLevel: $__fusion_2_adminLevel, guestToken: $__fusion_2_guestToken)
+        }
+      }
+    source: $.userById
+    target: $.userFromA
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_accountType
+        selectionMap: >-
+          profile<AdminAccount>.accountType | profile<GuestAccount>.accountType
+      - name: __fusion_2_adminLevel
+        selectionMap: >-
+          profile<AdminAccount>.adminLevel
+      - name: __fusion_2_displayName
+        selectionMap: >-
+          profile.displayName
+      - name: __fusion_2_guestToken
+        selectionMap: >-
+          profile<GuestAccount>.guestToken
+    dependencies:
+      - id: 1

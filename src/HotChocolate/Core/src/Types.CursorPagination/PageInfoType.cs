@@ -1,3 +1,5 @@
+using HotChocolate.Types.Composite;
+
 namespace HotChocolate.Types.Pagination;
 
 public class PageInfoType : ObjectType<ConnectionPageInfo>
@@ -5,6 +7,11 @@ public class PageInfoType : ObjectType<ConnectionPageInfo>
     protected override void Configure(
         IObjectTypeDescriptor<ConnectionPageInfo> descriptor)
     {
+        if (descriptor.Extend().Context.Options.ApplyShareableToPageInfo)
+        {
+            descriptor.Directive(Shareable.Instance);
+        }
+
         descriptor
             .Name(Names.PageInfo)
             .Description("Information about pagination in a connection.")
@@ -15,16 +22,16 @@ public class PageInfoType : ObjectType<ConnectionPageInfo>
             .Type<NonNullType<BooleanType>>()
             .Name(Names.HasNextPage)
             .Description(
-                "Indicates whether more edges exist following " +
-                "the set defined by the clients arguments.");
+                "Indicates whether more edges exist following "
+                + "the set defined by the clients arguments.");
 
         descriptor
             .Field(t => t.HasPreviousPage)
             .Type<NonNullType<BooleanType>>()
             .Name(Names.HasPreviousPage)
             .Description(
-                "Indicates whether more edges exist prior " +
-                "the set defined by the clients arguments.");
+                "Indicates whether more edges exist prior "
+                + "the set defined by the clients arguments.");
 
         descriptor
             .Field(t => t.StartCursor)

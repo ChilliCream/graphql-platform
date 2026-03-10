@@ -15,4 +15,6 @@ public class QueryableListNoneOperationHandler : QueryableListOperationHandlerBa
         LambdaExpression lambda) =>
         FilterExpressionBuilder.Not(
             FilterExpressionBuilder.Any(closureType, context.GetInstance(), lambda));
+
+    public static QueryableListNoneOperationHandler Create(FilterProviderContext context) => new();
 }

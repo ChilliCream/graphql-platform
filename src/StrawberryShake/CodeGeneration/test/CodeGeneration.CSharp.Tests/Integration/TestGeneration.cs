@@ -135,18 +135,21 @@ public class TestGeneration
     public void StarWarsTypeNameOnUnions() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
-            @"query SearchHero {
-                    search(text: ""l"") {
-                        __typename
-                    }
-                }");
+            """
+            query SearchHero {
+                search(text: "l") {
+                    __typename
+                }
+            }
+            """);
 
     [Fact]
     public void StarWarsUnionList() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
-            @"query SearchHero {
-                search(text: ""l"") {
+            """
+            query SearchHero {
+                search(text: "l") {
                     ... on Human {
                         name
                         friends {
@@ -159,7 +162,8 @@ public class TestGeneration
                         name
                     }
                 }
-            }");
+            }
+            """);
 
     [Fact]
     public void StarWarsGetHeroTraits() =>
@@ -233,10 +237,11 @@ public class TestGeneration
     public void StarWarsGetFriendsDeferred() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     name
-                    ... FriendsList @defer(label: ""FriendsListLabel"")
+                    ... FriendsList @defer(label: "FriendsListLabel")
                 }
             }
 
@@ -246,17 +251,19 @@ public class TestGeneration
                         name
                     }
                 }
-            }");
+            }
+            """);
 
     [Fact]
     public void StarWarsGetFriendsDeferInList() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     friends {
                         nodes {
-                            ... CharacterName @defer(label: ""CharacterName"")
+                            ... CharacterName @defer(label: "CharacterName")
                         }
                     }
                 }
@@ -264,7 +271,8 @@ public class TestGeneration
 
             fragment CharacterName on Character {
                 name
-            }");
+            }
+            """);
 
     [Fact]
     public void StarWarsOnReviewSubCompletion() =>
@@ -420,5 +428,32 @@ public class TestGeneration
             scalar LocalDate
             scalar LocalDateTime
             scalar LocalTime
+            """);
+
+    [Fact]
+    public void UnsignedTypes() =>
+        AssertResult(
+            CreateIntegrationTest(),
+            skipWarnings: true,
+            """
+            query UnsignedTypes {
+                unsignedByte(input: 1)
+                unsignedShort(input: 256)
+                unsignedInt(input: 65536)
+                unsignedLong(input: 4294967296)
+            }
+            """,
+            """
+            type Query {
+                unsignedByte(input: UnsignedByte!): UnsignedByte!
+                unsignedShort(input: UnsignedShort!): UnsignedShort!
+                unsignedInt(input: UnsignedInt!): UnsignedInt!
+                unsignedLong(input: UnsignedLong!): UnsignedLong!
+            }
+
+            scalar UnsignedByte
+            scalar UnsignedShort
+            scalar UnsignedInt
+            scalar UnsignedLong
             """);
 }

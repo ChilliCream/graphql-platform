@@ -8,7 +8,7 @@
       ],
       "extensions": {
         "code": "HC0053",
-        "fieldCoordinate": "Baz.qux"
+        "coordinate": "Baz.qux"
       }
     }
   ],

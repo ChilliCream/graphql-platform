@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Buffers;
 
 namespace HotChocolate.Language.SyntaxTree;
 
@@ -14,7 +15,8 @@ public class FloatValueNodeTests
 
         // act
         var floatValueNode = new FloatValueNode(
-            buffer, FloatFormat.FixedPoint);
+            new ReadOnlyMemorySegment(buffer),
+            FloatFormat.FixedPoint);
 
         // assert
         Assert.Equal(value, floatValueNode.Value);
@@ -33,7 +35,9 @@ public class FloatValueNodeTests
 
         // act
         var floatValueNode = new FloatValueNode(
-            location, buffer, FloatFormat.FixedPoint);
+            location,
+            new ReadOnlyMemorySegment(buffer),
+            FloatFormat.FixedPoint);
 
         // assert
         Assert.Equal(value, floatValueNode.Value);
@@ -52,7 +56,9 @@ public class FloatValueNodeTests
 
         // act
         var floatValueNode = new FloatValueNode(
-            location, buffer, FloatFormat.FixedPoint);
+            location,
+            new ReadOnlyMemorySegment(buffer),
+            FloatFormat.FixedPoint);
 
         // assert
         Assert.Equal(expected, floatValueNode.ToSingle());
@@ -69,7 +75,9 @@ public class FloatValueNodeTests
 
         // act
         var floatValueNode = new FloatValueNode(
-            location, buffer, FloatFormat.FixedPoint);
+            location,
+            new ReadOnlyMemorySegment(buffer),
+            FloatFormat.FixedPoint);
 
         // assert
         Assert.Equal(expected, floatValueNode.ToDouble());
@@ -86,7 +94,9 @@ public class FloatValueNodeTests
 
         // act
         var floatValueNode = new FloatValueNode(
-            location, buffer, FloatFormat.FixedPoint);
+            location,
+            new ReadOnlyMemorySegment(buffer),
+            FloatFormat.FixedPoint);
 
         // assert
         Assert.Equal(expected, floatValueNode.ToDecimal());
@@ -224,7 +234,7 @@ public class FloatValueNodeTests
     {
         // act
         var a = new FloatValueNode(2.5);
-        var b = a.WithValue(a.AsSpan(), FloatFormat.FixedPoint);
+        var b = a.WithValue(a.AsMemorySegment(), FloatFormat.FixedPoint);
         var c = b.Value;
 
         // assert

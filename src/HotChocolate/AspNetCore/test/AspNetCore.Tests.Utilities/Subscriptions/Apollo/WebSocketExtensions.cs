@@ -1,5 +1,7 @@
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Buffers;
@@ -8,7 +10,6 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Transport.Sockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
@@ -35,8 +36,9 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionInitialize, payload);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static async Task SendTerminateConnectionAsync(
@@ -44,8 +46,9 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionTerminate);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionTerminate);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static async Task SendSubscriptionStartAsync(
@@ -66,8 +69,9 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Stop, id: subscriptionId);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Stop, id: subscriptionId);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static Task SendMessageAsync(
@@ -147,7 +151,7 @@ public static class WebSocketExtensions
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
     }
 
-    public static async Task<IReadOnlyDictionary<string, object?>?> ReceiveServerMessageAsync(
+    public static async Task<JsonDocument?> ReceiveServerMessageAsync(
         this WebSocket webSocket,
         CancellationToken cancellationToken)
     {
@@ -161,8 +165,9 @@ public static class WebSocketExtensions
             var array = new ArraySegment<byte>(buffer);
             result = await webSocket.ReceiveAsync(array, cancellationToken);
 
-            if (result.Count == 2 && result.EndOfMessage &&
-                buffer.AsSpan()[..2].SequenceEqual(Utf8MessageBodies.KeepAlive.Span))
+            if (result.Count == 2
+                && result.EndOfMessage
+                && buffer.AsSpan()[..2].SequenceEqual(Utf8MessageBodies.KeepAlive.Span))
             {
                 skipped = true;
                 continue;
@@ -178,20 +183,14 @@ public static class WebSocketExtensions
             return null;
         }
 
-        return (IReadOnlyDictionary<string, object?>?)ParseJson(stream.ToArray())!;
+        return JsonDocument.Parse(stream.ToArray());
     }
 
-    private sealed class HelperOperationMessage : OperationMessage
+    private sealed class HelperOperationMessage(string type, string id, object payload)
+        : OperationMessage(type)
     {
-        public HelperOperationMessage(string type, string id, object payload)
-            : base(type)
-        {
-            Id = id;
-            Payload = payload;
-        }
+        public string Id { get; } = id;
 
-        public string Id { get; }
-
-        public object Payload { get; }
+        public object Payload { get; } = payload;
     }
 }

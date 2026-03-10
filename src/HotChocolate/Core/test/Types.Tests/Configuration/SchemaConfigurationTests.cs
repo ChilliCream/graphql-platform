@@ -64,12 +64,12 @@ public class TestResolverCollectionA
         return "a_dummy_a";
     }
 
-    public string GetFoo(TestObjectA dummy)
+    public string? GetFoo(TestObjectA dummy)
     {
         return null;
     }
 
-    public string B { get; set; }
+    public required string B { get; set; }
 }
 
 public class TestObjectA
@@ -95,5 +95,5 @@ public class TestObjectB
 
 public class DummyQuery
 {
-    public string Foo { get; set; }
+    public required string Foo { get; set; }
 }

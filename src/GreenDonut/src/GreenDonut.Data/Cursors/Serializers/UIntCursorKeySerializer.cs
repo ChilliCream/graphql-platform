@@ -8,7 +8,7 @@ internal sealed class UIntCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<uint>();
 
     public bool IsSupported(Type type)
-        => type == typeof(uint);
+        => type == typeof(uint) || type == typeof(uint?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

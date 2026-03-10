@@ -33,8 +33,8 @@ internal sealed partial class AuthorizationTypeInterceptor
         }
 
         public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj) ||
-                (obj is ObjectTypeInfo other && Equals(other));
+            => ReferenceEquals(this, obj)
+                || (obj is ObjectTypeInfo other && Equals(other));
 
         public override int GetHashCode()
             => TypeDef.GetHashCode();

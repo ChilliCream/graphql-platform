@@ -4,8 +4,6 @@ using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

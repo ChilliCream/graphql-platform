@@ -44,8 +44,8 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override void StartSingleRequest(HttpContext context, GraphQLRequest request)
     {
-        if (_options.IncludeRequestDetails &&
-            context.Items.TryGetValue(HttpRequestActivity, out var activity))
+        if (_options.IncludeRequestDetails
+            && context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
             _enricher.EnrichSingleRequest(context, request, (Activity)activity!);
         }
@@ -53,8 +53,8 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch)
     {
-        if (_options.IncludeRequestDetails &&
-            context.Items.TryGetValue(HttpRequestActivity, out var activity))
+        if (_options.IncludeRequestDetails
+            && context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
             _enricher.EnrichBatchRequest(context, batch, (Activity)activity!);
         }
@@ -65,8 +65,8 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         GraphQLRequest request,
         IReadOnlyList<string> operations)
     {
-        if (_options.IncludeRequestDetails &&
-            context.Items.TryGetValue(HttpRequestActivity, out var activity))
+        if (_options.IncludeRequestDetails
+            && context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
             _enricher.EnrichOperationBatchRequest(
                 context,
@@ -134,7 +134,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         }
     }
 
-    public override IDisposable FormatHttpResponse(HttpContext context, IOperationResult result)
+    public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {
         if (_options.SkipFormatHttpResponse)
         {
@@ -154,8 +154,4 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
         return activity;
     }
-
-    // removed for 12.5 public override IDisposable WebSocketSession(HttpContext context)
-    // removed for 12.5public override void WebSocketSessionError(
-    // HttpContext context, Exception exception)
 }

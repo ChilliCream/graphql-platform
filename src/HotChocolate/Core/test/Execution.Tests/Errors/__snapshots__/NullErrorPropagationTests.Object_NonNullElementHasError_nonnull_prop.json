@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 24
-        }
-      ],
       "path": [
         "foo",
         "nonnull_prop",

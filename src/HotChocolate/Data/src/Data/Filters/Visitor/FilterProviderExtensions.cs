@@ -53,16 +53,16 @@ public abstract class FilterProviderExtensions<TContext>
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (Configuration is not null &&
-            convention is FilterProvider<TContext> filterProvider &&
-            filterProvider.Configuration is { } target)
+        if (Configuration is not null
+            && convention is FilterProvider<TContext> filterProvider
+            && filterProvider.Configuration is { } target)
         {
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more
             // specific handlers than the default providers
-            for (var i = Configuration.Handlers.Count - 1; i >= 0; i--)
+            for (var i = Configuration.FieldHandlerConfigurations.Count - 1; i >= 0; i--)
             {
-                target.Handlers.Insert(0, Configuration.Handlers[i]);
+                target.FieldHandlerConfigurations.Insert(0, Configuration.FieldHandlerConfigurations[i]);
             }
         }
     }

@@ -73,6 +73,7 @@ public static class GeneratorTestHelper
         documents.AppendLine("// ReSharper disable UnusedMember.Global");
         documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
         documents.AppendLine("// ReSharper disable UnusedType.Global");
+        documents.AppendLine("// ReSharper disable UnusedVariable");
         documents.AppendLine();
 
         if (settings.Profiles.Count == 0)
@@ -159,11 +160,11 @@ public static class GeneratorTestHelper
 
         if (diagnostics.Any())
         {
-            Assert.Fail("Diagnostic Errors: \n" +
-                diagnostics
+            Assert.Fail("Diagnostic Errors: \n"
+                + diagnostics
                     .Select(x =>
-                        $"{x.GetMessage()}" +
-                        $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
+                        $"{x.GetMessage()}"
+                        + $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
                     .Aggregate((acc, val) => acc + "\n" + val));
         }
     }

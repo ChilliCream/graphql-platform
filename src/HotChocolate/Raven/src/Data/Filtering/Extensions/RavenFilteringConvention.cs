@@ -33,8 +33,8 @@ internal sealed class RavenFilteringConvention : FilterConvention
 
         if (runtimeType.IsArrayOrList)
         {
-            if (runtimeType.ElementType is { } &&
-                TryCreateFilterType(runtimeType.ElementType, out var elementType))
+            if (runtimeType.ElementType is { }
+                && TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 return _typeInspector.GetTypeRef(
                     typeof(RavenListFilterInputType<>).MakeGenericType(elementType),

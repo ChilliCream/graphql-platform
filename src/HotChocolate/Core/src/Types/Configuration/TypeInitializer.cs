@@ -12,8 +12,6 @@ using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeInitializer
@@ -131,7 +129,7 @@ internal sealed class TypeInitializer
             throw new SchemaException(errors);
         }
 
-        // lets tell the type interceptors what types we have initialized.
+        // let's tell the type interceptors what types we have initialized.
         _interceptor.OnTypesInitialized();
         _interceptor.OnAfterDiscoverTypes();
     }
@@ -155,7 +153,7 @@ internal sealed class TypeInitializer
                     {
                         var typeRef = interfaceType.TypeReference;
                         ((ObjectType)objectType.Type).Configuration!.Interfaces.Add(typeRef);
-                        objectType.Dependencies.Add(new(typeRef, Completed));
+                        objectType.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -169,7 +167,7 @@ internal sealed class TypeInitializer
                     {
                         var typeRef = interfaceType.TypeReference;
                         ((InterfaceType)implementing.Type).Configuration!.Interfaces.Add(typeRef);
-                        implementing.Dependencies.Add(new(typeRef, Completed));
+                        implementing.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -431,6 +429,12 @@ internal sealed class TypeInitializer
         {
             foreach (var field in objectType.Configuration!.Fields)
             {
+                if ((CoreFieldFlags.BatchResolver & field.Flags) == CoreFieldFlags.BatchResolver)
+                {
+                    field.BatchResolver ??= CompileBatchResolver(field, _context.ResolverCompiler);
+                    continue;
+                }
+
                 if (!field.Resolvers.HasResolvers)
                 {
                     field.Resolvers = CompileResolver(field, _context.ResolverCompiler);
@@ -441,6 +445,12 @@ internal sealed class TypeInitializer
         {
             foreach (var field in interfaceType.Configuration!.Fields)
             {
+                if ((CoreFieldFlags.BatchResolver & field.Flags) == CoreFieldFlags.BatchResolver)
+                {
+                    field.BatchResolver ??= CompileBatchResolver(field, _context.ResolverCompiler);
+                    continue;
+                }
+
                 if (!field.Resolvers.HasResolvers)
                 {
                     field.Resolvers = CompileResolver(field, _context.ResolverCompiler);
@@ -512,6 +522,70 @@ internal sealed class TypeInitializer
                 }
             }
         }
+    }
+
+    private static BatchFieldDelegate? CompileBatchResolver(
+        ObjectFieldConfiguration definition,
+        IResolverCompiler resolverCompiler)
+    {
+        var method = (definition.ResolverMember ?? definition.Member) as MethodInfo;
+
+        if (method is null)
+        {
+            return null;
+        }
+
+        var map = TypeMemHelper.RentArgumentNameMap();
+
+        foreach (var argument in definition.Arguments)
+        {
+            if (argument.Parameter is not null)
+            {
+                map[argument.Parameter] = argument.Name;
+            }
+        }
+
+        var result = resolverCompiler.CompileBatchResolve(
+            method,
+            definition.SourceType,
+            definition.ResolverType,
+            map,
+            definition.GetParameterExpressionBuilders());
+
+        TypeMemHelper.Return(map);
+        return result;
+    }
+
+    private static BatchFieldDelegate? CompileBatchResolver(
+        InterfaceFieldConfiguration definition,
+        IResolverCompiler resolverCompiler)
+    {
+        var method = (definition.ResolverMember ?? definition.Member) as MethodInfo;
+
+        if (method is null)
+        {
+            return null;
+        }
+
+        var map = TypeMemHelper.RentArgumentNameMap();
+
+        foreach (var argument in definition.Arguments)
+        {
+            if (argument.Parameter is not null)
+            {
+                map[argument.Parameter] = argument.Name;
+            }
+        }
+
+        var result = resolverCompiler.CompileBatchResolve(
+            method,
+            definition.SourceType,
+            definition.ResolverType,
+            map,
+            definition.GetParameterExpressionBuilders());
+
+        TypeMemHelper.Return(map);
+        return result;
     }
 
     private static FieldResolverDelegates CompileResolver(

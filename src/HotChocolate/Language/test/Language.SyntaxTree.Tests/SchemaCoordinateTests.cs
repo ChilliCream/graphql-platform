@@ -149,10 +149,9 @@ public class SchemaCoordinateTests
         var memberName = new NameNode("Foo");
 
         // act
-        var ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, name, memberName, null);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, name, memberName, null));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -168,10 +167,9 @@ public class SchemaCoordinateTests
         var argumentName = new NameNode("baz");
 
         // act
-        var ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, name, null, argumentName);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, name, null, argumentName));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -185,10 +183,9 @@ public class SchemaCoordinateTests
         const bool ofDirective = false;
 
         // act
-        var ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, null!, null, null);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, null!, null, null));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

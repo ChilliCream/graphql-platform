@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
@@ -108,8 +107,8 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         while (reader.Read())
         {
-            if (reader.TokenType == JsonTokenType.PropertyName &&
-                reader.ValueTextEquals(Utf8MessageProperties.TypeProp))
+            if (reader.TokenType == JsonTokenType.PropertyName
+                && reader.ValueTextEquals(Utf8MessageProperties.TypeProp))
             {
                 reader.Read();
 
@@ -161,7 +160,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         {
             if (!_completed)
             {
-                TrySendCompleteMessageInternalAsync(socket, id).FireAndForget();
+                _ = TrySendCompleteMessageInternalAsync(socket, id);
                 _completed = true;
             }
         }

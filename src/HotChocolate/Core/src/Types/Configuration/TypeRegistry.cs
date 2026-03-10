@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable  enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeRegistry
@@ -13,22 +11,28 @@ internal sealed class TypeRegistry
     private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = [];
     private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
         new(new ExtendedTypeRefEqualityComparer());
+    private readonly HashSet<ExtendedTypeReference> _explicitRuntimeTypeRefs =
+        new(new ExtendedTypeRefEqualityComparer());
     private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);
+    private readonly Dictionary<FactoryTypeReference, TypeReference> _lookups = new(new TypeRefEqualityComparer());
     private readonly List<RegisteredType> _types = [];
     private readonly TypeInterceptor _typeRegistryInterceptor;
 
     public TypeRegistry(TypeInterceptor typeRegistryInterceptor)
     {
-        _typeRegistryInterceptor = typeRegistryInterceptor ??
-            throw new ArgumentNullException(nameof(typeRegistryInterceptor));
+        ArgumentNullException.ThrowIfNull(typeRegistryInterceptor);
+
+        _typeRegistryInterceptor = typeRegistryInterceptor;
     }
 
     public int Count => _typeRegister.Count;
 
     public IReadOnlyList<RegisteredType> Types => _types;
 
-    public IReadOnlyDictionary<ExtendedTypeReference, TypeReference> RuntimeTypeRefs =>
-        _runtimeTypeRefs;
+    public IReadOnlyDictionary<ExtendedTypeReference, TypeReference> RuntimeTypeRefs
+        => _runtimeTypeRefs;
+
+    public IReadOnlyDictionary<FactoryTypeReference, TypeReference> Lookups => _lookups;
 
     public IReadOnlyDictionary<string, TypeReference> NameRefs => _nameRefs;
 
@@ -41,8 +45,8 @@ internal sealed class TypeRegistry
             return true;
         }
 
-        if (typeReference is ExtendedTypeReference extendedTypeRef &&
-            _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var reference))
+        if (typeReference is ExtendedTypeReference extendedTypeRef
+            && _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var reference))
         {
             return _typeRegister.ContainsKey(reference);
         }
@@ -56,8 +60,8 @@ internal sealed class TypeRegistry
     {
         ArgumentNullException.ThrowIfNull(typeRef);
 
-        if (typeRef is ExtendedTypeReference clrTypeRef &&
-            _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
+        if (typeRef is ExtendedTypeReference clrTypeRef
+            && _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
         {
             typeRef = internalRef;
         }
@@ -72,6 +76,13 @@ internal sealed class TypeRegistry
         ArgumentNullException.ThrowIfNull(runtimeTypeRef);
 
         return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
+    }
+
+    public bool IsExplicitBinding(ExtendedTypeReference runtimeTypeRef)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeTypeRef);
+
+        return _explicitRuntimeTypeRefs.Contains(runtimeTypeRef);
     }
 
     public bool TryGetTypeRef(
@@ -91,12 +102,20 @@ internal sealed class TypeRegistry
 
     public IEnumerable<TypeReference> GetTypeRefs() => _runtimeTypeRefs.Values;
 
-    public void TryRegister(ExtendedTypeReference runtimeTypeRef, TypeReference typeRef)
+    public void TryRegister(
+        ExtendedTypeReference runtimeTypeRef,
+        TypeReference typeRef,
+        bool explicitBinding = false)
     {
         ArgumentNullException.ThrowIfNull(runtimeTypeRef);
         ArgumentNullException.ThrowIfNull(typeRef);
 
         _runtimeTypeRefs.TryAdd(runtimeTypeRef, typeRef);
+
+        if (explicitBinding)
+        {
+            _explicitRuntimeTypeRefs.Add(runtimeTypeRef);
+        }
     }
 
     public void Register(RegisteredType registeredType)
@@ -107,8 +126,8 @@ internal sealed class TypeRegistry
 
         foreach (var typeReference in registeredType.References)
         {
-            if (_typeRegister.TryGetValue(typeReference, out var current) &&
-                !ReferenceEquals(current, registeredType))
+            if (_typeRegister.TryGetValue(typeReference, out var current)
+                && !ReferenceEquals(current, registeredType))
             {
                 if (current.IsInferred && !registeredType.IsInferred)
                 {
@@ -133,21 +152,21 @@ internal sealed class TypeRegistry
 
         if (!registeredType.IsExtension)
         {
-            if (registeredType.IsNamedType &&
-                registeredType.Type is ITypeConfigurationProvider { Configuration: { } typeDef } &&
-                !_nameRefs.ContainsKey(typeDef.Name))
+            if (registeredType.IsNamedType
+                && registeredType.Type is ITypeConfigurationProvider { Configuration: { } typeDef }
+                && !_nameRefs.ContainsKey(typeDef.Name))
             {
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);
             }
-            else if (registeredType.Kind == TypeKind.Scalar &&
-                registeredType.Type is ScalarType scalar &&
-                !_nameRefs.ContainsKey(scalar.Name))
+            else if (registeredType.Kind == TypeKind.Scalar
+                && registeredType.Type is ScalarType scalar
+                && !_nameRefs.ContainsKey(scalar.Name))
             {
                 _nameRefs.Add(scalar.Name, registeredType.References[0]);
             }
-            else if (registeredType.Kind == TypeKind.Directive &&
-                registeredType.Type is DirectiveType directive &&
-                !_nameRefs.ContainsKey(directive.Configuration!.Name))
+            else if (registeredType.Kind == TypeKind.Directive
+                && registeredType.Type is DirectiveType directive
+                && !_nameRefs.ContainsKey(directive.Configuration!.Name))
             {
                 _nameRefs.Add(directive.Configuration.Name, registeredType.References[0]);
             }
@@ -178,14 +197,22 @@ internal sealed class TypeRegistry
             return;
         }
 
-        if (TryGetTypeRef(typeName, out var typeRef) &&
-            TryGetType(typeRef, out var type) &&
-            !ReferenceEquals(type, registeredType))
+        if (TryGetTypeRef(typeName, out var typeRef)
+            && TryGetType(typeRef, out var type)
+            && !ReferenceEquals(type, registeredType))
         {
             throw TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
         }
 
         _nameRefs[typeName] = registeredType.References[0];
+    }
+
+    public void Register(FactoryTypeReference factoryRef, TypeReference typeDefRef)
+    {
+        ArgumentNullException.ThrowIfNull(factoryRef);
+        ArgumentNullException.ThrowIfNull(typeDefRef);
+
+        _lookups.TryAdd(factoryRef, typeDefRef);
     }
 
     public void CompleteDiscovery()
@@ -194,14 +221,12 @@ internal sealed class TypeRegistry
         {
             TypeReference reference = TypeReference.Create(registeredType.Type);
             registeredType.References.TryAdd(reference);
-
             _typeRegister[reference] = registeredType;
 
             if (registeredType.Type.Scope is { } s)
             {
                 reference = TypeReference.Create(registeredType.Type, s);
                 registeredType.References.TryAdd(reference);
-
                 _typeRegister[reference] = registeredType;
             }
         }

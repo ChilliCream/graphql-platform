@@ -36,6 +36,8 @@ public class MutableUnionTypeDefinition
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     public DirectiveCollection Directives
         => _directives ??= [];
 
@@ -59,6 +61,9 @@ public class MutableUnionTypeDefinition
     /// <inheritdoc />
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: false);
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <summary>
     /// Get the string representation of the union type definition.

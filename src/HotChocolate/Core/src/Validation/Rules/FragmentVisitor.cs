@@ -116,9 +116,9 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexTypeDefinition ot &&
-            ot.Fields.TryGetField(node.Name.Value, out var of))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is IComplexTypeDefinition ot
+            && ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
             context.Types.Push(of.Type);

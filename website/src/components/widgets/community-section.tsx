@@ -22,8 +22,7 @@ export const CommunityVisualization: FC = () => {
         <GraphContent>
           <GraphTitle>A Growing Community</GraphTitle>
           <GraphText>
-            Be part of our expanding community. A place for sharing, learning,
-            <br />
+            Be part of our expanding community. A place for sharing, learning,{" "}
             and evolving together, driving forward the future of GraphQL
             technologies.
           </GraphText>
@@ -69,10 +68,11 @@ const VisibleArea = styled.div`
   height: 100%;
   max-width: ${MAX_CONTENT_WIDTH}px;
   gap: 16px;
-  overflow: visible;
+  overflow: hidden;
 
   @media only screen and (min-width: 992px) {
     gap: 24px;
+    overflow: visible;
   }
 `;
 
@@ -85,6 +85,7 @@ const Graph = styled.div`
   border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--box-border-radius);
   backdrop-filter: blur(2px);
+  overflow: hidden;
   background-image: linear-gradient(
     to bottom,
     #e043da1d,
@@ -100,11 +101,18 @@ const GraphContent = styled.div`
   flex: 0 0 auto;
   flex-direction: column;
   align-items: flex-start;
-  width: 670px;
-  padding: 40px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24px;
+
+  @media only screen and (min-width: 992px) {
+    width: 670px;
+    padding: 40px;
+  }
 `;
 
-const GraphTitle = styled.h4`
+const GraphTitle = styled.h2`
+  font-weight: 700;
   flex: 0 0 auto;
 
   @media only screen and (min-width: 992px) {
@@ -125,17 +133,20 @@ const GraphText = styled.p.attrs({
 const CommunityIllustration = styled(CommunityIllustrationSvg)`
   position: absolute;
   z-index: -1;
+  width: 100%;
+  height: auto;
 `;
 
 const Numbers = styled.div`
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   flex: 1 1 200px;
-  flex-direction: rows;
   gap: 16px;
   border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--box-border-radius);
   backdrop-filter: blur(2px);
+  padding: 24px 0;
   background-image: linear-gradient(
     to right top,
     #9b9aa51d,
@@ -146,7 +157,10 @@ const Numbers = styled.div`
   );
 
   @media only screen and (min-width: 992px) {
+    display: flex;
+    flex-direction: row;
     gap: 24px;
+    padding: 0;
   }
 `;
 

@@ -137,9 +137,9 @@ internal sealed class DirectiveVisitor()
     {
         if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var dt))
         {
-            if (context.Path.TryPeek(out var parent) &&
-                TryLookupLocation(parent, out var location) &&
-                (dt.Locations & location) != location)
+            if (context.Path.TryPeek(out var parent)
+                && TryLookupLocation(parent, out var location)
+                && (dt.Locations & location) != location)
             {
                 context.ReportError(context.DirectiveNotValidInLocation(node));
             }
@@ -172,9 +172,9 @@ internal sealed class DirectiveVisitor()
             }
 
             // Defer And Stream Directive Labels Are Unique
-            if (node.Kind is Field or InlineFragment or FragmentSpread &&
-                (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal) ||
-                directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)))
+            if (node.Kind is Field or InlineFragment or FragmentSpread
+                && (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal)
+                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)))
             {
                 switch (directive.GetArgumentValue(DirectiveNames.Defer.Arguments.Label))
                 {

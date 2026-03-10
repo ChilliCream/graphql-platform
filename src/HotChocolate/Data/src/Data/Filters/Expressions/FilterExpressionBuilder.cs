@@ -14,9 +14,9 @@ public static class FilterExpressionBuilder
 
     private static readonly MethodInfo s_enumerableContains = typeof(Enumerable)
         .GetMethods(Public | Static)
-        .Single(m => m.Name.Equals(nameof(Enumerable.Contains)) &&
-            m.GetGenericArguments().Length == 1 &&
-            m.GetParameters().Length is 2);
+        .Single(m => m.Name.Equals(nameof(Enumerable.Contains))
+            && m.GetGenericArguments().Length == 1
+            && m.GetParameters().Length is 2);
 
     private static readonly MethodInfo s_startsWith =
         ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(null!));

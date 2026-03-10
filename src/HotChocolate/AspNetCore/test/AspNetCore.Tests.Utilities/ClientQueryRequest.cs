@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -12,6 +13,7 @@ public class ClientQueryRequest
     public string? OperationName { get; set; }
 
     [JsonProperty("query")]
+    [StringSyntax("graphql")]
     public string? Query { get; set; }
 
     [JsonProperty("variables")]
@@ -33,7 +35,7 @@ public class ClientQueryRequest
         {
             if (Id is not null)
             {
-                query.Append("&");
+                query.Append('&');
             }
             query.Append($"query={Query.Replace("\r", "").Replace("\n", "")}");
         }

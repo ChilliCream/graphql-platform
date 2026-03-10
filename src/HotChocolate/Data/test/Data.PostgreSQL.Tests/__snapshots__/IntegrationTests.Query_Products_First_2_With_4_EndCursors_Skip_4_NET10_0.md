@@ -38,7 +38,7 @@
 -- @value1='46'
 -- @p0='3'
 -- @p='6'
-SELECT p."Name", p."BrandId", p."Id"
+SELECT p."BrandId", p."Name", p."Id"
 FROM "Products" AS p
 WHERE p."Name" < @value OR (p."Name" = @value AND p."Id" > @value1)
 ORDER BY p."Name" DESC, p."Id"
@@ -49,8 +49,7 @@ LIMIT @p0 OFFSET @p
 
 ```sql
 -- @ids={ '6' } (DbType = Object)
-SELECT b."Id", b."Name"
+SELECT b."Name", b."Id"
 FROM "Brands" AS b
 WHERE b."Id" = ANY (@ids)
 ```
-

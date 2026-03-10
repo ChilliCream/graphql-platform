@@ -1,0 +1,13 @@
+{
+  "name": "B",
+  "transports": {
+    "http": {
+      "url": "http://localhost/graphql"
+    }
+  },
+  "satisfiability": {
+    "ignoredNonAccessibleFields": {
+      "Category.name": ["A:Query.productById<Product> -> A:Product.category<Category>"]
+    }
+  }
+}

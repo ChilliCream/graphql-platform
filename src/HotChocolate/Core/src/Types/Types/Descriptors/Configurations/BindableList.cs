@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Runtime.InteropServices;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class BindableList<T> : IBindableList<T>
@@ -36,7 +34,7 @@ public sealed class BindableList<T> : IBindableList<T>
     }
 
     public bool Contains(T item)
-        => _list is not null && _list.Contains(item);
+        => _list?.Contains(item) == true;
 
     public void CopyTo(T[] array, int arrayIndex)
         => _list?.CopyTo(array, arrayIndex);

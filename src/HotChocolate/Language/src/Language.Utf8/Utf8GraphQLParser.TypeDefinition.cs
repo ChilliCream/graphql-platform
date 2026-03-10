@@ -8,6 +8,7 @@ public ref partial struct Utf8GraphQLParser
     private static readonly List<EnumValueDefinitionNode> s_emptyEnumValues = [];
     private static readonly List<InputValueDefinitionNode> s_emptyInputValues = [];
     private static readonly List<FieldDefinitionNode> s_emptyFieldDefinitions = [];
+    private static readonly List<NamedTypeNode> s_emptyNamedTypes = [];
 
     /// <summary>
     /// Parses a description.
@@ -158,10 +159,10 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private List<NamedTypeNode> ParseImplementsInterfaces()
     {
-        var list = new List<NamedTypeNode>();
-
         if (SkipImplementsKeyword())
         {
+            var list = new List<NamedTypeNode>();
+
             // skip optional leading ampersand.
             SkipAmpersand();
 
@@ -170,9 +171,11 @@ public ref partial struct Utf8GraphQLParser
                 list.Add(ParseNamedType());
             }
             while (SkipAmpersand());
+
+            return list;
         }
 
-        return list;
+        return s_emptyNamedTypes;
     }
 
     /// <summary>
@@ -357,10 +360,10 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private List<NamedTypeNode> ParseUnionMemberTypes()
     {
-        var list = new List<NamedTypeNode>();
-
         if (SkipEqual())
         {
+            var list = new List<NamedTypeNode>();
+
             // skip optional leading pipe (might not exist!)
             SkipPipe();
 
@@ -369,9 +372,11 @@ public ref partial struct Utf8GraphQLParser
                 list.Add(ParseNamedType());
             }
             while (SkipPipe());
+
+            return list;
         }
 
-        return list;
+        return s_emptyNamedTypes;
     }
 
     /// <summary>

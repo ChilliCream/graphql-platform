@@ -46,10 +46,13 @@ public class ObjectIdTypeTests
     {
         // arrange
         var executor = await CreateSchema();
-        const string query = @"
+        const string query =
+            // lang=graphql
+            """
             {
-                loopback(objectId: ""6124e80f3f5fc839830c1f6b"")
-            }";
+                loopback(objectId: "6124e80f3f5fc839830c1f6b")
+            }
+            """;
 
         // act
         var result = await executor.ExecuteAsync(query, CancellationToken.None);

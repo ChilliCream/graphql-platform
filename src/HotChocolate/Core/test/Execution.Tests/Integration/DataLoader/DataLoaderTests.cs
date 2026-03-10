@@ -34,10 +34,8 @@ public class DataLoaderTests
                                 .GetRequiredService<IDataLoaderScope>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                        context.Result = OperationResultBuilder
-                            .FromResult((IOperationResult)context.Result!)
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
@@ -47,29 +45,35 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withDataLoader(key: ""a"")
-                            b: withDataLoader(key: ""b"")
+                        """
+                        {
+                            a: withDataLoader(key: "a")
+                            b: withDataLoader(key: "b")
                             bar {
-                                c: withDataLoader(key: ""c"")
+                                c: withDataLoader(key: "c")
                             }
-                        }")
+                        }
+                        """)
                     .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withDataLoader(key: ""a"")
-                        }")
+                        """
+                        {
+                            a: withDataLoader(key: "a")
+                        }
+                        """)
                     .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: withDataLoader(key: ""c"")
-                        }")
+                        """
+                        {
+                            c: withDataLoader(key: "c")
+                        }
+                        """)
                     .Build()));
 
         // assert
@@ -95,10 +99,8 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -130,10 +132,8 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -168,10 +168,8 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -201,28 +199,34 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withStackedDataLoader(key: ""a"")
-                            b: withStackedDataLoader(key: ""b"")
-                        }")
+                        """
+                        {
+                            a: withStackedDataLoader(key: "a")
+                            b: withStackedDataLoader(key: "b")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withStackedDataLoader(key: ""a"")
-                        }")
+                        """
+                        {
+                            a: withStackedDataLoader(key: "a")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: withStackedDataLoader(key: ""c"")
-                        }")
+                        """
+                        {
+                            c: withStackedDataLoader(key: "c")
+                        }
+                        """)
                     .Build()));
 
         // assert
@@ -247,10 +251,8 @@ public class DataLoaderTests
 
                         var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
-                        context.Result = OperationResultBuilder
-                            .FromResult(((IOperationResult)context.Result!))
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
@@ -259,28 +261,34 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                            b: dataLoaderWithInterface(key: ""b"")
-                        }")
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                            b: dataLoaderWithInterface(key: "b")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                        }")
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: dataLoaderWithInterface(key: ""c"")
-                        }")
+                        """
+                        {
+                            c: dataLoaderWithInterface(key: "c")
+                        }
+                        """)
                     .Build()));
 
         // assert
@@ -308,10 +316,8 @@ public class DataLoaderTests
 
                         var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
-                        context.Result = OperationResultBuilder
-                            .FromResult((IOperationResult)context.Result!)
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
@@ -320,28 +326,34 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                            b: dataLoaderWithInterface(key: ""b"")
-                        }")
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                            b: dataLoaderWithInterface(key: "b")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                        }")
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: dataLoaderWithInterface(key: ""c"")
-                        }")
+                        """
+                        {
+                            c: dataLoaderWithInterface(key: "c")
+                        }
+                        """)
                     .Build()));
 
         // assert
@@ -382,10 +394,12 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                @"mutation {
-                    a: doSomething(key: ""a"")
-                    b: doSomething(key: ""b"")
-                }"));
+                """
+                mutation {
+                    a: doSomething(key: "a")
+                    b: doSomething(key: "b")
+                }
+                """));
 
         await snapshot.MatchMarkdownAsync();
     }

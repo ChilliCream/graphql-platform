@@ -12,10 +12,11 @@ public class SortProviderDescriptor<TContext>
 
     public SortProviderConfiguration CreateConfiguration() => Configuration;
 
-    public ISortProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
+    public ISortProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>(
+        Func<SortProviderContext, TFieldHandler> factory)
         where TFieldHandler : ISortFieldHandler<TContext>
     {
-        Configuration.Handlers.Add((typeof(TFieldHandler), null));
+        Configuration.FieldHandlerConfigurations.Add(new SortFieldHandlerConfiguration(ctx => factory(ctx)));
         return this;
     }
 
@@ -23,14 +24,15 @@ public class SortProviderDescriptor<TContext>
         TFieldHandler fieldHandler)
         where TFieldHandler : ISortFieldHandler<TContext>
     {
-        Configuration.Handlers.Add((typeof(TFieldHandler), fieldHandler));
+        Configuration.FieldHandlerConfigurations.Add(new SortFieldHandlerConfiguration(fieldHandler));
         return this;
     }
 
-    public ISortProviderDescriptor<TContext> AddOperationHandler<TOperationHandler>()
+    public ISortProviderDescriptor<TContext> AddOperationHandler<TOperationHandler>(
+        Func<SortProviderContext, TOperationHandler> factory)
         where TOperationHandler : ISortOperationHandler<TContext>
     {
-        Configuration.OperationHandlers.Add((typeof(TOperationHandler), null));
+        Configuration.OperationHandlerConfigurations.Add(new SortOperationHandlerConfiguration(ctx => factory(ctx)));
         return this;
     }
 
@@ -38,10 +40,9 @@ public class SortProviderDescriptor<TContext>
         TOperationHandler operationHandler)
         where TOperationHandler : ISortOperationHandler<TContext>
     {
-        Configuration.OperationHandlers.Add((typeof(TOperationHandler), operationHandler));
+        Configuration.OperationHandlerConfigurations.Add(new SortOperationHandlerConfiguration(operationHandler));
         return this;
     }
 
-    public static SortProviderDescriptor<TContext> New() =>
-        new SortProviderDescriptor<TContext>();
+    public static SortProviderDescriptor<TContext> New() => new();
 }

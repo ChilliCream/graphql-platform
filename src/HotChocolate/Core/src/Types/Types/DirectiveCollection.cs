@@ -8,7 +8,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
-#nullable enable
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -248,7 +247,7 @@ public sealed class DirectiveCollection : IReadOnlyList<Directive>
                         runtimeValue = value;
                     }
                 }
-                catch (SerializationException ex)
+                catch (LeafCoercionException ex)
                 {
                     hasErrors = true;
 

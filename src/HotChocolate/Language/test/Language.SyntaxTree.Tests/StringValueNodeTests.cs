@@ -1,4 +1,4 @@
-using System.Text;
+using HotChocolate.Buffers;
 using static HotChocolate.Language.SyntaxComparison;
 
 namespace HotChocolate.Language.SyntaxTree;
@@ -56,7 +56,7 @@ public class StringValueNodeTests
     public void Create_StringValueNode_3_Location_Is_Null()
     {
         // arrange
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
 
         // act
         var value = new StringValueNode(null, stringValue, true);
@@ -74,7 +74,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
 
         // act
         var value = new StringValueNode(location, stringValue, true);
@@ -92,7 +92,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act
@@ -107,7 +107,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act
@@ -139,7 +139,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act
@@ -154,7 +154,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act
@@ -186,7 +186,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act

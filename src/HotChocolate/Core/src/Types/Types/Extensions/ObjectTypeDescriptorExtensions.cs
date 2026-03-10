@@ -10,11 +10,9 @@ public static class ObjectTypeDescriptorExtensions
 {
     public static IObjectTypeDescriptor<T> Ignore<T>(
         this IObjectTypeDescriptor<T> descriptor,
-        Expression<Func<T, object>> propertyOrMethod)
+        Expression<Func<T, object?>> propertyOrMethod)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(propertyOrMethod);
-
         descriptor.Field(propertyOrMethod).Ignore();
         return descriptor;
     }

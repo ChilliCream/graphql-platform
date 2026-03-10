@@ -24,7 +24,7 @@ public interface IArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    IArgumentDescriptor Deprecated(string reason);
+    IArgumentDescriptor Deprecated(string? reason);
 
     /// <summary>
     /// Marks the argument as deprecated
@@ -63,7 +63,7 @@ public interface IArgumentDescriptor
     /// </example>
     /// </summary>
     /// <param name="value">The description</param>
-    IArgumentDescriptor Description(string value);
+    IArgumentDescriptor Description(string? value);
 
     /// <summary>
     /// Sets the type of the argument
@@ -147,7 +147,7 @@ public interface IArgumentDescriptor
     /// </example>
     /// </summary>
     /// <param name="value"></param>
-    IArgumentDescriptor DefaultValue(IValueNode value);
+    IArgumentDescriptor DefaultValue(IValueNode? value);
 
     /// <summary>
     /// Sets the default value of this argument
@@ -164,7 +164,7 @@ public interface IArgumentDescriptor
     /// </example>
     /// </summary>
     /// <param name="value"></param>
-    IArgumentDescriptor DefaultValue(object value);
+    IArgumentDescriptor DefaultValue(object? value);
 
     /// <summary>
     /// Sets a directive on the argument

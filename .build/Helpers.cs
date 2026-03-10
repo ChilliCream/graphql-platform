@@ -11,6 +11,7 @@ static class Helpers
     static readonly string[] Directories =
     {
         "GreenDonut",
+        Path.Combine("HotChocolate", "Adapters"),
         Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "AzureFunctions"),
@@ -24,17 +25,18 @@ static class Helpers
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
-        // Path.Combine("HotChocolate", "OpenApi"),
         Path.Combine("HotChocolate", "Primitives"),
         Path.Combine("HotChocolate", "Raven"),
         Path.Combine("HotChocolate", "Mutable"),
-        Path.Combine("HotChocolate", "Fusion-vnext"),
+        Path.Combine("HotChocolate", "Fusion"),
         Path.Combine("HotChocolate", "Spatial"),
+        Path.Combine("Nitro", "CommandLine"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
         Path.Combine("StrawberryShake", "MetaPackages"),
         Path.Combine("StrawberryShake", "Tooling"),
-        "CookieCrumble"
+        "CookieCrumble",
+        "Mocha"
     };
 
     static IEnumerable<string> GetAllProjects(
@@ -76,7 +78,7 @@ static class Helpers
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
-        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)}", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)} --format sln", workingDirectory));
 
         var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 
@@ -97,7 +99,7 @@ static class Helpers
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
-        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)}", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)} --format sln", workingDirectory));
 
         var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 

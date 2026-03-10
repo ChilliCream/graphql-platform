@@ -20,8 +20,8 @@ public class FilterVisitor<TContext, T>
         IFilterField field,
         ObjectFieldNode node)
     {
-        if (field.Handler is IFilterFieldHandler<TContext, T> handler &&
-            handler.TryHandleEnter(
+        if (field.Handler is IFilterFieldHandler<TContext, T> handler
+            && handler.TryHandleEnter(
                 context,
                 field,
                 node,
@@ -37,8 +37,8 @@ public class FilterVisitor<TContext, T>
         IFilterField field,
         ObjectFieldNode node)
     {
-        if (field.Handler is IFilterFieldHandler<TContext, T> handler &&
-            handler.TryHandleLeave(
+        if (field.Handler is IFilterFieldHandler<TContext, T> handler
+            && handler.TryHandleLeave(
                 context,
                 field,
                 node,

@@ -104,36 +104,36 @@ public enum DirectiveLocation
 
     // see: https://spec.graphql.org/draft/#ExecutableDirectiveLocation
     Executable =
-        Query |
-        Mutation |
-        Subscription |
-        Field |
-        FragmentDefinition |
-        FragmentSpread |
-        InlineFragment |
-        VariableDefinition,
+        Query
+        | Mutation
+        | Subscription
+        | Field
+        | FragmentDefinition
+        | FragmentSpread
+        | InlineFragment
+        | VariableDefinition,
 
     // see: https://spec.graphql.org/draft/#TypeSystemDirectiveLocation
     TypeSystem =
-        Schema |
-        Scalar |
-        Object |
-        FieldDefinition |
-        ArgumentDefinition |
-        Interface |
-        Union |
-        Enum |
-        EnumValue |
-        InputObject |
-        InputFieldDefinition,
+        Schema
+        | Scalar
+        | Object
+        | FieldDefinition
+        | ArgumentDefinition
+        | Interface
+        | Union
+        | Enum
+        | EnumValue
+        | InputObject
+        | InputFieldDefinition,
 
     Operation =
-        Query |
-        Mutation |
-        Subscription,
+        Query
+        | Mutation
+        | Subscription,
 
     Fragment =
-        InlineFragment |
-        FragmentSpread |
-        FragmentDefinition
+        InlineFragment
+        | FragmentSpread
+        | FragmentDefinition
 }

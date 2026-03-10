@@ -175,15 +175,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barShort: ASC}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(order: { foo: { barShort: ASC}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barShort: DESC}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(order: { foo: { barShort: DESC}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // assert
@@ -205,15 +205,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barShort: ASC}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(order: { foo: { barShort: ASC}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barShort: DESC}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(order: { foo: { barShort: DESC}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // assert
@@ -234,15 +234,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barEnum: ASC}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(order: { foo: { barEnum: ASC}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barEnum: DESC}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(order: { foo: { barEnum: DESC}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -263,15 +263,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barEnum: ASC}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(order: { foo: { barEnum: ASC}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barEnum: DESC}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(order: { foo: { barEnum: DESC}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -292,15 +292,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barString: ASC}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(order: { foo: { barString: ASC}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barString: DESC}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(order: { foo: { barString: DESC}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         // assert
@@ -321,15 +321,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barString: ASC}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(order: { foo: { barString: ASC}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barString: DESC}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(order: { foo: { barString: DESC}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         // assert
@@ -350,15 +350,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: ASC}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(order: { foo: { barBool: ASC}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: DESC}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(order: { foo: { barBool: DESC}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         // assert
@@ -379,15 +379,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: ASC}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(order: { foo: { barBool: ASC}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: DESC}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(order: { foo: { barBool: DESC}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         // assert
@@ -408,8 +408,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) " +
-                    "{ foo{ barBool barShort}}}")
+                    "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) "
+                    + "{ foo{ barBool barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -432,8 +432,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) " +
-                    "{ foo{ barBool barShort}}}")
+                    "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) "
+                    + "{ foo{ barBool barShort}}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
@@ -471,9 +471,9 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
             x.AddProviderExtension(
                 new MockProviderExtension(y =>
                 {
-                    y.AddFieldHandler<ComplexOrderSumHandler>();
-                    y.AddFieldHandler<ComplexOrderSumFieldsHandler>();
-                    y.AddFieldHandler<ComplexOrderSumSortHandler>();
+                    y.AddFieldHandler(ComplexOrderSumHandler.Create);
+                    y.AddFieldHandler(ComplexOrderSumFieldsHandler.Create);
+                    y.AddFieldHandler(ComplexOrderSumSortHandler.Create);
                 }));
         });
         var tester = _cache.CreateSchema<Bar, ComplexBarSortType>(
@@ -614,12 +614,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         QUX
     }
 
-    class ComplexOrderSumHandler(ISortConvention convention, InputParser inputParser)
+    public class ComplexOrderSumHandler(ISortConvention convention, InputParser inputParser)
         : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
     {
         private readonly Dictionary<string, PropertyInfo> _fieldMap = typeof(Foo)
             .GetProperties()
             .ToDictionary(convention.GetFieldName);
+
+        public static ComplexOrderSumHandler Create(SortProviderContext context) =>
+            new(context.SortConvention, context.InputParser);
 
         public override bool CanHandle(
             ITypeCompletionContext context,
@@ -674,9 +677,11 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         }
     }
 
-    class ComplexOrderSumFieldsHandler
+    public class ComplexOrderSumFieldsHandler
         : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
     {
+        public static ComplexOrderSumFieldsHandler Create(SortProviderContext context) => new();
+
         public override bool CanHandle(
             ITypeCompletionContext context,
             ISortInputTypeConfiguration typeConfiguration,
@@ -686,9 +691,11 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         }
     }
 
-    class ComplexOrderSumSortHandler
+    public class ComplexOrderSumSortHandler
         : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
     {
+        public static ComplexOrderSumSortHandler Create(SortProviderContext context) => new();
+
         public override bool CanHandle(
             ITypeCompletionContext context,
             ISortInputTypeConfiguration typeConfiguration,
@@ -708,6 +715,6 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         }
     }
 
-    class MockProviderExtension(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+    public class MockProviderExtension(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
         : SortProviderExtensions<QueryableSortContext>(configure);
 }

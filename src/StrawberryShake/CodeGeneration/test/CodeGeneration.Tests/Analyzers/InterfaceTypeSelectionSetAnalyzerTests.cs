@@ -200,9 +200,10 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .BuildSchemaAsync();
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    search(text: ""hello"") {
+                    search(text: "hello") {
                         ... Hero
                         ... Starship
                     }
@@ -224,7 +225,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
 
                 fragment Starship on Starship {
                     length
-                }");
+                }
+                """);
 
         var context = new DocumentAnalyzerContext(schema, document);
         var selectionSetVariants = context.CollectFields();

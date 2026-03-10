@@ -1,10 +1,30 @@
-#nullable enable
+using System.Text.RegularExpressions;
 
 namespace HotChocolate.Types.Descriptors.Configurations;
 
-public class SchemaTypeConfiguration : TypeSystemConfiguration
+public partial class SchemaTypeConfiguration : TypeSystemConfiguration
 {
     private List<DirectiveConfiguration>? _directives;
+
+    [GeneratedRegex(@"^[A-Za-z_][A-Za-z0-9_-]*$", RegexOptions.Compiled)]
+    private static partial Regex NameValidationRegex();
+
+    public override string Name
+    {
+        get;
+        set
+        {
+            if (!string.IsNullOrEmpty(value) && !NameValidationRegex().IsMatch(value))
+            {
+                throw new ArgumentException(
+                    "The schema name must start with a letter or underscore, "
+                    + "followed by letters, digits, underscores, or hyphens.",
+                    nameof(value));
+            }
+
+            field = string.Intern(value);
+        }
+    } = string.Empty;
 
     /// <summary>
     /// Gets the list of directives that are annotated to this schema.

@@ -1,19 +1,29 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-
-#nullable enable
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `LocalTime` scalar type is a local time string (i.e., with no associated timezone)
-/// in 24-hr HH:mm:ss.
+/// The <c>LocalTime</c> scalar type represents a time of day without date or time zone information.
+/// It is intended for scenarios where only the time component matters, such as business operating
+/// hours (e.g., "opens at 09:00"), daily schedules, or recurring time-based events where the
+/// specific date is irrelevant.
 /// </summary>
-public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
+/// <seealso href="https://scalars.graphql.org/chillicream/local-time.html">Specification</seealso>
+public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
 {
-    private const string LocalFormat = "HH:mm:ss";
+    private const string LocalFormat = "HH:mm:ss.FFFFFFF";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/local-time.html";
+
+    private readonly DateTimeOptions _options;
+    private readonly string _localFormat;
+    private readonly Regex _localTimeRegex;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
@@ -21,10 +31,28 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
     public LocalTimeType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        DateTimeOptions? options = null)
         : base(name, bind)
     {
+        _options = options ?? new DateTimeOptions();
         Description = description;
+        Pattern = GetPattern();
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _localFormat = GetLocalFormat();
+        _localTimeRegex = GetLocalTimeRegex();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
+    /// </summary>
+    public LocalTimeType(DateTimeOptions options)
+        : this(
+            ScalarNames.LocalTime,
+            TypeResources.LocalTimeType_Description,
+            BindingBehavior.Implicit,
+            options: options)
+    {
     }
 
     /// <summary>
@@ -34,110 +62,150 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
     public LocalTimeType()
         : this(
             ScalarNames.LocalTime,
-            TypeResources.LocalTimeType_Description)
+            TypeResources.LocalTimeType_Description,
+            options: null)
     {
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
+    /// </summary>
+    [Obsolete("Use the constructor that accepts DateTimeOptions instead.")]
+    public LocalTimeType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
+        : base(name, bind)
     {
-        return resultValue switch
-        {
-            null => NullValueNode.Default,
-            string s => new StringValueNode(s),
-            TimeOnly t => ParseValue(t),
-            DateTimeOffset d => ParseValue(TimeOnly.FromDateTime(d.DateTime)),
-            DateTime dt => ParseValue(TimeOnly.FromDateTime(dt)),
-            _ => throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
-        };
+        _options = new DateTimeOptions { ValidateInputFormat = !disableFormatCheck };
+        Description = description;
+        Pattern = GetPattern();
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _localFormat = GetLocalFormat();
+        _localTimeRegex = GetLocalTimeRegex();
     }
 
-    protected override TimeOnly ParseLiteral(StringValueNode valueSyntax)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
+    /// </summary>
+    [Obsolete("Use the constructor that accepts DateTimeOptions instead.")]
+    public LocalTimeType(bool disableFormatCheck)
+        : this(
+            ScalarNames.LocalTime,
+            TypeResources.LocalTimeType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, out var value))
+    }
+
+    /// <inheritdoc />
+    protected override TimeOnly OnCoerceInputLiteral(StringValueNode valueLiteral)
+    {
+        if (TryParseStringValue(valueLiteral.Value, out var value))
         {
-            return value.Value;
+            return value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    protected override StringValueNode ParseValue(TimeOnly runtimeValue)
+    /// <inheritdoc />
+    protected override TimeOnly OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        return new(Serialize(runtimeValue));
-    }
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        switch (runtimeValue)
+        if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
-            case null:
-                resultValue = null;
-                return true;
-            case TimeOnly t:
-                resultValue = Serialize(t);
-                return true;
-            case DateTimeOffset dt:
-                resultValue = Serialize(dt);
-                return true;
-            case DateTime dt:
-                resultValue = Serialize(dt);
-                return true;
-            default:
-                resultValue = null;
-                return false;
+            return value;
         }
+
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(TimeOnly runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.ToString(_localFormat, CultureInfo.InvariantCulture));
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(TimeOnly runtimeValue)
+        => new StringValueNode(runtimeValue.ToString(_localFormat, CultureInfo.InvariantCulture));
+
+    private bool TryParseStringValue(string serialized, out TimeOnly value)
     {
-        switch (resultValue)
+        // Check format.
+        if (_options.ValidateInputFormat && !_localTimeRegex.IsMatch(serialized))
         {
-            case null:
-                runtimeValue = null;
-                return true;
-            case string s when TryDeserializeFromString(s, out var t):
-                runtimeValue = t;
-                return true;
-            case TimeOnly t:
-                runtimeValue = t;
-                return true;
-            case DateTimeOffset d:
-                runtimeValue = TimeOnly.FromDateTime(d.DateTime);
-                return true;
-            case DateTime d:
-                runtimeValue = TimeOnly.FromDateTime(d);
-                return true;
-            default:
-                runtimeValue = null;
-                return false;
+            value = default;
+            return false;
         }
-    }
 
-    private static string Serialize(IFormattable value)
-    {
-        return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
-    }
-
-    private static bool TryDeserializeFromString(
-        string? serialized,
-        [NotNullWhen(true)] out TimeOnly? value)
-    {
-        if (serialized is not null
-            && TimeOnly.TryParseExact(
-                serialized,
-                LocalFormat,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out var time))
+        if (TimeOnly.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            out var time))
         {
             value = time;
             return true;
         }
 
-        value = null;
+        value = default;
         return false;
     }
+
+    private string GetPattern()
+        => _options.InputPrecision == 0
+            ? @"^\d{2}:\d{2}:\d{2}$"
+            : @"^\d{2}:\d{2}:\d{2}(?:\.\d{1," + _options.InputPrecision + "})?$";
+
+    private string GetLocalFormat()
+        => _options.OutputPrecision switch
+        {
+            DateTimeOptions.DefaultOutputPrecision => LocalFormat,
+            0 => "HH:mm:ss",
+            _ => $"HH:mm:ss.{new string('F', _options.OutputPrecision)}"
+        };
+
+    private Regex GetLocalTimeRegex()
+        => _options.InputPrecision switch
+        {
+            0 => LocalTimeRegex0(),
+            1 => LocalTimeRegex1(),
+            2 => LocalTimeRegex2(),
+            3 => LocalTimeRegex3(),
+            4 => LocalTimeRegex4(),
+            5 => LocalTimeRegex5(),
+            6 => LocalTimeRegex6(),
+            7 => LocalTimeRegex7(),
+            8 => LocalTimeRegex8(),
+            _ => LocalTimeRegex9()
+        };
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex0();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9])?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex1();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex2();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex3();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex4();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex5();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex6();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex7();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex8();
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex9();
 }

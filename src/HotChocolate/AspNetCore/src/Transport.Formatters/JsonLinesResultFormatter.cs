@@ -1,81 +1,91 @@
 using System.Buffers;
-using System.Diagnostics;
-using HotChocolate.Buffers;
+using System.IO.Pipelines;
+using System.Runtime.ExceptionServices;
 using HotChocolate.Execution;
-using HotChocolate.Utilities;
 using static HotChocolate.Transport.Formatters.JsonLinesResultFormatterEventSource;
 
 namespace HotChocolate.Transport.Formatters;
 
 public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options) : IExecutionResultFormatter
 {
-    private const int MaxBacklogSize = 64;
     private readonly JsonResultFormatter _payloadFormatter = new(options with { Indented = false });
 
+    /// <summary>
+    /// Formats an <see cref="IExecutionResult"/> into an JSONL stream.
+    /// </summary>
     public ValueTask FormatAsync(
         IExecutionResult result,
-        Stream outputStream,
+        PipeWriter writer,
+        ExecutionResultFormatFlags flags,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
+
+        var useIncrementalRfc1 =
+            (flags & ExecutionResultFormatFlags.IncrementalRfc1)
+                == ExecutionResultFormatFlags.IncrementalRfc1;
 
         return result switch
         {
-            IOperationResult operationResult
-                => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
+            OperationResult operationResult
+                => FormatOperationResultAsync(operationResult, writer, useIncrementalRfc1, cancellationToken),
             OperationResultBatch resultBatch
-                => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
+                => FormatResultBatchAsync(resultBatch, writer, useIncrementalRfc1, cancellationToken),
             IResponseStream responseStream
-                => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
+                => FormatResponseStreamAsync(responseStream, writer, useIncrementalRfc1, cancellationToken),
             _ => throw new NotSupportedException()
         };
     }
 
+    /// <summary>
+    /// Writes a single GraphQL response and then completes.
+    /// </summary>
     private async ValueTask FormatOperationResultAsync(
-        IOperationResult operationResult,
-        Stream outputStream,
+        OperationResult operationResult,
+        PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
-        var buffer = new PooledArrayWriter();
+        OperationResultFormatterContext? formatContext = null;
         var scope = Log.FormatOperationResultStart();
 
         try
         {
-            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, buffer);
-
-            if (!ct.IsCancellationRequested)
-            {
-                await outputStream.WriteAsync(buffer.GetWrittenMemory(), ct).ConfigureAwait(false);
-                await outputStream.FlushAsync(ct).ConfigureAwait(false);
-            }
+            MessageHelper.FormatNextMessage(
+                _payloadFormatter,
+                operationResult,
+                writer,
+                useIncrementalRfc1,
+                ref formatContext);
+            await writer.FlushAsync(ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             scope?.AddError(ex);
-            Debug.WriteLine(ex);
+            throw;
         }
         finally
         {
+            formatContext?.Dispose();
             scope?.Dispose();
-            buffer.Dispose();
         }
     }
 
+    /// <summary>
+    /// Writes all results from a variable batch request into the output stream and
+    /// completes when all results have been written.
+    /// </summary>
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        Stream outputStream,
+        PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
-        await using var writer = new ConcurrentStreamWriter(outputStream, MaxBacklogSize);
-
-        await using var tokenRegistration = ct.Register(
-            static w => ((ConcurrentStreamWriter)w!).DisposeAsync().FireAndForget(),
-            writer,
-            useSynchronizationContext: false);
-
-        KeepAliveJob? keepAlive = null;
+        Exception? exception = null;
+        using var semaphore = new SemaphoreSlim(1, 1);
         List<Task>? streams = null;
+        KeepAliveJob? keepAlive = null;
 
         try
         {
@@ -83,33 +93,54 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             {
                 switch (result)
                 {
-                    case IOperationResult operationResult:
-                        var scope = Log.FormatOperationResultStart();
+                    case OperationResult operationResult:
+                    {
+                        using var scope = Log.FormatOperationResultStart();
+                        await semaphore.WaitAsync(ct).ConfigureAwait(false);
+
                         try
                         {
-                            var buffer = writer.Begin();
-                            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, buffer);
-                            await writer.CommitAsync(buffer, ct).ConfigureAwait(false);
-                            keepAlive?.Reset();
+                            OperationResultFormatterContext? formatContext = null;
+                            try
+                            {
+                                MessageHelper.FormatNextMessage(
+                                    _payloadFormatter,
+                                    operationResult,
+                                    writer,
+                                    useIncrementalRfc1,
+                                    ref formatContext);
+                                await writer.FlushAsync(ct).ConfigureAwait(false);
+                                keepAlive?.Reset();
+                            }
+                            finally
+                            {
+                                formatContext?.Dispose();
+                            }
                         }
                         catch (Exception ex)
                         {
                             scope?.AddError(ex);
-                            Debug.WriteLine(ex);
+                            throw;
                         }
                         finally
                         {
+                            semaphore.Release();
                             await operationResult.DisposeAsync().ConfigureAwait(false);
-                            scope?.Dispose();
                         }
 
                         break;
+                    }
 
                     case IResponseStream responseStream:
-                        keepAlive ??= new KeepAliveJob(writer);
-                        streams ??= [];
-                        var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
-                        streams.Add(formatter.ProcessAsync(ct));
+                        keepAlive ??= new KeepAliveJob(semaphore, writer);
+                        var formatter = new StreamFormatter(
+                            _payloadFormatter,
+                            useIncrementalRfc1,
+                            keepAlive,
+                            responseStream,
+                            semaphore,
+                            writer);
+                        (streams ??= []).Add(formatter.ProcessAsync(ct));
                         break;
 
                     default:
@@ -118,46 +149,95 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                 }
             }
         }
+        catch (OperationCanceledException ex)
+        {
+            // if the operation was canceled, we do not need to log this
+            // and will stop gracefully.
+            exception = ex;
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+            throw;
+        }
         finally
         {
-            if (streams?.Count > 0)
-            {
-                await Task.WhenAll(streams).ConfigureAwait(false);
-            }
-
+            var streamError = await TryCompleteStreamsAsync(streams).ConfigureAwait(false);
+            exception ??= streamError;
             keepAlive?.Dispose();
         }
 
-        await writer.WaitForCompletionAsync().ConfigureAwait(false);
+        // we rethrow any stream exception that happened.
+        if (exception is not null)
+        {
+            ExceptionDispatchInfo.Capture(exception).Throw();
+        }
     }
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        Stream outputStream,
+        PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
-        await using var writer = new ConcurrentStreamWriter(outputStream, MaxBacklogSize);
+        using var semaphore = new SemaphoreSlim(1, 1);
 
-        await using var tokenRegistration = ct.Register(
-            static w => ((ConcurrentStreamWriter)w!).DisposeAsync().FireAndForget(),
-            writer,
-            useSynchronizationContext: false);
-
-        using (var keepAlive = new KeepAliveJob(writer))
+        try
         {
-            var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
-            await formatter.ProcessAsync(ct).ConfigureAwait(false);
+            using (var keepAlive = new KeepAliveJob(semaphore, writer))
+            {
+                var formatter = new StreamFormatter(
+                    _payloadFormatter,
+                    useIncrementalRfc1,
+                    keepAlive,
+                    responseStream,
+                    semaphore,
+                    writer);
+                await formatter.ProcessAsync(ct).ConfigureAwait(false);
+            }
+
+            await writer.FlushAsync(ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // if the operation was canceled, we do not need to log this
+            // and will stop gracefully.
+        }
+    }
+
+    private static ValueTask<Exception?> TryCompleteStreamsAsync(List<Task>? streams = null)
+    {
+        if (streams is null || streams.Count == 0)
+        {
+            return default;
         }
 
-        await writer.WaitForCompletionAsync().ConfigureAwait(false);
+        return CompleteStreamsAsync(streams);
+    }
+
+    private static async ValueTask<Exception?> CompleteStreamsAsync(List<Task> streams)
+    {
+        try
+        {
+            await Task.WhenAll(streams).ConfigureAwait(false);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
     }
 
     private sealed class StreamFormatter(
         JsonResultFormatter payloadFormatter,
+        bool useIncrementalRfc1,
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
-        ConcurrentStreamWriter writer)
+        SemaphoreSlim semaphore,
+        PipeWriter writer)
     {
+        private OperationResultFormatterContext? _formatContext;
+
         public async Task ProcessAsync(CancellationToken ct)
         {
             try
@@ -167,22 +247,27 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                     .ConfigureAwait(false))
                 {
                     var scope = Log.FormatOperationResultStart();
+                    await semaphore.WaitAsync(ct).ConfigureAwait(false);
 
                     try
                     {
-                        var buffer = writer.Begin();
-                        MessageHelper.FormatNextMessage(payloadFormatter, result, buffer);
-                        await writer.CommitAsync(buffer, ct).ConfigureAwait(false);
+                        MessageHelper.FormatNextMessage(
+                            payloadFormatter,
+                            result,
+                            writer,
+                            useIncrementalRfc1,
+                            ref _formatContext);
+                        await writer.FlushAsync(ct).ConfigureAwait(false);
                         keepAliveJob.Reset();
                     }
                     catch (Exception ex)
                     {
                         scope?.AddError(ex);
-                        Debug.WriteLine(ex);
-                        return;
+                        throw;
                     }
                     finally
                     {
+                        semaphore.Release();
                         await result.DisposeAsync().ConfigureAwait(false);
                         scope?.Dispose();
                     }
@@ -195,6 +280,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             }
             finally
             {
+                _formatContext?.Dispose();
                 await responseStream.DisposeAsync().ConfigureAwait(false);
             }
         }
@@ -206,13 +292,15 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         private static readonly TimeSpan s_keepAlivePeriod = TimeSpan.FromSeconds(8);
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly CancellationToken _ct;
-        private readonly ConcurrentStreamWriter _writer;
+        private readonly SemaphoreSlim _semaphore;
+        private readonly PipeWriter _writer;
         private readonly Timer _keepAliveTimer;
         private DateTime _lastWriteTime = DateTime.UtcNow;
         private bool _disposed;
 
-        public KeepAliveJob(ConcurrentStreamWriter writer)
+        public KeepAliveJob(SemaphoreSlim semaphore, PipeWriter writer)
         {
+            _semaphore = semaphore;
             _writer = writer;
             _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, s_timerPeriod, s_timerPeriod);
             _ct = _cancellationTokenSource.Token;
@@ -229,21 +317,26 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
             if (DateTime.UtcNow - _lastWriteTime >= s_keepAlivePeriod)
             {
-                WriteKeepAliveAsync().FireAndForget();
+                _ = WriteKeepAliveAsync();
             }
 
             async Task WriteKeepAliveAsync()
             {
+                await _semaphore.WaitAsync(_ct).ConfigureAwait(false);
+
                 try
                 {
-                    var buffer = _writer.Begin();
-                    buffer.Write(MessageHelper.KeepAlive);
-                    await _writer.CommitAsync(buffer, _ct).ConfigureAwait(false);
+                    _writer.Write(MessageHelper.KeepAlive);
+                    await _writer.FlushAsync(_ct).ConfigureAwait(false);
                     _lastWriteTime = DateTime.UtcNow;
                 }
                 catch
                 {
                     // ignore
+                }
+                finally
+                {
+                    _semaphore.Release();
                 }
             }
         }
@@ -268,11 +361,13 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
         public static void FormatNextMessage(
             JsonResultFormatter payloadFormatter,
-            IOperationResult result,
-            PooledArrayWriter writer)
+            OperationResult result,
+            IBufferWriter<byte> writer,
+            bool useIncrementalRfc1,
+            ref OperationResultFormatterContext? context)
         {
             // write the result data
-            payloadFormatter.Format(result, writer);
+            payloadFormatter.Format(result, writer, useIncrementalRfc1, ref context);
 
             // write the new line
             var span = writer.GetSpan(1);
@@ -280,6 +375,6 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             writer.Advance(1);
         }
 
-        public static ReadOnlySpan<byte> KeepAlive => " "u8;
+        public static ReadOnlySpan<byte> KeepAlive => " \n"u8;
     }
 }

@@ -9,13 +9,19 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL scalar type definition.
 /// </summary>
-public class MutableScalarTypeDefinition(string name)
-    : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
+public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
     , IScalarTypeDefinition
     , IMutableTypeDefinition
-    , IFeatureProvider
 {
     private DirectiveCollection? _directives;
+
+    /// <summary>
+    /// Represents a GraphQL scalar type definition.
+    /// </summary>
+    public MutableScalarTypeDefinition(string name)
+    {
+        Name = name.EnsureGraphQLName();
+    }
 
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Scalar;
@@ -25,13 +31,18 @@ public class MutableScalarTypeDefinition(string name)
     {
         get;
         set => field = value.EnsureGraphQLName();
-    } = name.EnsureGraphQLName();
+    }
 
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this scalar type is a spec scalar.
@@ -78,10 +89,38 @@ public class MutableScalarTypeDefinition(string name)
         return false;
     }
 
-    /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode value)
+    public Uri? SpecifiedBy
     {
-        ArgumentNullException.ThrowIfNull(value);
+        get
+        {
+            var specifiedBy = Directives.FirstOrDefault("specifiedBy");
+
+            if (specifiedBy is null)
+            {
+                return null;
+            }
+
+            var url = specifiedBy.Arguments.First(t => t.Name.Equals("url", StringComparison.Ordinal));
+
+            if (url.Value is not StringValueNode urlValue)
+            {
+                throw new InvalidOperationException("The specified URL is not a valid URI.");
+            }
+
+            return new Uri(urlValue.Value);
+        }
+    }
+
+    /// <inheritdoc />
+    public ScalarSerializationType SerializationType { get; set; }
+
+    /// <inheritdoc />
+    public string? Pattern { get; set; }
+
+    /// <inheritdoc />
+    public bool IsValueCompatible(IValueNode valueLiteral)
+    {
+        ArgumentNullException.ThrowIfNull(valueLiteral);
         return true;
     }
 

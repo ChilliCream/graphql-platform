@@ -1,8 +1,9 @@
+#nullable disable
+
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate;
 
@@ -138,8 +139,7 @@ public static class SchemaPrinter
             .Select(PrintInputField)
             .ToList();
 
-        var locations = directiveType.Locations
-            .AsEnumerable()
+        var locations = DirectiveLocationUtils.AsEnumerable(directiveType.Locations)
             .Select(l => new NameNode(l.Format().ToString()))
             .ToList();
 

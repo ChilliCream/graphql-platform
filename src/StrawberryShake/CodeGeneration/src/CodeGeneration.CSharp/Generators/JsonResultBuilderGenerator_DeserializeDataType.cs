@@ -66,8 +66,8 @@ public partial class JsonResultBuilderGenerator
             var ifStatement = IfBuilder
                 .New()
                 .SetCondition(
-                    $"typename?.Equals(\"{concreteType.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparison}) ?? false")
+                    $"typename?.Equals(\"{concreteType.Name}\", "
+                    + $"{TypeNames.OrdinalStringComparison}) ?? false")
                 .AddCode(returnStatement);
 
             methodBuilder
@@ -86,8 +86,8 @@ public partial class JsonResultBuilderGenerator
             .New()
             .SetNew()
             .SetMethodName(
-                $"{concreteType.RuntimeType.Namespace}.State." +
-                CreateDataTypeName(concreteType.Name))
+                $"{concreteType.RuntimeType.Namespace}.State."
+                + CreateDataTypeName(concreteType.Name))
             .AddArgument("typename");
 
         foreach (var property in concreteType.Properties)

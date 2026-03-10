@@ -11,7 +11,7 @@ public class PooledArrayWriterTests
         using var writer = new PooledArrayWriter();
 
         // Assert
-        Assert.NotNull(writer.GetInternalBuffer());
+        Assert.NotNull(PooledArrayWriterMarshal.GetUnderlyingBuffer(writer));
         Assert.Equal(0, writer.Length);
     }
 
@@ -22,7 +22,7 @@ public class PooledArrayWriterTests
         using var writer = new PooledArrayWriter();
 
         // Act
-        var memory = writer.GetWrittenMemory();
+        var memory = writer.WrittenMemory;
 
         // Assert
         Assert.Equal(0, memory.Length);
@@ -35,7 +35,7 @@ public class PooledArrayWriterTests
         using var writer = new PooledArrayWriter();
 
         // Act
-        var span = writer.GetWrittenSpan();
+        var span = writer.WrittenSpan;
 
         // Assert
         Assert.Equal(0, span.Length);
@@ -125,7 +125,7 @@ public class PooledArrayWriterTests
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(
-            () => writer.Advance(writer.GetInternalBuffer().Length + 1));
+            () => writer.Advance(PooledArrayWriterMarshal.GetUnderlyingBuffer(writer).Length + 1));
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class PooledArrayWriterTests
 
         // Assert
         Assert.Equal(4, writer.Length);
-        var writtenSpan = writer.GetWrittenSpan();
+        var writtenSpan = writer.WrittenSpan;
         Assert.True(testData.SequenceEqual(writtenSpan.ToArray()));
     }
 
@@ -202,7 +202,7 @@ public class PooledArrayWriterTests
 
         // Assert
         Assert.Equal(4, writer.Length);
-        var writtenMemory = writer.GetWrittenMemory();
+        var writtenMemory = writer.WrittenMemory;
         Assert.True(testData.SequenceEqual(writtenMemory.ToArray()));
     }
 
@@ -228,7 +228,7 @@ public class PooledArrayWriterTests
 
         // Assert
         Assert.Equal(1024, writer.Length);
-        var writtenSpan = writer.GetWrittenSpan();
+        var writtenSpan = writer.WrittenSpan;
         Assert.True(testData.SequenceEqual(writtenSpan.ToArray()));
     }
 
@@ -239,8 +239,8 @@ public class PooledArrayWriterTests
         using var writer = new PooledArrayWriter();
 
         // Act
-        // NB: ask for 0x3000 bytes because the initial 512 bytes buffer size is added
-        // to request when doubling is insufficient and ArrayPool<byte> sizes are powers of 2
+        // NB: ask for 0x3000 bytes because the initial 512-byte buffer size is added
+        // to request when doubling is not enough and ArrayPool<byte> sizes are powers of 2
         writer.GetSpan(0x3000);
         writer.Advance(0x2000);
         writer.GetSpan(0x7000);
