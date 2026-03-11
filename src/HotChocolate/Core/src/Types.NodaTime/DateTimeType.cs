@@ -126,16 +126,12 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
                 + @"})?(?:[Zz]|[+-]\d{2}:\d{2})$";
 
     private string GetInputFormat()
-        => _options.InputPrecision switch
-        {
-            0 => "uuuu-MM-dd'T'HH:mm:sso<Z+HH:mm>",
-            _ => $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', _options.InputPrecision)}o<Z+HH:mm>"
-        };
+        => _options.InputPrecision == 0
+            ? "uuuu-MM-dd'T'HH:mm:sso<Z+HH:mm>"
+            : $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', _options.InputPrecision)}o<Z+HH:mm>";
 
     private string GetOutputFormat()
-        => _options.OutputPrecision switch
-        {
-            0 => "uuuu-MM-dd'T'HH:mm:sso<Z+HH:mm>",
-            _ => $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', _options.OutputPrecision)}o<Z+HH:mm>"
-        };
+        => _options.OutputPrecision == 0
+            ? "uuuu-MM-dd'T'HH:mm:sso<Z+HH:mm>"
+            : $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', _options.OutputPrecision)}o<Z+HH:mm>";
 }
