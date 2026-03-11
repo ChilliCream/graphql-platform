@@ -1,4 +1,7 @@
+using System;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Types;
@@ -20,4 +23,20 @@ public static class Issue8057EntityOperations
         Issue8057EntityId id,
         IResolverContext resolverContext)
         => new() { Id = id };
+}
+
+[Node]
+public sealed class Issue8057GuidEntity
+{
+    [ID(nameof(Issue8057GuidEntity))]
+    public Guid Id { get; init; }
+}
+
+public static class Issue8057GuidEntityOperations
+{
+    [Lookup]
+    [NodeResolver]
+    [Query]
+    public static Task<Issue8057GuidEntity?> GetIssue8057GuidEntityById(Guid id)
+        => Task.FromResult<Issue8057GuidEntity?>(new() { Id = id });
 }

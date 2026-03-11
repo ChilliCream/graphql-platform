@@ -5,98 +5,99 @@ using HotChocolate.StarWars;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace StrawberryShake.Transport.WebSockets;
 
 public static class TestServerHelper
 {
-    public static IWebHost CreateServer(Action<IRequestExecutorBuilder> configure, out int port)
+    public static IHost CreateServer(Action<IRequestExecutorBuilder> configure, out int port)
     {
         for (port = 5500; port < 6000; port++)
         {
             try
             {
-                var configBuilder = new ConfigurationBuilder();
-                configBuilder.AddInMemoryCollection();
-                var config = configBuilder.Build();
-                config["server.urls"] = $"http://localhost:{port}";
-                var host = new WebHostBuilder()
-                    .UseConfiguration(config)
-                    .UseKestrel()
-                    .ConfigureServices(
-                        services =>
-                        {
-                            var builder = services.AddRouting().AddGraphQLServer();
+                var currentPort = port;
+                var host = new HostBuilder()
+                    .ConfigureWebHost(webBuilder =>
+                    {
+                        webBuilder
+                            .UseKestrel()
+                            .UseUrls($"http://localhost:{currentPort}")
+                            .ConfigureServices(
+                                services =>
+                                {
+                                    var builder = services.AddRouting().AddGraphQLServer();
 
-                            configure(builder);
+                                    configure(builder);
 
-                            builder
-                                .AddStarWarsTypes()
-                                .DisableIntrospection(disable: false)
-                                .AddStarWarsRepositories()
-                                .AddInMemorySubscriptions()
-                                .ModifyOptions(
-                                    o =>
+                                    builder
+                                        .AddStarWarsTypes()
+                                        .DisableIntrospection(disable: false)
+                                        .AddStarWarsRepositories()
+                                        .AddInMemorySubscriptions()
+                                        .ModifyOptions(
+                                            o =>
+                                            {
+                                                o.EnableDefer = true;
+                                                o.EnableStream = true;
+                                            })
+                                        .UseDefaultPipeline()
+                                        .UseRequest(
+                                            next => async context =>
+                                            {
+                                                if (context.ContextData.TryGetValue(
+                                                        nameof(HttpContext),
+                                                        out var value)
+                                                    && value is HttpContext httpContext
+                                                    && context.Result is OperationResult result)
+                                                {
+                                                    var headers = httpContext.Request.Headers;
+                                                    if (headers.ContainsKey("sendErrorStatusCode"))
+                                                    {
+                                                        result.ContextData =
+                                                            result.ContextData.SetItem(
+                                                                ExecutionContextData.HttpStatusCode,
+                                                                403);
+                                                    }
+
+                                                    if (headers.ContainsKey("sendError"))
+                                                    {
+                                                        result.Errors = result.Errors.Add(
+                                                            new Error { Message = "Some error!" });
+                                                    }
+                                                }
+
+                                                await next(context);
+                                            });
+                                })
+                            .Configure(
+                                app =>
+                                    app.Use(async (ct, next) =>
                                     {
-                                        o.EnableDefer = true;
-                                        o.EnableStream = true;
-                                    })
-                                .UseDefaultPipeline()
-                                .UseRequest(
-                                    next => async context =>
-                                    {
-                                        if (context.ContextData.TryGetValue(
-                                                nameof(HttpContext),
-                                                out var value)
-                                            && value is HttpContext httpContext
-                                            && context.Result is OperationResult result)
+                                        try
                                         {
-                                            var headers = httpContext.Request.Headers;
-                                            if (headers.ContainsKey("sendErrorStatusCode"))
-                                            {
-                                                result.ContextData =
-                                                    result.ContextData.SetItem(
-                                                        ExecutionContextData.HttpStatusCode,
-                                                        403);
-                                            }
-
-                                            if (headers.ContainsKey("sendError"))
-                                            {
-                                                result.Errors = result.Errors.Add(
-                                                    new Error { Message = "Some error!" });
-                                            }
+                                            // Kestrel does not return proper error responses:
+                                            // https://github.com/aspnet/KestrelHttpServer/issues/43
+                                            await next();
                                         }
+                                        catch (Exception ex)
+                                        {
+                                            if (ct.Response.HasStarted)
+                                            {
+                                                throw;
+                                            }
 
-                                        await next(context);
-                                    });
-                        })
-                    .Configure(
-                        app =>
-                            app.Use(async (ct, next) =>
-                            {
-                                try
-                                {
-                                    // Kestrel does not return proper error responses:
-                                    // https://github.com/aspnet/KestrelHttpServer/issues/43
-                                    await next();
-                                }
-                                catch (Exception ex)
-                                {
-                                    if (ct.Response.HasStarted)
-                                    {
-                                        throw;
-                                    }
-
-                                    ct.Response.StatusCode = 500;
-                                    ct.Response.Headers.Clear();
-                                    await ct.Response.WriteAsync(ex.ToString());
-                                }
-                            })
-                            .UseWebSockets()
-                            .UseRouting()
-                            .UseEndpoints(e => e.MapGraphQL()))
+                                            ct.Response.StatusCode = 500;
+                                            ct.Response.Headers.Clear();
+                                            await ct.Response.WriteAsync(ex.ToString());
+                                        }
+                                    })
+                                    .UseWebSockets()
+                                    .UseRouting()
+                                    .UseEndpoints(e => e.MapGraphQL()));
+                    })
                     .Build();
 
                 host.Start();

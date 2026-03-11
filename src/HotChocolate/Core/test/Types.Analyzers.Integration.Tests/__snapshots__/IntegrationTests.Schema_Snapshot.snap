@@ -40,6 +40,10 @@ type Issue8057Entity implements Node {
   id: ID!
 }
 
+type Issue8057GuidEntity implements Node {
+  id: ID!
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -92,6 +96,7 @@ type Query {
   listNullableElementArgumentRef(items: [String]!): String!
   nullableListNullableElementArgumentRef(items: [String]): String!
   issue8057Entity(id: ID!): Issue8057Entity @cost(weight: "10")
+  issue8057GuidEntityById(id: ID!): Issue8057GuidEntity @lookup @cost(weight: "10")
 }
 
 type Television implements Product {
@@ -106,6 +111,13 @@ directive @cost("The `weight` argument defines what value to add to the overall 
 
 "The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
 directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!] "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query." slicingArgumentDefaultValue: Int "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION
 
 scalar Version
 
