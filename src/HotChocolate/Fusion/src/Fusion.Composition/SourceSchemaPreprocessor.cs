@@ -124,6 +124,11 @@ internal sealed partial class SourceSchemaPreprocessor(
                         complexType.Fields.Remove(field);
                     }
 
+                    if (complexType.Fields.Count == 0)
+                    {
+                        typesToRemove.Add(type);
+                    }
+
                     break;
                 }
                 case MutableInputObjectTypeDefinition inputObjectType:
@@ -141,6 +146,11 @@ internal sealed partial class SourceSchemaPreprocessor(
                     foreach (var field in fieldsToRemove)
                     {
                         inputObjectType.Fields.Remove(field);
+                    }
+
+                    if (inputObjectType.Fields.Count == 0)
+                    {
+                        typesToRemove.Add(type);
                     }
 
                     break;
@@ -161,6 +171,11 @@ internal sealed partial class SourceSchemaPreprocessor(
                         enumType.Values.Remove(value);
                     }
 
+                    if (enumType.Values.Count == 0)
+                    {
+                        typesToRemove.Add(type);
+                    }
+
                     break;
             }
         }
@@ -168,6 +183,21 @@ internal sealed partial class SourceSchemaPreprocessor(
         foreach (var type in typesToRemove)
         {
             schema.Types.Remove(type);
+        }
+
+        if (schema.QueryType?.Fields.Count == 0)
+        {
+            schema.QueryType = null;
+        }
+
+        if (schema.MutationType?.Fields.Count == 0)
+        {
+            schema.MutationType = null;
+        }
+
+        if (schema.SubscriptionType?.Fields.Count == 0)
+        {
+            schema.SubscriptionType = null;
         }
     }
 
