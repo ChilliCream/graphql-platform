@@ -22,7 +22,7 @@ This file is git-ignored and **shouldn't be checked in**!
 If you change any `*.graphql` files, you need to re-generate the GraphQL client:
 
 ```bash
-dotnet graphql generate
+dotnet run --framework net10.0 --project ../../../../StrawberryShake/Tooling/src/dotnet-graphql/dotnet-graphql.csproj generate
 ```
 
 ## Before publishing
@@ -30,7 +30,7 @@ dotnet graphql generate
 The deployed Nitro Backend only allows persisted operations, so if you change any `*.graphql` files, you need to make sure to re-generate the persisted operations:
 
 ```bash
-dotnet graphql generate --relayFormat -q persisted
+dotnet run --framework net10.0 --project ../../../../StrawberryShake/Tooling/src/dotnet-graphql/dotnet-graphql.csproj generate --relayFormat -q persisted
 ```
 
 This operations are then published to Nitro during the release.

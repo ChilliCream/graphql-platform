@@ -49,7 +49,8 @@ internal sealed class ListStagesCommand : Command
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         var result = await client.ListStagesQuery.ExecuteAsync(apiId, ct);
-        var data = result.EnsureData();
+        console.EnsureNoErrors(result);
+        var data = console.EnsureData(result);
         var stages = (data.Node as IListStagesQuery_Node_Api)?.Stages;
         if (stages is null)
         {
@@ -91,8 +92,8 @@ internal sealed class ListStagesCommand : Command
         var result = await client.ListStagesQuery.ExecuteAsync(apiId, ct);
 
         console.EnsureNoErrors(result);
-
-        var items = (result.Data?.Node as IListStagesQuery_Node_Api)?.Stages
+        var data = console.EnsureData(result);
+        var items = (data.Node as IListStagesQuery_Node_Api)?.Stages
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray() ?? [];
 

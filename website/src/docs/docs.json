@@ -189,6 +189,14 @@
             "title": "Entities and Lookups"
           },
           {
+            "path": "data-requirements-and-mapping",
+            "title": "Data Requirements"
+          },
+          {
+            "path": "field-ownership-and-sharing",
+            "title": "Field Ownership and Sharing"
+          },
+          {
             "path": "composition",
             "title": "Composition"
           },
@@ -199,10 +207,6 @@
           {
             "path": "deployment-and-ci-cd",
             "title": "Deployment and CI/CD"
-          },
-          {
-            "path": "nitro-cli-reference",
-            "title": "Nitro CLI Reference"
           },
           {
             "path": "attribute-and-directive-reference",
