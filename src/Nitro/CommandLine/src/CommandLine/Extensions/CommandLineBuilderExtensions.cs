@@ -68,11 +68,15 @@ public static class CommandLineBuilderExtensions
         {
             await next(context);
         }
-        catch (ExitException exception) when (exception is { Message: var message })
+        catch (ExitException exception)
         {
             context.ExitCode = ExitCodes.Error;
 
-            context.BindingContext.GetRequiredService<IAnsiConsole>().MarkupLine(message);
+            var message = exception.Message;
+            if (!string.IsNullOrEmpty(message))
+            {
+                context.BindingContext.GetRequiredService<IAnsiConsole>().MarkupLine(message);
+            }
         }
         catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
         {

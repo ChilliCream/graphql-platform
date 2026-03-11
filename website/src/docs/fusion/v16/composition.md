@@ -173,7 +173,7 @@ Why? If one subgraph requires a non-nullable argument, the gateway must always p
 
 Not everything in your subgraph schemas should appear in the composite schema. Fusion provides three mechanisms for controlling what clients see.
 
-### `@inaccessible` / `[Inaccessible]`
+### Hiding Fields from the Composite Schema
 
 Hides a type or field from the client-facing composite schema. The element still exists in the execution schema and can be used internally -- for example, as a source for `[Require]` field dependencies.
 
@@ -207,7 +207,7 @@ type Product @key(fields: "id") {
 
 **Constraints:** You cannot mark a required input field as `@inaccessible` -- if a client must provide a value, they need to see the field. Composition fails if you try.
 
-### `@internal` / `[Internal]`
+### Subgraph-Local Elements
 
 Declares that a type or field is local to a subgraph and does not participate in standard schema merging. Internal elements do not appear in the composite schema and do not collide with identically-named elements in other subgraphs.
 
@@ -228,7 +228,7 @@ This lookup is available to the gateway for resolving `Product` entity reference
 
 The difference from `@inaccessible`: internal elements are completely invisible to the merging process. Two subgraphs can define `[Internal]` fields with the same name and different types without causing a conflict. `@inaccessible` elements still participate in merging -- they just get removed from the final client-facing schema.
 
-### `[Tag]` for Composition Filtering
+### Composition Filtering with Tags
 
 Tags allow you to label fields and types for organizational purposes and selectively exclude them during composition using the `--exclude-tag` flag.
 
@@ -267,7 +267,7 @@ The `GetRecommendations` field is excluded from the composed schema. This is use
 - Creating different compositions for different environments (dev includes experimental features, production does not).
 - Organizing fields by team ownership for filtering.
 
-## The `.far` Archive Format
+## The Fusion Archive Format
 
 The Fusion archive (`.far` file) is the output of composition and the input to the gateway. It is a binary package containing:
 
@@ -403,7 +403,7 @@ You can also run composition in Nitro cloud as part of your schema delivery pipe
 
 These are the errors you will encounter most often, with examples showing what went wrong and how to fix it.
 
-### Field Defined in Multiple Subgraphs Without `[Shareable]`
+### Field Defined in Multiple Subgraphs Without Sharing
 
 **Error:** `Field "Product.name" is defined in multiple subgraphs without @shareable.`
 
@@ -537,7 +537,7 @@ After merging, the `Purchasable` interface has both `price` and `refundPolicy`. 
 
 **Fix:** Add the missing field to the implementing type in the appropriate subgraph, or mark the new interface field as `@inaccessible` if it should not be in the composite schema.
 
-### Required Input Field Marked `@inaccessible`
+### Required Input Field Hidden from Composite Schema
 
 **Error:** `Required input field "CreateProductInput.name" is marked @inaccessible. Required input fields cannot be hidden from the composite schema.`
 
@@ -561,7 +561,7 @@ Products/
 
 If you renamed files, make sure the names match. Run `dotnet run -- schema export` to regenerate both files.
 
-## `schema-settings.json` Reference
+## Schema Settings Reference
 
 Each subgraph's `schema-settings.json` configures how the subgraph participates in composition. The primary documentation lives on the [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph) page. Here is a quick reference of the fields relevant to composition:
 

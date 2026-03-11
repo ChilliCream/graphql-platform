@@ -104,11 +104,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
             void OnNext(IOperationResult<IOnFusionConfigurationPublishingTaskChangedResult> @event)
             {
-                if (@event.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request ID returned");
-                }
+                console.EnsureNoErrors(@event);
 
                 switch (@event.Data?.OnFusionConfigurationPublishingTaskChanged)
                 {
