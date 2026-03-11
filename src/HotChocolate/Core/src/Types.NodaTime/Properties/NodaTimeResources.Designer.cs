@@ -60,33 +60,6 @@ namespace HotChocolate.Types.NodaTime.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 9..
-        /// </summary>
-        internal static string DateTimeOptions_InputPrecision_InvalidValue {
-            get {
-                return ResourceManager.GetString("DateTimeOptions_InputPrecision_InvalidValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to OutputPrecision must be less than or equal to 9..
-        /// </summary>
-        internal static string DateTimeOptions_OutputPrecision_InvalidValue {
-            get {
-                return ResourceManager.GetString("DateTimeOptions_OutputPrecision_InvalidValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The `DateTime` scalar type represents a date and time with time zone offset information..
-        /// </summary>
-        internal static string DateTimeType_Description {
-            get {
-                return ResourceManager.GetString("DateTimeType_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Represents a time zone - a mapping between UTC and local time.
         ///A time zone maps UTC instants to local times - or, equivalently, to the offset from UTC at any particular instant.
         ///

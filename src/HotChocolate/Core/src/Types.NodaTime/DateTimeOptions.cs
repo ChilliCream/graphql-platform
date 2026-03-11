@@ -1,4 +1,4 @@
-using HotChocolate.Types.NodaTime.Properties;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.NodaTime;
 
@@ -32,7 +32,7 @@ public struct DateTimeOptions
                 throw new ArgumentOutOfRangeException(
                     nameof(InputPrecision),
                     value,
-                    NodaTimeResources.DateTimeOptions_InputPrecision_InvalidValue);
+                    TypeResources.DateTimeOptions_InputPrecision_InvalidValue);
             }
 
             field = value;
@@ -56,7 +56,7 @@ public struct DateTimeOptions
                 throw new ArgumentOutOfRangeException(
                     nameof(OutputPrecision),
                     value,
-                    NodaTimeResources.DateTimeOptions_OutputPrecision_InvalidValue);
+                    TypeResources.DateTimeOptions_OutputPrecision_InvalidValue);
             }
 
             field = value;

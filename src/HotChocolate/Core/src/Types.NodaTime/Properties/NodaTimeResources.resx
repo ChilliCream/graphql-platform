@@ -179,13 +179,4 @@ Examples:
   <data name="NodaTime_NoPatternProvided" xml:space="preserve">
     <value>The provided patterns are empty. You must provide at least one pattern for type {0}.</value>
   </data>
-  <data name="DateTimeOptions_InputPrecision_InvalidValue" xml:space="preserve">
-    <value>InputPrecision must be less than or equal to 9.</value>
-  </data>
-  <data name="DateTimeOptions_OutputPrecision_InvalidValue" xml:space="preserve">
-    <value>OutputPrecision must be less than or equal to 9.</value>
-  </data>
-  <data name="DateTimeType_Description" xml:space="preserve">
-    <value>The `DateTime` scalar type represents a date and time with time zone offset information.</value>
-  </data>
 </root>

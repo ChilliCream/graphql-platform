@@ -2,8 +2,8 @@ using System.Globalization;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Text.Json;
-using HotChocolate.Types.NodaTime.Properties;
 using NodaTime;
 using NodaTime.Text;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -50,7 +50,7 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
     public DateTimeType(DateTimeOptions options)
         : this(
             ScalarNames.DateTime,
-            NodaTimeResources.DateTimeType_Description,
+            TypeResources.DateTimeType_Description,
             BindingBehavior.Implicit,
             options: options)
     {
@@ -63,7 +63,7 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
     public DateTimeType()
         : this(
             ScalarNames.DateTime,
-            NodaTimeResources.DateTimeType_Description,
+            TypeResources.DateTimeType_Description,
             BindingBehavior.Implicit,
             options: null)
     {
