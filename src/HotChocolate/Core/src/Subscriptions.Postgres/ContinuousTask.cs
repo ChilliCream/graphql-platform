@@ -1,5 +1,3 @@
-using HotChocolate.Utilities;
-
 namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class ContinuousTask : IAsyncDisposable
@@ -18,7 +16,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
 
         // We do not use Task.Factory.StartNew here because RunContinuously is an async method and
         // the LongRunning flag only works until the first await.
-        RunContinuously().FireAndForget();
+        _ = RunContinuously();
     }
 
     public CancellationToken Completion => _completion.Token;
@@ -50,12 +48,12 @@ internal sealed class ContinuousTask : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if(_disposed)
+        if (_disposed)
         {
             return;
         }
 
-        if(!_completion.IsCancellationRequested)
+        if (!_completion.IsCancellationRequested)
         {
             await _completion.CancelAsync();
         }

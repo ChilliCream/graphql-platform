@@ -15,8 +15,8 @@ namespace GreenDonut.Data;
 /// </summary>
 public static class PagingQueryableExtensions
 {
-    private static readonly AsyncLocal<InterceptorHolder> _interceptor = new();
-    private static readonly ConcurrentDictionary<(Type, Type), Expression> _countExpressionCache = new();
+    private static readonly AsyncLocal<InterceptorHolder> s_interceptor = new();
+    private static readonly ConcurrentDictionary<(Type, Type), Expression> s_countExpressionCache = new();
 
     /// <summary>
     /// Executes a query with paging and returns the selected page.
@@ -78,6 +78,18 @@ public static class PagingQueryableExtensions
         ArgumentNullException.ThrowIfNull(source);
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+        Expression<Func<T, T>>? selector = null;
+        var applySelectorAfterPaging = arguments.After is not null || arguments.Before is not null;
+
+        if (applySelectorAfterPaging)
+        {
+            selector = QueryHelpers.ExtractCurrentSelector(source);
+
+            if (selector is not null)
+            {
+                source = QueryHelpers.RemoveSelector(source);
+            }
+        }
 
         var keys = ParseDataSetKeys(source);
 
@@ -100,6 +112,8 @@ public static class PagingQueryableExtensions
             arguments = arguments with { First = 10 };
         }
 
+        // if relative cursors are enabled and no cursor is provided
+        // we must do an initial count of the dataset.
         if (arguments.EnableRelativeCursors
             && string.IsNullOrEmpty(arguments.After)
             && string.IsNullOrEmpty(arguments.Before))
@@ -118,7 +132,11 @@ public static class PagingQueryableExtensions
         if (arguments.After is not null)
         {
             cursor = CursorParser.Parse(arguments.After, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, true);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(
+                keys,
+                cursor,
+                true,
+                arguments.NullOrdering);
             source = source.Where(whereExpr);
             offset = cursorOffset;
 
@@ -143,7 +161,11 @@ public static class PagingQueryableExtensions
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, false);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(
+                keys,
+                cursor,
+                false,
+                arguments.NullOrdering);
             source = source.Where(whereExpr);
             offset = cursorOffset;
 
@@ -153,10 +175,10 @@ public static class PagingQueryableExtensions
             }
         }
 
-        if (arguments.EnableRelativeCursors && cursor?.IsRelative == true)
+        if (cursor?.IsRelative == true)
         {
-            if ((arguments.Last is not null && cursor.Offset > 0) ||
-                (arguments.First is not null && cursor.Offset < 0))
+            if ((arguments.Last is not null && cursor.Offset > 0)
+                || (arguments.First is not null && cursor.Offset < 0))
             {
                 throw new ArgumentException(
                     "Positive offsets are not allowed with `last`, and negative offsets are not allowed with `first`.",
@@ -179,13 +201,16 @@ public static class PagingQueryableExtensions
         }
 
         source = source.Take(requestedCount + 1);
+        var pageQuery = selector is null
+            ? source
+            : source.Select(selector);
 
         var builder = ImmutableArray.CreateBuilder<T>();
         var fetchCount = 0;
 
         if (includeTotalCount)
         {
-            var combinedQuery = source.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
+            var combinedQuery = pageQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
 
             TryGetQueryInterceptor()?.OnBeforeExecute(combinedQuery);
 
@@ -205,9 +230,9 @@ public static class PagingQueryableExtensions
         }
         else
         {
-            TryGetQueryInterceptor()?.OnBeforeExecute(source);
+            TryGetQueryInterceptor()?.OnBeforeExecute(pageQuery);
 
-            await foreach (var item in source.AsAsyncEnumerable()
+            await foreach (var item in pageQuery.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 fetchCount++;
@@ -237,7 +262,7 @@ public static class PagingQueryableExtensions
         }
 
         var pageIndex = CreateIndex(arguments, cursor, totalCount);
-        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, totalCount);
+        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, requestedCount, totalCount);
     }
 
     /// <summary>
@@ -271,7 +296,7 @@ public static class PagingQueryableExtensions
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync<TKey, TValue, TValue>(
+        => ToBatchPageAsync(
             source,
             keySelector,
             t => t,
@@ -313,7 +338,7 @@ public static class PagingQueryableExtensions
         bool includeTotalCount,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync<TKey, TValue, TValue>(
+        => ToBatchPageAsync(
             source,
             keySelector,
             t => t,
@@ -410,6 +435,19 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+
+        // extract the selector before ensuring group props are selected,
+        // as we need to remove it before grouping and re-apply it after
+        var selector = QueryHelpers.ExtractCurrentSelector(source);
+
+        // if we have a selector, remove it before grouping
+        // we'll re-apply it to the grouped items later
+        if (selector is not null)
+        {
+            source = QueryHelpers.RemoveSelector(source);
+        }
+
         var keys = ParseDataSetKeys(source);
 
         if (keys.Length == 0)
@@ -433,19 +471,18 @@ public static class PagingQueryableExtensions
             includeTotalCount = true;
         }
 
-        Dictionary<TKey, int>? counts = null;
-        if (includeTotalCount)
-        {
-            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
-        }
-
-        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
 
         // we need to move the ordering into the select expression we are constructing
         // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
         // and to create a new expression that will not contain it anymore.
         var ordering = ExtractAndRemoveOrder(source.Expression);
+
+        Dictionary<TKey, int>? counts = null;
+        if (includeTotalCount)
+        {
+            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
+        }
 
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
@@ -456,6 +493,7 @@ public static class PagingQueryableExtensions
                 ordering.OrderExpressions,
                 ordering.OrderMethods,
                 forward,
+                selector,
                 ref requestedCount);
         var map = new Dictionary<TKey, Page<TValue>>();
 
@@ -503,6 +541,7 @@ public static class PagingQueryableExtensions
                 keys,
                 item.Items.Count,
                 pageIndex,
+                requestedCount,
                 totalCount);
             map.Add(item.Key, page);
         }
@@ -525,11 +564,10 @@ public static class PagingQueryableExtensions
         return await query.ToDictionaryAsync(t => t.Key, t => t.Count, cancellationToken);
     }
 
-    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement,
-        TKey>()
+    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement, TKey>()
     {
         return (Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>>)
-            _countExpressionCache.GetOrAdd(
+            s_countExpressionCache.GetOrAdd(
                 (typeof(TKey), typeof(TElement)),
                 static _ =>
                 {
@@ -572,6 +610,7 @@ public static class PagingQueryableExtensions
         CursorKey[] keys,
         int fetchCount,
         int? index,
+        int? requestedPageSize,
         int? totalCount)
     {
         var hasPrevious = false;
@@ -605,7 +644,7 @@ public static class PagingQueryableExtensions
             hasNext = true;
         }
 
-        if (arguments.EnableRelativeCursors && totalCount is not null)
+        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
         {
             return new Page<T>(
                 items,
@@ -613,6 +652,7 @@ public static class PagingQueryableExtensions
                 hasPrevious,
                 (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
                 index ?? 1,
+                requestedPageSize.Value,
                 totalCount.Value);
         }
 
@@ -681,23 +721,19 @@ public static class PagingQueryableExtensions
     }
 
     internal static PagingQueryInterceptor? TryGetQueryInterceptor()
-        => _interceptor.Value?.Interceptor;
+        => s_interceptor.Value?.Interceptor;
 
     internal static void SetQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
     {
-        if (_interceptor.Value is null)
-        {
-            _interceptor.Value = new InterceptorHolder();
-        }
-
-        _interceptor.Value.Interceptor = pagingQueryInterceptor;
+        s_interceptor.Value ??= new InterceptorHolder();
+        s_interceptor.Value.Interceptor = pagingQueryInterceptor;
     }
 
     internal static void ClearQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
     {
-        if (_interceptor.Value is not null)
+        if (s_interceptor.Value is not null)
         {
-            _interceptor.Value.Interceptor = null;
+            s_interceptor.Value.Interceptor = null;
         }
     }
 }

@@ -19,6 +19,5 @@ public class InMemoryClientFactoryOptions
     /// <summary>
     /// Gets a list of operations used to configure an <see cref="IInMemoryClient"/>.
     /// </summary>
-    public IList<ConfigureInMemoryClientAsync> InMemoryClientActions { get; } =
-        new List<ConfigureInMemoryClientAsync>();
+    public IList<ConfigureInMemoryClientAsync> InMemoryClientActions { get; } = [];
 }

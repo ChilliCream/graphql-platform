@@ -4,15 +4,9 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The query field must be a string or null.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 15
-        }
-      ],
+      "message": "Invalid JSON document.",
       "extensions": {
-        "code": "HC0011"
+        "code": "HC0012"
       }
     }
   ],

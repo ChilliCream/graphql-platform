@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="GreenDonut.Data" />
     <InternalsVisibleTo Include="GreenDonut.Data.EntityFramework" />
   </ItemGroup>
 

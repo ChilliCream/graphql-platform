@@ -12,12 +12,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
     <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AlterNats.Hosting" />
+    <PackageReference Include="NATS.Client.Core" />
   </ItemGroup>
 
   <ItemGroup>

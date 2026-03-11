@@ -1,0 +1,17 @@
+{
+  "errors": [
+    {
+      "message": "You must provide a `first` value to properly paginate the `LettersConnection`.",
+      "path": [
+        "letters"
+      ],
+      "extensions": {
+        "code": "HC0090",
+        "coordinate": "Query.letters"
+      }
+    }
+  ],
+  "data": {
+    "letters": null
+  }
+}

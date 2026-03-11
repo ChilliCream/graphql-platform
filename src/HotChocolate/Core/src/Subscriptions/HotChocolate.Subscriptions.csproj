@@ -7,6 +7,10 @@
     <Description>Contains Hot Chocolate GraphQL subscriptions abstractions.</Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.Tests" />
   </ItemGroup>
@@ -14,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
-    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

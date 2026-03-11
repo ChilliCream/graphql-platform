@@ -1,13 +1,14 @@
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHttpClient("Fusion");
-
 builder.Services
-    .AddFusionGatewayServer()
-    .ConfigureFromFile("./gateway.fgp");
+    .AddHttpClient("fusion");
+
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 
 app.MapGraphQL();
 
-app.RunWithGraphQLCommands(args);
+app.Run();

@@ -6,10 +6,10 @@ namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new Foo { Name = "Sam", LastName = "Sampleman", Bars = Array.Empty<Bar>(), },
-         new Foo { Name = "Foo", LastName = "Galoo", Bars = new Bar[]{ new Bar { Value="A", }, }, },
+        new Foo { Name = "Sam", LastName = "Sampleman", Bars = Array.Empty<Bar>() },
+         new Foo { Name = "Foo", LastName = "Galoo", Bars = new Bar[]{ new Bar { Value="A" } } }
     ];
 
     private readonly SchemaCache _cache;
@@ -23,7 +23,7 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_StringConcatExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -73,7 +73,7 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

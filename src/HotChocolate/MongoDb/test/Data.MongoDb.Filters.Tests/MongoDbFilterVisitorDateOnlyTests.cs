@@ -1,9 +1,7 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Serializers;
 using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
@@ -12,17 +10,17 @@ public class MongoDbFilterVisitorDateOnlyTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = new DateOnly(2022, 01, 16), },
-        new() { Bar = new DateOnly(2022, 01, 15), },
+        new() { Bar = new DateOnly(2022, 01, 16) },
+        new() { Bar = new DateOnly(2022, 01, 15) }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = new DateOnly(2022, 01, 16), },
-        new() { Bar = null, },
-        new() { Bar = new DateOnly(2022, 01, 15), },
+        new() { Bar = new DateOnly(2022, 01, 16) },
+        new() { Bar = null },
+        new() { Bar = new DateOnly(2022, 01, 15) }
     ];
 
     public MongoDbFilterVisitorDateOnlyTests(MongoResource resource)
@@ -34,7 +32,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     public async Task Create_DateOnlyEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         // assert
@@ -60,7 +58,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     public async Task Create_DateOnlyNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -86,7 +84,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     {
         // arrange
         var tester = CreateSchema<FooNullable, FooNullableFilterType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -118,7 +116,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     {
         // arrange
         var tester = CreateSchema<FooNullable, FooNullableFilterType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         // assert
@@ -164,11 +162,7 @@ public class MongoDbFilterVisitorDateOnlyTests
         public DateOnly? Bar { get; set; }
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 
-    public class FooNullableFilterType : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterType : FilterInputType<FooNullable>;
 }

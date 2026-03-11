@@ -19,20 +19,14 @@ public sealed class SpecifiedByDirectiveType : DirectiveType<SpecifiedByDirectiv
         IDirectiveTypeDescriptor<SpecifiedByDirective> descriptor)
     {
         descriptor
-            .Name(Names.SpecifiedBy)
+            .Name(DirectiveNames.SpecifiedBy.Name)
             .Description(TypeResources.SpecifiedByDirectiveType_TypeDescription)
             .Location(DirectiveLocation.Scalar);
 
         descriptor
             .Argument(t => t.Url)
-            .Name(Names.Url)
+            .Name(DirectiveNames.SpecifiedBy.Arguments.Url)
             .Description(TypeResources.SpecifiedByDirectiveType_UrlDescription)
             .Type<NonNullType<StringType>>();
-    }
-
-    public static class Names
-    {
-        public const string SpecifiedBy = "specifiedBy";
-        public const string Url = "url";
     }
 }

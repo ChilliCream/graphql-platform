@@ -1,4 +1,4 @@
-﻿// ReSharper disable CollectionNeverUpdated.Global
+// ReSharper disable CollectionNeverUpdated.Global
 
 using System.ComponentModel.DataAnnotations;
 
@@ -29,7 +29,6 @@ public sealed class Product
 
     // Available stock at which we should reorder
     public int RestockThreshold { get; set; }
-
 
     // Maximum number of units that can be in-stock at any time (due to physicial/logistical constraints in warehouses)
     public int MaxStockThreshold { get; set; }
@@ -80,7 +79,7 @@ public sealed class Product
     /// </summary>
     public int AddStock(int quantity)
     {
-        int original = AvailableStock;
+        var original = AvailableStock;
 
         // The quantity that the client is trying to add to stock is greater than what can be physically accommodated in the Warehouse
         if ((AvailableStock + quantity) > MaxStockThreshold)

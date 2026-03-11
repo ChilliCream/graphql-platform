@@ -14,7 +14,7 @@ public class ObjectIdTypeTests
         var executor = await CreateSchema();
 
         // act
-        var schema = executor.Schema.Print();
+        var schema = executor.Schema.ToString();
 
         // assert
         schema.MatchSnapshot();
@@ -46,10 +46,13 @@ public class ObjectIdTypeTests
     {
         // arrange
         var executor = await CreateSchema();
-        var query = @"
+        const string query =
+            // lang=graphql
+            """
             {
-                loopback(objectId: ""6124e80f3f5fc839830c1f6b"")
-            }";
+                loopback(objectId: "6124e80f3f5fc839830c1f6b")
+            }
+            """;
 
         // act
         var result = await executor.ExecuteAsync(query, CancellationToken.None);
@@ -67,7 +70,7 @@ public class ObjectIdTypeTests
 
     public class Query
     {
-        public Foo GetFoo() => new() { Id = new ObjectId("6124e80f3f5fc839830c1f6b"), };
+        public Foo GetFoo() => new() { Id = new ObjectId("6124e80f3f5fc839830c1f6b") };
 
         public ObjectId Loopback(ObjectId objectId) => objectId;
     }

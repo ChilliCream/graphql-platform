@@ -1,7 +1,3 @@
-using System.Collections.Concurrent;
-using System.ComponentModel;
-using HotChocolate.Types;
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
@@ -42,7 +38,7 @@ public sealed class TypeConfigurationContainer
 
             if (!_configurations.TryGetValue(runtimeType, out var list))
             {
-                list = new List<object>();
+                list = [];
                 _configurations[runtimeType] = list;
             }
 
@@ -61,7 +57,7 @@ public sealed class TypeConfigurationContainer
 
             if (!_namedConfigurations.TryGetValue(typeName, out var list))
             {
-                list = new List<object>();
+                list = [];
                 _namedConfigurations[typeName] = list;
             }
 

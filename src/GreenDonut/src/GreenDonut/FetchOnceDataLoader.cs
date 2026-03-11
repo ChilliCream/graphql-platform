@@ -10,10 +10,7 @@ public abstract class FetchOnceDataLoader<TValue>
     protected FetchOnceDataLoader(DataLoaderOptions options)
         : base(options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         if (options.Cache is null)
         {

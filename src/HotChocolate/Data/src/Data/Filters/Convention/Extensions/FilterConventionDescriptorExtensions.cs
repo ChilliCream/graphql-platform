@@ -40,10 +40,7 @@ public static class FilterConventionDescriptorExtensions
     public static IFilterConventionDescriptor AddDefaultOperations(
         this IFilterConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
         descriptor.Operation(DefaultFilterOperations.NotEquals).Name("neq");
@@ -87,73 +84,76 @@ public static class FilterConventionDescriptorExtensions
         this IFilterConventionDescriptor descriptor,
         bool compatibilityMode = false)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (compatibilityMode)
         {
             return descriptor
-                .BindRuntimeType<string, StringOperationFilterInputType>()
-                .BindRuntimeType<bool, BooleanOperationFilterInputType>()
-                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
                 .BindComparableType<byte>()
-                .BindComparableType<short>()
-                .BindComparableType<int>()
-                .BindComparableType<long>()
-                .BindComparableType<float>()
-                .BindComparableType<double>()
-                .BindComparableType<decimal>()
-                .BindComparableType<sbyte>()
-                .BindComparableType<ushort>()
-                .BindComparableType<uint>()
-                .BindComparableType<ulong>()
-                .BindComparableType<Guid>()
+                .BindComparableType<DateOnly>()
                 .BindComparableType<DateTime>()
                 .BindComparableType<DateTimeOffset>()
-                .BindComparableType<DateOnly>()
+                .BindComparableType<decimal>()
+                .BindComparableType<double>()
+                .BindComparableType<float>()
+                .BindComparableType<Guid>()
+                .BindComparableType<int>()
+                .BindComparableType<long>()
+                .BindComparableType<sbyte>()
+                .BindComparableType<short>()
                 .BindComparableType<TimeOnly>()
                 .BindComparableType<TimeSpan>()
+                .BindComparableType<uint>()
+                .BindComparableType<ulong>()
+                .BindComparableType<ushort>()
+                .BindRuntimeType<bool, BooleanOperationFilterInputType>()
+                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
+                .BindRuntimeType<string, StringOperationFilterInputType>()
                 .BindRuntimeType<Uri, ComparableOperationFilterInputType<Uri>>()
                 .BindRuntimeType<Uri?, ComparableOperationFilterInputType<Uri?>>();
         }
         else
         {
             return descriptor
-                .BindRuntimeType<string, StringOperationFilterInputType>()
                 .BindRuntimeType<bool, BooleanOperationFilterInputType>()
                 .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
-                .BindRuntimeType<byte, ByteOperationFilterInputType>()
-                .BindRuntimeType<byte?, ByteOperationFilterInputType>()
-                .BindRuntimeType<sbyte, ByteOperationFilterInputType>()
-                .BindRuntimeType<sbyte?, ByteOperationFilterInputType>()
-                .BindRuntimeType<short, ShortOperationFilterInputType>()
-                .BindRuntimeType<short?, ShortOperationFilterInputType>()
-                .BindRuntimeType<int, IntOperationFilterInputType>()
-                .BindRuntimeType<int?, IntOperationFilterInputType>()
-                .BindRuntimeType<long, LongOperationFilterInputType>()
-                .BindRuntimeType<long?, LongOperationFilterInputType>()
-                .BindRuntimeType<float, FloatOperationFilterInputType>()
-                .BindRuntimeType<float?, FloatOperationFilterInputType>()
-                .BindRuntimeType<double, FloatOperationFilterInputType>()
-                .BindRuntimeType<double?, FloatOperationFilterInputType>()
-                .BindRuntimeType<decimal, DecimalOperationFilterInputType>()
-                .BindRuntimeType<decimal?, DecimalOperationFilterInputType>()
-                .BindRuntimeType<Guid, UuidOperationFilterInputType>()
-                .BindRuntimeType<Guid?, UuidOperationFilterInputType>()
+                .BindRuntimeType<byte, UnsignedByteOperationFilterInputType>()
+                .BindRuntimeType<byte?, UnsignedByteOperationFilterInputType>()
+                .BindRuntimeType<DateOnly, LocalDateOperationFilterInputType>()
+                .BindRuntimeType<DateOnly?, LocalDateOperationFilterInputType>()
                 .BindRuntimeType<DateTime, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTime?, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTimeOffset, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTimeOffset?, DateTimeOperationFilterInputType>()
-                .BindRuntimeType<DateOnly, LocalDateOperationFilterInputType>()
-                .BindRuntimeType<DateOnly?, LocalDateOperationFilterInputType>()
+                .BindRuntimeType<decimal, DecimalOperationFilterInputType>()
+                .BindRuntimeType<decimal?, DecimalOperationFilterInputType>()
+                .BindRuntimeType<double, FloatOperationFilterInputType>()
+                .BindRuntimeType<double?, FloatOperationFilterInputType>()
+                .BindRuntimeType<float, FloatOperationFilterInputType>()
+                .BindRuntimeType<float?, FloatOperationFilterInputType>()
+                .BindRuntimeType<Guid, UuidOperationFilterInputType>()
+                .BindRuntimeType<Guid?, UuidOperationFilterInputType>()
+                .BindRuntimeType<int, IntOperationFilterInputType>()
+                .BindRuntimeType<int?, IntOperationFilterInputType>()
+                .BindRuntimeType<long, LongOperationFilterInputType>()
+                .BindRuntimeType<long?, LongOperationFilterInputType>()
+                .BindRuntimeType<sbyte, ByteOperationFilterInputType>()
+                .BindRuntimeType<sbyte?, ByteOperationFilterInputType>()
+                .BindRuntimeType<short, ShortOperationFilterInputType>()
+                .BindRuntimeType<short?, ShortOperationFilterInputType>()
+                .BindRuntimeType<string, StringOperationFilterInputType>()
                 .BindRuntimeType<TimeOnly, LocalTimeOperationFilterInputType>()
                 .BindRuntimeType<TimeOnly?, LocalTimeOperationFilterInputType>()
-                .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
-                .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
-                .BindRuntimeType<Uri, UrlOperationFilterInputType>()
-                .BindRuntimeType<Uri?, UrlOperationFilterInputType>();
+                .BindRuntimeType<TimeSpan, DurationOperationFilterInputType>()
+                .BindRuntimeType<TimeSpan?, DurationOperationFilterInputType>()
+                .BindRuntimeType<uint, UnsignedIntOperationFilterInputType>()
+                .BindRuntimeType<uint?, UnsignedIntOperationFilterInputType>()
+                .BindRuntimeType<ulong, UnsignedLongOperationFilterInputType>()
+                .BindRuntimeType<ulong?, UnsignedLongOperationFilterInputType>()
+                .BindRuntimeType<Uri, UriOperationFilterInputType>()
+                .BindRuntimeType<Uri?, UriOperationFilterInputType>()
+                .BindRuntimeType<ushort, UnsignedShortOperationFilterInputType>()
+                .BindRuntimeType<ushort?, UnsignedShortOperationFilterInputType>();
         }
     }
 

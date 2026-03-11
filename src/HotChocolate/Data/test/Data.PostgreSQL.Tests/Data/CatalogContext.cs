@@ -1,4 +1,4 @@
-﻿using HotChocolate.Data.Data.EntityConfigurations;
+using HotChocolate.Data.Data.EntityConfigurations;
 using HotChocolate.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,10 +12,15 @@ public class CatalogContext(DbContextOptions<CatalogContext> options) : DbContex
 
     public DbSet<Brand> Brands => Set<Brand>();
 
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+
+    public DbSet<SingleProperty> SingleProperties => Set<SingleProperty>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfiguration(new BrandEntityTypeConfiguration());
         builder.ApplyConfiguration(new ProductTypeEntityTypeConfiguration());
         builder.ApplyConfiguration(new ProductEntityTypeConfiguration());
+        builder.ApplyConfiguration(new SupplierEntityTypeConfiguration());
     }
 }

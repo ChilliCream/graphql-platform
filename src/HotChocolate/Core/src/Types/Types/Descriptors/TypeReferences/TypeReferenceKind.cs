@@ -26,20 +26,25 @@ public enum TypeReferenceKind
     /// The type reference is represented by a <see cref="ITypeNode"/> and
     /// contains a factory to create the type.
     /// </summary>
-    Factory = 3,
+    SyntaxWithFactory = 3,
 
     /// <summary>
-    /// The type reference refers to a type that is dependant on another type.
+    /// The type reference refers to a type that is dependent on another type.
     /// </summary>
     DependantFactory = 4,
 
     /// <summary>
+    /// A factor for a concrete type that is used by the source generator.
+    /// </summary>
+    Factory = 5,
+
+    /// <summary>
     /// The directive type reference is represented by a .NET type
     /// </summary>
-    DirectiveExtendedType = 5,
+    DirectiveExtendedType = 6,
 
     /// <summary>
     /// The directive type reference represented by the name of a directive.
     /// </summary>
-    DirectiveName = 6,
+    DirectiveName = 7
 }

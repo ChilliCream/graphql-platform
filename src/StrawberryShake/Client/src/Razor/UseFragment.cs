@@ -7,7 +7,7 @@ public class UseFragment<TFragment> : ComponentBase where TFragment : class
 {
     [Parameter] public TFragment? Data { get; set; }
 
-    [Parameter] public RenderFragment<TFragment> ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment<TFragment> ChildContent { get; set; } = null!;
 
     [Parameter] public RenderFragment? LoadingContent { get; set; }
 

@@ -24,10 +24,7 @@ public static class MongoSortingConventionDescriptorExtensions
     public static ISortConventionDescriptor AddDefaultMongoDbOperations(
         this ISortConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Operation(DefaultSortOperations.Ascending).Name("ASC");
         descriptor.Operation(DefaultSortOperations.Descending).Name("DESC");
@@ -47,10 +44,7 @@ public static class MongoSortingConventionDescriptorExtensions
     public static ISortConventionDescriptor BindDefaultMongoDbTypes(
         this ISortConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.BindRuntimeType<string, DefaultSortEnumType>();
         descriptor.DefaultBinding<DefaultSortEnumType>();

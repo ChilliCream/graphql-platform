@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public interface ISchemaError
@@ -20,7 +18,7 @@ public interface ISchemaError
     /// </summary>
     string? Code { get; }
 
-    ITypeSystemObject? TypeSystemObject { get; }
+    TypeSystemObject? TypeSystemObject { get; }
 
     IReadOnlyCollection<ISyntaxNode> SyntaxNodes { get; }
 
@@ -34,7 +32,7 @@ public interface ISchemaError
     /// Gets non-spec error properties.
     /// This property is optional and can be null.
     /// </summary>
-    IReadOnlyDictionary<string, object> Extensions { get; }
+    IReadOnlyDictionary<string, object?> Extensions { get; }
 
     /// <summary>
     /// Gets the exception associated with this error.

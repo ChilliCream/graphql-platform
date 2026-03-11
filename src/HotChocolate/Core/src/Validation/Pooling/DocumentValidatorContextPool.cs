@@ -2,17 +2,19 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Validation;
 
-public class DocumentValidatorContextPool
-    : DefaultObjectPool<DocumentValidatorContext>
+/// <summary>
+/// A pool of <see cref="DocumentValidatorContext"/> instances.
+/// </summary>
+/// <param name="size">
+/// The size of the pool. If not specified, the pool will be sized to the number of
+/// processors on the machine multiplied by 2.
+/// </param>
+public class DocumentValidatorContextPool(int? size = null)
+    : DefaultObjectPool<DocumentValidatorContext>(new Policy(), size ?? Environment.ProcessorCount * 2)
 {
-    public DocumentValidatorContextPool(int size = 8)
-        : base(new Policy(), size)
-    {
-    }
-
     private sealed class Policy : IPooledObjectPolicy<DocumentValidatorContext>
     {
-        public DocumentValidatorContext Create() => new DocumentValidatorContext();
+        public DocumentValidatorContext Create() => new();
 
         public bool Return(DocumentValidatorContext obj)
         {

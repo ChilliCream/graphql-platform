@@ -12,19 +12,21 @@ public class UploadScalarTest : ServerTestBase
     {
     }
 
-    [Fact]
-    public async Task Execute_UploadScalar_Argument()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_UploadScalar_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var data = CreateStream("a");
+        await using var data = CreateStream("a");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
-            new Upload(data, "test-file"),
+            new Upload(data, "test-file", contentType),
             null,
             null,
             null,
@@ -33,24 +35,26 @@ public class UploadScalarTest : ServerTestBase
             cancellationToken: ct);
 
         // assert
-        Assert.Equal("test-file:a", result.Data!.Upload);
+        Assert.Equal($"[test-file:a|{contentType}]", result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_UploadScalarList_Argument()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_UploadScalarList_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
             null,
-            new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B"), },
+            new Upload?[] { new Upload(dataA, "A", contentType), new Upload(dataB, "B", contentType) },
             null,
             null,
             null,
@@ -58,42 +62,46 @@ public class UploadScalarTest : ServerTestBase
             cancellationToken: ct);
 
         // assert
-        Assert.Equal("A:a,B:b", result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_UploadScalarNested_Argument()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_UploadScalarNested_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
             null,
             null,
-            new[] { new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B"), }, },
+            new[] { new Upload?[] { new Upload(dataA, "A", contentType), new Upload(dataB, "B", contentType) } },
             null,
             null,
             null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal("A:a,B:b", result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_Input_Argument()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_Input_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var data = CreateStream("a");
+        await using var data = CreateStream("a");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -101,30 +109,32 @@ public class UploadScalarTest : ServerTestBase
             null,
             null,
             null,
-            new TestInput()
+            new TestInput
             {
-                Bar = new BarInput()
+                Bar = new BarInput
                 {
-                    Baz = new BazInput() { File = new Upload(data, "test-file"), },
-                },
+                    Baz = new BazInput { File = new Upload(data, "test-file", contentType) }
+                }
             },
             null,
             null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal("test-file:a", result.Data!.Upload);
+        Assert.Equal($"[test-file:a|{contentType}]", result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_InputList_Argument()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_InputList_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
@@ -134,37 +144,39 @@ public class UploadScalarTest : ServerTestBase
             null,
             new[]
             {
-                new TestInput()
+                new TestInput
                 {
-                    Bar = new BarInput()
+                    Bar = new BarInput
                     {
-                        Baz = new BazInput() { File = new Upload(dataA, "A"), },
-                    },
+                        Baz = new BazInput { File = new Upload(dataA, "A", contentType) }
+                    }
                 },
-                new TestInput()
+                new TestInput
                 {
-                    Bar = new BarInput()
+                    Bar = new BarInput
                     {
-                        Baz = new BazInput() { File = new Upload(dataB, "B"), },
-                    },
-                },
+                        Baz = new BazInput { File = new Upload(dataB, "B", contentType) }
+                    }
+                }
             },
             null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal("A:a,B:b", result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_InputNested_Argument()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_InputNested_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -178,26 +190,26 @@ public class UploadScalarTest : ServerTestBase
             {
                 new[]
                 {
-                    new TestInput()
+                    new TestInput
                     {
-                        Bar = new BarInput()
+                        Bar = new BarInput
                         {
-                            Baz = new BazInput() { File = new Upload(dataA, "A"), },
-                        },
+                            Baz = new BazInput { File = new Upload(dataA, "A", contentType) }
+                        }
                     },
-                    new TestInput()
+                    new TestInput
                     {
-                        Bar = new BarInput()
+                        Bar = new BarInput
                         {
-                            Baz = new BazInput() { File = new Upload(dataB, "B"), },
-                        },
-                    },
-                },
+                            Baz = new BazInput { File = new Upload(dataB, "B", contentType) }
+                        }
+                    }
+                }
             },
             cancellationToken: ct);
 
         // assert
-        Assert.Equal("A:a,B:b", result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
     public static UploadScalarClient CreateClient(IWebHost host, int port)
@@ -218,21 +230,23 @@ public class UploadScalarTest : ServerTestBase
         return services.GetRequiredService<UploadScalarClient>();
     }
 
-    [Fact]
-    public async Task Execute_ListWorksWithNull()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_ListWorksWithNull(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
             null,
-            new Upload?[] { new Upload(dataA, "A"), null, new Upload(dataB, "B"), },
+            new Upload?[] { new Upload(dataA, "A", contentType), null, new Upload(dataB, "B", contentType) },
             null,
             null,
             null,
@@ -240,6 +254,6 @@ public class UploadScalarTest : ServerTestBase
             cancellationToken: ct);
 
         // assert
-        Assert.Equal("A:a,null,B:b", result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[|],[B:b|{contentType}]", result.Data!.Upload);
     }
 }

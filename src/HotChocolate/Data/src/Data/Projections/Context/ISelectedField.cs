@@ -6,10 +6,10 @@ namespace HotChocolate.Data.Projections.Context;
 /// <summary>
 /// Represents a field that is selected in a query in the context of an operation.
 /// <remarks>
-/// The difference between <see cref="ISelectedField"/> and <see cref="ISelection"/> is that
+/// The difference between <see cref="ISelectedField"/> and <see cref="Selection"/> is that
 /// <see cref="ISelectedField"/> is specific to the current request/operation and not cached. This
 /// makes it possible to recursively iterate through the selected fields by calling
-/// <see cref="ISelectedField.GetFields"/>.
+/// <see cref="GetFields"/>.
 /// <example >
 /// <code>
 /// Queue&lt;string> visitedFields = new();
@@ -35,20 +35,20 @@ public interface ISelectedField
     /// Gets the field selection for which a field resolver is
     /// being executed.
     /// </summary>
-    ISelection Selection { get; }
+    Selection Selection { get; }
 
     /// <summary>
     /// Gets the field on which the field resolver is being executed.
     /// </summary>
-    IObjectField Field { get; }
+    IOutputFieldDefinition Field { get; }
 
     /// <summary>
-    /// Gets the  type of the field.
+    /// Gets the type of the field.
     /// </summary>
     IType Type { get; }
 
     /// <summary>
-    /// Is true if the type of the selected field is a abstract type.
+    /// Is true if the type of the selected field is an abstract type.
     /// Equivalent to <c>Type.IsAbstractType()</c>.
     /// </summary>
     bool IsAbstractType { get; }
@@ -63,8 +63,7 @@ public interface ISelectedField
     /// The type context. In case of an abstract type, there are multiple selection sets.
     /// The <paramref name="type"/> specifies which fields are returned.
     /// <remarks>
-    /// This parameter is required if <see cref="ISelectedField.Type"/> is an
-    /// abstract type.
+    /// This parameter is required if <see cref="Type"/> is an abstract type.
     /// </remarks>
     /// </param>
     /// <param name="allowInternals">
@@ -88,8 +87,7 @@ public interface ISelectedField
     /// The type context. In case of an abstract type, there are multiple selection sets.
     /// The <paramref name="type"/> specifies which fields are returned.
     /// <remarks>
-    /// This parameter is required if <see cref="ISelectedField.Type"/> is an
-    /// abstract type.
+    /// This parameter is required if <see cref="Type"/> is an abstract type.
     /// </remarks>
     /// </param>
     /// <param name="allowInternals">

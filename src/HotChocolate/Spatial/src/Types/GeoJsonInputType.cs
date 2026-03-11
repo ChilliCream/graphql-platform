@@ -1,5 +1,5 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Spatial.Serialization;
 
 namespace HotChocolate.Types.Spatial;
@@ -17,7 +17,7 @@ public abstract class GeoJsonInputType<T>
 
     protected override Func<object?[], object> OnCompleteCreateInstance(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         => CreateInstance;
 
     private object CreateInstance(object?[] fieldValues)
@@ -25,7 +25,7 @@ public abstract class GeoJsonInputType<T>
 
     protected override Action<object, object?[]> OnCompleteGetFieldValues(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         => GetFieldData;
 
     private void GetFieldData(object runtimeValue, object?[] fieldValues)

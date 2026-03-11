@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Generators;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -9,12 +10,10 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace HotChocolate.Types.Analyzers;
 
-#pragma warning disable RS1041
 [Generator]
-#pragma warning restore RS1041
 public class GraphQLServerGenerator : IIncrementalGenerator
 {
-    private static readonly ISyntaxInspector[] _allInspectors =
+    private static readonly ISyntaxInspector[] s_allInspectors =
     [
         new TypeAttributeInspector(),
         new ClassBaseClassInspector(),
@@ -30,12 +29,12 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new NodeIdValueSerializerInspector()
     ];
 
-    private static readonly IPostCollectSyntaxTransformer[] _postCollectTransformers =
+    private static readonly IPostCollectSyntaxTransformer[] s_postCollectTransformers =
     [
         new ConnectionTypeTransformer()
     ];
 
-    private static readonly ISyntaxGenerator[] _generators =
+    private static readonly ISyntaxGenerator[] s_generators =
     [
         new TypeModuleSyntaxGenerator(),
         new TypesSyntaxGenerator(),
@@ -45,31 +44,32 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new NodeIdValueSerializerGenerator(),
     ];
 
-    private static readonly FrozenDictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> _inspectorLookup;
-    private static readonly Func<SyntaxNode, bool> _predicate;
+    private static readonly FrozenDictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_inspectorLookup;
+    private static readonly Func<SyntaxNode, bool> s_predicate;
 
     static GraphQLServerGenerator()
     {
         var filterBuilder = new SyntaxFilterBuilder();
         var inspectorLookup = new Dictionary<SyntaxKind, List<ISyntaxInspector>>();
 
-        foreach (var inspector in _allInspectors)
+        foreach (var inspector in s_allInspectors)
         {
             filterBuilder.AddRange(inspector.Filters);
 
             foreach (var supportedKind in inspector.SupportedKinds)
             {
-                if(!inspectorLookup.TryGetValue(supportedKind, out var inspectors))
+                if (!inspectorLookup.TryGetValue(supportedKind, out var inspectors))
                 {
                     inspectors = [];
                     inspectorLookup[supportedKind] = inspectors;
                 }
+
                 inspectors.Add(inspector);
             }
         }
 
-        _predicate = filterBuilder.Build();
-        _inspectorLookup = inspectorLookup.ToFrozenDictionary(t => t.Key, t => t.Value.ToImmutableArray());
+        s_predicate = filterBuilder.Build();
+        s_inspectorLookup = inspectorLookup.ToFrozenDictionary(t => t.Key, t => t.Value.ToImmutableArray());
     }
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -102,7 +102,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         Compilation compilation,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        foreach (var transformer in _postCollectTransformers)
+        foreach (var transformer in s_postCollectTransformers)
         {
             syntaxInfos = transformer.Transform(compilation, syntaxInfos);
         }
@@ -111,11 +111,11 @@ public class GraphQLServerGenerator : IIncrementalGenerator
     }
 
     private static bool Predicate(SyntaxNode node)
-        => _predicate(node);
+        => s_predicate(node);
 
     private static SyntaxInfo? Transform(GeneratorSyntaxContext context)
     {
-        if (!_inspectorLookup.TryGetValue(context.Node.Kind(), out var inspectors))
+        if (!s_inspectorLookup.TryGetValue(context.Node.Kind(), out var inspectors))
         {
             return null;
         }
@@ -136,20 +136,39 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        foreach (var syntaxInfo in syntaxInfos.AsSpan())
+        var sourceFiles = PooledObjects.GetStringDictionary();
+
+        try
         {
-            if (syntaxInfo.Diagnostics.Length > 0)
+            foreach (var syntaxInfo in syntaxInfos.AsSpan())
             {
-                foreach (var diagnostic in syntaxInfo.Diagnostics.AsSpan())
+                if (syntaxInfo.Diagnostics.Length > 0)
                 {
-                    context.ReportDiagnostic(diagnostic);
+                    foreach (var diagnostic in syntaxInfo.Diagnostics.AsSpan())
+                    {
+                        context.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
+
+            foreach (var generator in s_generators.AsSpan())
+            {
+                generator.Generate(context, assemblyName, syntaxInfos, AddSource);
+            }
+
+            foreach (var sourceFile in sourceFiles)
+            {
+                context.AddSource(sourceFile.Key, sourceFile.Value);
+            }
+        }
+        finally
+        {
+            PooledObjects.Return(sourceFiles);
         }
 
-        foreach (var generator in _generators.AsSpan())
+        void AddSource(string fileName, string sourceText)
         {
-            generator.Generate(context, assemblyName, syntaxInfos);
+            sourceFiles.TryAdd(fileName, sourceText);
         }
     }
 }

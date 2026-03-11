@@ -5,15 +5,15 @@ public class FilterOperationField
     , IFilterOperationField
 {
     internal FilterOperationField(
-        FilterOperationFieldDefinition definition)
-        : this(definition, default)
+        FilterOperationFieldConfiguration configuration)
+        : this(configuration, 0)
     {
     }
 
-    internal FilterOperationField(FilterOperationFieldDefinition definition, int index)
-        : base(definition, index)
+    internal FilterOperationField(FilterOperationFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        Id = definition.Id;
+        Id = configuration.Id;
     }
 
     public int Id { get; }

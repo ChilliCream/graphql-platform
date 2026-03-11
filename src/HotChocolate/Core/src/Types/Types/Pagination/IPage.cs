@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
@@ -23,6 +21,5 @@ public interface IPage
     /// <param name="observer">
     /// The page observer.
     /// </param>
-    public void Accept(IPageObserver observer);
+    void Accept(IPageObserver observer);
 }
-

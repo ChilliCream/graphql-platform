@@ -8,7 +8,7 @@ namespace StrawberryShake.Serialization;
 /// </summary>
 public class LocalTimeSerializer : ScalarSerializer<string, TimeOnly>
 {
-    private const string _localFormat = "HH:mm:ss";
+    private const string LocalFormat = "HH:mm:ss.FFFFFFF";
 
     public LocalTimeSerializer(string typeName = BuiltInScalarNames.LocalTime)
         : base(typeName)
@@ -28,7 +28,7 @@ public class LocalTimeSerializer : ScalarSerializer<string, TimeOnly>
     protected override string Format(TimeOnly runtimeValue)
     {
         return runtimeValue.ToString(
-            _localFormat,
+            LocalFormat,
             CultureInfo.InvariantCulture);
     }
 
@@ -37,9 +37,8 @@ public class LocalTimeSerializer : ScalarSerializer<string, TimeOnly>
         [NotNullWhen(true)] out TimeOnly? value)
     {
         if (serialized is not null
-            && TimeOnly.TryParseExact(
+            && TimeOnly.TryParse(
                 serialized,
-                _localFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var time))

@@ -7,14 +7,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
 {
-    private const string _obj = "obj";
-    private const string _type = "type";
-    private const string _typeName = "typeName";
-    private const string _options = "_options";
-    private const string _writer = "writer";
-    private const string _jsonWriter = "jsonWriter";
-    private const string _entityId = "entityId";
-    private const string _entityIdValues = "entityIdValues";
+    private const string Obj = "obj";
+    private const string Type = "type";
+    private const string UnderscoreOptions = "_options";
+    private const string Writer = "writer";
+    private const string JsonWriter = "jsonWriter";
+    private const string EntityId = "entityId";
+    private const string EntityIdValues = "entityIdValues";
 
     protected override bool CanHandle(EntityIdFactoryDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings) => !settings.NoStore;
@@ -37,7 +36,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
             .SetName(fileName);
 
         classBuilder
-            .AddField(_options)
+            .AddField(UnderscoreOptions)
             .SetStatic()
             .SetReadOnly()
             .SetType(TypeNames.JsonWriterOptions)
@@ -53,14 +52,14 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
             .AddMethod("Parse")
             .SetAccessModifier(AccessModifier.Public)
             .SetReturnType(TypeNames.EntityId)
-            .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement))
+            .AddParameter(Obj, x => x.SetType(TypeNames.JsonElement))
             .AddCode(ParseEntityIdBody(descriptor));
 
         classBuilder
             .AddMethod("Format")
             .SetAccessModifier(AccessModifier.Public)
             .SetReturnType(TypeNames.String)
-            .AddParameter(_entityId, x => x.SetType(TypeNames.EntityId))
+            .AddParameter(EntityId, x => x.SetType(TypeNames.EntityId))
             .AddCode(FormatEntityIdBody(descriptor));
 
         foreach (var entity in descriptor.Entities)
@@ -69,15 +68,15 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
                 .AddMethod($"Parse{entity.Name}EntityId")
                 .SetAccessModifier(AccessModifier.Private)
                 .SetReturnType(TypeNames.EntityId)
-                .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement))
-                .AddParameter(_type, x => x.SetType(TypeNames.String))
+                .AddParameter(Obj, x => x.SetType(TypeNames.JsonElement))
+                .AddParameter(Type, x => x.SetType(TypeNames.String))
                 .AddCode(ParseSpecificEntityIdBody(entity));
 
             classBuilder
                 .AddMethod($"Format{entity.Name}EntityId")
                 .SetAccessModifier(AccessModifier.Private)
                 .SetReturnType(TypeNames.String)
-                .AddParameter(_entityId, x => x.SetType(TypeNames.EntityId))
+                .AddParameter(EntityId, x => x.SetType(TypeNames.EntityId))
                 .AddCode(FormatSpecificEntityIdBody(entity));
         }
 
@@ -93,7 +92,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
                 .SetRightHandSide(
                     MethodCallBuilder
                         .Inline()
-                        .SetMethodName(_obj, nameof(JsonElement.GetProperty))
+                        .SetMethodName(Obj, nameof(JsonElement.GetProperty))
                         .AddArgument(WellKnownNames.TypeName.AsStringToken())
                         .Chain(x => x
                             .SetMethodName(nameof(JsonElement.GetString))
@@ -113,7 +112,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
                 MethodCallBuilder
                     .Inline()
                     .SetMethodName($"Parse{entity.Name}EntityId")
-                    .AddArgument(_obj)
+                    .AddArgument(Obj)
                     .AddArgument(WellKnownNames.TypeName));
         }
 
@@ -143,14 +142,14 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
             .SetReturn()
             .SetNew()
             .SetMethodName(TypeNames.EntityId)
-            .AddArgument(_type)
+            .AddArgument(Type)
             .AddArgument(value);
     }
 
     private static ICode ParseEntityIdProperty(ScalarEntityIdDescriptor field) =>
         MethodCallBuilder
             .Inline()
-            .SetMethodName(_obj, nameof(JsonElement.GetProperty))
+            .SetMethodName(Obj, nameof(JsonElement.GetProperty))
             .AddArgument(field.Name.AsStringToken())
             .Chain(x => x.SetMethodName(GetSerializerMethod(field)).SetNullForgiving());
 
@@ -170,7 +169,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
             SwitchExpressionBuilder
                 .New()
                 .SetReturn()
-                .SetExpression($"{_entityId}.Name")
+                .SetExpression($"{EntityId}.Name")
                 .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.NotSupportedException));
 
         foreach (var entity in descriptor.Entities)
@@ -180,7 +179,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
                 MethodCallBuilder
                     .Inline()
                     .SetMethodName($"Format{entity.Name}EntityId")
-                    .AddArgument(_entityId));
+                    .AddArgument(EntityId));
         }
 
         return CodeBlockBuilder
@@ -193,31 +192,31 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
         var body = CodeBlockBuilder
             .New();
 
-        body.AddAssignment($"using var {_writer}")
+        body.AddAssignment($"using var {Writer}")
             .SetRightHandSide(
                 MethodCallBuilder
                     .Inline()
                     .SetNew()
                     .SetMethodName(TypeNames.ArrayWriter));
 
-        body.AddAssignment($"using var {_jsonWriter}")
+        body.AddAssignment($"using var {JsonWriter}")
             .SetRightHandSide(
                 MethodCallBuilder
                     .Inline()
                     .SetNew()
                     .SetMethodName(TypeNames.Utf8JsonWriter)
-                    .AddArgument(_writer)
-                    .AddArgument(_options));
+                    .AddArgument(Writer)
+                    .AddArgument(UnderscoreOptions));
 
         body.AddMethodCall()
-            .SetMethodName(_jsonWriter, nameof(Utf8JsonWriter.WriteStartObject));
+            .SetMethodName(JsonWriter, nameof(Utf8JsonWriter.WriteStartObject));
 
         body.AddEmptyLine();
 
         body.AddMethodCall()
-            .SetMethodName(_jsonWriter, nameof(Utf8JsonWriter.WriteString))
+            .SetMethodName(JsonWriter, nameof(Utf8JsonWriter.WriteString))
             .AddArgument(WellKnownNames.TypeName.AsStringToken())
-            .AddArgument($"{_entityId}.Name");
+            .AddArgument($"{EntityId}.Name");
 
         body.AddEmptyLine();
 
@@ -226,13 +225,13 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
             var field = entity.Fields[0];
 
             body.AddMethodCall()
-                .SetMethodName(_jsonWriter, GetWriteMethod(field))
+                .SetMethodName(JsonWriter, GetWriteMethod(field))
                 .AddArgument(field.Name.AsStringToken())
-                .AddArgument($"({field.SerializationType}){_entityId}.Value");
+                .AddArgument($"({field.SerializationType}){EntityId}.Value");
         }
         else
         {
-            body.AddAssignment($"var {_entityIdValues}")
+            body.AddAssignment($"var {EntityIdValues}")
                 .SetRightHandSide(CodeBlockBuilder
                     .New()
                     .AddCode("(")
@@ -240,7 +239,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
                         .New()
                         .AddMemberRange(
                             entity.Fields.Select(x => x.SerializationType.ToString())))
-                    .AddCode($"){_entityId}.Value"));
+                    .AddCode($"){EntityId}.Value"));
             body.AddEmptyLine();
 
             for (var index = 0; index < entity.Fields.Count; index++)
@@ -248,27 +247,27 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
                 var field = entity.Fields[index];
 
                 body.AddMethodCall()
-                    .SetMethodName(_jsonWriter, GetWriteMethod(field))
+                    .SetMethodName(JsonWriter, GetWriteMethod(field))
                     .AddArgument(field.Name.AsStringToken())
-                    .AddArgument($"{_entityIdValues}.Item{index + 1}");
+                    .AddArgument($"{EntityIdValues}.Item{index + 1}");
                 body.AddEmptyLine();
             }
         }
 
         body.AddMethodCall()
-            .SetMethodName(_jsonWriter, nameof(Utf8JsonWriter.WriteEndObject));
+            .SetMethodName(JsonWriter, nameof(Utf8JsonWriter.WriteEndObject));
 
         body.AddMethodCall()
-            .SetMethodName(_jsonWriter, nameof(Utf8JsonWriter.Flush));
+            .SetMethodName(JsonWriter, nameof(Utf8JsonWriter.Flush));
 
         body.AddEmptyLine();
 
         body.AddMethodCall()
             .SetReturn()
             .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
-            .AddArgument(MethodCallBuilder.Inline().SetMethodName(_writer, "GetInternalBuffer"))
+            .AddArgument(MethodCallBuilder.Inline().SetMethodName(Writer, "GetInternalBuffer"))
             .AddArgument("0")
-            .AddArgument($"{_writer}.Length");
+            .AddArgument($"{Writer}.Length");
 
         return body;
     }

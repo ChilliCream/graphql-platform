@@ -4,7 +4,7 @@ using StrawberryShake.Transport.WebSockets.Messages;
 namespace StrawberryShake.Transport.WebSockets;
 
 /// <summary>
-/// Represents a operation on a socket
+/// Represents an operation on a socket
 /// </summary>
 public sealed class SocketOperation : ISocketOperation
 {

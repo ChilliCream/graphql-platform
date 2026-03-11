@@ -7,10 +7,7 @@ public abstract class CacheDataLoader<TKey, TValue>
     protected CacheDataLoader(DataLoaderOptions options)
         : base(AutoBatchScheduler.Default, CreateLocalOptions(options))
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         if (options.Cache is null)
         {
@@ -30,9 +27,8 @@ public abstract class CacheDataLoader<TKey, TValue>
         {
             try
             {
-                var value = await LoadSingleAsync(keys[i], cancellationToken).ConfigureAwait(false);
-                results.Span[i] = value;
-
+                var result = await LoadSingleAsync(keys[i], cancellationToken).ConfigureAwait(false);
+                results.Span[i] = result;
             }
             catch (Exception ex)
             {
@@ -60,10 +56,7 @@ public abstract class StatefulCacheDataLoader<TKey, TValue>
     protected StatefulCacheDataLoader(DataLoaderOptions options)
         : base(AutoBatchScheduler.Default, CreateLocalOptions(options))
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         if (options.Cache is null)
         {
@@ -85,7 +78,6 @@ public abstract class StatefulCacheDataLoader<TKey, TValue>
             {
                 var value = await LoadSingleAsync(keys[i], context, cancellationToken).ConfigureAwait(false);
                 results.Span[i] = value;
-
             }
             catch (Exception ex)
             {

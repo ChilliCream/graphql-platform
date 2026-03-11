@@ -44,8 +44,8 @@ public class DefaultConsoleOutputActivity
         if (!_hasErrors)
         {
             Console.Write(
-                $"{_activityText} completed in " +
-                $"{_stopwatch.ElapsedMilliseconds} ms");
+                $"{_activityText} completed in "
+                + $"{_stopwatch.ElapsedMilliseconds} ms");
             if (_path is { })
             {
                 Console.WriteLine($"for {_path}.");

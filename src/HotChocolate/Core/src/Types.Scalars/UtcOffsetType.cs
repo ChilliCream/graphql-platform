@@ -1,5 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -32,88 +35,58 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue)
+    protected override TimeSpan OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return resultValue switch
-        {
-            null => NullValueNode.Default,
-
-            string s when OffsetLookup.TryDeserialize(s, out var timeSpan) =>
-                ParseValue(timeSpan),
-
-            TimeSpan ts => ParseValue(ts),
-
-            _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this),
-        };
-    }
-
-    /// <inheritdoc />
-    protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
-    {
-        if (OffsetLookup.TryDeserialize(valueSyntax.Value, out var parsed))
+        if (OffsetLookup.TryDeserialize(valueLiteral.Value, out var parsed))
         {
             return parsed;
         }
 
-        throw ThrowHelper.UtcOffset_ParseLiteral_IsInvalid(this);
+        throw ThrowHelper.UtcOffsetType_InvalidFormat(this);
     }
 
     /// <inheritdoc />
-    protected override StringValueNode ParseValue(TimeSpan runtimeValue)
+    protected override TimeSpan OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    {
+        if (OffsetLookup.TryDeserialize(inputValue.GetString()!, out var parsed))
+        {
+            return parsed;
+        }
+
+        throw ThrowHelper.UtcOffsetType_InvalidFormat(this);
+    }
+
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(TimeSpan runtimeValue, ResultElement resultValue)
+    {
+        if (OffsetLookup.TrySerialize(runtimeValue, out var serialized))
+        {
+            resultValue.SetStringValue(serialized);
+            return;
+        }
+
+        throw ThrowHelper.UtcOffsetType_InvalidFormat(this);
+    }
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(TimeSpan runtimeValue)
     {
         if (OffsetLookup.TrySerialize(runtimeValue, out var serialized))
         {
             return new StringValueNode(serialized);
         }
 
-        throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        switch (runtimeValue)
-        {
-            case null:
-                resultValue = null;
-                return true;
-            case TimeSpan timeSpan when OffsetLookup.TrySerialize(timeSpan, out var s):
-                resultValue = s;
-                return true;
-            default:
-                resultValue = null;
-                return false;
-        }
-    }
-
-    /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        switch (resultValue)
-        {
-            case null:
-                runtimeValue = null;
-                return true;
-            case string s when OffsetLookup.TryDeserialize(s, out var timeSpan):
-                runtimeValue = timeSpan;
-                return true;
-            case TimeSpan timeSpan when OffsetLookup.TrySerialize(timeSpan, out _):
-                runtimeValue = timeSpan;
-                return true;
-            default:
-                runtimeValue = null;
-                return false;
-        }
+        throw ThrowHelper.UtcOffsetType_InvalidFormat(this);
     }
 
     private static class OffsetLookup
     {
-        private static readonly IReadOnlyDictionary<TimeSpan, string> _timeSpanToOffset;
-        private static readonly IReadOnlyDictionary<string, TimeSpan> _offsetToTimeSpan;
+        private static readonly IReadOnlyDictionary<TimeSpan, string> s_timeSpanToOffset;
+        private static readonly IReadOnlyDictionary<string, TimeSpan> s_offsetToTimeSpan;
 
         static OffsetLookup()
         {
-            _timeSpanToOffset = new Dictionary<TimeSpan, string>
+            s_timeSpanToOffset = new Dictionary<TimeSpan, string>
                 {
                     { new TimeSpan(-12, 0, 0), "-12:00" },
                     { new TimeSpan(-11, 0, 0), "-11:00" },
@@ -152,30 +125,24 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
                     { new TimeSpan(12, 0, 0), "+12:00" },
                     { new TimeSpan(12, 45, 0), "+12:45" },
                     { new TimeSpan(13, 0, 0), "+13:00" },
-                    { new TimeSpan(14, 0, 0), "+14:00" },
+                    { new TimeSpan(14, 0, 0), "+14:00" }
                 };
 
-            var offsetToTimeSpan = _timeSpanToOffset
+            var offsetToTimeSpan = s_timeSpanToOffset
                 .Reverse()
                 .ToDictionary(x => x.Value, x => x.Key);
             offsetToTimeSpan["-00:00"] = TimeSpan.Zero;
             offsetToTimeSpan["00:00"] = TimeSpan.Zero;
 
-            _offsetToTimeSpan = offsetToTimeSpan;
+            s_offsetToTimeSpan = offsetToTimeSpan;
         }
 
         public static bool TrySerialize(
             TimeSpan value,
             [NotNullWhen(true)] out string? result)
-        {
-            return _timeSpanToOffset.TryGetValue(value, out result);
-        }
+            => s_timeSpanToOffset.TryGetValue(value, out result);
 
-        public static bool TryDeserialize(
-            string value,
-            [NotNullWhen(true)] out TimeSpan result)
-        {
-            return _offsetToTimeSpan.TryGetValue(value, out result);
-        }
+        public static bool TryDeserialize(string value, out TimeSpan result)
+            => s_offsetToTimeSpan.TryGetValue(value, out result);
     }
 }

@@ -39,7 +39,7 @@ public static class RavenCursorPagingQueryableExtensions
             context,
             defaultPageSize);
 
-     /// <summary>
+    /// <summary>
     /// Applies the cursor pagination algorithm to the <paramref name="query"/>.
     /// </summary>
     /// <param name="query">
@@ -63,15 +63,8 @@ public static class RavenCursorPagingQueryableExtensions
         IResolverContext context,
         int? defaultPageSize)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(context);
 
         var first = context.ArgumentValue<int?>("first");
         var last = context.ArgumentValue<int?>("last");

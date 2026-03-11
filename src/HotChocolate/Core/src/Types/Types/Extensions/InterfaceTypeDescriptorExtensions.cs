@@ -7,18 +7,9 @@ public static class InterfaceTypeDescriptorExtensions
 {
     public static IInterfaceTypeDescriptor<T> Ignore<T>(
         this IInterfaceTypeDescriptor<T> descriptor,
-        Expression<Func<T, object>> propertyOrMethod)
+        Expression<Func<T, object?>> propertyOrMethod)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
-
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
         descriptor.Field(propertyOrMethod).Ignore();
         return descriptor;
     }
@@ -36,7 +27,6 @@ public static class InterfaceTypeDescriptorExtensions
     /// Returns the interface field descriptor for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
     /// <paramref name="typeSyntax"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="SyntaxException">
@@ -46,16 +36,7 @@ public static class InterfaceTypeDescriptorExtensions
         this IInterfaceFieldDescriptor descriptor,
         string typeSyntax)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (typeSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(typeSyntax));
-        }
-
+        ArgumentNullException.ThrowIfNull(typeSyntax);
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
 }

@@ -2,35 +2,45 @@ using System.Text.Json;
 using HotChocolate.Data.Data;
 using HotChocolate.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Npgsql;
 
 namespace HotChocolate.Data.Migrations;
 
-public sealed class CatalogContextSeed(
-    ILogger<CatalogContextSeed> logger)
-    : IDbSeeder<CatalogContext>
+public sealed class CatalogContextSeed : IDbSeeder<CatalogContext>
 {
     public async Task SeedAsync(CatalogContext context)
     {
-        // Workaround from https://github.com/npgsql/efcore.pg/issues/292#issuecomment-388608426
-        await context.Database.OpenConnectionAsync();
-        await ((NpgsqlConnection)context.Database.GetDbConnection()).ReloadTypesAsync();
+        await context.Database.EnsureCreatedAsync();
 
         if (!context.Products.Any())
         {
             var sourceJson = FileResource.Open("catalog.json");
             var sourceItems = JsonSerializer.Deserialize<ProductEntry[]>(sourceJson)!;
 
+            // Seed suppliers first (brands will reference them).
+            context.Suppliers.RemoveRange(context.Suppliers);
+            var suppliers = new[]
+            {
+                new Supplier { Name = "Global Supply Co.", Website = "https://globalsupply.example.com", ContactEmail = "info@globalsupply.example.com" },
+                new Supplier { Name = "Prime Distribution", Website = "https://primedist.example.com", ContactEmail = "sales@primedist.example.com" },
+                new Supplier { Name = "Atlas Logistics", Website = "https://atlaslogistics.example.com", ContactEmail = "contact@atlaslogistics.example.com" }
+            };
+            await context.Suppliers.AddRangeAsync(suppliers);
+            await context.SaveChangesAsync();
+
+            var supplierIds = await context.Suppliers.Select(s => s.Id).ToListAsync();
+
             context.Brands.RemoveRange(context.Brands);
+            var brandNames = sourceItems.Select(x => x.Brand).Distinct().ToList();
             await context.Brands.AddRangeAsync(
-                sourceItems.Select(x => x.Brand).Distinct().Select(brandName => new Brand { Name = brandName, }));
-            logger.LogInformation("Seeded catalog with {NumBrands} brands", context.Brands.Count());
+                brandNames.Select((brandName, i) => new Brand
+                {
+                    Name = brandName,
+                    SupplierId = supplierIds[i % supplierIds.Count]
+                }));
 
             context.ProductTypes.RemoveRange(context.ProductTypes);
             await context.ProductTypes.AddRangeAsync(
-                sourceItems.Select(x => x.Type).Distinct().Select(typeName => new ProductType { Name = typeName, }));
-            logger.LogInformation("Seeded catalog with {NumTypes} types", context.ProductTypes.Count());
+                sourceItems.Select(x => x.Type).Distinct().Select(typeName => new ProductType { Name = typeName }));
 
             await context.SaveChangesAsync();
 
@@ -49,10 +59,18 @@ public sealed class CatalogContextSeed(
                     AvailableStock = 100,
                     MaxStockThreshold = 200,
                     RestockThreshold = 10,
-                    ImageFileName = $"images/{source.Id}.webp",
+                    ImageFileName = $"images/{source.Id}.webp"
                 }));
 
-            logger.LogInformation("Seeded catalog with {NumItems} items", context.Products.Count());
+            for (var i = 0; i < 100; i++)
+            {
+                await context.SingleProperties.AddAsync(
+                    new SingleProperty
+                    {
+                        Id = i.ToString()
+                    });
+            }
+
             await context.SaveChangesAsync();
         }
     }

@@ -14,10 +14,10 @@ public sealed class InputObjectTypeModel : ITypeModel
     /// <param name="name">The class name.</param>
     /// <param name="description">The class description.</param>
     /// <param name="type">The input object type.</param>
-    /// <param name="fields">The field models of this input type.</param>
     /// <param name="hasUpload">
-    /// Defines if this input or one of its related has a upload scalar
+    /// Defines if this input or one of its related has an upload scalar
     /// </param>
+    /// <param name="fields">The field models of this input type.</param>
     public InputObjectTypeModel(
         string name,
         string? description,
@@ -48,11 +48,11 @@ public sealed class InputObjectTypeModel : ITypeModel
     public InputObjectType Type { get; }
 
     /// <summary>
-    /// Defines if this input or one of its related has a upload scalar
+    /// Defines if this input or one of its related has an upload scalar
     /// </summary>
     public bool HasUpload { get; }
 
-    INamedType ITypeModel.Type => Type;
+    ITypeDefinition ITypeModel.Type => Type;
 
     /// <summary>
     /// Gets the field models of this input type.

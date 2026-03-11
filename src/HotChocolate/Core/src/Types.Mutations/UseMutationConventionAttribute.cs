@@ -90,20 +90,24 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
-        descriptor.Extend().OnBeforeNaming((c, d) =>
+        var returnType = member.GetReturnType();
+
+        if (returnType == typeof(void) || returnType == typeof(Task) || returnType == typeof(ValueTask))
         {
-            c.ContextData
-                .GetMutationFields()
-                .Add(new(d,
+            throw ThrowHelper.MutationMustReturnValue(descriptor.Extend().Configuration.Name);
+        }
+
+        descriptor.Extend().OnBeforeNaming(
+            (c, d) => c.GetMutationFields().Add(
+                new MutationContextData(d,
                     InputTypeName,
                     InputArgumentName,
                     PayloadTypeName,
                     PayloadFieldName,
                     PayloadErrorTypeName,
                     PayloadErrorsFieldName,
-                    !Disable));
-        });
+                    !Disable)));
     }
 }

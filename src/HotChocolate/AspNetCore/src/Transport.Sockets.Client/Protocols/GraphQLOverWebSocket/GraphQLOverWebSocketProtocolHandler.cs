@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
@@ -10,11 +9,18 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 {
     public string Name => WellKnownProtocols.GraphQL_Transport_WS;
 
-    public async ValueTask InitializeAsync<T>(
+    public async ValueTask InitializeAsync(
         SocketClientContext context,
-        T payload,
+        JsonElement payload,
         CancellationToken cancellationToken = default)
     {
+        if (payload.ValueKind is not JsonValueKind.Object and not JsonValueKind.Null and not JsonValueKind.Undefined)
+        {
+            throw new ArgumentException(
+                "The payload must be an object, null, or undefined.",
+                nameof(payload));
+        }
+
         var observer = new ConnectionMessageObserver<ConnectionAcceptMessage>(cancellationToken);
         using var subscription = context.Messages.Subscribe(observer);
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
@@ -33,7 +39,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
 
-        // if the user cancels this stream we will send the server a complete request
+        // if the user cancels this stream, we will send the server a complete request
         // so that we no longer receive new result messages.
         cancellationToken.Register(completion.TrySendCompleteMessage);
 
@@ -101,8 +107,8 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         while (reader.Read())
         {
-            if (reader.TokenType == JsonTokenType.PropertyName &&
-                reader.ValueTextEquals(Utf8MessageProperties.TypeProp))
+            if (reader.TokenType == JsonTokenType.PropertyName
+                && reader.ValueTextEquals(Utf8MessageProperties.TypeProp))
             {
                 reader.Read();
 
@@ -154,7 +160,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         {
             if (!_completed)
             {
-                TrySendCompleteMessageInternalAsync(socket, id).FireAndForget();
+                _ = TrySendCompleteMessageInternalAsync(socket, id);
                 _completed = true;
             }
         }
@@ -193,6 +199,6 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         Next,
         Error,
         Complete,
-        ConnectionAccept,
+        ConnectionAccept
     }
 }

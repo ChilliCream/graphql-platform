@@ -30,10 +30,7 @@ public static class InMemorySubscriptionsServiceCollectionExtensions
         this IRequestExecutorBuilder builder,
         SubscriptionOptions? options = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddSubscriptionDiagnostics();
         AddInMemorySubscriptions(builder.Services, options);

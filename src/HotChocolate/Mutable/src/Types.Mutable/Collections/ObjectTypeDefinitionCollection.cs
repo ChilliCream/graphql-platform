@@ -10,40 +10,88 @@ public sealed class ObjectTypeDefinitionCollection
 
     public MutableObjectTypeDefinition this[int index]
     {
-        get => _types[index];
-        set => _types[index] = value;
+        get
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            return _types[index];
+        }
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+            ArgumentNullException.ThrowIfNull(value);
+
+            _types[index] = value;
+        }
     }
+
+    IObjectTypeDefinition IReadOnlyList<IObjectTypeDefinition>.this[int index]
+        => this[index];
 
     public int Count => _types.Count;
 
     public bool IsReadOnly => false;
 
     public bool Contains(MutableObjectTypeDefinition item)
-        => _types.Contains(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _types.Contains(item);
+    }
 
     public void Add(MutableObjectTypeDefinition item)
-        => _types.Add(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        _types.Add(item);
+    }
 
     public bool Remove(MutableObjectTypeDefinition item)
-        => _types.Remove(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _types.Remove(item);
+    }
 
     public bool ContainsName(string name)
-        => _types.Exists(t => t.Name.Equals(name));
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _types.Exists(t => t.Name.Equals(name));
+    }
 
     public int IndexOf(MutableObjectTypeDefinition item)
-        => _types.IndexOf(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _types.IndexOf(item);
+    }
 
     public void Insert(int index, MutableObjectTypeDefinition item)
-        => _types.Insert(index, item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+        _types.Insert(index, item);
+    }
 
     public void RemoveAt(int index)
-        => _types.RemoveAt(index);
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+        _types.RemoveAt(index);
+    }
 
     public void Clear()
         => _types.Clear();
 
     public void CopyTo(MutableObjectTypeDefinition[] array, int arrayIndex)
-        => _types.CopyTo(array, arrayIndex);
+    {
+        ArgumentNullException.ThrowIfNull(array);
+        ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+
+        _types.CopyTo(array, arrayIndex);
+    }
 
     public IEnumerable<MutableObjectTypeDefinition> AsEnumerable()
         => _types;

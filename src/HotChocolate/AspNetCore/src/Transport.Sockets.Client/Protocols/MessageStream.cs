@@ -5,7 +5,7 @@ namespace HotChocolate.Transport.Sockets.Client.Protocols;
 internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<IOperationMessage>
 {
     private readonly object _sync = new();
-    private ImmutableList<Subscription> _subscriptions = ImmutableList<Subscription>.Empty;
+    private ImmutableList<Subscription> _subscriptions = [];
 
     public IDisposable Subscribe(IObserver<IOperationMessage> observer)
     {

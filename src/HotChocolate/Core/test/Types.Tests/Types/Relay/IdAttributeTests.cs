@@ -4,11 +4,9 @@ using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay;
 
@@ -165,7 +163,7 @@ public class IdAttributeTests
         {
             result = result.ToJson(),
             someId,
-            someIntId,
+            someIntId
         }.MatchSnapshot();
     }
 
@@ -225,7 +223,7 @@ public class IdAttributeTests
         {
             result = result.ToJson(),
             someId,
-            someIntId,
+            someIntId
         }.MatchSnapshot();
     }
 
@@ -265,7 +263,7 @@ public class IdAttributeTests
                         new Dictionary<string, object?>
                         {
                             {"someId", someId },
-                            {"someIntId", someIntId},
+                            {"someIntId", someIntId}
                         })
                     .Build());
 
@@ -299,14 +297,14 @@ public class IdAttributeTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId }, })
+                        .SetVariableValues(new Dictionary<string, object?> { { "someId", someId } })
                         .Build());
 
         // assert
         new
         {
             result = result.ToJson(),
-            someId,
+            someId
         }.MatchSnapshot();
     }
 
@@ -336,14 +334,14 @@ public class IdAttributeTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId}, })
+                        .SetVariableValues(new Dictionary<string, object?> { { "someId", someId } })
                         .Build());
 
         // assert
         new
         {
             result = result.ToJson(),
-            someId,
+            someId
         }.MatchSnapshot();
     }
 
@@ -377,7 +375,7 @@ public class IdAttributeTests
                         .SetVariableValues(new Dictionary<string, object?>
                         {
                             {"someId", legacySomeStringId},
-                            {"someIntId", legacySomeIntId},
+                            {"someIntId", legacySomeIntId}
                         })
                         .Build());
 
@@ -417,14 +415,15 @@ public class IdAttributeTests
                             """)
                         .SetVariableValues(new Dictionary<string, object?>
                         {
-                            {"customId", legacyStronglyTypedId},
+                            {"customId", legacyStronglyTypedId}
                         })
                         .Build());
 
         // assert
         new
         {
-            result = result.ToJson(), legacySomeStronglyTypedId = legacyStronglyTypedId,
+            result = result.ToJson(),
+            legacySomeStronglyTypedId = legacyStronglyTypedId
         }.MatchSnapshot();
     }
 
@@ -475,7 +474,7 @@ public class IdAttributeTests
         public int? OptionalIntId([DefaultValue("UXVlcnk6MA==")][ID] Optional<int> id)
             => id.HasValue ? id.Value : null;
 
-        public int[]? OptionalIntIdList([DefaultValue(new int[] {})][ID] Optional<int[]> ids)
+        public int[]? OptionalIntIdList([DefaultValue(new int[] { })][ID] Optional<int[]> ids)
             => ids.HasValue ? ids.Value : null;
 
         public string StringId([ID] string id) => id;
@@ -489,7 +488,7 @@ public class IdAttributeTests
         public string? OptionalStringId([DefaultValue("UXVlcnk6")][ID] Optional<string> id)
             => id.HasValue ? id.Value : null;
 
-        public string[]? OptionalStringIdList([DefaultValue(new string[] { })] [ID] Optional<string[]> ids)
+        public string[]? OptionalStringIdList([DefaultValue(new string[] { })][ID] Optional<string[]> ids)
             => ids.HasValue ? ids.Value : null;
 
         public Guid GuidId([ID] Guid id) => id;
@@ -503,12 +502,12 @@ public class IdAttributeTests
         public Guid? OptionalGuidId([DefaultValue("UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA==")][ID] Optional<Guid> id)
             => id.HasValue ? id.Value : null;
 
-        public Guid[]? OptionalGuidIdList([DefaultValue(new object[] { })] [ID] Optional<Guid[]> ids)
+        public Guid[]? OptionalGuidIdList([DefaultValue(new object[] { })][ID] Optional<Guid[]> ids)
             => ids.HasValue ? ids.Value : null;
 
-        public int InterceptedId([InterceptedID("Query")] [ID] int id) => id;
+        public int InterceptedId([InterceptedID("Query")][ID] int id) => id;
 
-        public int[] InterceptedIds([InterceptedID("Query")] [ID] int[] ids) => ids;
+        public int[] InterceptedIds([InterceptedID("Query")][ID] int[] ids) => ids;
 
         public string CustomId([ID] StronglyTypedId id) => id.ToString();
 
@@ -566,7 +565,7 @@ public class IdAttributeTests
         [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
 
         [ID("Some")]
-        [DefaultValue(new int[] {})]
+        [DefaultValue(new int[] { })]
         public Optional<IReadOnlyList<int>> SomeOptionalIds { get; }
 
         [ID, InterceptedID("FooInput")]
@@ -607,19 +606,19 @@ public class IdAttributeTests
         public IReadOnlyList<int>? InterceptedIds { get; }
 
         public string Raw =>
-            $"{nameof(SomeId)}: {SomeId}, " +
-            $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], " +
-            $"{nameof(SomeNullableId)}: {SomeNullableId}, " +
-            $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]" +
-            $"{nameof(InterceptedId)}: {InterceptedId}" +
-            $"{nameof(InterceptedIds)}: [{string.Join(", ", InterceptedIds ?? Array.Empty<int>())}]";
+            $"{nameof(SomeId)}: {SomeId}, "
+            + $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], "
+            + $"{nameof(SomeNullableId)}: {SomeNullableId}, "
+            + $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]"
+            + $"{nameof(InterceptedId)}: {InterceptedId}"
+            + $"{nameof(InterceptedIds)}: [{string.Join(", ", InterceptedIds ?? Array.Empty<int>())}]";
     }
 
     public interface IFooPayload
     {
         [ID] string SomeId { get; }
 
-        [ID] public string? SomeNullableId { get; }
+        [ID] string? SomeNullableId { get; }
 
         [ID] IReadOnlyList<int> SomeIds { get; }
 
@@ -672,9 +671,9 @@ public class IdAttributeTests
     }
 
     [AttributeUsage(
-        AttributeTargets.Parameter |
-        AttributeTargets.Property |
-        AttributeTargets.Method)]
+        AttributeTargets.Parameter
+        | AttributeTargets.Property
+        | AttributeTargets.Method)]
     public class InterceptedIDAttribute(string typeName) : DescriptorAttribute
     {
         public string TypeName { get; } = typeName;
@@ -682,20 +681,20 @@ public class IdAttributeTests
         protected internal override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
-            ICustomAttributeProvider element)
+            ICustomAttributeProvider? attributeProvider)
         {
             switch (descriptor)
             {
-                case IInputFieldDescriptor dc when element is PropertyInfo:
+                case IInputFieldDescriptor dc when attributeProvider is PropertyInfo:
                     dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
                     break;
-                case IArgumentDescriptor dc when element is ParameterInfo:
+                case IArgumentDescriptor dc when attributeProvider is ParameterInfo:
                     dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
                     break;
             }
         }
 
-        private void AddInterceptingSerializer(ArgumentDefinition definition)
+        private void AddInterceptingSerializer(ArgumentConfiguration definition)
             => definition.Formatters.Insert(0, new InterceptingFormatter(TypeName));
 
         private sealed class InterceptingFormatter(string typeName) : IInputValueFormatter
@@ -705,7 +704,7 @@ public class IdAttributeTests
                 return originalValue switch
                 {
                     IEnumerable<string> list => list.Select(x => new NodeId(typeName, int.Parse(x))).ToArray(),
-                    _ => new NodeId(typeName, int.Parse((string)originalValue!)),
+                    _ => new NodeId(typeName, int.Parse((string)originalValue!))
                 };
             }
         }
@@ -716,11 +715,11 @@ public class IdAttributeTests
         public int Count { get; set; }
 
         public override void OnValidateType(
-            ITypeSystemObjectContext validationContext,
-            DefinitionBase definition)
+            ITypeSystemObjectContext context,
+            TypeSystemConfiguration configuration)
         {
-            if (validationContext.Type.Name.EqualsOrdinal("Query") &&
-                definition is ObjectTypeDefinition typeDef)
+            if (context.Type.Name.EqualsOrdinal("Query")
+                && configuration is ObjectTypeConfiguration typeDef)
             {
                 Count = typeDef.Fields
                     .Single(t => t.Name.EqualsOrdinal("abc"))

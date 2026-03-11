@@ -16,7 +16,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
         _inlineTotalCount = inlineTotalCount;
     }
 
-    private static readonly QueryableCursorPaginationAlgorithm<TEntity> _paginationAlgorithm =
+    private static readonly QueryableCursorPaginationAlgorithm<TEntity> s_paginationAlgorithm =
         QueryableCursorPaginationAlgorithm<TEntity>.Instance;
 
     public ValueTask<Connection<TEntity>> SliceAsync(
@@ -27,7 +27,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
             context,
             source.Source,
             arguments,
-            _paginationAlgorithm,
+            s_paginationAlgorithm,
             new QueryExecutor(source, _inlineTotalCount),
             context.RequestAborted);
 
@@ -42,7 +42,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
                 ? throw new GraphQLException("Cannot handle the specified data source.")
                 : SliceAsyncInternal(context, Executable.From(e.AsQueryable()), arguments),
             IQueryableExecutable<TEntity> ex => SliceAsyncInternal(context, ex, arguments),
-            _ => throw new GraphQLException("Cannot handle the specified data source."),
+            _ => throw new GraphQLException("Cannot handle the specified data source.")
         };
 
     private async ValueTask<Connection> SliceAsyncInternal(
@@ -53,7 +53,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
                 context,
                 source.Source,
                 arguments,
-                _paginationAlgorithm,
+                s_paginationAlgorithm,
                 new QueryExecutor(source, _inlineTotalCount),
                 context.RequestAborted)
             .ConfigureAwait(false);

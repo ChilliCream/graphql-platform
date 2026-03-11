@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Features;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,17 +24,10 @@ public static class QueryRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddQueryConventions(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder
-            .ConfigureSchema(
-                c =>
-                {
-                    c.ContextData[ErrorContextDataKeys.ErrorConventionEnabled] = true;
-                })
+            .ConfigureSchema(c => c.Features.GetOrSet<ErrorSchemaFeature>())
             .AddFieldResultTypeDiscovery()
             .TryAddTypeInterceptor<QueryConventionTypeInterceptor>();
 

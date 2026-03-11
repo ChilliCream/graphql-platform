@@ -12,14 +12,14 @@ namespace HotChocolate.Data.Filters.Spatial;
 public class QueryableSpatialDistanceOperationHandler
     : QueryableSpatialMethodHandler
 {
-    private static readonly MethodInfo _distance =
+    private static readonly MethodInfo s_distance =
         typeof(Geometry).GetMethod(nameof(Geometry.Distance))!;
 
     public QueryableSpatialDistanceOperationHandler(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)
-        : base(convention, inspector, inputParser, _distance)
+        : base(convention, inspector, inputParser, s_distance)
     {
     }
 
@@ -48,4 +48,7 @@ public class QueryableSpatialDistanceOperationHandler
         result = null;
         return false;
     }
+
+    public static QueryableSpatialDistanceOperationHandler Create(FilterProviderContext context) =>
+        new(context.FilterConvention, context.TypeInspector, context.InputParser);
 }

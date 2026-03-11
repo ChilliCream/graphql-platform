@@ -9,7 +9,7 @@ namespace GreenDonut.Data;
 /// </summary>
 public sealed class DefaultSelectorBuilder : ISelectorBuilder
 {
-    private ImmutableArray<LambdaExpression> _selectors = ImmutableArray<LambdaExpression>.Empty;
+    private ImmutableArray<LambdaExpression> _selectors = [];
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultSelectorBuilder"/>.
@@ -82,5 +82,5 @@ public sealed class DefaultSelectorBuilder : ISelectorBuilder
     /// <summary>
     /// Gets an empty <see cref="DefaultSelectorBuilder"/>.
     /// </summary>
-    public static DefaultSelectorBuilder Empty { get; } = new(ImmutableArray<LambdaExpression>.Empty);
+    public static DefaultSelectorBuilder Empty { get; } = new([]);
 }

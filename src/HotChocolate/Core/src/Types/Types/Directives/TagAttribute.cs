@@ -19,14 +19,14 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct |
-    AttributeTargets.Interface |
-    AttributeTargets.Enum |
-    AttributeTargets.Property |
-    AttributeTargets.Method |
-    AttributeTargets.Field |
-    AttributeTargets.Parameter,
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Interface
+    | AttributeTargets.Enum
+    | AttributeTargets.Property
+    | AttributeTargets.Method
+    | AttributeTargets.Field
+    | AttributeTargets.Parameter,
     AllowMultiple = true)]
 public sealed class TagAttribute : DescriptorAttribute
 {
@@ -50,7 +50,7 @@ public sealed class TagAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
@@ -106,7 +106,7 @@ public sealed class TagAttribute : DescriptorAttribute
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage(TypeResources.TagDirective_Descriptor_NotSupported)
-                        .SetExtension("member", element)
+                        .SetExtension("member", attributeProvider)
                         .SetExtension("descriptor", descriptor)
                         .Build());
         }

@@ -1,7 +1,7 @@
-﻿schema {
+schema {
   query: QueryWithIndexer
 }
 
 type QueryWithIndexer {
-  foo: String
+  foo: String!
 }

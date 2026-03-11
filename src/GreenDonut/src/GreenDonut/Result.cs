@@ -13,7 +13,7 @@ public readonly record struct Result<TValue>
     /// <param name="value">The value.</param>
     public Result(TValue value) : this()
     {
-        Error = default;
+        Error = null;
         Value = value;
         Kind = ResultKind.Value;
     }
@@ -107,7 +107,3 @@ public readonly record struct Result<TValue>
     public static implicit operator TValue(Result<TValue> result)
         => result.Value;
 }
-
-#pragma warning disable RCS1194
-public class KeyNotFoundException(string message) : Exception(message);
-#pragma warning restore RCS1194

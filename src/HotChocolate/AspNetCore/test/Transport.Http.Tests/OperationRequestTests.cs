@@ -13,13 +13,13 @@ public class OperationRequestTests
             null,
             "abc",
             "myOperation",
-            variables: new Dictionary<string, object?>()
+            variables: new Dictionary<string, object?>
             {
                 ["abc"] = "def",
-                ["hij"] = null,
+                ["hij"] = null
             });
 
-        using var memory = new MemoryStream();
+        await using var memory = new MemoryStream();
         await using var writer = new Utf8JsonWriter(memory);
 
         // act

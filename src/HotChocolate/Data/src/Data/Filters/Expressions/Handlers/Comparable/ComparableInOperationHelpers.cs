@@ -17,9 +17,9 @@ public static class ValueNullabilityHelpers
         IExtendedType runtimeType,
         IValueNode node)
     {
-        if (type.IsListType() &&
-            !runtimeType.IsNullable &&
-            node is ListValueNode values)
+        if (type.IsListType()
+            && !runtimeType.IsNullable
+            && node is ListValueNode values)
         {
             for (var i = 0; i < values.Items.Count; i++)
             {

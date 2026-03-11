@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Filters;
 
@@ -9,19 +9,19 @@ public sealed class AndField
     : FilterOperationField
     , IAndField
 {
-    internal AndField(IDescriptorContext context, int index, string? scope)
-        : base(CreateDefinition(context, scope), index)
+    internal AndField(FilterOperationFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
     }
 
-    public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
+    public new FilterInputType DeclaringType => base.DeclaringType;
 
     IFilterInputType IAndField.DeclaringType => DeclaringType;
 
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         definition.Type = TypeReference.Parse(
             $"[{context.Type.Name}!]",
@@ -31,10 +31,10 @@ public sealed class AndField
         base.OnCompleteField(context, declaringMember, definition);
     }
 
-    private static FilterOperationFieldDefinition CreateDefinition(
+    internal static FilterOperationFieldConfiguration CreateConfiguration(
         IDescriptorContext context,
         string? scope) =>
         FilterOperationFieldDescriptor
             .New(context, DefaultFilterOperations.And, scope)
-            .CreateDefinition();
+            .CreateConfiguration();
 }

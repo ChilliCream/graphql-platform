@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new()
         {
@@ -12,15 +12,15 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             LastName = "Galoo",
             Bars = new[]
             {
-                new Bar { Value="A", },
-            },
+                new Bar { Value="A" }
+            }
         },
         new()
         {
             Name = "Sam",
             LastName = "Sampleman",
-            Bars = Array.Empty<Bar>(),
-        },
+            Bars = Array.Empty<Bar>()
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -34,7 +34,7 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_StringConcatExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -54,7 +54,10 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "Sam_Sampleman")
             .AddResult(res2, "NoMatch")
             .AddResult(res3, "null")
@@ -65,7 +68,7 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -85,7 +88,10 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "1")
             .AddResult(res2, "0")
             .AddResult(res3, "null")

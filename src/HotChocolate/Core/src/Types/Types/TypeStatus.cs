@@ -8,5 +8,5 @@ internal enum TypeStatus
     Completed,
     MetadataCompleted,
     Executable,
-    Finalized,
+    Finalized
 }

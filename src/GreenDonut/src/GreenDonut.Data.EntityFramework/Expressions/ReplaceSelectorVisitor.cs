@@ -6,11 +6,11 @@ internal sealed class ReplaceSelectorVisitor<T>(
     Expression<Func<T, T>> newSelector)
     : ExpressionVisitor
 {
-    private const string _selectMethod = "Select";
+    private const string SelectMethod = "Select";
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
-        if (node.Method.Name == _selectMethod && node.Arguments.Count == 2)
+        if (node.Method.Name == SelectMethod && node.Arguments.Count == 2)
         {
             return Expression.Call(
                 node.Method.DeclaringType!,

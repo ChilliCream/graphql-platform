@@ -10,18 +10,18 @@ namespace HotChocolate.Internal;
 public static class TypeInfoExtensions
 {
     /// <summary>
-    /// Creates a type structure with the <paramref name="namedType"/>.
+    /// Creates a type structure with the <paramref name="typeDefinition"/>.
     /// </summary>
     /// <param name="typeInfo">The type info.</param>
-    /// <param name="namedType">The named type component.</param>
+    /// <param name="typeDefinition">The type definition.</param>
     /// <returns>
     /// Returns a GraphQL type structure.
     /// </returns>
-    internal static IType CreateType(this ITypeInfo typeInfo, INamedType namedType)
+    internal static IType CreateType(this ITypeInfo typeInfo, ITypeDefinition typeDefinition)
     {
         if (typeInfo is ITypeFactory factory)
         {
-            return factory.CreateType(namedType);
+            return factory.CreateType(typeDefinition);
         }
 
         throw new NotSupportedException(
@@ -33,7 +33,6 @@ public static class TypeInfoExtensions
     /// </summary>
     public static TypeReference CreateTypeReference(this ITypeInfo typeInfo, NamedTypeNode namedType)
     {
-        ArgumentNullException.ThrowIfNull(typeInfo);
         ArgumentNullException.ThrowIfNull(namedType);
 
         ITypeNode type = namedType;

@@ -63,14 +63,12 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
-#if NET9_0_OR_GREATER
-        await Snapshot.Create("NET_9_0")
-#else
-        await Snapshot.Create()
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 
@@ -118,14 +116,12 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
-#if NET9_0_OR_GREATER
-        await Snapshot.Create("NET_9_0")
-#else
-        await Snapshot.Create()
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 
@@ -177,14 +173,12 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
-#if NET9_0_OR_GREATER
-        await Snapshot.Create("NET_9_0")
-#else
-        await Snapshot.Create()
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 
@@ -223,10 +217,15 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 
@@ -406,7 +405,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
-            // var selector = context.GetSelector();
+            var query = context.GetQueryContext<Page<Animal>, Animal>();
 
             await using var scope = _services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AnimalContext>();
@@ -414,10 +413,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             return await dbContext.Owners
                 .Where(t => keys.Contains(t.Id))
                 .SelectMany(t => t.Pets)
-                .OrderBy(t => t.Name)
-                .ThenBy(t => t.Id)
-                // selections do not work when inheritance is used for nested batching.
-                // .Select(selector, t => t.OwnerId)
+                .With(query, x => x.AddAscending(y => y.Name).AddAscending(y => y.Id))
                 .ToBatchPageAsync(
                     t => t.OwnerId,
                     pagingArgs,
@@ -445,7 +441,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
-            // var selector = context.GetSelector();
+            var query = context.GetQueryContext<Page<Animal>, Animal>();
 
             await using var scope = _services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AnimalContext>();
@@ -453,10 +449,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             return await dbContext.Owners
                 .Where(t => keys.Contains(t.Id))
                 .SelectMany(t => t.Pets)
-                .OrderBy(t => t.Name)
-                .ThenBy(t => t.Id)
-                // selections do not work when inheritance is used for nested batching.
-                // .Select(selector, t => t.OwnerId)
+                .With(query, x => x.AddAscending(y => y.Name).AddAscending(y => y.Id))
                 .ToBatchPageAsync(
                     t => t.OwnerId,
                     pagingArgs,

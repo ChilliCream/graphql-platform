@@ -1,9 +1,12 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Pagination.CursorPagingArgumentNames;
+using static HotChocolate.WellKnownMiddleware;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -20,10 +23,10 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
     private bool? _allowBackwardPagination;
     private bool? _requirePagingBoundaries;
     private bool? _inferConnectionNameFromField;
-    private bool? _EnableRelativeCursors;
+    private bool? _enableRelativeCursors;
 
     /// <summary>
-    /// Overrides the global paging options for the annotated  field.
+    /// Overrides the global paging options for the annotated field.
     /// </summary>
     /// <param name="order">
     /// The explicit order priority for this attribute.
@@ -94,18 +97,18 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
     /// </summary>
     public bool EnableRelativeCursors
     {
-        get => _EnableRelativeCursors ?? PagingDefaults.EnableRelativeCursors;
-        set => _EnableRelativeCursors = value;
+        get => _enableRelativeCursors ?? PagingDefaults.EnableRelativeCursors;
+        set => _enableRelativeCursors = value;
     }
 
-    public string? ConnectionName { get; set; }
+    public string? Name { get; set; }
 
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (element is not MemberInfo)
+        if (attributeProvider is not MemberInfo)
         {
             return;
         }
@@ -118,25 +121,22 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             AllowBackwardPagination = _allowBackwardPagination,
             RequirePagingBoundaries = _requirePagingBoundaries,
             InferConnectionNameFromField = _inferConnectionNameFromField,
-            ProviderName = ConnectionName,
-            EnableRelativeCursors = _EnableRelativeCursors,
+            ProviderName = Name,
+            EnableRelativeCursors = _enableRelativeCursors
         };
 
         if (descriptor is IObjectFieldDescriptor fieldDesc)
         {
-            var definition = fieldDesc.Extend().Definition;
-            definition.Configurations.Add(
-                new CreateConfiguration(
-                    (_, d) =>
-                    {
-                        ((ObjectFieldDefinition)d).State =
-                            ((ObjectFieldDefinition)d).State.SetItem(
-                                WellKnownContextData.PagingOptions,
-                                options);
-                    },
-                    definition));
-            definition.Configurations.Add(
-                new CompleteConfiguration<ObjectFieldDefinition>(
+            var definition = fieldDesc.Extend().Configuration;
+            definition.MiddlewareConfigurations.Add(
+                new FieldMiddlewareConfiguration(
+                    CreatePagingValidationMiddleware(),
+                    key: Paging));
+            definition.Tasks.Add(
+                new OnCreateTypeSystemConfigurationTask(
+                    (_, d) => d.Features.Set(options), definition));
+            definition.Tasks.Add(
+                new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),
                     definition,
                     ApplyConfigurationOn.BeforeCompletion));
@@ -144,11 +144,11 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
 
         static void ApplyPagingOptions(
             IDescriptorContext context,
-            ObjectFieldDefinition definition,
+            ObjectFieldConfiguration definition,
             PagingOptions options)
         {
             options = context.GetPagingOptions(options);
-            definition.ContextData[WellKnownContextData.PagingOptions] = options;
+            definition.Features.Set(options);
 
             if (options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination)
             {
@@ -156,16 +156,124 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             }
 
             var beforeArg = definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal("before"));
-            if(beforeArg is not null)
+            if (beforeArg is not null)
             {
                 definition.Arguments.Remove(beforeArg);
             }
 
             var lastArg = definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal("last"));
-            if(lastArg is not null)
+            if (lastArg is not null)
             {
                 definition.Arguments.Remove(lastArg);
             }
         }
+    }
+
+    private static FieldMiddleware CreatePagingValidationMiddleware()
+        => next => context =>
+        {
+            var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+            ValidateContext(context, options);
+            PublishPagingArguments(context, options);
+            return next(context);
+        };
+
+    private static void ValidateContext(
+        IMiddlewareContext context,
+        PagingOptions options)
+    {
+        var allowBackwardPagination =
+            options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
+        var requirePagingBoundaries =
+            options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries;
+        var maxPageSize =
+            options.MaxPageSize ?? PagingDefaults.MaxPageSize;
+
+        var first = context.ArgumentValue<int?>(First);
+        var last = allowBackwardPagination
+            ? context.ArgumentValue<int?>(Last)
+            : null;
+
+        if (requirePagingBoundaries && first is null && last is null)
+        {
+            if (allowBackwardPagination)
+            {
+                throw ThrowHelper.PagingHandler_NoBoundariesSet(
+                    context.Selection.Field,
+                    context.Path);
+            }
+
+            throw ThrowHelper.PagingHandler_FirstValueNotSet(
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (first < 0)
+        {
+            throw ThrowHelper.PagingHandler_MinPageSize(
+                (int)first,
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (first > maxPageSize)
+        {
+            throw ThrowHelper.PagingHandler_MaxPageSize(
+                (int)first,
+                maxPageSize,
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (last < 0)
+        {
+            throw ThrowHelper.PagingHandler_MinPageSize(
+                (int)last,
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (last > maxPageSize)
+        {
+            throw ThrowHelper.PagingHandler_MaxPageSize(
+                (int)last,
+                maxPageSize,
+                context.Selection.Field,
+                context.Path);
+        }
+    }
+
+    private static void PublishPagingArguments(
+        IMiddlewareContext context,
+        PagingOptions options)
+    {
+        var allowBackwardPagination = options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
+        var maxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
+        var defaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
+
+        if (maxPageSize < defaultPageSize)
+        {
+            defaultPageSize = maxPageSize;
+        }
+
+        var first = context.ArgumentValue<int?>(First);
+        var last = allowBackwardPagination
+            ? context.ArgumentValue<int?>(Last)
+            : null;
+
+        if (first is null && last is null)
+        {
+            first = defaultPageSize;
+        }
+
+        context.SetLocalState(
+            WellKnownContextData.PagingArguments,
+            new CursorPagingArguments(
+                first,
+                last,
+                context.ArgumentValue<string?>(After),
+                allowBackwardPagination
+                    ? context.ArgumentValue<string?>(Before)
+                    : null));
     }
 }

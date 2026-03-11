@@ -4,35 +4,38 @@ namespace StrawberryShake.CodeGeneration;
 
 public static class BuiltInScalarNames
 {
-    private static readonly HashSet<string> _typeNames =
+    private static readonly HashSet<string> s_typeNames =
     [
-        ScalarNames.String,
-        ScalarNames.ID,
+        "Guid",
+        "Uri",
+        "Url",
+        "Uuid",
+        ScalarNames.Any,
+        ScalarNames.Base64String,
         ScalarNames.Boolean,
         ScalarNames.Byte,
-        ScalarNames.Short,
-        ScalarNames.Int,
-        ScalarNames.Long,
-        ScalarNames.Float,
-        ScalarNames.Decimal,
-        ScalarNames.URL,
-        "Url",
-        "URI",
-        "Uri",
-        ScalarNames.UUID,
-        "Uuid",
-        "Guid",
-        ScalarNames.DateTime,
+        ScalarNames.ByteArray,
         ScalarNames.Date,
+        ScalarNames.DateTime,
+        ScalarNames.Decimal,
+        ScalarNames.Duration,
+        ScalarNames.Float,
+        ScalarNames.ID,
+        ScalarNames.Int,
         ScalarNames.LocalDate,
         ScalarNames.LocalDateTime,
         ScalarNames.LocalTime,
-        ScalarNames.Name,
-        ScalarNames.ByteArray,
-        ScalarNames.Any,
-        ScalarNames.JSON,
-        ScalarNames.TimeSpan,
+        ScalarNames.Long,
+        ScalarNames.Short,
+        ScalarNames.String,
+        ScalarNames.UnsignedByte,
+        ScalarNames.UnsignedInt,
+        ScalarNames.UnsignedLong,
+        ScalarNames.UnsignedShort,
+        ScalarNames.URI,
+        ScalarNames.URL,
+        ScalarNames.UUID
     ];
 
-    public static bool IsBuiltInScalar(string typeName) => _typeNames.Contains(typeName);
+    public static bool IsBuiltInScalar(string typeName) => s_typeNames.Contains(typeName);
 }

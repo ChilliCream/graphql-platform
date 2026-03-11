@@ -1,4 +1,3 @@
-import { MDXProvider } from "@mdx-js/react";
 import React, {
   FC,
   ReactElement,
@@ -7,17 +6,6 @@ import React, {
   useRef,
 } from "react";
 
-import { BlockQuote } from "@/components/mdx/block-quote";
-import { CodeBlock } from "@/components/mdx/code-block";
-import {
-  Code,
-  ExampleTabs,
-  Implementation,
-  Schema,
-} from "@/components/mdx/example-tabs";
-import { InlineCode } from "@/components/mdx/inline-code";
-import { PackageInstallation } from "@/components/mdx/package-installation";
-import { Video } from "@/components/mdx/video";
 import { CookieConsent, Promo } from "@/components/misc";
 import { GlobalStyle } from "@/style";
 import { Main } from "./main";
@@ -28,24 +16,10 @@ export interface SiteLayoutProps {
 }
 
 export const SiteLayout: FC<SiteLayoutProps> = ({ children, disableStars }) => {
-  const components = {
-    pre: CodeBlock,
-    inlineCode: InlineCode,
-    blockquote: BlockQuote,
-    ExampleTabs,
-    Code,
-    Implementation,
-    Schema,
-    PackageInstallation,
-    Video,
-  };
-
   return (
     <>
       <GlobalStyle />
-      <MDXProvider components={components}>
-        <Main>{children}</Main>
-      </MDXProvider>
+      <Main>{children}</Main>
       <CookieConsent />
       <Promo />
       {!disableStars && <Stars />}

@@ -122,7 +122,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
         17  Product 0-16
         18  Product 0-17
         */
-        new {
+        new
+        {
             First = page.First!.Name,
             Last = page.Last!.Name,
             ItemsCount = page.Items.Length
@@ -215,7 +216,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -239,12 +241,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -268,12 +271,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -297,12 +301,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Brands
+        await context.Brands
             .With(query)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -323,7 +328,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Act
-        arguments = arguments with { Before = page.CreateCursor(page.First!), };
+        arguments = arguments with { Before = page.CreateCursor(page.First!) };
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -412,7 +417,15 @@ public class PagingHelperTests(PostgreSqlResource resource)
             { "TimeOnly", context.Tests.OrderByDescending(t => t.TimeOnly) },
             { "UInt", context.Tests.OrderByDescending(t => t.UInt) },
             { "ULong", context.Tests.OrderByDescending(t => t.ULong) },
-            { "UShort", context.Tests.OrderByDescending(t => t.UShort) }
+            { "UShort", context.Tests.OrderByDescending(t => t.UShort) },
+            { "ByteEnum", context.Tests.OrderByDescending(t => t.ByteEnum) },
+            { "SbyteEnum", context.Tests.OrderByDescending(t => t.SbyteEnum) },
+            { "ShortEnum", context.Tests.OrderByDescending(t => t.ShortEnum) },
+            { "UshortEnum", context.Tests.OrderByDescending(t => t.UshortEnum) },
+            { "IntEnum", context.Tests.OrderByDescending(t => t.IntEnum) },
+            { "UintEnum", context.Tests.OrderByDescending(t => t.UintEnum) },
+            { "LongEnum", context.Tests.OrderByDescending(t => t.LongEnum) },
+            { "UlongEnum", context.Tests.OrderByDescending(t => t.UlongEnum) }
         };
 
         // Act
@@ -430,7 +443,16 @@ public class PagingHelperTests(PostgreSqlResource resource)
         }
 
         // Assert
-        pages.MatchMarkdownSnapshot();
+        pages.ToDictionary(
+            p => p.Key,
+            p =>
+                p.Value.Select(
+                    t =>
+                        new
+                        {
+                            t.Id,
+                            Value = t.GetType().GetProperty(p.Key)?.GetValue(t)
+                        })).MatchMarkdownSnapshot();
     }
 
     private static async Task SeedAsync(string connectionString)
@@ -438,7 +460,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
         await context.Database.EnsureCreatedAsync();
 
-        var type = new ProductType { Name = "T-Shirt", };
+        var type = new ProductType { Name = "T-Shirt" };
         context.ProductTypes.Add(type);
 
         for (var i = 0; i < 100; i++)
@@ -457,7 +479,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
                 {
                     Name = $"Product {i}-{j}",
                     Type = type,
-                    Brand = brand,
+                    Brand = brand
                 };
                 context.Products.Add(product);
             }
@@ -471,19 +493,19 @@ public class PagingHelperTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
         await context.Database.EnsureCreatedAsync();
 
-        for (var i = 1; i <= 10; i++)
+        for (var i = 1; i <= 8; i++)
         {
             var test = new Test
             {
                 Id = i,
-                Bool = i % 2 == 0,
+                Bool = i > 4,
                 DateOnly = DateOnly.FromDateTime(DateTime.UnixEpoch.AddDays(i - 1)),
                 DateTime = DateTime.UnixEpoch.AddDays(i - 1),
                 DateTimeOffset = DateTimeOffset.UnixEpoch.AddDays(i - 1),
                 Decimal = i,
                 Double = i,
                 Float = i,
-                Guid = Guid.ParseExact($"0000000000000000000000000000000{i - 1}", "N"),
+                Guid = Guid.ParseExact($"0000000000000000000000000000000{i}", "N"),
                 Int = i,
                 Long = i,
                 Short = (short)i,
@@ -492,21 +514,20 @@ public class PagingHelperTests(PostgreSqlResource resource)
                 TimeSpan = TimeSpan.FromHours(i),
                 UInt = (uint)i,
                 ULong = (ulong)i,
-                UShort = (ushort)i
+                UShort = (ushort)i,
+                ByteEnum = i > 4 ? TestByteEnum.Two : TestByteEnum.One,
+                SbyteEnum = i > 4 ? TestSbyteEnum.Two : TestSbyteEnum.One,
+                ShortEnum = i > 4 ? TestShortEnum.Two : TestShortEnum.One,
+                UshortEnum = i > 4 ? TestUshortEnum.Two : TestUshortEnum.One,
+                IntEnum = i > 4 ? TestIntEnum.Two : TestIntEnum.One,
+                UintEnum = i > 4 ? TestUintEnum.Two : TestUintEnum.One,
+                LongEnum = i > 4 ? TestLongEnum.Two : TestLongEnum.One,
+                UlongEnum = i > 4 ? TestUlongEnum.Two : TestUlongEnum.One
             };
 
             context.Tests.Add(test);
         }
 
         await context.SaveChangesAsync();
-    }
-
-    private static Snapshot CreateSnapshot()
-    {
-#if NET9_0_OR_GREATER
-        return Snapshot.Create();
-#else
-        return Snapshot.Create("NET8_0");
-#endif
     }
 }

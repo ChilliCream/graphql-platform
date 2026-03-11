@@ -50,9 +50,9 @@ public class FeatureCollectionTests
         // Regression test: Used to throw NullReferenceException because it tried to unbox a null object to a struct
         var ex = Assert.Throws<InvalidOperationException>(() => interfaces.Get<int>());
         Assert.Equal(
-            "System.Int32 does not exist in the feature collection and because it is " +
-            "a struct the method can't return null. Use 'featureCollection[typeof(System.Int32)] " +
-            "is not null' to check if the feature exists.", ex.Message);
+            "System.Int32 does not exist in the feature collection and because it is "
+            + "a struct the method can't return null. Use 'featureCollection[typeof(System.Int32)] "
+            + "is not null' to check if the feature exists.", ex.Message);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class FeatureCollectionTests
     public void GetStructFeature()
     {
         var interfaces = new FeatureCollection();
-        var value = 20;
+        const int value = 20;
         interfaces.Set(value);
 
         Assert.Equal(value, interfaces.Get<int>());
@@ -77,7 +77,7 @@ public class FeatureCollectionTests
     public void GetNullableStructFeatureWhenSetWithNonNullableStruct()
     {
         var interfaces = new FeatureCollection();
-        var value = 20;
+        const int value = 20;
         interfaces.Set(value);
 
         Assert.Null(interfaces.Get<int?>());
@@ -87,7 +87,7 @@ public class FeatureCollectionTests
     public void GetNullableStructFeatureWhenSetWithNullableStruct()
     {
         var interfaces = new FeatureCollection();
-        var value = 20;
+        const int value = 20;
         interfaces.Set<int?>(value);
 
         Assert.Equal(value, interfaces.Get<int?>());

@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -7,18 +8,20 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
+    protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
     public override void WriteBeginClass(IOutputTypeInfo type)
     {
         Writer.WriteIndentedLine(
             "{0} partial class {1} : ObjectType<global::{2}>",
             type.IsPublic ? "public" : "internal",
             type.Name,
-            type.RuntimeTypeFullName);
+            type.RuntimeTypeName?.FullName);
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
     }
 
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not ConnectionTypeInfo connectionType)
         {
@@ -29,35 +32,88 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
         Writer.WriteIndentedLine(
             "protected override void Configure(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IObjectTypeDescriptor,
-            connectionType.RuntimeTypeFullName);
+            connectionType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
         {
+            if (connectionType.Resolvers.Length > 0 || connectionType.DescriptorAttributes.Length > 0)
+            {
+                Writer.WriteIndentedLine("var extension = descriptor.Extend();");
+                Writer.WriteIndentedLine("var configuration = extension.Configuration;");
+            }
+
             if (connectionType.Resolvers.Length > 0)
             {
                 Writer.WriteIndentedLine(
                     "var thisType = typeof(global::{0});",
-                    connectionType.RuntimeTypeFullName);
+                    connectionType.RuntimeTypeName.FullName);
                 Writer.WriteIndentedLine(
-                    "var extend = descriptor.Extend();");
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = extend.Context.ParameterBindingResolver;");
+                    "var bindingResolver = extension.Context.ParameterBindingResolver;");
                 Writer.WriteIndentedLine(
                     connectionType.Resolvers.Any(t => t.RequiresParameterBindings)
                         ? "var resolvers = new __Resolvers(bindingResolver);"
                         : "var resolvers = new __Resolvers();");
             }
 
-            if (connectionType.RuntimeType.IsGenericType
-                && !string.IsNullOrEmpty(connectionType.NameFormat))
+            if (connectionType.DescriptorAttributes.Length > 0)
             {
-                var nodeTypeName = connectionType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
-                    "var nodeTypeRef = extend.Context.TypeInspector.GetTypeRef(typeof({0}));",
-                    nodeTypeName);
+                    "{0}.ApplyConfiguration(",
+                    WellKnownTypes.ConfigurationHelper);
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine("extension.Context,");
+                    Writer.WriteIndentedLine("descriptor,");
+                    Writer.WriteIndentedLine("null,");
+
+                    var first = true;
+                    foreach (var attribute in connectionType.DescriptorAttributes)
+                    {
+                        if (!first)
+                        {
+                            Writer.WriteLine(',');
+                        }
+
+                        Writer.WriteIndent();
+                        Writer.Write(GenerateAttributeInstantiation(attribute));
+                        first = false;
+                    }
+
+                    Writer.WriteLine([')', ';']);
+                }
+            }
+
+            if (connectionType.Inaccessible is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Inaccessible);
+            }
+
+            if (connectionType.Shareable is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
+            }
+            else
+            {
+                Writer.WriteLine();
+                using (Writer.WriteIfClause("extension.Context.Options.ApplyShareableToConnections"))
+                {
+                    Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
+                }
+            }
+
+            if (connectionType.NodeFullyQualifiedName is not null
+                && !string.IsNullOrEmpty(connectionType.NameFormat)
+                && connectionType.NameFormat!.Contains("{0}"))
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine(
+                    "var nodeTypeRef = extension.Context.TypeInspector.GetTypeRef(typeof({0}));",
+                    connectionType.NodeFullyQualifiedName);
                 Writer.WriteIndentedLine("descriptor");
                 using (Writer.IncreaseIndent())
                 {
@@ -68,8 +124,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                         ".DependsOn(nodeTypeRef);");
                 }
             }
-            else if (!string.IsNullOrEmpty(connectionType.NameFormat)
-                && !connectionType.NameFormat!.Contains("{0}"))
+            else if (!string.IsNullOrEmpty(connectionType.NameFormat))
             {
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
@@ -77,7 +132,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     connectionType.NameFormat);
             }
 
-            WriteResolverBindings(connectionType);
+            WriteResolverBindings(connectionType, typeLookup);
         }
 
         Writer.WriteIndentedLine("}");
@@ -88,7 +143,9 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
     {
     }
 
-    protected override void WriteResolverBindingDescriptor(IOutputTypeInfo type, Resolver resolver)
+    protected override void WriteResolverBindingDescriptor(
+        IOutputTypeInfo type,
+        Resolver resolver)
     {
         if (type is not ConnectionTypeInfo connectionType)
         {
@@ -101,8 +158,9 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
             var edgeTypeName = $"{connectionType.Namespace}.{connectionType.EdgeTypeName}";
 
             Writer.WriteIndentedLine(
-                ".Type<{0}>()",
-                ToGraphQLType(resolver.UnwrappedReturnType, edgeTypeName));
+                "configuration.Type = typeInspector.GetTypeRef(typeof({0}), {1}.Output);",
+                ToGraphQLType(resolver.ReturnType, edgeTypeName),
+                WellKnownTypes.TypeContext);
         }
         else
         {
@@ -137,18 +195,18 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
     private static INamedTypeSymbol? GetListInnerType(INamedTypeSymbol typeSymbol)
     {
-        if (typeSymbol.IsGenericType &&
-            (typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>" ||
-             typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
+        if (typeSymbol.IsGenericType
+            && (typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>"
+            || typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
         {
             return typeSymbol.TypeArguments[0] as INamedTypeSymbol;
         }
 
         foreach (var interfaceType in typeSymbol.AllInterfaces)
         {
-            if (interfaceType.IsGenericType &&
-                (interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>" ||
-                 interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
+            if (interfaceType.IsGenericType
+                && (interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>"
+                || interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
             {
                 return interfaceType.TypeArguments[0] as INamedTypeSymbol;
             }
@@ -156,5 +214,4 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
         return null;
     }
-
 }

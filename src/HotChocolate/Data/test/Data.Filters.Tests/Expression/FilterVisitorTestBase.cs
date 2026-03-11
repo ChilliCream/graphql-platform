@@ -21,14 +21,14 @@ public class FilterVisitorTestBase
                 .Type<StringType>()
                 .Resolve("bar"))
             .AddType(type)
-            .AddType(new TimeSpanType(TimeSpanFormat.DotNet));
+            .AddType(new DurationType(DurationFormat.DotNet));
 
         builder.Create();
 
         return new ExecutorBuilder(type);
     }
 
-    protected ISchema CreateSchema<T>(T type)
+    protected Schema CreateSchema<T>(T type)
         where T : IFilterInputType
     {
         var convention = new FilterConvention(x => x.AddDefaults());

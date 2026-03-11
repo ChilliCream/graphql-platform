@@ -1,12 +1,11 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
-
-#nullable enable
 
 namespace HotChocolate.Types.Introspection;
 
@@ -14,7 +13,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Type : ObjectType
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var booleanType = Create(ScalarNames.Boolean);
@@ -26,8 +25,11 @@ internal sealed class __Type : ObjectType
         var enumValueListType = Parse($"[{nameof(__EnumValue)}!]");
         var inputValueListType = Parse($"[{nameof(__InputValue)}!]");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
 
-        var def = new ObjectTypeDefinition(
+        var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
+
+        var def = new ObjectTypeConfiguration(
             Names.__Type,
             TypeResources.Type_Description,
             typeof(IType))
@@ -37,63 +39,85 @@ internal sealed class __Type : ObjectType
                 new(Names.Kind, type: kindType, pureResolver: Resolvers.Kind),
                 new(Names.Name, type: stringType, pureResolver: Resolvers.Name),
                 new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                new(Names.Fields, type: fieldListType, pureResolver: Resolvers.Fields)
+                new(
+                    Names.Fields,
+                    type: fieldListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.FieldsWithOptIn
+                        : Resolvers.Fields)
                 {
                     Arguments =
                     {
                         new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
                 new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
-                new(Names.EnumValues, type: enumValueListType, pureResolver: Resolvers.EnumValues)
+                new(
+                    Names.EnumValues,
+                    type: enumValueListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.EnumValuesWithOptIn
+                        : Resolvers.EnumValues)
                 {
                     Arguments =
                     {
                         new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
-                new(Names.InputFields,
+                new(
+                    Names.InputFields,
                     type: inputValueListType,
-                    pureResolver: Resolvers.InputFields)
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.InputFieldsWithOptIn
+                        : Resolvers.InputFields)
                 {
                     Arguments =
                     {
                         new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.OfType, type: typeType, pureResolver: Resolvers.OfType),
                 new(Names.SpecifiedByUrl,
                     TypeResources.Type_SpecifiedByUrl_Description,
                     stringType,
                     pureResolver: Resolvers.SpecifiedBy),
-            },
+                new(Names.IsOneOf, type: booleanType, pureResolver: Resolvers.IsOneOf)
+            }
         };
-
-        if (context.DescriptorContext.Options.EnableOneOf)
-        {
-            def.Fields.Add(new(Names.OneOf,
-                type: booleanType,
-                pureResolver: Resolvers.OneOf));
-        }
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
         {
             def.Fields.Add(new(Names.AppliedDirectives,
                 type: directiveListType,
                 pureResolver: Resolvers.AppliedDirectives));
+        }
+
+        if (optInFeaturesEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.EnumValues)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Single(f => f.Name == Names.Fields)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Single(f => f.Name == Names.InputFields)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
         }
 
         return def;
@@ -105,47 +129,153 @@ internal sealed class __Type : ObjectType
             => context.Parent<IType>().Kind;
 
         public static object? Name(IResolverContext context)
-            => context.Parent<IType>() is INamedType n ? n.Name : null;
+            => context.Parent<IType>() is ITypeDefinition n ? n.Name : null;
 
         public static object? Description(IResolverContext context)
-            => context.Parent<IType>() is INamedType n ? n.Description : null;
+            => context.Parent<IType>() is ITypeDefinition n ? n.Description : null;
 
-        public static object? Fields(IResolverContext context)
+        public static object? FieldsWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is IComplexTypeDefinition)
+            {
+                var fields = Fields(context);
+
+                if (fields is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                // If a field has no @requiresOptIn directives, it is always included.
+                // If a field requires opting into features "f1" and "f2", then `includeOptIn`
+                // must list at least one of the features in order for the field to be included.
+                return fields.Where(
+                    f =>
+                    {
+                        var requiredFeatures = f
+                            .Directives
+                            .Where(d => d.Definition is RequiresOptInDirectiveType)
+                            .Select(d => d.ToValue<RequiresOptIn>().Feature)
+                            .ToList();
+
+                        return requiredFeatures.Count == 0
+                            || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
+                    });
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IOutputFieldDefinition>? Fields(IResolverContext context)
         {
             var type = context.Parent<IType>();
             var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
 
-            if (type is IComplexOutputType ct)
+            if (type is IComplexTypeDefinition ct)
             {
                 return !includeDeprecated
                     ? ct.Fields.Where(t => !t.IsIntrospectionField && !t.IsDeprecated)
                     : ct.Fields.Where(t => !t.IsIntrospectionField);
             }
 
-            return default;
+            return null;
         }
 
         public static object? Interfaces(IResolverContext context)
-            => context.Parent<IType>() is IComplexOutputType complexType
+            => context.Parent<IType>() is IComplexTypeDefinition complexType
                 ? complexType.Implements
                 : null;
 
         public static object? PossibleTypes(IResolverContext context)
-            => context.Parent<IType>() is INamedType nt
+            => context.Parent<IType>() is ITypeDefinition nt
                 ? nt.IsAbstractType()
                     ? context.Schema.GetPossibleTypes(nt)
                     : null
                 : null;
 
-        public static object? EnumValues(IResolverContext context)
+        public static object? EnumValuesWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is EnumType)
+            {
+                var enumValues = EnumValues(context);
+
+                if (enumValues is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                // If an enum value has no @requiresOptIn directives, it is always included.
+                // If an enum value requires opting into features "f1" and "f2", then `includeOptIn`
+                // must list at least one of the features in order for the value to be included.
+                return enumValues.Where(
+                    v =>
+                    {
+                        var requiredFeatures = v
+                            .Directives
+                            .Where(d => d.Definition is RequiresOptInDirectiveType)
+                            .Select(d => d.ToValue<RequiresOptIn>().Feature)
+                            .ToList();
+
+                        return requiredFeatures.Count == 0
+                            || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
+                    });
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IEnumValue>? EnumValues(IResolverContext context)
             => context.Parent<IType>() is EnumType et
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? et.Values
                     : et.Values.Where(t => !t.IsDeprecated)
                 : null;
 
-        public static object? InputFields(IResolverContext context)
-            => context.Parent<IType>() is IInputObjectType iot
+        public static object? InputFieldsWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is IInputObjectTypeDefinition)
+            {
+                var inputFields = InputFields(context);
+
+                if (inputFields is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                // If an input field has no @requiresOptIn directives, it is always included.
+                // If an input field requires opting into features "f1" and "f2", then
+                // `includeOptIn` must list at least one of the features in order for the field to
+                // be included.
+                return inputFields.Where(
+                    f =>
+                    {
+                        var requiredFeatures = f
+                            .Directives
+                            .Where(d => d.Definition is RequiresOptInDirectiveType)
+                            .Select(d => d.ToValue<RequiresOptIn>().Feature)
+                            .ToList();
+
+                        return requiredFeatures.Count == 0
+                            || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
+                    });
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IInputValueDefinition>? InputFields(IResolverContext context)
+            => context.Parent<IType>() is IInputObjectTypeDefinition iot
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? iot.Fields
                     : iot.Fields.Where(t => !t.IsDeprecated)
@@ -155,13 +285,13 @@ internal sealed class __Type : ObjectType
             => context.Parent<IType>() switch
             {
                 ListType lt => lt.ElementType,
-                NonNullType nnt => nnt.Type,
-                _ => null,
+                NonNullType nnt => nnt.NullableType,
+                _ => null
             };
 
-        public static object? OneOf(IResolverContext context)
-            => context.Parent<IType>() is IInputObjectType iot
-                ? iot.Directives.ContainsDirective(WellKnownDirectives.OneOf)
+        public static object? IsOneOf(IResolverContext context)
+            => context.Parent<IType>() is IInputObjectTypeDefinition iot
+                ? iot.Directives.ContainsName(DirectiveNames.OneOf.Name)
                 : null;
 
         public static object? SpecifiedBy(IResolverContext context)
@@ -170,8 +300,10 @@ internal sealed class __Type : ObjectType
                 : null;
 
         public static object AppliedDirectives(IResolverContext context) =>
-            context.Parent<IType>() is IHasDirectives hasDirectives
-                ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.AsSyntaxNode())
+            context.Parent<IType>() is IDirectivesProvider hasDirectives
+                ? hasDirectives.Directives
+                    .Where(t => Unsafe.As<DirectiveType>(t.Definition).IsPublic)
+                    .Select(d => d.ToSyntaxNode())
                 : [];
     }
 
@@ -188,10 +320,11 @@ internal sealed class __Type : ObjectType
         public const string EnumValues = "enumValues";
         public const string InputFields = "inputFields";
         public const string OfType = "ofType";
-        public const string OneOf = "oneOf";
+        public const string IsOneOf = "isOneOf";
         public const string SpecifiedByUrl = "specifiedByURL";
         public const string IncludeDeprecated = "includeDeprecated";
         public const string AppliedDirectives = "appliedDirectives";
+        public const string IncludeOptIn = "includeOptIn";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

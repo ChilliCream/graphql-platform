@@ -2,7 +2,7 @@ namespace HotChocolate.Language;
 
 internal static class TokenPrinter
 {
-    private static readonly Dictionary<TokenKind, string> _cachedStrings =
+    private static readonly Dictionary<TokenKind, string> s_cachedStrings =
         new()
         {
             { TokenKind.StartOfFile, "<SOF>" },
@@ -28,12 +28,12 @@ internal static class TokenPrinter
             { TokenKind.String, "String" },
             { TokenKind.BlockString, "BlockString" },
             { TokenKind.Comment, "Comment" },
-            { TokenKind.Dot, "." },
+            { TokenKind.Dot, "." }
         };
 
     public static string Print(ref Utf8GraphQLReader reader)
-        => _cachedStrings[reader.Kind];
+        => s_cachedStrings[reader.Kind];
 
     public static string Print(TokenKind tokenKind)
-        => _cachedStrings[tokenKind];
+        => s_cachedStrings[tokenKind];
 }

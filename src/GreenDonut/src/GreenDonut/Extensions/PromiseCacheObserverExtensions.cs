@@ -29,15 +29,8 @@ public static class PromiseCacheObserverExtensions
         DataLoaderBase<TKey, TValue> dataLoader)
         where TKey : notnull
     {
-        if (observer == null)
-        {
-            throw new ArgumentNullException(nameof(observer));
-        }
-
-        if (dataLoader == null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(observer);
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (dataLoader.Cache is not null)
         {

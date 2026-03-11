@@ -19,7 +19,7 @@ public interface IFieldResult
     bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Value))]
     bool IsError { get; }

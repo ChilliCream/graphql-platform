@@ -1,7 +1,6 @@
 using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 
@@ -25,6 +24,10 @@ public static partial class ProductNode
         BrandService brandService,
         CancellationToken cancellationToken)
         => await brandService.GetBrandByIdAsync(product.BrandId, query, cancellationToken);
+
+    public static string? GetBrandName(
+        [Parent(requires: "Brand { Name }")] Product product)
+        => product.Brand?.Name;
 
     [NodeResolver]
     public static async Task<Product?> GetProductAsync(

@@ -97,5 +97,4 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
                 (o, _) => o.OpaQueryRequestExtensionsHandlers.Add(policyPath, opaQueryRequestExtensionsHandler));
         return builder;
     }
-
 }

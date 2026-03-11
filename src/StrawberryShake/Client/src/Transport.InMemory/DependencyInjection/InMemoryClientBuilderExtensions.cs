@@ -21,10 +21,7 @@ public static class InMemoryClientBuilderExtensions
         this IClientBuilder<T> clientBuilder)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
 
         clientBuilder.Services.AddInMemoryClient(clientBuilder.ClientName);
         return clientBuilder;
@@ -46,15 +43,8 @@ public static class InMemoryClientBuilderExtensions
         Action<IInMemoryClient> configureClient)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         clientBuilder.Services.AddInMemoryClient(clientBuilder.ClientName, configureClient);
         return clientBuilder;
@@ -76,15 +66,8 @@ public static class InMemoryClientBuilderExtensions
         Action<IServiceProvider, IInMemoryClient> configureClient)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         clientBuilder.Services.AddInMemoryClient(clientBuilder.ClientName, configureClient);
         return clientBuilder;
@@ -106,15 +89,8 @@ public static class InMemoryClientBuilderExtensions
         Func<IInMemoryClient, CancellationToken, ValueTask> configureClient)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         clientBuilder.Services
             .AddInMemoryClientAsync(clientBuilder.ClientName, configureClient);
@@ -137,15 +113,8 @@ public static class InMemoryClientBuilderExtensions
         Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> configureClient)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         clientBuilder.Services
             .AddInMemoryClientAsync(clientBuilder.ClientName, configureClient);
@@ -169,15 +138,8 @@ public static class InMemoryClientBuilderExtensions
         this IInMemoryClientBuilder builder,
         Action<IInMemoryClient> configureClient)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         builder.Services.Configure<InMemoryClientFactoryOptions>(
             builder.Name,
@@ -207,15 +169,8 @@ public static class InMemoryClientBuilderExtensions
         this IInMemoryClientBuilder builder,
         Func<IInMemoryClient, CancellationToken, ValueTask> configureClientAsync)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureClientAsync == null)
-        {
-            throw new ArgumentNullException(nameof(configureClientAsync));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureClientAsync);
 
         builder.Services.Configure<InMemoryClientFactoryOptions>(
             builder.Name,
@@ -246,15 +201,8 @@ public static class InMemoryClientBuilderExtensions
         this IInMemoryClientBuilder builder,
         Action<IServiceProvider, IInMemoryClient> configureClient)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         builder.Services.AddTransient<IConfigureOptions<InMemoryClientFactoryOptions>>(sp =>
             new ConfigureNamedOptions<InMemoryClientFactoryOptions>(
@@ -289,15 +237,8 @@ public static class InMemoryClientBuilderExtensions
         this IInMemoryClientBuilder builder,
         Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> configureClient)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         builder.Services.AddTransient<IConfigureOptions<InMemoryClientFactoryOptions>>(sp =>
             new ConfigureNamedOptions<InMemoryClientFactoryOptions>(
@@ -324,15 +265,8 @@ public static class InMemoryClientBuilderExtensions
         this IInMemoryClientBuilder builder,
         IInMemoryRequestInterceptor interceptor)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (interceptor == null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         return builder.ConfigureRequestInterceptor(_ => interceptor);
     }
@@ -357,10 +291,7 @@ public static class InMemoryClientBuilderExtensions
         this IInMemoryClientBuilder builder)
         where TInterceptor : IInMemoryRequestInterceptor
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder
             .ConfigureRequestInterceptor(sp => sp.GetRequiredService<TInterceptor>());
@@ -382,15 +313,8 @@ public static class InMemoryClientBuilderExtensions
         this IInMemoryClientBuilder builder,
         Func<IServiceProvider, IInMemoryRequestInterceptor> factory)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory == null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return builder
             .ConfigureInMemoryClient((sp, x) => x.RequestInterceptors.Add(factory(sp)));

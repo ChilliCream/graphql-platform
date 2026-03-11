@@ -14,7 +14,7 @@ using Squadron;
 namespace HotChocolate.Data;
 
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
-public class IntegrationPagingHelperTests(PostgreSqlResource resource)
+public class PagingHelperIntegrationTests(PostgreSqlResource resource)
 {
     public PostgreSqlResource Resource { get; } = resource;
 
@@ -58,7 +58,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -101,7 +105,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -144,7 +152,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -196,7 +208,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -217,6 +233,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -248,7 +265,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -300,7 +321,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -321,6 +346,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -352,7 +378,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -404,7 +434,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -456,7 +490,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .Build());
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(result, "Result")
             .MatchMarkdownAsync();
@@ -508,14 +546,12 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
-#if NET8_0
-        await Snapshot.Create()
-#else
-        await Snapshot.Create("NET9_0")
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 
@@ -567,11 +603,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Assert
         var operationResult = result.ExpectOperationResult();
 
-#if NET8_0
-        await Snapshot.Create()
-#else
-        await Snapshot.Create("NET9_0")
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult, "Result")
             .MatchMarkdownAsync();
@@ -593,7 +626,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(
                 new
@@ -625,7 +662,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(
                 new
@@ -661,7 +702,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(
                 new
@@ -693,7 +738,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(
                 new
@@ -729,7 +778,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(
                 new
@@ -869,7 +922,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Assert
         var operationResult = result.ExpectOperationResult();
 
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(operationResult)
             .MatchMarkdownAsync();
@@ -914,7 +971,11 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Assert
         var operationResult = result.ExpectOperationResult();
 
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(operationResult)
             .MatchMarkdownAsync();
@@ -967,11 +1028,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Assert
         var operationResult = result.ExpectOperationResult();
 
-#if NET8_0
-        await Snapshot.Create()
-#else
-        await Snapshot.Create("NET9_0")
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult, "Result")
             .MatchMarkdownAsync();
@@ -1026,11 +1084,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Assert
         var operationResult = result.ExpectOperationResult();
 
-#if NET8_0
-        await Snapshot.Create()
-#else
-        await Snapshot.Create("NET9_0")
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult, "Result")
             .MatchMarkdownAsync();
@@ -1043,7 +1098,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         var type = new ProductType
         {
-            Name = "T-Shirt",
+            Name = "T-Shirt"
         };
         context.ProductTypes.Add(type);
 
@@ -1063,7 +1118,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 {
                     Name = $"Product {i}-{j}",
                     Type = type,
-                    Brand = brand,
+                    Brand = brand
                 };
                 context.Products.Add(product);
             }
@@ -1270,7 +1325,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         public Brand Brand { get; }
     }
-
 
     public class BrandDto
     {

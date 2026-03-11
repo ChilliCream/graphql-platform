@@ -10,35 +10,44 @@ public sealed class RootTypeInfo
     , IOutputTypeInfo
 {
     public RootTypeInfo(
+        Compilation compilation,
         INamedTypeSymbol schemaType,
         OperationType operationType,
         ClassDeclarationSyntax classDeclarationSyntax,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
+        Name = schemaType.Name;
         OperationType = operationType;
-        SchemaSchemaType = schemaType;
-        SchemaTypeFullName = schemaType.ToDisplayString();
+        SchemaTypeName = TypeNameInfo.Create(schemaType);
+        RegistrationKey = schemaType.ToAssemblyQualified();
+        Namespace = schemaType.ContainingNamespace.ToDisplayString();
+        IsPublic = schemaType.DeclaredAccessibility == Accessibility.Public;
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
+        Description = compilation.GetDescription(schemaType);
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
-    public string Name => SchemaSchemaType.Name;
+    public string Name { get; }
 
-    public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
+    public TypeNameInfo SchemaTypeName { get; }
 
-    public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
+    public TypeNameInfo? RuntimeTypeName => null;
+
+    public string RegistrationKey { get; }
+
+    public string Namespace { get; }
+
+    public string? Description { get; }
+
+    public bool IsPublic { get; }
 
     public OperationType OperationType { get; }
 
-    public INamedTypeSymbol SchemaSchemaType { get; }
-
-    public string SchemaTypeFullName { get; }
-
     public bool HasSchemaType => true;
-
-    public INamedTypeSymbol? RuntimeType => null;
-
-    public string? RuntimeTypeFullName => null;
 
     public bool HasRuntimeType => false;
 
@@ -46,17 +55,42 @@ public sealed class RootTypeInfo
 
     public ImmutableArray<Resolver> Resolvers { get; private set; }
 
-    public override string OrderByKey => SchemaTypeFullName;
+    public override string OrderByKey => SchemaTypeName.FullName;
+
+    public DirectiveScope Shareable { get; }
+
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
+    public bool SourceSchemaDetected { get; set; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 
     public override bool Equals(object? obj)
-        => obj is ObjectTypeInfo other && Equals(other);
+        => obj is RootTypeInfo other && Equals(other);
 
     public override bool Equals(SyntaxInfo? obj)
-        => obj is ObjectTypeInfo other && Equals(other);
+        => obj is RootTypeInfo other && Equals(other);
+
+    public bool Equals(RootTypeInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
+            && string.Equals(SchemaTypeName.FullName, other.SchemaTypeName.FullName, StringComparison.Ordinal)
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
+    }
 
     public override int GetHashCode()
-        => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
+        => HashCode.Combine(OrderByKey, SchemaTypeName.FullName, ClassDeclaration);
 }

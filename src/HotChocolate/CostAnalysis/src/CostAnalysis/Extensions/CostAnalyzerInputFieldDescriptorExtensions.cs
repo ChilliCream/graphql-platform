@@ -28,10 +28,7 @@ public static class CostAnalyzerInputFieldDescriptorExtensions
     /// </exception>
     public static IInputFieldDescriptor Cost(this IInputFieldDescriptor descriptor, double weight)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new CostDirective(weight));
     }

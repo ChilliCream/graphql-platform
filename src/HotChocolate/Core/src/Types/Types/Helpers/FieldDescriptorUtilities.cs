@@ -1,9 +1,7 @@
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Helpers;
 
@@ -15,7 +13,7 @@ public static class FieldDescriptorUtilities
         IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
         where TMember : MemberInfo
-        where TField : FieldDefinitionBase
+        where TField : FieldConfiguration
     {
         foreach (var fieldDefinition in fieldDefinitions)
         {
@@ -37,9 +35,9 @@ public static class FieldDescriptorUtilities
         Func<TMember, TField> createdFieldDefinition,
         IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
-        where TDescriptor : IHasRuntimeType, IHasDescriptorContext
+        where TDescriptor : IRuntimeTypeProvider, IHasDescriptorContext
         where TMember : MemberInfo
-        where TField : FieldDefinitionBase
+        where TField : FieldConfiguration
     {
         AddImplicitFields(
             descriptor,
@@ -59,7 +57,7 @@ public static class FieldDescriptorUtilities
         bool includeIgnoredMembers = false)
         where TDescriptor : IHasDescriptorContext
         where TMember : MemberInfo
-        where TField : FieldDefinitionBase
+        where TField : FieldConfiguration
     {
         if (fieldBindingType != typeof(object))
         {
@@ -80,10 +78,10 @@ public static class FieldDescriptorUtilities
                 {
                     var fieldDefinition = createdFieldDefinition(member);
 
-                    if (!string.IsNullOrEmpty(fieldDefinition.Name) &&
-                        !handledMembers.Contains(member) &&
-                        !fields.ContainsKey(fieldDefinition.Name) &&
-                        (includeIgnoredMembers || !fieldDefinition.Ignore))
+                    if (!string.IsNullOrEmpty(fieldDefinition.Name)
+                        && !handledMembers.Contains(member)
+                        && !fields.ContainsKey(fieldDefinition.Name)
+                        && (includeIgnoredMembers || !fieldDefinition.Ignore))
                     {
                         handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
@@ -95,15 +93,13 @@ public static class FieldDescriptorUtilities
 
     public static void DiscoverArguments(
         IDescriptorContext context,
-        ICollection<ArgumentDefinition> arguments,
+        ICollection<ArgumentConfiguration> arguments,
         MemberInfo? member,
         ParameterInfo[] parameters,
-        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders,
+        bool isBatchResolver = false)
     {
-        if (arguments is null)
-        {
-            throw new ArgumentNullException(nameof(arguments));
-        }
+        ArgumentNullException.ThrowIfNull(arguments);
 
         if (member is MethodInfo)
         {
@@ -126,11 +122,11 @@ public static class FieldDescriptorUtilities
                 {
                     var argumentDefinition =
                         ArgumentDescriptor
-                            .New(context, parameter)
-                            .CreateDefinition();
+                            .New(context, parameter, isBatchResolver)
+                            .CreateConfiguration();
 
-                    if (!string.IsNullOrEmpty(argumentDefinition.Name) &&
-                        processedNames.Add(argumentDefinition.Name))
+                    if (!string.IsNullOrEmpty(argumentDefinition.Name)
+                        && processedNames.Add(argumentDefinition.Name))
                     {
                         arguments.Add(argumentDefinition);
                     }

@@ -1,0 +1,68 @@
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+
+namespace HotChocolate.Types.Composite;
+
+/// <summary>
+/// <para>
+/// Makes the fields in scope or the field annotated with this attribute shareable by adding the @shareable directive.
+/// </para>
+/// <para>
+/// By default, only a single source schema is allowed to contribute
+/// a particular field to an object type.
+/// </para>
+/// <para>
+/// This prevents source schemas from inadvertently defining similarly named
+/// fields that are not semantically equivalent.
+/// </para>
+/// <para>
+/// This is why fields must be explicitly marked as @shareable to allow multiple source
+/// schemas to define them, ensuring that the decision to serve a field from
+/// more than one source schema is intentional and coordinated.
+/// </para>
+/// <para>
+/// <code language="csharp">
+/// type User {
+///   name: String! @shareable
+///   email: String!
+/// }
+/// </code>
+/// </para>
+/// <para>
+/// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--shareable"/>
+/// </para>
+/// </summary>
+[AttributeUsage(
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Method
+    | AttributeTargets.Property)]
+public sealed class ShareableAttribute : DescriptorAttribute
+{
+    public ShareableAttribute()
+    {
+    }
+
+    public ShareableAttribute(bool scoped)
+        => IsScoped = scoped;
+
+    /// <summary>
+    /// Indicates if the directive is scoped to the current extension or type in view or to the complete type.
+    /// </summary>
+    public bool IsScoped { get; }
+
+    protected internal override void TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider? attributeProvider)
+    {
+        if (descriptor is IObjectTypeDescriptor objectType)
+        {
+            objectType.Shareable(IsScoped);
+        }
+        else if (descriptor is IObjectFieldDescriptor objectField)
+        {
+            objectField.Shareable();
+        }
+    }
+}

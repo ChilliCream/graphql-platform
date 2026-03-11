@@ -3,15 +3,15 @@ using HotChocolate.Types.Helpers;
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
-internal class EnumTypeNameDependencyDescriptor
+internal sealed class EnumTypeNameDependencyDescriptor
     : IEnumTypeNameDependencyDescriptor
 {
     private readonly IEnumTypeDescriptor _descriptor;
-    private readonly Func<INamedType, string> _createName;
+    private readonly Func<ITypeDefinition, string> _createName;
 
     public EnumTypeNameDependencyDescriptor(
         IEnumTypeDescriptor descriptor,
-        Func<INamedType, string> createName)
+        Func<ITypeDefinition, string> createName)
     {
         _descriptor = descriptor
             ?? throw new ArgumentNullException(nameof(descriptor));

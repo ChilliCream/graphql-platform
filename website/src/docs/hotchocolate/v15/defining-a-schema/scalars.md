@@ -14,11 +14,11 @@ The GraphQL specification defines the following scalars.
 
 ```sdl
 type Product {
-  description: String;
+  description: String
 }
 ```
 
-This scalar represents an UTF-8 character sequence.
+This scalar represents a UTF-8 character sequence.
 
 It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
 
@@ -26,7 +26,7 @@ It is automatically inferred from the usage of the .NET [string type](https://do
 
 ```sdl
 type Product {
-  purchasable: Boolean;
+  purchasable: Boolean
 }
 ```
 
@@ -38,7 +38,7 @@ It is automatically inferred from the usage of the .NET [bool type](https://docs
 
 ```sdl
 type Product {
-  quantity: Int;
+  quantity: Int
 }
 ```
 
@@ -50,7 +50,7 @@ It is automatically inferred from the usage of the .NET [int type](https://docs.
 
 ```sdl
 type Product {
-  price: Float;
+  price: Float
 }
 ```
 
@@ -64,7 +64,7 @@ It is automatically inferred from the usage of the .NET [float](https://docs.mic
 
 ```sdl
 type Product {
-  id: ID!;
+  id: ID!
 }
 ```
 
@@ -170,7 +170,7 @@ Notice how our code uses `int` for the `Id`, but in a request / response it woul
 
 # GraphQL Community Scalars
 
-The website <https://www.graphql-scalars.com/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
+The website <https://scalars.graphql.org/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
 
 ```sdl
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
@@ -212,9 +212,9 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 
 [1]: https://tools.ietf.org/html/rfc3339
 
-## Uuid Type
+## UUID Type
 
-The `Uuid` scalar supports the following serialization formats.
+The `UUID` scalar supports the following serialization formats.
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |
@@ -548,10 +548,7 @@ public class CreditCardNumberType : ScalarType
     // define which value nodes this type can be parsed from
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax == null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         return valueSyntax is StringValueNode stringValueNode &&
             _validator.ValidateCreditCard(stringValueNode.Value);

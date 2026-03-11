@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
@@ -14,16 +14,8 @@
           "Value": "single"
         },
         {
-          "Key": "graphql.http.request.query.id",
-          "Value": "1d4bca4d0dff630390ddf48e9085589d"
-        },
-        {
-          "Key": "graphql.http.request.query.hash",
-          "Value": "1d4bca4d0dff630390ddf48e9085589d"
-        },
-        {
           "Key": "graphql.http.request.variables",
-          "Value": "{ episode: \"NEW_HOPE\" }"
+          "Value": "{\"episode\":\"NEW_HOPE\"}"
         }
       ],
       "event": [],
@@ -50,6 +42,10 @@
               "Value": "1d4bca4d0dff630390ddf48e9085589d"
             },
             {
+              "Key": "graphql.document.hash",
+              "Value": "cc68dfd8c0c54a586a03c35296c5d1f9"
+            },
+            {
               "Key": "graphql.operation.id",
               "Value": "_Default-1-1d4bca4d0dff630390ddf48e9085589d"
             }
@@ -73,6 +69,10 @@
                 {
                   "Key": "graphql.document.id",
                   "Value": "1d4bca4d0dff630390ddf48e9085589d"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "cc68dfd8c0c54a586a03c35296c5d1f9"
                 },
                 {
                   "Key": "otel.status_code",

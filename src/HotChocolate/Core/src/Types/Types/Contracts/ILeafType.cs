@@ -1,103 +1,110 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
-#nullable enable
-
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a GraphQL leaf-type e.g. scalar or enum.
+/// Represents a GraphQL leaf-type e.g., scalar or enum.
 /// </summary>
-public interface ILeafType
-    : INamedOutputType
-    , INamedInputType
+public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
 {
     /// <summary>
-    /// Defines if the given <paramref name="valueSyntax"/> is possibly of this type.
+    /// Determines if the given <paramref name="valueLiteral"/> is compatible with this type.
     /// </summary>
-    /// <param name="valueSyntax">
-    /// The GraphQL value syntax which shall be validated.
+    /// <param name="valueLiteral">
+    /// The GraphQL literal to validate.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the given <paramref name="valueSyntax"/> is possibly of this type.
+    /// <c>true</c> if the given <paramref name="valueLiteral"/> is compatible with this type.
     /// </returns>
-    bool IsInstanceOfType(IValueNode valueSyntax);
-
-    /// <summary>
-    /// Defines if the given <paramref name="runtimeValue"/> is possibly of this type.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// The runtime value which shall be validated.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the given <paramref name="runtimeValue"/> is possibly of this type.
-    /// </returns>
-    bool IsInstanceOfType(object? runtimeValue);
-
-    /// <summary>
-    /// Parses the GraphQL value syntax of this type into a runtime value representation.
-    /// </summary>
-    /// <param name="valueSyntax">
-    /// A GraphQL value syntax representation of this type.
-    /// </param>
-    /// <returns>
-    /// Returns a runtime value representation of this type.
-    /// </returns>
-    object? ParseLiteral(IValueNode valueSyntax);
-
-    /// <summary>
-    /// Parses a runtime value of this type into a GraphQL value syntax representation.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// A result value representation of this type.
-    /// </param>
-    /// <returns>
-    /// Returns a GraphQL value syntax representation of the <paramref name="runtimeValue"/>.
-    /// </returns>
-    /// <exception cref="SerializationException">
-    /// Unable to parse the given <paramref name="runtimeValue"/>
-    /// into a GraphQL value syntax representation of this type.
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="valueLiteral"/> is <c>null</c>.
     /// </exception>
-    IValueNode ParseValue(object? runtimeValue);
+    bool IsValueCompatible(IValueNode valueLiteral);
 
     /// <summary>
-    /// Parses a result value of this into a GraphQL value syntax representation.
+    /// Determines if the given <paramref name="inputValue"/> is compatible with this type.
     /// </summary>
+    /// <param name="inputValue">
+    /// The deserialized JSON input value to validate.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the given <paramref name="inputValue"/> is compatible with this type.
+    /// </returns>
+    bool IsValueCompatible(JsonElement inputValue);
+
+    /// <summary>
+    /// Coerces a GraphQL literal (AST value node) into a runtime value.
+    /// </summary>
+    /// <param name="valueLiteral">
+    /// The GraphQL literal to coerce.
+    /// </param>
+    /// <returns>
+    /// Returns the runtime value representation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="valueLiteral"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="valueLiteral"/> into a runtime value.
+    /// </exception>
+    object CoerceInputLiteral(IValueNode valueLiteral);
+
+    /// <summary>
+    /// Coerces an external input value (deserialized JSON) into a runtime value.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The deserialized JSON input value to coerce.
+    /// </param>
+    /// <param name="context">
+    /// Provides access to the coercion context.
+    /// </param>
+    /// <returns>
+    /// Returns the runtime value representation.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="inputValue"/> into a runtime value.
+    /// </exception>
+    object CoerceInputValue(JsonElement inputValue, IFeatureProvider context);
+
+    /// <summary>
+    /// Coerces a runtime value into an external output representation
+    /// and writes it to the result.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value to coerce. Must not be <c>null</c>; null handling
+    /// is the responsibility of the caller.
+    /// </param>
     /// <param name="resultValue">
-    /// A result value representation of this type.
+    /// The result element to write the output value to.
     /// </param>
-    /// <returns>
-    /// Returns a GraphQL value syntax representation of the <paramref name="resultValue"/>.
-    /// </returns>
-    /// <exception cref="SerializationException">
-    /// Unable to parse the given <paramref name="resultValue"/>
-    /// into a GraphQL value syntax representation of this type.
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="runtimeValue"/> is <c>null</c>.
     /// </exception>
-    IValueNode ParseResult(object? resultValue);
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="runtimeValue"/> into an output value.
+    /// </exception>
+    void CoerceOutputValue(object runtimeValue, ResultElement resultValue);
 
     /// <summary>
-    /// Serializes a runtime value of this type to the result value format.
+    /// Converts a runtime value into a GraphQL literal (AST value node).
+    /// Used for default value representation in SDL and introspection.
     /// </summary>
     /// <param name="runtimeValue">
-    /// A runtime value representation of this type.
+    /// The runtime value to convert. Must not be <c>null</c>; null handling
+    /// is the responsibility of the caller.
     /// </param>
     /// <returns>
-    /// Returns a result value representation of this type.
+    /// Returns a GraphQL literal representation of the runtime value.
     /// </returns>
-    /// <exception cref="SerializationException">
-    /// Unable to serialize the given <paramref name="runtimeValue"/>.
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="runtimeValue"/> is <c>null</c>.
     /// </exception>
-    object? Serialize(object? runtimeValue);
-
-    /// <summary>
-    /// Deserializes a result value of this type to the runtime value format.
-    /// </summary>
-    /// <param name="resultValue">
-    /// A result value representation of this type.
-    /// </param>
-    /// <returns>
-    /// Returns a runtime value representation of this type.
-    /// </returns>
-    object? Deserialize(object? resultValue);
-
-    bool TryDeserialize(object? resultValue, out object? runtimeValue);
+    /// <exception cref="LeafCoercionException">
+    /// Unable to convert the given <paramref name="runtimeValue"/> into a literal.
+    /// </exception>
+    IValueNode ValueToLiteral(object runtimeValue);
 }

@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -20,7 +21,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -35,27 +36,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task SetPagingOptionsIsStillApplied()
-    {
-        var executor =
-#pragma warning disable CS0618 // Type or member is obsolete
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions
-                {
-                    IncludeTotalCount = true
-                })
-#pragma warning restore CS0618 // Type or member is obsolete
-                .Services
-                .BuildServiceProvider()
-                .GetRequestExecutorAsync();
-
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -69,7 +50,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -130,6 +111,32 @@ public class IntegrationTests
                             startCursor
                             endCursor
                         }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task First_Value_Not_Set()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .ModifyPagingOptions(o =>
+                {
+                    o.RequirePagingBoundaries = true;
+                    o.AllowBackwardPagination = false;
+                })
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters {
+                        nodes
                     }
                 }")
             .MatchSnapshotAsync();
@@ -366,9 +373,10 @@ public class IntegrationTests
                 .GetRequestExecutorAsync();
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                """
                 {
-                    letters(first: 2 after: ""MQ=="") {
+                    letters(first: 2, after: "MQ==") {
                         edges {
                             node
                             cursor
@@ -381,7 +389,8 @@ public class IntegrationTests
                             endCursor
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -397,9 +406,10 @@ public class IntegrationTests
                 .GetRequestExecutorAsync();
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                """
                 {
-                    letters(first: 2 after: ""MQ=="") {
+                    letters(first: 2, after: "MQ==") {
                         edges {
                             node
                             cursor
@@ -412,7 +422,8 @@ public class IntegrationTests
                             endCursor
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -785,7 +796,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -805,7 +816,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -820,7 +831,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -836,7 +847,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -850,7 +861,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -864,7 +875,37 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Explicit_ConnectionName_With_NamingConvention()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<INamingConventions, ConnectionNamingConventions>()
+                .AddQueryType<ExplicitConnectionName>()
+                .Services
+                .BuildServiceProvider()
+                .GetSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Infer_ConnectionName_From_NodeType_With_NamingConvention()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<INamingConventions, ConnectionNamingConventions>()
+                .AddQueryType<InferConnectionNameFromNodeType>()
+                .Services
+                .BuildServiceProvider()
+                .GetSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -983,6 +1024,30 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Invalid_EmptyString_After_Index_Cursor()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .Services.BuildServiceProvider()
+            .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 after: "") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """
+        );
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Invalid_Before_Index_Cursor()
     {
         var executor =
@@ -997,6 +1062,31 @@ public class IntegrationTests
             """
             {
               letters(first: 2 before: "INVALID") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Invalid_EmptyString_Before_Index_Cursor()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 before: "") {
                   edges {
                       cursor
                   }
@@ -1048,7 +1138,7 @@ public class IntegrationTests
                     options: new PagingOptions
                     {
                         MaxPageSize = 2,
-                        IncludeTotalCount = true,
+                        IncludeTotalCount = true
                     });
 
             descriptor
@@ -1074,7 +1164,7 @@ public class IntegrationTests
                     options: new PagingOptions
                     {
                         MaxPageSize = 2,
-                        IncludeTotalCount = true,
+                        IncludeTotalCount = true
                     });
         }
     }
@@ -1094,16 +1184,16 @@ public class IntegrationTests
             "i",
             "j",
             "k",
-            "l",
+            "l"
         ];
 
         public List<List<Foo>> Foos() =>
         [
-            [new() { Bar = "a", },],
-            [new() { Bar = "b", }, new() { Bar = "c", },],
-            [new() { Bar = "d", },],
-            [new() { Bar = "e", },],
-            [new() { Bar = "f", },],
+            [new() { Bar = "a" }],
+            [new() { Bar = "b" }, new() { Bar = "c" }],
+            [new() { Bar = "d" }],
+            [new() { Bar = "e" }],
+            [new() { Bar = "f" }]
         ];
     }
 
@@ -1113,18 +1203,18 @@ public class IntegrationTests
             => Executable.From(
                 new List<Foo>
                 {
-                    new() { Bar = "a", },
-                    new() { Bar = "b", },
-                    new() { Bar = "c", } ,
-                    new() { Bar = "d", },
-                    new() { Bar = "e", },
-                    new() { Bar = "f", },
+                    new() { Bar = "a" },
+                    new() { Bar = "b" },
+                    new() { Bar = "c" } ,
+                    new() { Bar = "d" },
+                    new() { Bar = "e" },
+                    new() { Bar = "f" }
                 }.AsQueryable());
     }
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class QueryAttr
@@ -1143,7 +1233,7 @@ public class IntegrationTests
             "i",
             "j",
             "k",
-            "l",
+            "l"
         ];
 
         [UsePaging(typeof(NonNullType<StringType>))]
@@ -1155,23 +1245,23 @@ public class IntegrationTests
             IncludeTotalCount = true)]
         public List<List<Foo>> Foos() =>
         [
-            [new() { Bar = "a", },],
-            [new() { Bar = "b", }, new() { Bar = "c", },],
-            [new() { Bar = "d", },],
-            [new() { Bar = "e", },],
-            [new() { Bar = "f", },],
+            [new() { Bar = "a" }],
+            [new() { Bar = "b" }, new() { Bar = "c" }],
+            [new() { Bar = "d" }],
+            [new() { Bar = "e" }],
+            [new() { Bar = "f" }]
         ];
     }
 
     public interface ISome
     {
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public interface ISome2
     {
         [UsePaging(typeof(NonNullType<StringType>))]
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public class InferConnectionNameFromFieldType : ObjectType<InferConnectionNameFromField>
@@ -1181,13 +1271,19 @@ public class IntegrationTests
         {
             descriptor
                 .Field(t => t.Names())
-                .UsePaging(options: new() { InferConnectionNameFromField = true, });
+                .UsePaging(options: new() { InferConnectionNameFromField = true });
         }
     }
 
     public class InferConnectionNameFromField
     {
-        public string[] Names() => ["a", "b",];
+        public string[] Names() => ["a", "b"];
+    }
+
+    public class InferConnectionNameFromNodeType
+    {
+        [UsePaging(InferConnectionNameFromField = false)]
+        public string[] Names() => ["a", "b"];
     }
 
     public class ExplicitConnectionName
@@ -1229,7 +1325,7 @@ public class IntegrationTests
             object source,
             CursorPagingArguments arguments)
             => new(new Connection(
-                new[] { new Edge<string>("a", "b"), },
+                [new Edge<string>("a", "b")],
                 new ConnectionPageInfo(false, false, null, null), 1));
     }
 
@@ -1250,7 +1346,7 @@ public class IntegrationTests
             object source,
             CursorPagingArguments arguments)
             => new(new Connection(
-                new[] { new Edge<string>("d", "e"), },
+                [new Edge<string>("d", "e")],
                 new ConnectionPageInfo(false, false, null, null), 1));
     }
 
@@ -1259,7 +1355,7 @@ public class IntegrationTests
         [UsePaging(AllowBackwardPagination = false)]
         public Connection<string> GetFoos(int? first, string? after)
             => new Connection<string>(
-                new[] { new Edge<string>("abc", "def"), },
+                [new Edge<string>("abc", "def")],
                 new ConnectionPageInfo(false, false, null, null), 1);
     }
 
@@ -1268,7 +1364,7 @@ public class IntegrationTests
         [UsePaging(IncludeTotalCount = true)]
         public Connection<string> GetFoos(int? first, string? after)
             => new Connection<string>(
-                new[] {new Edge<string>("abc", "def"), new Edge<string>("abc", "def"), },
+                [new Edge<string>("abc", "def"), new Edge<string>("abc", "def")],
                 new ConnectionPageInfo(false, false, null, null), 2);
     }
 
@@ -1277,7 +1373,22 @@ public class IntegrationTests
         [UsePaging]
         public ImmutableArray<int> Test()
         {
-            return ImmutableArray<int>.Empty;
+            return [];
+        }
+    }
+
+    private sealed class ConnectionNamingConventions : DefaultNamingConventions
+    {
+        public override string GetTypeName(string originalTypeName, TypeKind kind)
+        {
+            var name = base.GetTypeName(originalTypeName, kind);
+
+            return kind is TypeKind.Object
+                &&
+                (name.EndsWith("Connection", StringComparison.Ordinal)
+                    || name.EndsWith("Edge", StringComparison.Ordinal))
+                ? name + "Named"
+                : name;
         }
     }
 }

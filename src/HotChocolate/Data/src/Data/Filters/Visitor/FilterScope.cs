@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Filters;
 /// users.Where(x => x.Company.Addresses.Any(y => y.Street == "221B Baker Street"))
 /// </code>
 /// </summary>
-/// <typeparam name="T">The type of the filter definition</typeparam>
+/// <typeparam name="T">The type of the filter configuration</typeparam>
 public class FilterScope<T>
 {
     public FilterScope()

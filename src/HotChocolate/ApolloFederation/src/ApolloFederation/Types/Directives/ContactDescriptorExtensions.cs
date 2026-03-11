@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -56,11 +55,12 @@ public static class ContactDescriptorExtensions
         builder.ConfigureSchema(
             sb =>
             {
-                if (!sb.ContextData.TryAdd(ContactMarker, 1))
+                if (sb.Features.TryGet(out ContactMarker? _))
                 {
                     throw ThrowHelper.Contact_Not_Repeatable();
                 }
 
+                sb.Features.Set(new ContactMarker());
                 sb.AddSchemaConfiguration(d => d.Directive(new ContactDirective(name, url, description)));
             });
 
@@ -109,11 +109,12 @@ public static class ContactDescriptorExtensions
         builder.ConfigureSchema(
             sb =>
             {
-                if (!sb.ContextData.TryAdd(ContactMarker, 1))
+                if (sb.Features.TryGet(out ContactMarker? _))
                 {
                     throw ThrowHelper.Contact_Not_Repeatable();
                 }
 
+                sb.Features.Set(new ContactMarker());
                 sb.AddSchemaConfiguration(d => d.Directive(contact));
             });
 
@@ -162,18 +163,19 @@ public static class ContactDescriptorExtensions
         builder.ConfigureSchema(
             (sp, sb) =>
             {
-                var contact = contactResolver(sp.GetApplicationServices());
+                var contact = contactResolver(sp.GetRootServiceProvider());
 
                 if (contact is null)
                 {
                     return;
                 }
 
-                if (!sb.ContextData.TryAdd(ContactMarker, 1))
+                if (sb.Features.TryGet(out ContactMarker? _))
                 {
                     throw ThrowHelper.Contact_Not_Repeatable();
                 }
 
+                sb.Features.Set(new ContactMarker());
                 sb.AddSchemaConfiguration(d => d.Directive(contact));
             });
 

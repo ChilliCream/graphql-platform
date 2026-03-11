@@ -38,10 +38,10 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
             .AsExecutable();
 
         // act
-        object result = await executable.ToListAsync(default);
+        object result = await executable.ToListAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 
     [Fact]
@@ -51,10 +51,10 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
         IExecutable executable = _authors.Take(1).AsExecutable();
 
         // act
-        var result = await executable.SingleOrDefaultAsync(default);
+        var result = await executable.SingleOrDefaultAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }
+        new { result, executable = executable.Print() }
             .MatchSnapshot(postFix: TestEnvironment.TargetFramework);
     }
 
@@ -65,9 +65,9 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
         IExecutable executable = _authors.AsExecutable();
 
         // act
-        var result = await executable.FirstOrDefaultAsync(default);
+        var result = await executable.FirstOrDefaultAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 }

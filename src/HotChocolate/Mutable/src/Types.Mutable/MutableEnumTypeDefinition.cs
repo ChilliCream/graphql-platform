@@ -15,7 +15,6 @@ public class MutableEnumTypeDefinition
     , IMutableTypeDefinition
     , IFeatureProvider
 {
-    private readonly EnumValueCollection _values = [];
     private DirectiveCollection? _directives;
 
     /// <summary>
@@ -24,6 +23,7 @@ public class MutableEnumTypeDefinition
     public MutableEnumTypeDefinition(string name)
     {
         Name = name;
+        Values = new EnumValueCollection(this);
     }
 
     /// <inheritdoc />
@@ -39,6 +39,8 @@ public class MutableEnumTypeDefinition
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     public DirectiveCollection Directives
         => _directives ??= [];
 
@@ -51,16 +53,21 @@ public class MutableEnumTypeDefinition
     /// <value>
     /// The values of this enum type.
     /// </value>
-    public EnumValueCollection Values
-        => _values;
+    public EnumValueCollection Values { get; }
 
     IReadOnlyEnumValueCollection IEnumTypeDefinition.Values
-        => _values;
+        => Values;
 
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
         => field ??= new FeatureCollection();
+
+    public SchemaCoordinate Coordinate
+        => new(Name, ofDirective: false);
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <summary>
     /// Gets the string representation of this instance.
@@ -96,10 +103,7 @@ public class MutableEnumTypeDefinition
     /// <inheritdoc />
     public bool IsAssignableFrom(ITypeDefinition type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.Enum)
         {

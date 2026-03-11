@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using HotChocolate.PersistedOperations.FileSystem;
 using HotChocolate.Utilities;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate;
 
@@ -23,10 +23,7 @@ public static class HotChocolateFileSystemPersistedOperationsServiceCollectionEx
         this IServiceCollection services,
         string? cacheDirectory = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services
             .RemoveService<IOperationDocumentStorage>()

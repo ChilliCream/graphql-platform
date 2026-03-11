@@ -5,7 +5,7 @@ namespace HotChocolate.Data;
 public sealed class ResourceContainer : IAsyncDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private int _testClassInstances = 0;
+    private int _testClassInstances;
 
     public PostgreSqlResource Resource { get; } = new();
 

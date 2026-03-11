@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using static HotChocolate.Types.Spatial.GeoJsonGeometryType;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 
@@ -6,112 +9,89 @@ namespace HotChocolate.Types.Spatial.Serialization;
 
 internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType>
 {
-    private static readonly IDictionary<string, GeoJsonGeometryType> _nameLookup =
+    private static readonly IDictionary<string, GeoJsonGeometryType> s_nameLookup =
         new Dictionary<string, GeoJsonGeometryType>
         {
-                { nameof(Point), Point },
-                { nameof(MultiPoint), MultiPoint },
-                { nameof(LineString), LineString },
-                { nameof(MultiLineString), MultiLineString },
-                { nameof(Polygon), Polygon },
-                { nameof(MultiPolygon), MultiPolygon },
-                { nameof(GeometryCollection), GeometryCollection },
+            { nameof(Point), Point },
+            { nameof(MultiPoint), MultiPoint },
+            { nameof(LineString), LineString },
+            { nameof(MultiLineString), MultiLineString },
+            { nameof(Polygon), Polygon },
+            { nameof(MultiPolygon), MultiPolygon },
+            { nameof(GeometryCollection), GeometryCollection }
         };
 
-    private static readonly IDictionary<GeoJsonGeometryType, string> _valueLookup =
+    private static readonly IDictionary<GeoJsonGeometryType, string> s_valueLookup =
         new Dictionary<GeoJsonGeometryType, string>
         {
-                { Point, nameof(Point) },
-                { MultiPoint, nameof(MultiPoint) },
-                { LineString, nameof(LineString) },
-                { MultiLineString, nameof(MultiLineString) },
-                { Polygon, nameof(Polygon) },
-                { MultiPolygon, nameof(MultiPolygon) },
-                { GeometryCollection, nameof(GeometryCollection) },
+            { Point, nameof(Point) },
+            { MultiPoint, nameof(MultiPoint) },
+            { LineString, nameof(LineString) },
+            { MultiLineString, nameof(MultiLineString) },
+            { Polygon, nameof(Polygon) },
+            { MultiPolygon, nameof(MultiPolygon) },
+            { GeometryCollection, nameof(GeometryCollection) }
         };
 
-    public override bool TrySerialize(
-        IType type,
-        object? runtimeValue,
-        out object? resultValue)
+    public override bool IsValueCompatible(IType type, IValueNode valueLiteral)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
 
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is GeoJsonGeometryType geometryType &&
-            _valueLookup.TryGetValue(geometryType, out var enumValue))
-        {
-            resultValue = enumValue;
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    public override bool IsInstanceOfType(IType type, IValueNode valueSyntax)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
-
-        if (valueSyntax is NullValueNode)
+        if (valueLiteral is NullValueNode)
         {
             return true;
         }
 
-        if (valueSyntax is EnumValueNode ev)
+        if (valueLiteral is EnumValueNode ev)
         {
-            return _nameLookup.ContainsKey(ev.Value);
+            return s_nameLookup.ContainsKey(ev.Value);
         }
 
-        if (valueSyntax is StringValueNode sv)
+        if (valueLiteral is StringValueNode sv)
         {
-            return _nameLookup.ContainsKey(sv.Value);
+            return s_nameLookup.ContainsKey(sv.Value);
         }
 
         return false;
     }
 
-    public override object? ParseLiteral(IType type, IValueNode valueSyntax)
+    public override bool IsValueCompatible(IType type, JsonElement inputValue)
     {
-        if (type is null)
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (inputValue.ValueKind == JsonValueKind.Null)
         {
-            throw new ArgumentNullException(nameof(type));
+            return true;
         }
 
-        if (valueSyntax is null)
+        if (inputValue.ValueKind == JsonValueKind.String)
         {
-            throw new ArgumentNullException(nameof(valueSyntax));
+            var value = inputValue.GetString();
+            return value is not null && s_nameLookup.ContainsKey(value);
         }
 
-        if (valueSyntax is EnumValueNode evn &&
-            _nameLookup.TryGetValue(evn.Value, out var ev))
+        return false;
+    }
+
+    public override object? CoerceInputLiteral(IType type, IValueNode valueLiteral)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
+
+        if (valueLiteral is EnumValueNode evn
+            && s_nameLookup.TryGetValue(evn.Value, out var ev))
         {
             return ev;
         }
 
-        if (valueSyntax is StringValueNode svn &&
-            _nameLookup.TryGetValue(svn.Value, out ev))
+        if (valueLiteral is StringValueNode svn
+            && s_nameLookup.TryGetValue(svn.Value, out ev))
         {
             return ev;
         }
 
-        if (valueSyntax is NullValueNode)
+        if (valueLiteral is NullValueNode)
         {
             return null;
         }
@@ -119,20 +99,57 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         throw Serializer_CouldNotParseLiteral(type);
     }
 
-    public override IValueNode ParseValue(IType type, object? runtimeValue)
+    public override object? CoerceInputValue(IType type, JsonElement inputValue, IFeatureProvider context)
     {
-        if (type is null)
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (inputValue.ValueKind == JsonValueKind.Null)
         {
-            throw new ArgumentNullException(nameof(type));
+            return null;
         }
+
+        if (inputValue.ValueKind == JsonValueKind.String)
+        {
+            var value = inputValue.GetString();
+            if (value is not null && s_nameLookup.TryGetValue(value, out var geometryType))
+            {
+                return geometryType;
+            }
+        }
+
+        throw Serializer_CouldNotParseLiteral(type);
+    }
+
+    public object? CoerceInputValueFromJson(IType type, JsonElement inputValue)
+    {
+        return CoerceInputValue(type, inputValue, null!);
+    }
+
+    public override void CoerceOutputValue(IType type, object runtimeValue, ResultElement resultValue)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (runtimeValue is GeoJsonGeometryType geometryType
+            && s_valueLookup.TryGetValue(geometryType, out var enumValue))
+        {
+            resultValue.SetStringValue(enumValue);
+            return;
+        }
+
+        throw Serializer_CouldNotParseValue(type);
+    }
+
+    public override IValueNode ValueToLiteral(IType type, object? runtimeValue)
+    {
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
             return NullValueNode.Default;
         }
 
-        if (runtimeValue is GeoJsonGeometryType value &&
-            _valueLookup.TryGetValue(value, out var enumValue))
+        if (runtimeValue is GeoJsonGeometryType value
+            && s_valueLookup.TryGetValue(value, out var enumValue))
         {
             return new EnumValueNode(enumValue);
         }
@@ -140,89 +157,28 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         throw Serializer_CouldNotParseValue(type);
     }
 
+    public override IValueNode CoordinateToLiteral(IType type, object? runtimeValue)
+    {
+        return ValueToLiteral(type, runtimeValue);
+    }
+
+    public override void CoerceOutputCoordinates(IType type, object runtimeValue, ResultElement resultElement)
+    {
+        throw new NotSupportedException("GeoJsonTypeSerializer does not support coordinate serialization");
+    }
+
     public override object CreateInstance(IType type, object?[] fieldValues)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException("GeoJsonTypeSerializer does not support CreateInstance");
     }
 
     public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
     {
-        throw new NotImplementedException();
-    }
-
-    public override IValueNode ParseResult(IType type, object? resultValue)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s &&
-            _nameLookup.ContainsKey(s))
-        {
-            return new EnumValueNode(s);
-        }
-
-        if (resultValue is GeoJsonGeometryType value &&
-            _valueLookup.TryGetValue(value, out var name))
-        {
-            return new EnumValueNode(name);
-        }
-
-        throw Serializer_CouldNotParseValue(type);
-    }
-
-    public override bool IsInstanceOfType(IType type, object? runtimeValue)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        return runtimeValue is null or GeoJsonGeometryType;
+        throw new NotSupportedException("GeoJsonTypeSerializer does not support GetFieldData");
     }
 
     public bool TryParseString(string type, out GeoJsonGeometryType geometryType) =>
-        _nameLookup.TryGetValue(type, out geometryType);
-
-    public override bool TryDeserialize(
-        IType type,
-        object? resultValue,
-        out object? runtimeValue)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is string s &&
-            _nameLookup.TryGetValue(s, out var enumValue))
-        {
-            runtimeValue = enumValue;
-            return true;
-        }
-
-        if (resultValue is GeoJsonGeometryType geometryType &&
-            _valueLookup.ContainsKey(geometryType))
-        {
-            runtimeValue = geometryType;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
-    }
+        s_nameLookup.TryGetValue(type, out geometryType);
 
     public static readonly GeoJsonTypeSerializer Default = new();
 }

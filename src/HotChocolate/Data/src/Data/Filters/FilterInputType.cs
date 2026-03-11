@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Data.Filters;
@@ -23,22 +23,22 @@ public class FilterInputType
             throw new ArgumentNullException(nameof(configure));
     }
 
-    public IExtendedType EntityType { get; private set; } = default!;
+    public IExtendedType EntityType { get; private set; } = null!;
 
-    protected override InputObjectTypeDefinition CreateDefinition(
+    protected override InputObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = FilterInputTypeDescriptor
                     .FromSchemaType(context.DescriptorContext, GetType(), context.Scope);
                 _configure!(descriptor);
-                Definition = descriptor.CreateDefinition();
+                Configuration = descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -48,10 +48,10 @@ public class FilterInputType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        if (definition is FilterInputTypeDefinition { EntityType: { }, } filterDefinition)
+        base.OnRegisterDependencies(context, configuration);
+        if (configuration is FilterInputTypeConfiguration { EntityType: { } } filterDefinition)
         {
             SetTypeIdentity(typeof(FilterInputType<>)
                 .MakeGenericType(filterDefinition.EntityType));
@@ -64,59 +64,61 @@ public class FilterInputType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        if (definition is FilterInputTypeDefinition ft &&
-            ft.EntityType is { })
+        if (configuration is FilterInputTypeConfiguration ft
+            && ft.EntityType is { })
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }
     }
 
-    protected override FieldCollection<InputField> OnCompleteFields(
+    protected override InputFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
-        var fields = new InputField[definition.Fields.Count + 2];
-        var index = 0;
-
-        if (definition is FilterInputTypeDefinition { UseAnd: true, } def)
+        var fieldConfigurations = new List<FieldConfiguration>(definition.Fields.Count + 2);
+        if (definition is FilterInputTypeConfiguration { UseAnd: true } def)
         {
-            fields[index] = new AndField(context.DescriptorContext, index, def.Scope);
-            index++;
+            fieldConfigurations.Add(AndField.CreateConfiguration(context.DescriptorContext, def.Scope));
         }
 
-        if (definition is FilterInputTypeDefinition { UseOr: true, } defOr)
+        if (definition is FilterInputTypeConfiguration { UseOr: true } defOr)
         {
-            fields[index] = new OrField(context.DescriptorContext, index, defOr.Scope);
-            index++;
+            fieldConfigurations.Add(OrField.CreateConfiguration(context.DescriptorContext, defOr.Scope));
         }
 
-        foreach (var fieldDefinition in
-            definition.Fields.Where(t => !t.Ignore))
+        foreach (var fieldDefinition in definition.Fields.Where(t => !t.Ignore))
         {
             switch (fieldDefinition)
             {
-                case FilterOperationFieldDefinition operation:
-                    fields[index] = new FilterOperationField(operation, index);
-                    index++;
+                case FilterOperationFieldConfiguration operation:
+                    fieldConfigurations.Add(operation);
                     break;
 
-                case FilterFieldDefinition field:
-                    fields[index] = new FilterField(field, index);
-                    index++;
+                case FilterFieldConfiguration field:
+                    fieldConfigurations.Add(field);
                     break;
             }
         }
 
-        if (fields.Length > index)
-        {
-            Array.Resize(ref fields, index);
-        }
-
-        return CompleteFields(context, this, fields);
+        return new InputFieldCollection(
+            CompleteFields(
+                context,
+                this,
+                fieldConfigurations,
+                CreateField));
+        static InputField CreateField(FieldConfiguration fieldDef, int index) =>
+            fieldDef switch
+            {
+                FilterOperationFieldConfiguration { Id: DefaultFilterOperations.And } op => new AndField(op, index),
+                FilterOperationFieldConfiguration { Id: DefaultFilterOperations.Or } op => new OrField(op, index),
+                FilterOperationFieldConfiguration op => new FilterOperationField(op, index),
+                FilterFieldConfiguration field => new FilterField(field, index),
+                _ => throw new ArgumentException("Unsupported field type", nameof(fieldDef))
+            };
     }
 
     // we are disabling the default configure method so

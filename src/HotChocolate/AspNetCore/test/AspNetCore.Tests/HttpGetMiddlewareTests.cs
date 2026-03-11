@@ -21,7 +21,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ __typename }", });
+            new ClientQueryRequest { Query = "{ __typename }" });
 
         // assert
         result.MatchSnapshot();
@@ -35,7 +35,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ __typename }", });
+            new ClientQueryRequest { Query = "{ __typename }" });
 
         // assert
         result.MatchSnapshot();
@@ -49,7 +49,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ __typename }", },
+            new ClientQueryRequest { Query = "{ __typename }" },
             "/foo/bar");
 
         // assert
@@ -64,7 +64,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ __typename }", },
+            new ClientQueryRequest { Query = "{ __typename }" },
             "/foo");
 
         // assert
@@ -87,7 +87,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         hero {
                             name
                         }
-                    }",
+                    }"
                 });
 
         // assert
@@ -110,7 +110,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         HERO: hero {
                             name
                         }
-                    }",
+                    }"
                 });
 
         // assert
@@ -132,7 +132,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", 1.539 }, },
+                    Variables = new Dictionary<string, object?> { { "d", 1.539 } }
                 },
                 "/arguments");
 
@@ -155,7 +155,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue }, },
+                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
                 },
                 "/arguments");
 
@@ -163,7 +163,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new
         {
             double.MaxValue,
-            result,
+            result
         }.MatchSnapshot();
     }
 
@@ -182,7 +182,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", double.MinValue }, },
+                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
                 },
                 "/arguments");
 
@@ -190,7 +190,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new
         {
             double.MinValue,
-            result,
+            result
         }.MatchSnapshot();
     }
 
@@ -209,7 +209,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue }, },
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
                 },
                 "/arguments");
 
@@ -217,7 +217,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new
         {
             decimal.MaxValue,
-            result,
+            result
         }.MatchSnapshot();
     }
 
@@ -232,11 +232,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
+                    Query =
+                        """
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
-                        }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue }, },
+                        }
+                        """,
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "d", decimal.MinValue }
+                    }
                 },
                 "/arguments");
 
@@ -244,7 +249,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new
         {
             decimal.MinValue,
-            result,
+            result
         }.MatchSnapshot();
     }
 
@@ -267,8 +272,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                     }",
                     Variables = new Dictionary<string, object?>
                     {
-                        { "episode", "NEW_HOPE" },
-                    },
+                        { "episode", "NEW_HOPE" }
+                    }
                 });
 
         // assert
@@ -294,8 +299,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                     }",
                     Variables = new Dictionary<string, object?>
                     {
-                        { "id", "1000" },
-                    },
+                        { "id", "1000" }
+                    }
                 });
 
         // assert
@@ -307,11 +312,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation,
-                }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                    o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
 
         // act
         var result =
@@ -335,10 +339,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
+                                { "commentary", "This is a great movie!" }
                             }
-                        },
-                    },
+                        }
+                    }
                 });
 
         // assert
@@ -350,11 +354,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation,
-                }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                    o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
 
         // act
         var result =
@@ -377,10 +380,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
+                                { "commentary", "This is a great movie!" }
                             }
-                        },
-                    },
+                        }
+                    }
                 });
 
         // assert
@@ -392,11 +395,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation,
-                }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                    o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
 
         // act
         var result =
@@ -420,8 +422,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
-                        { "commentary", "This is a great movie!" },
-                    },
+                        { "commentary", "This is a great movie!" }
+                    }
                 });
 
         // assert
@@ -457,8 +459,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
-                        { "commentary", "This is a great movie!" },
-                    },
+                        { "commentary", "This is a great movie!" }
+                    }
                 });
 
         // assert
@@ -490,7 +492,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    OperationName = operationName,
+                    OperationName = operationName
                 });
 
         // assert
@@ -514,7 +516,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
                 });
 
         // assert
@@ -537,7 +539,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         ähero {
                             name
                         }
-                    }",
+                    }"
                 });
 
         // assert
@@ -572,10 +574,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
+                                { "commentary", "This is a great movie!" }
                             }
-                        },
-                    },
+                        }
+                    }
                 });
 
         // assert
@@ -587,11 +589,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation,
-                }));
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
+                    o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
 
         // act
         var result =
@@ -615,10 +616,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
+                                { "commentary", "This is a great movie!" }
                             }
-                        },
-                    },
+                        }
+                    }
                 });
 
         // assert
@@ -630,12 +631,14 @@ public class HttpGetMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o =>
                 {
-                    EnableGetRequests = false,
-                    Tool = { Enable = false, },
-                }));
+                    o.EnableGetRequests = false;
+                    o.Tool.Enable = false;
+                }),
+            configureConventions: e => e.WithOptions(o => o.Enable = false));
 
         // act
         var result =
@@ -647,7 +650,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         hero {
                             name
                         }
-                    }",
+                    }"
                 });
 
         // assert
@@ -674,8 +677,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result =
-            await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
+        var result = await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
 
         // assert
         result.MatchSnapshot();
@@ -711,15 +713,15 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetStoreActivePersistedQueryAsync(
                 document.ToString(false),
                 "md5Hash",
-                hash);
+                hash.Value);
 
-        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash);
+        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash.Value);
 
         // assert
         new[]
         {
             resultA,
-            resultB,
+            resultB
         }.MatchSnapshot();
     }
 
@@ -739,12 +741,12 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetStoreActivePersistedQueryAsync(
                 query,
                 "md5Hash",
-                hash);
+                hash.Value);
 
-        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash);
+        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash.Value);
 
         // assert
-        new[] { resultA, resultB, }.MatchSnapshot();
+        new[] { resultA, resultB }.MatchSnapshot();
     }
 
     [Fact]
@@ -767,7 +769,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 name
                             }
                         }
-                        """,
+                        """
                 });
 
         // assert

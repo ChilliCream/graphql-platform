@@ -21,7 +21,7 @@ public class CodeFirstMutations
                             .Resolve("Abc");
                     })
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
@@ -45,7 +45,7 @@ public class CodeFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync("mutation { doSomething(input: { a: \"abc\" }) { string } }");

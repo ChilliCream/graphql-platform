@@ -18,10 +18,10 @@ internal static class ThrowHelper
                 .SetCode("")
                 .Build());
 
-    public static ISchemaError MutationPayloadMustBeObject(INamedType type)
+    public static ISchemaError MutationPayloadMustBeObject(ITypeDefinition type)
         => SchemaErrorBuilder.New()
             .SetMessage(ThrowHelper_MutationPayloadMustBeObject, type.Name)
-            .SetTypeSystemObject((ITypeSystemObject)type)
+            .SetTypeSystemObject((TypeSystemObject)type)
             .SetCode(ErrorCodes.Schema.MutationPayloadMustBeObject)
             .Build();
 
@@ -46,5 +46,11 @@ internal static class ThrowHelper
         => new(SchemaErrorBuilder.New()
             .SetMessage(ThrowHelper_UnknownDirectiveArgument, argumentName)
             .SetCode(ErrorCodes.Schema.UnknownDirectiveArgument)
+            .Build());
+
+    public static SchemaException MutationMustReturnValue(string memberName)
+        => new(SchemaErrorBuilder.New()
+            .SetMessage(ThrowHelper_MutationMustReturnValue, memberName)
+            .SetCode(ErrorCodes.Schema.MutationMustReturnValue)
             .Build());
 }

@@ -5,7 +5,7 @@ using StrawberryShake.CodeGeneration.Extensions;
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
 /// <summary>
-/// Represents a entity that is used by a GraphQL client.
+/// Represents an entity that is used by a GraphQL client.
 /// </summary>
 public class EntityModel : ITypeModel
 {
@@ -15,20 +15,20 @@ public class EntityModel : ITypeModel
     /// <param name="type">
     /// The entity type.
     /// </param>
-    public EntityModel(IComplexOutputType type)
+    public EntityModel(IComplexTypeDefinition type)
     {
         Name = type.Name;
         Type = type;
         Definition = type.GetEntityDefinition();
 
-        var fields = new Dictionary<string, IOutputField>();
+        var fields = new Dictionary<string, IOutputFieldDefinition>();
 
         foreach (var fieldSyntax in Definition.Selections.OfType<FieldNode>())
         {
             fields.Add(fieldSyntax.Name.Value, type.Fields[fieldSyntax.Name.Value]);
         }
 
-        Fields = fields.Values.ToList();
+        Fields = [.. fields.Values];
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public class EntityModel : ITypeModel
     /// <summary>
     /// Gets the entity type.
     /// </summary>
-    public INamedType Type { get; }
+    public ITypeDefinition Type { get; }
 
     /// <summary>
     /// Gets the entity definition that specifies the fields that make up the id fields.
@@ -49,5 +49,5 @@ public class EntityModel : ITypeModel
     /// <summary>
     /// Gets the ID fields.
     /// </summary>
-    public IReadOnlyList<IOutputField> Fields { get; }
+    public IReadOnlyList<IOutputFieldDefinition> Fields { get; }
 }

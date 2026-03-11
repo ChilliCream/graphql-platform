@@ -1,0 +1,8 @@
+fragment StageDetailPrompt_Stage on Stage {
+  id
+  name
+  displayName
+  conditions {
+    ...StageCondition
+  }
+}

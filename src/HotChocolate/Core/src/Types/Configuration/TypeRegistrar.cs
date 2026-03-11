@@ -1,9 +1,6 @@
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Configuration;
 
@@ -17,7 +14,6 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     private readonly TypeInterceptor _interceptor;
     private readonly IServiceProvider _schemaServices;
     private readonly IServiceProvider? _applicationServices;
-    private readonly IServiceProvider _combinedServices;
 
     public TypeRegistrar(IDescriptorContext context,
         TypeRegistry typeRegistry,
@@ -33,22 +29,22 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         _interceptor = typeInterceptor ??
             throw new ArgumentNullException(nameof(typeInterceptor));
         _schemaServices = context.Services;
-        _applicationServices = context.Services.GetService<IApplicationServiceProvider>();
-
-        _combinedServices = _applicationServices is null
-            ? _schemaServices
-            : new CombinedServiceProvider(_schemaServices, _applicationServices);
+        _applicationServices = context.Services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
     }
 
+    public ISet<string> Scalars { get; } = new HashSet<string>();
+
     public void Register(
-        TypeSystemObjectBase obj,
+        TypeSystemObject obj,
         string? scope,
         bool inferred = false,
         Action<RegisteredType>? configure = null)
     {
-        if (obj is null)
+        ArgumentNullException.ThrowIfNull(obj);
+
+        if (obj is ScalarType scalar)
         {
-            throw new ArgumentNullException(nameof(obj));
+            Scalars.Add(scalar.Name);
         }
 
         var registeredType = InitializeType(obj, scope, inferred);
@@ -62,19 +58,19 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
         RegisterTypeAndResolveReferences(registeredType);
 
-        if (obj is not IHasRuntimeType hasRuntimeType ||
-            hasRuntimeType.RuntimeType == typeof(object))
+        if (obj is not IRuntimeTypeProvider runtimeTypeProvider
+            || runtimeTypeProvider.RuntimeType == typeof(object))
         {
             return;
         }
 
         var runtimeTypeRef =
             _context.TypeInspector.GetTypeRef(
-                hasRuntimeType.RuntimeType,
+                runtimeTypeProvider.RuntimeType,
                 SchemaTypeReference.InferTypeContext(obj),
                 scope);
 
-        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit, };
+        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
 
         if (explicitBind)
         {
@@ -82,7 +78,10 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         }
 
         MarkResolved(runtimeTypeRef);
-        _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
+        _typeRegistry.TryRegister(
+            runtimeTypeRef,
+            registeredType.References[0],
+            explicitBinding: RuntimeTypeBindingHelper.RequiresExactBinding(runtimeTypeRef.Type));
     }
 
     private void RegisterTypeAndResolveReferences(RegisteredType registeredType)
@@ -97,30 +96,21 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
     public void MarkUnresolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         _unresolved.Add(typeReference);
     }
 
     public void MarkResolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         _unresolved.Remove(typeReference);
     }
 
     public bool IsResolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         return _typeRegistry.IsRegistered(typeReference);
     }
@@ -151,7 +141,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     }
 
     private RegisteredType InitializeType(
-        TypeSystemObjectBase typeSystemObject,
+        TypeSystemObject typeSystemObject,
         string? scope,
         bool isInferred)
     {
@@ -198,7 +188,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity, })
+            if (typeSystemObject is ITypeIdentityProvider { TypeIdentity: { } typeIdentity })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(
@@ -233,5 +223,12 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                     .SetTypeSystemObject(typeSystemObject)
                     .Build());
         }
+    }
+
+    public bool HasRuntimeTypeBinding(ExtendedTypeReference typeReference)
+    {
+        ArgumentNullException.ThrowIfNull(typeReference);
+
+        return _typeRegistry.TryGetTypeRef(typeReference, out _);
     }
 }

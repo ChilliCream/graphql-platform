@@ -8,6 +8,7 @@ internal sealed class PromiseCachePooledObjectPolicy(int size) : PooledObjectPol
 
     public override bool Return(PromiseCache obj)
     {
+        obj.Interceptor = null;
         obj.Clear();
         return true;
     }

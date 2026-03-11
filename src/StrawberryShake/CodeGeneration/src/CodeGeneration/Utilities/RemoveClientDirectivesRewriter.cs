@@ -6,16 +6,16 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 internal sealed class RemoveClientDirectivesRewriter : SyntaxRewriter<object?>
 {
-    private const string _returns = "returns";
+    private const string Returns = "returns";
 
     protected override FieldNode RewriteField(FieldNode node, object? context)
     {
         var current = node;
 
-        if (current.Directives.Any(t => t.Name.Value.EqualsOrdinal(_returns)))
+        if (current.Directives.Any(t => t.Name.Value.EqualsOrdinal(Returns)))
         {
             var directiveNodes = current.Directives.ToList();
-            directiveNodes.RemoveAll(static t => t.Name.Value.EqualsOrdinal(_returns));
+            directiveNodes.RemoveAll(static t => t.Name.Value.EqualsOrdinal(Returns));
             current = current.WithDirectives(directiveNodes);
         }
 

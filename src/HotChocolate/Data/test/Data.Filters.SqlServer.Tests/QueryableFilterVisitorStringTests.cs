@@ -4,17 +4,17 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorStringTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
-        new() { Bar = null, },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -23,7 +23,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -43,7 +43,10 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatest")
             .AddResult(res2, "testbtest")
             .AddResult(res3, "null")
@@ -54,7 +57,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -74,7 +77,10 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatest")
             .AddResult(res2, "testbtest")
             .AddResult(res3, "null")
@@ -85,13 +91,13 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { in: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -101,12 +107,15 @@ public class QueryableFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { in: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatestAndtestb")
             .AddResult(res2, "testbtestAndNull")
             .AddResult(res3, "testatest")
@@ -117,13 +126,13 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringNotIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { nin: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -133,7 +142,7 @@ public class QueryableFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { nin: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // assert
@@ -149,7 +158,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringContains_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -169,7 +178,10 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "a")
             .AddResult(res2, "b")
             .AddResult(res3, "null")
@@ -180,7 +192,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringNoContains_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -211,7 +223,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringStartsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         // assert
@@ -243,7 +255,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringNotStartsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -274,7 +286,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringEndsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -305,7 +317,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_StringNotEndsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -336,7 +348,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_NullableStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -356,7 +368,10 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatest")
             .AddResult(res2, "testbtest")
             .AddResult(res3, "null")
@@ -368,7 +383,7 @@ public class QueryableFilterVisitorStringTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -388,7 +403,10 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatest")
             .AddResult(res2, "testbtest")
             .AddResult(res3, "null")
@@ -399,13 +417,13 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_NullableStringIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { in: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -415,7 +433,7 @@ public class QueryableFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { in: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // assert
@@ -432,13 +450,13 @@ public class QueryableFilterVisitorStringTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { nin: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -448,7 +466,7 @@ public class QueryableFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { nin: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // assert
@@ -465,7 +483,7 @@ public class QueryableFilterVisitorStringTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -485,7 +503,10 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "a")
             .AddResult(res2, "b")
             .AddResult(res3, "null")
@@ -496,7 +517,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_NullableStringNoContains_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -528,7 +549,7 @@ public class QueryableFilterVisitorStringTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -560,7 +581,7 @@ public class QueryableFilterVisitorStringTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -592,7 +613,7 @@ public class QueryableFilterVisitorStringTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -624,7 +645,7 @@ public class QueryableFilterVisitorStringTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         // assert

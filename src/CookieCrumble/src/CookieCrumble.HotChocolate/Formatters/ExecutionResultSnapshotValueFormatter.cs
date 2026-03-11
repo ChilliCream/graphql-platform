@@ -101,36 +101,22 @@ internal sealed class ExecutionResultSnapshotValueFormatter
 
 internal sealed class JsonResultPatcher
 {
-    private const string _data = "data";
-    private const string _items = "items";
-    private const string _incremental = "incremental";
-    private const string _path = "path";
+    private const string DataProp = "data";
+    private const string ItemsProp = "items";
+    private const string IncrementalProp = "incremental";
+    private const string PendingProp = "pending";
+    private const string PathProp = "path";
+    private const string SubPathProp = "subPath";
+    private const string IdProp = "id";
     private JsonObject? _json;
+    private readonly Dictionary<string, JsonElement> _pendingPaths = [];
 
     public void SetResponse(JsonDocument response)
     {
-        if (response is null)
-        {
-            throw new ArgumentNullException(nameof(response));
-        }
+        ArgumentNullException.ThrowIfNull(response);
 
         _json = JsonObject.Create(response.RootElement);
-    }
-
-    public void WriteResponse(IBufferWriter<byte> snapshot)
-    {
-        if (_json is null)
-        {
-            throw new InvalidOperationException(
-                "You must first set the initial response before you can apply patches.");
-        }
-
-        using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true, });
-
-        _json.Remove("hasNext");
-
-        _json.WriteTo(writer);
-        writer.Flush();
+        ProcessPayload(response.RootElement);
     }
 
     public void ApplyPatch(JsonDocument patch)
@@ -141,126 +127,112 @@ internal sealed class JsonResultPatcher
                 "You must first set the initial response before you can apply patches.");
         }
 
-        if (!patch.RootElement.TryGetProperty(_incremental, out var incremental))
-        {
-            throw new ArgumentException("A patch result must contain a property `incremental`.");
-        }
-
-        foreach (var element in incremental.EnumerateArray())
-        {
-            if (element.TryGetProperty(_data, out var data))
-            {
-                PatchIncrementalData(element, JsonObject.Create(data)!);
-            }
-            else if (element.TryGetProperty(_items, out var items))
-            {
-                PatchIncrementalItems(element, JsonArray.Create(items)!);
-            }
-        }
+        ProcessPayload(patch.RootElement);
     }
 
-    private void PatchIncrementalData(JsonElement incremental, JsonObject data)
+    public void WriteResponse(IBufferWriter<byte> snapshot)
     {
-        if (incremental.TryGetProperty(_path, out var pathProp))
+        if (_json is null)
         {
-            var (current, last) = SelectNodeToPatch(_json![_data]!, pathProp);
-            ApplyPatch(current, last, data);
+            throw new InvalidOperationException(
+                "You must first set the initial response before you can apply patches.");
         }
+
+        using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true });
+
+        _json.Remove("hasNext");
+        _json.Remove("pending");
+        _json.Remove("incremental");
+        _json.Remove("completed");
+
+        _json.WriteTo(writer);
+        writer.Flush();
     }
 
-    private void PatchIncrementalItems(JsonElement incremental, JsonArray items)
+    private void ProcessPayload(JsonElement root)
     {
-        if (incremental.TryGetProperty(_path, out var pathProp))
+        if (root.TryGetProperty(PendingProp, out var pending))
         {
-            var (current, last) = SelectNodeToPatch(_json![_data]!, pathProp);
-            var i = last.GetInt32();
-            var target = current.AsArray();
-
-            while (items.Count > 0)
+            foreach (var entry in pending.EnumerateArray())
             {
-                var item = items[0];
-                items.RemoveAt(0);
-                target.Insert(i++, item);
-            }
-        }
-    }
-
-    private static void ApplyPatch(JsonNode current, JsonElement last, JsonObject patchData)
-    {
-        if (last.ValueKind is JsonValueKind.Undefined)
-        {
-            foreach (var prop in patchData.ToArray())
-            {
-                patchData.Remove(prop.Key);
-                current[prop.Key] = prop.Value;
-            }
-        }
-        else if (last.ValueKind is JsonValueKind.String)
-        {
-            current = current[last.GetString()!]!;
-
-            foreach (var prop in patchData.ToArray())
-            {
-                patchData.Remove(prop.Key);
-                current[prop.Key] = prop.Value;
-            }
-        }
-        else if (last.ValueKind is JsonValueKind.Number)
-        {
-            var index = last.GetInt32();
-            var element = current[index];
-
-            if (element is null)
-            {
-                current[index] = patchData;
-            }
-            else
-            {
-                foreach (var prop in patchData.ToArray())
+                if (entry.TryGetProperty(IdProp, out var id)
+                    && entry.TryGetProperty(PathProp, out var path))
                 {
-                    patchData.Remove(prop.Key);
-                    element[prop.Key] = prop.Value;
+                    _pendingPaths[id.GetString()!] = path.Clone();
                 }
             }
         }
-        else
+
+        if (root.TryGetProperty(IncrementalProp, out var incremental))
         {
-            throw new NotSupportedException("Path segment must be int or string.");
+            foreach (var element in incremental.EnumerateArray())
+            {
+                if (!element.TryGetProperty(IdProp, out var idElement))
+                {
+                    continue;
+                }
+
+                var id = idElement.GetString()!;
+
+                if (!_pendingPaths.TryGetValue(id, out var basePath))
+                {
+                    continue;
+                }
+
+                if (element.TryGetProperty(DataProp, out var data))
+                {
+                    PatchData(basePath, element, JsonObject.Create(data)!);
+                }
+                else if (element.TryGetProperty(ItemsProp, out var items))
+                {
+                    PatchItems(basePath, JsonArray.Create(items)!);
+                }
+            }
         }
     }
 
-    private static (JsonNode Node, JsonElement PathSegment) SelectNodeToPatch(
-        JsonNode root,
-        JsonElement path)
+    private void PatchData(JsonElement basePath, JsonElement incremental, JsonObject data)
     {
-        if (path.GetArrayLength() == 0)
+        var current = NavigatePath(_json![DataProp]!, basePath);
+
+        if (incremental.TryGetProperty(SubPathProp, out var subPath))
         {
-            return (root, default);
+            current = NavigatePath(current, subPath);
         }
 
+        foreach (var prop in data.ToArray())
+        {
+            data.Remove(prop.Key);
+            current[prop.Key] = prop.Value;
+        }
+    }
+
+    private void PatchItems(JsonElement basePath, JsonArray items)
+    {
+        var target = NavigatePath(_json![DataProp]!, basePath).AsArray();
+
+        while (items.Count > 0)
+        {
+            var item = items[0];
+            items.RemoveAt(0);
+            target.Add(item);
+        }
+    }
+
+    private static JsonNode NavigatePath(JsonNode root, JsonElement path)
+    {
         var current = root;
-        JsonElement? last = null;
 
-        foreach (var element in path.EnumerateArray())
+        foreach (var segment in path.EnumerateArray())
         {
-            if (last is not null)
+            current = segment.ValueKind switch
             {
-                current = last.Value.ValueKind switch
-                {
-                    JsonValueKind.String => current[last.Value.GetString()!]!,
-                    JsonValueKind.Number => current[last.Value.GetInt32()]!,
-                    _ => throw new NotSupportedException("Path segment must be int or string."),
-                };
-            }
-
-            last = element;
+                JsonValueKind.String => current[segment.GetString()!]!,
+                JsonValueKind.Number => current[segment.GetInt32()]!,
+                _ => throw new NotSupportedException("Path segment must be int or string.")
+            };
         }
 
-        if (current is null || last is null)
-        {
-            throw new InvalidOperationException("Patch had invalid structure.");
-        }
-
-        return (current, last.Value);
+        return current;
     }
 }
