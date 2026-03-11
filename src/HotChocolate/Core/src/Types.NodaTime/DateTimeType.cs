@@ -19,7 +19,6 @@ namespace HotChocolate.Types.NodaTime;
 /// <seealso href="https://scalars.graphql.org/chillicream/date-time.html">Specification</seealso>
 public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
 {
-    private const string Format = "uuuu-MM-dd'T'HH:mm:ss.FFFFFFFFFo<Z+HH:mm>";
     private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/date-time.html";
 
     private readonly DateTimeOptions _options;
@@ -129,7 +128,6 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
     private string GetInputFormat()
         => _options.InputPrecision switch
         {
-            DateTimeOptions.DefaultInputPrecision => Format,
             0 => "uuuu-MM-dd'T'HH:mm:sso<Z+HH:mm>",
             _ => $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', _options.InputPrecision)}o<Z+HH:mm>"
         };
@@ -137,7 +135,6 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
     private string GetOutputFormat()
         => _options.OutputPrecision switch
         {
-            DateTimeOptions.DefaultOutputPrecision => Format,
             0 => "uuuu-MM-dd'T'HH:mm:sso<Z+HH:mm>",
             _ => $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', _options.OutputPrecision)}o<Z+HH:mm>"
         };
