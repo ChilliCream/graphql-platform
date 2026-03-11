@@ -11,10 +11,10 @@ internal sealed class AddNodeIdValueSerializerFromMethod : ISyntaxFilter
 
     public bool IsMatch(SyntaxNode node)
         => node is InvocationExpressionSyntax
+        {
+            Expression: MemberAccessExpressionSyntax
             {
-                Expression: MemberAccessExpressionSyntax
-                {
-                    Name.Identifier.ValueText: "AddNodeIdValueSerializerFrom",
-                },
-            };
+                Name.Identifier.ValueText: "AddNodeIdValueSerializerFrom"
+            }
+        };
 }

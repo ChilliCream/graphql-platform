@@ -643,7 +643,6 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
-            .AddNodeIdValueSerializerFrom<Foo>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ModifyPagingOptions(o => o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors"));
 

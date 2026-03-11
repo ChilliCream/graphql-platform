@@ -23,10 +23,10 @@ internal sealed class NodeIdValueSerializerInspector : ISyntaxInspector
                     Name: GenericNameSyntax
                     {
                         Identifier.ValueText: "AddNodeIdValueSerializerFrom",
-                        TypeArgumentList: { Arguments.Count: 1 } args,
-                    },
-                }
-            } node)
+                        TypeArgumentList: { Arguments.Count: 1 } args
+                    }
+                } memberAccess
+            })
         {
             var semanticModel = context.SemanticModel;
             var idType = ModelExtensions.GetTypeInfo(semanticModel, args.Arguments[0]).Type;
@@ -37,8 +37,8 @@ internal sealed class NodeIdValueSerializerInspector : ISyntaxInspector
                 return false;
             }
 
-            var location = GetLocation((MemberAccessExpressionSyntax)node.Expression, semanticModel);
-            syntaxInfo = new NodeIdValueSerializerInfo(node, type, location);
+            var location = GetLocation(memberAccess, semanticModel);
+            syntaxInfo = new NodeIdValueSerializerInfo(type, location);
             return true;
         }
 
@@ -47,17 +47,17 @@ internal sealed class NodeIdValueSerializerInspector : ISyntaxInspector
     }
 
     private static (string, int, int) GetLocation(
-        MemberAccessExpressionSyntax memberAccessorExpression,
+        MemberAccessExpressionSyntax memberAccessExpression,
         SemanticModel semanticModel)
     {
-        var invocationNameSpan = memberAccessorExpression.Name.Span;
-        var lineSpan = memberAccessorExpression.SyntaxTree.GetLineSpan(invocationNameSpan);
+        var invocationNameSpan = memberAccessExpression.Name.Span;
+        var lineSpan = memberAccessExpression.SyntaxTree.GetLineSpan(invocationNameSpan);
         var filePath = GetInterceptorFilePath(
-            memberAccessorExpression.SyntaxTree,
+            memberAccessExpression.SyntaxTree,
             semanticModel.Compilation.Options.SourceReferenceResolver);
         return (filePath, lineSpan.StartLinePosition.Line + 1, lineSpan.StartLinePosition.Character + 1);
     }
 
-    private static string GetInterceptorFilePath(SyntaxTree tree, SourceReferenceResolver? resolver) =>
-        resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+    private static string GetInterceptorFilePath(SyntaxTree tree, SourceReferenceResolver? resolver)
+        => resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
 }

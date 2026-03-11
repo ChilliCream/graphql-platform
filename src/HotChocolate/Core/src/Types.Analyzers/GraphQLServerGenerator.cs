@@ -41,7 +41,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new MiddlewareGenerator(),
         new DataLoaderModuleGenerator(),
         new DataLoaderGenerator(),
-        new NodeIdValueSerializerGenerator(),
+        new NodeIdValueSerializerGenerator()
     ];
 
     private static readonly FrozenDictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_inspectorLookup;
