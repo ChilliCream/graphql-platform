@@ -1020,7 +1020,7 @@ You proved that Fusion works:
 
 The Products and Reviews subgraphs are completely independent. They do not import each other's code, do not call each other directly, and can be deployed and scaled separately. Yet clients can query across both as if they were one unified schema.
 
-## Sharing Fields with `[Shareable]`
+## Sharing Fields Across Subgraphs
 
 In the tutorial so far, the Products and Reviews subgraphs each contribute **different** fields to the `Product` type. Products owns `name` and `price`, while Reviews owns `reviews`. There is no overlap, so composition works without any special annotations.
 

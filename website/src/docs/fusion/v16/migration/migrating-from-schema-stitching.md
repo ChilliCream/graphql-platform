@@ -493,7 +493,7 @@ Every subgraph needs a `schema-settings.json` file with the correct:
 
 If the URL is wrong, the gateway will fail to reach the subgraph at runtime. If the name is wrong or duplicated, composition will produce incorrect results.
 
-### Fields That Need `[Shareable]`
+### Fields That Need Sharing
 
 In stitching, if two remote schemas defined the same field, the gateway's auto-resolution would prefix one with the schema name. In Fusion, if two subgraphs define the same non-key field on the same type, composition fails unless the field is marked `[Shareable]` in both subgraphs.
 

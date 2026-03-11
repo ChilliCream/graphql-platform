@@ -18,6 +18,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
         AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
         AddOption(Opt<McpPromptFilePatternOption>.Instance);
         AddOption(Opt<McpToolFilePatternOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -27,6 +28,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
             Opt<McpPromptFilePatternOption>.Instance,
             Opt<McpToolFilePatternOption>.Instance,
             Opt<McpFeatureCollectionIdOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -37,6 +39,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
         List<string> promptPatterns,
         List<string> toolPatterns,
         string mcpFeatureCollectionId,
+        string? sourceMetadataJson,
         CancellationToken cancellationToken)
     {
         if (console.IsHumanReadable())
@@ -90,7 +93,8 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
             {
                 Collection = new Upload(archiveStream, "collection.zip"),
                 McpFeatureCollectionId = mcpFeatureCollectionId,
-                Tag = tag
+                Tag = tag,
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             console.Log("Uploading MCP Feature Collection..");

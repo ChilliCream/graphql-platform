@@ -13,7 +13,13 @@ internal static class ConsoleHelpers
         if (result.Errors is { Count: > 0 })
         {
             var firstError = result.Errors[0];
-            console.WriteLine($"{firstError.Message} ({firstError.Code})");
+            var errorMessage = firstError.Message;
+            if (!string.IsNullOrEmpty(firstError.Code))
+            {
+                errorMessage += $" ({firstError.Code})";
+            }
+
+            console.WriteLine(errorMessage);
 
             throw new ExitException();
         }
@@ -160,9 +166,7 @@ internal static class ConsoleHelpers
 
                 foreach (var entityError in entity.Errors)
                 {
-                    if (entityError is
-                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError
-                        documentError)
+                    if (entityError is IOpenApiCollectionValidationDocumentError documentError)
                     {
                         var errorLocation = string.Empty;
                         if (documentError.Locations is { Count: > 0 } locations)
@@ -172,9 +176,7 @@ internal static class ConsoleHelpers
 
                         entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
                     }
-                    else if (entityError is
-                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationEntityValidationError
-                        entityValidationError)
+                    else if (entityError is IOpenApiCollectionValidationEntityValidationError entityValidationError)
                     {
                         entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
                     }
@@ -188,16 +190,12 @@ internal static class ConsoleHelpers
             console.Write(node);
         }
 
-        static string GetEntityNodeHeading(
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities
-                entity)
+        static string GetEntityNodeHeading(IOpenApiCollectionValidationEntity entity)
         {
             var heading = entity switch
             {
-                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint endpoint
-                    => $"Endpoint '{endpoint.HttpMethod} {endpoint.Route}'",
-                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationModel model
-                    => $"Model '{model.Name}'",
+                IOpenApiCollectionValidationEndpoint endpoint => $"Endpoint '{endpoint.HttpMethod} {endpoint.Route}'",
+                IOpenApiCollectionValidationModel model => $"Model '{model.Name}'",
                 _ => "Unknown entity type"
             };
 
@@ -221,9 +219,7 @@ internal static class ConsoleHelpers
 
                 foreach (var entityError in entity.Errors)
                 {
-                    if (entityError is
-                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_McpFeatureCollectionValidationDocumentError
-                        documentError)
+                    if (entityError is IMcpFeatureCollectionValidationDocumentError documentError)
                     {
                         var errorLocation = string.Empty;
                         if (documentError.Locations is { Count: > 0 } locations)
@@ -233,9 +229,7 @@ internal static class ConsoleHelpers
 
                         entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
                     }
-                    else if (entityError is
-                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_McpFeatureCollectionValidationEntityValidationError
-                        entityValidationError)
+                    else if (entityError is IMcpFeatureCollectionValidationEntityValidationError entityValidationError)
                     {
                         entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
                     }
@@ -249,16 +243,12 @@ internal static class ConsoleHelpers
             console.Write(node);
         }
 
-        static string GetEntityNodeHeading(
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_1
-                entity)
+        static string GetEntityNodeHeading(IMcpFeatureCollectionValidationEntity entity)
         {
             var heading = entity switch
             {
-                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_McpFeatureCollectionValidationPrompt prompt
-                    => $"Prompt '{prompt.Name}'",
-                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_McpFeatureCollectionValidationTool tool
-                    => $"Tool '{tool.Name}'",
+                IMcpFeatureCollectionValidationPrompt prompt => $"Prompt '{prompt.Name}'",
+                IMcpFeatureCollectionValidationTool tool => $"Tool '{tool.Name}'",
                 _ => "Unknown entity type"
             };
 
@@ -290,7 +280,8 @@ internal static class ConsoleHelpers
             "The server received an invalid archive. "
             + "This indicates a bug in the tooling. "
             + "Please notify ChilliCream."
-            + "Error received: " + message);
+            + "Error received: "
+            + message);
     }
 
     private static void PrintInvalidMcpFeatureCollectionArchiveError(this IAnsiConsole console, string message)
@@ -299,7 +290,8 @@ internal static class ConsoleHelpers
             "The server received an invalid archive. "
             + "This indicates a bug in the tooling. "
             + "Please notify ChilliCream."
-            + "Error received: " + message);
+            + "Error received: "
+            + message);
     }
 
     private static void PrintMutationError(this IAnsiConsole ansiConsole, object error)
@@ -371,7 +363,8 @@ internal static class ConsoleHelpers
                     "The server received an invalid archive. "
                     + "This indicates a bug in the tooling. "
                     + "Please notify ChilliCream."
-                    + "Error received: " + err.Message);
+                    + "Error received: "
+                    + err.Message);
                 break;
 
             case IOpenApiCollectionValidationError err:
@@ -399,11 +392,11 @@ internal static class ConsoleHelpers
                 break;
 
             case IError err:
-                ansiConsole.WriteLine(err.Message);
+                ansiConsole.WriteLine("Unexpected mutation error: " + err.Message);
                 break;
 
             default:
-                ansiConsole.WriteLine("Unexpected Error");
+                ansiConsole.WriteLine("Unexpected mutation error");
                 break;
         }
     }
