@@ -124,7 +124,7 @@ internal sealed partial class SourceSchemaPreprocessor(
                         complexType.Fields.Remove(field);
                     }
 
-                    if (complexType.Fields.Count == 0)
+                    if (fieldsToRemove.Count > 0 && complexType.Fields.Count == 0)
                     {
                         typesToRemove.Add(type);
                     }
@@ -148,7 +148,7 @@ internal sealed partial class SourceSchemaPreprocessor(
                         inputObjectType.Fields.Remove(field);
                     }
 
-                    if (inputObjectType.Fields.Count == 0)
+                    if (fieldsToRemove.Count > 0 && inputObjectType.Fields.Count == 0)
                     {
                         typesToRemove.Add(type);
                     }
@@ -171,7 +171,7 @@ internal sealed partial class SourceSchemaPreprocessor(
                         enumType.Values.Remove(value);
                     }
 
-                    if (enumType.Values.Count == 0)
+                    if (valuesToRemove.Count > 0 && enumType.Values.Count == 0)
                     {
                         typesToRemove.Add(type);
                     }
@@ -185,20 +185,17 @@ internal sealed partial class SourceSchemaPreprocessor(
             schema.Types.Remove(type);
         }
 
-        if (schema.QueryType is { } queryType
-            && (queryType.Fields.Count == 0 || !schema.Types.Contains(queryType)))
+        if (schema.QueryType is { } queryType && !schema.Types.Contains(queryType))
         {
             schema.QueryType = null;
         }
 
-        if (schema.MutationType is { } mutationType
-            && (mutationType.Fields.Count == 0 || !schema.Types.Contains(mutationType)))
+        if (schema.MutationType is { } mutationType && !schema.Types.Contains(mutationType))
         {
             schema.MutationType = null;
         }
 
-        if (schema.SubscriptionType is { } subscriptionType
-            && (subscriptionType.Fields.Count == 0 || !schema.Types.Contains(subscriptionType)))
+        if (schema.SubscriptionType is { } subscriptionType && !schema.Types.Contains(subscriptionType))
         {
             schema.SubscriptionType = null;
         }
