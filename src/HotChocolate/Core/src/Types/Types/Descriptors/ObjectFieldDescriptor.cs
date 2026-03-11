@@ -405,7 +405,8 @@ public class ObjectFieldDescriptor
     {
         ArgumentNullException.ThrowIfNull(@delegate);
 
-        return ResolveWithInternal(@delegate.Method, resolverType: null);
+        var method = @delegate.Method;
+        return ResolveWithInternal(method, method.IsStatic ? null : method.DeclaringType);
     }
 
     private IObjectFieldDescriptor ResolveWithInternal(
