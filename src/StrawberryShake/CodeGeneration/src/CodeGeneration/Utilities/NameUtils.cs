@@ -28,7 +28,7 @@ public static class NameUtils
         var builder = new StringBuilder();
         var current = path;
 
-        while (current is not null or { IsRoot: false })
+        while (current is { IsRoot: false })
         {
             if (current is NamePathSegment nameSegment)
             {
