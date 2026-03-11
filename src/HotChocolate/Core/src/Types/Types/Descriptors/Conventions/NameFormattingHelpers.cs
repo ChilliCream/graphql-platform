@@ -4,7 +4,7 @@ using System.Text;
 using HotChocolate.Internal;
 using HotChocolate.Utilities;
 
-namespace HotChocolate;
+namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
 /// Contains helpers and extensions to reformat the name of a type system member to conform with
