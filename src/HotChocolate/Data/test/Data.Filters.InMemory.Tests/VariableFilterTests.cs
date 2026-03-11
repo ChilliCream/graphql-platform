@@ -48,7 +48,7 @@ public class VariableFilterTests
             });
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class VariableFilterTests
             });
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     [QueryType]
