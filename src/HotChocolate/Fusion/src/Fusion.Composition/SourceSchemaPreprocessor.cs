@@ -185,17 +185,20 @@ internal sealed partial class SourceSchemaPreprocessor(
             schema.Types.Remove(type);
         }
 
-        if (schema.QueryType?.Fields.Count == 0)
+        if (schema.QueryType is { } queryType
+            && (queryType.Fields.Count == 0 || !schema.Types.Contains(queryType)))
         {
             schema.QueryType = null;
         }
 
-        if (schema.MutationType?.Fields.Count == 0)
+        if (schema.MutationType is { } mutationType
+            && (mutationType.Fields.Count == 0 || !schema.Types.Contains(mutationType)))
         {
             schema.MutationType = null;
         }
 
-        if (schema.SubscriptionType?.Fields.Count == 0)
+        if (schema.SubscriptionType is { } subscriptionType
+            && (subscriptionType.Fields.Count == 0 || !schema.Types.Contains(subscriptionType)))
         {
             schema.SubscriptionType = null;
         }

@@ -17,6 +17,18 @@ public sealed class SourceSchemaPreprocessorTests
                 "A",
                 // lang=graphql
                 """
+                type Query @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                type Mutation @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                type Subscription @tag(name: "remove") {
+                    field1: ID!
+                }
+
                 type Object1 @tag(name: "remove") {
                     field1: ID!
                 }
