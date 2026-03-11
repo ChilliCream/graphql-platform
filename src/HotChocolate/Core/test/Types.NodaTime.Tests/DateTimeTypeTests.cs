@@ -1,9 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 
 namespace HotChocolate.Types.NodaTime.Tests;
