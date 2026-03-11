@@ -40,8 +40,8 @@ public class LocalDateTimeType : ScalarType<LocalDateTime, StringValueNode>
         Description = description;
         Pattern = GetPattern();
         SpecifiedBy = new Uri(SpecifiedByUri);
-        _inputPattern = LocalDateTimePattern.CreateWithInvariantCulture(GetInputFormat());
-        _outputFormat = GetOutputFormat();
+        _inputPattern = LocalDateTimePattern.CreateWithInvariantCulture(GetFormat(_options.InputPrecision));
+        _outputFormat = GetFormat(_options.OutputPrecision);
     }
 
     /// <summary>
@@ -117,13 +117,8 @@ public class LocalDateTimeType : ScalarType<LocalDateTime, StringValueNode>
             ? @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}$"
             : @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1," + _options.InputPrecision + "})?$";
 
-    private string GetInputFormat()
-        => _options.InputPrecision == 0
+    private static string GetFormat(byte precision)
+        => precision == 0
             ? @"uuuu-MM-dd'T'HH\:mm\:ss"
-            : @$"uuuu-MM-dd'T'HH\:mm\:ss.{new string('F', _options.InputPrecision)}";
-
-    private string GetOutputFormat()
-        => _options.OutputPrecision == 0
-            ? @"uuuu-MM-dd'T'HH\:mm\:ss"
-            : @$"uuuu-MM-dd'T'HH\:mm\:ss.{new string('F', _options.OutputPrecision)}";
+            : @$"uuuu-MM-dd'T'HH\:mm\:ss.{new string('F', precision)}";
 }

@@ -39,8 +39,8 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
         Description = description;
         Pattern = GetPattern();
         SpecifiedBy = new Uri(SpecifiedByUri);
-        _inputPattern = OffsetDateTimePattern.CreateWithInvariantCulture(GetInputFormat());
-        _outputFormat = GetOutputFormat();
+        _inputPattern = OffsetDateTimePattern.CreateWithInvariantCulture(GetFormat(_options.InputPrecision));
+        _outputFormat = GetFormat(_options.OutputPrecision);
     }
 
     /// <summary>
@@ -125,13 +125,8 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
                 + _options.InputPrecision
                 + @"})?(?:[Zz]|[+-]\d{2}:\d{2})$";
 
-    private string GetInputFormat()
-        => _options.InputPrecision == 0
+    private static string GetFormat(byte precision)
+        => precision == 0
             ? "uuuu-MM-dd'T'HH:mm:sso<Z+HH:mm>"
-            : $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', _options.InputPrecision)}o<Z+HH:mm>";
-
-    private string GetOutputFormat()
-        => _options.OutputPrecision == 0
-            ? "uuuu-MM-dd'T'HH:mm:sso<Z+HH:mm>"
-            : $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', _options.OutputPrecision)}o<Z+HH:mm>";
+            : $"uuuu-MM-dd'T'HH:mm:ss.{new string('F', precision)}o<Z+HH:mm>";
 }
