@@ -16,14 +16,14 @@ public class ObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = [];
 
-    protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
+    protected ObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
         : base(context)
     {
-        ArgumentNullException.ThrowIfNull(clrType);
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
-        Configuration.RuntimeType = clrType;
-        Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
-        Configuration.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
+        Configuration.RuntimeType = runtimeType;
+        Configuration.Name = context.Naming.GetTypeName(runtimeType, TypeKind.Object);
+        Configuration.Description = context.Naming.GetTypeDescription(runtimeType, TypeKind.Object);
     }
 
     protected ObjectTypeDescriptor(IDescriptorContext context)
@@ -424,8 +424,8 @@ public class ObjectTypeDescriptor
 
     public static ObjectTypeDescriptor New(
         IDescriptorContext context,
-        Type clrType) =>
-        new(context, clrType);
+        Type runtimeType) =>
+        new(context, runtimeType);
 
     public static ObjectTypeDescriptor<T> New<T>(
         IDescriptorContext context) =>

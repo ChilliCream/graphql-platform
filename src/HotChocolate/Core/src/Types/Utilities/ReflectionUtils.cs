@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities;
 
