@@ -21,6 +21,9 @@ public sealed class NodeIdValueSerializerInfo : SyntaxInfo
 
     public override string OrderByKey { get; }
 
+    public override bool Equals(object? obj)
+        => obj is NodeIdValueSerializerInfo other && Equals(other);
+
     public override bool Equals(SyntaxInfo? other)
     {
         if (other is not NodeIdValueSerializerInfo otherInfo)
@@ -28,9 +31,10 @@ public sealed class NodeIdValueSerializerInfo : SyntaxInfo
             return false;
         }
 
-        return string.Equals(OrderByKey, otherInfo.OrderByKey, StringComparison.Ordinal);
+        return string.Equals(OrderByKey, otherInfo.OrderByKey, StringComparison.Ordinal)
+            && Location.Equals(otherInfo.Location);
     }
 
     public override int GetHashCode()
-        => OrderByKey.GetHashCode();
+        => HashCode.Combine(OrderByKey, Location);
 }

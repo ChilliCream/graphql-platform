@@ -54,10 +54,10 @@ public sealed class NodeIdValueSerializerFileBuilder : IDisposable
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteSerializer(INamedTypeSymbol compositeId)
+    public void WriteSerializer(string serializerName, INamedTypeSymbol compositeId)
     {
         var fullyQualified = compositeId.ToFullyQualified();
-        WriteCompositeSerializer($"{compositeId.Name}NodeIdValueSerializer", fullyQualified, compositeId);
+        WriteCompositeSerializer(serializerName, fullyQualified, compositeId);
     }
 
     private void WriteCompositeSerializer(
@@ -385,13 +385,12 @@ public sealed class NodeIdValueSerializerFileBuilder : IDisposable
 
         var result = char.ToLowerInvariant(name[0]) + name.Substring(1);
 
-        // We add a prefix to avoid collisions with the out parameter "value"
-        // and other C# keywords.
-        if (result == "value")
+        // We add a prefix to avoid collisions with method parameters
+        // ("value", "buffer", "written") and C# keywords.
+        return result switch
         {
-            return "p_value";
-        }
-
-        return result;
+            "value" or "buffer" or "written" => $"p_{result}",
+            _ => result
+        };
     }
 }

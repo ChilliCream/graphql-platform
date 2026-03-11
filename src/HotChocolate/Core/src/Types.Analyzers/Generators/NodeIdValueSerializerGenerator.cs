@@ -34,12 +34,24 @@ public sealed class NodeIdValueSerializerGenerator : ISyntaxGenerator
         builder.WriteBeginNamespace();
         builder.WriteBeginClass();
 
+        // We deduplicate serializer classes by fully qualified type name so that
+        // multiple call sites for the same type only emit a single class definition.
+        var emittedSerializers = new Dictionary<string, string>(StringComparer.Ordinal);
+
         for (var i = 0; i < serializers.Count; i++)
         {
             var serializer = serializers[i];
-            var serializerName = $"{serializer.CompositeId.Name}NodeIdValueSerializer";
+            var fullyQualified = serializer.OrderByKey;
 
-            builder.WriteSerializer(serializer.CompositeId);
+            if (!emittedSerializers.TryGetValue(fullyQualified, out var serializerName))
+            {
+                serializerName = GetUniqueSerializerName(
+                    serializer.CompositeId.Name,
+                    emittedSerializers);
+                emittedSerializers[fullyQualified] = serializerName;
+                builder.WriteSerializer(serializerName, serializer.CompositeId);
+            }
+
             builder.WriteInterceptMethod(i, serializerName, serializer.Location);
         }
 
@@ -47,5 +59,28 @@ public sealed class NodeIdValueSerializerGenerator : ISyntaxGenerator
         builder.WriteEndNamespace();
 
         addSource(WellKnownFileNames.NodeIdSerializerFile, builder.ToString());
+    }
+
+    private static string GetUniqueSerializerName(
+        string shortName,
+        Dictionary<string, string> emittedSerializers)
+    {
+        var candidate = $"{shortName}NodeIdValueSerializer";
+
+        // We check for name collisions (e.g. two types with the same short name
+        // in different namespaces) and append a numeric suffix if needed.
+        if (!emittedSerializers.ContainsValue(candidate))
+        {
+            return candidate;
+        }
+
+        var suffix = 2;
+
+        while (emittedSerializers.ContainsValue($"{candidate}{suffix}"))
+        {
+            suffix++;
+        }
+
+        return $"{candidate}{suffix}";
     }
 }
