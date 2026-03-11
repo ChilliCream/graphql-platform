@@ -1,4 +1,6 @@
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 

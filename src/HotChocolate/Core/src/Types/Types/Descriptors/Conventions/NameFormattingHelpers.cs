@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Reflection;
 using System.Text;
+using HotChocolate.Internal;
 using HotChocolate.Utilities;
 
 namespace HotChocolate;
@@ -76,6 +77,48 @@ internal static class NameFormattingHelpers
 
         throw new NotSupportedException(
             "Only properties and methods are accepted as members.");
+    }
+
+    public static string GetGraphQLName(IExtendedType type)
+        => GetGraphQLName(type, isRoot: true);
+
+    private static string GetGraphQLName(IExtendedType type, bool isRoot)
+    {
+        var typeName = type.IsGeneric
+            ? CreateGenericTypeName(type)
+            : type.Type.Name;
+
+        if (!isRoot && type.IsNullable)
+        {
+            typeName = $"Nullable{typeName}";
+        }
+
+        return NameUtils.MakeValidGraphQLName(typeName)!;
+    }
+
+    private static string CreateGenericTypeName(IExtendedType type)
+    {
+        var typeName = type.Definition!.Name;
+        var genericDelimiter = typeName.LastIndexOf('`');
+
+        if (genericDelimiter >= 0)
+        {
+            typeName = typeName[..genericDelimiter];
+        }
+
+        var result = typeName + "Of";
+
+        for (var i = 0; i < type.TypeArguments.Count; i++)
+        {
+            if (i > 0)
+            {
+                result += "And";
+            }
+
+            result += GetGraphQLName(type.TypeArguments[i], isRoot: false);
+        }
+
+        return result;
     }
 
     private static string FormatMethodName(MethodInfo method)

@@ -3241,5 +3241,14 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableValueBuilder_VarNameEmpty", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type..
+        /// </summary>
+        internal static string ThrowHelper_KeyValuePairType_InvalidRuntimeType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_KeyValuePairType_InvalidRuntimeType", resourceCulture);
+            }
+        }
     }
 }
