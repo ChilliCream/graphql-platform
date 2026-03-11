@@ -7,7 +7,6 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using StrawberryShake;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
@@ -20,6 +19,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<OpenApiCollectionIdOption>.Instance);
         AddOption(Opt<OpenApiCollectionFilePatternOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -28,6 +28,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             Opt<StageNameOption>.Instance,
             Opt<OpenApiCollectionIdOption>.Instance,
             Opt<OpenApiCollectionFilePatternOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -37,6 +38,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         string stage,
         string openApiCollectionId,
         List<string> patterns,
+        string? sourceMetadataJson,
         CancellationToken ct)
     {
         console.Title($"Validate against {stage.EscapeMarkup()}");
@@ -83,7 +85,8 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             {
                 OpenApiCollectionId = openApiCollectionId,
                 Stage = stage,
-                Collection = new Upload(archiveStream, "collection.zip")
+                Collection = new Upload(archiveStream, "collection.zip"),
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             var requestId = await ValidateAsync(console, client, input, ct);
@@ -98,11 +101,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
             await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
             {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request ID returned");
-                }
+                console.EnsureNoErrors(x);
 
                 switch (x.Data?.OnOpenApiCollectionVersionValidationUpdate)
                 {

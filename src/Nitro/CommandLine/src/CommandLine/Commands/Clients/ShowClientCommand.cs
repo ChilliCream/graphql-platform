@@ -37,8 +37,8 @@ internal sealed class ShowClientCommand : Command
         CancellationToken cancellationToken)
     {
         var result = await client.ShowClientCommandQuery.ExecuteAsync(id, cancellationToken);
-
-        var data = result.EnsureData();
+        console.EnsureNoErrors(result);
+        var data = console.EnsureData(result);
 
         if (data.Node is IClientDetailPrompt_Client node)
         {

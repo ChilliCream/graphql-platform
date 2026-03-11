@@ -16,6 +16,7 @@ internal sealed class UploadClientCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<OperationsFileOption>.Instance);
         AddOption(Opt<ClientIdOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -24,6 +25,7 @@ internal sealed class UploadClientCommand : Command
             Opt<TagOption>.Instance,
             Opt<OperationsFileOption>.Instance,
             Opt<ClientIdOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -33,6 +35,7 @@ internal sealed class UploadClientCommand : Command
         string tag,
         FileInfo operationsFile,
         string clientId,
+        string? sourceMetadataJson,
         CancellationToken cancellationToken)
     {
         console.Title($"Upload operations {operationsFile.FullName.EscapeMarkup()}");
@@ -63,7 +66,8 @@ internal sealed class UploadClientCommand : Command
             {
                 Operations = new Upload(stream, "operations.graphql"),
                 ClientId = clientId,
-                Tag = tag
+                Tag = tag,
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             console.Log("Uploading Client..");

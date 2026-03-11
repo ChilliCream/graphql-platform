@@ -6,7 +6,6 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using StrawberryShake;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
@@ -19,6 +18,7 @@ internal sealed class ValidateSchemaCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<SchemaFileOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -27,6 +27,7 @@ internal sealed class ValidateSchemaCommand : Command
             Opt<StageNameOption>.Instance,
             Opt<ApiIdOption>.Instance,
             Opt<SchemaFileOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -36,6 +37,7 @@ internal sealed class ValidateSchemaCommand : Command
         string stage,
         string apiId,
         FileInfo schemaFile,
+        string? sourceMetadataJson,
         CancellationToken ct)
     {
         console.Title($"Validate to {stage.EscapeMarkup()}");
@@ -68,7 +70,8 @@ internal sealed class ValidateSchemaCommand : Command
             {
                 ApiId = apiId,
                 Stage = stage,
-                Schema = new Upload(stream, "operations.graphql")
+                Schema = new Upload(stream, "operations.graphql"),
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             console.Log("Create validation request");
@@ -85,11 +88,7 @@ internal sealed class ValidateSchemaCommand : Command
 
             await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
             {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request ID returned");
-                }
+                console.EnsureNoErrors(x);
 
                 switch (x.Data?.OnSchemaVersionValidationUpdate)
                 {
