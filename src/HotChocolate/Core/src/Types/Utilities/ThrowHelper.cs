@@ -203,6 +203,14 @@ internal static class ThrowHelper
                     dataLoaderType.FullName ?? dataLoaderType.Name)
                 .Build());
 
+    public static SchemaException KeyValuePairType_InvalidRuntimeType(string typeName)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.ThrowHelper_KeyValuePairType_InvalidRuntimeType,
+                    typeName)
+                .Build());
+
     public static SchemaException NonGenericExecutableNotAllowed()
         => new SchemaException(
             SchemaErrorBuilder

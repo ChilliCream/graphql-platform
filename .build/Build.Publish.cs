@@ -45,7 +45,7 @@ partial class Build
                 .SetProperty("NitroIdentityClientId", NitroIdentityClientId)
                 .SetProperty("NitroIdentityScopes", NitroIdentityScopes)
                 .SetProperty("PublishAot", true)
-                .SetProperty("TargetFrameworks", "NET10.0")
+                .SetProperty("TargetFrameworks", "net10.0")
                 .SetProperty("RuntimeIdentifiers", RuntimeIdentifier));
         });
 

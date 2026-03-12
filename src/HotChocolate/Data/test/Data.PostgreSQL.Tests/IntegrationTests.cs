@@ -4,6 +4,7 @@ using HotChocolate.Data.Migrations;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Execution;
+using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -620,6 +621,30 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
     }
 
+    [Fact]
+    public async Task Generated_BrandKey_NodeIdValueSerializer_RoundTrip()
+    {
+        // arrange
+        var db = "db_" + Guid.NewGuid().ToString("N");
+        var connectionString = resource.GetConnectionString(db);
+        await using var services = CreateServer(connectionString);
+
+        // We need to initialize the executor so that all services are registered.
+        await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+
+        var serializer = services.GetRequiredService<INodeIdSerializer>();
+        var original = new BrandKey(42, 7);
+
+        // act
+        var formatted = serializer.Format("BrandKey", original);
+        var parsed = serializer.Parse(formatted, typeof(BrandKey));
+
+        // assert
+        Assert.Equal("BrandKey", parsed.TypeName);
+        Assert.IsType<BrandKey>(parsed.InternalId);
+        Assert.Equal(original, (BrandKey)parsed.InternalId);
+    }
+
     private static ServiceProvider CreateServer(string connectionString)
     {
         var services = new ServiceCollection();
@@ -643,6 +668,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
+            .AddNodeIdValueSerializerFrom<BrandKey>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ModifyPagingOptions(o => o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors"));
 
