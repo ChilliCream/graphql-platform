@@ -157,12 +157,21 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // by overwriting the argument type reference.
                 argument.Type = typeInspector.GetTypeRef(typeof(NonNullType<IdType>));
 
-                // We also need to add an input formatter to the argument the decodes passed
+                // We also need to add an input formatter to the argument that decodes passed
                 // in ID values.
-                RelayIdFieldHelpers.AddSerializerToInputField(
-                    CompletionContext,
-                    argument,
-                    NodeIdNameDefinitionUnion.Create(fieldTypeDef.Name));
+                // Source-generated operation fields already configure this through ID(argument),
+                // so we must not add a second formatter here.
+                var isSourceGenerated =
+                    (fieldDef.Flags & CoreFieldFlags.SourceGenerator) == CoreFieldFlags.SourceGenerator;
+
+                if (!isSourceGenerated
+                    && argument.GetFormatters().All(static t => t is not GlobalIdInputValueFormatter))
+                {
+                    RelayIdFieldHelpers.AddSerializerToInputField(
+                        CompletionContext,
+                        argument,
+                        NodeIdNameDefinitionUnion.Create(fieldTypeDef.Name));
+                }
 
                 // As with the id argument, we also want to make sure that the ID field of
                 // the field result type is a non-null ID type.

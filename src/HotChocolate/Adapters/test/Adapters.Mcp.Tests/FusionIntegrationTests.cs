@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
@@ -48,19 +49,25 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                 schema.ToSyntaxNode(),
                 new JsonDocumentOwner(JsonDocument.Parse("{ }"), new EmptyMemoryOwner()));
         var configProvider = new TestFusionConfigurationProvider(initialConfig);
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services => services
-                    .AddRouting()
-                    .AddGraphQLGatewayServer()
-                    .AddConfigurationProvider(_ => configProvider)
-                    .AddMcp()
-                    .AddMcpStorage(storage))
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
-        var server = new TestServer(builder);
+        var host = new HostBuilder()
+            .ConfigureWebHost(webBuilder =>
+            {
+                webBuilder
+                    .UseTestServer()
+                    .ConfigureServices(
+                        services => services
+                            .AddRouting()
+                            .AddGraphQLGatewayServer()
+                            .AddConfigurationProvider(_ => configProvider)
+                            .AddMcp()
+                            .AddMcpStorage(storage))
+                    .Configure(
+                        app => app
+                            .UseRouting()
+                            .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+            })
+            .Start();
+        var server = host.GetTestServer();
         var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
         var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
         var listChangedResetEvent1 = new ManualResetEventSlim(false);
@@ -133,90 +140,102 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                 new CompositionLog());
         var result = schemaComposer.Compose();
 
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services =>
-                {
-                    services
-                        .AddHeaderPropagation(options => options.Headers.Add("Authorization"))
-                        .AddLogging()
-                        .AddRouting()
-                        .AddAuthentication();
+        var host = new HostBuilder()
+            .ConfigureWebHost(webBuilder =>
+            {
+                webBuilder
+                    .UseTestServer()
+                    .ConfigureServices(
+                        services =>
+                        {
+                            services
+                                .AddHeaderPropagation(options => options.Headers.Add("Authorization"))
+                                .AddLogging()
+                                .AddRouting()
+                                .AddAuthentication();
 
-                    services
-                        .AddHttpClient(schemaDocument.Name)
-                            .AddHeaderPropagation()
-                            .ConfigurePrimaryHttpMessageHandler(() => subgraph.CreateHandler());
+                            services
+                                .AddHttpClient(schemaDocument.Name)
+                                    .AddHeaderPropagation()
+                                    .ConfigurePrimaryHttpMessageHandler(() => subgraph.CreateHandler());
 
-                    var builder =
-                        services
-                            .AddGraphQLGatewayServer()
-                            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                            .AddInMemoryConfiguration(result.Value.ToSyntaxNode())
-                            .AddHttpClientConfiguration(
-                                schemaDocument.Name,
-                                new Uri("http://localhost:5000/graphql"))
-                            .AddMcp(configureMcpServerOptions, configureMcpServer)
-                            .AddMcpStorage(storage);
+                            var builder =
+                                services
+                                    .AddGraphQLGatewayServer()
+                                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                                    .AddInMemoryConfiguration(result.Value.ToSyntaxNode())
+                                    .AddHttpClientConfiguration(
+                                        schemaDocument.Name,
+                                        new Uri("http://localhost:5000/graphql"))
+                                    .AddMcp(configureMcpServerOptions, configureMcpServer)
+                                    .AddMcpStorage(storage);
 
-                    if (diagnosticEventListener is not null)
-                    {
-                        builder.AddDiagnosticEventListener(_ => diagnosticEventListener);
-                    }
-                })
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseHeaderPropagation()
-                    .UseAuthentication()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+                            if (diagnosticEventListener is not null)
+                            {
+                                builder.AddDiagnosticEventListener(_ => diagnosticEventListener);
+                            }
+                        })
+                    .Configure(
+                        app => app
+                            .UseRouting()
+                            .UseHeaderPropagation()
+                            .UseAuthentication()
+                            .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+            })
+            .Start();
 
-        return new TestServer(builder);
+        return host.GetTestServer();
     }
 
     private static TestServer CreateSubgraph(ITypeDefinition[]? additionalTypes)
     {
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services =>
-                {
-                    services
-                        .AddLogging()
-                        .AddRouting()
-                        .AddAuthentication()
-                        .AddJwtBearer(
-                            o => o.TokenValidationParameters =
-                                new TokenValidationParameters
-                                {
-                                    ValidIssuer = TokenIssuer,
-                                    ValidAudience = TokenAudience,
-                                    IssuerSigningKey = TokenKey
-                                });
+        var host = new HostBuilder()
+            .ConfigureWebHost(webBuilder =>
+            {
+                webBuilder
+                    .UseTestServer()
+                    .ConfigureServices(
+                        services =>
+                        {
+                            services
+                                .AddLogging()
+                                .AddRouting()
+                                .AddAuthentication()
+                                .AddJwtBearer(
+                                    o => o.TokenValidationParameters =
+                                        new TokenValidationParameters
+                                        {
+                                            ValidIssuer = TokenIssuer,
+                                            ValidAudience = TokenAudience,
+                                            IssuerSigningKey = TokenKey
+                                        });
 
-                    var builder =
-                        services
-                            .AddGraphQLServer()
-                            .AddSourceSchemaDefaults()
-                            .AddAuthorization()
-                            .AddQueryType<TestSchema.Query>()
-                            .AddMutationType<TestSchema.Mutation>()
-                            .AddInterfaceType<TestSchema.IPet>()
-                            .AddUnionType<TestSchema.IPet>()
-                            .AddObjectType<TestSchema.Cat>()
-                            .AddObjectType<TestSchema.Dog>();
+                            var builder =
+                                services
+                                    .AddGraphQLServer()
+                                    .AddSourceSchemaDefaults()
+                                    .AddAuthorization()
+                                    .AddQueryType<TestSchema.Query>()
+                                    .AddMutationType<TestSchema.Mutation>()
+                                    .AddInterfaceType<TestSchema.IPet>()
+                                    .AddUnionType<TestSchema.IPet>()
+                                    .AddObjectType<TestSchema.Cat>()
+                                    .AddObjectType<TestSchema.Dog>();
 
-                    if (additionalTypes is not null)
-                    {
-                        builder.AddTypes(additionalTypes);
-                    }
-                })
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseAuthentication()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+                            if (additionalTypes is not null)
+                            {
+                                builder.AddTypes(additionalTypes);
+                            }
+                        })
+                    .Configure(
+                        app => app
+                            .UseRouting()
+                            .UseAuthentication()
+                            .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+            })
+            .Start();
 
-        return new TestServer(builder);
+        return host.GetTestServer();
     }
 
     private sealed class TestFusionConfigurationProvider(FusionConfiguration initialConfig)

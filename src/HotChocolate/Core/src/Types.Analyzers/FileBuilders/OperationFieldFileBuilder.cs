@@ -107,6 +107,9 @@ public sealed class OperationFieldFileBuilder : IDisposable
                     "var {0} = descriptor.Field({1});",
                     fieldName,
                     memberName);
+                _writer.WriteIndentedLine(
+                    "{0}.Extend().Configuration.SetSourceGeneratorFlags();",
+                    fieldName);
 
                 _writer.WriteIndentedLine(
                     "if ({0}.IsDefined(typeof(global::HotChocolate.Types.Relay.NodeResolverAttribute), true)",

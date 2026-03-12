@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
@@ -128,32 +129,38 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         where TEntity : class
         where T : SortInputType<TEntity>
     {
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                (_, services) =>
-                {
-                    services.AddRouting();
-                    services.AddGraphQLServer()
-                        .AddSorting()
-                        .AddQueryType(
-                            c =>
-                            {
-                                c
-                                    .Name("Query")
-                                    .Field("root")
-                                    .Resolve(entities)
-                                    .UseSorting<T>();
+        var host = new HostBuilder()
+            .ConfigureWebHost(webBuilder =>
+            {
+                webBuilder
+                    .UseTestServer()
+                    .ConfigureServices(
+                        (_, services) =>
+                        {
+                            services.AddRouting();
+                            services.AddGraphQLServer()
+                                .AddSorting()
+                                .AddQueryType(
+                                    c =>
+                                    {
+                                        c
+                                            .Name("Query")
+                                            .Field("root")
+                                            .Resolve(entities)
+                                            .UseSorting<T>();
 
-                                c
-                                    .Name("Query")
-                                    .Field("rootExecutable")
-                                    .Resolve(entities.AsExecutable())
-                                    .UseSorting<T>();
-                            })
-                        .BuildRequestExecutorAsync();
-                })
-            .Configure(x => x.UseRouting().UseEndpoints(c => c.MapGraphQL()));
-        return new TestServer(builder);
+                                        c
+                                            .Name("Query")
+                                            .Field("rootExecutable")
+                                            .Resolve(entities.AsExecutable())
+                                            .UseSorting<T>();
+                                    })
+                                .BuildRequestExecutorAsync();
+                        })
+                    .Configure(x => x.UseRouting().UseEndpoints(c => c.MapGraphQL()));
+            })
+            .Start();
+        return host.GetTestServer();
     }
 
     private ValueTask<IRequestExecutor> CreateSchema<TEntity, T>(TEntity?[] entities)
