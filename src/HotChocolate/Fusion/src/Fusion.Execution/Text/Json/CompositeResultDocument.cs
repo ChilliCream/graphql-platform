@@ -13,6 +13,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
+    private Dictionary<int, Path>? _pathCache;
     internal MetaDb _metaDb;
     private bool _disposed;
 
@@ -125,6 +126,14 @@ public sealed partial class CompositeResultDocument : IDisposable
             return Path.Root;
         }
 
+        var cursorIndex = ToIndex(current);
+        _pathCache ??= new Dictionary<int, Path>();
+
+        if (_pathCache.TryGetValue(cursorIndex, out var cached))
+        {
+            return cached;
+        }
+
         Span<Cursor> chain = stackalloc Cursor[64];
         var c = current;
         var written = 0;
@@ -179,6 +188,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             parentTokenType = tokenType;
         }
 
+        _pathCache[cursorIndex] = path;
         return path;
     }
 
