@@ -46,7 +46,8 @@ public class LocalDateType : ScalarType<LocalDate, StringValueNode>
     public LocalDateType()
         : this(
             ScalarNames.LocalDate,
-            TypeResources.LocalDateType_Description)
+            TypeResources.LocalDateType_Description,
+            BindingBehavior.Implicit)
     {
     }
 

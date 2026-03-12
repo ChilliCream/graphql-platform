@@ -63,8 +63,7 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
         : this(
             ScalarNames.DateTime,
             TypeResources.DateTimeType_Description,
-            BindingBehavior.Implicit,
-            options: null)
+            BindingBehavior.Implicit)
     {
     }
 

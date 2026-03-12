@@ -63,7 +63,7 @@ public class LocalTimeType : ScalarType<LocalTime, StringValueNode>
         : this(
             ScalarNames.LocalTime,
             TypeResources.LocalTimeType_Description,
-            options: null)
+            BindingBehavior.Implicit)
     {
     }
 
