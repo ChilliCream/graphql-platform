@@ -56,8 +56,8 @@ internal static class ActivityExtensions
                     var location = error.Locations[i];
                     locations[i] = new Dictionary<string, int>
                     {
-                        ["line"] = location.Line,
-                        ["column"] = location.Column
+                        [SemanticConventions.GraphQL.Error.Location.Line] = location.Line,
+                        [SemanticConventions.GraphQL.Error.Location.Column] = location.Column
                     };
                 }
 

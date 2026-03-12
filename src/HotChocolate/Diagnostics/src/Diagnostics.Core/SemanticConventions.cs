@@ -132,7 +132,6 @@ internal static class SemanticConventions
             }
         }
 
-        // Note: This is not part of the OTEL semantic conventions
         public static class Error
         {
             public const string Message = "graphql.error.message";
@@ -142,8 +141,8 @@ internal static class SemanticConventions
 
             public static class Location
             {
-                public const string Column = "graphql.error.location.column";
-                public const string Line = "graphql.error.location.line";
+                public const string Column = "column";
+                public const string Line = "line";
             }
         }
 
