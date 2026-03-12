@@ -16,6 +16,7 @@ public static class NodaTimeRequestExecutorBuilderExtensions
 
     private static readonly IReadOnlyList<Type> s_nodaTimeTypes =
     [
+        typeof(DateTimeType),
         typeof(DateTimeZoneType),
         typeof(DurationType),
         typeof(InstantType),
@@ -23,7 +24,6 @@ public static class NodaTimeRequestExecutorBuilderExtensions
         typeof(LocalDateTimeType),
         typeof(LocalDateType),
         typeof(LocalTimeType),
-        typeof(OffsetDateTimeType),
         typeof(OffsetDateType),
         typeof(OffsetTimeType),
         typeof(OffsetType),
