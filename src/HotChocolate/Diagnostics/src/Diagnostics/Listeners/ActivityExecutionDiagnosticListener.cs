@@ -240,18 +240,61 @@ internal sealed class ActivityExecutionDiagnosticListener(
         }
     }
 
-    public override IDisposable OnSubscriptionEvent(RequestContext context, ulong subscriptionId)
+    public override IDisposable ExecuteSubscription(
+        RequestContext context,
+        ulong subscriptionId)
     {
-        var activity = Source.StartActivity();
-
-        if (activity is null)
+        if (Activity.Current is not { } currentActivity)
         {
             return EmptyScope;
         }
 
-        enricher.EnrichOnSubscriptionEvent(context, subscriptionId, activity);
+        context.Features.Set(
+            new SubscriptionContextFeature
+            {
+                SubscriptionContext = currentActivity.Context
+            });
 
-        return activity;
+        return EmptyScope;
+    }
+
+    public override IDisposable OnSubscriptionEvent(RequestContext context, ulong subscriptionId)
+    {
+        ActivityContext? subscriptionContext = null;
+
+        if (context.Features.TryGet<SubscriptionContextFeature>(out var feature)
+            && feature.SubscriptionContext is { } storedSubscriptionContext)
+        {
+            subscriptionContext = storedSubscriptionContext;
+        }
+
+        var span = SubscriptionEventSpan.Start(
+            Source,
+            context,
+            context.TryGetOperation(out var operation) ? operation.Name : null,
+            subscriptionId,
+            subscriptionContext);
+
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        enricher.EnrichOnSubscriptionEvent(context, subscriptionId, span.Activity);
+
+        return span;
+    }
+
+    public override void SubscriptionEventError(
+        RequestContext context,
+        ulong subscriptionId,
+        Exception exception)
+    {
+        if (Activity.Current is { } activity)
+        {
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(exception);
+        }
     }
 
     public override void RetrievedDocumentFromCache(RequestContext context)
@@ -284,5 +327,10 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             span.Activity.AddEvent(new(nameof(AddedOperationToCache)));
         }
+    }
+
+    private sealed class SubscriptionContextFeature
+    {
+        public ActivityContext? SubscriptionContext { get; set; }
     }
 }

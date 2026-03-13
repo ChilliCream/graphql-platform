@@ -8,14 +8,9 @@ using OperationRequest = HotChocolate.Transport.OperationRequest;
 namespace HotChocolate.Diagnostics;
 
 [Collection("Instrumentation")]
-public class ServerInstrumentationTests : ServerTestBase
+public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
-
-    public ServerInstrumentationTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
 
     [Fact]
     public async Task Http_Post_SingleRequest_GetHeroName_Default()

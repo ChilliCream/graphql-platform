@@ -2,12 +2,14 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using HotChocolate.Subscriptions;
+using HotChocolate.Types;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
 
 [Collection("Instrumentation")]
-public partial class QueryInstrumentationTests
+public partial class ActivityExecutionDiagnosticListenerTests
 {
     [Fact]
     public async Task Track_Events_Of_A_Simple_Query_Default()
@@ -369,6 +371,92 @@ public partial class QueryInstrumentationTests
         }
     }
 
+    [Fact]
+    public async Task SubscriptionEvent_Records_Subscription_Event_Span()
+    {
+        using var cts = new CancellationTokenSource(5000);
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .AddSubscriptionType<SimpleSubscription>()
+                .AddInMemorySubscriptions()
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+            var sender = services.GetRequiredService<ITopicEventSender>();
+
+            await using var result = await executor.ExecuteAsync(
+                "subscription OnMessageSubscription { onMessage }");
+            await using var responseStream = result.ExpectResponseStream();
+
+            var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
+
+            try
+            {
+                var moveNext = results.MoveNextAsync().AsTask();
+                await sender.SendAsync("OnMessage", "hello", cts.Token);
+                Assert.True(await moveNext);
+                await sender.CompleteAsync("OnMessage");
+            }
+            finally
+            {
+                await results.DisposeAsync();
+            }
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task SubscriptionEventError_Records_Subscription_Event_Error()
+    {
+        using var cts = new CancellationTokenSource(5000);
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .AddSubscriptionType<SimpleSubscription>()
+                .AddInMemorySubscriptions()
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+            var sender = services.GetRequiredService<ITopicEventSender>();
+
+            await using var result = await executor.ExecuteAsync(
+                "subscription OnFailingMessageSubscription { onFailingMessage }");
+            await using var responseStream = result.ExpectResponseStream();
+
+            var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
+
+            try
+            {
+                var moveNext = results.MoveNextAsync().AsTask();
+                await sender.SendAsync("OnFailingMessage", "hello", cts.Token);
+                Assert.True(await moveNext);
+                await sender.CompleteAsync("OnFailingMessage");
+            }
+            finally
+            {
+                await results.DisposeAsync();
+            }
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
     public class SimpleQuery
     {
         public string SayHello() => "hello";
@@ -393,6 +481,16 @@ public partial class QueryInstrumentationTests
     public class Deeper
     {
         public Deep[] Deeps() => [new Deep()];
+    }
+
+    public class SimpleSubscription
+    {
+        [Subscribe]
+        public string OnMessage([EventMessage] string message) => message;
+
+        [Subscribe]
+        public string OnFailingMessage([EventMessage] string message)
+            => throw new InvalidOperationException("Subscription event failed.");
     }
 
     private sealed class InMemoryOperationDocumentStorage : IOperationDocumentStorage

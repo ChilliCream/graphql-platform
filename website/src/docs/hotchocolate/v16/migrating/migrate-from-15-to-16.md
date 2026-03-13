@@ -701,6 +701,8 @@ The OpenTelemetry spans and attributes emitted by `AddInstrumentation()` have be
 
 If you have dashboards or alerts that filter on the old attribute names or values, update them accordingly.
 
+Besides changes to the attributes, the most notable change is that the name of the root GraphQL span has been changed to just include the operation type (`query`, `mutation` or `subscription`), and no longer the operation name, to keep the cardinality low. The operation name can still be retrieved from the `graphql.operation.name` span attribute.
+
 ### Removed attributes
 
 | Attribute                     |

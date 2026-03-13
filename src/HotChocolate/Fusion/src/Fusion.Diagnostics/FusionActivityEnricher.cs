@@ -19,38 +19,70 @@ public class FusionActivityEnricher(InstrumentationOptions options) : ActivityEn
     public virtual void EnrichPlanOperation(
         RequestContext context,
         string operationPlanId,
-        Activity activity) { }
+        Activity activity)
+    {
+    }
 
     public virtual void EnrichExecutePlanNode(
         OperationPlanContext context,
         ExecutionNode node,
         string? schemaName,
-        Activity activity) { }
+        Activity activity)
+    {
+    }
 
     public virtual void EnrichExecutionNodeError(
         OperationPlanContext context,
         ExecutionNode node,
         Exception exception,
-        Activity activity) { }
+        Activity activity)
+    {
+    }
 
     public virtual void EnrichSourceSchemaTransportError(
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
         Exception exception,
-        Activity activity) { }
+        Activity activity)
+    {
+    }
 
     public virtual void EnrichSourceSchemaStoreError(
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
         Exception exception,
-        Activity activity) { }
+        Activity activity)
+    {
+    }
 
     public virtual void EnrichOnSubscriptionEvent(
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId,
-        Activity activity) { }
+        Activity activity)
+    {
+    }
+
+    public virtual void EnrichSubscriptionTransportError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId,
+        Exception exception,
+        Activity activity)
+    {
+    }
+
+    public virtual void EnrichSubscriptionEventError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId,
+        Exception exception,
+        Activity featureActivity)
+    {
+    }
 }

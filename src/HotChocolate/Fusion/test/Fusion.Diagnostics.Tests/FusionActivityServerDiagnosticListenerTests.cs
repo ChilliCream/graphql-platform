@@ -7,7 +7,7 @@ using OperationRequest = HotChocolate.Transport.OperationRequest;
 namespace HotChocolate.Fusion.Diagnostics;
 
 [Collection("Instrumentation")]
-public class ServerInstrumentationTests : FusionTestBase
+public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
 

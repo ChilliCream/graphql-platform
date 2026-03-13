@@ -15,6 +15,7 @@ public static partial class ActivityTestHelper
         var listener = new ActivityListener();
         var root = new OrderedDictionary<string, object?>();
         var lookup = new Dictionary<Activity, OrderedDictionary<string, object?>>();
+        var spanLookup = new Dictionary<ActivitySpanId, OrderedDictionary<string, object?>>();
         Activity rootActivity = null!;
 
         listener.ShouldListenTo = source => source.Name.EqualsOrdinal("HotChocolate.Diagnostics");
@@ -35,6 +36,17 @@ public static partial class ActivityTestHelper
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
+                    spanLookup[a.SpanId] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
+                    return;
+                }
+
+                if (a.Parent is null
+                    && a.ParentSpanId != default
+                    && spanLookup.TryGetValue(a.ParentSpanId, out parentData))
+                {
+                    RegisterActivity(a, parentData);
+                    lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
+                    spanLookup[a.SpanId] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
                 }
             }
         };
@@ -46,6 +58,7 @@ public static partial class ActivityTestHelper
         rootActivity = HotChocolateActivitySource.Source.StartActivity()!;
         rootActivity.SetCustomProperty("test.data", root);
         lookup[rootActivity] = root;
+        spanLookup[rootActivity.SpanId] = root;
 
         activities = root;
         return new Session(rootActivity, listener);

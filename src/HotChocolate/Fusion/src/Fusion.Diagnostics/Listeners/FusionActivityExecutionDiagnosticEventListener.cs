@@ -188,6 +188,22 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName)
         => ExecuteNode(context, node, schemaName);
 
+    public override IDisposable ExecuteSubscriptionNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+        var nodeScope = ExecuteNode(context, node, schemaName);
+        context.RequestContext.Features.Set(
+            new SubscriptionContextFeature
+            {
+                SubscriptionContext = Activity.Current?.Context
+            });
+
+        return nodeScope;
+    }
+
     public override IDisposable ExecuteNodeFieldNode(
         OperationPlanContext context,
         NodeFieldExecutionNode node)
@@ -248,16 +264,66 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName,
         ulong subscriptionId)
     {
-        var activity = Source.StartActivity();
+        ActivityContext? subscriptionContext = null;
 
-        if (activity is null)
+        if (context.RequestContext.Features.TryGet<SubscriptionContextFeature>(out var feature)
+            && feature.SubscriptionContext is { } storedSubscriptionContext)
+        {
+            subscriptionContext = storedSubscriptionContext;
+        }
+
+        var span = SubscriptionEventSpan.Start(
+            Source,
+            context.RequestContext,
+            context.OperationPlan.Operation.Name,
+            subscriptionId,
+            subscriptionContext);
+
+        if (span is null)
         {
             return EmptyScope;
         }
 
-        enricher.EnrichOnSubscriptionEvent(context, node, schemaName, subscriptionId, activity);
+        enricher.EnrichOnSubscriptionEvent(context, node, schemaName, subscriptionId, span.Activity);
 
-        return activity;
+        return span;
+    }
+
+    public override void SubscriptionEventError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId,
+        Exception exception)
+    {
+        if (Activity.Current is { } activity)
+        {
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(exception);
+            enricher.EnrichSubscriptionEventError(
+                context,
+                node,
+                schemaName,
+                subscriptionId,
+                exception,
+                activity);
+        }
+    }
+
+    public override void SubscriptionTransportError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId,
+        Exception exception)
+    {
+        if (Activity.Current is { } activity)
+        {
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(exception);
+
+            enricher.EnrichSubscriptionTransportError(context, node, schemaName, subscriptionId, exception, activity);
+        }
     }
 
     public override void RetrievedDocumentFromCache(RequestContext context)
@@ -290,6 +356,11 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             span.Activity.AddEvent(new(nameof(AddedOperationPlanToCache)));
         }
+    }
+
+    private sealed class SubscriptionContextFeature
+    {
+        public ActivityContext? SubscriptionContext { get; set; }
     }
 
     private IDisposable ExecuteNode(OperationPlanContext context, ExecutionNode node, string? schemaName)

@@ -146,6 +146,11 @@ internal static class SemanticConventions
             }
         }
 
+        public static class Subscription
+        {
+            public const string Id = "graphql.subscription.id";
+        }
+
         // Note: This is not part of the OTEL semantic conventions
         public static class Http
         {

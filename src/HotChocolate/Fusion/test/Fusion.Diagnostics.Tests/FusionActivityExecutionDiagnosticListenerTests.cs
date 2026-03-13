@@ -1,14 +1,14 @@
-using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Fusion.Diagnostics;
 
 [Collection("Instrumentation")]
-public class QueryInstrumentationTests : FusionTestBase
+public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 {
     [Fact]
     public async Task Track_Events_Of_A_Simple_Query_Default()
@@ -525,6 +525,139 @@ public class QueryInstrumentationTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task SubscriptionEvent_Records_Subscription_Event_Span()
+    {
+        using var cts = new CancellationTokenSource(5000);
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            // act
+            await using var result = await executor.ExecuteAsync(
+                "subscription OnMessageSubscription { onMessage }");
+            await using var responseStream = result.ExpectResponseStream();
+            var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
+
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await results.DisposeAsync();
+            }
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact(Skip = "Errors are not correctly triggered")]
+    public async Task SubscriptionEventError_Records_Subscription_Event_Error()
+    {
+        using var cts = new CancellationTokenSource(5000);
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            // act
+            await using var result = await executor.ExecuteAsync(
+                "subscription OnFailingMessageSubscription { onFailingMessage }");
+            await using var responseStream = result.ExpectResponseStream();
+            var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
+
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await results.DisposeAsync();
+            }
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact(Skip = "Errors are not correctly triggered")]
+    public async Task SubscriptionRequestFails_When_SourceSchema_Is_Offline()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>(),
+                isOffline: true);
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            // act
+            IExecutionResult? result = null;
+
+            try
+            {
+                result = await executor.ExecuteAsync(
+                    "subscription OnMessageSubscription { onMessage }");
+            }
+            catch
+            {
+                // expected for failed subscription handshake.
+            }
+            finally
+            {
+                if (result is not null)
+                {
+                    await result.DisposeAsync();
+                }
+            }
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
     public class Query
     {
         public string SayHello() => "hello";
@@ -574,6 +707,28 @@ public class QueryInstrumentationTests : FusionTestBase
     public class Deeper
     {
         public Deep[] Deeps() => [new Deep()];
+    }
+
+    public class Subscription
+    {
+        public async IAsyncEnumerable<string> OnMessageStream()
+        {
+            yield return "hello";
+            await Task.CompletedTask;
+        }
+
+        [Subscribe(With = nameof(OnMessageStream))]
+        public string OnMessage([EventMessage] string message) => message;
+
+        public async IAsyncEnumerable<string> OnFailingMessageStream()
+        {
+            yield return "hello";
+            await Task.CompletedTask;
+        }
+
+        [Subscribe(With = nameof(OnFailingMessageStream))]
+        public string OnFailingMessage([EventMessage] string message)
+            => throw new InvalidOperationException("Subscription event failed.");
     }
 
     private sealed class InMemoryOperationDocumentStorage : IOperationDocumentStorage
