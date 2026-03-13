@@ -30,9 +30,9 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly ulong _includeFlags;
     private readonly ConcurrentStack<IDisposable> _memory = [];
-    private readonly List<CompositeResultElement> _collectTargetCurrent = [];
-    private readonly List<CompositeResultElement> _collectTargetNext = [];
-    private readonly List<CompositeResultElement> _collectTargetCombined = [];
+    private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
     private List<IError>? _errors;
@@ -440,7 +440,7 @@ AddErrors_Next:
         {
             var elements = CollectTargetElements(selectionSet);
 
-            if (elements is null)
+            if (elements.IsEmpty)
             {
                 return [];
             }
@@ -472,36 +472,44 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var combined = _collectTargetCombined;
-            combined.Clear();
+            var combinedCount = 0;
 
             foreach (var selectionSet in selectionSets)
             {
                 var elements = CollectTargetElements(selectionSet);
 
-                if (elements is not null)
+                if (!elements.IsEmpty)
                 {
-                    combined.AddRange(elements);
+                    EnsureCapacity(
+                        ref _collectTargetCombined,
+                        combinedCount + elements.Length,
+                        combinedCount);
+                    elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
+                    combinedCount += elements.Length;
                 }
             }
 
-            if (combined.Count == 0)
+            if (combinedCount == 0)
             {
                 return [];
             }
 
-            return BuildVariableValueSets(combined, requestVariables, requiredData);
+            return BuildVariableValueSets(
+                _collectTargetCombined.AsSpan(0, combinedCount),
+                requestVariables,
+                requiredData);
         }
     }
 
     // Caller must hold _lock for reading.
-    private List<CompositeResultElement>? CollectTargetElements(SelectionPath selectionSet)
+    private ReadOnlySpan<CompositeResultElement> CollectTargetElements(SelectionPath selectionSet)
     {
-        var current = _collectTargetCurrent;
-        var next = _collectTargetNext;
-        current.Clear();
-        next.Clear();
-        current.Add(_result.Data);
+        var current = _collectTargetA;
+        var currentCount = 0;
+        var next = _collectTargetB;
+        var nextCount = 0;
+
+        current[currentCount++] = _result.Data;
 
         for (var i = 0; i < selectionSet.Length; i++)
         {
@@ -509,20 +517,22 @@ AddErrors_Next:
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
-                foreach (var element in current)
+                for (var j = 0; j < currentCount; j++)
                 {
+                    var element = current[j];
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
                         && value.TextEqualsHelper(segment.Name, isPropertyName: false))
                     {
-                        next.Add(element);
+                        AddToBuffer(ref next, ref nextCount, element);
                     }
                 }
             }
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
-                foreach (var element in current)
+                for (var j = 0; j < currentCount; j++)
                 {
+                    var element = current[j];
                     if (!element.TryGetProperty(segment.Name, out var value))
                     {
                         continue;
@@ -537,13 +547,13 @@ AddErrors_Next:
 
                     if (valueKind is JsonValueKind.Array)
                     {
-                        AppendUnrolledLists(value, next);
+                        AppendUnrolledLists(value, ref next, ref nextCount);
                         continue;
                     }
 
                     if (valueKind is JsonValueKind.Object)
                     {
-                        next.Add(value);
+                        AddToBuffer(ref next, ref nextCount, value);
                         continue;
                     }
 
@@ -552,20 +562,26 @@ AddErrors_Next:
                 }
             }
 
-            (next, current) = (current, next);
-            next.Clear();
+            (current, next) = (next, current);
+            (currentCount, nextCount) = (nextCount, 0);
 
-            if (current.Count == 0)
+            if (currentCount == 0)
             {
-                return null;
+                // Store potentially grown arrays back.
+                _collectTargetA = current;
+                _collectTargetB = next;
+                return ReadOnlySpan<CompositeResultElement>.Empty;
             }
         }
 
-        return current;
+        // Store potentially grown arrays back.
+        _collectTargetA = current;
+        _collectTargetB = next;
+        return current.AsSpan(0, currentCount);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSets(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
@@ -620,18 +636,18 @@ AddErrors_Next:
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Count];
+            variableValueSets ??= new VariableValues[elements.Length];
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ObjectValueNode, int>(elements.Count, VariableValueComparer.Instance)
+                seen ??= new Dictionary<ObjectValueNode, int>(elements.Length, VariableValueComparer.Instance)
                 {
                     [variableValueSets[0].Values] = 0
                 };
 
                 if (seen.TryGetValue(variables, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
+                    additionalPaths ??= new List<Path>?[elements.Length];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
@@ -651,7 +667,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement,
         ref PooledArrayWriter? buffer)
     {
@@ -668,7 +684,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement,
         string fieldName,
         ref PooledArrayWriter? buffer)
@@ -680,7 +696,7 @@ AddErrors_Next:
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
 
-        for (var i = 0; i < elements.Count; i++)
+        for (var i = 0; i < elements.Length; i++)
         {
             var result = elements[i];
 
@@ -701,7 +717,7 @@ AddErrors_Next:
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Count];
+            variableValueSets ??= new VariableValues[elements.Length];
             IValueNode mappedValue;
 
             if (valueKind is JsonValueKind.String)
@@ -711,13 +727,13 @@ AddErrors_Next:
                 if (seenStrings is not null
                     && seenStrings.TryGetValue(stringValue, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
+                    additionalPaths ??= new List<Path>?[elements.Length];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
 
                 mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                seenStrings ??= new Dictionary<string, int>(elements.Count, StringComparer.Ordinal);
+                seenStrings ??= new Dictionary<string, int>(elements.Length, StringComparer.Ordinal);
                 seenStrings[stringValue] = nextIndex;
             }
             else
@@ -727,12 +743,12 @@ AddErrors_Next:
                 if (seen is not null
                     && seen.TryGetValue(mappedValue, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
+                    additionalPaths ??= new List<Path>?[elements.Length];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
 
-                seen ??= new Dictionary<IValueNode, int>(elements.Count, SingleValueNodeComparer.Instance);
+                seen ??= new Dictionary<IValueNode, int>(elements.Length, SingleValueNodeComparer.Instance);
                 seen[mappedValue] = nextIndex;
             }
 
@@ -749,7 +765,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement,
         ref PooledArrayWriter? buffer)
     {
@@ -772,18 +788,18 @@ AddErrors_Next:
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Count];
+            variableValueSets ??= new VariableValues[elements.Length];
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<IValueNode, int>(elements.Count, SingleValueNodeComparer.Instance)
+                seen ??= new Dictionary<IValueNode, int>(elements.Length, SingleValueNodeComparer.Instance)
                 {
                     [variableValueSets[0].Values.Fields[0].Value] = 0
                 };
 
                 if (seen.TryGetValue(value, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
+                    additionalPaths ??= new List<Path>?[elements.Length];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
@@ -800,7 +816,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
         ref PooledArrayWriter? buffer)
@@ -825,7 +841,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         string fieldName1,
         OperationRequirement requirement2,
@@ -857,12 +873,12 @@ AddErrors_Next:
 
             var mappedValue1 = MapRequirementLeafValue(value1, ref buffer);
             var mappedValue2 = MapRequirementLeafValue(value2, ref buffer);
-            variableValueSets ??= new VariableValues[elements.Count];
+            variableValueSets ??= new VariableValues[elements.Length];
             var key = new TwoValueNodeTuple(mappedValue1, mappedValue2);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Count, TwoValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Length, TwoValueNodeTupleComparer.Instance)
                 {
                     [new TwoValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -871,7 +887,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
+                    additionalPaths ??= new List<Path>?[elements.Length];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
@@ -891,7 +907,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPath(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
         ref PooledArrayWriter? buffer)
@@ -921,12 +937,12 @@ AddErrors_Next:
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Count];
+            variableValueSets ??= new VariableValues[elements.Length];
             var key = new TwoValueNodeTuple(value1, value2);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Count, TwoValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Length, TwoValueNodeTupleComparer.Instance)
                 {
                     [new TwoValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -935,7 +951,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
+                    additionalPaths ??= new List<Path>?[elements.Length];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
@@ -955,7 +971,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirements(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
         OperationRequirement requirement3,
@@ -985,7 +1001,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         string fieldName1,
         OperationRequirement requirement2,
@@ -1028,12 +1044,12 @@ AddErrors_Next:
             var mappedValue1 = MapRequirementLeafValue(value1, ref buffer);
             var mappedValue2 = MapRequirementLeafValue(value2, ref buffer);
             var mappedValue3 = MapRequirementLeafValue(value3, ref buffer);
-            variableValueSets ??= new VariableValues[elements.Count];
+            variableValueSets ??= new VariableValues[elements.Length];
             var key = new ThreeValueNodeTuple(mappedValue1, mappedValue2, mappedValue3);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Count, ThreeValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Length, ThreeValueNodeTupleComparer.Instance)
                 {
                     [new ThreeValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -1043,7 +1059,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
+                    additionalPaths ??= new List<Path>?[elements.Length];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
@@ -1064,7 +1080,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsSlowPath(
-        List<CompositeResultElement> elements,
+        ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
         OperationRequirement requirement3,
@@ -1080,8 +1096,8 @@ AddErrors_Next:
             var value1 = ResultDataMapper.Map(result, requirement1.Map, _schema, ref buffer);
 
             if (value1 is null
-                || value1.Kind == SyntaxKind.NullValue
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+                || (value1.Kind == SyntaxKind.NullValue
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1089,8 +1105,8 @@ AddErrors_Next:
             var value2 = ResultDataMapper.Map(result, requirement2.Map, _schema, ref buffer);
 
             if (value2 is null
-                || value2.Kind == SyntaxKind.NullValue
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+                || (value2.Kind == SyntaxKind.NullValue
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1098,18 +1114,18 @@ AddErrors_Next:
             var value3 = ResultDataMapper.Map(result, requirement3.Map, _schema, ref buffer);
 
             if (value3 is null
-                || value3.Kind == SyntaxKind.NullValue
-                    && requirement3.Type.Kind == SyntaxKind.NonNullType)
+                || (value3.Kind == SyntaxKind.NullValue
+                    && requirement3.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Count];
+            variableValueSets ??= new VariableValues[elements.Length];
             var key = new ThreeValueNodeTuple(value1, value2, value3);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Count, ThreeValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Length, ThreeValueNodeTupleComparer.Instance)
                 {
                     [new ThreeValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -1119,7 +1135,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
+                    additionalPaths ??= new List<Path>?[elements.Length];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
@@ -1222,7 +1238,8 @@ AddErrors_Next:
 
     private static void AppendUnrolledLists(
         CompositeResultElement list,
-        List<CompositeResultElement> destination)
+        ref CompositeResultElement[] destination,
+        ref int destinationCount)
     {
         foreach (var element in list.EnumerateArray())
         {
@@ -1235,12 +1252,50 @@ AddErrors_Next:
 
             if (elementValueKind is JsonValueKind.Array)
             {
-                AppendUnrolledLists(element, destination);
+                AppendUnrolledLists(element, ref destination, ref destinationCount);
             }
             else
             {
-                destination.Add(element);
+                AddToBuffer(ref destination, ref destinationCount, element);
             }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void AddToBuffer(
+        ref CompositeResultElement[] buffer,
+        ref int count,
+        CompositeResultElement value)
+    {
+        if (count == buffer.Length)
+        {
+            GrowBuffer(ref buffer, count);
+        }
+
+        buffer[count++] = value;
+    }
+
+    private static void GrowBuffer(
+        ref CompositeResultElement[] buffer,
+        int count)
+    {
+        var newBuffer = ArrayPool<CompositeResultElement>.Shared.Rent(buffer.Length * 2);
+        buffer.AsSpan(0, count).CopyTo(newBuffer);
+        ArrayPool<CompositeResultElement>.Shared.Return(buffer, clearArray: true);
+        buffer = newBuffer;
+    }
+
+    private static void EnsureCapacity(
+        ref CompositeResultElement[] buffer,
+        int required,
+        int count)
+    {
+        if (required > buffer.Length)
+        {
+            var newBuffer = ArrayPool<CompositeResultElement>.Shared.Rent(required);
+            buffer.AsSpan(0, count).CopyTo(newBuffer);
+            ArrayPool<CompositeResultElement>.Shared.Return(buffer, clearArray: true);
+            buffer = newBuffer;
         }
     }
 
@@ -1374,6 +1429,10 @@ AddErrors_Next:
         }
 
         _disposed = true;
+
+        ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetA, clearArray: true);
+        ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetB, clearArray: true);
+        ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
 
         while (_memory.TryPop(out var memory))
         {
