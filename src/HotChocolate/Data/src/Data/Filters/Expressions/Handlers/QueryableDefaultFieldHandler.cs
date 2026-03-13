@@ -137,13 +137,81 @@ public class QueryableDefaultFieldHandler
             && (previousRuntimeType.IsNullableValueType() || !previousRuntimeType.IsValueType()))
         {
             var peekedInstance = context.GetInstance();
-            condition = FilterExpressionBuilder.NotNullAndAlso(peekedInstance, condition);
+
+            if (!IsNullComparisonOnInstance(condition, peekedInstance))
+            {
+                condition = FilterExpressionBuilder.NotNullAndAlso(peekedInstance, condition);
+            }
         }
 
         context.GetLevel().Enqueue(condition);
         action = SyntaxVisitor.Continue;
 
         return true;
+    }
+
+    private static bool IsNullComparisonOnInstance(Expression condition, Expression instance)
+    {
+        if (condition is not BinaryExpression binary
+            || (binary.NodeType is not ExpressionType.Equal
+                && binary.NodeType is not ExpressionType.NotEqual))
+        {
+            return false;
+        }
+
+        return IsInstanceAndNull(binary.Left, binary.Right, instance)
+            || IsInstanceAndNull(binary.Right, binary.Left, instance);
+
+        static bool IsInstanceAndNull(
+            Expression candidateInstance,
+            Expression candidateNull,
+            Expression targetInstance)
+            => IsSameInstance(candidateInstance, targetInstance) && IsNull(candidateNull);
+
+        static bool IsSameInstance(Expression candidate, Expression target)
+        {
+            while (candidate is UnaryExpression
+                   {
+                       NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked,
+                       Operand: { } operand
+                   })
+            {
+                candidate = operand;
+            }
+
+            return ReferenceEquals(candidate, target);
+        }
+
+        static bool IsNull(Expression expression)
+        {
+            while (expression is UnaryExpression
+                   {
+                       NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked,
+                       Operand: { } operand
+                   })
+            {
+                expression = operand;
+            }
+
+            if (expression is ConstantExpression { Value: null })
+            {
+                return true;
+            }
+
+            if (expression is MemberExpression { Expression: ConstantExpression owner } member)
+            {
+                object? value = member.Member switch
+                {
+                    FieldInfo field => field.GetValue(owner.Value),
+                    PropertyInfo property => property.GetValue(owner.Value),
+                    _ => null
+                };
+
+                return value is null;
+            }
+
+            return false;
+        }
     }
 
     public static QueryableDefaultFieldHandler Create(FilterProviderContext context) => new();

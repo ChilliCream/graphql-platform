@@ -24,6 +24,44 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
     }
 
     [Fact]
+    public void Create_ObjectNonNullableShortEqualNull_Expression()
+    {
+        // arrange
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            "{ foo: { barShort: { eq: null }}}");
+        var tester = CreateProviderTester(new BarFilterInput());
+
+        // act
+        var func = tester.Build<Bar>(value);
+
+        // assert
+        var a = new Bar { Foo = null };
+        Assert.True(func(a));
+
+        var b = new Bar { Foo = new Foo { BarShort = 12 } };
+        Assert.False(func(b));
+    }
+
+    [Fact]
+    public void Create_ObjectNonNullableShortNotEqualNull_Expression()
+    {
+        // arrange
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            "{ foo: { barShort: { neq: null }}}");
+        var tester = CreateProviderTester(new BarFilterInput());
+
+        // act
+        var func = tester.Build<Bar>(value);
+
+        // assert
+        var a = new Bar { Foo = null };
+        Assert.False(func(a));
+
+        var b = new Bar { Foo = new Foo { BarShort = 12 } };
+        Assert.True(func(b));
+    }
+
+    [Fact]
     public void Create_ObjectShortIn_Expression()
     {
         // arrange
