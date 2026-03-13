@@ -8,6 +8,8 @@ public static partial class ActivityTestHelper
 {
     [GeneratedRegex(@" in (?<path>.+?):line (?<line>\d+)", RegexOptions.CultureInvariant)]
     private static partial Regex StackTracePathRegex();
+    [GeneratedRegex(@"lambda_method\d+", RegexOptions.CultureInvariant)]
+    private static partial Regex LambdaMethodRegex();
 
     public static IDisposable CaptureActivities(out object activities)
     {
@@ -114,14 +116,16 @@ public static partial class ActivityTestHelper
                 && (tag.Key.Equals("exception.stacktrace", StringComparison.Ordinal)
                     || tag.Key.EndsWith(".stacktrace", StringComparison.Ordinal)))
             {
+                var scrubbedStackTrace = StackTracePathRegex().Replace(stackTrace, match =>
+                {
+                    var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
+                    var lineNumber = match.Groups["line"].Value;
+                    return $" in {fileName}:line {lineNumber}";
+                });
+
                 yield return new KeyValuePair<string, object?>(
                     tag.Key,
-                    StackTracePathRegex().Replace(stackTrace, match =>
-                    {
-                        var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
-                        var lineNumber = match.Groups["line"].Value;
-                        return $" in {fileName}:line {lineNumber}";
-                    }));
+                    LambdaMethodRegex().Replace(scrubbedStackTrace, "lambda_method"));
             }
             else
             {
