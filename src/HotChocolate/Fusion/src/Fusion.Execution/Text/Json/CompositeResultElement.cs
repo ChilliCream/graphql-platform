@@ -183,6 +183,19 @@ public readonly partial struct CompositeResultElement
     }
 
     /// <summary>
+    /// Gets the compact path to this element within the result document.
+    /// </summary>
+    public CompactPath CompactPath
+    {
+        get
+        {
+            CheckValidInstance();
+
+            return _parent.CreateCompactPath(_cursor);
+        }
+    }
+
+    /// <summary>
     /// Gets the path to this element within the result document.
     /// </summary>
     public Path Path
@@ -191,7 +204,8 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            return _parent.CreatePath(_cursor);
+            var path = _parent.CreateCompactPath(_cursor);
+            return path.ToPath(_parent.GetOperation());
         }
     }
 

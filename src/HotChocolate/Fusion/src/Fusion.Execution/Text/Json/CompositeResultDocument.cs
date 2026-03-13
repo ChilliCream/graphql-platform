@@ -117,15 +117,14 @@ public sealed partial class CompositeResultDocument : IDisposable
         return _metaDb.GetSizeOrLength(current);
     }
 
-    internal Path CreatePath(Cursor current)
+    internal CompactPath CreateCompactPath(Cursor current)
     {
         // Stop at root via IsRoot flag.
         if ((_metaDb.GetFlags(current) & ElementFlags.IsRoot) == ElementFlags.IsRoot)
         {
-            return Path.Root;
+            return CompactPath.Root;
         }
 
-        var cursorIndex = current.Index;
         Span<Cursor> chain = stackalloc Cursor[64];
         var c = current;
         var written = 0;
@@ -148,7 +147,8 @@ public sealed partial class CompositeResultDocument : IDisposable
             }
         } while (true);
 
-        var path = Path.Root;
+        Span<int> pathBuffer = stackalloc int[32];
+        var path = new CompactPathBuilder(pathBuffer);
         var parentTokenType = ElementTokenType.StartObject;
 
         chain = chain[..written];
@@ -160,7 +160,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
             if (tokenType == ElementTokenType.PropertyName)
             {
-                path = path.Append(GetSelection(c)!.ResponseName);
+                path.AppendField(GetSelection(c)!.Id);
                 i--; // skip over the actual value
             }
             else if (chain.Length - 1 > i)
@@ -173,15 +173,18 @@ public sealed partial class CompositeResultDocument : IDisposable
                     var absChild = (c.Chunk * Cursor.RowsPerChunk) + c.Row;
                     var absParent = parentCursor.Chunk * Cursor.RowsPerChunk + parentCursor.Row;
                     var arrayIndex = absChild - (absParent + 1);
-                    path = path.Append(arrayIndex);
+                    path.AppendIndex(arrayIndex);
                 }
             }
 
             parentTokenType = tokenType;
         }
 
-        return path;
+        return path.ToPath();
     }
+
+    internal Path CreatePath(Cursor current)
+        => CreateCompactPath(current).ToPath(_operation);
 
     internal CompositeResultElement GetParent(Cursor current)
     {

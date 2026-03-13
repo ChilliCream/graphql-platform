@@ -347,6 +347,47 @@ internal sealed class FetchResultStore : IDisposable
                         element,
                         responseNames,
                         error,
+                        element.CompactPath);
+                if (!canExecutionContinue)
+                {
+                    resultData.Invalidate();
+                    return false;
+                }
+
+AddErrors_Next:
+                path = ref Unsafe.Add(ref path, 1)!;
+            }
+        }
+
+        return true;
+    }
+
+    public bool AddErrors(IError error, ReadOnlySpan<string> responseNames, ReadOnlySpan<CompactPath> paths)
+    {
+        lock (_lock)
+        {
+            ref var path = ref MemoryMarshal.GetReference(paths);
+            ref var end = ref Unsafe.Add(ref path, paths.Length);
+            var resultData = _result.Data;
+
+            while (Unsafe.IsAddressLessThan(ref path, ref end))
+            {
+                if (resultData.IsInvalidated)
+                {
+                    return false;
+                }
+
+                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+                if (element.IsNullOrInvalidated)
+                {
+                    goto AddErrors_Next;
+                }
+
+                var canExecutionContinue =
+                    _valueCompletion.BuildErrorResult(
+                        element,
+                        responseNames,
+                        error,
                         path);
                 if (!canExecutionContinue)
                 {
@@ -364,8 +405,8 @@ AddErrors_Next:
 
     private bool SaveSafeResult(
         CompositeResultElement resultData,
-        Path path,
-        ReadOnlySpan<Path> additionalPaths,
+        CompactPath path,
+        ReadOnlySpan<CompactPath> additionalPaths,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
         ReadOnlySpan<string> responseNames)
@@ -388,7 +429,7 @@ AddErrors_Next:
 
     private bool SaveSafeResult(
         CompositeResultElement resultData,
-        Path path,
+        CompactPath path,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
         ReadOnlySpan<string> responseNames)
@@ -624,7 +665,7 @@ AddErrors_Next:
 
         VariableValues[]? variableValueSets = null;
         Dictionary<ObjectValueNode, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
+        List<CompactPath>?[]? additionalPaths = null;
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -647,15 +688,15 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(variables, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    additionalPaths ??= new List<CompactPath>?[elements.Length];
+                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
                     continue;
                 }
 
                 seen[variables] = nextIndex;
             }
 
-            variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
+            variableValueSets[nextIndex++] = new VariableValues(result.CompactPath, variables);
         }
 
         if (buffer is not null)
@@ -692,7 +733,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
         Dictionary<string, int>? seenStrings = null;
-        List<Path>?[]? additionalPaths = null;
+        List<CompactPath>?[]? additionalPaths = null;
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
 
@@ -727,8 +768,8 @@ AddErrors_Next:
                 if (seenStrings is not null
                     && seenStrings.TryGetValue(stringValue, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    additionalPaths ??= new List<CompactPath>?[elements.Length];
+                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
                     continue;
                 }
 
@@ -743,8 +784,8 @@ AddErrors_Next:
                 if (seen is not null
                     && seen.TryGetValue(mappedValue, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    additionalPaths ??= new List<CompactPath>?[elements.Length];
+                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
                     continue;
                 }
 
@@ -753,7 +794,7 @@ AddErrors_Next:
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
+                result.CompactPath,
                 new ObjectValueNode([
                     new ObjectFieldNode(
                         requirement.Key,
@@ -771,7 +812,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
+        List<CompactPath>?[]? additionalPaths = null;
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -799,8 +840,8 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(value, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    additionalPaths ??= new List<CompactPath>?[elements.Length];
+                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
                     continue;
                 }
 
@@ -808,7 +849,7 @@ AddErrors_Next:
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
+                result.CompactPath,
                 new ObjectValueNode([new ObjectFieldNode(requirement.Key, value)]));
         }
 
@@ -850,7 +891,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<TwoValueNodeTuple, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
+        List<CompactPath>?[]? additionalPaths = null;
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -887,8 +928,8 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    additionalPaths ??= new List<CompactPath>?[elements.Length];
+                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
                     continue;
                 }
 
@@ -896,7 +937,7 @@ AddErrors_Next:
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
+                result.CompactPath,
                 new ObjectValueNode([
                     new ObjectFieldNode(requirement1.Key, mappedValue1),
                     new ObjectFieldNode(requirement2.Key, mappedValue2)
@@ -914,7 +955,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<TwoValueNodeTuple, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
+        List<CompactPath>?[]? additionalPaths = null;
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -951,8 +992,8 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    additionalPaths ??= new List<CompactPath>?[elements.Length];
+                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
                     continue;
                 }
 
@@ -960,7 +1001,7 @@ AddErrors_Next:
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
+                result.CompactPath,
                 new ObjectValueNode([
                     new ObjectFieldNode(requirement1.Key, value1),
                     new ObjectFieldNode(requirement2.Key, value2)
@@ -1012,7 +1053,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<ThreeValueNodeTuple, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
+        List<CompactPath>?[]? additionalPaths = null;
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -1059,8 +1100,8 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    additionalPaths ??= new List<CompactPath>?[elements.Length];
+                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
                     continue;
                 }
 
@@ -1068,7 +1109,7 @@ AddErrors_Next:
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
+                result.CompactPath,
                 new ObjectValueNode([
                     new ObjectFieldNode(requirement1.Key, mappedValue1),
                     new ObjectFieldNode(requirement2.Key, mappedValue2),
@@ -1088,7 +1129,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<ThreeValueNodeTuple, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
+        List<CompactPath>?[]? additionalPaths = null;
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -1135,8 +1176,8 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    additionalPaths ??= new List<CompactPath>?[elements.Length];
+                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
                     continue;
                 }
 
@@ -1144,7 +1185,7 @@ AddErrors_Next:
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
+                result.CompactPath,
                 new ObjectValueNode([
                     new ObjectFieldNode(requirement1.Key, value1),
                     new ObjectFieldNode(requirement2.Key, value2),
@@ -1385,6 +1426,13 @@ AddErrors_Next:
         return result.ValueKind is JsonValueKind.Object or JsonValueKind.Null ? result : default;
     }
 
+    private CompositeResultElement GetStartObjectResult(CompactPath path)
+    {
+        var result = GetStartResult(path);
+        Debug.Assert(result.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+        return result.ValueKind is JsonValueKind.Object or JsonValueKind.Null ? result : default;
+    }
+
     private CompositeResultElement GetStartResult(Path path)
     {
         if (path.IsRoot)
@@ -1421,6 +1469,45 @@ AddErrors_Next:
             $"The path segment '{parent}' does not exist in the data.");
     }
 
+    private CompositeResultElement GetStartResult(CompactPath path)
+    {
+        var element = _result.Data;
+
+        for (var i = 0; i < path.Length; i++)
+        {
+            var segment = path[i];
+
+            if (element.ValueKind is JsonValueKind.Null)
+            {
+                return element;
+            }
+
+            if (segment >= 0)
+            {
+                var selection = _operation.GetSelectionById(segment);
+
+                if (!element.TryGetProperty(selection.ResponseName, out element))
+                {
+                    return default;
+                }
+            }
+            else
+            {
+                var index = ~segment;
+
+                if (element.GetArrayLength() <= index)
+                {
+                    throw new InvalidOperationException(
+                        $"The path segment '[{index}]' does not exist in the data.");
+                }
+
+                element = element[index];
+            }
+        }
+
+        return element;
+    }
+
     public void Dispose()
     {
         if (_disposed)
@@ -1453,7 +1540,7 @@ AddErrors_Next:
 
     private static ImmutableArray<VariableValues> FinalizeVariableValueSets(
         VariableValues[]? variableValueSets,
-        List<Path>?[]? additionalPaths,
+        List<CompactPath>?[]? additionalPaths,
         int nextIndex)
     {
         if (variableValueSets is null || nextIndex == 0)

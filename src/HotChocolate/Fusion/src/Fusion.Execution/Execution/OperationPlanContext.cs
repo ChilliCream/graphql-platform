@@ -13,6 +13,7 @@ using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -231,7 +232,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
+            return [new VariableValues(CompactPath.Root, new ObjectValueNode(variableValues))];
         }
         else
         {
@@ -253,7 +254,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
+            return [new VariableValues(CompactPath.Root, new ObjectValueNode(variableValues))];
         }
         else
         {
@@ -262,21 +263,56 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    private static Path ToResultPath(SelectionPath selectionSet)
+    private CompactPath ToResultPath(SelectionPath selectionSet)
     {
-        var resultPath = Path.Root;
+        if (selectionSet.IsRoot)
+        {
+            return CompactPath.Root;
+        }
+
+        Span<int> buffer = stackalloc int[32];
+        var builder = new CompactPathBuilder(buffer);
+        var operation = OperationPlan.Operation;
+        var currentSelectionSet = operation.RootSelectionSet;
+        Selection? currentSelection = null;
 
         for (var i = 0; i < selectionSet.Length; i++)
         {
             var segment = selectionSet[i];
 
-            if (segment.Kind is SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field)
+            if (segment.Kind is SelectionPathSegmentKind.Root)
             {
-                resultPath = resultPath.Append(segment.Name);
+                continue;
+            }
+
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                if (currentSelection is null)
+                {
+                    continue;
+                }
+
+                var objectType = Schema.Types.GetType<IObjectTypeDefinition>(segment.Name);
+                currentSelectionSet = operation.GetSelectionSet(currentSelection, objectType);
+                continue;
+            }
+
+            if (!currentSelectionSet.TryGetSelection(segment.Name, out var selection))
+            {
+                throw new InvalidOperationException(
+                    $"Could not resolve selection path segment '{segment.Name}'.");
+            }
+
+            builder.AppendField(selection.Id);
+            currentSelection = selection;
+
+            if (selection.Type.NamedType() is IObjectTypeDefinition objectTypeForSelection)
+            {
+                currentSelectionSet = operation.GetSelectionSet(selection, objectTypeForSelection);
             }
         }
 
-        return resultPath;
+        return builder.ToPath();
     }
 
     internal void AddPartialResults(
@@ -305,6 +341,16 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     }
 
     internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    {
+        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
+
+    internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, ReadOnlySpan<CompactPath> paths)
     {
         var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
 

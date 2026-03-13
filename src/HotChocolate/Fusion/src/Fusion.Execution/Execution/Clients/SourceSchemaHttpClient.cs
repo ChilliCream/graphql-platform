@@ -386,19 +386,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private static bool TryGetResultPath(
         SourceSchemaClientRequest request,
         int variableIndex,
-        out Path path,
-        out ImmutableArray<Path> additionalPaths)
+        out CompactPath path,
+        out ImmutableArray<CompactPath> additionalPaths)
     {
         if (request.Variables.Length == 0)
         {
-            path = Path.Root;
+            path = CompactPath.Root;
             additionalPaths = [];
             return true;
         }
 
         if ((uint)variableIndex >= (uint)request.Variables.Length)
         {
-            path = Path.Root;
+            path = CompactPath.Root;
             additionalPaths = [];
             return false;
         }
@@ -489,8 +489,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         OperationPlanContext context,
         ExecutionNode node,
         NodeResponse nodeResponse,
-        Path path,
-        ImmutableArray<Path> additionalPaths,
+        CompactPath path,
+        ImmutableArray<CompactPath> additionalPaths,
         SourceResultDocument document)
     {
         var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
@@ -561,7 +561,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             {
                 await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
                 {
-                    var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
+                    var sourceSchemaResult = new SourceSchemaResult(CompactPath.Root, result);
 
                     configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
@@ -575,7 +575,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     case 0:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
-                        var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
+                        var sourceSchemaResult = new SourceSchemaResult(CompactPath.Root, result);
 
                         configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
