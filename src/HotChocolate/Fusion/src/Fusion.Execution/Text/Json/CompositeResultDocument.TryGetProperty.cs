@@ -158,6 +158,56 @@ public sealed partial class CompositeResultDocument
             out value);
     }
 
+    internal bool TryGetNamedPropertyValueWithSelection(
+        Cursor startCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value,
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Execution.Nodes.Selection? selection)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, tokenType);
+
+        var numberOfRows = _metaDb.GetNumberOfRows(startCursor);
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            selection = null;
+            return false;
+        }
+
+        var row = _metaDb.Get(startCursor);
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out selection))
+            {
+                var propertyIndex = selection.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+        }
+
+        // Fallback to linear search — resolve selection from the matched property row.
+        var endCursor = startCursor + (numberOfRows - 1);
+
+        if (TryGetNamedPropertyValue(startCursor + 1, endCursor, propertyName, out value))
+        {
+            selection = GetSelection(value.Cursor)!;
+            return true;
+        }
+
+        selection = null;
+        return false;
+    }
+
     private bool TryGetNamedPropertyValue(
         Cursor startCursor,
         Cursor endCursor,

@@ -1,4 +1,3 @@
-using HotChocolate.Utilities;
 using static System.StringComparison;
 
 namespace HotChocolate;
@@ -11,7 +10,6 @@ public sealed class NamePathSegment : Path
 {
     internal NamePathSegment(Path parent, string name) : base(parent)
     {
-        name.EnsureGraphQLName();
         Name = name;
     }
 
