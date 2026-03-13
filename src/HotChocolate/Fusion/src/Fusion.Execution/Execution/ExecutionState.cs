@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -164,9 +165,11 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         {
             if (result.DependentsToExecute.Length > 0)
             {
+                var dependentsToExecute = result.DependentsToExecute;
+
                 foreach (var dependent in node.Dependents)
                 {
-                    if (!result.DependentsToExecute.Contains(dependent))
+                    if (!ContainsDependent(dependentsToExecute, dependent))
                     {
                         SkipNode(context, dependent);
                     }
@@ -357,6 +360,23 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     private bool IsInBacklog(int nodeId)
         => (uint)nodeId < (uint)_nodeStates.Length
             && _nodeStates[nodeId] == NodeStateBacklog;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ContainsDependent(
+        ImmutableArray<ExecutionNode> dependentsToExecute,
+        ExecutionNode dependent)
+    {
+        return dependentsToExecute.Length switch
+        {
+            1 => ReferenceEquals(dependentsToExecute[0], dependent),
+            2 => ReferenceEquals(dependentsToExecute[0], dependent)
+                || ReferenceEquals(dependentsToExecute[1], dependent),
+            3 => ReferenceEquals(dependentsToExecute[0], dependent)
+                || ReferenceEquals(dependentsToExecute[1], dependent)
+                || ReferenceEquals(dependentsToExecute[2], dependent),
+            _ => dependentsToExecute.Contains(dependent)
+        };
+    }
 
     private void AddToBacklog(ExecutionNode node)
     {

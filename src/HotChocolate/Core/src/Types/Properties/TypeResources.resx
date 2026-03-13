@@ -1069,7 +1069,7 @@ Type: `{0}`</value>
     <value>The stability must follow the GraphQL type name rules.</value>
   </data>
   <data name="DateTimeOptions_InputPrecision_InvalidValue" xml:space="preserve">
-    <value>InputPrecision must be less than or equal to 7.</value>
+    <value>InputPrecision must be less than or equal to 9.</value>
   </data>
   <data name="DateTimeOptions_OutputPrecision_InvalidValue" xml:space="preserve">
     <value>OutputPrecision must be less than or equal to 7.</value>
@@ -1082,5 +1082,8 @@ Type: `{0}`</value>
   </data>
   <data name="BatchResolver_ReturnTypeMustBeList" xml:space="preserve">
     <value>The batch resolver method '{0}.{1}' must return a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers return one result per parent object, so the return type must be a collection.</value>
+  </data>
+  <data name="ThrowHelper_KeyValuePairType_InvalidRuntimeType" xml:space="preserve">
+    <value>{0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type.</value>
   </data>
 </root>

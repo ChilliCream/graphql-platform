@@ -321,7 +321,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 7..
+        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 9..
         /// </summary>
         internal static string DateTimeOptions_InputPrecision_InvalidValue {
             get {
@@ -3239,6 +3239,15 @@ namespace HotChocolate.Properties {
         internal static string VariableValueBuilder_VarNameEmpty {
             get {
                 return ResourceManager.GetString("VariableValueBuilder_VarNameEmpty", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type..
+        /// </summary>
+        internal static string ThrowHelper_KeyValuePairType_InvalidRuntimeType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_KeyValuePairType_InvalidRuntimeType", resourceCulture);
             }
         }
     }

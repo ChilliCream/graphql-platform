@@ -1,6 +1,4 @@
-#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Fusion.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,14 +24,22 @@ public static class FusionGatewayBuilderExtensions
         builder.ConfigureSchemaServices(
             (_, services) => services.AddMcpSchemaServices(configureServerOptions, configureServer));
 
-        builder.AddWarmupTask(async (executor, cancellationToken) =>
-        {
-            var schema = executor.Schema;
-            var storageObserver = schema.Services.GetRequiredService<McpStorageObserver>();
-            await storageObserver.StartAsync(cancellationToken);
-        });
-
         return builder;
+    }
+
+    public static IFusionGatewayBuilder AddMcpStorage<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, T> factory,
+        Func<IServiceProvider, bool>? skipIf = null)
+        where T : class, IMcpStorage
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        builder.ConfigureSchemaServices((_, s) => s.AddSingleton<IMcpStorage, T>(factory));
+
+        return builder.AddMcpStorageWarmupTask(skipIf);
     }
 
     public static IFusionGatewayBuilder AddMcpStorage(
@@ -44,6 +50,20 @@ public static class FusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(storage);
 
         builder.ConfigureSchemaServices((_, s) => s.AddSingleton(storage));
+
+        return builder.AddMcpStorageWarmupTask();
+    }
+
+    private static IFusionGatewayBuilder AddMcpStorageWarmupTask(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, bool>? skipIf = null)
+    {
+        builder.AddWarmupTask(async (executor, cancellationToken) =>
+        {
+            var schema = executor.Schema;
+            var storageObserver = schema.Services.GetRequiredService<McpStorageObserver>();
+            await storageObserver.StartAsync(cancellationToken);
+        }, skipIf);
 
         return builder;
     }

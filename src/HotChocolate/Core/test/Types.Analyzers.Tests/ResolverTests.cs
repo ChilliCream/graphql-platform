@@ -72,6 +72,72 @@ public class ResolverTests
     }
 
     [Fact]
+    public async Task GenerateSource_ResolverWithLocalStateDerivedAttribute_PrimaryConstructorBaseKey_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static string GetTest([ScopeState] string scope)
+                {
+                    return scope;
+                }
+            }
+
+            [AttributeUsage(AttributeTargets.Parameter)]
+            public sealed class ScopeStateAttribute()
+                : LocalStateAttribute(LookupKey)
+            {
+                public const string LookupKey = "ScopeState";
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithScopedStateDerivedAttribute_BaseConstructorKey_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static string GetTest([ScopeState] string scope)
+                {
+                    return scope;
+                }
+            }
+
+            [AttributeUsage(AttributeTargets.Parameter)]
+            public sealed class ScopeStateAttribute : ScopedStateAttribute
+            {
+                public const string LookupKey = "ScopeState";
+
+                public ScopeStateAttribute()
+                    : base(LookupKey)
+                {
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task GenerateSource_ResolverWithLocalStateSetStateArgument_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

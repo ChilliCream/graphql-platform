@@ -45,11 +45,11 @@ public sealed class Resolver
             }
         }
 
-        Attributes = member.GetAttributes();
-        Shareable = Attributes.GetShareableScope();
-        Inaccessible = Attributes.GetInaccessibleScope();
-        IsNodeResolver = Attributes.IsNodeResolver();
-        DescriptorAttributes = Attributes.GetUserAttributes();
+        var attributes = member.GetAttributes();
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        IsNodeResolver = attributes.IsNodeResolver();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string FieldName { get; }
@@ -94,8 +94,6 @@ public sealed class Resolver
     public DirectiveScope Shareable { get; }
 
     public DirectiveScope Inaccessible { get; }
-
-    public ImmutableArray<AttributeData> Attributes { get; }
 
     public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 

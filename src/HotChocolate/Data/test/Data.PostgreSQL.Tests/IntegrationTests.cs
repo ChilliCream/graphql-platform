@@ -4,10 +4,16 @@ using HotChocolate.Data.Migrations;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace HotChocolate.Data;
@@ -620,6 +626,52 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
     }
 
+    [Fact]
+    public async Task Generated_BrandKey_NodeIdValueSerializer_RoundTrip()
+    {
+        // arrange
+        var db = "db_" + Guid.NewGuid().ToString("N");
+        var connectionString = resource.GetConnectionString(db);
+        await using var services = CreateServer(connectionString);
+
+        // We need to initialize the executor so that all services are registered.
+        await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+
+        var serializer = services.GetRequiredService<INodeIdSerializer>();
+        var original = new BrandKey(42, 7);
+
+        // act
+        var formatted = serializer.Format("BrandKey", original);
+        var parsed = serializer.Parse(formatted, typeof(BrandKey));
+
+        // assert
+        Assert.Equal("BrandKey", parsed.TypeName);
+        Assert.IsType<BrandKey>(parsed.InternalId);
+        Assert.Equal(original, (BrandKey)parsed.InternalId);
+    }
+
+    [Fact]
+    public async Task Query_ScopeState_With_Derived_ScopedState_Attribute()
+    {
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                scopeState
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "scopeState": "Hello World"
+              }
+            }
+            """);
+    }
+
     private static ServiceProvider CreateServer(string connectionString)
     {
         var services = new ServiceCollection();
@@ -643,6 +695,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
+            .AddNodeIdValueSerializerFrom<BrandKey>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ModifyPagingOptions(o => o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors"));
 
@@ -814,4 +867,44 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
 
     [GeneratedRegex(@"'(?<id>\d+)'", RegexOptions.CultureInvariant)]
     private static partial Regex QuotedNumericIdRegex();
+}
+
+[QueryType]
+public static partial class ScopeStateQuery
+{
+    [UseScopeStateMiddleware]
+    public static string ScopeState([ScopeState] string scope)
+        => scope;
+}
+
+[AttributeUsage(AttributeTargets.Parameter)]
+public sealed class ScopeStateAttribute()
+    : ScopedStateAttribute(LookupKey)
+{
+    public const string LookupKey = "ScopeState";
+}
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+public sealed class UseScopeStateMiddlewareAttribute : ObjectFieldDescriptorAttribute
+{
+    public UseScopeStateMiddlewareAttribute([CallerLineNumber] int order = 0)
+        => Order = order;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectFieldDescriptor descriptor,
+        MemberInfo? member) =>
+        descriptor.Use<ScopeStateMiddleware>();
+
+    private sealed class ScopeStateMiddleware(FieldDelegate next)
+    {
+        public async Task InvokeAsync(IMiddlewareContext context)
+        {
+            context.SetScopedState(ScopeStateAttribute.LookupKey, "Hello World");
+
+            await next(context);
+
+            context.RemoveScopedState(ScopeStateAttribute.LookupKey);
+        }
+    }
 }

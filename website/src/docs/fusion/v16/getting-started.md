@@ -1020,7 +1020,7 @@ You proved that Fusion works:
 
 The Products and Reviews subgraphs are completely independent. They do not import each other's code, do not call each other directly, and can be deployed and scaled separately. Yet clients can query across both as if they were one unified schema.
 
-## Sharing Fields with `[Shareable]`
+## Sharing Fields Across Subgraphs
 
 In the tutorial so far, the Products and Reviews subgraphs each contribute **different** fields to the `Product` type. Products owns `name` and `price`, while Reviews owns `reviews`. There is no overlap, so composition works without any special annotations.
 
@@ -1059,7 +1059,7 @@ public sealed record Product(int Id)
 }
 ```
 
-Both subgraphs define `Product.name` and mark it `[Shareable]`. Composition succeeds, and the gateway can resolve `name` from either subgraph depending on what else the query needs. If a query only asks for `product.name` and `product.reviews`, the gateway might fetch everything from the Reviews subgraph in a single call instead of making a separate trip to the Products subgraph.
+Both subgraphs define `Product.name` and mark it `[Shareable]`. Composition succeeds, and the gateway can resolve `name` from either subgraph depending on what else the query needs. If a query only asks for `product.name` and `product.reviews`, the gateway will fetch everything from the Reviews subgraph in a single call instead of making a separate trip to the Products subgraph.
 
 ### The Rule
 
@@ -1077,26 +1077,7 @@ You now have a working Fusion setup: two subgraphs contributing to one composed 
 
 - **I want to add another subgraph to this project**: [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph)
 - **I want to understand entities more deeply**: [Entities and Lookups](/docs/fusion/v16/entities-and-lookups)
+- **I need cross-subgraph field dependencies (`[Require]`)**: [Entities and Lookups](/docs/fusion/v16/entities-and-lookups)
 - **I need to deploy this**: [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd)
 - **I need to secure this**: [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization)
 - **I'm coming from Apollo**: [Coming from Apollo Federation](/docs/fusion/v16/migration/coming-from-apollo-federation)
-
-**Other useful resources:**
-
-- **Use `[Require]` for cross-subgraph data dependencies.** If a field resolver needs data that lives in another subgraph, use the `[Require]` attribute on a method argument to declare the dependency. For example, a Shipping subgraph calculating delivery estimates might need a product's weight from the Products subgraph:
-
-  ```csharp
-  public int GetDeliveryEstimate(
-      string zip,
-      [Require] int weight)
-  {
-      // weight is fetched from the Products subgraph automatically
-      return CalculateShipping(zip, weight);
-  }
-  ```
-
-  When the argument name matches the entity field name (like `weight` above), Hot Chocolate infers the mapping automatically, so you can use `[Require]` without parameters. If the names differ, specify the entity field explicitly: `[Require("weight")] int productWeight`. The gateway resolves the required fields from their owning subgraph before calling your resolver. The required arguments are hidden from the composite schema. Clients never see them.
-
-- **You may see `[NodeResolver]` in demo code alongside `[Lookup]`.** This enables Relay-style global object identification (`node(id: ...)` queries). The fusion-demo uses it on every entity lookup. It is not required for basic Fusion setups.
-
-- **Explore the fusion-demo repository.** The [ChilliCream fusion-demo](https://github.com/ChilliCream/fusion-demo) is a full production-style example with eight subgraphs, .NET Aspire orchestration, PostgreSQL databases, authentication, subscriptions, and CI/CD pipelines. It shows everything this guide simplified for learning purposes.
