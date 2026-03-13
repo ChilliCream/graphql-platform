@@ -24,6 +24,10 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 {
+#if FUSION
+    private const string JsonUtf8ContentType = $"{ContentType.Json}; charset=utf-8";
+#endif
+
     private readonly HttpClient _http;
     private readonly bool _disposeInnerClient;
 
@@ -205,7 +209,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         var content = new ByteArrayContent(internalBuffer, 0, arrayWriter.Length);
 #if FUSION
         content.Headers.ContentType = null;
-        content.Headers.TryAddWithoutValidation("Content-Type", ContentType.Json);
+        content.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
 #else
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #endif
@@ -233,7 +237,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
 #if FUSION
         operation.Headers.ContentType = null;
-        operation.Headers.TryAddWithoutValidation("Content-Type", ContentType.Json);
+        operation.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
 #else
         operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #endif
@@ -242,7 +246,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         var fileMap = new ByteArrayContent(buffer, 0, start);
 #if FUSION
         fileMap.Headers.ContentType = null;
-        fileMap.Headers.TryAddWithoutValidation("Content-Type", ContentType.Json);
+        fileMap.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
 #else
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #endif
