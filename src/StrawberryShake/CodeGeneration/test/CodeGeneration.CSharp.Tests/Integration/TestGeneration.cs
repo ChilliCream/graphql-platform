@@ -9,7 +9,7 @@ public class TestGeneration
     [Fact]
     public void StarWarsGetHero() =>
         AssertStarWarsResult(
-            CreateIntegrationTest(),
+            CreateIntegrationTest(generateWithHttpStatusCodeCaptureMethod: true),
             @"query GetHero {
                 hero(episode: NEW_HOPE) {
                     name
