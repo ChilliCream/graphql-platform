@@ -4,5 +4,5 @@ schema {
 
 type QueryWithArgumentDefaults {
   field1(a: String b: String! = "abc"): String
-  field2(a: String! b: String = "abc"): String
+  field2(a: String b: String = "abc"): String
 }
