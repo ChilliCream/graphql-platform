@@ -13,7 +13,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         using var metaDb = MetaDb.CreateForEstimatedRows(10);
 
         // Assert
-        Assert.Equal(0, metaDb.NextCursor.ToIndex());
+        Assert.Equal(0, metaDb.NextCursor.Index);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             flags: ElementFlags.None);
 
         // Assert
-        Assert.Equal(0, cursor.ToIndex());
+        Assert.Equal(0, cursor.Index);
         Assert.Equal(20, _metaDb.NextCursor.ToTotalBytes());
     }
 
@@ -43,9 +43,9 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var index3 = _metaDb.Append(ElementTokenType.EndObject);
 
         // Assert
-        Assert.Equal(0, index1.ToIndex());
-        Assert.Equal(1, index2.ToIndex());
-        Assert.Equal(2, index3.ToIndex());
+        Assert.Equal(0, index1.Index);
+        Assert.Equal(1, index2.Index);
+        Assert.Equal(2, index3.Index);
         Assert.Equal(60, _metaDb.NextCursor.ToTotalBytes());
     }
 
