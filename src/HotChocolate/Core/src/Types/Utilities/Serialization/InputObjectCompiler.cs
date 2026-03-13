@@ -15,6 +15,9 @@ internal static class InputObjectCompiler
     private static readonly ParameterExpression s_fieldValues =
         Expression.Parameter(typeof(object?[]), "fieldValues");
 
+    private static readonly ConstantExpression s_missingValue =
+        Expression.Constant(InputParser.MissingValue, typeof(object));
+
     public static Func<object?[], object> CompileFactory(
         InputObjectType inputType,
         ConstructorInfo? constructor = null)
@@ -199,6 +202,7 @@ internal static class InputObjectCompiler
             {
                 fields.Remove(field.Property!.Name);
                 var value = GetFieldValue(field, fieldValues);
+                value = NormalizeMissingValue(value);
 
                 if (field is InputField { IsOptional: true })
                 {
@@ -243,6 +247,7 @@ internal static class InputObjectCompiler
         {
             var setter = field.Property!.GetSetMethod(true)!;
             var value = GetFieldValue(field, fieldValues);
+            var isMissing = Expression.ReferenceEqual(value, s_missingValue);
 
             if (field is InputField { IsOptional: true })
             {
@@ -256,7 +261,15 @@ internal static class InputObjectCompiler
 
             value = Expression.Convert(value, field.Property.PropertyType);
             Expression setPropertyValue = Expression.Call(instance, setter, value);
-            currentBlock.Add(setPropertyValue);
+
+            if (field is InputField { IsOptional: true })
+            {
+                currentBlock.Add(setPropertyValue);
+            }
+            else
+            {
+                currentBlock.Add(Expression.IfThen(Expression.Not(isMissing), setPropertyValue));
+            }
         }
     }
 
@@ -275,6 +288,12 @@ internal static class InputObjectCompiler
         Expression casted = Expression.Convert(fieldValue, typeof(object));
         return Expression.Assign(element, casted);
     }
+
+    private static Expression NormalizeMissingValue(Expression value)
+        => Expression.Condition(
+            Expression.ReferenceEqual(value, s_missingValue),
+            Expression.Constant(null, typeof(object)),
+            value);
 
     private static bool FieldsAreUnique(
         InputObjectType type,
