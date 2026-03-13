@@ -60,16 +60,16 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
         if (exception is GraphQLException ex)
         {
-            foreach (var error in ex.Errors)
+            if (ex.Errors.Count > 0)
             {
-                ReportError(error);
+                ReportError(ex.Errors[0]);
             }
         }
         else if (exception is AggregateException aggregateException)
         {
-            foreach (var innerException in aggregateException.InnerExceptions)
+            if (aggregateException.InnerExceptions.Count > 0)
             {
-                ReportError(innerException);
+                ReportError(aggregateException.InnerExceptions[0]);
             }
         }
         else
