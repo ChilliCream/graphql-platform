@@ -1,14 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Events;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public class FaultHandlingTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public FaultHandlingTests(RabbitMQFixture fixture)
@@ -23,7 +22,7 @@ public class FaultHandlingTests
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ThrowingRequestHandler>()
@@ -49,7 +48,7 @@ public class FaultHandlingTests
         var normalRecorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
-            .AddSingleton<IConnectionFactory>(vhost.ConnectionFactory)
+            .AddSingleton(vhost.ConnectionFactory)
             .AddKeyedSingleton("throwing", throwingRecorder)
             .AddKeyedSingleton("shipment", normalRecorder)
             .AddMessageBus()
@@ -72,7 +71,7 @@ public class FaultHandlingTests
 
         // assert - the second handler still works
         Assert.True(
-            await normalRecorder.WaitAsync(Timeout),
+            await normalRecorder.WaitAsync(s_timeout),
             "Normal handler did not receive event after a previous handler threw");
     }
 

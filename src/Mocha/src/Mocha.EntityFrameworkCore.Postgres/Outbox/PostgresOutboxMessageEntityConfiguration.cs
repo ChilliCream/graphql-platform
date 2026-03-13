@@ -11,7 +11,7 @@ namespace Mocha.Outbox;
 internal sealed class PostgresOutboxMessageEntityConfiguration : IEntityTypeConfiguration<OutboxMessage>
 {
     // Use default values from OutboxTableInfo as the source of truth
-    private static readonly OutboxTableInfo Defaults = new();
+    private static readonly OutboxTableInfo s_defaults = new();
 
     /// <summary>
     /// Gets the shared singleton instance of the outbox message entity configuration.
@@ -24,17 +24,17 @@ internal sealed class PostgresOutboxMessageEntityConfiguration : IEntityTypeConf
     /// <param name="builder">The entity type builder for <see cref="OutboxMessage"/>.</param>
     public void Configure(EntityTypeBuilder<OutboxMessage> builder)
     {
-        builder.ToTable(Defaults.Table);
+        builder.ToTable(s_defaults.Table);
 
-        builder.HasKey(e => e.Id).HasName(Defaults.IxPrimaryKey);
+        builder.HasKey(e => e.Id).HasName(s_defaults.IxPrimaryKey);
 
-        builder.HasIndex(x => x.CreatedAt).HasDatabaseName(Defaults.IxCreatedAt).IsDescending();
+        builder.HasIndex(x => x.CreatedAt).HasDatabaseName(s_defaults.IxCreatedAt).IsDescending();
 
-        builder.HasIndex(x => x.TimesSent).HasDatabaseName(Defaults.IxTimesSent);
+        builder.HasIndex(x => x.TimesSent).HasDatabaseName(s_defaults.IxTimesSent);
 
-        builder.Property(x => x.Id).HasColumnName(Defaults.Id);
-        builder.Property(x => x.Envelope).HasColumnName(Defaults.Envelope).HasColumnType("json");
-        builder.Property(x => x.TimesSent).HasColumnName(Defaults.TimesSent);
-        builder.Property(x => x.CreatedAt).HasColumnName(Defaults.CreatedAt);
+        builder.Property(x => x.Id).HasColumnName(s_defaults.Id);
+        builder.Property(x => x.Envelope).HasColumnName(s_defaults.Envelope).HasColumnType("json");
+        builder.Property(x => x.TimesSent).HasColumnName(s_defaults.TimesSent);
+        builder.Property(x => x.CreatedAt).HasColumnName(s_defaults.CreatedAt);
     }
 }

@@ -126,7 +126,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     if (currentTypeRef is FactoryTypeReference factoryTypeRef
                         && factoryTypeRef.TypeStructure.IsListType())
                     {
-                        typeRef = factoryTypeRef.TypeDefinition;
+                        // Preserve list element nullability from the generated type structure.
+                        typeRef = factoryTypeRef.GetElementType();
                     }
 
                     if (typeRef is null
@@ -261,7 +262,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     if (currentTypeRef is FactoryTypeReference factoryTypeRef
                         && factoryTypeRef.TypeStructure.IsListType())
                     {
-                        typeRef = factoryTypeRef.TypeDefinition;
+                        // Preserve list element nullability from the generated type structure.
+                        typeRef = factoryTypeRef.GetElementType();
                     }
 
                     if (typeRef is null

@@ -194,7 +194,7 @@ public class SchemaFirstTests
                     """
                     mutation {
                       changeChannelParameters(input: {
-                        parameterChangeInfo: [ { value: { a: "b" } } ]
+                        parameterChangeInfo: [{ value: { a: "b" } }]
                       }) {
                         message
                       }

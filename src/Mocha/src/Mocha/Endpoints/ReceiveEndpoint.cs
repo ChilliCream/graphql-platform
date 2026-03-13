@@ -241,7 +241,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// <param name="configuration">The receive endpoint configuration.</param>
     protected virtual void OnComplete(
         IMessagingConfigurationContext context,
-        ReceiveEndpointConfiguration configuration) { }
+        ReceiveEndpointConfiguration configuration)
+    { }
 
     /// <summary>
     /// Starts this endpoint, enabling it to begin receiving and processing messages.

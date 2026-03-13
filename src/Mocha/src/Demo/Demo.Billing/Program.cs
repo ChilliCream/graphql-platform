@@ -4,6 +4,9 @@ using Demo.Billing.Handlers;
 using Demo.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
+using Mocha.EntityFrameworkCore;
+using Mocha.Inbox;
+using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +40,14 @@ builder
     // Request handlers for saga commands
     .AddRequestHandler<ProcessRefundCommandHandler>()
     .AddRequestHandler<ProcessPartialRefundCommandHandler>()
+    .AddEntityFramework<BillingDbContext>(p =>
+    {
+        p.UsePostgresOutbox();
+
+        p.UseResilience();
+        p.UseTransaction();
+        p.UsePostgresInbox();
+    })
     .AddRabbitMQ();
 
 var app = builder.Build();
@@ -75,10 +86,14 @@ app.MapPost(
     {
         var invoice = await db.Invoices.FirstOrDefaultAsync(i => i.Id == invoiceId);
         if (invoice is null)
+        {
             return Results.NotFound("Invoice not found");
+        }
 
         if (invoice.Status == InvoiceStatus.Paid)
+        {
             return Results.BadRequest("Invoice already paid");
+        }
 
         var payment = new Payment
         {

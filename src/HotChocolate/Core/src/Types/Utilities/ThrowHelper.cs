@@ -30,6 +30,26 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
+    public static SchemaException BatchResolver_ArgumentMustBeList(ParameterInfo parameter)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.BatchResolver_ArgumentMustBeList,
+                    parameter.Name)
+                .Build());
+
+    public static InvalidOperationException BatchResolver_ResultCountMismatch(int expected, int actual)
+        => new(string.Format(TypeResources.BatchResolver_ResultCountMismatch, expected, actual));
+
+    public static SchemaException BatchResolver_ReturnTypeMustBeList(MethodInfo method)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.BatchResolver_ReturnTypeMustBeList,
+                    method.DeclaringType?.FullName ?? method.DeclaringType?.Name,
+                    method.Name)
+                .Build());
+
     public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member)
         => new SchemaException(
             SchemaErrorBuilder.New()
@@ -181,6 +201,14 @@ internal static class ThrowHelper
                 .SetMessage(
                     ThrowHelper_DataLoader_InvalidType,
                     dataLoaderType.FullName ?? dataLoaderType.Name)
+                .Build());
+
+    public static SchemaException KeyValuePairType_InvalidRuntimeType(string typeName)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.ThrowHelper_KeyValuePairType_InvalidRuntimeType,
+                    typeName)
                 .Build());
 
     public static SchemaException NonGenericExecutableNotAllowed()

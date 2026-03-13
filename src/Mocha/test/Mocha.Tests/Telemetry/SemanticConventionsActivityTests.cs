@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Mocha;
 
 namespace Mocha.Tests;
 

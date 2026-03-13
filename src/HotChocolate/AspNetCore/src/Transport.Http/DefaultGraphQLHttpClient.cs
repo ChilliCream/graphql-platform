@@ -24,6 +24,10 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 {
+#if FUSION
+    private const string JsonUtf8ContentType = $"{ContentType.Json}; charset=utf-8";
+#endif
+
     private readonly HttpClient _http;
     private readonly bool _disposeInnerClient;
 
@@ -148,11 +152,22 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             Method = method
         };
 
+#if FUSION
+        if (request.AcceptHeaderValue is not null)
+        {
+            message.Headers.TryAddWithoutValidation("Accept", request.AcceptHeaderValue);
+        }
+        else
+        {
+#endif
         message.Headers.Accept.Clear();
         foreach (var contentType in request.Accept)
         {
             message.Headers.Accept.Add(contentType);
         }
+#if FUSION
+        }
+#endif
 
         if (method == GraphQLHttpMethod.Post)
         {
@@ -192,7 +207,12 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         var internalBuffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
         var content = new ByteArrayContent(internalBuffer, 0, arrayWriter.Length);
+#if FUSION
+        content.Headers.ContentType = null;
+        content.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
+#else
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
+#endif
         return content;
     }
 
@@ -215,11 +235,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         var form = new MultipartFormDataContent();
 
         var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
+#if FUSION
+        operation.Headers.ContentType = null;
+        operation.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
+#else
         operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
+#endif
         form.Add(operation, "operations");
 
         var fileMap = new ByteArrayContent(buffer, 0, start);
+#if FUSION
+        fileMap.Headers.ContentType = null;
+        fileMap.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
+#else
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
+#endif
         form.Add(fileMap, "map");
 
         foreach (var fileInfo in fileInfos)

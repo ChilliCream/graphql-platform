@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.Storage;
-using Mocha.Outbox;
 
 namespace Mocha.Sagas.EfCore;
 

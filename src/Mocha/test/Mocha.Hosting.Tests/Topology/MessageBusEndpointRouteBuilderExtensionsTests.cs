@@ -12,7 +12,7 @@ namespace Mocha.Hosting.Tests.Topology;
 public sealed class MessageBusEndpointRouteBuilderExtensionsTests
 {
     [Fact]
-    public async Task MapMessageBus_Should_ReturnJsonTopology_When_DefaultPath()
+    public async Task MapMessageBusDeveloperTopology_Should_ReturnJsonTopology_When_DefaultPath()
     {
         // Arrange
         using var host = await CreateHost();
@@ -31,7 +31,7 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
     }
 
     [Fact]
-    public async Task MapMessageBus_Should_ReturnJsonTopology_When_CustomPath()
+    public async Task MapMessageBusDeveloperTopology_Should_ReturnJsonTopology_When_CustomPath()
     {
         // Arrange
         using var host = await CreateHost("/custom/topology");
@@ -50,7 +50,7 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
     }
 
     [Fact]
-    public async Task MapMessageBus_Should_ContainHostInfo_When_Called()
+    public async Task MapMessageBusDeveloperTopology_Should_ContainHostInfo_When_Called()
     {
         // Arrange
         using var host = await CreateHost();
@@ -61,11 +61,23 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
         var content = await response.Content.ReadAsStringAsync(default);
         var doc = JsonDocument.Parse(content);
 
-        // Assert
+        // Assert — the response has DiagramData shape: { services: [...], transports: [...] }
         Assert.True(
-            doc.RootElement.TryGetProperty("host", out var hostElement),
-            "Response JSON should contain a 'host' property.");
+            doc.RootElement.TryGetProperty("services", out var servicesElement),
+            "Response JSON should contain a 'services' property.");
+        Assert.Equal(JsonValueKind.Array, servicesElement.ValueKind);
+        Assert.True(servicesElement.GetArrayLength() > 0, "Services array should not be empty.");
+
+        var firstService = servicesElement[0];
+        Assert.True(
+            firstService.TryGetProperty("host", out var hostElement),
+            "First service should contain a 'host' property.");
         Assert.Equal(JsonValueKind.Object, hostElement.ValueKind);
+
+        Assert.True(
+            doc.RootElement.TryGetProperty("transports", out var transportsElement),
+            "Response JSON should contain a 'transports' property.");
+        Assert.Equal(JsonValueKind.Array, transportsElement.ValueKind);
     }
 
     private static async Task<IHost> CreateHost(string? topologyPath = null)
@@ -86,11 +98,11 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
                     {
                         if (topologyPath is not null)
                         {
-                            endpoints.MapMessageBus(topologyPath);
+                            endpoints.MapMessageBusDeveloperTopology(topologyPath);
                         }
                         else
                         {
-                            endpoints.MapMessageBus();
+                            endpoints.MapMessageBusDeveloperTopology();
                         }
                     });
                 });

@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 namespace Mocha;
 
 /// <summary>
@@ -8,24 +6,14 @@ namespace Mocha;
 internal static class MessageHeaders
 {
     /// <summary>
-    /// The distributed trace identifier, propagated from <see cref="System.Diagnostics.Activity.TraceId"/>.
+    /// The W3C Trace Context <c>traceparent</c> header (version-traceId-spanId-traceFlags).
     /// </summary>
-    public static readonly ContextDataKey<string?> TraceId = new("trace-id");
+    public static readonly ContextDataKey<string?> Traceparent = new("traceparent");
 
     /// <summary>
-    /// The span identifier, propagated from <see cref="System.Diagnostics.Activity.SpanId"/>.
+    /// The W3C Trace Context <c>tracestate</c> header carrying vendor-specific trace data.
     /// </summary>
-    public static readonly ContextDataKey<string?> SpanId = new("span-id");
-
-    /// <summary>
-    /// The W3C trace state string, propagated from <see cref="System.Diagnostics.Activity.TraceStateString"/>.
-    /// </summary>
-    public static readonly ContextDataKey<string?> TraceState = new("trace-state");
-
-    /// <summary>
-    /// The parent activity identifier, propagated from <see cref="System.Diagnostics.Activity.ParentId"/>.
-    /// </summary>
-    public static readonly ContextDataKey<string?> ParentId = new("parent-id");
+    public static readonly ContextDataKey<string?> Tracestate = new("tracestate");
 
     /// <summary>
     /// Indicates the kind of message <see cref="MessageKind"/> it is.

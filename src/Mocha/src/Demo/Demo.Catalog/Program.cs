@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
 using Mocha.Hosting;
+using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Sagas;
 using Mocha.Transport.RabbitMQ;
@@ -40,10 +41,15 @@ builder
     .AddSaga<ReturnProcessingSaga>()
     .AddEntityFramework<CatalogDbContext>(p =>
     {
-        p.AddPostgresOutbox();
         p.AddPostgresSagas();
+
+        // dispatch
+        p.UsePostgresOutbox();
+
+        // receive
         p.UseResilience();
         p.UseTransaction();
+        p.UsePostgresInbox();
     })
     .AddRabbitMQ();
 
@@ -85,10 +91,14 @@ app.MapPost(
 
             var product = await db.Products.FindAsync(request.ProductId);
             if (product is null)
+            {
                 return Results.NotFound("Product not found");
+            }
 
             if (product.StockQuantity < request.Quantity)
+            {
                 return Results.BadRequest("Insufficient stock");
+            }
 
             var order = new OrderRecord
             {
@@ -191,7 +201,9 @@ app.MapPost(
         // Verify order exists
         var order = await db.Orders.FindAsync(request.OrderId);
         if (order is null)
+        {
             return Results.NotFound("Order not found");
+        }
 
         logger.LogInformation("Initiating quick refund saga for order {OrderId}", request.OrderId);
 
@@ -232,10 +244,14 @@ app.MapPost(
         // Verify order exists
         var order = await db.Orders.Include(o => o.Product).FirstOrDefaultAsync(o => o.Id == request.OrderId);
         if (order is null)
+        {
             return Results.NotFound("Order not found");
+        }
 
         if (order.Status != OrderStatus.Delivered && order.Status != OrderStatus.Shipping)
+        {
             return Results.BadRequest($"Order cannot be returned in status: {order.Status}");
+        }
 
         logger.LogInformation("Creating return label for order {OrderId}", request.OrderId);
 
@@ -291,7 +307,7 @@ app.MapPost(
         }
     });
 
-app.MapMessageBus();
+app.MapMessageBusDeveloperTopology();
 
 app.Run();
 

@@ -23,7 +23,7 @@ public sealed class ContinuousTask : IAsyncDisposable
     private readonly CancellationTokenSource _completion = new();
     private readonly Func<CancellationToken, Task> _handler;
     private readonly Task _task;
-    private bool disposed;
+    private bool _disposed;
 
     /// <summary>
     /// Creates a new continuous task that immediately begins executing the specified handler.
@@ -77,7 +77,7 @@ public sealed class ContinuousTask : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (disposed)
+        if (_disposed)
         {
             return;
         }
@@ -91,9 +91,21 @@ public sealed class ContinuousTask : IAsyncDisposable
 #endif
         }
 
+        // Wait for the background loop to finish before disposing the CTS.
+        // This prevents ObjectDisposedException if RunContinuously is still
+        // accessing _completion.Token when we dispose it.
+        try
+        {
+            await _task.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during shutdown.
+        }
+
         _completion.Dispose();
 
-        disposed = true;
+        _disposed = true;
     }
 }
 

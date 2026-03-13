@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading.Channels;
 using Mocha.Middlewares;
@@ -69,13 +68,13 @@ public sealed class InMemoryQueue : TopologyResource<InMemoryQueueConfiguration>
 /// Wraps a message envelope together with its pooled buffer for zero-copy in-memory transfer.
 /// </summary>
 /// <remarks>
-/// The underlying byte buffer is rented from <see cref="System.Buffers.ArrayPool{T}"/> and
+/// The underlying byte buffer is rented from <see cref="ArrayPool{T}"/> and
 /// must be returned by calling <see cref="Dispose"/>. Failing to dispose will cause pool exhaustion.
 /// </remarks>
 public class InMemoryQueueItem : IDisposable
 {
     private readonly byte[] _buffer;
-    private MessageEnvelope _envelope;
+    private readonly MessageEnvelope _envelope;
 
     /// <summary>
     /// Creates a new queue item backed by the given envelope and pooled buffer.

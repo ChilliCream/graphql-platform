@@ -81,7 +81,7 @@ internal static class RabbitMQMessageHeaderExtensions
         this IDictionary<string, object?> headers,
         ContextDataKey<ImmutableArray<string>> key)
     {
-        if (headers.TryGetValue(key.Key, out object? value) && value is List<object> listOfObjects)
+        if (headers.TryGetValue(key.Key, out var value) && value is List<object> listOfObjects)
         {
             var builder = ImmutableArray.CreateBuilder<string>(listOfObjects.Count);
             foreach (var obj in listOfObjects)

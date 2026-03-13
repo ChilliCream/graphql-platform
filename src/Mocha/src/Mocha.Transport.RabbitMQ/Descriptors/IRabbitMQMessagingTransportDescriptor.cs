@@ -1,5 +1,3 @@
-using RabbitMQ.Client;
-
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
@@ -28,6 +26,13 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <returns>The descriptor for method chaining.</returns>
     IRabbitMQMessagingTransportDescriptor ConnectionProvider(
         Func<IServiceProvider, IRabbitMQConnectionProvider> connectionFactory);
+
+    /// <summary>
+    /// Configures bus-level defaults that are applied to all auto-provisioned queues and exchanges.
+    /// </summary>
+    /// <param name="configure">A delegate that configures the bus defaults.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQMessagingTransportDescriptor ConfigureDefaults(Action<RabbitMQBusDefaults> configure);
 
     /// <summary>
     /// Gets or creates a receive endpoint descriptor with the specified name.
@@ -64,6 +69,17 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <param name="queue">The destination queue name.</param>
     /// <returns>A binding descriptor for further configuration.</returns>
     IRabbitMQBindingDescriptor DeclareBinding(string exchange, string queue);
+
+    /// <summary>
+    /// Sets whether topology resources should be automatically provisioned on the broker.
+    /// When disabled, queues, exchanges, and bindings must exist before the transport starts.
+    /// Individual resources can override this setting via their own <c>AutoProvision</c> method.
+    /// </summary>
+    /// <param name="autoProvision">
+    /// <c>true</c> to enable auto-provisioning (default); <c>false</c> to disable it globally.
+    /// </param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQMessagingTransportDescriptor AutoProvision(bool autoProvision = true);
 
     /// <inheritdoc cref="IMessagingTransportDescriptor.Name" />
     new IRabbitMQMessagingTransportDescriptor Name(string name);

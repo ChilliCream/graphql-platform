@@ -15,9 +15,9 @@ namespace Mocha;
 /// </remarks>
 internal static class MiddlewareCompiler
 {
-    private static List<DispatchMiddlewareConfiguration>? _dispatchMiddlewares;
-    private static List<ReceiveMiddlewareConfiguration>? _receiveMiddlewares;
-    private static List<ConsumerMiddlewareConfiguration>? _handlerMiddlewares;
+    private static List<DispatchMiddlewareConfiguration>? s_dispatchMiddlewares;
+    private static List<ReceiveMiddlewareConfiguration>? s_receiveMiddlewares;
+    private static List<ConsumerMiddlewareConfiguration>? s_handlerMiddlewares;
 
     public static DispatchDelegate CompileDispatch(
         DispatchMiddlewareFactoryContext context,
@@ -26,7 +26,7 @@ internal static class MiddlewareCompiler
         ReadOnlySpan<IReadOnlyList<Action<List<DispatchMiddlewareConfiguration>>>> pipelineModifiers)
     {
         // Atomically claim the reusable list instance, if one is currently cached.
-        var middlewares = Interlocked.Exchange(ref _dispatchMiddlewares, null);
+        var middlewares = Interlocked.Exchange(ref s_dispatchMiddlewares, null);
         middlewares ??= [];
 
         foreach (var middleware in middlewareConfigurations)
@@ -45,7 +45,7 @@ internal static class MiddlewareCompiler
         // Reverse before fold so first configured middleware becomes outermost in execution.
         middlewares.Reverse();
 
-        DispatchDelegate pipeline = dispatch;
+        var pipeline = dispatch;
 
         foreach (var middleware in middlewares)
         {
@@ -55,7 +55,7 @@ internal static class MiddlewareCompiler
 
         middlewares.Clear();
 
-        Interlocked.CompareExchange(ref _dispatchMiddlewares, middlewares, null);
+        Interlocked.CompareExchange(ref s_dispatchMiddlewares, middlewares, null);
 
         return pipeline;
     }
@@ -67,7 +67,7 @@ internal static class MiddlewareCompiler
         ReadOnlySpan<IReadOnlyList<Action<List<ReceiveMiddlewareConfiguration>>>> pipelineModifiers)
     {
         // Atomically claim the reusable list instance, if one is currently cached.
-        var middlewares = Interlocked.Exchange(ref _receiveMiddlewares, null);
+        var middlewares = Interlocked.Exchange(ref s_receiveMiddlewares, null);
         middlewares ??= [];
 
         foreach (var middleware in middlewareConfigurations)
@@ -85,7 +85,7 @@ internal static class MiddlewareCompiler
 
         middlewares.Reverse();
 
-        ReceiveDelegate pipeline = receive;
+        var pipeline = receive;
 
         foreach (var middleware in middlewares)
         {
@@ -95,7 +95,7 @@ internal static class MiddlewareCompiler
 
         middlewares.Clear();
 
-        Interlocked.CompareExchange(ref _receiveMiddlewares, middlewares, null);
+        Interlocked.CompareExchange(ref s_receiveMiddlewares, middlewares, null);
 
         return pipeline;
     }
@@ -107,7 +107,7 @@ internal static class MiddlewareCompiler
         ReadOnlySpan<IReadOnlyList<Action<List<ConsumerMiddlewareConfiguration>>>> pipelineModifiers)
     {
         // Atomically claim the reusable list instance, if one is currently cached.
-        var middlewares = Interlocked.Exchange(ref _handlerMiddlewares, null);
+        var middlewares = Interlocked.Exchange(ref s_handlerMiddlewares, null);
         middlewares ??= [];
 
         foreach (var middleware in middlewareConfigurations)
@@ -124,7 +124,7 @@ internal static class MiddlewareCompiler
         }
 
         // Reverse before fold so first configured middleware becomes outermost in execution.
-        ConsumerDelegate pipeline = handler;
+        var pipeline = handler;
 
         middlewares.Reverse();
 
@@ -136,7 +136,7 @@ internal static class MiddlewareCompiler
 
         middlewares.Clear();
 
-        Interlocked.CompareExchange(ref _handlerMiddlewares, middlewares, null);
+        Interlocked.CompareExchange(ref s_handlerMiddlewares, middlewares, null);
 
         return pipeline;
     }

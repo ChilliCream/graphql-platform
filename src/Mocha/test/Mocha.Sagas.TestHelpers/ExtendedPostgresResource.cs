@@ -1,6 +1,5 @@
 using Npgsql;
 using Squadron;
-using Xunit;
 
 namespace Mocha.Sagas.Tests;
 

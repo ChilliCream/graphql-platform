@@ -1,8 +1,7 @@
 using Demo.Catalog.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Sagas.EfCore;
 
@@ -13,6 +12,7 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbCo
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<OrderRecord> Orders => Set<OrderRecord>();
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,6 +20,7 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbCo
 
         modelBuilder.AddPostgresSagas();
         modelBuilder.AddPostgresOutbox();
+        modelBuilder.AddPostgresInbox();
 
         modelBuilder.Entity<Product>(entity =>
         {

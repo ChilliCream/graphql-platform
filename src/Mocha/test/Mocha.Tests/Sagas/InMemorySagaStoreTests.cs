@@ -1,7 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Sagas;
-using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests;
 
@@ -112,7 +110,7 @@ public class InMemorySagaStoreTests
     public async Task StoreSaveAndLoadAsync_Should_RoundTrip_When_SaveAndLoadAsyncAreCalled()
     {
         // arrange
-        var (store, storage, saga) = CreateStore();
+        var (store, _, saga) = CreateStore();
         var state = new TestSagaState { OrderId = "ORD-100", Amount = 50m };
 
         // act - save without a transaction (goes directly to storage)

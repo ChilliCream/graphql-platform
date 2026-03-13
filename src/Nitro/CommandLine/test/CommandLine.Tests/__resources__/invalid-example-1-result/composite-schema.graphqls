@@ -18,8 +18,8 @@ type Query
 type User
 @fusion__type(schema: SCHEMA1)
 @fusion__type(schema: SCHEMA2)
-@fusion__lookup(schema: SCHEMA1, key: "id", field: "userById(id: ID!): User!", map: [ "id" ], path: null, internal: false)
-@fusion__lookup(schema: SCHEMA2, key: "id", field: "userById(id: ID!): User!", map: [ "id" ], path: null, internal: false) {
+@fusion__lookup(schema: SCHEMA1, key: "id", field: "userById(id: ID!): User!", map: ["id"], path: null, internal: false)
+@fusion__lookup(schema: SCHEMA2, key: "id", field: "userById(id: ID!): User!", map: ["id"], path: null, internal: false) {
   id: ID!
   @fusion__field(schema: SCHEMA1)
   @fusion__field(schema: SCHEMA2)

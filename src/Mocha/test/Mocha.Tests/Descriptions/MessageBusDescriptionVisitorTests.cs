@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha;
 using Mocha.Sagas;
 using Mocha.Transport.InMemory;
 

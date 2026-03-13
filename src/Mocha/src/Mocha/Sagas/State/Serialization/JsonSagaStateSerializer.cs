@@ -15,7 +15,7 @@ public sealed class JsonSagaStateSerializer(JsonTypeInfo typeInfo) : ISagaStateS
 
     /// <inheritdoc />
     public T? Deserialize<T>(ReadOnlyMemory<byte> body)
-        => JsonSerializer.Deserialize(body.Span, typeInfo) is T result ? result : default(T);
+        => JsonSerializer.Deserialize(body.Span, typeInfo) is T result ? result : default;
 
     /// <inheritdoc />
     public void Serialize<T>(T message, IBufferWriter<byte> writer)

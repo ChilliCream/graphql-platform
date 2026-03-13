@@ -1,5 +1,3 @@
-using Mocha.Middlewares;
-
 namespace Mocha;
 
 /// <summary>

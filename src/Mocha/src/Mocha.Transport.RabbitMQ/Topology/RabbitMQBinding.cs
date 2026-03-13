@@ -15,8 +15,9 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
 
     /// <summary>
     /// Gets a value indicating whether this binding is automatically provisioned during topology setup.
+    /// When <c>null</c>, the transport-level default is used.
     /// </summary>
-    public bool AutoProvision { get; protected set; }
+    public bool? AutoProvision { get; protected set; }
 
     /// <summary>
     /// Gets the routing key pattern used to filter messages passing through this binding.
@@ -55,7 +56,7 @@ public sealed class RabbitMQExchangeBinding : RabbitMQBinding
     {
         RoutingKey = configuration.RoutingKey ?? string.Empty;
         Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
-        AutoProvision = configuration.AutoProvision ?? true;
+        AutoProvision = configuration.AutoProvision;
     }
 
     protected override void OnComplete(RabbitMQBindingConfiguration configuration)
@@ -96,7 +97,7 @@ public sealed class RabbitMQQueueBinding : RabbitMQBinding
     {
         RoutingKey = configuration.RoutingKey ?? string.Empty;
         Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
-        AutoProvision = configuration.AutoProvision ?? true;
+        AutoProvision = configuration.AutoProvision;
     }
 
     protected override void OnComplete(RabbitMQBindingConfiguration configuration)

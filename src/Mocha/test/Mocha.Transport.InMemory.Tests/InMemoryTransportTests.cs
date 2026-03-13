@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Middlewares;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests;
@@ -467,7 +466,7 @@ public class InMemoryTransportTests
         await bus.SendAsync(new ProcessPayment { OrderId = "ORD-T1", Amount = 42.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the message sent to queue");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message sent to queue");
 
         var msg = Assert.Single(recorder.Messages);
         var payment = Assert.IsType<ProcessPayment>(msg);
@@ -493,7 +492,7 @@ public class InMemoryTransportTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-T2" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the message published to topic");
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message published to topic");
 
         var msg = Assert.Single(recorder.Messages);
         var order = Assert.IsType<OrderCreated>(msg);
@@ -1001,7 +1000,7 @@ public class InMemoryTransportTests
         }
     }
 
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     private static (
         MessagingRuntime Runtime,

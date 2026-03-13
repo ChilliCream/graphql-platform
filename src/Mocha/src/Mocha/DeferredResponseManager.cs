@@ -25,10 +25,13 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
         var cts = new CancellationTokenSource(timeout.Value, timeProvider);
         var promise = new Promise(tcs, cts, timeout.Value);
 
-        cts.Token.Register(() => { if (_matches.TryRemove(correlationId, out var p))
+        cts.Token.Register(() =>
         {
-            p.TaskCompletionSource.TrySetException(new ResponseTimeoutException(correlationId, p.Timeout));
-        } });
+            if (_matches.TryRemove(correlationId, out var p))
+            {
+                p.TaskCompletionSource.TrySetException(new ResponseTimeoutException(correlationId, p.Timeout));
+            }
+        });
 
         _matches.TryAdd(correlationId, promise);
         return tcs;

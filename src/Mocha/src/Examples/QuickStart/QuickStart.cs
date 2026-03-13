@@ -4,9 +4,12 @@
 // $ dotnet run QuickStart.cs
 
 using Mocha;
+using Mocha.Hosting;
 using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors();
 
 builder.Services
     .AddMessageBus()
@@ -14,6 +17,8 @@ builder.Services
     .AddInMemory();
 
 var app = builder.Build();
+
+app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 app.MapGet("/orders", async (IMessageBus bus) =>
 {
@@ -28,6 +33,11 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 });
 
 Console.WriteLine("Listening for orders on http://localhost:5000/orders");
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapMessageBusDeveloperTopology();
+}
 
 app.Run();
 

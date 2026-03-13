@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Mocha.Middlewares;
-using Mocha.Sagas;
 
 namespace Mocha;
 
@@ -10,14 +9,14 @@ namespace Mocha;
 /// metadata into kebab-case endpoint names and URN-based message identities.
 /// </summary>
 /// <param name="host">The host information used to derive service-scoped endpoint names.</param>
-public sealed class DefaultNamingConventions(IHostInfo host) : IBusNamingConventions
+public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamingConventions
 {
     // Source gen
-    private static readonly Regex KebabCaseRegex = new("(?<!^)(?=[A-Z])|(?<=[a-z])(?=[0-9])", RegexOptions.Compiled);
+    private static readonly Regex s_kebabCaseRegex = KebabCaseRegex();
 
-    private static readonly string[] HandlerSuffixes = { "Handler", "Consumer", "Consumer`1", "Handler`1" };
+    private static readonly string[] s_handlerSuffixes = ["Handler", "Consumer", "Consumer`1", "Handler`1"];
 
-    private static readonly string[] MessageSuffixes = { "Message", "Command", "Event", "Query", "Response" };
+    private static readonly string[] s_messageSuffixes = ["Message", "Command", "Event", "Query", "Response"];
 
     /// <inheritdoc />
     public string GetReceiveEndpointName(InboundRoute route, ReceiveEndpointKind kind)
@@ -177,7 +176,7 @@ public sealed class DefaultNamingConventions(IHostInfo host) : IBusNamingConvent
         // Convert PascalCase/namespaces to kebab-case URN-friendly format
         var result = new StringBuilder();
 
-        for (int i = 0; i < name.Length; i++)
+        for (var i = 0; i < name.Length; i++)
         {
             var c = name[i];
 
@@ -231,13 +230,13 @@ public sealed class DefaultNamingConventions(IHostInfo host) : IBusNamingConvent
     private static string FormatHandlerTypeName(Type type)
     {
         var name = GetBaseTypeName(type);
-        name = RemoveSuffixes(name, HandlerSuffixes);
+        name = RemoveSuffixes(name, s_handlerSuffixes);
         return ToKebabCase(name);
     }
 
     private static string FormatHandlerName(string name)
     {
-        name = RemoveSuffixes(name, HandlerSuffixes);
+        name = RemoveSuffixes(name, s_handlerSuffixes);
         return ToKebabCase(name);
     }
 
@@ -247,7 +246,7 @@ public sealed class DefaultNamingConventions(IHostInfo host) : IBusNamingConvent
     private static string FormatMessageTypeName(Type type)
     {
         var name = GetBaseTypeName(type);
-        name = RemoveSuffixes(name, MessageSuffixes);
+        name = RemoveSuffixes(name, s_messageSuffixes);
         return ToKebabCase(name);
     }
 
@@ -325,7 +324,10 @@ public sealed class DefaultNamingConventions(IHostInfo host) : IBusNamingConvent
             return input.ToLowerInvariant().Replace('_', '-');
         }
 
-        var result = KebabCaseRegex.Replace(input, "-");
+        var result = s_kebabCaseRegex.Replace(input, "-");
         return result.ToLowerInvariant();
     }
+
+    [GeneratedRegex("(?<!^)(?=[A-Z])|(?<=[a-z])(?=[0-9])")]
+    private static partial Regex KebabCaseRegex();
 }

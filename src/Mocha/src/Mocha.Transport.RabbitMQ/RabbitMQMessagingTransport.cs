@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Sagas;
 using RabbitMQ.Client;
 using static System.StringSplitOptions;
 
@@ -73,7 +72,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             Port = Connection.Port,
             Path = Connection.VirtualHost
         };
-        _topology = new RabbitMQMessagingTopology(this, builder.Uri);
+        _topology = new RabbitMQMessagingTopology(
+            this,
+            builder.Uri,
+            configuration.Defaults,
+            configuration.AutoProvision ?? true);
 
         foreach (var exchange in configuration.Exchanges)
         {
@@ -98,32 +101,42 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>();
 
-        return new RabbitMQConsumerManager(logger, ct => Connection.CreateAsync(ct));
+        return new RabbitMQConsumerManager(logger, Connection.CreateAsync);
     }
 
     private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
 
-        return new RabbitMQDispatcher(logger, ct => Connection.CreateAsync(ct), ProvisionTopologyAsync);
+        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync);
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
         {
             await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
-
-            foreach (var queue in _topology.Queues)
-            {
-                await queue.ProvisionAsync(channel, ct);
-            }
+            var autoProvision = _topology.AutoProvision;
 
             foreach (var exchange in _topology.Exchanges)
             {
-                await exchange.ProvisionAsync(channel, ct);
+                if (exchange.AutoProvision ?? autoProvision)
+                {
+                    await exchange.ProvisionAsync(channel, ct);
+                }
+            }
+
+            foreach (var queue in _topology.Queues)
+            {
+                if (queue.AutoProvision ?? autoProvision)
+                {
+                    await queue.ProvisionAsync(channel, ct);
+                }
             }
 
             foreach (var binding in _topology.Bindings)
             {
-                await binding.ProvisionAsync(channel, ct);
+                if (binding.AutoProvision ?? autoProvision)
+                {
+                    await binding.ProvisionAsync(channel, ct);
+                }
             }
         }
     }
@@ -137,6 +150,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
         var entities = new List<TopologyEntityDescription>();
         var links = new List<TopologyLinkDescription>();
+        var autoProvision = _topology.AutoProvision;
 
         foreach (var exchange in _topology.Exchanges)
         {
@@ -151,7 +165,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["type"] = exchange.Type,
                         ["durable"] = exchange.Durable,
                         ["autoDelete"] = exchange.AutoDelete,
-                        ["autoProvision"] = exchange.AutoProvision
+                        ["autoProvision"] = exchange.AutoProvision ?? autoProvision
                     }));
         }
 
@@ -168,7 +182,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["durable"] = queue.Durable,
                         ["exclusive"] = queue.Exclusive,
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision
+                        ["autoProvision"] = queue.AutoProvision ?? autoProvision
                     }));
         }
 
@@ -189,7 +203,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     new Dictionary<string, object?>
                     {
                         ["routingKey"] = string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
-                        ["autoProvision"] = binding.AutoProvision
+                        ["autoProvision"] = binding.AutoProvision ?? autoProvision
                     }));
         }
 

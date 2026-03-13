@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text.Json;
 using Basic.Reference.Assemblies;
 using GreenDonut;
 using GreenDonut.Data;
@@ -23,7 +24,7 @@ public class SourceGeneratorOffsetPagingReproTests
     [Fact]
     public async Task QueryType_SourceGenerator_Path_Works_Like_AddQueryType_Path()
     {
-        var assembly = CompileReproAssembly();
+        var assembly = CompileOffsetPagingReproAssembly();
 
         var sourceGeneratorException = await BuildSchemaWithSourceGeneratorRegistrationAsync(assembly);
         var addQueryTypeException = await BuildSchemaWithAddQueryTypeRegistrationAsync(assembly);
@@ -32,17 +33,176 @@ public class SourceGeneratorOffsetPagingReproTests
         Assert.Null(addQueryTypeException);
     }
 
+    [Fact]
+    public async Task Module_QueryType_Dictionary_Result_SourceGenerator_Path_Works_Like_AddQueryType_Path()
+    {
+        var assembly = CompileModuleDictionaryReproAssembly();
+
+        var sourceGenerated = await ExecuteWithSourceGeneratorRegistrationAsync(
+            assembly,
+            registrationMethodName: "AddDemo",
+            query: "{ foo { key value } }");
+
+        var addQueryType = await ExecuteWithAddQueryTypeRegistrationAsync(
+            assembly,
+            runtimeQueryTypeName: "Repro.RuntimeQuery",
+            query: "{ foo { key value } }");
+
+        Assert.Contains("foo: [KeyValuePairOfStringAndString!]!", sourceGenerated.Schema);
+        Assert.Equal(addQueryType.Result, sourceGenerated.Result);
+        Assert.DoesNotContain("\"errors\"", sourceGenerated.Result, StringComparison.Ordinal);
+        Assert.Contains("\"key\": \"foo\"", sourceGenerated.Result, StringComparison.Ordinal);
+        Assert.Contains("\"value\": \"bar\"", sourceGenerated.Result, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Module_Dictionary_MutationConventions_Input_Accepts_KeyValuePair_When_Query_Has_Dictionary_Output()
+    {
+        var assembly = CompileModuleDictionaryMutationConventionsReproAssembly();
+
+        var sourceGenerated = await ExecuteWithSourceGeneratorRegistrationAsync(
+            assembly,
+            registrationMethodName: "AddDemo",
+            query:
+            """
+            mutation m {
+              patchUserSettings(
+                input: {
+                  settings: [{ key: "open-workspace", value: "applications" }]
+                }
+              ) {
+                keyValuePairOfStringAndString {
+                  key
+                  value
+                }
+              }
+            }
+            """,
+            configureBuilder: static b => b.AddMutationConventions());
+
+        var addQueryAndMutationType = await ExecuteWithAddQueryAndMutationTypeRegistrationAsync(
+            assembly,
+            runtimeQueryTypeName: "Repro.RuntimeQuery",
+            runtimeMutationTypeName: "Repro.RuntimeMutation",
+            query:
+            """
+            mutation m {
+              patchUserSettings(
+                input: {
+                  settings: [{ key: "open-workspace", value: "applications" }]
+                }
+              ) {
+                keyValuePairOfStringAndString {
+                  key
+                  value
+                }
+              }
+            }
+            """,
+            configureBuilder: static b => b.AddMutationConventions());
+
+        Assert.Equal(addQueryAndMutationType.Result, sourceGenerated.Result);
+        Assert.DoesNotContain("\"errors\"", sourceGenerated.Result, StringComparison.Ordinal);
+        Assert.Contains("\"key\": \"open-workspace\"", sourceGenerated.Result, StringComparison.Ordinal);
+        Assert.Contains("\"value\": \"applications\"", sourceGenerated.Result, StringComparison.Ordinal);
+        Assert.Contains("type KeyValuePairOfStringAndString", sourceGenerated.Schema, StringComparison.Ordinal);
+        Assert.Contains("input KeyValuePairOfStringAndStringInput", sourceGenerated.Schema, StringComparison.Ordinal);
+        Assert.Contains("key: String!", sourceGenerated.Schema, StringComparison.Ordinal);
+        Assert.Contains("value: String!", sourceGenerated.Schema, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Module_OffsetPaging_TaskIEnumerableOfNonNullReferenceType_Infers_NonNull_Items()
+    {
+        var assembly = CompileModuleOffsetPagingNullabilityReproAssembly();
+
+        var sourceGenerated = await ExecuteWithSourceGeneratorRegistrationAsync(
+            assembly,
+            registrationMethodName: "AddDemo",
+            query:
+            """
+            {
+              foos {
+                items {
+                  bar
+                }
+              }
+            }
+            """);
+
+        var addQueryType = await ExecuteWithAddQueryTypeRegistrationAsync(
+            assembly,
+            runtimeQueryTypeName: "Repro.RuntimeQuery",
+            query:
+            """
+            {
+              foos {
+                items {
+                  bar
+                }
+              }
+            }
+            """);
+
+        Assert.Contains("type FoosCollectionSegment", sourceGenerated.Schema, StringComparison.Ordinal);
+        Assert.Contains("items: [Foo!]", sourceGenerated.Schema, StringComparison.Ordinal);
+        Assert.Equal(addQueryType.Result, sourceGenerated.Result);
+    }
+
+    [Fact]
+    public async Task Module_AnyType_Output_Does_Not_Double_Escape_Json_Escape_Sequences()
+    {
+        var assembly = CompileModuleAnyTypeEscapingReproAssembly();
+
+        var sourceGenerated = await ExecuteWithSourceGeneratorRegistrationAsync(
+            assembly,
+            registrationMethodName: "AddDemo",
+            query:
+            """
+            {
+              foo
+            }
+            """,
+            configureBuilder: static b => b.AddJsonTypeConverter());
+
+        var addQueryType = await ExecuteWithAddQueryTypeRegistrationAsync(
+            assembly,
+            runtimeQueryTypeName: "Repro.RuntimeQuery",
+            query:
+            """
+            {
+              foo
+            }
+            """,
+            configureBuilder: static b => b.AddJsonTypeConverter());
+
+        using var sourceGeneratedJson = JsonDocument.Parse(sourceGenerated.Result);
+        using var addQueryTypeJson = JsonDocument.Parse(addQueryType.Result);
+
+        var sourceGeneratedDescription = sourceGeneratedJson.RootElement
+            .GetProperty("data")
+            .GetProperty("foo")
+            .GetProperty("description")
+            .GetString();
+
+        var addQueryTypeDescription = addQueryTypeJson.RootElement
+            .GetProperty("data")
+            .GetProperty("foo")
+            .GetProperty("description")
+            .GetString();
+
+        Assert.Equal("Special char: ü", sourceGeneratedDescription);
+        Assert.Equal("Special char: ü", addQueryTypeDescription);
+    }
+
     private static async Task<Exception?> BuildSchemaWithSourceGeneratorRegistrationAsync(Assembly assembly)
     {
         var services = new ServiceCollection();
         var builder = services.AddGraphQLServer(disableDefaultSecurity: true);
 
-        var addTypesMethod = assembly
-            .GetTypes()
-            .Where(t => t is { IsAbstract: true, IsSealed: true }
-                && t.Namespace == "Microsoft.Extensions.DependencyInjection")
-            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
-            .Single(m =>
+        var addTypesMethod = FindRegistrationMethod(
+            assembly,
+            m =>
             {
                 var p = m.GetParameters();
                 return m.Name.StartsWith("Add", StringComparison.Ordinal)
@@ -71,7 +231,88 @@ public class SourceGeneratorOffsetPagingReproTests
             async () => await builder.BuildSchemaAsync());
     }
 
-    private static Assembly CompileReproAssembly()
+    private static async Task<ExecutionResult> ExecuteWithSourceGeneratorRegistrationAsync(
+        Assembly assembly,
+        string registrationMethodName,
+        string query,
+        Action<IRequestExecutorBuilder>? configureBuilder = null)
+    {
+        var builder = new ServiceCollection().AddGraphQLServer(disableDefaultSecurity: true);
+
+        var addModuleMethod = FindRegistrationMethod(
+            assembly,
+            m =>
+            {
+                var p = m.GetParameters();
+                return m.Name.Equals(registrationMethodName, StringComparison.Ordinal)
+                    && m.ReturnType == typeof(IRequestExecutorBuilder)
+                    && p.Length == 1
+                    && p[0].ParameterType == typeof(IRequestExecutorBuilder);
+            });
+
+        addModuleMethod.Invoke(null, [builder]);
+        configureBuilder?.Invoke(builder);
+
+        var executor = await builder.BuildRequestExecutorAsync();
+        var result = await executor.ExecuteAsync(query);
+        return new ExecutionResult(executor.Schema.ToString(), result.ToJson());
+    }
+
+    private static async Task<ExecutionResult> ExecuteWithAddQueryTypeRegistrationAsync(
+        Assembly assembly,
+        string runtimeQueryTypeName,
+        string query,
+        Action<IRequestExecutorBuilder>? configureBuilder = null)
+    {
+        var runtimeQueryType = assembly.GetType(runtimeQueryTypeName)
+            ?? throw new InvalidOperationException("Could not locate runtime query type.");
+
+        var builder = new ServiceCollection()
+            .AddGraphQLServer(disableDefaultSecurity: true)
+            .AddQueryType(runtimeQueryType);
+        configureBuilder?.Invoke(builder);
+
+        var executor = await builder.BuildRequestExecutorAsync();
+        var result = await executor.ExecuteAsync(query);
+        return new ExecutionResult(executor.Schema.ToString(), result.ToJson());
+    }
+
+    private static async Task<ExecutionResult> ExecuteWithAddQueryAndMutationTypeRegistrationAsync(
+        Assembly assembly,
+        string runtimeQueryTypeName,
+        string runtimeMutationTypeName,
+        string query,
+        Action<IRequestExecutorBuilder>? configureBuilder = null)
+    {
+        var runtimeQueryType = assembly.GetType(runtimeQueryTypeName)
+            ?? throw new InvalidOperationException("Could not locate runtime query type.");
+        var runtimeMutationType = assembly.GetType(runtimeMutationTypeName)
+            ?? throw new InvalidOperationException("Could not locate runtime mutation type.");
+
+        var builder = new ServiceCollection()
+            .AddGraphQLServer(disableDefaultSecurity: true)
+            .AddQueryType(runtimeQueryType)
+            .AddMutationType(runtimeMutationType);
+        configureBuilder?.Invoke(builder);
+
+        var executor = await builder.BuildRequestExecutorAsync();
+        var result = await executor.ExecuteAsync(query);
+        return new ExecutionResult(executor.Schema.ToString(), result.ToJson());
+    }
+
+    private static MethodInfo FindRegistrationMethod(
+        Assembly assembly,
+        Func<MethodInfo, bool> predicate)
+    {
+        return assembly
+            .GetTypes()
+            .Where(t => t is { IsAbstract: true, IsSealed: true }
+                && t.Namespace == "Microsoft.Extensions.DependencyInjection")
+            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            .Single(predicate);
+    }
+
+    private static Assembly CompileOffsetPagingReproAssembly()
     {
         const string source = """
             using System.Collections.Generic;
@@ -102,6 +343,173 @@ public class SourceGeneratorOffsetPagingReproTests
             }
             """;
 
+        return CompileReproAssembly(source, "SourceGeneratorOffsetPagingRepro");
+    }
+
+    private static Assembly CompileModuleDictionaryReproAssembly()
+    {
+        const string source = """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                public static Dictionary<string, string> Foo()
+                    => new()
+                    {
+                        ["foo"] = "bar"
+                    };
+            }
+
+            public class RuntimeQuery
+            {
+                public Dictionary<string, string> Foo()
+                    => new()
+                    {
+                        ["foo"] = "bar"
+                    };
+            }
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorDictionaryModuleRepro");
+    }
+
+    private static Assembly CompileModuleDictionaryMutationConventionsReproAssembly()
+    {
+        const string source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            [MutationType]
+            public static partial class SourceGeneratedMutation
+            {
+                public static async Task<Dictionary<string, string>?> PatchUserSettingsAsync(
+                    Dictionary<string, string> settings)
+                {
+                    await Task.Yield();
+                    return settings;
+                }
+            }
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                public static async Task<Dictionary<string, string>> GetUserSettingsAsync(
+                    List<string> settingIdentifiers)
+                {
+                    await Task.Yield();
+                    return new();
+                }
+            }
+
+            public class RuntimeMutation
+            {
+                public async Task<Dictionary<string, string>?> PatchUserSettingsAsync(
+                    Dictionary<string, string> settings)
+                {
+                    await Task.Yield();
+                    return settings;
+                }
+            }
+
+            public class RuntimeQuery
+            {
+                public async Task<Dictionary<string, string>> GetUserSettingsAsync(
+                    List<string> settingIdentifiers)
+                {
+                    await Task.Yield();
+                    return new();
+                }
+            }
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorDictionaryMutationConventionsRepro");
+    }
+
+    private static Assembly CompileModuleOffsetPagingNullabilityReproAssembly()
+    {
+        const string source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                [UseOffsetPaging]
+                public static async Task<IEnumerable<Foo>> GetFoos()
+                {
+                    await Task.Yield();
+                    return [];
+                }
+            }
+
+            public class RuntimeQuery
+            {
+                [UseOffsetPaging]
+                public async Task<IEnumerable<Foo>> GetFoos()
+                {
+                    await Task.Yield();
+                    return [];
+                }
+            }
+
+            public record Foo(string Bar);
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorOffsetPagingNullabilityRepro");
+    }
+
+    private static Assembly CompileModuleAnyTypeEscapingReproAssembly()
+    {
+        const string source = """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                [GraphQLType<AnyType>]
+                public static object GetFoo()
+                    => new Foo("Special char: ü");
+            }
+
+            public class RuntimeQuery
+            {
+                [GraphQLType<AnyType>]
+                public object GetFoo()
+                    => new Foo("Special char: ü");
+            }
+
+            public record Foo(string Description);
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorAnyTypeEscapingRepro");
+    }
+
+    private static Assembly CompileReproAssembly(string source, string assemblyName)
+    {
         var parseOptions = CSharpParseOptions.Default;
         var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
 
@@ -143,7 +551,7 @@ public class SourceGeneratorOffsetPagingReproTests
         ];
 
         var compilation = CSharpCompilation.Create(
-            assemblyName: "SourceGeneratorOffsetPagingRepro",
+            assemblyName: assemblyName,
             syntaxTrees: [syntaxTree],
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -179,7 +587,9 @@ public class SourceGeneratorOffsetPagingReproTests
 
         stream.Position = 0;
 
-        var context = new AssemblyLoadContext("SourceGeneratorOffsetPagingRepro", isCollectible: true);
+        var context = new AssemblyLoadContext(assemblyName, isCollectible: true);
         return context.LoadFromStream(stream);
     }
+
+    private sealed record ExecutionResult(string Schema, string Result);
 }

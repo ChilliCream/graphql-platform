@@ -25,6 +25,11 @@ internal static class IntrospectionTypeReferences
             EnqueueTypeRef(backlog, context.TypeInspector.GetTypeRef(typeof(__DirectiveArgument)), nextIndex++);
         }
 
+        if (context.Options.EnableOptInFeatures)
+        {
+            EnqueueTypeRef(backlog, context.TypeInspector.GetTypeRef(typeof(__OptInFeatureStability)), nextIndex++);
+        }
+
         static void EnqueueTypeRef(
             PriorityQueue<TypeReference, (TypeReferenceStrength, int)> backlog,
             TypeReference typeRef,

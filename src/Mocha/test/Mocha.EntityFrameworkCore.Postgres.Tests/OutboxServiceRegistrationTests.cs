@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Mocha.EntityFrameworkCore;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Outbox;
 using Mocha.Transport.InMemory;
@@ -14,7 +13,7 @@ public sealed class OutboxServiceRegistrationTests
     private const string ConnectionString = "Host=localhost;Database=test";
 
     [Fact]
-    public async Task AddPostgresOutbox_Should_RegisterHostedService_When_Called()
+    public async Task UsePostgresOutbox_Should_RegisterHostedService_When_Called()
     {
         // Arrange
         await using var provider = BuildProvider();
@@ -27,7 +26,7 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
-    public async Task AddPostgresOutbox_Should_RegisterScopedOutbox_When_Called()
+    public async Task UsePostgresOutbox_Should_RegisterScopedOutbox_When_Called()
     {
         // Arrange
         await using var provider = BuildProvider();
@@ -42,7 +41,7 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
-    public async Task AddPostgresOutbox_Should_RegisterProcessor_When_Called()
+    public async Task UsePostgresOutbox_Should_RegisterProcessor_When_Called()
     {
         // Arrange
         await using var provider = BuildProvider();
@@ -55,7 +54,7 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
-    public async Task AddPostgresOutbox_Should_ConfigureQueriesFromModel_When_DefaultTableNames()
+    public async Task UsePostgresOutbox_Should_ConfigureQueriesFromModel_When_DefaultTableNames()
     {
         // Arrange
         await using var provider = BuildProvider();
@@ -85,7 +84,7 @@ public sealed class OutboxServiceRegistrationTests
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.AddPostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
         builder.AddInMemory();
 
         var provider = services.BuildServiceProvider();

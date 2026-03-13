@@ -1,5 +1,3 @@
-using Mocha.Configuration.Faults;
-
 namespace Mocha.Events;
 
 /// <summary>

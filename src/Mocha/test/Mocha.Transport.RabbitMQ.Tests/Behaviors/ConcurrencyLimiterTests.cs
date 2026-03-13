@@ -6,7 +6,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection("RabbitMQ")]
 public class ConcurrencyLimiterTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(60);
     private readonly RabbitMQFixture _fixture;
 
     public ConcurrencyLimiterTests(RabbitMQFixture fixture)
@@ -44,7 +44,7 @@ public class ConcurrencyLimiterTests
 
         // assert — wait for all messages and check peak concurrency
         Assert.True(
-            await recorder.WaitAsync(Timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
             $"Handler did not process all {messageCount} messages within timeout");
 
         Assert.Equal(1, tracker.PeakConcurrency);
