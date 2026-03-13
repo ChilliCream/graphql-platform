@@ -4,10 +4,10 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Diagnostics;
 
-public static class ActivityTestHelper
+public static partial class ActivityTestHelper
 {
-    private static readonly Regex _stackTracePathRegex =
-        new(@" in (?<path>.+?):line (?<line>\d+)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    [GeneratedRegex(@" in (?<path>.+?):line (?<line>\d+)", RegexOptions.CultureInvariant)]
+    private static partial Regex StackTracePathRegex();
 
     public static IDisposable CaptureActivities(out object activities)
     {
@@ -103,7 +103,7 @@ public static class ActivityTestHelper
             {
                 yield return new KeyValuePair<string, object?>(
                     tag.Key,
-                    _stackTracePathRegex.Replace(stackTrace, match =>
+                    StackTracePathRegex().Replace(stackTrace, match =>
                     {
                         var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
                         var lineNumber = match.Groups["line"].Value;
