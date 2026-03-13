@@ -32,7 +32,7 @@ public class CatalogConnection<TEntity> : ConnectionBase<TEntity, CatalogEdge<TE
 
                 for (var i = 0; i < items.Length; i++)
                 {
-                    edges[i] = new CatalogEdge<TEntity>(_page, items[i]);
+                    edges[i] = new CatalogEdge<TEntity>(_page, i);
                 }
 
                 _edges = edges;
@@ -56,18 +56,8 @@ public class CatalogConnection<TEntity> : ConnectionBase<TEntity, CatalogEdge<TE
         {
             if (_pageInfo is null)
             {
-                string? startCursor = null;
-                string? endCursor = null;
-
-                if (_page.First is not null)
-                {
-                    startCursor = _page.CreateCursor(_page.First);
-                }
-
-                if (_page.Last is not null)
-                {
-                    endCursor = _page.CreateCursor(_page.Last);
-                }
+                var startCursor = _page.CreateStartCursor();
+                var endCursor = _page.CreateEndCursor();
 
                 _pageInfo = new ConnectionPageInfo(_page.HasNextPage, _page.HasPreviousPage, startCursor, endCursor);
             }

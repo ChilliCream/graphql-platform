@@ -8,26 +8,26 @@ namespace HotChocolate.Types.Pagination;
 /// <param name="page">
 /// The page that contains the node.
 /// </param>
-/// <param name="node">
-/// The node that is part of the edge.
+/// <param name="index">
+/// The zero-based index of the node within the page.
 /// </param>
 /// <typeparam name="TNode">
 /// The type of the node.
 /// </typeparam>
 [GraphQLName("{0}Edge")]
-public class PageEdge<TNode>(Page<TNode> page, TNode node) : IEdge<TNode>
+public class PageEdge<TNode>(Page<TNode> page, int index) : IEdge<TNode>
 {
     /// <summary>
     /// The item at the end of the edge.
     /// </summary>
     [GraphQLDescription("The item at the end of the edge.")]
-    public TNode Node => node;
+    public TNode Node => page.Items[index];
 
     /// <summary>
     /// A cursor for use in pagination.
     /// </summary>
     [GraphQLDescription("A cursor for use in pagination.")]
-    public string Cursor => page.CreateCursor(node);
+    public string Cursor => page.CreateCursor(index);
 
     object? IEdge.Node => Node;
 }

@@ -37,9 +37,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     result.HasNextPage,
                     result.HasPreviousPage,
                     First = result.First?.Id,
-                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                    FirstCursor = result.CreateStartCursor(),
                     Last = result.Last?.Id,
-                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+                    LastCursor = result.CreateEndCursor()
                 })
             .Add(result.Items)
             .MatchMarkdownAsync();
@@ -69,9 +69,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     result.HasNextPage,
                     result.HasPreviousPage,
                     First = result.First?.Id,
-                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                    FirstCursor = result.CreateStartCursor(),
                     Last = result.Last?.Id,
-                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+                    LastCursor = result.CreateEndCursor()
                 })
             .Add(result.Items)
             .MatchMarkdownAsync();
@@ -105,9 +105,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     result.HasNextPage,
                     result.HasPreviousPage,
                     First = result.First?.Id,
-                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                    FirstCursor = result.CreateStartCursor(),
                     Last = result.Last?.Id,
-                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+                    LastCursor = result.CreateEndCursor()
                 })
             .Add(result.Items)
             .MatchMarkdownAsync();
@@ -138,10 +138,10 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     result.HasPreviousPage,
                     First = result.First?.Id,
                     FirstName = result.First?.Name,
-                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                    FirstCursor = result.CreateStartCursor(),
                     Last = result.Last?.Id,
                     LastName = result.Last?.Name,
-                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+                    LastCursor = result.CreateEndCursor()
                 })
             .Add(result.Items)
             .MatchMarkdownAsync();
@@ -175,9 +175,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     result.HasNextPage,
                     result.HasPreviousPage,
                     First = result.First?.Id,
-                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                    FirstCursor = result.CreateStartCursor(),
                     Last = result.Last?.Id,
-                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+                    LastCursor = result.CreateEndCursor()
                 })
             .Add(result.Items)
             .MatchMarkdownAsync();
@@ -215,9 +215,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     result.HasNextPage,
                     result.HasPreviousPage,
                     First = result.First?.Id,
-                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                    FirstCursor = result.CreateStartCursor(),
                     Last = result.Last?.Id,
-                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+                    LastCursor = result.CreateEndCursor()
                 })
             .Add(result.Items)
             .MatchMarkdownAsync();
@@ -255,8 +255,8 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             snapshot.Add(
                 new
                 {
-                    First = page.Value.CreateCursor(page.Value.First!),
-                    Last = page.Value.CreateCursor(page.Value.Last!),
+                    First = page.Value.CreateStartCursor(),
+                    Last = page.Value.CreateEndCursor(),
                     page.Value.Items
                 },
                 name: page.Key.ToString());
@@ -297,8 +297,8 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             snapshot.Add(
                 new
                 {
-                    First = page.Value.CreateCursor(page.Value.First!),
-                    Last = page.Value.CreateCursor(page.Value.Last!),
+                    First = page.Value.CreateStartCursor(),
+                    Last = page.Value.CreateEndCursor(),
                     page.Value.Items
                 },
                 name: page.Key.ToString());
@@ -339,8 +339,8 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             snapshot.Add(
                 new
                 {
-                    First = page.Value.CreateCursor(page.Value.First!, 0),
-                    Last = page.Value.CreateCursor(page.Value.Last!, 0),
+                    First = page.Value.CreateCursor(page.Value.FirstIndex!.Value, 0),
+                    Last = page.Value.CreateCursor(page.Value.LastIndex!.Value, 0),
                     page.Value.Items
                 },
                 name: page.Key.ToString());

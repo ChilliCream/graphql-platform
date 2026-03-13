@@ -50,7 +50,7 @@ public class PageConnection<TNode> : ConnectionBase<TNode, PageEdge<TNode>, Page
 
                 for (var i = 0; i < items.Length; i++)
                 {
-                    edges[i] = new PageEdge<TNode>(_page, items[i]);
+                    edges[i] = new PageEdge<TNode>(_page, i);
                 }
 
                 _edges = edges;
