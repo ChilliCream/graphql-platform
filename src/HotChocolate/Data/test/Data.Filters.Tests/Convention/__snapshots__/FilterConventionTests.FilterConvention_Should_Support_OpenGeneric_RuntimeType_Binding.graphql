@@ -1,0 +1,25 @@
+schema {
+  query: Query
+}
+
+type GenericFooOfFoo {
+  bar: String!
+}
+
+type Query {
+  foos(where: UsingGenericFooFilterInput): [UsingGenericFoo]
+}
+
+type UsingGenericFoo {
+  bar: GenericFooOfFoo!
+}
+
+input GenericFooOperationFilterInput {
+  eq: String
+}
+
+input UsingGenericFooFilterInput {
+  and: [UsingGenericFooFilterInput!]
+  or: [UsingGenericFooFilterInput!]
+  bar: GenericFooOperationFilterInput
+}
