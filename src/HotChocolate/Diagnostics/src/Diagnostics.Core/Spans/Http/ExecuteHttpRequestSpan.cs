@@ -107,7 +107,7 @@ internal sealed class ExecuteHttpRequestSpan(
             }
         }
 
-        enricher.EnrichStartSingleRequest(httpContext, request, Activity);
+        enricher.EnrichSingleRequest(httpContext, request, Activity);
     }
 
     public void SetBatchRequestDetails(IReadOnlyList<GraphQLRequest> batch)
@@ -166,7 +166,7 @@ internal sealed class ExecuteHttpRequestSpan(
             }
         }
 
-        enricher.EnrichStartBatchRequest(httpContext, batch, Activity);
+        enricher.EnrichBatchRequest(httpContext, batch, Activity);
     }
 
     public void SetOperationBatchRequestDetails(
@@ -218,7 +218,7 @@ internal sealed class ExecuteHttpRequestSpan(
             }
         }
 
-        enricher.EnrichStartOperationBatchRequest(httpContext, request, operations, Activity);
+        enricher.EnrichOperationBatchRequest(httpContext, request, operations, Activity);
     }
 
     protected override void OnComplete()

@@ -695,18 +695,6 @@ builder
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
 - `RequestDetails.Query` was renamed to `RequestDetails.Document`.
 
-### Custom enricher changes
-
-If you've implemented a custom `ActivityEnricher`, you now no longer need to pass the `ObjectPool<StringBuilder>` down to the base class:
-
-```diff
-public class CustomActivityEnricher(
--  ObjectPool<StringBuilder> stringBuilderPool,
-  InstrumentationOptions options
--) : ActivityEnricher(stringBuilderPool, options);
-+) : ActivityEnricher(options);
-```
-
 ## OpenTelemetry span and status changes
 
 The OpenTelemetry spans and attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec).
@@ -742,6 +730,39 @@ If you have dashboards or alerts that filter on the old attribute names or value
 | `graphql.document.hash`  | `<hash>`                              | `<hash-algorithm>:<hash>` , e.g. `md5:<hash>`       |
 | `graphql.document.id`    | -                                     | Value is only set if document is a trusted document |
 
+### Custom enricher changes
+
+If you've implemented a custom `ActivityEnricher`, you no longer need to pass the `ObjectPool<StringBuilder>` down to the base class:
+
+```diff
+public class CustomActivityEnricher(
+-  ObjectPool<StringBuilder> stringBuilderPool,
+  InstrumentationOptions options
+-) : ActivityEnricher(stringBuilderPool, options);
++) : ActivityEnricher(options);
+```
+
+There have also been some changes to the methods you can override in your enricher:
+
+| v15                                                                       | v16                                                                                                                                                        |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EnrichParserErrors(HttpContext, IError, Activity)`                       | Replaced by `EnrichParserErrors(HttpContext, IReadOnlyList<IError>, Activity)`.                                                                            |
+| `EnrichRequestError(RequestContext, Activity, Exception)`                 | Replaced by `EnrichRequestError(RequestContext, Exception, Activity)`.                                                                                     |
+| `EnrichRequestError(RequestContext, Activity, IError)`                    | Replaced by `EnrichRequestError(RequestContext, IError, Activity)`.                                                                                        |
+| `EnrichValidationError(RequestContext, Activity, IError)`                 | Replaced by `EnrichValidationErrors(RequestContext, IReadOnlyList<IError>, Activity)`.                                                                     |
+| `EnrichAnalyzeOperationComplexity(RequestContext, Activity)`              | Replaced by `EnrichAnalyzeOperationCost(RequestContext, Activity)`.                                                                                        |
+| `EnrichDataLoaderBatch<TKey>(IDataLoader, IReadOnlyList<TKey>, Activity)` | Replaced by `EnrichExecuteBatch<TKey>(IDataLoader, IReadOnlyList<TKey>, Activity)`.                                                                        |
+| `EnrichResolverError(RequestContext, IError, Activity)`                   | Removed. Use `EnrichRequestError(...)` for request-level errors and `EnrichResolverError(IMiddlewareContext, IError, Activity)` for field resolver errors. |
+| `EnrichRequestVariables(...)`                                             | Removed.                                                                                                                                                   |
+| `EnrichBatchVariables(...)`                                               | Removed.                                                                                                                                                   |
+| `EnrichRequestExtensions(...)`                                            | Removed.                                                                                                                                                   |
+| `EnrichBatchExtensions(...)`                                              | Removed.                                                                                                                                                   |
+| `CreateOperationDisplayName(...)`                                         | Removed.                                                                                                                                                   |
+| `CreateRootActivityName(...)`                                             | Removed.                                                                                                                                                   |
+| `EnrichError(...)`                                                        | Removed.                                                                                                                                                   |
+
+> Note: Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic-convention attributes are now applied by the instrumentation itself, and custom enrichers are only intended for adding extra information.
+
 ## Diagnostic Listeners
 
 We removed the following methods from the `IExecutionDiagnosticEventListener` since they no longer apply:
@@ -753,6 +774,7 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 - `SubscriptionEventResult`
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

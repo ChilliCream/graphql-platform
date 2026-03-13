@@ -17,17 +17,17 @@ public abstract class ActivityEnricherBase
         HttpRequestKind kind,
         Activity activity) { }
 
-    public virtual void EnrichStartSingleRequest(
+    public virtual void EnrichSingleRequest(
         HttpContext httpContext,
         GraphQLRequest request,
         Activity activity) { }
 
-    public virtual void EnrichStartBatchRequest(
+    public virtual void EnrichBatchRequest(
         HttpContext httpContext,
         IReadOnlyList<GraphQLRequest> batch,
         Activity activity) { }
 
-    public virtual void EnrichStartOperationBatchRequest(
+    public virtual void EnrichOperationBatchRequest(
         HttpContext httpContext,
         GraphQLRequest request,
         IReadOnlyList<string> operations,
