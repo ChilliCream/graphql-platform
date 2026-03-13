@@ -19,7 +19,7 @@ response:
         {
           "message": "The field \u0060invalidField\u0060 is not defined on the input object type \u0060Cat\u0060.",
           "extensions": {
-            "variable": "/cat"
+            "variable": "cat"
           }
         }
       ]

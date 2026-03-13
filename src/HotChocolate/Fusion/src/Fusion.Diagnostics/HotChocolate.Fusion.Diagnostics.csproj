@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Diagnostics\src\Diagnostics.Core\HotChocolate.Diagnostics.Core.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Fusion\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
   </ItemGroup>
