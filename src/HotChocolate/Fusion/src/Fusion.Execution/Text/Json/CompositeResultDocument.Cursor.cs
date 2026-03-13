@@ -120,8 +120,11 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Cursor WithRow(int row) => From(Chunk, row);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ToIndex() => (Chunk * RowsPerChunk) + Row;
+        public int Index
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (Chunk * RowsPerChunk) + Row;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ToTotalBytes() => (Chunk * ChunkBytes) + ByteOffset;

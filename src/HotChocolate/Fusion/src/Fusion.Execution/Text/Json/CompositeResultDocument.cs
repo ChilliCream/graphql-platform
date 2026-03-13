@@ -125,6 +125,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             return Path.Root;
         }
 
+        var cursorIndex = current.Index;
         Span<Cursor> chain = stackalloc Cursor[64];
         var c = current;
         var written = 0;
@@ -169,7 +170,7 @@ public sealed partial class CompositeResultDocument : IDisposable
                 if (parentTokenType is ElementTokenType.StartArray)
                 {
                     // arrayIndex = abs(child) - (abs(parent) + 1)
-                    var absChild = c.Chunk * Cursor.RowsPerChunk + c.Row;
+                    var absChild = (c.Chunk * Cursor.RowsPerChunk) + c.Row;
                     var absParent = parentCursor.Chunk * Cursor.RowsPerChunk + parentCursor.Row;
                     var arrayIndex = absChild - (absParent + 1);
                     path = path.Append(arrayIndex);
@@ -392,7 +393,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         _metaDb.Replace(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
-            location: value.Cursor.ToIndex(),
+            location: value.Cursor.Index,
             parentRow: _metaDb.GetParent(target.Cursor));
     }
 
@@ -451,7 +452,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0)
     {
         var flags = ElementFlags.None;
-        var parentRow = ToIndex(parent);
+        var parentRow = parent.Index;
 
         if (parentRow < 0)
         {
@@ -480,7 +481,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private Cursor WriteStartArray(Cursor parent, int length = 0)
     {
         var flags = ElementFlags.None;
-        var parentRow = ToIndex(parent);
+        var parentRow = parent.Index;
 
         if (parentRow < 0)
         {
@@ -521,14 +522,14 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         var prop = _metaDb.Append(
             ElementTokenType.PropertyName,
-            parentRow: ToIndex(parent),
+            parentRow: parent.Index,
             operationReferenceId: selection.Id,
             operationReferenceType: OperationReferenceType.Selection,
             flags: flags);
 
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: ToIndex(prop));
+            parentRow: prop.Index);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -536,11 +537,8 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: ToIndex(parent));
+            parentRow: parent.Index);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int ToIndex(Cursor c) => (c.Chunk * Cursor.RowsPerChunk) + c.Row;
 
     private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
     {

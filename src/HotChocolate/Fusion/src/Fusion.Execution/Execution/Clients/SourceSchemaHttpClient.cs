@@ -114,7 +114,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
         var uri = httpRequest.Uri ?? new Uri("http://unknown");
-        var contentType = httpResponse.ContentHeaders.ContentType?.ToString() ?? "unknown";
+        var contentType = httpResponse.RawContentType ?? "unknown";
         var isSuccessful = httpResponse.IsSuccessStatusCode;
 
         var nodeResponses = new NodeResponse[requests.Length];
@@ -145,9 +145,9 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private GraphQLHttpRequest CreateHttpRequest(
         SourceSchemaClientRequest originalRequest)
     {
-        var defaultAccept = originalRequest.OperationType is OperationType.Subscription
-            ? _configuration.SubscriptionAcceptHeaderValues
-            : _configuration.DefaultAcceptHeaderValues;
+        var defaultAcceptHeader = originalRequest.OperationType is OperationType.Subscription
+            ? _configuration.SubscriptionAcceptHeaderValue
+            : _configuration.DefaultAcceptHeaderValue;
         var operationSourceText = originalRequest.OperationSourceText;
 
         switch (originalRequest.Variables.Length)
@@ -156,7 +156,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = defaultAccept
+                    AcceptHeaderValue = defaultAcceptHeader
                 };
 
             case 1:
@@ -164,7 +164,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = defaultAccept,
+                    AcceptHeaderValue = defaultAcceptHeader,
                     EnableFileUploads = originalRequest.RequiresFileUpload
                 };
 
@@ -174,7 +174,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
                     {
                         Uri = _configuration.BaseAddress,
-                        Accept = _configuration.BatchingAcceptHeaderValues,
+                        AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
                         EnableFileUploads = originalRequest.RequiresFileUpload
                     };
                 }
@@ -182,7 +182,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = _configuration.BatchingAcceptHeaderValues,
+                    AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
                     EnableFileUploads = originalRequest.RequiresFileUpload
                 };
         }
@@ -214,7 +214,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         return new GraphQLHttpRequest(new OperationBatchRequest(batchRequests))
         {
             Uri = _configuration.BaseAddress,
-            Accept = _configuration.BatchingAcceptHeaderValues,
+            AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
             EnableFileUploads = enableFileUploads
         };
     }
@@ -547,7 +547,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     {
         public override Uri Uri => request.Uri ?? new Uri("http://unknown");
 
-        public override string ContentType => response.ContentHeaders.ContentType?.ToString() ?? "unknown";
+        public override string ContentType => response.RawContentType ?? "unknown";
 
         public override bool IsSuccessful => response.IsSuccessStatusCode;
 

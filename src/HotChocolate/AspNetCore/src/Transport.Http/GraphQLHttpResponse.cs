@@ -93,6 +93,27 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// </returns>
     public HttpContentHeaders ContentHeaders => _message.Content.Headers;
 
+#if FUSION
+    /// <summary>
+    /// Gets the raw Content-Type header value without parsing into <see cref="MediaTypeHeaderValue"/>.
+    /// </summary>
+    public string? RawContentType
+    {
+        get
+        {
+            if (_message.Content.Headers.NonValidated.TryGetValues("Content-Type", out var values))
+            {
+                foreach (var value in values)
+                {
+                    return value;
+                }
+            }
+
+            return null;
+        }
+    }
+#endif
+
     /// <summary>
     /// Gets the collection of trailing headers included in an HTTP response.
     /// </summary>
