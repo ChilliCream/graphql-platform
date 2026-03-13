@@ -22,7 +22,7 @@ internal sealed class CostAnalyzerMiddleware(
 {
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (!context.TryGetDocument(out var document, out var documentId)
+        if (!context.TryGetOperationDocument(out var document, out var documentId)
             || documentId.IsEmpty)
         {
             context.Result = ResultHelper.StateInvalidForCostAnalysis();

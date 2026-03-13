@@ -29,7 +29,7 @@ public static class RequestContextExtensions
         return context.OperationDocumentInfo.IsPersisted;
     }
 
-    public static bool TryGetDocument(
+    public static bool TryGetOperationDocument(
         this RequestContext context,
         [NotNullWhen(true)] out DocumentNode? document,
         out OperationDocumentId documentId)

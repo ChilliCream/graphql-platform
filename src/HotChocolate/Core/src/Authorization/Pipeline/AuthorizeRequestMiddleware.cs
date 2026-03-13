@@ -9,7 +9,7 @@ internal sealed class AuthorizeRequestMiddleware(
 {
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (!context.TryGetDocument(out var document, out var documentId))
+        if (!context.TryGetOperationDocument(out var document, out var documentId))
         {
             throw new InvalidOperationException(
                 "The document or document id is not set.");

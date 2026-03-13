@@ -33,7 +33,7 @@ internal sealed class ParsingSpan(
 
     protected override void OnComplete()
     {
-        if (context.TryGetDocument(out _, out _))
+        if (context.TryGetOperationDocument(out _, out _))
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
