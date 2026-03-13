@@ -64,12 +64,11 @@ internal sealed class ValueCompletion
 
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var resultField))
+            if (!target.TryGetPropertyWithSelection(property.NameSpan, out var resultField, out var selection))
             {
                 continue;
             }
 
-            var selection = resultField.AssertSelection();
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
@@ -405,12 +404,10 @@ TryCompleteList_MoveNext:
 
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
+            if (!target.TryGetPropertyWithSelection(property.NameSpan, out var targetProperty, out var selection))
             {
                 continue;
             }
-
-            var selection = targetProperty.AssertSelection();
 
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
