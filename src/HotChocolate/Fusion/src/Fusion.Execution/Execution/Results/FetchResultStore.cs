@@ -33,6 +33,7 @@ internal sealed class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    internal readonly PathSegmentLocalPool _pathPool;
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
     private List<IError>? _errors;
@@ -43,7 +44,8 @@ internal sealed class FetchResultStore : IDisposable
         IErrorHandler errorHandler,
         Operation operation,
         ErrorHandlingMode errorHandlingMode,
-        ulong includeFlags)
+        ulong includeFlags,
+        int pathSegmentLocalPoolCapacity)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operation);
@@ -53,8 +55,9 @@ internal sealed class FetchResultStore : IDisposable
         _operation = operation;
         _errorHandlingMode = errorHandlingMode;
         _includeFlags = includeFlags;
+        _pathPool = new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
 
-        _result = new CompositeResultDocument(operation, includeFlags);
+        _result = new CompositeResultDocument(operation, includeFlags, _pathPool);
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -70,7 +73,7 @@ internal sealed class FetchResultStore : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        _result = new CompositeResultDocument(_operation, _includeFlags);
+        _result = new CompositeResultDocument(_operation, _includeFlags, _pathPool);
         _errors?.Clear();
 
         _valueCompletion = new ValueCompletion(
@@ -164,14 +167,22 @@ internal sealed class FetchResultStore : IDisposable
                 {
                     var result = results[i];
 
-                    if (!SaveSafeResult(
-                            resultData,
-                            result.Path,
-                            result.AdditionalPaths.AsSpan(),
-                            dataElementsSpan[i],
-                            errorTriesSpan[i],
-                            responseNames))
+                    var success = SaveSafeResult(
+                        resultData,
+                        result.Path,
+                        result.AdditionalPaths.AsSpan(),
+                        dataElementsSpan[i],
+                        errorTriesSpan[i],
+                        responseNames);
+                    ReturnPathSegments(result);
+
+                    if (!success)
                     {
+                        for (var j = i + 1; j < results.Length; j++)
+                        {
+                            ReturnPathSegments(results[j]);
+                        }
+
                         return false;
                     }
                 }
@@ -213,14 +224,22 @@ internal sealed class FetchResultStore : IDisposable
                 {
                     var result = results[i];
 
-                    if (!SaveSafeResult(
-                            resultData,
-                            result.Path,
-                            result.AdditionalPaths.AsSpan(),
-                            dataElementsSpan[i],
-                            errorTrie: null,
-                            responseNames))
+                    var success = SaveSafeResult(
+                        resultData,
+                        result.Path,
+                        result.AdditionalPaths.AsSpan(),
+                        dataElementsSpan[i],
+                        errorTrie: null,
+                        responseNames);
+                    ReturnPathSegments(result);
+
+                    if (!success)
                     {
+                        for (var j = i + 1; j < results.Length; j++)
+                        {
+                            ReturnPathSegments(results[j]);
+                        }
+
                         return false;
                     }
                 }
@@ -254,13 +273,15 @@ internal sealed class FetchResultStore : IDisposable
                 _errors.AddRange(rootErrors);
             }
 
-            return SaveSafeResult(
+            var success = SaveSafeResult(
                 _result.Data,
                 result.Path,
                 result.AdditionalPaths.AsSpan(),
                 dataElement,
                 errorTrie,
                 responseNames);
+            ReturnPathSegments(result);
+            return success;
         }
     }
 
@@ -274,13 +295,15 @@ internal sealed class FetchResultStore : IDisposable
 
         lock (_lock)
         {
-            return SaveSafeResult(
+            var success = SaveSafeResult(
                 _result.Data,
                 result.Path,
                 result.AdditionalPaths.AsSpan(),
                 dataElement,
                 errorTrie: null,
                 responseNames);
+            ReturnPathSegments(result);
+            return success;
         }
     }
 
@@ -611,7 +634,7 @@ AddErrors_Next:
                 // Store potentially grown arrays back.
                 _collectTargetA = current;
                 _collectTargetB = next;
-                return ReadOnlySpan<CompositeResultElement>.Empty;
+                return [];
             }
         }
 
@@ -665,7 +688,7 @@ AddErrors_Next:
 
         VariableValues[]? variableValueSets = null;
         Dictionary<ObjectValueNode, int>? seen = null;
-        List<CompactPath>?[]? additionalPaths = null;
+        var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -688,8 +711,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(variables, out var existingIndex))
                 {
-                    additionalPaths ??= new List<CompactPath>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
+                    additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
@@ -704,7 +726,7 @@ AddErrors_Next:
             _memory.Push(buffer);
         }
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
@@ -733,7 +755,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
         Dictionary<string, int>? seenStrings = null;
-        List<CompactPath>?[]? additionalPaths = null;
+        var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
 
@@ -768,8 +790,7 @@ AddErrors_Next:
                 if (seenStrings is not null
                     && seenStrings.TryGetValue(stringValue, out var existingIndex))
                 {
-                    additionalPaths ??= new List<CompactPath>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
+                    additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
@@ -784,8 +805,7 @@ AddErrors_Next:
                 if (seen is not null
                     && seen.TryGetValue(mappedValue, out var existingIndex))
                 {
-                    additionalPaths ??= new List<CompactPath>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
+                    additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
@@ -802,7 +822,7 @@ AddErrors_Next:
                 ]));
         }
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
@@ -812,7 +832,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
-        List<CompactPath>?[]? additionalPaths = null;
+        var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -840,8 +860,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(value, out var existingIndex))
                 {
-                    additionalPaths ??= new List<CompactPath>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
+                    additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
@@ -853,7 +872,7 @@ AddErrors_Next:
                 new ObjectValueNode([new ObjectFieldNode(requirement.Key, value)]));
         }
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
@@ -891,7 +910,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<TwoValueNodeTuple, int>? seen = null;
-        List<CompactPath>?[]? additionalPaths = null;
+        var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -928,8 +947,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<CompactPath>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
+                    additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
@@ -944,7 +962,7 @@ AddErrors_Next:
                 ]));
         }
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPath(
@@ -955,7 +973,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<TwoValueNodeTuple, int>? seen = null;
-        List<CompactPath>?[]? additionalPaths = null;
+        var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -992,8 +1010,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<CompactPath>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
+                    additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
@@ -1008,7 +1025,7 @@ AddErrors_Next:
                 ]));
         }
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirements(
@@ -1053,7 +1070,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<ThreeValueNodeTuple, int>? seen = null;
-        List<CompactPath>?[]? additionalPaths = null;
+        var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -1100,8 +1117,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<CompactPath>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
+                    additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
@@ -1117,7 +1133,7 @@ AddErrors_Next:
                 ]));
         }
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsSlowPath(
@@ -1129,7 +1145,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<ThreeValueNodeTuple, int>? seen = null;
-        List<CompactPath>?[]? additionalPaths = null;
+        var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -1176,8 +1192,7 @@ AddErrors_Next:
 
                 if (seen.TryGetValue(key, out var existingIndex))
                 {
-                    additionalPaths ??= new List<CompactPath>?[elements.Length];
-                    (additionalPaths[existingIndex] ??= []).Add(result.CompactPath);
+                    additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
@@ -1193,7 +1208,7 @@ AddErrors_Next:
                 ]));
         }
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ObjectValueNode? MapRequirements(
@@ -1525,6 +1540,28 @@ AddErrors_Next:
         {
             memory.Dispose();
         }
+
+        _pathPool.Dispose();
+    }
+
+    private void ReturnPathSegments(SourceSchemaResult result)
+    {
+        ReturnPathSegments(result.Path);
+
+        foreach (var additionalPath in result.AdditionalPaths)
+        {
+            ReturnPathSegments(additionalPath);
+        }
+    }
+
+    private void ReturnPathSegments(CompactPath path)
+    {
+        var array = path.UnsafeGetBackingArray();
+
+        if (array is not null)
+        {
+            _pathPool.Return(array);
+        }
     }
 
     private sealed class SingleValueNodeComparer : IEqualityComparer<IValueNode>
@@ -1540,27 +1577,17 @@ AddErrors_Next:
 
     private static ImmutableArray<VariableValues> FinalizeVariableValueSets(
         VariableValues[]? variableValueSets,
-        List<CompactPath>?[]? additionalPaths,
+        ref AdditionalPathAccumulator additionalPaths,
         int nextIndex)
     {
         if (variableValueSets is null || nextIndex == 0)
         {
+            additionalPaths.Dispose();
             return [];
         }
 
-        if (additionalPaths is not null)
-        {
-            for (var i = 0; i < nextIndex; i++)
-            {
-                if (additionalPaths[i] is { } paths)
-                {
-                    variableValueSets[i] = variableValueSets[i] with
-                    {
-                        AdditionalPaths = [.. paths]
-                    };
-                }
-            }
-        }
+        additionalPaths.ApplyTo(variableValueSets, nextIndex);
+        additionalPaths.Dispose();
 
         if (variableValueSets.Length != nextIndex)
         {

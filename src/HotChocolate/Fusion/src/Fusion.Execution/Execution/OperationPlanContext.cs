@@ -72,7 +72,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             errorHandler,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
-            IncludeFlags);
+            IncludeFlags,
+            requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
 
         _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
         _sourceSchemaDispatcher = new SourceSchemaRequestDispatcher(this);
@@ -271,7 +272,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
 
         Span<int> buffer = stackalloc int[32];
-        var builder = new CompactPathBuilder(buffer);
+        var builder = new CompactPathBuilder(buffer, _resultStore._pathPool);
         var operation = OperationPlan.Operation;
         var currentSelectionSet = operation.RootSelectionSet;
         Selection? currentSelection = null;
@@ -322,7 +323,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         bool containsErrors = true)
     {
         var canExecutionContinue =
-            _resultStore.AddPartialResults(sourcePath, results, responseNames, containsErrors);
+            _resultStore.AddPartialResults(
+                sourcePath,
+                results,
+                responseNames,
+                containsErrors);
 
         if (!canExecutionContinue)
         {

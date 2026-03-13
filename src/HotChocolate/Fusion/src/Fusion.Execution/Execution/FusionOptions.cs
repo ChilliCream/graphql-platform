@@ -81,6 +81,27 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 256;
 
     /// <summary>
+    /// Gets or sets the initial capacity of the local path segment pool used during result composition.
+    /// <c>64</c> by default. <c>1</c> is the minimum.
+    /// </summary>
+    public int PathSegmentLocalPoolCapacity
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            if (value < 1)
+            {
+                throw new ArgumentException(
+                    "The path segment local pool capacity must be at least 1.");
+            }
+
+            field = value;
+        }
+    } = 64;
+
+    /// <summary>
     /// Gets or sets the default error handling mode.
     /// <see cref="ErrorHandlingMode.Propagate"/> by default.
     /// </summary>
@@ -160,6 +181,7 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
             OperationExecutionPlanCacheSize = OperationExecutionPlanCacheSize,
             OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
             OperationDocumentCacheSize = OperationDocumentCacheSize,
+            PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
             DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat,

@@ -5,6 +5,8 @@ namespace HotChocolate.Fusion.Text.Json;
 /// <summary>
 /// A compact, integer-based path representation for the Fusion execution engine.
 /// Each segment is either a positive Selection ID (field) or a bitwise-NOT array index (negative).
+/// The backing array uses [0] = length encoding: _segments[0] holds the number of segments,
+/// and _segments[1..length] hold the actual path segments.
 /// </summary>
 public readonly struct CompactPath : IEquatable<CompactPath>
 {
@@ -16,13 +18,17 @@ public readonly struct CompactPath : IEquatable<CompactPath>
         => _segments = segments;
 
     public ReadOnlySpan<int> Segments
-        => _segments ?? ReadOnlySpan<int>.Empty;
+        => _segments is null
+            ? ReadOnlySpan<int>.Empty
+            : _segments.AsSpan(1, _segments[0]);
 
-    public int Length => _segments?.Length ?? 0;
+    public int Length => _segments?[0] ?? 0;
 
     public bool IsRoot => _segments is null;
 
-    public int this[int index] => _segments![index];
+    public int this[int index] => _segments![index + 1];
+
+    internal int[]? UnsafeGetBackingArray() => _segments;
 
     public Path ToPath(Operation operation)
     {
@@ -35,7 +41,8 @@ public readonly struct CompactPath : IEquatable<CompactPath>
             return path;
         }
 
-        for (var i = 0; i < _segments.Length; i++)
+        var length = _segments[0];
+        for (var i = 1; i <= length; i++)
         {
             var segment = _segments[i];
 
@@ -70,7 +77,8 @@ public readonly struct CompactPath : IEquatable<CompactPath>
 
         if (_segments is not null)
         {
-            for (var i = 0; i < _segments.Length; i++)
+            var length = _segments[0];
+            for (var i = 1; i <= length; i++)
             {
                 hashCode.Add(_segments[i]);
             }
@@ -78,4 +86,10 @@ public readonly struct CompactPath : IEquatable<CompactPath>
 
         return hashCode.ToHashCode();
     }
+
+    public static bool operator ==(CompactPath left, CompactPath right)
+        => left.Equals(right);
+
+    public static bool operator !=(CompactPath left, CompactPath right)
+        => !left.Equals(right);
 }

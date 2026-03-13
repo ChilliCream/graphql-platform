@@ -13,14 +13,19 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
+    private readonly PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private bool _disposed;
 
-    public CompositeResultDocument(Operation operation, ulong includeFlags)
+    internal CompositeResultDocument(
+        Operation operation,
+        ulong includeFlags,
+        PathSegmentLocalPool? pathPool = null)
     {
         _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk * 8);
         _operation = operation;
         _includeFlags = includeFlags;
+        _pathPool = pathPool;
 
         Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
     }
@@ -148,7 +153,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         } while (true);
 
         Span<int> pathBuffer = stackalloc int[32];
-        var path = new CompactPathBuilder(pathBuffer);
+        var path = new CompactPathBuilder(pathBuffer, _pathPool);
         var parentTokenType = ElementTokenType.StartObject;
 
         chain = chain[..written];
