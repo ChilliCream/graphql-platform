@@ -26,6 +26,8 @@ internal sealed class KeyValuePairObjectType(IExtendedType runtimeType) : Object
         var descriptorExtension = descriptor.Extend();
         var context = descriptorExtension.Context;
         var configuration = descriptorExtension.Configuration;
+        var keyProperty = runtimeType.Type.GetProperty("Key")!;
+        var valueProperty = runtimeType.Type.GetProperty("Value")!;
         var keyType = runtimeType.TypeArguments[0];
         var valueType = runtimeType.TypeArguments[1];
 
@@ -37,8 +39,15 @@ internal sealed class KeyValuePairObjectType(IExtendedType runtimeType) : Object
         configuration.FieldBindingType = runtimeType.Type;
         configuration.RuntimeType = runtimeType.Type;
 
-        descriptor.InferFieldsFromFieldBindingType();
-        descriptor.Field("key").Extend().Configuration.Type = TypeReference.Create(keyType, TypeContext.Output);
-        descriptor.Field("value").Extend().Configuration.Type = TypeReference.Create(valueType, TypeContext.Output);
+        descriptor
+            .Field(keyProperty)
+            .Name("key")
+            .Extend()
+            .Configuration.Type = TypeReference.Create(keyType, TypeContext.Output);
+        descriptor
+            .Field(valueProperty)
+            .Name("value")
+            .Extend()
+            .Configuration.Type = TypeReference.Create(valueType, TypeContext.Output);
     }
 }

@@ -1,8 +1,9 @@
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
-public class InputObjectTypeDictionaryTests
+public class DictionaryTypeTests
     : TypeTestBase
 {
     [Fact]
@@ -202,6 +203,99 @@ public class InputObjectTypeDictionaryTests
                 """);
     }
 
+    [Fact]
+    public void Dictionary_Output_With_Object_Value_In_Oblivious_Context_Is_Supported()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<DictionaryOutputQueryWithObliviousObjectValues>()
+            .Create();
+
+        // assert
+        var queryType = schema.Types.GetType<ObjectType>("DictionaryOutputQueryWithObliviousObjectValues");
+        var metadataType = schema.Types.GetType<ObjectType>(queryType.Fields["metadata"].Type.TypeName());
+        var attributesType = schema.Types.GetType<ObjectType>(queryType.Fields["attributes"].Type.TypeName());
+
+        Snapshot.Create()
+            .Add(metadataType.ToString(), "metadata")
+            .Add(attributesType.ToString(), "attributes")
+            .MatchInline(
+            """
+            metadata
+            ---------------
+            type KeyValuePairOfNullableStringAndNullableObject {
+              key: String
+              value: Any
+            }
+            ---------------
+
+            attributes
+            ---------------
+            type KeyValuePairOfNullableStringAndNullableObject {
+              key: String
+              value: Any
+            }
+            ---------------
+
+            """);
+    }
+
+    [Fact]
+    public async Task Dictionary_Output_With_Object_Value_In_Oblivious_Context_Executes()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<DictionaryOutputQueryWithObliviousObjectValuesExecution>()
+            .AddJsonTypeConverter()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              metadata {
+                key
+                value
+              }
+              attributes {
+                key
+                value
+              }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "metadata": [
+                  {
+                    "key": "string",
+                    "value": "abc"
+                  },
+                  {
+                    "key": "int",
+                    "value": 123
+                  }
+                ],
+                "attributes": [
+                  {
+                    "key": "bool",
+                    "value": true
+                  },
+                  {
+                    "key": "nullValue",
+                    "value": null
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     public class Query
     {
         public string GetFoo(FooInput input)
@@ -285,6 +379,34 @@ public class InputObjectTypeDictionaryTests
         public IDictionary<string, IList<string>> Highlights { get; internal set; } =
             new Dictionary<string, IList<string>>();
     }
+
+#nullable disable
+
+    public class DictionaryOutputQueryWithObliviousObjectValues
+    {
+        public Dictionary<string, object> GetMetadata() => null;
+
+        public IReadOnlyDictionary<string, object> GetAttributes() => null;
+    }
+
+    public class DictionaryOutputQueryWithObliviousObjectValuesExecution
+    {
+        public Dictionary<string, object> GetMetadata() =>
+            new()
+            {
+                ["string"] = "abc",
+                ["int"] = 123
+            };
+
+        public IReadOnlyDictionary<string, object> GetAttributes() =>
+            new Dictionary<string, object>
+            {
+                ["bool"] = true,
+                ["nullValue"] = null
+            };
+    }
+
+#nullable restore
 
     public class CustomKeyValuePairType : ObjectType<KeyValuePair<string, string>>
     {
