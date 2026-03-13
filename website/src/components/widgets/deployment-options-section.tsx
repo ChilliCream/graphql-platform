@@ -1,8 +1,7 @@
-import { Link } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { ContentSection, IconContainer } from "@/components/misc";
+import { ContentSection, IconContainer, Link } from "@/components/misc";
 import { Icon } from "@/components/sprites";
 import { THEME_COLORS } from "@/style";
 import { Box, Boxes } from "./box-elements";
@@ -123,7 +122,8 @@ const OptionBox = styled(Box)`
   }
 `;
 
-const Title = styled.h4`
+const Title = styled.div`
+  font-weight: 700;
   display: flex;
   flex-direction: row;
   align-items: center;

@@ -43,6 +43,8 @@ public class MutableInputObjectTypeDefinition
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <inheritdoc />
     public DirectiveCollection Directives
         => _directives ??= [];
@@ -60,6 +62,9 @@ public class MutableInputObjectTypeDefinition
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields
         => Fields;
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <inheritdoc />
     public bool IsOneOf { get; set; }

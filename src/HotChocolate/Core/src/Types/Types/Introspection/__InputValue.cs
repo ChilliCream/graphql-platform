@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
@@ -18,6 +17,7 @@ internal sealed class __InputValue : ObjectType
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
         var nonNullTypeType = Parse($"{nameof(__Type)}!");
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
@@ -53,6 +53,14 @@ internal sealed class __InputValue : ObjectType
                 pureResolver: Resolvers.AppliedDirectives));
         }
 
+        if (context.DescriptorContext.Options.EnableOptInFeatures)
+        {
+            def.Fields.Add(new(
+                Names.RequiresOptIn,
+                type: nonNullStringListType,
+                pureResolver: Resolvers.RequiresOptIn));
+        }
+
         return def;
     }
 
@@ -76,7 +84,7 @@ internal sealed class __InputValue : ObjectType
         public static object? DefaultValue(IResolverContext context)
         {
             var field = context.Parent<IInputValueDefinition>();
-            return field.DefaultValue.IsNull() ? null : field.DefaultValue!.Print();
+            return field.DefaultValue.IsNull() ? null : field.DefaultValue!.ToString(indented: false);
         }
 
         public static object AppliedDirectives(IResolverContext context)
@@ -84,6 +92,12 @@ internal sealed class __InputValue : ObjectType
                 .Directives
                 .Where(t => Unsafe.As<DirectiveType>(t.Definition).IsPublic)
                 .Select(d => d.ToSyntaxNode());
+
+        public static object RequiresOptIn(IResolverContext context)
+            => context.Parent<IInputValueDefinition>()
+                .Directives
+                .Where(t => t.Definition is RequiresOptInDirectiveType)
+                .Select(d => d.ToValue<RequiresOptIn>().Feature);
     }
 
     public static class Names
@@ -97,6 +111,7 @@ internal sealed class __InputValue : ObjectType
         public const string AppliedDirectives = "appliedDirectives";
         public const string IsDeprecated = "isDeprecated";
         public const string DeprecationReason = "deprecationReason";
+        public const string RequiresOptIn = "requiresOptIn";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

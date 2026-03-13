@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
@@ -15,14 +16,14 @@ public class ObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = [];
 
-    protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
+    protected ObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
         : base(context)
     {
-        ArgumentNullException.ThrowIfNull(clrType);
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
-        Configuration.RuntimeType = clrType;
-        Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
-        Configuration.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
+        Configuration.RuntimeType = runtimeType;
+        Configuration.Name = context.Naming.GetTypeName(runtimeType, TypeKind.Object);
+        Configuration.Description = context.Naming.GetTypeDescription(runtimeType, TypeKind.Object);
     }
 
     protected ObjectTypeDescriptor(IDescriptorContext context)
@@ -53,25 +54,24 @@ public class ObjectTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, FieldBindingType: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.FieldBindingType);
+                Configuration.FieldBindingType ?? Configuration.RuntimeType);
 
-            if (Configuration.AttributeBindingTypes.Length > 0)
+            Configuration.ConfigurationsAreApplied = true;
+        }
+
+        var explicitFieldNames = TypeMemHelper.RentNameSet();
+
+        foreach (var field in _fields)
+        {
+            if (!field.Configuration.Ignore && !string.IsNullOrEmpty(field.Configuration.Name))
             {
-                foreach (var type in Configuration.AttributeBindingTypes)
-                {
-                    Context.TypeInspector.ApplyAttributes(
-                        Context,
-                        this,
-                        type);
-                }
+                explicitFieldNames.Add(field.Configuration.Name);
             }
-
-            Configuration.AttributesAreApplied = true;
         }
 
         foreach (var field in _fields)
@@ -81,8 +81,14 @@ public class ObjectTypeDescriptor
                 // if this definition is used for a type extension we need a
                 // binding to a field which shall be ignored. In case this is a
                 // definition for the type it will be ignored by the type initialization.
-                Configuration.FieldIgnores.Add(
-                    new ObjectFieldBinding(field.Configuration.Name, ObjectFieldBindingType.Field));
+                if (!string.IsNullOrEmpty(field.Configuration.Name)
+                    && !explicitFieldNames.Contains(field.Configuration.Name))
+                {
+                    Configuration.FieldIgnores.Add(
+                        new ObjectFieldBinding(
+                            field.Configuration.Name,
+                            ObjectFieldBindingType.Field));
+                }
             }
         }
 
@@ -116,6 +122,7 @@ public class ObjectTypeDescriptor
         Configuration.Fields.Clear();
         Configuration.Fields.AddRange(fields.Values);
 
+        TypeMemHelper.Return(explicitFieldNames);
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(handledMembers);
 
@@ -305,33 +312,43 @@ public class ObjectTypeDescriptor
     {
         ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
-        if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
+        if (propertyOrMethod is not (PropertyInfo or MethodInfo))
         {
-            var fieldDescriptor = _fields.Find(t => t.Configuration.Member == propertyOrMethod);
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
 
-            if (fieldDescriptor is not null)
-            {
-                return fieldDescriptor;
-            }
-
-            fieldDescriptor = ObjectFieldDescriptor.New(
-                Context,
-                propertyOrMethod,
-                Configuration.RuntimeType,
-                propertyOrMethod.ReflectedType ?? Configuration.RuntimeType);
-            _fields.Add(fieldDescriptor);
+        var fieldDescriptor = _fields.Find(t => t.Configuration.Member == propertyOrMethod);
+        if (fieldDescriptor is not null)
+        {
             return fieldDescriptor;
         }
 
-        throw new ArgumentException(
-            ObjectTypeDescriptor_MustBePropertyOrMethod,
-            nameof(propertyOrMethod));
+        fieldDescriptor = ObjectFieldDescriptor.New(
+            Context,
+            propertyOrMethod,
+            Configuration.RuntimeType,
+            propertyOrMethod.ReflectedType ?? Configuration.RuntimeType);
+        _fields.Add(fieldDescriptor);
+        return fieldDescriptor;
     }
 
     public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
         Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
     {
         ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        if (propertyOrMethod.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
+        {
+            var fieldDescriptor = ObjectFieldDescriptor.New(
+                Context,
+                propertyOrMethod,
+                Configuration.RuntimeType,
+                typeof(TResolver));
+            _fields.Add(fieldDescriptor);
+            return fieldDescriptor;
+        }
 
         var member = propertyOrMethod.TryExtractMember();
 
@@ -407,8 +424,8 @@ public class ObjectTypeDescriptor
 
     public static ObjectTypeDescriptor New(
         IDescriptorContext context,
-        Type clrType) =>
-        new(context, clrType);
+        Type runtimeType) =>
+        new(context, runtimeType);
 
     public static ObjectTypeDescriptor<T> New<T>(
         IDescriptorContext context) =>

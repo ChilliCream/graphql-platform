@@ -14,26 +14,28 @@ internal sealed class ExportCommand : Command
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportCommand"/> class.
     /// </summary>
-    public ExportCommand() : base("export")
+    public ExportCommand(IHost host) : base("export")
     {
         Description = "Export the graphql schema to a schema file";
 
-        AddOption(Opt<OutputOption>.Instance);
-        AddOption(Opt<SchemaNameOption>.Instance);
+        Options.Add(Opt<OutputOption>.Instance);
+        Options.Add(Opt<SchemaNameOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IConsole>(),
-            Bind.FromServiceProvider<IHost>(),
-            Opt<OutputOption>.Instance,
-            Opt<SchemaNameOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(
+            (parseResult, cancellationToken) =>
+            {
+                var output = parseResult.InvocationConfiguration.Output;
+                var outputFile = parseResult.GetValue(Opt<OutputOption>.Instance);
+                var schemaName = parseResult.GetValue(Opt<SchemaNameOption>.Instance);
+
+                return ExecuteAsync(output, host, outputFile, schemaName, cancellationToken);
+            });
     }
 
     private static async Task ExecuteAsync(
-        IConsole console,
+        TextWriter output,
         IHost host,
-        FileInfo? output,
+        FileInfo? outputFile,
         string? schemaName,
         CancellationToken cancellationToken)
     {
@@ -45,7 +47,7 @@ internal sealed class ExportCommand : Command
 
             if (schemaNames.IsEmpty)
             {
-                console.WriteLine("No schemas registered.");
+                await output.WriteLineAsync("No schemas registered.");
                 return;
             }
 
@@ -55,13 +57,11 @@ internal sealed class ExportCommand : Command
         }
 
         var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
-        output ??= new FileInfo(System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls"));
-        var result = await SchemaFileExporter.Export(output.FullName, executor, cancellationToken);
+        outputFile ??= new FileInfo(System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls"));
+        var result = await SchemaFileExporter.Export(outputFile.FullName, executor, cancellationToken);
 
-        // ReSharper disable LocalizableElement
-        console.WriteLine("Exported Files:");
-        console.WriteLine($"- {result.SchemaFileName}");
-        console.WriteLine($"- {result.SettingsFileName}");
-        // ReSharper restore LocalizableElement
+        await output.WriteLineAsync("Exported Files:");
+        await output.WriteLineAsync($"- {result.SchemaFileName}");
+        await output.WriteLineAsync($"- {result.SettingsFileName}");
     }
 }

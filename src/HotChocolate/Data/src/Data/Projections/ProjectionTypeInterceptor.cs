@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Data.Projections.Optimizers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;

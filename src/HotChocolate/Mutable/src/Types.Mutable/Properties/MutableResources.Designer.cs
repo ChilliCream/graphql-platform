@@ -67,5 +67,86 @@ namespace HotChocolate.Types.Mutable.Properties {
                 return ResourceManager.GetString("NonNullType_InnerTypeCannotBeNonNull", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An argument with the name &apos;{0}&apos; has already been defined on the field &apos;{1}&apos;..
+        /// </summary>
+        internal static string SchemaParser_DuplicateArgumentDefinition {
+            get {
+                return ResourceManager.GetString("SchemaParser_DuplicateArgumentDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A directive with the name &apos;@{0}&apos; has already been defined..
+        /// </summary>
+        internal static string SchemaParser_DuplicateDirectiveDefinition {
+            get {
+                return ResourceManager.GetString("SchemaParser_DuplicateDirectiveDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A field with the name &apos;{0}&apos; has already been defined on the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string SchemaParser_DuplicateFieldDefinition {
+            get {
+                return ResourceManager.GetString("SchemaParser_DuplicateFieldDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A field with the name &apos;{0}&apos; has already been defined on the Input Object type &apos;{1}&apos;..
+        /// </summary>
+        internal static string SchemaParser_DuplicateInputObjectFieldDefinition {
+            get {
+                return ResourceManager.GetString("SchemaParser_DuplicateInputObjectFieldDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A type with the name &apos;{0}&apos; has already been defined..
+        /// </summary>
+        internal static string SchemaParser_DuplicateTypeDefinition {
+            get {
+                return ResourceManager.GetString("SchemaParser_DuplicateTypeDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; must accept an input type..
+        /// </summary>
+        internal static string SchemaParser_InvalidArgumentType {
+            get {
+                return ResourceManager.GetString("SchemaParser_InvalidArgumentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; must return an output type..
+        /// </summary>
+        internal static string SchemaParser_InvalidFieldType {
+            get {
+                return ResourceManager.GetString("SchemaParser_InvalidFieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Input Object field &apos;{0}&apos; must accept an input type..
+        /// </summary>
+        internal static string SchemaParser_InvalidInputObjectFieldType {
+            get {
+                return ResourceManager.GetString("SchemaParser_InvalidInputObjectFieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Union type &apos;{0}&apos; cannot include the type &apos;{1}&apos;. Unions can only contain Object types..
+        /// </summary>
+        internal static string SchemaParser_InvalidUnionMemberType {
+            get {
+                return ResourceManager.GetString("SchemaParser_InvalidUnionMemberType", resourceCulture);
+            }
+        }
     }
 }

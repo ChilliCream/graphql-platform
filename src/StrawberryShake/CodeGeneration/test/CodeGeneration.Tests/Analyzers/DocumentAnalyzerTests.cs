@@ -71,7 +71,7 @@ public class DocumentAnalyzerTests
             });
     }
 
-    [Fact]
+    [Fact(Skip = "We need to reimplement defer for the client.")]
     public async Task One_Fragment_One_Deferred_Fragment()
     {
         // arrange

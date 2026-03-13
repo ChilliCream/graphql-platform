@@ -15,14 +15,20 @@ public class CharacterType : InterfaceType<ICharacter>
         descriptor.Field(f => f.Name)
             .Type<NonNullType<StringType>>();
 
-        descriptor.Field(f => f.Friends)
-            .UsePaging<CharacterType>();
+        descriptor
+            .Field(f => f.Friends)
+            .UsePaging<CharacterType>()
+            .Resolve(async ctx =>
+            {
+                await Task.Delay(250);
+                return ctx.Parent<ICharacter>().Friends;
+            });
 
         descriptor.Field(f => f.AppearsIn)
             .Type<ListType<EpisodeType>>();
 
         descriptor.Field(f => f.Traits)
-            .Type<JsonType>();
+            .Type<AnyType>();
 
         descriptor.Field(f => f.Height)
             .Type<FloatType>()

@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
@@ -54,13 +55,14 @@ public class InputObjectTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var fields = TypeMemHelper.RentInputFieldConfigurationMap();
@@ -92,6 +94,20 @@ public class InputObjectTypeDescriptor
         base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
+    }
+
+    internal void InferFieldsFromFieldBindingType()
+    {
+        var fields = TypeMemHelper.RentInputFieldConfigurationMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
+
+        InferFieldsFromFieldBindingType(fields, handledMembers);
+
+        Configuration.Fields.Clear();
+        Configuration.Fields.AddRange(fields.Values);
+
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
     }
 
     protected void InferFieldsFromFieldBindingType(

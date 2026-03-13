@@ -1,11 +1,20 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Net;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.AspNetCore;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal static class PersistedOperationMiddleware
 {
     internal static void MapPersistedOperationMiddleware(
@@ -14,14 +23,13 @@ internal static class PersistedOperationMiddleware
         string schemaName,
         bool requireOperationName)
     {
-        var optionsHolder = new OptionsHolder();
         var executorProxy = HttpRequestExecutorProxy.Create(services, schemaName);
+        var serverOptions = services.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
 
         groupBuilder.MapGet(
             "/{operationId}",
             async context =>
             {
-                var options = optionsHolder.GetOptions(context);
                 var operationId = context.Request.RouteValues["operationId"] as string;
 
                 if (string.IsNullOrEmpty(operationId))
@@ -34,7 +42,7 @@ internal static class PersistedOperationMiddleware
                 await ExecuteGetRequestAsync(
                     context,
                     executorProxy,
-                    options,
+                    serverOptions,
                     operationId,
                     operationName: null,
                     requireOperationName);
@@ -45,7 +53,6 @@ internal static class PersistedOperationMiddleware
                 "/{operationId}/{operationName}",
                 async context =>
                 {
-                    var options = optionsHolder.GetOptions(context);
                     var operationId = context.Request.RouteValues["operationId"] as string;
                     var operationName = context.Request.RouteValues["operationName"] as string;
 
@@ -66,7 +73,7 @@ internal static class PersistedOperationMiddleware
                     await ExecuteGetRequestAsync(
                         context,
                         executorProxy,
-                        options,
+                        serverOptions,
                         operationId,
                         operationName,
                         requireOperationName);
@@ -262,21 +269,5 @@ HANDLE_RESULT:
             statusCode,
             context,
             executorSession);
-    }
-
-    private sealed class OptionsHolder
-    {
-        private GraphQLServerOptions? _options;
-
-        public GraphQLServerOptions GetOptions(HttpContext context)
-        {
-            if (_options is not null)
-            {
-                return _options;
-            }
-
-            _options = context.GetGraphQLServerOptions() ?? new GraphQLServerOptions();
-            return _options;
-        }
     }
 }

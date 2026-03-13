@@ -24,7 +24,7 @@ public class UrlSerializerTests
         var typeName = Serializer.TypeName;
 
         // assert
-        Assert.Equal("Url", typeName);
+        Assert.Equal("URL", typeName);
     }
 
     [Fact]

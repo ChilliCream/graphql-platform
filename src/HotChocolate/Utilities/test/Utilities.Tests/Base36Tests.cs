@@ -55,7 +55,7 @@ public class Base36Tests
 
         // Assert
         Assert.NotEmpty(result);
-        Assert.True(result.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+        Assert.True(result.All("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains));
     }
 
     [Theory]
@@ -87,7 +87,7 @@ public class Base36Tests
 
         // Assert
         Assert.NotEmpty(result);
-        Assert.True(result.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+        Assert.True(result.All("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains));
     }
 
     [Fact]
@@ -280,7 +280,7 @@ public class Base36Tests
         var result = Base36.Encode(input);
 
         // Assert
-        Assert.True(result.All(c => validChars.Contains(c)),
+        Assert.True(result.All(validChars.Contains),
             $"Result contains invalid characters: {result}");
     }
 

@@ -370,7 +370,7 @@ public class InputObjectTypeTests : TypeTestBase
             => InputObjectTypeDescriptorExtensions.Ignore<SimpleInput>(null!, t => t.Id);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]
@@ -612,7 +612,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NullableFields_Valid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -627,7 +627,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -643,7 +643,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NullableFields_Valid()
+    public async Task CodeFirst_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -658,7 +658,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task CodeFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -678,7 +678,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedInputTypes_NullableFields_Valid()
+    public async Task SchemaFirst_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -698,7 +698,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task SchemaFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -723,7 +723,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         void Fail() => InputObjectTypeDescriptorExtensions.OneOf(null!);
 
-        Assert.Throws<ArgumentNullException>(Fail);
+        Assert.Throws<NullReferenceException>(Fail);
     }
 
     [Fact]
@@ -731,7 +731,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         void Fail() => InputObjectTypeDescriptorExtensions.OneOf<object>(null!);
 
-        Assert.Throws<ArgumentNullException>(Fail);
+        Assert.Throws<NullReferenceException>(Fail);
     }
 
     [Fact]
@@ -794,7 +794,7 @@ public class InputObjectTypeTests : TypeTestBase
 
     public interface IDoesNotWork
     {
-        public double? Member { get; set; }
+        double? Member { get; set; }
     }
 
     public class SimpleInput
@@ -948,7 +948,7 @@ public class InputObjectTypeTests : TypeTestBase
         [DefaultValue(FooEnum.Bar)]
         public FooEnum Enum { get; set; }
 
-        [DefaultValueSyntax("[[{ foo: 1 } ]]")]
+        [DefaultValueSyntax("[[{ foo: 1 }]]")]
         public List<List<ComplexInput>> ComplexInput { get; set; } = null!;
 
         public string? WithoutDefault { get; set; }

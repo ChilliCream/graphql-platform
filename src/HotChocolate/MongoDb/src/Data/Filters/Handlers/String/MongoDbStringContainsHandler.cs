@@ -17,6 +17,9 @@ public class MongoDbStringContainsHandler
 
     protected override int Operation => DefaultFilterOperations.Contains;
 
+    public static MongoDbStringContainsHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     public override MongoDbFilterDefinition HandleOperation(
         MongoDbFilterVisitorContext context,
         IFilterOperationField field,

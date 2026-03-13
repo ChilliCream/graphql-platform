@@ -20,8 +20,11 @@ public sealed class FileReferenceNode
     /// <param name="fileName">
     /// The file name.
     /// </param>
-    public FileReferenceNode(Stream stream, string fileName)
-        : this(new FileReference(() => stream, fileName)) { }
+    /// <param name="contentType">
+    /// The file content type.
+    /// </param>
+    public FileReferenceNode(Stream stream, string fileName, string? contentType)
+        : this(new FileReference(() => stream, fileName, contentType)) { }
 
     /// <summary>
     /// Creates a new instance of <see cref="FileReferenceNode" />
@@ -32,8 +35,11 @@ public sealed class FileReferenceNode
     /// <param name="fileName">
     /// The file name.
     /// </param>
-    public FileReferenceNode(Func<Stream> openRead, string fileName)
-        : this(new FileReference(openRead, fileName)) { }
+    /// <param name="contentType">
+    /// The file content type.
+    /// </param>
+    public FileReferenceNode(Func<Stream> openRead, string fileName, string? contentType)
+        : this(new FileReference(openRead, fileName, contentType)) { }
 
     /// <summary>
     /// Creates a new instance of <see cref="FileReferenceNode" />

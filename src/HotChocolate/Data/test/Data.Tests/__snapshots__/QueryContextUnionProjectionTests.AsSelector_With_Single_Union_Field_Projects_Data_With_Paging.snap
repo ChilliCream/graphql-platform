@@ -1,0 +1,13 @@
+{
+  "data": {
+    "pagedInspectionDefinitions": {
+      "nodes": [
+        {
+          "trigger": {
+            "fieldModelKey": "field-1"
+          }
+        }
+      ]
+    }
+  }
+}

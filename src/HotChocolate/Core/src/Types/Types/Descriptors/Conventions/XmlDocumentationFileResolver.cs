@@ -12,7 +12,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 
     private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
 
-    private readonly ConcurrentDictionary<string, XDocument> _cache =
+    private readonly ConcurrentDictionary<string, XDocument?> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
     public XmlDocumentationFileResolver()
@@ -38,8 +38,9 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
             if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
             {
                 doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
-                _cache[fullName] = doc;
             }
+
+            _cache[fullName] = doc;
         }
 
         document = doc;

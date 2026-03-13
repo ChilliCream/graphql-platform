@@ -42,6 +42,8 @@ public abstract class MutableComplexTypeDefinition
     /// <inheritdoc cref="ISchemaCoordinateProvider.Coordinate" />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>
@@ -72,6 +74,9 @@ public abstract class MutableComplexTypeDefinition
     [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
         => field ??= new FeatureCollection();
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <inheritdoc />
     public bool Equals(IType? other) => Equals(other, TypeComparison.Reference);

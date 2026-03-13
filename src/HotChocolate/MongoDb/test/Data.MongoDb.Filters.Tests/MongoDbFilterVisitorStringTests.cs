@@ -100,7 +100,7 @@ public class MongoDbFilterVisitorStringTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { in: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -110,7 +110,7 @@ public class MongoDbFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { in: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // arrange
@@ -132,7 +132,7 @@ public class MongoDbFilterVisitorStringTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { nin: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -142,7 +142,7 @@ public class MongoDbFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { nin: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // arrange
@@ -412,7 +412,7 @@ public class MongoDbFilterVisitorStringTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { in: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -422,7 +422,7 @@ public class MongoDbFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { in: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // arrange
@@ -444,7 +444,7 @@ public class MongoDbFilterVisitorStringTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { nin: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -454,7 +454,7 @@ public class MongoDbFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { nin: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // arrange

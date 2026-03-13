@@ -166,7 +166,7 @@
     "title": "Fusion",
     "description": "Federated GraphQL Gateway",
     "metaDescription": "Fusion is a powerful, open-source GraphQL gateway that helps developers to build a unified API for their services.",
-    "latestStableVersion": "v15",
+    "latestStableVersion": "v16",
     "versions": [
       {
         "path": "v16",
@@ -177,32 +177,54 @@
             "title": "Overview"
           },
           {
-            "path": "quick-start",
-            "title": "Quick Start"
+            "path": "getting-started",
+            "title": "Getting Started"
           },
           {
-            "path": "entities",
-            "title": "Entities"
+            "path": "adding-a-subgraph",
+            "title": "Adding a Subgraph"
           },
           {
-            "path": "lookups",
-            "title": "Lookups"
+            "path": "entities-and-lookups",
+            "title": "Entities and Lookups"
           },
           {
-            "path": "devops",
-            "title": "DevOps"
+            "path": "data-requirements-and-mapping",
+            "title": "Data Requirements"
           },
           {
-            "path": "node",
-            "title": "Node Pattern"
+            "path": "field-ownership-and-sharing",
+            "title": "Field Ownership and Sharing"
           },
           {
-            "path": "aspire",
-            "title": "Aspire"
+            "path": "composition",
+            "title": "Composition"
           },
           {
-            "path": "cli",
-            "title": "CLI"
+            "path": "authentication-and-authorization",
+            "title": "Authentication and Authorization"
+          },
+          {
+            "path": "deployment-and-ci-cd",
+            "title": "Deployment and CI/CD"
+          },
+          {
+            "path": "attribute-and-directive-reference",
+            "title": "Attribute and Directive Reference"
+          },
+          {
+            "path": "migration",
+            "title": "Migration",
+            "items": [
+              {
+                "path": "coming-from-apollo-federation",
+                "title": "Coming from Apollo Federation"
+              },
+              {
+                "path": "migrating-from-schema-stitching",
+                "title": "Migrating from Schema Stitching"
+              }
+            ]
           }
         ]
       },
@@ -289,7 +311,7 @@
     "title": "Hot Chocolate",
     "description": "GraphQL Server / Gateway",
     "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
-    "latestStableVersion": "v15",
+    "latestStableVersion": "v16",
     "versions": [
       {
         "path": "v16",
@@ -2450,7 +2472,7 @@
     "title": "Strawberry Shake",
     "description": "GraphQL Client for .NET",
     "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
-    "latestStableVersion": "v15",
+    "latestStableVersion": "v16",
     "versions": [
       {
         "path": "v16",
@@ -2467,10 +2489,6 @@
               {
                 "path": "index",
                 "title": "Blazor"
-              },
-              {
-                "path": "xamarin",
-                "title": "Xamarin"
               },
               {
                 "path": "console",
@@ -2577,12 +2595,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2685,12 +2703,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2789,12 +2807,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2889,12 +2907,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2959,6 +2977,74 @@
           {
             "path": "scalars",
             "title": "Scalars"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mocha",
+    "title": "Mocha",
+    "description": "Messaging Bus for .NET",
+    "metaDescription": "Mocha is a messaging framework for .NET that combines simplicity, flexibility, and observability with deep Nitro integration.",
+    "latestStableVersion": "v1",
+    "versions": [
+      {
+        "path": "v1",
+        "title": "v1",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "quick-start",
+            "title": "Quick Start"
+          },
+          {
+            "path": "messages",
+            "title": "Messages"
+          },
+          {
+            "path": "messaging-patterns",
+            "title": "Messaging Patterns"
+          },
+          {
+            "path": "handlers-and-consumers",
+            "title": "Handlers and Consumers"
+          },
+          {
+            "path": "routing-and-endpoints",
+            "title": "Routing and Endpoints"
+          },
+          {
+            "path": "middleware-and-pipelines",
+            "title": "Middleware and Pipelines"
+          },
+          {
+            "path": "reliability",
+            "title": "Reliability"
+          },
+          {
+            "path": "observability",
+            "title": "Observability"
+          },
+          {
+            "path": "sagas",
+            "title": "Sagas"
+          },
+          {
+            "path": "transports",
+            "title": "Transports",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              { "path": "in-memory", "title": "InMemory" },
+              { "path": "rabbitmq", "title": "RabbitMQ" }
+            ]
+          },
+          {
+            "path": "hosting",
+            "title": "Hosting"
           }
         ]
       }

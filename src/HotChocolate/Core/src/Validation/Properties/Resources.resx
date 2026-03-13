@@ -144,7 +144,7 @@
     <value>Field "{0}" of type "{1}" must have a selection of subfields. Did you mean "{0} {{ ... }}"?</value>
   </data>
   <data name="ErrorHelper_NoSelectionOnRootType" xml:space="preserve">
-    <value>Operation `{0}` has an empty selection set. Root types without subfields are disallowed.</value>
+    <value>Operation `{0}` has an empty selection set. Root types without selections are disallowed.</value>
   </data>
   <data name="ErrorHelper_FieldIsRequiredButNull" xml:space="preserve">
     <value>`{0}` is a required field and cannot be null.</value>

@@ -1,0 +1,6 @@
+Headers:
+Content-Type: application/problem+json
+-------------------------->
+Status Code: BadRequest
+-------------------------->
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"Bad Request","status":400,"detail":"The value `123` is not a valid value for the scalar type `String`."}

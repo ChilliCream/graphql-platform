@@ -133,6 +133,22 @@ public class EnumTypeExtensionTests
         schema.ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public void EnumTypeExtension_Rename_Value()
+    {
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<DummyQuery>()
+            .AddType<FooType>()
+            .AddType<FooRenameTypeExtension>()
+            .Create();
+
+        // assert
+        var type = schema.Types.GetType<EnumType>("Foo");
+        Assert.True(type.TryGetRuntimeValue("TEST", out _));
+        Assert.False(type.TryGetRuntimeValue("BAR", out _));
+    }
+
     public class DummyQuery
     {
         public required string Foo { get; set; }
@@ -166,6 +182,16 @@ public class EnumTypeExtensionTests
         {
             descriptor.Name("Foo");
             descriptor.Value(Foo.Bar).Ignore();
+        }
+    }
+
+    public class FooRenameTypeExtension
+        : EnumTypeExtension
+    {
+        protected override void Configure(IEnumTypeDescriptor descriptor)
+        {
+            descriptor.Name("Foo");
+            descriptor.Value(Foo.Bar).Name("TEST");
         }
     }
 

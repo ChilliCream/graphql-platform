@@ -78,7 +78,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             .AddProperty("Hash")
             .SetType(TypeNames.DocumentHash)
             .SetValue(
-                $@"new {TypeNames.DocumentHash}("
+                $"new {TypeNames.DocumentHash}("
                 + $@"""{descriptor.HashAlgorithm}"", "
                 + $@"""{descriptor.HashValue}"")");
 

@@ -469,7 +469,7 @@ public class NodeFieldSupportTests
 
     public interface IBar9Resolver
     {
-        public Bar9 GetBar9(string id);
+        Bar9 GetBar9(string id);
     }
 
     public class Bar9Resolver : IBar9Resolver

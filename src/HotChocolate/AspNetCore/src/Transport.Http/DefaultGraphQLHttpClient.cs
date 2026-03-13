@@ -1,14 +1,23 @@
 // ReSharper disable IntroduceOptionalParameters.Global
 
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+#if FUSION
+using HotChocolate.Transport;
+using HotChocolate.Transport.Http;
+#endif
 using HotChocolate.Transport.Serialization;
 using static System.Net.Http.HttpCompletionOption;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// A default implementation of <see cref="GraphQLHttpClient"/> that supports the GraphQL over HTTP spec draft.
@@ -178,6 +187,8 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.Body.WriteTo(jsonWriter);
         jsonWriter.Flush();
+
+        Debug.WriteLine(Encoding.UTF8.GetString(arrayWriter.WrittenSpan));
 
         var internalBuffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
         var content = new ByteArrayContent(internalBuffer, 0, arrayWriter.Length);

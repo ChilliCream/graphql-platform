@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -516,7 +517,7 @@ public class ObjectTypeTests : TypeTestBase
     public void NoQueryType()
     {
         // arrange
-        const string source = @"type A { field: String }";
+        const string source = "type A { field: String }";
 
         // act
         void Action()
@@ -1235,7 +1236,7 @@ public class ObjectTypeTests : TypeTestBase
         void Action() => ObjectTypeDescriptorExtensions.Ignore<Foo>(null!, t => t.Description);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]
@@ -1580,7 +1581,7 @@ public class ObjectTypeTests : TypeTestBase
                     .Field("test")
                     .Resolve(
                         _ => new ValueTask<object?>("abc"),
-                        typeof(NativeType<List<int>>)))
+                        typeof(NamedRuntimeType<List<int>>)))
             .Create();
 
         // assert
@@ -1733,6 +1734,60 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
+    public void ResolveWithStatic()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<ResolveWithStaticQueryType>()
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void ResolveWithStaticAsync()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<ResolveWithStaticQueryTypeAsync>()
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz qux }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void ResolveWithInstanceDelegate()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<ResolveWithInstanceDelegateQueryType>()
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void ResolveWithLambdaDelegate()
+    {
+        Func<string> lambda = () => "Lambda";
+
+        SchemaBuilder.New()
+            .AddQueryType(new ObjectType<ResolveWithQuery>(d =>
+            {
+                d.Field(t => t.Foo).ResolveWith(lambda);
+                d.Field("baz").ResolveWith(lambda);
+            }))
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
     public void ResolveWith_NonGeneric()
     {
         SchemaBuilder.New()
@@ -1839,7 +1894,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnotationBased_DeprecatedArgument_Should_BeDeprecated()
+    public async Task AnnotationBased_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrangt
         // act
@@ -1853,7 +1908,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
+    public async Task AnnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
         // act
@@ -2352,6 +2407,16 @@ public class ObjectTypeTests : TypeTestBase
             => Task.FromResult(context is not null);
     }
 
+    public static class ResolveWithStaticQueryResolver
+    {
+        public static string Bar() => "Bar";
+
+        public static Task<string> FooAsync() => Task.FromResult("Foo");
+
+        public static Task<bool> BarAsync(IResolverContext context)
+            => Task.FromResult(context is not null);
+    }
+
     public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
     {
         protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
@@ -2374,6 +2439,35 @@ public class ObjectTypeTests : TypeTestBase
 
             descriptor.Field("quuz")
                 .ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(null));
+        }
+    }
+
+    public class ResolveWithStaticQueryType : ObjectType<ResolveWithQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+        {
+            descriptor.Field(t => t.Foo).ResolveWith(ResolveWithStaticQueryResolver.Bar);
+            descriptor.Field("baz").ResolveWith(ResolveWithStaticQueryResolver.Bar);
+        }
+    }
+
+    public class ResolveWithStaticQueryTypeAsync : ObjectType<ResolveWithQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+        {
+            descriptor.Field(t => t.Foo).ResolveWith(ResolveWithStaticQueryResolver.FooAsync);
+            descriptor.Field("baz").ResolveWith(ResolveWithStaticQueryResolver.FooAsync);
+            descriptor.Field("qux").ResolveWith(ResolveWithStaticQueryResolver.BarAsync);
+        }
+    }
+
+    public class ResolveWithInstanceDelegateQueryType : ObjectType<ResolveWithQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+        {
+            var resolver = new ResolveWithQueryResolver();
+            descriptor.Field(t => t.Foo).ResolveWith(resolver.FooAsync);
+            descriptor.Field("baz").ResolveWith(resolver.BarAsync);
         }
     }
 
