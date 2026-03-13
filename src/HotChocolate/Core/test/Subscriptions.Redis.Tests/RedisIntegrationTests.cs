@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 using StackExchange.Redis;
@@ -48,6 +49,67 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
     [Fact]
     public override Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
         => base.Subscribe_And_Complete_Topic_With_ValueTypeMessage();
+
+    [Fact]
+    public async Task Subscribe_Union_Field_In_Payload()
+    {
+        using var cts = new CancellationTokenSource(Timeout);
+        await using var services = CreateServer(
+            builder => builder
+                .AddSubscriptionType<UnionPayloadSubscription>()
+                .AddType<UnionTextMessage>()
+                .AddType<UnionCodeMessage>()
+                .ModifyOptions(o => o.StrictValidation = false));
+        var sender = services.GetRequiredService<ITopicEventSender>();
+
+        var result = await services.ExecuteRequestAsync(
+            """
+            subscription {
+              onUnionPayload {
+                message {
+                  __typename
+                  ... on UnionTextMessage {
+                    text
+                  }
+                }
+              }
+            }
+            """,
+            cancellationToken: cts.Token);
+
+        await using var responseStream = result.ExpectResponseStream();
+        var responses = responseStream.ReadResultsAsync().ConfigureAwait(false);
+
+        await sender.SendAsync(
+            "OnUnionPayload",
+            new UnionPayloadEnvelope
+            {
+                Message = new UnionTextMessage { Text = "from-redis" }
+            },
+            cts.Token);
+        await sender.CompleteAsync("OnUnionPayload");
+
+        var snapshot = new Snapshot();
+
+        await foreach (var response in responses.WithCancellation(cts.Token).ConfigureAwait(false))
+        {
+            snapshot.Add(response);
+        }
+
+        snapshot.MatchInline(
+            """
+            {
+              "data": {
+                "onUnionPayload": {
+                  "message": {
+                    "__typename": "UnionTextMessage",
+                    "text": "from-redis"
+                  }
+                }
+              }
+            }
+            """);
+    }
 
     [Fact]
     public async Task Unsubscribe_Should_RemoveChannel()
@@ -103,4 +165,30 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
 
     protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)
         => graphqlBuilder.AddRedisSubscriptions(_ => _redisResource.GetConnection());
+
+    [UnionType]
+    public interface IUnionMessage;
+
+    public sealed class UnionTextMessage : IUnionMessage
+    {
+        public string Text { get; set; } = default!;
+    }
+
+    public sealed class UnionCodeMessage : IUnionMessage
+    {
+        public int Code { get; set; }
+    }
+
+    public sealed class UnionPayloadEnvelope
+    {
+        public IUnionMessage Message { get; set; } = default!;
+    }
+
+    public sealed class UnionPayloadSubscription
+    {
+        [Topic("OnUnionPayload")]
+        [Subscribe]
+        public UnionPayloadEnvelope OnUnionPayload([EventMessage] UnionPayloadEnvelope message)
+            => message;
+    }
 }
