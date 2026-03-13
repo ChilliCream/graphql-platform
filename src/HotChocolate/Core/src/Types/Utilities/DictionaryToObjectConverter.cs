@@ -25,6 +25,13 @@ public sealed class DictionaryToObjectConverter(ITypeConverter converter)
         IReadOnlyDictionary<string, object> dictionary,
         ConverterContext context)
     {
+        // Interface targets cannot be instantiated; keep dictionary representation.
+        if (context.ClrType.IsInterface)
+        {
+            context.Object = dictionary;
+            return;
+        }
+
         if (!context.ClrType.IsValueType
             && context.ClrType != typeof(string))
         {
