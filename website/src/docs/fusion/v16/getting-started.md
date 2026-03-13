@@ -687,7 +687,7 @@ From the `fusion-getting-started` directory, run:
 
 ```bash
 mkdir Gateway
-nitro fusion compose -s Products/schema.graphqls -s Reviews/schema.graphqls -f Gateway/gateway.far
+nitro fusion compose -f Products/schema.graphqls -f Reviews/schema.graphqls -a Gateway/gateway.far
 ```
 
 If composition succeeds, you will see output similar to:
