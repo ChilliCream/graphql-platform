@@ -371,21 +371,21 @@ public static class CompilationExtensions
             return ResolverParameterKind.HttpResponse;
         }
 
-        if (parameter.IsGlobalState(out key))
+        if (parameter.IsGlobalState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetGlobalState
                 : ResolverParameterKind.GetGlobalState;
         }
 
-        if (parameter.IsScopedState(out key))
+        if (parameter.IsScopedState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetScopedState
                 : ResolverParameterKind.GetScopedState;
         }
 
-        if (parameter.IsLocalState(out key))
+        if (parameter.IsLocalState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetLocalState
