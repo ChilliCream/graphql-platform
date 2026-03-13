@@ -138,16 +138,6 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
-    public virtual void SubscriptionTransportError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        ulong subscriptionId,
-        Exception exception)
-    {
-    }
-
-    /// <inheritdoc />
     public virtual void SubscriptionEventError(
         OperationPlanContext context,
         ExecutionNode node,

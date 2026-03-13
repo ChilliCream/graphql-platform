@@ -300,6 +300,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(exception);
+
             enricher.EnrichSubscriptionEventError(
                 context,
                 node,
@@ -307,22 +308,6 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
                 subscriptionId,
                 exception,
                 activity);
-        }
-    }
-
-    public override void SubscriptionTransportError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        ulong subscriptionId,
-        Exception exception)
-    {
-        if (Activity.Current is { } activity)
-        {
-            activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(exception);
-
-            enricher.EnrichSubscriptionTransportError(context, node, schemaName, subscriptionId, exception, activity);
         }
     }
 

@@ -777,6 +777,38 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
 
+<!--
+TODO: This should probably go on in the Fusion specific guide.
+
+### Fusion diagnostic listener API redesign
+
+Fusion diagnostics were redesigned in v16.
+
+- v15 interface: `HotChocolate.Fusion.Execution.Diagnostic.IFusionDiagnosticEvents` / `IFusionDiagnosticEventListener`
+- v16 interface: `HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents` / `IFusionExecutionDiagnosticEventListener`
+
+This is not a signature-only change. The old high-level hooks were removed:
+
+- `ExecuteFederatedQuery(IRequestContext)`
+- `QueryPlanExecutionError(Exception)`
+- `ResolveError(Exception)`
+- `ResolveByKeyBatchError(Exception)`
+- `SubgraphRequestError(string, Exception)`
+
+The new API is execution-stage specific and provides request/plan/node/subscription hooks, for example:
+
+- `PlanOperation(...)`, `PlanOperationError(...)`
+- `ExecuteOperationNode(...)`, `ExecuteOperationBatchNode(...)`, `ExecuteSubscriptionNode(...)`, `ExecuteNodeFieldNode(...)`, `ExecuteIntrospectionNode(...)`
+- `ExecutionNodeError(...)`, `SourceSchemaTransportError(...)`, `SourceSchemaStoreError(...)`
+- `OnSubscriptionEvent(...)`, `SubscriptionEventError(...)`
+
+There is no 1:1 mapping for all old methods. In most cases:
+
+- `SubgraphRequestError(...)` maps to `SourceSchemaTransportError(...)`
+- `ResolveError(...)` / `ResolveByKeyBatchError(...)` map to `ExecutionNodeError(...)` and source-schema error hooks depending on error kind
+
+Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

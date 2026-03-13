@@ -235,33 +235,6 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         Exception error);
 
     /// <summary>
-    /// Called when a transport error occurs while communicating with a source schema
-    /// during subscription operations. This includes connection drops, network timeouts,
-    /// and other communication failures specific to real-time subscriptions.
-    /// </summary>
-    /// <param name="context">
-    /// The operation plan context.
-    /// </param>
-    /// <param name="node">
-    /// The execution node that was storing the response.
-    /// </param>
-    /// <param name="schemaName">
-    /// The name of the source schema whose response could not be stored.
-    /// </param>
-    /// <param name="subscriptionId">
-    /// An internal identifier for the subscription instance.
-    /// </param>
-    /// <param name="exception">
-    /// The transport exception that occurred.
-    /// </param>
-    void SubscriptionTransportError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        ulong subscriptionId,
-        Exception exception);
-
-    /// <summary>
     /// Called when an error occurs while processing a subscription event result.
     /// This covers errors in event handling, data transformation, or result generation
     /// for subscription responses.

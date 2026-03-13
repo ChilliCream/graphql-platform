@@ -259,24 +259,6 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         return new AggregateActivityScope(scopes);
     }
 
-    public void SubscriptionTransportError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        ulong subscriptionId,
-        Exception exception)
-    {
-        for (var i = 0; i < listeners.Length; i++)
-        {
-            listeners[i].SubscriptionTransportError(
-                context,
-                node,
-                schemaName,
-                subscriptionId,
-                exception);
-        }
-    }
-
     public void SubscriptionEventError(
         OperationPlanContext context,
         ExecutionNode node,

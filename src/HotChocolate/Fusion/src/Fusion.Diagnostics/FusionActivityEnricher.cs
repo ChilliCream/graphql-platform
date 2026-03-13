@@ -66,16 +66,6 @@ public class FusionActivityEnricher(InstrumentationOptions options) : ActivityEn
     {
     }
 
-    public virtual void EnrichSubscriptionTransportError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        ulong subscriptionId,
-        Exception exception,
-        Activity activity)
-    {
-    }
-
     public virtual void EnrichSubscriptionEventError(
         OperationPlanContext context,
         ExecutionNode node,
