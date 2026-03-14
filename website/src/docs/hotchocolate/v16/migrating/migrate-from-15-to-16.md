@@ -687,6 +687,128 @@ builder
     .AddType(new DurationType("TimeSpan"));
 ```
 
+## AddInstrumentation
+
+### `InstrumentationOptions` changes
+
+- `RenameRootActivity` was removed.
+- `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
+- `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+
+## OpenTelemetry span and status changes
+
+The OpenTelemetry spans and attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec).
+
+If you have dashboards or alerts that filter on the old attribute names or values, update them accordingly.
+
+Besides changes to the attributes, the most notable change is that the name of the root GraphQL span has been changed to just include the operation type (`query`, `mutation` or `subscription`), and no longer the operation name, to keep the cardinality low. The operation name can still be retrieved from the `graphql.operation.name` span attribute.
+
+### Removed attributes
+
+| Attribute                     |
+| ----------------------------- |
+| `graphql.operation.id`        |
+| `graphql.selection.type`      |
+| `graphql.selection.hierarchy` |
+
+### Renamed attributes
+
+| Old Attribute                           | New Attribute                         |
+| --------------------------------------- | ------------------------------------- |
+| `graphql.operation.kind`                | `graphql.operation.type`              |
+| `graphql.selection.field.declaringType` | `graphql.selection.field.parent_type` |
+| `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`       |
+| `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`       |
+| `graphql.fusion.node.schema`            | `graphql.source.name`                 |
+| `graphql.fusion.node.type`              | `graphql.operation.step.kind`         |
+| `graphql.error.location.line/column`    | `graphql.error.locations`             |
+
+### Changed attribute values
+
+| Attribute                | Old Value                             | New Value                                           |
+| ------------------------ | ------------------------------------- | --------------------------------------------------- |
+| `graphql.operation.type` | `Query` / `Mutation` / `Subscription` | `query` / `mutation` / `subscription`               |
+| `graphql.http.kind`      | `operation-batch`                     | `operation_batch`                                   |
+| `graphql.document.hash`  | `<hash>`                              | `<hash-algorithm>:<hash>` , e.g. `md5:<hash>`       |
+| `graphql.document.id`    | -                                     | Value is only set if document is a trusted document |
+
+### Custom enricher changes
+
+If you've implemented a custom `ActivityEnricher`, you no longer need to pass the `ObjectPool<StringBuilder>` down to the base class:
+
+```diff
+public class CustomActivityEnricher(
+-  ObjectPool<StringBuilder> stringBuilderPool,
+  InstrumentationOptions options
+-) : ActivityEnricher(stringBuilderPool, options);
++) : ActivityEnricher(options);
+```
+
+There have also been some changes to the methods you can override in your enricher:
+
+| v15                                                                       | v16                                                                                                                                                        |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EnrichParserErrors(HttpContext, IError, Activity)`                       | Replaced by `EnrichParserErrors(HttpContext, IReadOnlyList<IError>, Activity)`.                                                                            |
+| `EnrichRequestError(RequestContext, Activity, Exception)`                 | Replaced by `EnrichRequestError(RequestContext, Exception, Activity)`.                                                                                     |
+| `EnrichRequestError(RequestContext, Activity, IError)`                    | Replaced by `EnrichRequestError(RequestContext, IError, Activity)`.                                                                                        |
+| `EnrichValidationError(RequestContext, Activity, IError)`                 | Replaced by `EnrichValidationErrors(RequestContext, IReadOnlyList<IError>, Activity)`.                                                                     |
+| `EnrichAnalyzeOperationComplexity(RequestContext, Activity)`              | Replaced by `EnrichAnalyzeOperationCost(RequestContext, Activity)`.                                                                                        |
+| `EnrichDataLoaderBatch<TKey>(IDataLoader, IReadOnlyList<TKey>, Activity)` | Replaced by `EnrichExecuteBatch<TKey>(IDataLoader, IReadOnlyList<TKey>, Activity)`.                                                                        |
+| `EnrichResolverError(RequestContext, IError, Activity)`                   | Removed. Use `EnrichRequestError(...)` for request-level errors and `EnrichResolverError(IMiddlewareContext, IError, Activity)` for field resolver errors. |
+| `EnrichRequestVariables(...)`                                             | Removed.                                                                                                                                                   |
+| `EnrichBatchVariables(...)`                                               | Removed.                                                                                                                                                   |
+| `EnrichRequestExtensions(...)`                                            | Removed.                                                                                                                                                   |
+| `EnrichBatchExtensions(...)`                                              | Removed.                                                                                                                                                   |
+| `CreateOperationDisplayName(...)`                                         | Removed.                                                                                                                                                   |
+| `CreateRootActivityName(...)`                                             | Removed.                                                                                                                                                   |
+| `EnrichError(...)`                                                        | Removed.                                                                                                                                                   |
+
+> Note: Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic-convention attributes are now applied by the instrumentation itself, and custom enrichers are only intended for adding extra information.
+
+## Diagnostic Listeners
+
+We removed the following methods from the `IExecutionDiagnosticEventListener` since they no longer apply:
+
+- `ExecuteStream`
+- `ExecuteDeferredTask`
+- `DispatchBatch`
+- `SubscriptionTransportError`
+- `SubscriptionEventResult`
+
+Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
+
+<!--
+TODO: This should probably go on in the Fusion specific guide.
+
+### Fusion diagnostic listener API redesign
+
+Fusion diagnostics were redesigned in v16.
+
+- v15 interface: `HotChocolate.Fusion.Execution.Diagnostic.IFusionDiagnosticEvents` / `IFusionDiagnosticEventListener`
+- v16 interface: `HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents` / `IFusionExecutionDiagnosticEventListener`
+
+This is not a signature-only change. The old high-level hooks were removed:
+
+- `ExecuteFederatedQuery(IRequestContext)`
+- `QueryPlanExecutionError(Exception)`
+- `ResolveError(Exception)`
+- `ResolveByKeyBatchError(Exception)`
+- `SubgraphRequestError(string, Exception)`
+
+The new API is execution-stage specific and provides request/plan/node/subscription hooks, for example:
+
+- `PlanOperation(...)`, `PlanOperationError(...)`
+- `ExecuteOperationNode(...)`, `ExecuteOperationBatchNode(...)`, `ExecuteSubscriptionNode(...)`, `ExecuteNodeFieldNode(...)`, `ExecuteIntrospectionNode(...)`
+- `ExecutionNodeError(...)`, `SourceSchemaTransportError(...)`, `SourceSchemaStoreError(...)`
+- `OnSubscriptionEvent(...)`, `SubscriptionEventError(...)`
+
+There is no 1:1 mapping for all old methods. In most cases:
+
+- `SubgraphRequestError(...)` maps to `SourceSchemaTransportError(...)`
+- `ResolveError(...)` / `ResolveByKeyBatchError(...)` map to `ExecutionNodeError(...)` and source-schema error hooks depending on error kind
+
+Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
