@@ -174,15 +174,9 @@ internal sealed class FetchResultStore : IDisposable
                         dataElementsSpan[i],
                         errorTriesSpan[i],
                         responseNames);
-                    ReturnPathSegments(result);
 
                     if (!success)
                     {
-                        for (var j = i + 1; j < results.Length; j++)
-                        {
-                            ReturnPathSegments(results[j]);
-                        }
-
                         return false;
                     }
                 }
@@ -192,6 +186,7 @@ internal sealed class FetchResultStore : IDisposable
         }
         finally
         {
+            ReturnPathSegments(results);
             dataElementsSpan.Clear();
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
@@ -231,15 +226,9 @@ internal sealed class FetchResultStore : IDisposable
                         dataElementsSpan[i],
                         errorTrie: null,
                         responseNames);
-                    ReturnPathSegments(result);
 
                     if (!success)
                     {
-                        for (var j = i + 1; j < results.Length; j++)
-                        {
-                            ReturnPathSegments(results[j]);
-                        }
-
                         return false;
                     }
                 }
@@ -249,6 +238,7 @@ internal sealed class FetchResultStore : IDisposable
         }
         finally
         {
+            ReturnPathSegments(results);
             dataElementsSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
         }
@@ -265,23 +255,28 @@ internal sealed class FetchResultStore : IDisposable
         var dataElement = GetDataElement(sourcePath, result.Data);
         var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
-        lock (_lock)
+        try
         {
-            if (errors?.RootErrors is { Length: > 0 } rootErrors)
+            lock (_lock)
             {
-                _errors ??= [];
-                _errors.AddRange(rootErrors);
-            }
+                if (errors?.RootErrors is { Length: > 0 } rootErrors)
+                {
+                    _errors ??= [];
+                    _errors.AddRange(rootErrors);
+                }
 
-            var success = SaveSafeResult(
-                _result.Data,
-                result.Path,
-                result.AdditionalPaths.AsSpan(),
-                dataElement,
-                errorTrie,
-                responseNames);
+                return SaveSafeResult(
+                    _result.Data,
+                    result.Path,
+                    result.AdditionalPaths.AsSpan(),
+                    dataElement,
+                    errorTrie,
+                    responseNames);
+            }
+        }
+        finally
+        {
             ReturnPathSegments(result);
-            return success;
         }
     }
 
@@ -293,17 +288,22 @@ internal sealed class FetchResultStore : IDisposable
         _memory.Push(result);
         var dataElement = GetDataElement(sourcePath, result.Data);
 
-        lock (_lock)
+        try
         {
-            var success = SaveSafeResult(
-                _result.Data,
-                result.Path,
-                result.AdditionalPaths.AsSpan(),
-                dataElement,
-                errorTrie: null,
-                responseNames);
+            lock (_lock)
+            {
+                return SaveSafeResult(
+                    _result.Data,
+                    result.Path,
+                    result.AdditionalPaths.AsSpan(),
+                    dataElement,
+                    errorTrie: null,
+                    responseNames);
+            }
+        }
+        finally
+        {
             ReturnPathSegments(result);
-            return success;
         }
     }
 
@@ -1544,23 +1544,44 @@ AddErrors_Next:
         _pathPool.Dispose();
     }
 
-    private void ReturnPathSegments(SourceSchemaResult result)
+    private void ReturnPathSegments(ReadOnlySpan<SourceSchemaResult> results)
     {
-        ReturnPathSegments(result.Path);
+        HashSet<int[]>? seen = null;
 
-        foreach (var additionalPath in result.AdditionalPaths)
+        for (var i = 0; i < results.Length; i++)
         {
-            ReturnPathSegments(additionalPath);
+            ReturnPathSegments(results[i], ref seen);
         }
     }
 
-    private void ReturnPathSegments(CompactPath path)
+    private void ReturnPathSegments(SourceSchemaResult result)
+    {
+        HashSet<int[]>? seen = null;
+        ReturnPathSegments(result, ref seen);
+    }
+
+    private void ReturnPathSegments(SourceSchemaResult result, ref HashSet<int[]>? seen)
+    {
+        ReturnPathSegments(result.Path, ref seen);
+
+        foreach (var additionalPath in result.AdditionalPaths)
+        {
+            ReturnPathSegments(additionalPath, ref seen);
+        }
+    }
+
+    private void ReturnPathSegments(CompactPath path, ref HashSet<int[]>? seen)
     {
         var array = path.UnsafeGetBackingArray();
 
         if (array is not null)
         {
-            _pathPool.Return(array);
+            seen ??= new HashSet<int[]>(System.Collections.Generic.ReferenceEqualityComparer.Instance);
+
+            if (seen.Add(array))
+            {
+                _pathPool.Return(array);
+            }
         }
     }
 
