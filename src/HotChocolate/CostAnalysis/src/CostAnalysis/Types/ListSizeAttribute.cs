@@ -13,6 +13,7 @@ namespace HotChocolate.CostAnalysis.Types;
 public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
 {
     private readonly int? _assumedSize;
+    private readonly int? _slicingArgumentDefaultValue;
 
     /// <summary>
     /// The maximum length of the list returned by this field.
@@ -33,7 +34,11 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     /// The default value for a slicing argument, which is used if the argument is not present in a
     /// query.
     /// </summary>
-    public int? SlicingArgumentDefaultValue { get; init; }
+    public int SlicingArgumentDefaultValue
+    {
+        get => _slicingArgumentDefaultValue ?? 0;
+        init => _slicingArgumentDefaultValue = value;
+    }
 
     /// <summary>
     /// The subfield(s) that the list size applies to.
@@ -56,6 +61,7 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
                 _assumedSize,
                 SlicingArguments?.ToImmutableArray(),
                 SizedFields?.ToImmutableArray(),
-                RequireOneSlicingArgument));
+                RequireOneSlicingArgument,
+                _slicingArgumentDefaultValue));
     }
 }
