@@ -17,75 +17,32 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
-internal sealed class FetchResultStore : IDisposable
+internal sealed partial class FetchResultStore : IDisposable
 {
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
 #else
     private readonly object _lock = new();
 #endif
-    private readonly ISchemaDefinition _schema;
-    private readonly IErrorHandler _errorHandler;
-    private readonly Operation _operation;
-    private readonly ErrorHandlingMode _errorHandlingMode;
-    private readonly ulong _includeFlags;
     private readonly ConcurrentStack<IDisposable> _memory = [];
+    private ISchemaDefinition _schema = default!;
+    private IErrorHandler _errorHandler = default!;
+    private Operation _operation = default!;
+    private ErrorHandlingMode _errorHandlingMode;
+    private ulong _includeFlags;
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
-    internal readonly PathSegmentLocalPool _pathPool;
-    private HashSet<int[]>? _seenPaths;
-    private CompositeResultDocument _result;
-    private ValueCompletion _valueCompletion;
+    private PathSegmentLocalPool _pathPool = default!;
+    private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
+    private Dictionary<string, int> _seenStrings = new(StringComparer.Ordinal);
+    private Dictionary<IValueNode, int> _seenValueNodes = new(SingleValueNodeComparer.Instance);
+    private Dictionary<TwoValueNodeTuple, int> _seenTwoValueTuples = new(TwoValueNodeTupleComparer.Instance);
+    private Dictionary<ThreeValueNodeTuple, int> _seenThreeValueTuples = new(ThreeValueNodeTupleComparer.Instance);
+    private CompositeResultDocument _result = default!;
+    private ValueCompletion _valueCompletion = default!;
     private List<IError>? _errors;
     private bool _disposed;
-
-    public FetchResultStore(
-        ISchemaDefinition schema,
-        IErrorHandler errorHandler,
-        Operation operation,
-        ErrorHandlingMode errorHandlingMode,
-        ulong includeFlags,
-        int pathSegmentLocalPoolCapacity)
-    {
-        ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(operation);
-
-        _schema = schema;
-        _errorHandler = errorHandler;
-        _operation = operation;
-        _errorHandlingMode = errorHandlingMode;
-        _includeFlags = includeFlags;
-        _pathPool = new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
-
-        _result = new CompositeResultDocument(operation, includeFlags, _pathPool);
-
-        _valueCompletion = new ValueCompletion(
-            this,
-            _schema,
-            _errorHandler,
-            _errorHandlingMode,
-            maxDepth: 32);
-
-        _memory.Push(_result);
-    }
-
-    public void Reset()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        _result = new CompositeResultDocument(_operation, _includeFlags, _pathPool);
-        _errors?.Clear();
-
-        _valueCompletion = new ValueCompletion(
-            this,
-            _schema,
-            _errorHandler,
-            _errorHandlingMode,
-            maxDepth: 32);
-
-        _memory.Push(_result);
-    }
 
     public CompositeResultDocument Result => _result;
 
@@ -768,8 +725,6 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<IValueNode, int>? seen = null;
-        Dictionary<string, int>? seenStrings = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
@@ -802,30 +757,26 @@ AddErrors_Next:
             {
                 var stringValue = value.AssertString();
 
-                if (seenStrings is not null
-                    && seenStrings.TryGetValue(stringValue, out var existingIndex))
+                if (_seenStrings.TryGetValue(stringValue, out var existingIndex))
                 {
                     additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
                 mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                seenStrings ??= new Dictionary<string, int>(elements.Length, StringComparer.Ordinal);
-                seenStrings[stringValue] = nextIndex;
+                _seenStrings[stringValue] = nextIndex;
             }
             else
             {
                 mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
 
-                if (seen is not null
-                    && seen.TryGetValue(mappedValue, out var existingIndex))
+                if (_seenValueNodes.TryGetValue(mappedValue, out var existingIndex))
                 {
                     additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
-                seen ??= new Dictionary<IValueNode, int>(elements.Length, SingleValueNodeComparer.Instance);
-                seen[mappedValue] = nextIndex;
+                _seenValueNodes[mappedValue] = nextIndex;
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
@@ -837,6 +788,8 @@ AddErrors_Next:
                 ]));
         }
 
+        _seenStrings.Clear();
+        _seenValueNodes.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -846,9 +799,9 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<IValueNode, int>? seen = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var seeded = false;
 
         foreach (var result in elements)
         {
@@ -868,18 +821,19 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<IValueNode, int>(elements.Length, SingleValueNodeComparer.Instance)
+                if (!seeded)
                 {
-                    [variableValueSets[0].Values.Fields[0].Value] = 0
-                };
+                    _seenValueNodes[variableValueSets[0].Values.Fields[0].Value] = 0;
+                    seeded = true;
+                }
 
-                if (seen.TryGetValue(value, out var existingIndex))
+                if (_seenValueNodes.TryGetValue(value, out var existingIndex))
                 {
                     additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
-                seen[value] = nextIndex;
+                _seenValueNodes[value] = nextIndex;
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
@@ -887,6 +841,7 @@ AddErrors_Next:
                 new ObjectValueNode([new ObjectFieldNode(requirement.Key, value)]));
         }
 
+        _seenValueNodes.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -924,9 +879,9 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<TwoValueNodeTuple, int>? seen = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var seeded = false;
 
         foreach (var result in elements)
         {
@@ -953,20 +908,21 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Length, TwoValueNodeTupleComparer.Instance)
+                if (!seeded)
                 {
-                    [new TwoValueNodeTuple(
+                    _seenTwoValueTuples[new TwoValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value)] = 0
-                };
+                        variableValueSets[0].Values.Fields[1].Value)] = 0;
+                    seeded = true;
+                }
 
-                if (seen.TryGetValue(key, out var existingIndex))
+                if (_seenTwoValueTuples.TryGetValue(key, out var existingIndex))
                 {
                     additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
-                seen[key] = nextIndex;
+                _seenTwoValueTuples[key] = nextIndex;
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
@@ -977,6 +933,7 @@ AddErrors_Next:
                 ]));
         }
 
+        _seenTwoValueTuples.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -987,9 +944,9 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<TwoValueNodeTuple, int>? seen = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var seeded = false;
 
         foreach (var result in elements)
         {
@@ -1016,20 +973,21 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Length, TwoValueNodeTupleComparer.Instance)
+                if (!seeded)
                 {
-                    [new TwoValueNodeTuple(
+                    _seenTwoValueTuples[new TwoValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value)] = 0
-                };
+                        variableValueSets[0].Values.Fields[1].Value)] = 0;
+                    seeded = true;
+                }
 
-                if (seen.TryGetValue(key, out var existingIndex))
+                if (_seenTwoValueTuples.TryGetValue(key, out var existingIndex))
                 {
                     additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
-                seen[key] = nextIndex;
+                _seenTwoValueTuples[key] = nextIndex;
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
@@ -1040,6 +998,7 @@ AddErrors_Next:
                 ]));
         }
 
+        _seenTwoValueTuples.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1084,9 +1043,9 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<ThreeValueNodeTuple, int>? seen = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var seeded = false;
 
         foreach (var result in elements)
         {
@@ -1122,21 +1081,22 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Length, ThreeValueNodeTupleComparer.Instance)
+                if (!seeded)
                 {
-                    [new ThreeValueNodeTuple(
+                    _seenThreeValueTuples[new ThreeValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
                         variableValueSets[0].Values.Fields[1].Value,
-                        variableValueSets[0].Values.Fields[2].Value)] = 0
-                };
+                        variableValueSets[0].Values.Fields[2].Value)] = 0;
+                    seeded = true;
+                }
 
-                if (seen.TryGetValue(key, out var existingIndex))
+                if (_seenThreeValueTuples.TryGetValue(key, out var existingIndex))
                 {
                     additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
-                seen[key] = nextIndex;
+                _seenThreeValueTuples[key] = nextIndex;
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
@@ -1148,6 +1108,7 @@ AddErrors_Next:
                 ]));
         }
 
+        _seenThreeValueTuples.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1159,9 +1120,9 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<ThreeValueNodeTuple, int>? seen = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var seeded = false;
 
         foreach (var result in elements)
         {
@@ -1197,21 +1158,22 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Length, ThreeValueNodeTupleComparer.Instance)
+                if (!seeded)
                 {
-                    [new ThreeValueNodeTuple(
+                    _seenThreeValueTuples[new ThreeValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
                         variableValueSets[0].Values.Fields[1].Value,
-                        variableValueSets[0].Values.Fields[2].Value)] = 0
-                };
+                        variableValueSets[0].Values.Fields[2].Value)] = 0;
+                    seeded = true;
+                }
 
-                if (seen.TryGetValue(key, out var existingIndex))
+                if (_seenThreeValueTuples.TryGetValue(key, out var existingIndex))
                 {
                     additionalPaths.Add(existingIndex, result.CompactPath);
                     continue;
                 }
 
-                seen[key] = nextIndex;
+                _seenThreeValueTuples[key] = nextIndex;
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
@@ -1223,6 +1185,7 @@ AddErrors_Next:
                 ]));
         }
 
+        _seenThreeValueTuples.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1561,8 +1524,6 @@ AddErrors_Next:
 
     private void ReturnPathSegments(ReadOnlySpan<SourceSchemaResult> results)
     {
-        _seenPaths ??= new HashSet<int[]>(ReferenceEqualityComparer.Instance);
-
         for (var i = 0; i < results.Length; i++)
         {
             ReturnPathSegments(results[i], _seenPaths);
@@ -1573,7 +1534,6 @@ AddErrors_Next:
 
     private void ReturnPathSegments(SourceSchemaResult result)
     {
-        _seenPaths ??= new HashSet<int[]>(ReferenceEqualityComparer.Instance);
         ReturnPathSegments(result, _seenPaths);
         _seenPaths.Clear();
     }

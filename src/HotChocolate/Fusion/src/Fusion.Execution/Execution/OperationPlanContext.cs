@@ -28,6 +28,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly Uri?[] _transportUris;
     private readonly string?[] _transportContentTypes;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly FetchResultStorePool _resultStorePool;
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
     private readonly SourceSchemaRequestDispatcher _sourceSchemaDispatcher;
@@ -67,7 +68,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
         var errorHandler = requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
 
-        _resultStore = new FetchResultStore(
+        _resultStorePool = requestContext.Schema.Services.GetRequiredService<FetchResultStorePool>();
+        _resultStore = _resultStorePool.Rent();
+        _resultStore.Initialize(
             requestContext.Schema,
             errorHandler,
             operationPlan.Operation,
@@ -499,7 +502,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             _disposed = true;
             DisposeNodeState();
             _sourceSchemaDispatcher.Abort();
-            _resultStore.Dispose();
+
+            _resultStorePool.Return(_resultStore);
+
             await _clientScope.DisposeAsync();
         }
     }
