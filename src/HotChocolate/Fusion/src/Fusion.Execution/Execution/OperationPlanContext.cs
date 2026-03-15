@@ -272,7 +272,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
 
         Span<int> buffer = stackalloc int[32];
-        var builder = new CompactPathBuilder(buffer, _resultStore._pathPool);
+        // This helper can run concurrently across nodes; avoid using the request-local
+        // pool here since that pool is synchronized through FetchResultStore's lock.
+        var builder = new CompactPathBuilder(buffer, pool: null);
         var operation = OperationPlan.Operation;
         var currentSelectionSet = operation.RootSelectionSet;
         Selection? currentSelection = null;

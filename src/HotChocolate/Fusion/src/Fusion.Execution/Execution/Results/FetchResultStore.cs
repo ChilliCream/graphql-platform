@@ -34,6 +34,7 @@ internal sealed class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     internal readonly PathSegmentLocalPool _pathPool;
+    private HashSet<int[]>? _seenPaths;
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
     private List<IError>? _errors;
@@ -186,7 +187,11 @@ internal sealed class FetchResultStore : IDisposable
         }
         finally
         {
-            ReturnPathSegments(results);
+            lock (_lock)
+            {
+                ReturnPathSegments(results);
+            }
+
             dataElementsSpan.Clear();
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
@@ -238,7 +243,11 @@ internal sealed class FetchResultStore : IDisposable
         }
         finally
         {
-            ReturnPathSegments(results);
+            lock (_lock)
+            {
+                ReturnPathSegments(results);
+            }
+
             dataElementsSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
         }
@@ -276,7 +285,10 @@ internal sealed class FetchResultStore : IDisposable
         }
         finally
         {
-            ReturnPathSegments(result);
+            lock (_lock)
+            {
+                ReturnPathSegments(result);
+            }
         }
     }
 
@@ -303,7 +315,10 @@ internal sealed class FetchResultStore : IDisposable
         }
         finally
         {
-            ReturnPathSegments(result);
+            lock (_lock)
+            {
+                ReturnPathSegments(result);
+            }
         }
     }
 
@@ -1546,42 +1561,40 @@ AddErrors_Next:
 
     private void ReturnPathSegments(ReadOnlySpan<SourceSchemaResult> results)
     {
-        HashSet<int[]>? seen = null;
+        _seenPaths ??= new HashSet<int[]>(ReferenceEqualityComparer.Instance);
 
         for (var i = 0; i < results.Length; i++)
         {
-            ReturnPathSegments(results[i], ref seen);
+            ReturnPathSegments(results[i], _seenPaths);
         }
+
+        _seenPaths.Clear();
     }
 
     private void ReturnPathSegments(SourceSchemaResult result)
     {
-        HashSet<int[]>? seen = null;
-        ReturnPathSegments(result, ref seen);
+        _seenPaths ??= new HashSet<int[]>(ReferenceEqualityComparer.Instance);
+        ReturnPathSegments(result, _seenPaths);
+        _seenPaths.Clear();
     }
 
-    private void ReturnPathSegments(SourceSchemaResult result, ref HashSet<int[]>? seen)
+    private void ReturnPathSegments(SourceSchemaResult result, HashSet<int[]> seen)
     {
-        ReturnPathSegments(result.Path, ref seen);
+        ReturnPathSegments(result.Path, seen);
 
         foreach (var additionalPath in result.AdditionalPaths)
         {
-            ReturnPathSegments(additionalPath, ref seen);
+            ReturnPathSegments(additionalPath, seen);
         }
     }
 
-    private void ReturnPathSegments(CompactPath path, ref HashSet<int[]>? seen)
+    private void ReturnPathSegments(CompactPath path, HashSet<int[]> seen)
     {
         var array = path.UnsafeGetBackingArray();
 
-        if (array is not null)
+        if (array is not null && seen.Add(array))
         {
-            seen ??= new HashSet<int[]>(System.Collections.Generic.ReferenceEqualityComparer.Instance);
-
-            if (seen.Add(array))
-            {
-                _pathPool.Return(array);
-            }
+            _pathPool.Return(array);
         }
     }
 
