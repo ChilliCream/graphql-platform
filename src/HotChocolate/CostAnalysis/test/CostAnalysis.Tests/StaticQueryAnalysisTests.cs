@@ -218,6 +218,21 @@ public sealed class StaticQueryAnalysisTests
                     )
                 """,
                 "examples { field1, field2 }"
+            },
+            // @listSize directive with slicing arguments and slicing arguments default value.
+            // (no limit in query, with assumedSize, slicingArgumentDefaultValue: 42 and requireOneSlicingArgument: false).
+            {
+                9,
+                """
+                examples(limit: Int): [Example!]!
+                    @listSize(
+                        slicingArguments: ["limit"],
+                        assumedSize: 10,
+                        requireOneSlicingArgument: false,
+                        slicingArgumentDefaultValue: 42
+                    )
+                """,
+                "examples { field1, field2 }"
             }
         };
     }

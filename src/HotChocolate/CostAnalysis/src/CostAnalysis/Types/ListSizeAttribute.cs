@@ -12,16 +12,26 @@ namespace HotChocolate.CostAnalysis.Types;
 /// </summary>
 public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
 {
-    private readonly int? _assumedSize;
+    /// <summary>
+    /// Indicates that the property has not been set. This value is not a valid
+    /// argument for any <c>@listSize</c> property and is used solely as a sentinel
+    /// to distinguish "not specified" from an explicitly provided value.
+    /// </summary>
+    private const int Unset = -1;
 
     /// <summary>
     /// The maximum length of the list returned by this field.
+    /// Must be a non-negative integer when specified.
     /// </summary>
     public int AssumedSize
     {
-        get => _assumedSize ?? 0;
-        init => _assumedSize = value;
-    }
+        get;
+        init
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            field = value;
+        }
+    } = Unset;
 
     /// <summary>
     /// The arguments of this field with numeric type that are slicing arguments. Their value
@@ -31,9 +41,17 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
 
     /// <summary>
     /// The default value for a slicing argument, which is used if the argument is not present in a
-    /// query.
+    /// query. Must be a non-negative integer when specified.
     /// </summary>
-    public int? SlicingArgumentDefaultValue { get; init; }
+    public int SlicingArgumentDefaultValue
+    {
+        get;
+        init
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            field = value;
+        }
+    } = Unset;
 
     /// <summary>
     /// The subfield(s) that the list size applies to.
@@ -53,9 +71,10 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     {
         descriptor.Directive(
             new ListSizeDirective(
-                _assumedSize,
+                AssumedSize is Unset ? null : AssumedSize,
                 SlicingArguments?.ToImmutableArray(),
                 SizedFields?.ToImmutableArray(),
-                RequireOneSlicingArgument));
+                RequireOneSlicingArgument,
+                SlicingArgumentDefaultValue is Unset ? null : SlicingArgumentDefaultValue));
     }
 }
