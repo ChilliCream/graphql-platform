@@ -58,7 +58,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
 
         jsonWriter.WritePropertyName("nodes");
-        WriteNodes(jsonWriter, plan.AllNodes, trace);
+        WriteNodes(jsonWriter, plan.AllNodes, trace, plan.Operation);
 
         jsonWriter.WriteEndObject();
     }
@@ -72,7 +72,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         WriteOperation(jsonWriter, operation);
 
         jsonWriter.WritePropertyName("nodes");
-        WriteNodes(jsonWriter, allNodes, null);
+        WriteNodes(jsonWriter, allNodes, null, operation);
 
         jsonWriter.WriteEndObject();
     }
@@ -101,7 +101,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     private static void WriteNodes(
         Utf8JsonWriter jsonWriter,
         ImmutableArray<ExecutionNode> allNodes,
-        OperationPlanTrace? trace)
+        OperationPlanTrace? trace,
+        Operation operation)
     {
         jsonWriter.WriteStartArray();
 
@@ -113,19 +114,19 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             switch (node)
             {
                 case OperationExecutionNode operationNode:
-                    WriteOperationNode(jsonWriter, operationNode, nodeTrace);
+                    WriteOperationNode(jsonWriter, operationNode, nodeTrace, operation);
                     break;
 
                 case OperationBatchExecutionNode batchNode:
-                    WriteOperationBatchNode(jsonWriter, batchNode, nodeTrace);
+                    WriteOperationBatchNode(jsonWriter, batchNode, nodeTrace, operation);
                     break;
 
                 case IntrospectionExecutionNode introspectionNode:
-                    WriteIntrospectionNode(jsonWriter, introspectionNode, nodeTrace);
+                    WriteIntrospectionNode(jsonWriter, introspectionNode, nodeTrace, operation);
                     break;
 
                 case NodeFieldExecutionNode nodeExecutionNode:
-                    WriteNodeFieldNode(jsonWriter, nodeExecutionNode, nodeTrace);
+                    WriteNodeFieldNode(jsonWriter, nodeExecutionNode, nodeTrace, operation);
                     break;
             }
         }
@@ -136,7 +137,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     private static void WriteOperationNode(
         Utf8JsonWriter jsonWriter,
         OperationExecutionNode node,
-        ExecutionNodeTrace? trace)
+        ExecutionNodeTrace? trace,
+        Operation operation)
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
@@ -229,7 +231,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        TryWriteNodeTrace(jsonWriter, trace);
+        TryWriteNodeTrace(jsonWriter, trace, operation);
 
         jsonWriter.WriteEndObject();
     }
@@ -237,7 +239,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     private static void WriteOperationBatchNode(
         Utf8JsonWriter jsonWriter,
         OperationBatchExecutionNode node,
-        ExecutionNodeTrace? trace)
+        ExecutionNodeTrace? trace,
+        Operation operation)
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
@@ -334,7 +337,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        TryWriteNodeTrace(jsonWriter, trace);
+        TryWriteNodeTrace(jsonWriter, trace, operation);
 
         jsonWriter.WriteEndObject();
     }
@@ -342,7 +345,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     private static void WriteIntrospectionNode(
         Utf8JsonWriter jsonWriter,
         IntrospectionExecutionNode node,
-        ExecutionNodeTrace? trace)
+        ExecutionNodeTrace? trace,
+        Operation operation)
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
@@ -363,12 +367,16 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         TryWriteConditions(jsonWriter, node);
 
-        TryWriteNodeTrace(jsonWriter, trace);
+        TryWriteNodeTrace(jsonWriter, trace, operation);
 
         jsonWriter.WriteEndObject();
     }
 
-    private static void WriteNodeFieldNode(Utf8JsonWriter jsonWriter, NodeFieldExecutionNode node, ExecutionNodeTrace? trace)
+    private static void WriteNodeFieldNode(
+        Utf8JsonWriter jsonWriter,
+        NodeFieldExecutionNode node,
+        ExecutionNodeTrace? trace,
+        Operation operation)
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
@@ -390,12 +398,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         TryWriteConditions(jsonWriter, node);
 
-        TryWriteNodeTrace(jsonWriter, trace);
+        TryWriteNodeTrace(jsonWriter, trace, operation);
 
         jsonWriter.WriteEndObject();
     }
 
-    private static void TryWriteNodeTrace(Utf8JsonWriter jsonWriter, ExecutionNodeTrace? trace)
+    private static void TryWriteNodeTrace(Utf8JsonWriter jsonWriter, ExecutionNodeTrace? trace, Operation operation)
     {
         if (trace is not null)
         {
@@ -413,7 +421,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
                 foreach (var variableSet in trace.VariableSets)
                 {
-                    jsonWriter.WritePropertyName(variableSet.Path.ToString());
+                    jsonWriter.WritePropertyName(variableSet.Path.ToPath(operation).Print());
                     WriteObjectValueNode(jsonWriter, variableSet.Values);
                 }
 
