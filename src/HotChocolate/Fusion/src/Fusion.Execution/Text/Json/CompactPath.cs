@@ -3,10 +3,10 @@ using HotChocolate.Fusion.Execution.Nodes;
 namespace HotChocolate.Fusion.Text.Json;
 
 /// <summary>
-/// A compact, integer-based path representation for the Fusion execution engine.
-/// Each segment is either a positive Selection ID (field) or a bitwise-NOT array index (negative).
-/// The backing array uses [0] = length encoding: _segments[0] holds the number of segments,
-/// and _segments[1..length] hold the actual path segments.
+/// Represents a path through a GraphQL result tree using integer segments.
+/// The sign bit distinguishes between the two segment kinds:
+/// positive values are field selection IDs, and negative values are array indices
+/// (stored as the bitwise complement of the index).
 /// </summary>
 public readonly struct CompactPath : IEquatable<CompactPath>
 {
