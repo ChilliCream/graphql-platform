@@ -201,6 +201,14 @@
             "title": "Composition"
           },
           {
+            "path": "aspire-integration",
+            "title": "Aspire Integration"
+          },
+          {
+            "path": "schema-exposure-and-evolution",
+            "title": "Schema Exposure and Evolution"
+          },
+          {
             "path": "authentication-and-authorization",
             "title": "Authentication and Authorization"
           },
