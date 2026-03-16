@@ -216,3 +216,4 @@ xunit
 Expando
 traceparent
 tracestate
+apphost
