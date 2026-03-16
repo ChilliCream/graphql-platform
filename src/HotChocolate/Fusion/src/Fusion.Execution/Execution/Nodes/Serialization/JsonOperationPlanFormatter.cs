@@ -9,6 +9,14 @@ using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
+/// <summary>
+/// Formats an <see cref="OperationPlan"/> as a JSON document,
+/// including its operation metadata, execution nodes, and optional trace information.
+/// </summary>
+/// <param name="options">
+/// Optional <see cref="JsonWriterOptions"/> to control JSON formatting.
+/// Defaults to compact (non-indented) output with relaxed encoding.
+/// </param>
 public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null) : OperationPlanFormatter
 {
     private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
@@ -17,6 +25,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
+    /// <inheritdoc />
     public override string Format(OperationPlan plan, OperationPlanTrace? trace = null)
     {
         using var writer = new PooledArrayWriter();
@@ -24,6 +33,13 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         return Encoding.UTF8.GetString(writer.WrittenSpan);
     }
 
+    /// <summary>
+    /// Formats the specified <paramref name="plan"/> as JSON and writes the
+    /// UTF-8 encoded output to <paramref name="writer"/>.
+    /// </summary>
+    /// <param name="writer">The buffer writer to receive the JSON output.</param>
+    /// <param name="plan">The operation plan to format.</param>
+    /// <param name="trace">Optional trace information to include in the output.</param>
     public void Format(IBufferWriter<byte> writer, OperationPlan plan, OperationPlanTrace? trace = null)
     {
         using var jsonWriter = new Utf8JsonWriter(writer, _writerOptions);
@@ -58,7 +74,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
 
         jsonWriter.WritePropertyName("nodes");
-        WriteNodes(jsonWriter, plan.AllNodes, trace);
+        WriteNodes(jsonWriter, plan.Operation, plan.AllNodes, trace);
 
         jsonWriter.WriteEndObject();
     }
@@ -72,7 +88,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         WriteOperation(jsonWriter, operation);
 
         jsonWriter.WritePropertyName("nodes");
-        WriteNodes(jsonWriter, allNodes, null);
+        WriteNodes(jsonWriter, operation, allNodes, null);
 
         jsonWriter.WriteEndObject();
     }
@@ -100,6 +116,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteNodes(
         Utf8JsonWriter jsonWriter,
+        Operation operation,
         ImmutableArray<ExecutionNode> allNodes,
         OperationPlanTrace? trace)
     {
@@ -113,19 +130,19 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             switch (node)
             {
                 case OperationExecutionNode operationNode:
-                    WriteOperationNode(jsonWriter, operationNode, nodeTrace);
+                    WriteOperationNode(jsonWriter, operation, operationNode, nodeTrace);
                     break;
 
                 case OperationBatchExecutionNode batchNode:
-                    WriteOperationBatchNode(jsonWriter, batchNode, nodeTrace);
+                    WriteOperationBatchNode(jsonWriter, operation, batchNode, nodeTrace);
                     break;
 
                 case IntrospectionExecutionNode introspectionNode:
-                    WriteIntrospectionNode(jsonWriter, introspectionNode, nodeTrace);
+                    WriteIntrospectionNode(jsonWriter, operation, introspectionNode, nodeTrace);
                     break;
 
                 case NodeFieldExecutionNode nodeExecutionNode:
-                    WriteNodeFieldNode(jsonWriter, nodeExecutionNode, nodeTrace);
+                    WriteNodeFieldNode(jsonWriter, operation, nodeExecutionNode, nodeTrace);
                     break;
             }
         }
@@ -135,6 +152,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteOperationNode(
         Utf8JsonWriter jsonWriter,
+        Operation operation,
         OperationExecutionNode node,
         ExecutionNodeTrace? trace)
     {
@@ -229,13 +247,14 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        TryWriteNodeTrace(jsonWriter, trace);
+        TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
     }
 
     private static void WriteOperationBatchNode(
         Utf8JsonWriter jsonWriter,
+        Operation operation,
         OperationBatchExecutionNode node,
         ExecutionNodeTrace? trace)
     {
@@ -334,13 +353,14 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        TryWriteNodeTrace(jsonWriter, trace);
+        TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
     }
 
     private static void WriteIntrospectionNode(
         Utf8JsonWriter jsonWriter,
+        Operation operation,
         IntrospectionExecutionNode node,
         ExecutionNodeTrace? trace)
     {
@@ -363,12 +383,16 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         TryWriteConditions(jsonWriter, node);
 
-        TryWriteNodeTrace(jsonWriter, trace);
+        TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
     }
 
-    private static void WriteNodeFieldNode(Utf8JsonWriter jsonWriter, NodeFieldExecutionNode node, ExecutionNodeTrace? trace)
+    private static void WriteNodeFieldNode(
+        Utf8JsonWriter jsonWriter,
+        Operation operation,
+        NodeFieldExecutionNode node,
+        ExecutionNodeTrace? trace)
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
@@ -390,12 +414,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         TryWriteConditions(jsonWriter, node);
 
-        TryWriteNodeTrace(jsonWriter, trace);
+        TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
     }
 
-    private static void TryWriteNodeTrace(Utf8JsonWriter jsonWriter, ExecutionNodeTrace? trace)
+    private static void TryWriteNodeTrace(Utf8JsonWriter jsonWriter, Operation operation, ExecutionNodeTrace? trace)
     {
         if (trace is not null)
         {
@@ -413,7 +437,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
                 foreach (var variableSet in trace.VariableSets)
                 {
-                    jsonWriter.WritePropertyName(variableSet.Path.ToString());
+                    jsonWriter.WritePropertyName(variableSet.Path.ToPath(operation).Print());
                     WriteObjectValueNode(jsonWriter, variableSet.Values);
                 }
 
