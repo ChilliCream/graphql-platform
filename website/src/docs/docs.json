@@ -334,8 +334,8 @@
             "title": "Getting Started"
           },
           {
-            "path": "defining-a-schema",
-            "title": "Defining a schema",
+            "path": "building-a-schema",
+            "title": "Building a Schema",
             "items": [
               { "path": "index", "title": "Overview" },
               { "path": "queries", "title": "Queries" },
