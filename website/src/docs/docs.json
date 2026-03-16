@@ -194,11 +194,19 @@
           },
           {
             "path": "field-ownership-and-sharing",
-            "title": "Field Ownership and Sharing"
+            "title": "Field Ownership"
           },
           {
             "path": "composition",
             "title": "Composition"
+          },
+          {
+            "path": "aspire-integration",
+            "title": "Aspire Integration"
+          },
+          {
+            "path": "schema-exposure-and-evolution",
+            "title": "Schema Exposure and Evolution"
           },
           {
             "path": "authentication-and-authorization",
