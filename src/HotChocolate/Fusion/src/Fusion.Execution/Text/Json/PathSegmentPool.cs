@@ -1,10 +1,14 @@
 using System.Diagnostics;
+using static HotChocolate.Fusion.Text.Json.PathSegmentPoolEventSource;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 internal sealed class PathSegmentPool : IDisposable
 {
+    private static int s_nextPoolId;
     internal readonly int _segmentArraySize;
+    private readonly int _poolId;
+    private readonly int _numberOfArrays;
     private readonly Bucket _bucket;
 
     public PathSegmentPool(int segmentArraySize, int[] levels, TimeSpan trimInterval, bool preAllocate)
@@ -18,12 +22,42 @@ internal sealed class PathSegmentPool : IDisposable
             "Trim interval should be greater than 10 seconds to avoid excessive trimming.");
 
         _segmentArraySize = segmentArraySize;
-        _bucket = new Bucket(segmentArraySize, levels, trimInterval, preAllocate);
+        _poolId = Interlocked.Increment(ref s_nextPoolId);
+        _numberOfArrays = levels[levels.Length - 1];
+        _bucket = new Bucket(_poolId, segmentArraySize, levels, trimInterval, preAllocate);
+
+        var log = Log;
+        if (log.IsEnabled())
+        {
+            log.PoolCreated(
+                _poolId,
+                _segmentArraySize,
+                _numberOfArrays,
+                (long)_numberOfArrays * _segmentArraySize * sizeof(int));
+        }
     }
 
     public int[] Rent()
     {
-        return _bucket.Rent() ?? new int[_segmentArraySize];
+        var log = Log;
+        var buffer = _bucket.Rent();
+
+        if (buffer is null)
+        {
+            buffer = new int[_segmentArraySize];
+
+            if (log.IsEnabled())
+            {
+                log.PoolExhausted(_poolId, _numberOfArrays);
+            }
+        }
+
+        if (log.IsEnabled())
+        {
+            log.SegmentRented(buffer.GetHashCode(), buffer.Length, _poolId, _bucket.InUse);
+        }
+
+        return buffer;
     }
 
     public void Return(int[] array)
@@ -33,13 +67,25 @@ internal sealed class PathSegmentPool : IDisposable
             return;
         }
 
-        _bucket.Return(array);
+        var log = Log;
+        var returned = _bucket.Return(array);
+
+        if (log.IsEnabled())
+        {
+            log.SegmentReturned(array.GetHashCode(), array.Length, _poolId, _bucket.InUse);
+        }
+
+        if (!returned && log.IsEnabled())
+        {
+            log.SegmentDropped(array.GetHashCode(), array.Length, _poolId);
+        }
     }
 
     public void Dispose() => _bucket.Dispose();
 
     private sealed class Bucket : IDisposable
     {
+        private readonly int _poolId;
         private readonly int _segmentArraySize;
         private readonly int[]?[] _buffers;
         private readonly int[] _levels;
@@ -50,6 +96,7 @@ internal sealed class PathSegmentPool : IDisposable
         private int _index;
 
         internal Bucket(
+            int poolId,
             int segmentArraySize,
             int[] levels,
             TimeSpan trimInterval,
@@ -57,6 +104,7 @@ internal sealed class PathSegmentPool : IDisposable
         {
             var numberOfBuffers = levels[levels.Length - 1];
 
+            _poolId = poolId;
             _segmentArraySize = segmentArraySize;
             _buffers = new int[numberOfBuffers][];
             _levels = levels;
@@ -77,6 +125,8 @@ internal sealed class PathSegmentPool : IDisposable
 
             _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimInterval, trimInterval);
         }
+
+        internal int InUse => _inUse;
 
         internal int[]? Rent()
         {
@@ -110,20 +160,27 @@ internal sealed class PathSegmentPool : IDisposable
             if (allocateBuffer)
             {
                 buffer = new int[_segmentArraySize];
+
+                var log = Log;
+                if (log.IsEnabled())
+                {
+                    log.SegmentAllocated(buffer.GetHashCode(), _segmentArraySize, _poolId);
+                }
             }
 
             return buffer;
         }
 
-        internal void Return(int[] array)
+        internal bool Return(int[] array)
         {
             Interlocked.Decrement(ref _inUse);
 
             if (array.Length != _segmentArraySize)
             {
-                return;
+                return false;
             }
 
+            var returned = false;
             var lockTaken = false;
 
             try
@@ -133,6 +190,7 @@ internal sealed class PathSegmentPool : IDisposable
                 if (_index > 0)
                 {
                     _buffers[--_index] = array;
+                    returned = true;
                 }
             }
             finally
@@ -142,6 +200,8 @@ internal sealed class PathSegmentPool : IDisposable
                     _lock.Exit(false);
                 }
             }
+
+            return returned;
         }
 
         private void Trim()
@@ -161,6 +221,7 @@ internal sealed class PathSegmentPool : IDisposable
                 return;
             }
 
+            var trimmed = 0;
             var lockTaken = false;
 
             try
@@ -174,6 +235,7 @@ internal sealed class PathSegmentPool : IDisposable
                     if (_buffers[i] != null)
                     {
                         _buffers[i] = null;
+                        trimmed++;
                     }
                 }
 
@@ -191,6 +253,12 @@ internal sealed class PathSegmentPool : IDisposable
             }
 
             _currentLevel = previousLevel;
+
+            var log = Log;
+            if (log.IsEnabled())
+            {
+                log.PoolTrimmed(_poolId, trimmed, previousLimit, _inUse);
+            }
         }
 
         public void Dispose() => _trimTimer.Dispose();

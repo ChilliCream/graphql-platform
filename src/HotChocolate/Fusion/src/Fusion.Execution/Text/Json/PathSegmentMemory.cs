@@ -4,7 +4,7 @@ internal static class PathSegmentMemory
 {
     private static PathSegmentPool s_pool = new(
         segmentArraySize: 64,
-        levels: [64, 256, 1024],
+        levels: [4096, 8192, 16384],
         trimInterval: TimeSpan.FromMinutes(5),
         preAllocate: false);
 
