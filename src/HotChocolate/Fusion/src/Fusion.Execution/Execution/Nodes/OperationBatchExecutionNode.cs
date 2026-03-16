@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -294,7 +295,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
             }
 
-            var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
+            var pathBuffer = ArrayPool<CompactPath>.Shared.Rent(pathBufferLength);
 
             try
             {
@@ -315,7 +316,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             finally
             {
                 pathBuffer.AsSpan(0, pathBufferLength).Clear();
-                ArrayPool<Path>.Shared.Return(pathBuffer);
+                ArrayPool<CompactPath>.Shared.Return(pathBuffer);
             }
         }
     }

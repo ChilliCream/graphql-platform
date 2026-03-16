@@ -2,8 +2,14 @@ using System.Text;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
+/// <summary>
+/// Formats an <see cref="OperationPlan"/> as a YAML document.
+/// This formatter is intended for testing purposes and is primarily used
+/// to produce human-readable test snapshots.
+/// </summary>
 public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 {
+    /// <inheritdoc />
     public override string Format(OperationPlan plan, OperationPlanTrace? trace = null)
     {
         var sb = new StringBuilder();

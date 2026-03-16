@@ -8,6 +8,7 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -234,6 +235,9 @@ public sealed class SourceSchemaRequestDispatcherTests : FusionTestBase
             .AddSingleton<IFusionExecutionDiagnosticEvents>(
                 NoopFusionExecutionDiagnosticEvents.Instance)
             .AddSingleton<IErrorHandler>(new DefaultErrorHandler([]))
+            .AddSingleton(new FetchResultStorePool(
+                levels: [4, 16, 64],
+                trimInterval: TimeSpan.FromMinutes(5)))
             .BuildServiceProvider();
 
         var schemaFeatures = new FeatureCollection();

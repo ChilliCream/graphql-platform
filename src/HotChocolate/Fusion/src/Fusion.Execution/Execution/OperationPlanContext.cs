@@ -13,6 +13,7 @@ using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -27,6 +28,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly Uri?[] _transportUris;
     private readonly string?[] _transportContentTypes;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly FetchResultStorePool _resultStorePool;
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
     private readonly SourceSchemaRequestDispatcher _sourceSchemaDispatcher;
@@ -66,12 +68,15 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
         var errorHandler = requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
 
-        _resultStore = new FetchResultStore(
+        _resultStorePool = requestContext.Schema.Services.GetRequiredService<FetchResultStorePool>();
+        _resultStore = _resultStorePool.Rent();
+        _resultStore.Initialize(
             requestContext.Schema,
             errorHandler,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
-            IncludeFlags);
+            IncludeFlags,
+            requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
 
         _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
         _sourceSchemaDispatcher = new SourceSchemaRequestDispatcher(this);
@@ -231,7 +236,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
+            return [new VariableValues(CompactPath.Root, new ObjectValueNode(variableValues))];
         }
         else
         {
@@ -253,7 +258,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
+            return [new VariableValues(CompactPath.Root, new ObjectValueNode(variableValues))];
         }
         else
         {
@@ -262,21 +267,58 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    private static Path ToResultPath(SelectionPath selectionSet)
+    private CompactPath ToResultPath(SelectionPath selectionSet)
     {
-        var resultPath = Path.Root;
+        if (selectionSet.IsRoot)
+        {
+            return CompactPath.Root;
+        }
+
+        // CompactPathBuilder can run concurrently across nodes; avoid using the request-local
+        // pool here since that pool is synchronized through FetchResultStore's lock.
+        Span<int> buffer = stackalloc int[32];
+        var builder = new CompactPathBuilder(buffer, pool: null);
+        var operation = OperationPlan.Operation;
+        var currentSelectionSet = operation.RootSelectionSet;
+        Selection? currentSelection = null;
 
         for (var i = 0; i < selectionSet.Length; i++)
         {
             var segment = selectionSet[i];
 
-            if (segment.Kind is SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field)
+            if (segment.Kind is SelectionPathSegmentKind.Root)
             {
-                resultPath = resultPath.Append(segment.Name);
+                continue;
+            }
+
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                if (currentSelection is null)
+                {
+                    continue;
+                }
+
+                var objectType = Schema.Types.GetType<IObjectTypeDefinition>(segment.Name);
+                currentSelectionSet = operation.GetSelectionSet(currentSelection, objectType);
+                continue;
+            }
+
+            if (!currentSelectionSet.TryGetSelection(segment.Name, out var selection))
+            {
+                throw new InvalidOperationException(
+                    $"Could not resolve selection path segment '{segment.Name}'.");
+            }
+
+            builder.AppendField(selection.Id);
+            currentSelection = selection;
+
+            if (selection.Type.NamedType() is IObjectTypeDefinition objectTypeForSelection)
+            {
+                currentSelectionSet = operation.GetSelectionSet(selection, objectTypeForSelection);
             }
         }
 
-        return resultPath;
+        return builder.ToPath();
     }
 
     internal void AddPartialResults(
@@ -286,7 +328,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         bool containsErrors = true)
     {
         var canExecutionContinue =
-            _resultStore.AddPartialResults(sourcePath, results, responseNames, containsErrors);
+            _resultStore.AddPartialResults(
+                sourcePath,
+                results,
+                responseNames,
+                containsErrors);
 
         if (!canExecutionContinue)
         {
@@ -305,6 +351,16 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     }
 
     internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    {
+        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
+
+    internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, ReadOnlySpan<CompactPath> paths)
     {
         var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
 
@@ -446,7 +502,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             _disposed = true;
             DisposeNodeState();
             _sourceSchemaDispatcher.Abort();
-            _resultStore.Dispose();
+            _resultStorePool.Return(_resultStore);
             await _clientScope.DisposeAsync();
         }
     }
