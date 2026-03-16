@@ -326,7 +326,7 @@ If composition fails after adding your new subgraph, the error messages point to
 
 ### Duplicate field without sharing
 
-**"Field X is defined in multiple subgraphs"**. Your new subgraph defines a field that already exists in another subgraph. Key fields (like `id`) are automatically shareable, but all other duplicated fields need `@shareable` on every definition. See [Field Ownership and Sharing](/docs/fusion/v16/field-ownership-and-sharing) for details.
+**"Field X is defined in multiple subgraphs"**. Your new subgraph defines a field that already exists in another subgraph. Key fields (like `id`) are automatically shareable, but all other duplicated fields need `@shareable` on every definition. See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing) for details.
 
 ### Missing lookup
 
