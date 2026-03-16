@@ -809,30 +809,6 @@ There is no 1:1 mapping for all old methods. In most cases:
 
 Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
 
-## `ListSizeAttribute.AssumedSize` default value changed to `null`
-
-The default value of `ListSizeAttribute.AssumedSize`, used when no explicit value is specified, has changed from `0` to `null`.
-
-As a result, unless explicitly specified, `assumedSize` will no longer be emitted.
-
-Resolver:
-
-```csharp
-[ListSize(SlicingArguments = ["first", "last"], SizedFields = ["edges", "nodes"])]
-public IEnumerable<int> GetInts() => ...
-```
-
-Schema:
-
-```diff
-type Query {
-+  ints: [Int!]! @listSize(slicingArguments: ["first", "last"], sizedFields: ["edges", "nodes"])
--  ints: [Int!]! @listSize(assumedSize: 0, slicingArguments: ["first", "last"], sizedFields: ["edges", "nodes"])
-}
-```
-
-This may affect your cost metrics, since a missing value for `AssumedSize` is treated as `1` at runtime.
-
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
