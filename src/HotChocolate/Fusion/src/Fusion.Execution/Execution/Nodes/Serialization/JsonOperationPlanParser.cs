@@ -6,10 +6,20 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
+/// <summary>
+/// Parses a JSON-encoded operation plan into an <see cref="OperationPlan"/>,
+/// reconstructing the operation, execution nodes, and their dependency graph.
+/// </summary>
 public sealed class JsonOperationPlanParser : OperationPlanParser
 {
     private readonly OperationCompiler _operationCompiler;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="JsonOperationPlanParser"/>.
+    /// </summary>
+    /// <param name="operationCompiler">
+    /// The compiler used to compile parsed operation definitions.
+    /// </param>
     public JsonOperationPlanParser(OperationCompiler operationCompiler)
     {
         ArgumentNullException.ThrowIfNull(operationCompiler);
@@ -17,6 +27,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         _operationCompiler = operationCompiler;
     }
 
+    /// <inheritdoc />
     public override OperationPlan Parse(ReadOnlyMemory<byte> planSourceText)
     {
         using var document = JsonDocument.Parse(planSourceText);

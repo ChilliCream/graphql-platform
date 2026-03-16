@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -386,19 +387,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private static bool TryGetResultPath(
         SourceSchemaClientRequest request,
         int variableIndex,
-        out Path path,
-        out ImmutableArray<Path> additionalPaths)
+        out CompactPath path,
+        out ImmutableArray<CompactPath> additionalPaths)
     {
         if (request.Variables.Length == 0)
         {
-            path = Path.Root;
+            path = CompactPath.Root;
             additionalPaths = [];
             return true;
         }
 
         if ((uint)variableIndex >= (uint)request.Variables.Length)
         {
-            path = Path.Root;
+            path = CompactPath.Root;
             additionalPaths = [];
             return false;
         }
@@ -489,8 +490,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         OperationPlanContext context,
         ExecutionNode node,
         NodeResponse nodeResponse,
-        Path path,
-        ImmutableArray<Path> additionalPaths,
+        CompactPath path,
+        ImmutableArray<CompactPath> additionalPaths,
         SourceResultDocument document)
     {
         var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
@@ -561,7 +562,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             {
                 await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
                 {
-                    var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
+                    var sourceSchemaResult = new SourceSchemaResult(CompactPath.Root, result);
 
                     configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
@@ -575,7 +576,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     case 0:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
-                        var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
+                        var sourceSchemaResult = new SourceSchemaResult(CompactPath.Root, result);
 
                         configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
@@ -714,30 +715,33 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     /// <summary>
     /// A streaming response for a single execution node within a batched HTTP request.
-    /// Results are pushed into a <see cref="ConcurrentQueue{T}"/> by the background stream
+    /// Results are pushed into a <see cref="List{T}"/> under lock by the background stream
     /// reader and signalled via a lightweight <see cref="AsyncAutoResetEvent"/>.
     /// The execution node reads lazily via <see cref="ReadAsResultStreamAsync"/>.
     /// </summary>
-    private sealed class NodeResponse : SourceSchemaClientResponse
+    private sealed class NodeResponse(Uri uri, string contentType, bool isSuccessful) : SourceSchemaClientResponse
     {
-        private readonly ConcurrentQueue<SourceSchemaResult> _results = new();
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
+        private readonly object _sync = new();
+#endif
+        private const int InitialCapacity = 32;
+        private static readonly ArrayPool<SourceSchemaResult> s_pool = ArrayPool<SourceSchemaResult>.Shared;
         private readonly AsyncAutoResetEvent _signal = new();
+        private SourceSchemaResult[] _results = s_pool.Rent(InitialCapacity);
+        private int _resultsCount;
+        private SourceSchemaResult[] _drain = s_pool.Rent(InitialCapacity);
+        private int _drainCount;
         private volatile bool _completed;
         private Exception? _error;
         private bool _disposed;
 
-        public NodeResponse(Uri uri, string contentType, bool isSuccessful)
-        {
-            Uri = uri;
-            ContentType = contentType;
-            IsSuccessful = isSuccessful;
-        }
+        public override Uri Uri { get; } = uri;
 
-        public override Uri Uri { get; }
+        public override string ContentType { get; } = contentType;
 
-        public override string ContentType { get; }
-
-        public override bool IsSuccessful { get; }
+        public override bool IsSuccessful { get; } = isSuccessful;
 
         /// <summary>
         /// Gets whether at least one result has been written to this response.
@@ -752,7 +756,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return false;
             }
 
-            _results.Enqueue(result);
+            lock (_sync)
+            {
+                if (_resultsCount == _results.Length)
+                {
+                    var newArray = s_pool.Rent(_results.Length * 2);
+                    _results.AsSpan(0, _resultsCount).CopyTo(newArray);
+                    s_pool.Return(_results, clearArray: true);
+                    _results = newArray;
+                }
+
+                _results[_resultsCount++] = result;
+            }
+
             _signal.Set();
             return true;
         }
@@ -771,18 +787,20 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                while (_results.TryDequeue(out var result))
+                var (buffer, count) = Drain();
+                for (var i = 0; i < count; i++)
                 {
-                    yield return result;
+                    yield return buffer[i];
                 }
 
                 if (_completed)
                 {
-                    // Final drain — writer may have enqueued between our last
-                    // TryDequeue and the completion flag becoming visible.
-                    while (_results.TryDequeue(out var result))
+                    // Final drain, writer may have enqueued between our last
+                    // drain and the completion flag becoming visible.
+                    (buffer, count) = Drain();
+                    for (var i = 0; i < count; i++)
                     {
-                        yield return result;
+                        yield return buffer[i];
                     }
 
                     if (_error is not null)
@@ -797,6 +815,29 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             }
         }
 
+        private (SourceSchemaResult[] Buffer, int Count) Drain()
+        {
+            lock (_sync)
+            {
+                if (_resultsCount == 0)
+                {
+                    return (Array.Empty<SourceSchemaResult>(), 0);
+                }
+
+                // Clear the previous drain buffer so it's ready
+                // to become the next write target.
+                _drain.AsSpan(0, _drainCount).Clear();
+                _drainCount = 0;
+
+                // Swap the buffers so the writer can keep adding
+                // while we drain outside the lock.
+                (_results, _drain) = (_drain, _results);
+                (_resultsCount, _drainCount) = (0, _resultsCount);
+            }
+
+            return (_drain, _drainCount);
+        }
+
         public override void Dispose()
         {
             if (_disposed)
@@ -808,9 +849,18 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
             Complete();
 
-            while (_results.TryDequeue(out var result))
+            var (buffer, count) = Drain();
+            for (var i = 0; i < count; i++)
             {
-                result.Dispose();
+                buffer[i].Dispose();
+            }
+
+            lock (_sync)
+            {
+                s_pool.Return(_results, clearArray: true);
+                s_pool.Return(_drain, clearArray: true);
+                _results = [];
+                _drain = [];
             }
         }
     }

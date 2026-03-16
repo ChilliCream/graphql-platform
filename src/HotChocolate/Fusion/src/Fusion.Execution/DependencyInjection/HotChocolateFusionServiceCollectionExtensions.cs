@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -89,9 +90,17 @@ public static class HotChocolateFusionServiceCollectionExtensions
 
         var builder = new DefaultFusionGatewayBuilder(services, name);
         builder.AddDocumentCache();
+        builder.AddFetchResultStorePool();
         builder.UseDefaultPipeline();
         return builder;
     }
+
+    private static void AddFetchResultStorePool(this IFusionGatewayBuilder builder)
+        => builder.ConfigureSchemaServices(
+            static (_, s) => s.TryAddSingleton(
+                new FetchResultStorePool(
+                    levels: [4, 16, 64],
+                    trimInterval: TimeSpan.FromMinutes(5))));
 
     private static IFusionGatewayBuilder AddDocumentCache(this IFusionGatewayBuilder builder)
     {
