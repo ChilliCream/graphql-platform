@@ -274,9 +274,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return CompactPath.Root;
         }
 
-        Span<int> buffer = stackalloc int[32];
-        // This helper can run concurrently across nodes; avoid using the request-local
+        // CompactPathBuilder can run concurrently across nodes; avoid using the request-local
         // pool here since that pool is synchronized through FetchResultStore's lock.
+        Span<int> buffer = stackalloc int[32];
         var builder = new CompactPathBuilder(buffer, pool: null);
         var operation = OperationPlan.Operation;
         var currentSelectionSet = operation.RootSelectionSet;
@@ -502,9 +502,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             _disposed = true;
             DisposeNodeState();
             _sourceSchemaDispatcher.Abort();
-
             _resultStorePool.Return(_resultStore);
-
             await _clientScope.DisposeAsync();
         }
     }
