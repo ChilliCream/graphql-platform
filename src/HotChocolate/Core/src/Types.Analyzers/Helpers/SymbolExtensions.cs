@@ -789,108 +789,21 @@ public static class SymbolExtensions
 
     public static bool IsGlobalState(
         this IParameterSymbol parameter,
+        Compilation compilation,
         [NotNullWhen(true)] out string? key)
-    {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
-        {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.GlobalStateAttribute"))
-            {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => parameter.TryGetStateKey("HotChocolate.GlobalStateAttribute", compilation, out key);
 
     public static bool IsScopedState(
         this IParameterSymbol parameter,
+        Compilation compilation,
         [NotNullWhen(true)] out string? key)
-    {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
-        {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.ScopedStateAttribute"))
-            {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => parameter.TryGetStateKey("HotChocolate.ScopedStateAttribute", compilation, out key);
 
     public static bool IsLocalState(
         this IParameterSymbol parameter,
+        Compilation compilation,
         [NotNullWhen(true)] out string? key)
-    {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
-        {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.LocalStateAttribute"))
-            {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => parameter.TryGetStateKey("HotChocolate.LocalStateAttribute", compilation, out key);
 
     public static bool IsEventMessage(
         this IParameterSymbol parameter)
@@ -936,6 +849,178 @@ public static class SymbolExtensions
                 key = null;
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKey(
+        this IParameterSymbol parameter,
+        string stateAttributeType,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (!IsOrInheritsFrom(attributeData.AttributeClass, stateAttributeType))
+            {
+                continue;
+            }
+
+            if (TryGetStateKeyFromAttributeUsage(attributeData, out key)
+                || TryGetStateKeyFromAttributeDeclaration(attributeData, compilation, out key))
+            {
+                return true;
+            }
+
+            key = parameter.Name;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromAttributeUsage(
+        AttributeData attributeData,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (attributeData.ConstructorArguments.Length == 1
+            && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+            && attributeData.ConstructorArguments[0].Value is string keyValue)
+        {
+            key = keyValue;
+            return true;
+        }
+
+        foreach (var namedArg in attributeData.NamedArguments)
+        {
+            if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
+            {
+                key = namedKeyValue;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromAttributeDeclaration(
+        AttributeData attributeData,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        var constructor = attributeData.AttributeConstructor;
+        if (constructor is not null
+            && TryGetStateKeyFromConstructorDeclaration(constructor, compilation, out key))
+        {
+            return true;
+        }
+
+        var attributeType = attributeData.AttributeClass;
+        if (attributeType is null)
+        {
+            return false;
+        }
+
+        foreach (var syntaxReference in attributeType.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is TypeDeclarationSyntax declaration
+                && TryGetStateKeyFromPrimaryConstructorBaseCall(declaration, compilation, out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromConstructorDeclaration(
+        IMethodSymbol constructor,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var syntaxReference in constructor.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is ConstructorDeclarationSyntax declaration
+                && declaration.Initializer is
+                {
+                    RawKind: (int)SyntaxKind.BaseConstructorInitializer,
+                    ArgumentList: { } argumentList
+                }
+                && TryGetConstantStringFromArgumentList(
+                    argumentList,
+                    declaration.SyntaxTree,
+                    compilation,
+                    out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromPrimaryConstructorBaseCall(
+        TypeDeclarationSyntax declaration,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (declaration.BaseList is null)
+        {
+            return false;
+        }
+
+        foreach (var baseType in declaration.BaseList.Types)
+        {
+            var argumentList = baseType.ChildNodes().OfType<ArgumentListSyntax>().FirstOrDefault();
+            if (argumentList is null)
+            {
+                continue;
+            }
+
+            if (TryGetConstantStringFromArgumentList(
+                argumentList,
+                declaration.SyntaxTree,
+                compilation,
+                out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetConstantStringFromArgumentList(
+        ArgumentListSyntax argumentList,
+        SyntaxTree syntaxTree,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (argumentList.Arguments.Count != 1)
+        {
+            return false;
+        }
+
+        var model = compilation.GetSemanticModel(syntaxTree);
+        var constantValue = model.GetConstantValue(argumentList.Arguments[0].Expression);
+
+        if (constantValue is { HasValue: true, Value: string keyValue })
+        {
+            key = keyValue;
+            return true;
         }
 
         return false;

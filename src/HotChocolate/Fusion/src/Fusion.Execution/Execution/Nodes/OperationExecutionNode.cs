@@ -317,7 +317,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         catch (Exception ex)
         {
             AddErrors(context, ex, variables, _responseNames);
-            context.DiagnosticEvents.SubscriptionTransportError(context, this, schemaName, subscriptionId, ex);
+            context.DiagnosticEvents.SourceSchemaTransportError(context, this, schemaName, ex);
             return SubscriptionResult.Failed(subscriptionId, ex);
         }
     }

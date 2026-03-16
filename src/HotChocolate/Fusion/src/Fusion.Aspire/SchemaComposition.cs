@@ -7,6 +7,7 @@ using Aspire.Hosting.Lifecycle;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -94,7 +95,7 @@ internal sealed class SchemaComposition(
             try
             {
                 var gatewayDirectory = GetProjectPath(compositionResource)!;
-                var archivePath = Path.Combine(Path.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
+                var archivePath = IOPath.Combine(IOPath.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
                 return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
             }
             finally
@@ -277,7 +278,7 @@ internal sealed class SchemaComposition(
         // For file schemas, settings file is named after the schema file
         // e.g., "foo.graphql" -> "foo-settings.json"
         var schemaFileName = annotation.SchemaPath ?? "schema.graphql";
-        var settingsFileName = $"{Path.GetFileNameWithoutExtension(schemaFileName)}-settings.json";
+        var settingsFileName = $"{IOPath.GetFileNameWithoutExtension(schemaFileName)}-settings.json";
 
         var schemaSettings = await GetSourceSchemaSettingsAsync(resource, settingsFileName, cancellationToken);
         if (schemaSettings == null)
@@ -309,8 +310,8 @@ internal sealed class SchemaComposition(
                 return null;
             }
 
-            var projectDirectory = Path.GetDirectoryName(projectPath);
-            var settingsFile = Path.Combine(projectDirectory!, settingsFileName);
+            var projectDirectory = IOPath.GetDirectoryName(projectPath);
+            var settingsFile = IOPath.Combine(projectDirectory!, settingsFileName);
 
             if (!File.Exists(settingsFile))
             {
@@ -373,8 +374,8 @@ internal sealed class SchemaComposition(
                 return null;
             }
 
-            var projectDirectory = Path.GetDirectoryName(projectPath);
-            var schemaFile = Path.Combine(projectDirectory!, fileName ?? "schema.graphql");
+            var projectDirectory = IOPath.GetDirectoryName(projectPath);
+            var schemaFile = IOPath.Combine(projectDirectory!, fileName ?? "schema.graphql");
 
             if (!File.Exists(schemaFile))
             {
@@ -487,7 +488,7 @@ internal sealed class SchemaComposition(
         GraphQLSchemaCompositionAnnotation settings,
         CancellationToken cancellationToken)
     {
-        var tempArchivePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var tempArchivePath = IOPath.Combine(IOPath.GetTempPath(), IOPath.GetRandomFileName());
 
         try
         {

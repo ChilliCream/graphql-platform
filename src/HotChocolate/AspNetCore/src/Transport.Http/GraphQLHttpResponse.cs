@@ -24,6 +24,15 @@ namespace HotChocolate.Transport.Http;
 public sealed class GraphQLHttpResponse : IDisposable
 {
 #if FUSION
+    private const string ContentTypeHeaderName = "Content-Type";
+    private const string CharsetPrefix = "charset=";
+    private const string Utf8 = "utf-8";
+    private const string JsonUtf8ContentType = $"{ContentType.Json}; charset={Utf8}";
+    private const string GraphQLUtf8ContentType = $"{ContentType.GraphQL}; charset={Utf8}";
+    private const string EventStreamUtf8ContentType = $"{ContentType.EventStream}; charset={Utf8}";
+    private const string GraphQLJsonLineUtf8ContentType = $"{ContentType.GraphQLJsonLine}; charset={Utf8}";
+    private const string JsonLineUtf8ContentType = $"{ContentType.JsonLine}; charset={Utf8}";
+
     private static readonly StreamPipeReaderOptions s_options = new(
         pool: MemoryPool<byte>.Shared,
         bufferSize: 4096,
@@ -92,6 +101,139 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// The content headers as defined in RFC 2616.
     /// </returns>
     public HttpContentHeaders ContentHeaders => _message.Content.Headers;
+
+#if FUSION
+    /// <summary>
+    /// Gets the raw Content-Type header value without parsing into <see cref="MediaTypeHeaderValue"/>.
+    /// </summary>
+    public string? RawContentType
+    {
+        get
+        {
+            if (_message.Content.Headers.NonValidated.TryGetValues(ContentTypeHeaderName, out var values))
+            {
+                var enumerator = values.GetEnumerator();
+                if (!enumerator.MoveNext())
+                {
+                    return null;
+                }
+
+                var mediaType = enumerator.Current;
+
+                // Some handlers may emit media type and charset as separate values.
+                // Normalize known UTF-8 combinations back to shared constants.
+                if (enumerator.MoveNext()
+                    && TryNormalizeKnownUtf8ContentType(mediaType.AsSpan(), enumerator.Current.AsSpan(), out var normalized))
+                {
+                    return normalized;
+                }
+
+                return mediaType;
+            }
+
+            return null;
+        }
+    }
+
+    private static bool TryNormalizeKnownUtf8ContentType(
+        ReadOnlySpan<char> mediaType,
+        ReadOnlySpan<char> charset,
+        out string contentType)
+    {
+        if (!IsUtf8(charset))
+        {
+            contentType = null!;
+            return false;
+        }
+
+        mediaType = NormalizeMediaType(mediaType);
+
+        if (mediaType.Equals(ContentType.GraphQL, StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = GraphQLUtf8ContentType;
+            return true;
+        }
+
+        if (mediaType.Equals(ContentType.JsonLine, StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = JsonLineUtf8ContentType;
+            return true;
+        }
+
+        if (mediaType.Equals(ContentType.Json, StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = JsonUtf8ContentType;
+            return true;
+        }
+
+        if (mediaType.Equals(ContentType.EventStream, StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = EventStreamUtf8ContentType;
+            return true;
+        }
+
+        if (mediaType.Equals(ContentType.GraphQLJsonLine, StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = GraphQLJsonLineUtf8ContentType;
+            return true;
+        }
+
+        contentType = null!;
+        return false;
+    }
+
+    private static bool IsUtf8(ReadOnlySpan<char> value)
+    {
+        value = TrimWhiteSpace(value);
+
+        if (value.Length > 0 && value[0] == ';')
+        {
+            value = TrimWhiteSpace(value[1..]);
+        }
+
+        if (value.StartsWith(CharsetPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            value = TrimWhiteSpace(value[CharsetPrefix.Length..]);
+        }
+
+        if (value.Length > 1 && value[0] == '"' && value[^1] == '"')
+        {
+            value = TrimWhiteSpace(value[1..^1]);
+        }
+
+        return value.Equals(Utf8, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static ReadOnlySpan<char> NormalizeMediaType(ReadOnlySpan<char> mediaType)
+    {
+        mediaType = TrimWhiteSpace(mediaType);
+
+        if (mediaType.Length > 0 && mediaType[^1] == ';')
+        {
+            mediaType = TrimWhiteSpace(mediaType[..^1]);
+        }
+
+        return mediaType;
+    }
+
+    private static ReadOnlySpan<char> TrimWhiteSpace(ReadOnlySpan<char> value)
+    {
+        var start = 0;
+        var end = value.Length - 1;
+
+        while (start <= end && char.IsWhiteSpace(value[start]))
+        {
+            start++;
+        }
+
+        while (end >= start && char.IsWhiteSpace(value[end]))
+        {
+            end--;
+        }
+
+        return value[start..(end + 1)];
+    }
+#endif
 
     /// <summary>
     /// Gets the collection of trailing headers included in an HTTP response.
