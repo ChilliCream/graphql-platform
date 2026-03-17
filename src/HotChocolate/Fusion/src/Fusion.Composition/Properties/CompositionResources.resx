@@ -18,6 +18,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AuthorizeDirective_ApplyArgument_Invalid" xml:space="preserve">
+    <value>The 'apply' argument of the @authorize directive must be of type ApplyPolicy.</value>
+  </data>
+  <data name="AuthorizeDirective_ApplyArgument_InvalidEnumValue" xml:space="preserve">
+    <value>The value '{0}' for argument 'apply' in the @authorize directive is invalid.</value>
+  </data>
+  <data name="AuthorizeDirective_PolicyArgument_Invalid" xml:space="preserve">
+    <value>The 'policy' argument of the @authorize directive must be of type String.</value>
+  </data>
+  <data name="AuthorizeDirective_RolesArgument_Invalid" xml:space="preserve">
+    <value>The 'roles' argument of the @authorize directive must be of type [String!].</value>
+  </data>
   <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
     <value>{0} (Schema: '{1}')</value>
   </data>
