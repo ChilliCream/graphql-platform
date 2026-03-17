@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections;
 using System.Text.Json;
 using HotChocolate.Text.Json;
@@ -96,30 +97,50 @@ internal static partial class ValueCompletion
 
         if (runtimeValue is IEnumerable enumerable)
         {
-            var i = 0;
-            var temp = new List<object?>();
+            var count = 0;
+            var buffer = ArrayPool<object?>.Shared.Rent(64);
 
-            foreach (var value in enumerable)
+            try
             {
-                temp.Add(value);
-            }
-
-            resultValue.SetArrayValue(temp.Count);
-
-            foreach (var element in resultValue.EnumerateArray())
-            {
-                Complete(
-                    context,
-                    selection,
-                    elementType,
-                    element,
-                    temp[i++]);
-
-                // if we ran into an error that invalidated the result we abort.
-                if (element.IsInvalidated)
+                foreach (var value in enumerable)
                 {
-                    return;
+                    if (count == buffer.Length)
+                    {
+                        var newBuffer = ArrayPool<object?>.Shared.Rent(buffer.Length * 2);
+                        var span = buffer.AsSpan(0, count);
+                        span.CopyTo(newBuffer);
+                        span.Clear();
+                        ArrayPool<object?>.Shared.Return(buffer);
+                        buffer = newBuffer;
+                    }
+
+                    buffer[count++] = value;
                 }
+
+                resultValue.SetArrayValue(count);
+
+                var i = 0;
+
+                foreach (var element in resultValue.EnumerateArray())
+                {
+                    Complete(
+                        context,
+                        selection,
+                        elementType,
+                        element,
+                        buffer[i++]);
+
+                    // if we ran into an error that invalidated the result we abort.
+                    if (element.IsInvalidated)
+                    {
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                buffer.AsSpan(0, count).Clear();
+                ArrayPool<object?>.Shared.Return(buffer);
             }
 
             return;

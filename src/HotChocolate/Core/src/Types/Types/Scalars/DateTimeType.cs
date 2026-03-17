@@ -196,7 +196,9 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             4 => DateTimeRegex4(),
             5 => DateTimeRegex5(),
             6 => DateTimeRegex6(),
-            _ => DateTimeRegex7()
+            7 => DateTimeRegex7(),
+            8 => DateTimeRegex8(),
+            _ => DateTimeRegex9()
         };
 
     [GeneratedRegex(
@@ -238,4 +240,14 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex7();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex8();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex9();
 }

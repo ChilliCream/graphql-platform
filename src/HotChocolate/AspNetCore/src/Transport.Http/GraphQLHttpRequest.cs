@@ -157,6 +157,14 @@ public sealed class GraphQLHttpRequest
     /// </summary>
     public ImmutableArray<MediaTypeWithQualityHeaderValue> Accept { get; set; } = DefaultAcceptContentTypes;
 
+#if FUSION
+    /// <summary>
+    /// Gets or sets a pre-formatted Accept header value to avoid per-request allocations.
+    /// When set, this is used instead of the typed <see cref="Accept"/> array.
+    /// </summary>
+    public string? AcceptHeaderValue { get; set; }
+#endif
+
     /// <summary>
     /// Gets or sets a hook that can alter the <see cref="HttpRequestMessage"/> before it is sent.
     /// </summary>

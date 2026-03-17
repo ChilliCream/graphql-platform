@@ -287,7 +287,7 @@ Key details:
 - The JWT configuration can mirror the gateway's configuration, or the subgraph can validate the forwarded `Authorization` header against the same identity provider.
 - Subgraphs receive the raw `Authorization` header from the gateway via header propagation, so the JWT middleware validates the same token the gateway already validated.
 
-### Using `[Authorize]` on Fields
+### Field-Level Authorization
 
 Apply `[Authorize]` to restrict access to specific fields or types:
 

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -317,7 +318,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         catch (Exception ex)
         {
             AddErrors(context, ex, variables, _responseNames);
-            context.DiagnosticEvents.SubscriptionTransportError(context, this, schemaName, subscriptionId, ex);
+            context.DiagnosticEvents.SourceSchemaTransportError(context, this, schemaName, ex);
             return SubscriptionResult.Failed(subscriptionId, ex);
         }
     }
@@ -343,7 +344,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
             }
 
-            var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
+            var pathBuffer = ArrayPool<CompactPath>.Shared.Rent(pathBufferLength);
 
             try
             {
@@ -364,7 +365,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             finally
             {
                 pathBuffer.AsSpan(0, pathBufferLength).Clear();
-                ArrayPool<Path>.Shared.Return(pathBuffer);
+                ArrayPool<CompactPath>.Shared.Return(pathBuffer);
             }
         }
     }

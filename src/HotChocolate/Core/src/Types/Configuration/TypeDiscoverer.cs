@@ -182,6 +182,16 @@ DISCOVER:
                 continue;
             }
 
+            if (unresolvedTypeRef is ExtendedTypeReference fallbackTypeRef
+                && _typeRegistry.TryGetNonInferredTypeRef(fallbackTypeRef, out var fallbackReference))
+            {
+                inferred = true;
+                _typeRegistry.TryRegister(fallbackTypeRef, fallbackReference);
+                _unregistered.Enqueue(fallbackReference, (TypeReferenceStrength.VeryWeak, _nextTypeRefIndex++));
+                _resolved.Add(unresolvedTypeRef);
+                continue;
+            }
+
             // if we do not have a type binding or if we have a directive we will try to infer the type.
             if (unresolvedTypeRef is ExtendedTypeReference or ExtendedTypeDirectiveReference
                 && _context.TryInferSchemaType(unresolvedTypeRef, out var schemaTypeRefs))
