@@ -5,6 +5,7 @@ accessibilities
 agrc
 Alderaan
 Andi
+apphost
 appsettings
 ASPDEPR004
 ASPDEPR008
@@ -41,8 +42,8 @@ contentfiles
 Contoso
 conv
 CQRS
-CUST
 creds
+CUST
 dataloaders
 debuggable
 decompile
@@ -58,6 +59,7 @@ entityframework
 EPSG
 esque
 evolvability
+Expando
 Fanout
 FFFFFFFZ
 fffzzz
@@ -83,8 +85,8 @@ Hmac
 hotchocolate
 Includable
 inheritdocs
-inmemory
 initializable
+inmemory
 inspectable
 Kellner
 Kydne
@@ -94,6 +96,7 @@ LICEN*
 Linq
 Marek
 matchesBrics
+MCPEXP
 MediatR
 Memberwise
 mercurius
@@ -197,6 +200,8 @@ Testcontainers
 Toub
 Touchpoint
 TOWGS
+traceparent
+tracestate
 Trimmable
 Tzdb
 unlisten
@@ -213,7 +218,3 @@ websockets
 Wilhuff
 Wunder
 xunit
-Expando
-traceparent
-tracestate
-apphost
