@@ -4,6 +4,7 @@ namespace HotChocolate.Fusion;
 
 internal static class WellKnownDirectiveNames
 {
+    public const string Authorize = "authorize";
     public const string CacheControl = DirectiveNames.CacheControl.Name;
     public const string Cost = DirectiveNames.Cost.Name;
     public const string External = DirectiveNames.External.Name;
