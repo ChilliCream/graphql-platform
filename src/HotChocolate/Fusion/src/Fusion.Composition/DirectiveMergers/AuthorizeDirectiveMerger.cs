@@ -56,22 +56,18 @@ internal class AuthorizeDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
                         ArgumentNames.Roles,
                         new ListValueNode(
                             authorizeDirective.Roles
-                                .Order()
+                                .Order(StringComparer.Ordinal)
                                 .Select(r => new StringValueNode(r))
                                 .ToList())));
             }
 
-            if (authorizeDirective.Apply is not null)
+            if (authorizeDirective.Apply is { } apply and not ApplyPolicy.BeforeResolver)
             {
                 arguments.Add(
                     new ArgumentAssignment(
                         ArgumentNames.Apply,
-                        new EnumValueNode(authorizeDirective.Apply switch
-                        {
-                            ApplyPolicy.AfterResolver => "AFTER_RESOLVER",
-                            ApplyPolicy.Validation => "VALIDATION",
-                            _ => "BEFORE_RESOLVER"
-                        })));
+                        new EnumValueNode(
+                            apply == ApplyPolicy.AfterResolver ? "AFTER_RESOLVER" : "VALIDATION")));
             }
 
             mergedMember.AddDirective(new Directive(directiveDefinition, arguments));
@@ -96,7 +92,7 @@ internal class AuthorizeDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
             }
 
             return x.Policy == y.Policy
-                && x.Apply == y.Apply
+                && (x.Apply ?? ApplyPolicy.BeforeResolver) == (y.Apply ?? ApplyPolicy.BeforeResolver)
                 && RolesEqual(x.Roles, y.Roles);
         }
 
@@ -104,11 +100,11 @@ internal class AuthorizeDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
         {
             var hash = new HashCode();
             hash.Add(obj.Policy);
-            hash.Add(obj.Apply);
+            hash.Add(obj.Apply ?? ApplyPolicy.BeforeResolver);
 
             if (obj.Roles is not null)
             {
-                foreach (var role in obj.Roles.Order())
+                foreach (var role in obj.Roles.Order(StringComparer.Ordinal))
                 {
                     hash.Add(role);
                 }
@@ -134,7 +130,7 @@ internal class AuthorizeDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
                 return false;
             }
 
-            return a.Order().SequenceEqual(b.Order());
+            return a.Order(StringComparer.Ordinal).SequenceEqual(b.Order(StringComparer.Ordinal));
         }
     }
 }

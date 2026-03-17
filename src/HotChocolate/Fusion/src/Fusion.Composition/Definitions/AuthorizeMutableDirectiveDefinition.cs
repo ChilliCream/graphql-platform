@@ -20,7 +20,7 @@ internal sealed class AuthorizeMutableDirectiveDefinition : MutableDirectiveDefi
         Arguments.Add(
             new MutableInputFieldDefinition(WellKnownArgumentNames.Apply, new NonNullType(applyPolicyType))
             {
-                DefaultValue = new StringValueNode("BEFORE_RESOLVER")
+                DefaultValue = new EnumValueNode("BEFORE_RESOLVER")
             });
         IsRepeatable = true;
         Locations = DirectiveLocation.FieldDefinition | DirectiveLocation.Object;

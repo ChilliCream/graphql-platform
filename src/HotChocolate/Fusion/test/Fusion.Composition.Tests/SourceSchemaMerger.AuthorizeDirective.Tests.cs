@@ -85,7 +85,7 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
                     @fusion__field(schema: B)
             }
             """,
-            modifySchema: s_removeSerializeAsDirective);
+            modifySchema: s_removeAuthorizeDirective);
     }
 
     // Do not merge @authorize directives when the definitions do not match the canonical definition.
@@ -166,7 +166,7 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
                     @fusion__field(schema: B)
             }
             """,
-            modifySchema: s_removeSerializeAsDirective);
+            modifySchema: s_removeAuthorizeDirective);
     }
 
     // Merge @authorize directives with the same policy name but different apply policy.
@@ -200,18 +200,62 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
             }
 
             type Query
-                @authorize(policy: "Policy1", apply: BEFORE_RESOLVER)
+                @authorize(policy: "Policy1")
                 @authorize(policy: "Policy1", apply: AFTER_RESOLVER)
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
                 field: Int
                     @authorize(policy: "Policy2", apply: AFTER_RESOLVER)
-                    @authorize(policy: "Policy2", apply: BEFORE_RESOLVER)
+                    @authorize(policy: "Policy2")
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
             }
             """,
-            modifySchema: s_removeSerializeAsDirective);
+            modifySchema: s_removeAuthorizeDirective);
+    }
+
+    // Merge @authorize directives where one uses the default apply value and the other explicitly
+    // specifies BEFORE_RESOLVER. This verifies that omitted apply and apply: BEFORE_RESOLVER are
+    // treated as equivalent and do not produce duplicates.
+    [Fact]
+    public void Merge_AuthorizeDirectivesDefaultApplyEquivalentToBeforeResolver_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Query @authorize(policy: "Policy1") {
+                    field: Int
+                }
+
+                {{s_applyPolicyEnum}}
+                {{s_authorizeDirective}}
+                """,
+                $$"""
+                # Schema B
+                type Query @authorize(policy: "Policy1", apply: BEFORE_RESOLVER) {
+                    field: Int
+                }
+
+                {{s_applyPolicyEnum}}
+                {{s_authorizeDirective}}
+                """
+            ],
+            """
+            schema {
+                query: Query
+            }
+
+            type Query
+                @authorize(policy: "Policy1")
+                @fusion__type(schema: A)
+                @fusion__type(schema: B) {
+                field: Int
+                    @fusion__field(schema: A)
+                    @fusion__field(schema: B)
+            }
+            """,
+            modifySchema: s_removeAuthorizeDirective);
     }
 
     // Merge @authorize directives with the same roles (any order).
@@ -254,7 +298,7 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
                     @fusion__field(schema: B)
             }
             """,
-            modifySchema: s_removeSerializeAsDirective);
+            modifySchema: s_removeAuthorizeDirective);
     }
 
     // Merge @authorize directives with the same roles (any order) but different apply policies.
@@ -288,18 +332,18 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
             }
 
             type Query
-                @authorize(roles: ["Role1", "Role2"], apply: BEFORE_RESOLVER)
+                @authorize(roles: ["Role1", "Role2"])
                 @authorize(roles: ["Role1", "Role2"], apply: AFTER_RESOLVER)
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
                 field: Int
                     @authorize(roles: ["Role1", "Role2"], apply: AFTER_RESOLVER)
-                    @authorize(roles: ["Role1", "Role2"], apply: BEFORE_RESOLVER)
+                    @authorize(roles: ["Role1", "Role2"])
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
             }
             """,
-            modifySchema: s_removeSerializeAsDirective);
+            modifySchema: s_removeAuthorizeDirective);
     }
 
     // Merge @authorize directives with the same policy but different roles.
@@ -344,7 +388,7 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
                     @fusion__field(schema: B)
             }
             """,
-            modifySchema: s_removeSerializeAsDirective);
+            modifySchema: s_removeAuthorizeDirective);
     }
 
     // Merge @authorize directives with the same roles (any order) but different policy.
@@ -389,7 +433,7 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
                     @fusion__field(schema: B)
             }
             """,
-            modifySchema: s_removeSerializeAsDirective);
+            modifySchema: s_removeAuthorizeDirective);
     }
 
     // Merge @authorize directives with the same policy and roles (any order).
@@ -432,7 +476,7 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
                     @fusion__field(schema: B)
             }
             """,
-            modifySchema: s_removeSerializeAsDirective);
+            modifySchema: s_removeAuthorizeDirective);
     }
 
     private static readonly ApplyPolicyMutableEnumTypeDefinition s_applyPolicyEnum = new();
@@ -440,7 +484,7 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
     private static readonly AuthorizeMutableDirectiveDefinition s_authorizeDirective
         = new(BuiltIns.String.Create(), s_applyPolicyEnum);
 
-    private static readonly Action<MutableSchemaDefinition> s_removeSerializeAsDirective
+    private static readonly Action<MutableSchemaDefinition> s_removeAuthorizeDirective
         = schema =>
         {
             schema.DirectiveDefinitions.Remove(WellKnownDirectiveNames.Authorize);
