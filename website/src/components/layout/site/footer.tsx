@@ -40,9 +40,9 @@ export const Footer: FC = () => {
           </LogoContainer>
           <About>
             <Address>
-              16192 Coastal Highway
+              1207 Delaware Ave #3567
               <br />
-              Lewes, DE 19958
+              Wilmington, DE 19806
               <br />
               United States
             </Address>
