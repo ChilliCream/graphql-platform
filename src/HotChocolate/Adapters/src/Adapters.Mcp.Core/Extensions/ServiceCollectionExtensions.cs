@@ -96,7 +96,9 @@ internal static class ServiceCollectionExtensions
                 })
                 .WithHttpTransport(options =>
                 {
+#pragma warning disable MCPEXP002 // https://github.com/modelcontextprotocol/csharp-sdk/issues/1416
                     options.RunSessionHandler = async (_, mcpServer, token) =>
+#pragma warning restore MCPEXP002
                     {
                         if (mcpServer.SessionId == null)
                         {
