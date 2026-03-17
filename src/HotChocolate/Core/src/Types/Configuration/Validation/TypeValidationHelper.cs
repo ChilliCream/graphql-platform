@@ -61,7 +61,7 @@ internal static class TypeValidationHelper
                     {
                         s_inputParser.ParseLiteral(argument.DefaultValue, argument);
                     }
-                    catch (SerializationException)
+                    catch (LeafCoercionException)
                     {
                         errors.Add(ArgumentDefaultValueMustBeCompatible(type, field, argument));
                     }
