@@ -1,10 +1,11 @@
 ---
-title: "Language"
+title: Language
+description: Learn about the Hot Chocolate v16 GraphQL Abstract Syntax Tree (AST) and syntax node types.
 ---
 
 # Abstract Syntax Tree (AST)
 
-Hot Chocolate seems to focus solely around `ObjectType`, `InputType` et al. These types work as an interface to configure the _GraphQL_ schema. This schema is used to parse and validate incoming requests. Under the hood, every `query`, `mutation` or `subscription` request is parsed into a so-called abstract syntax tree. Each node of this tree denotes a part of the incoming _GraphQL_ query.
+Hot Chocolate parses every incoming GraphQL request into an abstract syntax tree (AST). Each node in this tree represents a part of the incoming GraphQL query. The type system (`ObjectType`, `InputType`, etc.) configures the schema, and the AST represents parsed queries and schema documents.
 
 ```graphql
 query Users {
@@ -24,63 +25,75 @@ graph TD;
     id1["FieldNode (address)"] -->  s2["SelectionSetNode"]
     s2["SelectionSetNode"]  -->   id3["FieldNode (street)"]
     s2["SelectionSetNode"]  -->   id4["FieldNode (nr)"]
-
 ```
 
 ---
 
 # Syntax Node
 
-Every node in a syntax tree implements `ISyntaxNode`.
+Every node in the syntax tree implements `ISyntaxNode`.
 
-> 💡 The `ToString` method of a syntax node prints the corresponding _GraphQL_ syntax.
+> The `ToString` method of a syntax node prints the corresponding GraphQL syntax.
 
-This interface defines the `NodeKind` of the node.
+The interface defines the `NodeKind` of the node.
 
 **Node Kinds:**
 
-| Name                      | Description (Spec Link)                                                                                                                                                  | Context          | Example                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- | ------------------------------- |
-| Name                      | [All names. e.g. Field, Argument ...](https://spec.graphql.org/June2018/#sec-Names)                                                                                      | Both             | foo                             |
-| NamedType                 | [Denotes a reference to a type](https://spec.graphql.org/June2018/#NamedType)                                                                                            | Both             | Foo                             |
-| ListType                  | [Definition of a list](https://spec.graphql.org/June2018/#ListType)                                                                                                      | Both             | \[Foo]                          |
-| NonNullType               | [Definition of type that cannot be null](https://spec.graphql.org/June2018/#NonNullType)                                                                                 | Both             | Foo!                            |
-| Argument                  | [Representation of an argument. Has a _Name_ and a _Value_](https://spec.graphql.org/June2018/#sec-Language.Arguments)                                                   | Both             | foo: "bar"                      |
-| Directive                 | [Denotes a directive](https://spec.graphql.org/June2018/#sec-Language.Directives)                                                                                        | Query            | @foo                            |
-| Document                  | [Describes a complete file or request a _GraphQL_ service operates on.](https://spec.graphql.org/June2018/#sec-Language.Document)                                        | Query&nbsp;(out) |                                 |
-| OperationDefinition       | [Describes a graphql operation like `query` `mutation` or `subscription`](https://spec.graphql.org/June2018/#sec-Language.Document)                                      | Query&nbsp;(out) | query Foo {}                    |
-| VariableDefinition        | [The variables defined by an operation](https://spec.graphql.org/June2018/#VariableDefinitions)                                                                          | Query&nbsp;(out) | (\$foo: String)                 |
-| Variable                  | [A variable](https://spec.graphql.org/June2018/#sec-Language.Variables)                                                                                                  | Query&nbsp;(out) | \$foo                           |
-| SelectionSet              | [specifies a selection of _Field_, _FragmentSpread_ or _InlineFragment_](https://spec.graphql.org/June2018/#sec-Selection-Sets)                                          | Query&nbsp;(out) | {foo bar}                       |
-| Field                     | [Describes a field as a part of a selection set](https://spec.graphql.org/June2018/#sec-Language.Fields)                                                                 | Query&nbsp;(out) | foo                             |
-| FragmentSpread            | [Denotes a spread of a `FragmentDefinition`](https://spec.graphql.org/June2018/#FragmentSpread)                                                                          | Query&nbsp;(out) | ...f1                           |
-| InlineFragment            | [Denotes an inline fragment](https://spec.graphql.org/June2018/#sec-Inline-Fragments)                                                                                    | Query&nbsp;(out) | ... on Foo { bar}               |
-| FragmentDefinition        | [Defines the definition of a fragment](https://spec.graphql.org/June2018/#FragmentDefinition)                                                                            | Query&nbsp;(out) | fragment f1 on Foo {}           |
-| IntValue                  | [Denotes a `int` value](https://spec.graphql.org/June2018/#sec-Int-Value)                                                                                                | Query&nbsp;(in)  | 1                               |
-| StringValue               | [Denotes a `string` value](https://spec.graphql.org/June2018/#sec-String-Value)                                                                                          | Query&nbsp;(in)  | "bar"                           |
-| BooleanValue              | [Denotes a `boolean` value](https://spec.graphql.org/June2018/#sec-Boolean-Value)                                                                                        | Query&nbsp;(in)  | true                            |
-| NullValue                 | [Denotes a `null` value](https://spec.graphql.org/June2018/#sec-Null-Value)                                                                                              | Query&nbsp;(in)  | null                            |
-| EnumValue                 | [Denotes a `enum` value](https://spec.graphql.org/June2018/#sec-Enum-Value)                                                                                              | Query&nbsp;(in)  | FOO                             |
-| FloatValue                | [Denotes a _Float_ value](https://spec.graphql.org/June2018/#sec-Float-Value)                                                                                            | Query&nbsp;(in)  | 0.2                             |
-| ListValue                 | [Denotes a _List_ value](https://spec.graphql.org/June2018/#sec-List-Value)                                                                                              | Query&nbsp;(in)  | \["string"]                     |
-| ObjectValue               | [Denotes a _ObjectValue_ value](https://spec.graphql.org/June2018/#sec-Input-Object-Values)                                                                              | Query&nbsp;(in)  | {foo: "bar" }                   |
-| ObjectField               | [Denotes a field of am input object type](https://spec.graphql.org/June2018/#ObjectField)                                                                                | Query&nbsp;(in)  | foo: "bar"                      |
-| SchemaDefinition          | [Definition of a schema](https://spec.graphql.org/June2018/#sec-Schema)                                                                                                  | Schema           | schema {}                       |
-| OperationTypeDefinition   | [This defines one of the root operations `Query`, `Mutation` or `Subscription` on the schema-definition](https://spec.graphql.org/June2018/#RootOperationTypeDefinition) | Schema           | query:FooQuery                  |
-| ScalarTypeDefinition      | [Definition of a scalar](https://spec.graphql.org/June2018/#sec-Scalars)                                                                                                 | Schema           | scalar JSON                     |
-| ObjectTypeDefinition      | [Definition of an object type](https://spec.graphql.org/June2018/#sec-Objects)                                                                                           | Schema           | type Foo{}                      |
-| FieldDefinition           | [Definition of a field](https://spec.graphql.org/June2018/#FieldDefinition)                                                                                              | Schema           | bar:String                      |
-| InputValueDefinition      | [Definition of an input value of an argument](https://spec.graphql.org/June2018/#sec-Field-Arguments)                                                                    | Schema           | x: Float                        |
-| InterfaceTypeDefinition   | [Definition of an interface](https://spec.graphql.org/June2018/#sec-Interfaces)                                                                                          | Schema           | interface NamedEntity {}        |
-| UnionTypeDefinition       | [Definition of a union](https://spec.graphql.org/June2018/#sec-Unions)                                                                                                   | Schema           | union Ex = Foo \| Bar           |
-| EnumTypeDefinition        | [Definition of an enum](https://spec.graphql.org/June2018/#sec-Enums)                                                                                                    | Schema           | enum Foo {BAR}                  |
-| EnumValueDefinition       | [Definition of an enum value](https://spec.graphql.org/June2018/#sec-Enum)                                                                                               | Schema           | BAR                             |
-| InputObjectTypeDefinition | [Definition of an input type definition](https://spec.graphql.org/June2018/#sec-Input-Objects)                                                                           | Schema           | input FooInput {}               |
-| SchemaExtension           | [Definition of a schema extension](https://spec.graphql.org/June2018/#sec-Schema-Extension)                                                                              | Schema           | extend schema {}                |
-| ScalarTypeExtension       | [Definition of a scalar extension](https://spec.graphql.org/June2018/#sec-Scalar-Extensions)                                                                             | Schema           | extend scalar Foo @bar          |
-| ObjectTypeExtension       | [Definition of an object type extension](https://spec.graphql.org/June2018/#sec-Object-Extensions)                                                                       | Schema           | extend type Foo { name}         |
-| InterfaceTypeExtension    | [Definition of an interface type extension](https://spec.graphql.org/June2018/#sec-Interface-Extensions)                                                                 | Schema           | extend interface NamedEntity {} |
-| UnionTypeExtension        | [Definition of a union type extension](https://spec.graphql.org/June2018/#sec-Union-Extensions)                                                                          | Schema           | extend union Ex = Foo{}         |
-| EnumTypeExtension         | [Definition of an enum type extension](https://spec.graphql.org/June2018/#sec-Enum-Extensions)                                                                           | Schema           | extend enum foo{}               |
-| InputObjectTypeExtension  | [Definition of an input types](https://spec.graphql.org/June2018/#sec-Input-Object-Extensions)                                                                           | Schema           | input foo {}                    |
-| DirectiveDefinition       | [Definition of a directive](https://spec.graphql.org/June2018/#sec-Type-System.Directives)                                                                               | Schema           | directive @foo on               |
+| Name                      | Description (Spec Link)                                                                                               | Context          | Example                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------- |
+| Name                      | [All names, e.g., Field, Argument](https://spec.graphql.org/June2018/#sec-Names)                                      | Both             | foo                             |
+| NamedType                 | [Reference to a type](https://spec.graphql.org/June2018/#NamedType)                                                   | Both             | Foo                             |
+| ListType                  | [Definition of a list](https://spec.graphql.org/June2018/#ListType)                                                   | Both             | \[Foo]                          |
+| NonNullType               | [Definition of a non-null type](https://spec.graphql.org/June2018/#NonNullType)                                       | Both             | Foo!                            |
+| Argument                  | [An argument with a Name and Value](https://spec.graphql.org/June2018/#sec-Language.Arguments)                        | Both             | foo: "bar"                      |
+| Directive                 | [A directive](https://spec.graphql.org/June2018/#sec-Language.Directives)                                             | Query            | @foo                            |
+| Document                  | [A complete file or request](https://spec.graphql.org/June2018/#sec-Language.Document)                                | Query&nbsp;(out) |                                 |
+| OperationDefinition       | [A query, mutation, or subscription operation](https://spec.graphql.org/June2018/#sec-Language.Document)              | Query&nbsp;(out) | query Foo {}                    |
+| VariableDefinition        | [Variables defined by an operation](https://spec.graphql.org/June2018/#VariableDefinitions)                           | Query&nbsp;(out) | (\$foo: String)                 |
+| Variable                  | [A variable](https://spec.graphql.org/June2018/#sec-Language.Variables)                                               | Query&nbsp;(out) | \$foo                           |
+| SelectionSet              | [A set of Field, FragmentSpread, or InlineFragment selections](https://spec.graphql.org/June2018/#sec-Selection-Sets) | Query&nbsp;(out) | {foo bar}                       |
+| Field                     | [A field in a selection set](https://spec.graphql.org/June2018/#sec-Language.Fields)                                  | Query&nbsp;(out) | foo                             |
+| FragmentSpread            | [A spread of a FragmentDefinition](https://spec.graphql.org/June2018/#FragmentSpread)                                 | Query&nbsp;(out) | ...f1                           |
+| InlineFragment            | [An inline fragment](https://spec.graphql.org/June2018/#sec-Inline-Fragments)                                         | Query&nbsp;(out) | ... on Foo { bar}               |
+| FragmentDefinition        | [A fragment definition](https://spec.graphql.org/June2018/#FragmentDefinition)                                        | Query&nbsp;(out) | fragment f1 on Foo {}           |
+| IntValue                  | [An int value](https://spec.graphql.org/June2018/#sec-Int-Value)                                                      | Query&nbsp;(in)  | 1                               |
+| StringValue               | [A string value](https://spec.graphql.org/June2018/#sec-String-Value)                                                 | Query&nbsp;(in)  | "bar"                           |
+| BooleanValue              | [A boolean value](https://spec.graphql.org/June2018/#sec-Boolean-Value)                                               | Query&nbsp;(in)  | true                            |
+| NullValue                 | [A null value](https://spec.graphql.org/June2018/#sec-Null-Value)                                                     | Query&nbsp;(in)  | null                            |
+| EnumValue                 | [An enum value](https://spec.graphql.org/June2018/#sec-Enum-Value)                                                    | Query&nbsp;(in)  | FOO                             |
+| FloatValue                | [A float value](https://spec.graphql.org/June2018/#sec-Float-Value)                                                   | Query&nbsp;(in)  | 0.2                             |
+| ListValue                 | [A list value](https://spec.graphql.org/June2018/#sec-List-Value)                                                     | Query&nbsp;(in)  | \["string"]                     |
+| ObjectValue               | [An object value](https://spec.graphql.org/June2018/#sec-Input-Object-Values)                                         | Query&nbsp;(in)  | {foo: "bar" }                   |
+| ObjectField               | [A field of an input object type](https://spec.graphql.org/June2018/#ObjectField)                                     | Query&nbsp;(in)  | foo: "bar"                      |
+| SchemaDefinition          | [Schema definition](https://spec.graphql.org/June2018/#sec-Schema)                                                    | Schema           | schema {}                       |
+| OperationTypeDefinition   | [Root operation type definition](https://spec.graphql.org/June2018/#RootOperationTypeDefinition)                      | Schema           | query:FooQuery                  |
+| ScalarTypeDefinition      | [Scalar definition](https://spec.graphql.org/June2018/#sec-Scalars)                                                   | Schema           | scalar JSON                     |
+| ObjectTypeDefinition      | [Object type definition](https://spec.graphql.org/June2018/#sec-Objects)                                              | Schema           | type Foo{}                      |
+| FieldDefinition           | [Field definition](https://spec.graphql.org/June2018/#FieldDefinition)                                                | Schema           | bar:String                      |
+| InputValueDefinition      | [Input value definition](https://spec.graphql.org/June2018/#sec-Field-Arguments)                                      | Schema           | x: Float                        |
+| InterfaceTypeDefinition   | [Interface definition](https://spec.graphql.org/June2018/#sec-Interfaces)                                             | Schema           | interface NamedEntity {}        |
+| UnionTypeDefinition       | [Union definition](https://spec.graphql.org/June2018/#sec-Unions)                                                     | Schema           | union Ex = Foo \| Bar           |
+| EnumTypeDefinition        | [Enum definition](https://spec.graphql.org/June2018/#sec-Enums)                                                       | Schema           | enum Foo {BAR}                  |
+| EnumValueDefinition       | [Enum value definition](https://spec.graphql.org/June2018/#sec-Enum)                                                  | Schema           | BAR                             |
+| InputObjectTypeDefinition | [Input type definition](https://spec.graphql.org/June2018/#sec-Input-Objects)                                         | Schema           | input FooInput {}               |
+| SchemaExtension           | [Schema extension](https://spec.graphql.org/June2018/#sec-Schema-Extension)                                           | Schema           | extend schema {}                |
+| ScalarTypeExtension       | [Scalar extension](https://spec.graphql.org/June2018/#sec-Scalar-Extensions)                                          | Schema           | extend scalar Foo @bar          |
+| ObjectTypeExtension       | [Object type extension](https://spec.graphql.org/June2018/#sec-Object-Extensions)                                     | Schema           | extend type Foo { name}         |
+| InterfaceTypeExtension    | [Interface type extension](https://spec.graphql.org/June2018/#sec-Interface-Extensions)                               | Schema           | extend interface NamedEntity {} |
+| UnionTypeExtension        | [Union type extension](https://spec.graphql.org/June2018/#sec-Union-Extensions)                                       | Schema           | extend union Ex = Foo{}         |
+| EnumTypeExtension         | [Enum type extension](https://spec.graphql.org/June2018/#sec-Enum-Extensions)                                         | Schema           | extend enum foo{}               |
+| InputObjectTypeExtension  | [Input type extension](https://spec.graphql.org/June2018/#sec-Input-Object-Extensions)                                | Schema           | input foo {}                    |
+| DirectiveDefinition       | [Directive definition](https://spec.graphql.org/June2018/#sec-Type-System.Directives)                                 | Schema           | directive @foo on               |
+
+# Troubleshooting
+
+**Syntax node prints unexpected output**
+Call `ToString()` on the node to see its GraphQL representation. Compare this with the original input to identify discrepancies.
+
+**Custom syntax node not recognized**
+Hot Chocolate uses a fixed set of node kinds. If you need custom nodes, work with the existing node types and use the extension data properties to attach metadata.
+
+# Next Steps
+
+- [Visitors](/docs/hotchocolate/v16/api-reference/visitors) for traversing the AST
+- [Extending filtering](/docs/hotchocolate/v16/api-reference/extending-filtering) for building custom filter logic from AST nodes

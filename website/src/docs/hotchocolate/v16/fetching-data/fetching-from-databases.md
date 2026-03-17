@@ -2,133 +2,130 @@
 title: "Fetching from Databases"
 ---
 
-In this section, you find a simple example on how you can fetch data from a database and expose it as a GraphQL API.
+Hot Chocolate is not bound to a specific database, pattern, or architecture. You can call any data source from your resolvers. This page shows a practical example of fetching data from a database and exposing it through a GraphQL API.
 
-**Hot Chocolate is not bound to a specific database, pattern or architecture.**
-[We do have a few integrations](/docs/hotchocolate/v16/integrations), that help with a variety of databases, though these are just additions on top of HotChocolate.
-You can couple your business logic close to the GraphQL server, or cleanly decouple your domain layer from the GraphQL layer over abstractions.
-The GraphQL server only knows its schema, types and resolvers, what you do in these resolvers and what types you expose, is up to you.
+[Hot Chocolate provides integrations](/docs/hotchocolate/v16/integrations) for Entity Framework Core, MongoDB, and other databases. These integrations add convenience on top of the core resolver model but are not required.
 
-<Video videoId="FhNK7KMAnXc" />
+# Fetching from MongoDB
 
-In this example, we will directly fetch data from MongoDB in a resolver.
-
-# Setting up the Query
-
-The query type in a GraphQL schema is the root type. Each field defined on this type is available at the root of a query.
-If a field is requested, the resolver of the field is called.
-The data of this resolver is used for further execution.
-If you return a scalar, value (e.g. `string`, `int` ...) the value is serialized and added to the response.
-If you return an object, this object is the parent of the resolver in the subtree.
+In this example, you inject a MongoDB collection into a resolver and query it directly.
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-// Query.cs
-public class Query
-{
-    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
-    {
-        return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
-    }
-}
-
-// Book.cs
+// Models/Book.cs
 public class Book
 {
+    public Guid Id { get; set; }
     public string Title { get; set; }
-
     public string Author { get; set; }
 }
 
+// Types/BookQueries.cs
+[QueryType]
+public static partial class BookQueries
+{
+    public static async Task<Book?> GetBookByIdAsync(
+        Guid id,
+        IMongoCollection<Book> collection,
+        CancellationToken ct)
+        => await collection.Find(x => x.Id == id).FirstOrDefaultAsync(ct);
+}
+```
+
+```csharp
 // Program.cs
 builder.Services
     .AddGraphQLServer()
-    .AddQueryType<Query>();
+    .AddTypes();
 ```
 
 </Implementation>
 <Code>
 
 ```csharp
-// Query.cs
-public class Query
-{
-    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
-    {
-        return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
-    }
-}
-
-// QueryType.cs
-public class QueryType : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-            .Field(f => f.GetBookById(default!, default!))
-            .Type<BookType>();
-    }
-}
-
-// Book.cs
+// Models/Book.cs
 public class Book
 {
+    public Guid Id { get; set; }
     public string Title { get; set; }
-
     public string Author { get; set; }
 }
 
-// BookType.cs
-public class BookType : ObjectType<Book>
+// Types/BookQueries.cs
+public class BookQueries
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-            .Field(f => f.Title)
-            .Type<StringType>();
-
-        descriptor
-            .Field(f => f.Author)
-            .Type<StringType>();
-    }
+    public async Task<Book?> GetBookByIdAsync(
+        Guid id,
+        IMongoCollection<Book> collection,
+        CancellationToken ct)
+        => await collection.Find(x => x.Id == id).FirstOrDefaultAsync(ct);
 }
 
+// Types/BookQueriesType.cs
+public class BookQueriesType : ObjectType<BookQueries>
+{
+    protected override void Configure(IObjectTypeDescriptor<BookQueries> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetBookByIdAsync(default, default!, default))
+            .Type<BookType>();
+    }
+}
+```
+
+```csharp
 // Program.cs
 builder.Services
     .AddGraphQLServer()
-    .AddQueryType<QueryType>();
+    .AddQueryType<BookQueriesType>();
 ```
 
 </Code>
-<Schema>
+</ExampleTabs>
+
+# Fetching from Entity Framework Core
+
+When using EF Core, inject your `DbContext` directly into resolvers. Hot Chocolate's EF Core integration registers the context correctly for concurrent resolver execution.
 
 ```csharp
-// Query.cs
-public class Query
+// Types/BookQueries.cs
+[QueryType]
+public static partial class BookQueries
 {
-    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
-    {
-        return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
-    }
+    public static async Task<Book?> GetBookByIdAsync(
+        int id,
+        CatalogContext db,
+        CancellationToken ct)
+        => await db.Books.FindAsync([id], ct);
+
+    [UsePaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public static IQueryable<Book> GetBooks(CatalogContext db)
+        => db.Books;
 }
-
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          bookById(id: Uuid): Book
-        }
-
-        type Book {
-          title: String
-          author: String
-        }
-    ")
-    .BindRuntimeType<Query>();
 ```
 
-</Schema>
-</ExampleTabs>
+When you return `IQueryable<T>`, the pagination, projection, filtering, and sorting middleware translate to native SQL queries. The database handles the heavy lifting.
+
+[Learn more about the Entity Framework integration](/docs/hotchocolate/v16/integrations/entity-framework)
+
+# Troubleshooting
+
+## DbContext concurrency issues
+
+If you see errors about concurrent operations on a `DbContext`, register it with `AddDbContextPool` or `AddPooledDbContextFactory`. Hot Chocolate runs sibling resolvers in parallel, so each resolver needs its own `DbContext` instance.
+
+## Resolver returns stale data
+
+EF Core tracks entities in the change tracker. If you modify an entity in one resolver and read it in another within the same request, the change tracker may return the cached version. Use `.AsNoTracking()` for read-only queries to avoid this.
+
+# Next Steps
+
+- **Need to batch database calls?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
+- **Need to optimize SQL queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
+- **Need to integrate with MongoDB?** See [MongoDB Integration](/docs/hotchocolate/v16/integrations/mongodb).
+- **Need to integrate with EF Core?** See [Entity Framework Integration](/docs/hotchocolate/v16/integrations/entity-framework).

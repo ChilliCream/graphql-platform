@@ -2,13 +2,13 @@
 title: Interceptors
 ---
 
-Interceptors allow us to hook into protocol-specific events. We can, for example, intercept an incoming HTTP request or a client connecting or disconnecting a WebSocket session.
+Interceptors let you hook into protocol-specific events. You can intercept an incoming HTTP request or handle a client connecting to or disconnecting from a WebSocket session.
 
 # IHttpRequestInterceptor
 
-Each GraphQL request sent via HTTP can be intercepted using an `IHttpRequestInterceptor` before it is being executed. Per default Hot Chocolate registers a `DefaultHttpRequestInterceptor` for this purpose.
+Each GraphQL request sent via HTTP can be intercepted using an `IHttpRequestInterceptor` before it is executed. By default, Hot Chocolate registers a `DefaultHttpRequestInterceptor` for this purpose.
 
-We can create a new class inheriting from `DefaultHttpRequestInterceptor` to provide our own logic for request interception.
+Create a new class inheriting from `DefaultHttpRequestInterceptor` to provide your own logic for request interception:
 
 ```csharp
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -23,7 +23,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 }
 ```
 
-Once we have defined our custom `HttpRequestInterceptor`, we also have to register it.
+Register your custom `HttpRequestInterceptor`:
 
 ```csharp
 builder.Services
@@ -31,11 +31,11 @@ builder.Services
     .AddHttpRequestInterceptor<HttpRequestInterceptor>();
 ```
 
-If needed, we can also inject services into our custom `HttpRequestInterceptor` using its constructor.
+If needed, you can inject services into your custom `HttpRequestInterceptor` using its constructor.
 
 ## OnCreateAsync
 
-This method is invoked for **every** GraphQL request sent via HTTP. It is a great place to set global state variables, extend the identity of the authenticated user or do anything that we want to do on a per-request basis.
+This method is invoked for **every** GraphQL request sent via HTTP. It is a good place to set global state variables, extend the identity of the authenticated user, or perform any per-request work.
 
 ```csharp
 public override ValueTask OnCreateAsync(HttpContext context,
@@ -47,19 +47,19 @@ public override ValueTask OnCreateAsync(HttpContext context,
 }
 ```
 
-> Warning: `base.OnCreateAsync` should always be invoked, since the default implementation takes care of adding the dependency injection services as well as some important global state variables, such as the `ClaimsPrincipal`. Not doing this can lead to unexpected issues.
+> Warning: Always invoke `base.OnCreateAsync`. The default implementation adds dependency injection services and important global state variables such as the `ClaimsPrincipal`. Skipping this call can lead to unexpected issues.
 
-Most of the configuration will be done through the `OperationRequestBuilder`, injected as argument to this method.
+Most of the configuration is done through the `OperationRequestBuilder` injected as an argument to this method.
 
 [Learn more about the OperationRequestBuilder](#operationrequestbuilder)
 
-If we want to fail the request, before it is being executed, we can throw a `GraphQLException`. The middleware will then translate this exception to a proper GraphQL error response for the client.
+If you want to fail the request before it is executed, throw a `GraphQLException`. The middleware translates this exception to a proper GraphQL error response for the client.
 
 # ISocketSessionInterceptor
 
-Each GraphQL request sent over WebSockets can be intercepted using an `ISocketSessionInterceptor` before it is being executed. Since WebSockets are long lived connections, we can also intercept specific lifecycle events, such as connecting or disconnecting. Per default Hot Chocolate registers a `DefaultSocketSessionInterceptor` for this purpose.
+Each GraphQL request sent over WebSockets can be intercepted using an `ISocketSessionInterceptor` before it is executed. Since WebSockets are long-lived connections, you can also intercept specific lifecycle events such as connecting and disconnecting. By default, Hot Chocolate registers a `DefaultSocketSessionInterceptor` for this purpose.
 
-We can create a new class inheriting from `DefaultSocketSessionInterceptor` to provide our own logic for request / lifecycle interception.
+Create a new class inheriting from `DefaultSocketSessionInterceptor` to provide your own logic:
 
 ```csharp
 public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
@@ -87,7 +87,7 @@ public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
 }
 ```
 
-Once we have defined our custom `SocketSessionInterceptor`, we also have to register it.
+Register your custom `SocketSessionInterceptor`:
 
 ```csharp
 builder.Services
@@ -95,13 +95,13 @@ builder.Services
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();
 ```
 
-If needed, we can also inject services into our custom `HttpRequestInterceptor` using its constructor.
+If needed, you can inject services into your custom `SocketSessionInterceptor` using its constructor.
 
-We do not have to override every method shown above, we can also only override the ones we are interested in.
+You do not have to override every method shown above. Override only the ones you need.
 
 ## OnConnectAsync
 
-This method is invoked **once**, when a client attempts to initialize a WebSocket connection. We have the option to either accept or reject specific connection requests.
+This method is invoked **once** when a client attempts to initialize a WebSocket connection. You can accept or reject specific connection requests.
 
 ```csharp
 public async override ValueTask<ConnectionStatus> OnConnectAsync(
@@ -117,7 +117,7 @@ public async override ValueTask<ConnectionStatus> OnConnectAsync(
 }
 ```
 
-We also get access to the `InitializeConnectionMessage`. If a client sends a payload with this message, for example an auth token, we can access the `Payload` like the following.
+You also get access to the `InitializeConnectionMessage`. If a client sends a payload with this message (for example, an auth token), you can access it:
 
 ```csharp
 public async override ValueTask<ConnectionStatus> OnConnectAsync(
@@ -135,7 +135,7 @@ public async override ValueTask<ConnectionStatus> OnConnectAsync(
 
 ## OnRequestAsync
 
-This method is invoked for **every** GraphQL request a client sends using the already established WebSocket connection. It is a great place to set global state variables, extend the identity of the authenticated user or anything that we want to do on a per-request basis.
+This method is invoked for **every** GraphQL request a client sends using the already established WebSocket connection. It is a good place to set global state variables, extend the identity of the authenticated user, or perform any per-request work.
 
 ```csharp
 public override ValueTask OnRequestAsync(ISocketConnection connection,
@@ -145,33 +145,33 @@ public override ValueTask OnRequestAsync(ISocketConnection connection,
 }
 ```
 
-> Warning: `base.OnRequestAsync` should always be invoked, since the default implementation takes care of adding the dependency injection services as well as some important global state variables, such as the `ClaimsPrincipal`. Not doing this can lead to unexpected issues.
+> Warning: Always invoke `base.OnRequestAsync`. The default implementation adds dependency injection services and important global state variables such as the `ClaimsPrincipal`. Skipping this call can lead to unexpected issues.
 
-Most of the configuration will be done through the `OperationRequestBuilder`, injected as argument to this method.
+Most of the configuration is done through the `OperationRequestBuilder` injected as an argument to this method.
 
 [Learn more about the OperationRequestBuilder](#operationrequestbuilder)
 
-If we want to fail the request, before it is being executed, we can throw a `GraphQLException`. The middleware will then translate this exception to a proper GraphQL error response for the client.
+If you want to fail the request before it is executed, throw a `GraphQLException`. The middleware translates this exception to a proper GraphQL error response for the client.
 
 ## OnCloseAsync
 
-This method is invoked, once a client closes the WebSocket connection or the connection is terminated in any other way.
+This method is invoked once a client closes the WebSocket connection or the connection is terminated in any other way.
 
 # OperationRequestBuilder
 
-The `OperationRequestBuilder` allows us to influence the execution of a GraphQL request.
+The `OperationRequestBuilder` lets you influence the execution of a GraphQL request.
 
-It has many capabilities, but most of them are only used internally. In the following we are going to cover the methods that are most relevant to us as consumers.
+It has many capabilities, but most are used internally. The following sections cover the methods that are most relevant to you as a consumer.
 
 ## Properties
 
-We can set `Properties`, also called Global State, on the `OperationRequestBuilder`, which can then be referenced in middleware, field resolvers, etc.
+You can set `Properties`, also called Global State, on the `OperationRequestBuilder`. These can then be referenced in middleware, field resolvers, and other components.
 
 [Learn more about Global State](/docs/hotchocolate/v16/server/global-state)
 
 ### SetProperty
 
-`SetProperty` allows us to add a key-value pair, where the key is a `string` and the value can be anything, i.e. an `object`.
+`SetProperty` lets you add a key-value pair where the key is a `string` and the value can be anything (`object`).
 
 ```csharp
 requestBuilder.SetProperty("name", "value");
@@ -179,7 +179,7 @@ requestBuilder.SetProperty("name", 123);
 requestBuilder.SetProperty("name", new User { Name = "Joe" });
 ```
 
-There is also `TrySetProperty`, which only adds the property, if it hasn't yet been added.
+There is also `TrySetProperty`, which adds the property only if it has not been added yet:
 
 ```csharp
 requestBuilder.TryAddProperty("name", 123);
@@ -187,7 +187,7 @@ requestBuilder.TryAddProperty("name", 123);
 
 ### SetProperties
 
-`SetProperties` allows us to set all properties at once.
+`SetProperties` lets you set all properties at once.
 
 ```csharp
 var properties = new Dictionary<string, object>
@@ -198,11 +198,11 @@ var properties = new Dictionary<string, object>
 requestBuilder.SetProperties(properties);
 ```
 
-> Warning: This overwrites all previous properties, which is especially catastrophic, when called after the default implementation of an interceptor has added properties.
+> Warning: This overwrites all previous properties. This is especially problematic when called after the default implementation of an interceptor has added properties.
 
 ## SetServices
 
-`SetServices` allows us to add an `IServiceProvider` which should be used for dependency injection during the request.
+`SetServices` lets you add an `IServiceProvider` to use for dependency injection during the request.
 
 ```csharp
 var provider = new ServiceCollection()
@@ -212,12 +212,28 @@ var provider = new ServiceCollection()
 requestBuilder.SetServices(provider);
 ```
 
-There is also `TrySetServices`, which only sets the `IServiceProvider`, if it hasn't yet been set.
+There is also `TrySetServices`, which sets the `IServiceProvider` only if it has not been set yet.
 
 ## AllowIntrospection
 
-If we have disabled introspection globally, `AllowIntrospection` allows us to enable it for specific requests.
+If you have disabled introspection globally, `AllowIntrospection` lets you enable it for specific requests.
 
 ```csharp
 requestBuilder.AllowIntrospection();
 ```
+
+# Troubleshooting
+
+## Interceptor not being called
+
+Verify that you registered the interceptor using `AddHttpRequestInterceptor<T>()` or `AddSocketSessionInterceptor<T>()` on the `IRequestExecutorBuilder`. If the interceptor depends on application services, you may need to register them with `AddApplicationService<T>()`.
+
+## Missing ClaimsPrincipal in resolvers
+
+Always call `base.OnCreateAsync` (for HTTP) or `base.OnRequestAsync` (for WebSocket) in your interceptor. The base implementation is responsible for setting up the `ClaimsPrincipal` and other global state.
+
+# Next Steps
+
+- [Global State](/docs/hotchocolate/v16/server/global-state) for sharing per-request data between resolvers.
+- [Dependency Injection](/docs/hotchocolate/v16/server/dependency-injection) for details on service injection and switching providers.
+- [Introspection](/docs/hotchocolate/v16/server/introspection) for controlling introspection on a per-request basis.
