@@ -1,22 +1,22 @@
 ---
 title: "Persisted operations"
-description: "In this section, you will learn how to use persisted operations in GraphQL with Hot Chocolate."
+description: "Learn how to use persisted operations (trusted documents) in GraphQL with Hot Chocolate."
 ---
 
-Persisted operations allow us to pre-register all required operations of our clients. This can be done by extracting the operations of our client applications at build time and placing them in the server's operation document storage.
+Persisted operations (also known as trusted documents) let you pre-register all required operations of your clients. You extract the operations from your client applications at build time and place them in the server's operation document storage.
 
-Extracting operations is supported by client libraries like [Relay](https://relay.dev/docs/guides/persisted-queries/) and in the case of [Strawberry Shake](/products/strawberryshake) we do not have to do any additional work.
+Extracting operations is supported by client libraries like [Relay](https://relay.dev/docs/guides/persisted-queries/) and in the case of [Strawberry Shake](/products/strawberryshake) no additional work is needed.
 
 <Video videoId="ZZ5PF3_P_r4" />
 
-# How it works
+# How It Works
 
-- All operations that our client(s) will execute are extracted during their build process. Individual operation documents are hashed to generate a unique identifier for each operation.
-- Before our server is deployed, the extracted operation documents are placed in the server's operation document storage.
-- After the server has been deployed, clients can execute persisted operations, by specifying the operation ID (hash) in their requests.
-- If Hot Chocolate can find an operation that matches the specified hash in the operation document storage it will execute it and return the result to the client.
+- All operations that your clients execute are extracted during the client build process. Individual operation documents are hashed to generate a unique identifier for each operation.
+- Before your server is deployed, the extracted operation documents are placed in the server's operation document storage.
+- After the server has been deployed, clients execute persisted operations by specifying the operation ID (hash) in their requests.
+- If Hot Chocolate finds an operation that matches the specified hash in the operation document storage, it executes the operation and returns the result to the client.
 
-> Note: There are also [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations), which allow clients to persist operation documents at runtime. They might be a better fit, if our API is used by many clients with different requirements.
+> Note: There are also [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations), which let clients persist operation documents at runtime. They might be a better fit if your API is used by many clients with different requirements.
 
 # Benefits
 
@@ -26,111 +26,98 @@ There are two main benefits to using persisted operations:
 
 - Only a hash and optionally variables need to be sent to the server, reducing network traffic.
 - Operations no longer need to be embedded into the client code, reducing the bundle size in the case of websites.
-- Hot Chocolate can optimize the execution of persisted operations, as they will always be the same.
+- Hot Chocolate can optimize the execution of persisted operations because they are always the same.
 
 **Security**
 
-The server can be tweaked to [only execute persisted operations](#blocking-regular-operations) and refuse any other operation provided by a client. This gets rid of a whole suite of potential attack vectors, since malicious actors can no longer craft and execute harmful operations against your GraphQL server.
+The server can be configured to [only execute persisted operations](#blocking-regular-operations) and refuse any other operation provided by a client. This eliminates a whole class of potential attack vectors because malicious actors can no longer craft and execute harmful operations against your GraphQL server.
 
 # Usage
 
-First we have to instruct our server to handle persisted operations. We can do so by calling `UsePersistedOperationPipeline()` on the `IRequestExecutorBuilder`.
+Instruct your server to handle persisted operations by calling `UsePersistedOperationPipeline()` on the `IRequestExecutorBuilder`:
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddGraphQLServer()
-        .AddQueryType<Query>()
-        .UsePersistedOperationPipeline();
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .UsePersistedOperationPipeline();
 ```
 
-# Production Ready Persisted Operations
+# Production-Ready Persisted Operations
 
-In transitioning your persisted operation setup to production, simply setting up a persisted operation file isn't sufficient for a robust production environment. A key aspect of managing persisted operations at scale involves version management and ensuring compatibility with your GraphQL schema. The client registry is your go-to resource for this purpose.
+Setting up a persisted operation file is not sufficient for a robust production environment. A key aspect of managing persisted operations at scale involves version management and ensuring compatibility with your GraphQL schema. The client registry is the resource for this purpose.
 
-The client registry simplifies the management of your GraphQL clients. It allows for the storage and retrieval of persisted operation documents through their hashes but also ensures that these operations are validated against the current schema on publish, preventing runtime errors due to schema-operation mismatches. Additionally, it supports versioning of your clients, allowing seamless updates and maintenance without disrupting existing operations.
+The client registry simplifies the management of your GraphQL clients. It stores and retrieves persisted operation documents through their hashes and ensures that operations are validated against the current schema on publish, preventing runtime errors due to schema-operation mismatches. It also supports versioning of your clients, allowing updates and maintenance without disrupting existing operations.
 
-Check out the [client registry documentation](/docs/nitro/apis/client-registry) for
-more information.
+Check out the [client registry documentation](/docs/nitro/apis/client-registry) for more information.
 
-# Other Storage mechanisms
+# Storage Mechanisms
 
-Hot Chocolate supports two operation document storages for regular persisted operations.
+Hot Chocolate supports several operation document storages for persisted operations.
 
 ## Filesystem
 
-To load persisted operation documents from the filesystem, we have to add the following package.
+To load persisted operation documents from the filesystem, add the following package:
 
 <PackageInstallation packageName="HotChocolate.PersistedOperations.FileSystem" />
 
-After this we need to specify where the persisted operation documents are located. The argument of `AddFileSystemOperationDocumentStorage()` specifies the directory in which the operation documents are stored.
+Specify where the persisted operation documents are located. The argument to `AddFileSystemOperationDocumentStorage()` specifies the directory containing the operation documents.
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddGraphQLServer()
-        .AddQueryType<Query>()
-        .UsePersistedOperationPipeline()
-        .AddFileSystemOperationDocumentStorage("./persisted_operations");
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .UsePersistedOperationPipeline()
+    .AddFileSystemOperationDocumentStorage("./persisted_operations");
 ```
 
-When presented with an operation document hash, Hot Chocolate will now check the specified folder for a file in the following format: `{Hash}.graphql`.
+When presented with an operation document hash, Hot Chocolate checks the specified folder for a file in the format: `{Hash}.graphql`.
 
 Example: `0c95d31ca29272475bf837f944f4e513.graphql`
 
 This file is expected to contain the operation document that the hash was generated from.
 
-> Warning: Do not forget to ensure that the server has access to the directory.
+> Warning: Ensure that the server has access to the directory.
 
-### Redis
+## Redis
 
-To load persisted operation documents from Redis, we have to add the following package.
+To load persisted operation documents from Redis, add the following package:
 
 <PackageInstallation packageName="HotChocolate.PersistedOperations.Redis" />
 
-After this we need to specify where the persisted operation documents are located. Using `AddRedisOperationDocumentStorage()` we can point to a specific Redis database in which the operation documents are stored.
+Specify where the persisted operation documents are located. Using `AddRedisOperationDocumentStorage()`, point to a specific Redis database containing the operation documents.
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddGraphQLServer()
-        .AddQueryType<Query>()
-        .UsePersistedOperationPipeline()
-        .AddRedisOperationDocumentStorage(services =>
-            ConnectionMultiplexer.Connect("host:port").GetDatabase());
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .UsePersistedOperationPipeline()
+    .AddRedisOperationDocumentStorage(services =>
+        ConnectionMultiplexer.Connect("host:port").GetDatabase());
 ```
 
 Keys in the specified Redis database are expected to be operation IDs (hashes) and contain the actual operation document as the value.
 
-### Azure Blob Storage
+## Azure Blob Storage
 
-To load persisted operation documents from Azure Blob Storage, we have to add the following package.
+To load persisted operation documents from Azure Blob Storage, add the following package:
 
 <PackageInstallation packageName="HotChocolate.PersistedOperations.AzureBlobStorage" />
 
-After this we need to specify where the persisted operation documents are located. Using `AddAzureBlobStorageOperationDocumentStorage()` we can point to a specific Azure Blob Storage Container. It must contain the operation documents. The blob's name is the hash of the query, its content the corresponding GraphQL query.
+Specify where the persisted operation documents are located. Using `AddAzureBlobStorageOperationDocumentStorage()`, point to a specific Azure Blob Storage container. The blob's name is the hash of the query, and its content is the corresponding GraphQL query.
 
-> Important: The Azure Blob Storage Container must already exist when Hot Chocolate uses it for the first time.
+> Important: The Azure Blob Storage container must already exist when Hot Chocolate uses it for the first time.
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddGraphQLServer()
-        .AddQueryType<Query>()
-        .UsePersistedOperationPipeline()
-        .AddAzureBlobStorageOperationDocumentStorage(services =>
-            services.GetService<BlobServiceClient>().GetBlobContainerClient("hotchocolate"));
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .UsePersistedOperationPipeline()
+    .AddAzureBlobStorageOperationDocumentStorage(services =>
+        services.GetService<BlobServiceClient>().GetBlobContainerClient("hotchocolate"));
 ```
 
-Unlike with Redis, a Blob Storage client has no easy way to set the expiration of files in Azure Blob Storage. However, you can define [a Lifecycle Management Policy](https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview?tabs=azure-portal). The following sample policy will instruct Azure to remove all files from the `hotchocolate` container when they have not been accessed for 10 days.
+Unlike Redis, a Blob Storage client has no built-in way to set the expiration of files in Azure Blob Storage. However, you can define [a Lifecycle Management Policy](https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview?tabs=azure-portal). The following sample policy instructs Azure to remove all files from the `hotchocolate` container when they have not been accessed for 10 days.
 
 ```json
 {
@@ -157,37 +144,34 @@ Unlike with Redis, a Blob Storage client has no easy way to set the expiration o
 }
 ```
 
-# Hashing algorithms
+# Hashing Algorithms
 
-Per default Hot Chocolate uses the MD5 hashing algorithm, but we can override this default by specifying a `DocumentHashProvider`.
+By default, Hot Chocolate uses the MD5 hashing algorithm. You can override this default by specifying a `DocumentHashProvider`:
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddGraphQLServer()
-        .AddQueryType<Query>()
-        // choose one of the following providers
-        .AddMD5DocumentHashProvider()
-        .AddSha256DocumentHashProvider()
-        .AddSha1DocumentHashProvider()
-        .UsePersistedOperationPipeline()
-        .AddFileSystemOperationDocumentStorage("./persisted_operations");
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    // choose one of the following providers
+    .AddMD5DocumentHashProvider()
+    .AddSha256DocumentHashProvider()
+    .AddSha1DocumentHashProvider()
+    .UsePersistedOperationPipeline()
+    .AddFileSystemOperationDocumentStorage("./persisted_operations");
 ```
 
-We can also configure how these hashes are encoded, by specifying a `HashFormat` as argument:
+You can also configure how these hashes are encoded by specifying a `HashFormat` as argument:
 
 ```csharp
 AddSha256DocumentHashProvider(HashFormat.Hex)
 AddSha256DocumentHashProvider(HashFormat.Base64)
 ```
 
-> Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm - no additional Hot Chocolate configuration is required.
+> Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm. No additional Hot Chocolate configuration is required.
 
-# Blocking regular operations
+# Blocking Regular Operations
 
-If you want to disallow any dynamic operations, you can enable `OnlyAllowPersistedDocuments`:
+If you want to disallow any dynamic operations, enable `OnlyAllowPersistedDocuments`:
 
 ```csharp
 builder.Services
@@ -199,9 +183,9 @@ builder.Services
             .OnlyAllowPersistedDocuments = true);
 ```
 
-This will block any dynamic operations that do not contain the `id` of a persisted operation.
+This blocks any dynamic operations that do not contain the `id` of a persisted operation.
 
-You might still want to allow the execution of dynamic operations in certain circumstances. You can override the `OnlyAllowPersistedDocuments` rule on a per-request basis, using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v16/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
+You might still want to allow the execution of dynamic operations in certain circumstances. Override the `OnlyAllowPersistedDocuments` rule on a per-request basis using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v16/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
 
 ```csharp
 builder.Services
@@ -236,9 +220,9 @@ public class CustomHttpRequestInterceptor
 }
 ```
 
-In the above example we would allow requests containing the `X-Developer` header to execute dynamic operations. This isn't particularly secure, but in your production application you could replace this check with an authorization policy, an API key or whatever fits your requirement.
+In the above example, requests containing the `X-Developer` header can execute dynamic operations. In your production application, replace this check with an authorization policy, an API key, or whatever fits your requirements.
 
-# Client expectations
+# Client Expectations
 
 A client is expected to send an `id` field containing the operation document hash instead of a `query` field.
 
@@ -253,4 +237,24 @@ A client is expected to send an `id` field containing the operation document has
 }
 ```
 
-> Note: [Relay's persisted queries documentation](https://relay.dev/docs/guides/persisted-queries/#network-layer-changes) uses `doc_id` instead of `id`, be sure to change it to `id`.
+> Note: [Relay's persisted queries documentation](https://relay.dev/docs/guides/persisted-queries/#network-layer-changes) uses `doc_id` instead of `id`. Be sure to change it to `id`.
+
+# Troubleshooting
+
+## "PersistedQueryNotFound" error
+
+Verify that the operation document is stored in the configured storage (filesystem, Redis, or Azure Blob Storage) with the correct hash as the key. Check that the hashing algorithm and format (Base64 vs Hex) match between client and server.
+
+## Dynamic operations blocked unexpectedly
+
+If `OnlyAllowPersistedDocuments` is enabled, all requests without a valid `id` are rejected. Use a custom HTTP request interceptor to allow specific requests through.
+
+## Hash mismatch between client and server
+
+Ensure both the client and server use the same hashing algorithm (MD5, SHA1, or SHA256) and the same encoding format (Base64 or Hex).
+
+# Next Steps
+
+- [Automatic Persisted Operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) for dynamically storing operations at runtime.
+- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for per-request customization.
+- [Client Registry](/docs/nitro/apis/client-registry) for production-ready persisted operation management.

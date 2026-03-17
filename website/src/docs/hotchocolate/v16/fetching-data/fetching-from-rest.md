@@ -1,216 +1,117 @@
 ---
 title: "Fetching from REST"
-description: In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 ---
 
-If you want to have an outlook into the upcoming native REST integration with Hot Chocolate 13 you can head over to YouTube and have a look.
+GraphQL requires knowledge of the types it returns at build time. When wrapping a REST API, the most reliable approach is to generate a typed .NET client from an OpenAPI specification and inject it into your resolvers.
 
-<Video videoId="l2QsFlKYqhk" />
+# Generating a Client from OpenAPI
 
-GraphQL has a strongly-typed type system and therefore also has to know the dotnet runtime types of the data it returns in advance.
+If your REST endpoint exposes an OpenAPI specification (Swagger), you can generate a fully typed .NET client for it.
 
-The easiest way to integrate a REST API is, to define an OpenAPI specification for it.
-OpenAPI describes what data a REST endpoint returns.
-You can automatically generate a dotnet client for this API and integrate it into your schema.
+## Step 1: Get the OpenAPI Specification
 
-# OpenAPI in .NET
-
-If you do not have an OpenAPI specification for your REST endpoint yet, you can easily add it to your API.
-There are two major OpenAPI implementations in dotnet: [NSwag](http://nswag.org) and [Swashbuckle](https://github.com/domaindrivendev/Swashbuckle.AspNetCore).
-Head over to the [official ASP.NET Core](https://docs.microsoft.com/aspnet/core/tutorials/web-api-help-pages-using-swagger) documentation to see how it is done.
-
-In this example, we will use [the official example of Swashbuckle](https://github.com/dotnet/AspNetCore.Docs/blob/main/aspnetcore/tutorials/getting-started-with-swashbuckle.md).
-When you start this project, you can navigate to the [Swagger UI](http://localhost:5000/swagger).
-
-This REST API covers a simple Todo app.
-We will expose `todos` and `todoById` in our GraphQL API.
-
-# Generating a client
-
-Every REST endpoint that supports OpenAPI, can easily be wrapped with a fully typed client.
-Again, you have several options on how you generate your client.
-You can generate your client from the OpenAPI specification of your endpoint, during build or even with external tools with GUI.
-Have a look here and see what fits your use case the best:
-
-- [NSwag Code Generation](https://docs.microsoft.com/aspnet/core/tutorials/getting-started-with-nswag?tabs=visual-studio#code-generation)
-
-In this example, we will use the NSwag dotnet tool.
-First, we need to create a tool manifest.
-Switch to your GraphQL project and execute
-
-```bash
-dotnet new tool-manifest
-```
-
-Then we install the NSwag tool
-
-```bash
-dotnet tool install NSwag.ConsoleCore --version 13.10.9
-```
-
-You then have to get the `swagger.json` from your REST endpoint
+Download the `swagger.json` from your REST endpoint:
 
 ```bash
 curl -o swagger.json http://localhost:5000/swagger/v1/swagger.json
 ```
 
-Now you can generate the client from the `swagger.json`.
+## Step 2: Generate the Client
+
+Use the NSwag CLI tool to generate a C# client:
 
 ```bash
+dotnet new tool-manifest
+dotnet tool install NSwag.ConsoleCore
 dotnet nswag swagger2csclient /input:swagger.json /classname:TodoService /namespace:TodoReader /output:TodoService.cs
 ```
 
-The code generator generated a new file called `TodoService.cs`.
-In this file, you will find the client for your REST API.
-
-The generated needs `Newtonsoft.Json`.
-Make sure to also add this package by executing:
+This generates a `TodoService.cs` file with a typed client for your REST API. The generated client requires `Newtonsoft.Json`:
 
 <PackageInstallation packageName="Newtonsoft.Json" external />
 
-# Exposing the API
+# Exposing the REST API
 
-You will have to register the client in the dependency injection of your GraphQL service.
-To expose the API you can inject the generated client into your resolvers.
+Register the generated client in your DI container and inject it into your resolvers.
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-// Query.cs
-public class Query
+// Types/TodoQueries.cs
+[QueryType]
+public static partial class TodoQueries
 {
-    public Task<ICollection<TodoItem>> GetTodosAsync(
+    public static async Task<ICollection<TodoItem>> GetTodosAsync(
         TodoService service,
-        CancellationToken cancellationToken)
-    {
-        return service.GetAllAsync(cancellationToken);
-    }
+        CancellationToken ct)
+        => await service.GetAllAsync(ct);
 
-    public Task<TodoItem> GetTodoByIdAsync(
-        TodoService service,
+    public static async Task<TodoItem> GetTodoByIdAsync(
         long id,
-        CancellationToken cancellationToken)
-    {
-        return service.GetByIdAsync(id, cancellationToken);
-    }
+        TodoService service,
+        CancellationToken ct)
+        => await service.GetByIdAsync(id, ct);
 }
+```
 
+```csharp
 // Program.cs
 builder.Services.AddHttpClient<TodoService>();
+
 builder.Services
     .AddGraphQLServer()
-    .AddQueryType<Query>();
+    .AddTypes();
 ```
 
 </Implementation>
 <Code>
 
 ```csharp
-// Query.cs
-public class Query
+// Types/TodoQueries.cs
+public class TodoQueries
 {
-    public Task<ICollection<TodoItem>> GetTodosAsync(
+    public async Task<ICollection<TodoItem>> GetTodosAsync(
         TodoService service,
-        CancellationToken cancellationToken)
-    {
-        return service.GetAllAsync(cancellationToken);
-    }
+        CancellationToken ct)
+        => await service.GetAllAsync(ct);
 
-    public Task<TodoItem> GetTodoByIdAsync(
-        TodoService service,
+    public async Task<TodoItem> GetTodoByIdAsync(
         long id,
-        CancellationToken cancellationToken)
-    {
-        return service.GetByIdAsync(id, cancellationToken);
-    }
+        TodoService service,
+        CancellationToken ct)
+        => await service.GetByIdAsync(id, ct);
 }
 
-// QueryType.cs
-public class QueryType : ObjectType<Query>
+// Types/TodoQueriesType.cs
+public class TodoQueriesType : ObjectType<TodoQueries>
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<TodoQueries> descriptor)
     {
         descriptor
-            .Field(f => f.GetTodoByIdAsync(default!, default!, default!))
+            .Field(f => f.GetTodoByIdAsync(default, default!, default))
             .Type<TodoType>();
 
         descriptor
-            .Field(f => f.GetTodosAsync(default!, default!))
+            .Field(f => f.GetTodosAsync(default!, default))
             .Type<ListType<TodoType>>();
     }
 }
+```
 
-// TodoType.cs
-public class TodoType : ObjectType<Todo>
-{
-    protected override void Configure(IObjectTypeDescriptor<Todo> descriptor)
-    {
-        descriptor
-            .Field(f => f.Id)
-            .Type<LongType>();
-
-        descriptor
-            .Field(f => f.Name)
-            .Type<StringType>();
-
-        descriptor
-            .Field(f => f.IsComplete)
-            .Type<BooleanType>();
-    }
-}
-
+```csharp
 // Program.cs
+builder.Services.AddHttpClient<TodoService>();
+
 builder.Services
     .AddGraphQLServer()
-    .AddQueryType<QueryType>();
+    .AddQueryType<TodoQueriesType>();
 ```
 
 </Code>
-<Schema>
-
-```csharp
-// Query.cs
-public class Query
-{
-    public Task<ICollection<TodoItem>> GetTodosAsync(
-        TodoService service,
-        CancellationToken cancellationToken)
-    {
-        return service.GetAllAsync(cancellationToken);
-    }
-
-    public Task<TodoItem> GetTodoByIdAsync(
-        TodoService service,
-        long id,
-        CancellationToken cancellationToken)
-    {
-        return service.GetByIdAsync(id, cancellationToken);
-    }
-}
-
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          todos: [TodoItem!]!
-          todoById(id: Uuid): TodoItem
-        }
-
-        type TodoItem {
-          id: Long
-          name: String
-          isCompleted: Boolean
-        }
-    ")
-    .BindRuntimeType<Query>();
-```
-
-</Schema>
 </ExampleTabs>
 
-You can now head over to Nitro on your GraphQL Server (/graphql) and query `todos`:
+You can now open Nitro on your GraphQL server at `/graphql` and query your REST data:
 
 ```graphql
 {
@@ -227,4 +128,51 @@ You can now head over to Nitro on your GraphQL Server (/graphql) and query `todo
 }
 ```
 
-<!-- spell-checker:ignore classname, csclient -->
+# Using DataLoaders with REST
+
+When multiple GraphQL fields resolve data from the same REST endpoint, use a [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) to batch and deduplicate calls. This prevents sending redundant HTTP requests for the same resource.
+
+```csharp
+// DataLoaders/TodoByIdDataLoader.cs
+public class TodoByIdDataLoader : BatchDataLoader<long, TodoItem>
+{
+    private readonly TodoService _service;
+
+    public TodoByIdDataLoader(
+        TodoService service,
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions? options = null)
+        : base(batchScheduler, options)
+    {
+        _service = service;
+    }
+
+    protected override async Task<IReadOnlyDictionary<long, TodoItem>> LoadBatchAsync(
+        IReadOnlyList<long> keys,
+        CancellationToken ct)
+    {
+        var todos = await _service.GetByIdsAsync(keys, ct);
+        return todos.ToDictionary(t => t.Id);
+    }
+}
+```
+
+# Troubleshooting
+
+## Generated client throws serialization errors
+
+Verify that the `Newtonsoft.Json` package is installed and the generated client version matches the OpenAPI spec version. Regenerate the client if the REST API schema has changed.
+
+## HTTP calls are slow or timing out
+
+Register the generated client with `AddHttpClient<T>()` to leverage `HttpClientFactory`, which manages connection pooling and lifetime. Set appropriate timeouts on the `HttpClient`.
+
+## N+1 requests to the REST API
+
+If you see one HTTP request per item in a list, add a DataLoader to batch the calls. Without batching, each GraphQL field triggers a separate REST call.
+
+# Next Steps
+
+- **Need to batch REST calls?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
+- **Need to fetch from a database instead?** See [Fetching from Databases](/docs/hotchocolate/v16/fetching-data/fetching-from-databases).
+- **Need to understand resolvers?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
