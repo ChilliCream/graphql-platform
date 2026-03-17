@@ -48,46 +48,32 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
         PromptDefinition promptDefinition,
         CancellationToken cancellationToken = default)
     {
-        PromptStorageEventType type;
-
         await _promptSemaphore.WaitAsync(cancellationToken);
 
-        if (_prompts.TryAdd(promptDefinition.Name, promptDefinition))
-        {
-            type = PromptStorageEventType.Added;
-        }
-        else
+        if (!_prompts.TryAdd(promptDefinition.Name, promptDefinition))
         {
             _prompts[promptDefinition.Name] = promptDefinition;
-            type = PromptStorageEventType.Modified;
         }
 
         _promptSemaphore.Release();
 
-        NotifySubscribers(promptDefinition.Name, promptDefinition, type);
+        NotifySubscribers(promptDefinition.Name, promptDefinition, PromptStorageEventType.Added);
     }
 
     public async Task AddOrUpdateToolAsync(
         OperationToolDefinition toolDefinition,
         CancellationToken cancellationToken = default)
     {
-        OperationToolStorageEventType type;
-
         await _toolSemaphore.WaitAsync(cancellationToken);
 
-        if (_tools.TryAdd(toolDefinition.Name, toolDefinition))
-        {
-            type = OperationToolStorageEventType.Added;
-        }
-        else
+        if (!_tools.TryAdd(toolDefinition.Name, toolDefinition))
         {
             _tools[toolDefinition.Name] = toolDefinition;
-            type = OperationToolStorageEventType.Modified;
         }
 
         _toolSemaphore.Release();
 
-        NotifySubscribers(toolDefinition.Name, toolDefinition, type);
+        NotifySubscribers(toolDefinition.Name, toolDefinition, OperationToolStorageEventType.Added);
     }
 
     public IDisposable Subscribe(IObserver<PromptStorageEventArgs> observer)
@@ -105,7 +91,7 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
         PromptDefinition? promptDefinition,
         PromptStorageEventType type)
     {
-        if (type is PromptStorageEventType.Added or PromptStorageEventType.Modified)
+        if (type is PromptStorageEventType.Added)
         {
             ArgumentNullException.ThrowIfNull(promptDefinition);
         }
@@ -129,7 +115,7 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
         OperationToolDefinition? toolDefinition,
         OperationToolStorageEventType type)
     {
-        if (type is OperationToolStorageEventType.Added or OperationToolStorageEventType.Modified)
+        if (type is OperationToolStorageEventType.Added)
         {
             ArgumentNullException.ThrowIfNull(toolDefinition);
         }

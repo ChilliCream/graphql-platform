@@ -135,7 +135,6 @@ internal sealed class McpStorageObserver : IDisposable
                 switch (eventArg.Type)
                 {
                     case PromptStorageEventType.Added:
-                    case PromptStorageEventType.Modified:
                         using (_diagnosticEvents.UpdatePrompts())
                         {
                             var prompt = PromptFactory.CreatePrompt(eventArg.PromptDefinition!);
@@ -176,7 +175,6 @@ internal sealed class McpStorageObserver : IDisposable
                 switch (eventArg.Type)
                 {
                     case OperationToolStorageEventType.Added:
-                    case OperationToolStorageEventType.Modified:
                         using (_diagnosticEvents.UpdateTools())
                         {
                             var validationResult =
