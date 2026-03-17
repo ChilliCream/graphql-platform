@@ -3035,7 +3035,8 @@
             "items": [
               { "path": "index", "title": "Overview" },
               { "path": "in-memory", "title": "InMemory" },
-              { "path": "rabbitmq", "title": "RabbitMQ" }
+              { "path": "rabbitmq", "title": "RabbitMQ" },
+              { "path": "postgres", "title": "PostgreSQL" }
             ]
           },
           {

@@ -213,7 +213,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             _topology.Address.ToString(),
             Name,
             Schema,
-            GetType().Name,
+            nameof(RabbitMQMessagingTransport),
             receiveEndpoints,
             dispatchEndpoints,
             topology);
