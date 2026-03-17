@@ -1,0 +1,197 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationPlanToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "GraphQL Step Execution",
+              "DisplayName": "GraphQL Step Execution",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+                },
+                {
+                  "Key": "graphql.operation.step.id",
+                  "Value": "1"
+                },
+                {
+                  "Key": "graphql.operation.step.kind",
+                  "Value": "operation"
+                },
+                {
+                  "Key": "graphql.operation.step.plan.id",
+                  "Value": "9babcd211d7b162261fa15a119462370a3f30c61ea319946c30bc4051a265a5d"
+                },
+                {
+                  "Key": "graphql.source.name",
+                  "Value": "a"
+                },
+                {
+                  "Key": "graphql.source.operation.name",
+                  "Value": "Op_073bf769_1"
+                },
+                {
+                  "Key": "graphql.source.operation.kind",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.source.operation.hash",
+                  "Value": "sha256:b6db85f78e867baa06bf8b4f45ed381a2b6bc9f7abd15948f0bfff0967fbc308"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Step Execution",
+              "DisplayName": "GraphQL Step Execution",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+                },
+                {
+                  "Key": "graphql.operation.step.id",
+                  "Value": "2"
+                },
+                {
+                  "Key": "graphql.operation.step.kind",
+                  "Value": "operation"
+                },
+                {
+                  "Key": "graphql.operation.step.plan.id",
+                  "Value": "9babcd211d7b162261fa15a119462370a3f30c61ea319946c30bc4051a265a5d"
+                },
+                {
+                  "Key": "graphql.source.name",
+                  "Value": "b"
+                },
+                {
+                  "Key": "graphql.source.operation.name",
+                  "Value": "Op_073bf769_2"
+                },
+                {
+                  "Key": "graphql.source.operation.kind",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.source.operation.hash",
+                  "Value": "sha256:1fa50769ad5084334414d5ceb8029c7787ded48ac5cc01dac775b0b814348e88"
+                }
+              ],
+              "event": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

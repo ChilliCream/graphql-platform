@@ -1,0 +1,205 @@
+{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "GraphQL HTTP POST",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.http.kind",
+          "Value": "HttpPost"
+        },
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        },
+        {
+          "Key": "graphql.http.request.type",
+          "Value": "single"
+        },
+        {
+          "Key": "graphql.http.request.query.id",
+          "Value": "bfa5986a5299f46421057dd3eb27ec5c"
+        },
+        {
+          "Key": "graphql.http.request.query.hash",
+          "Value": "bfa5986a5299f46421057dd3eb27ec5c"
+        },
+        {
+          "Key": "graphql.http.request.extensions",
+          "Value": "{\"test\":\"abc\"}"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "Parse HTTP Request",
+          "DisplayName": "Parse HTTP Request",
+          "Status": "Ok",
+          "tags": [],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation",
+          "DisplayName": "query",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
+            }
+          ],
+          "event": [
+            {
+              "Name": "AddedOperationPlanToCache",
+              "Tags": []
+            },
+            {
+              "Name": "AddedDocumentToCache",
+              "Tags": []
+            }
+          ],
+          "activities": [
+            {
+              "OperationName": "GraphQL Document Validation",
+              "DisplayName": "GraphQL Document Validation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation Planning",
+              "DisplayName": "GraphQL Operation Planning",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "plan"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Variable Coercion",
+              "DisplayName": "GraphQL Variable Coercion",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "variable_coercion"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation Execution",
+              "DisplayName": "GraphQL Operation Execution",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "GraphQL Step Execution",
+                  "DisplayName": "GraphQL Step Execution",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "step_execute"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
+                    },
+                    {
+                      "Key": "graphql.operation.step.id",
+                      "Value": "1"
+                    },
+                    {
+                      "Key": "graphql.operation.step.kind",
+                      "Value": "operation"
+                    },
+                    {
+                      "Key": "graphql.operation.step.plan.id",
+                      "Value": "d58281f7cf44ca2751c4a435c0249e686bd1c146f6ddae23ed35ec6e4b83eb77"
+                    },
+                    {
+                      "Key": "graphql.source.name",
+                      "Value": "a"
+                    },
+                    {
+                      "Key": "graphql.source.operation.name",
+                      "Value": "Op_c46cf8c9_1"
+                    },
+                    {
+                      "Key": "graphql.source.operation.kind",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.source.operation.hash",
+                      "Value": "sha256:a6738007b3546a7458414ee647c93aa373bc22ca57256f4a4a5c8ef3aa886470"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "OperationName": "Format HTTP Response",
+          "DisplayName": "Format HTTP Response",
+          "Status": "Ok",
+          "tags": [],
+          "event": []
+        }
+      ]
+    }
+  ]
+}

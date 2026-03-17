@@ -2,6 +2,7 @@ namespace HotChocolate.Fusion;
 
 internal static class WellKnownTypeNames
 {
+    public const string ApplyPolicy = "ApplyPolicy";
     public const string CacheControlScope = "CacheControlScope";
     public const string FieldSelectionMap = "FieldSelectionMap";
     public const string FieldSelectionSet = "FieldSelectionSet";

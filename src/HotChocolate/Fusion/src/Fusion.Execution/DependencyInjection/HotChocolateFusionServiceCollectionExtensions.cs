@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -14,11 +15,9 @@ public static class HotChocolateFusionServiceCollectionExtensions
 {
     public static IFusionGatewayBuilder AddGraphQLGateway(
         this IServiceCollection services,
-        string? name = null,
-        FusionMemoryPoolOptions? options = null)
+        string? name = null)
     {
         name ??= ISchemaDefinition.DefaultName;
-        options ??= new FusionMemoryPoolOptions();
 
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -26,7 +25,6 @@ public static class HotChocolateFusionServiceCollectionExtensions
         AddCore(services);
         AddRequestExecutorManager(services);
         AddSourceSchemaScope(services);
-        AddResultObjectPools(services, options.Clone());
 
         return CreateBuilder(services, name);
     }
@@ -66,15 +64,6 @@ public static class HotChocolateFusionServiceCollectionExtensions
                 sp.GetRequiredService<IHttpClientFactory>()));
     }
 
-    // TODO : REVIEW IF THIS IS STILL NEEDED
-    internal static void AddResultObjectPools(
-        IServiceCollection services,
-        FusionMemoryPoolOptions options)
-    {
-        services.TryAddSingleton<ObjectPoolProvider>(static _ => new DefaultObjectPoolProvider());
-        services.TryAddSingleton(options);
-    }
-
     private static DefaultFusionGatewayBuilder CreateBuilder(
         IServiceCollection services,
         string name)
@@ -89,9 +78,17 @@ public static class HotChocolateFusionServiceCollectionExtensions
 
         var builder = new DefaultFusionGatewayBuilder(services, name);
         builder.AddDocumentCache();
+        builder.AddFetchResultStorePool();
         builder.UseDefaultPipeline();
         return builder;
     }
+
+    private static void AddFetchResultStorePool(this IFusionGatewayBuilder builder)
+        => builder.ConfigureSchemaServices(
+            static (_, s) => s.TryAddSingleton(
+                new FetchResultStorePool(
+                    levels: [64, 128, 256, 512],
+                    trimInterval: TimeSpan.FromMinutes(5))));
 
     private static IFusionGatewayBuilder AddDocumentCache(this IFusionGatewayBuilder builder)
     {

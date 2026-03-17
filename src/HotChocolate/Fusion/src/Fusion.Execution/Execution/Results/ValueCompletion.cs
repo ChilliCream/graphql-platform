@@ -59,7 +59,7 @@ internal sealed class ValueCompletion
                     .SetMessage("Unexpected Execution Error")
                     .Build();
 
-            return BuildErrorResult(target, responseNames, error, target.Path);
+            return BuildErrorResult(target, responseNames, error, target.CompactPath);
         }
 
         foreach (var property in source.EnumerateObject())
@@ -102,8 +102,11 @@ internal sealed class ValueCompletion
         CompositeResultElement target,
         ReadOnlySpan<string> responseNames,
         IError error,
-        Path path)
+        CompactPath path)
     {
+        var operation = target.Operation;
+        var errorPath = path.ToPath(operation);
+
         foreach (var responseName in responseNames)
         {
             if (!target.TryGetProperty(responseName, out var fieldResult)
@@ -114,7 +117,7 @@ internal sealed class ValueCompletion
 
             var selection = fieldResult.AssertSelection();
             var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(path.Append(responseName))
+                .SetPath(errorPath.Append(responseName))
                 .AddLocation(selection.SyntaxNodes[0].Node)
                 .Build();
             errorWithPath = _errorHandler.Handle(errorWithPath);
@@ -179,17 +182,19 @@ internal sealed class ValueCompletion
                 IError error;
                 if (errorTrie?.FindFirstError() is { } errorFromPath)
                 {
+                    var path = target.CompactPath.ToPath(target.Operation);
                     error = ErrorBuilder.FromError(errorFromPath)
-                        .SetPath(target.Path)
+                        .SetPath(path)
                         .AddLocation(selection.SyntaxNodes[0].Node)
                         .Build();
                 }
                 else
                 {
+                    var path = target.CompactPath.ToPath(target.Operation);
                     error = ErrorBuilder.New()
                         .SetMessage("Cannot return null for non-nullable field.")
                         .SetCode(ErrorCodes.Execution.NonNullViolation)
-                        .SetPath(target.Path)
+                        .SetPath(path)
                         .AddLocation(selection.SyntaxNodes[0].Node)
                         .Build();
                 }
@@ -217,8 +222,9 @@ internal sealed class ValueCompletion
             // or with a path below it.
             if (errorTrie?.FindFirstError() is { } error)
             {
+                var path = target.CompactPath.ToPath(target.Operation);
                 var errorWithPath = ErrorBuilder.FromError(error)
-                    .SetPath(target.Path)
+                    .SetPath(path)
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
@@ -289,7 +295,7 @@ internal sealed class ValueCompletion
             if (errorTrieForIndex?.Error is { } error)
             {
                 var errorWithPath = ErrorBuilder.FromError(error)
-                    .SetPath(target.Path.Append(i))
+                    .SetPath(target.CompactPath.ToPath(target.Operation, i))
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);

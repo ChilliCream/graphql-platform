@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Diagnostics\src\Diagnostics.Core\HotChocolate.Diagnostics.Core.csproj" />
     <ProjectReference Include="..\..\..\Fusion\test\Fusion.AspNetCore.Tests\HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Diagnostics\HotChocolate.Fusion.Diagnostics.csproj" />
   </ItemGroup>

@@ -135,6 +135,9 @@ public class SourceSchemaHttpClientConfiguration
         BatchingMode = batchingMode;
 
         DefaultAcceptHeaderValues = defaultAcceptHeaderValues ?? AcceptContentTypes.Default;
+        DefaultAcceptHeaderValue = defaultAcceptHeaderValues.HasValue
+            ? AcceptContentTypes.FormatAcceptHeader(defaultAcceptHeaderValues.Value)
+            : AcceptContentTypes.DefaultHeader;
 
         if (batchingMode.HasFlag(SourceSchemaHttpClientBatchingMode.VariableBatching))
         {
@@ -144,15 +147,22 @@ public class SourceSchemaHttpClientConfiguration
         if (batchingAcceptHeaderValues.HasValue)
         {
             BatchingAcceptHeaderValues = batchingAcceptHeaderValues.Value;
+            BatchingAcceptHeaderValue = AcceptContentTypes.FormatAcceptHeader(batchingAcceptHeaderValues.Value);
         }
         else
         {
             BatchingAcceptHeaderValues = batchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching
                 ? AcceptContentTypes.ApolloRequestBatching
                 : AcceptContentTypes.VariableBatching;
+            BatchingAcceptHeaderValue = batchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching
+                ? AcceptContentTypes.ApolloRequestBatchingHeader
+                : AcceptContentTypes.VariableBatchingHeader;
         }
 
         SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues ?? AcceptContentTypes.Subscription;
+        SubscriptionAcceptHeaderValue = subscriptionAcceptHeaderValues.HasValue
+            ? AcceptContentTypes.FormatAcceptHeader(subscriptionAcceptHeaderValues.Value)
+            : AcceptContentTypes.SubscriptionHeader;
 
         OnBeforeSend = onBeforeSend;
         OnAfterReceive = onAfterReceive;
@@ -190,14 +200,29 @@ public class SourceSchemaHttpClientConfiguration
     public ImmutableArray<MediaTypeWithQualityHeaderValue> DefaultAcceptHeaderValues { get; }
 
     /// <summary>
+    /// Gets a pre-formatted Accept header string for single, non-Subscription GraphQL requests.
+    /// </summary>
+    public string DefaultAcceptHeaderValue { get; }
+
+    /// <summary>
     /// Gets the <c>Accept</c> header values sent in case of a batching request.
     /// </summary>
     public ImmutableArray<MediaTypeWithQualityHeaderValue> BatchingAcceptHeaderValues { get; }
 
     /// <summary>
+    /// Gets a pre-formatted Accept header string for batching requests.
+    /// </summary>
+    public string BatchingAcceptHeaderValue { get; }
+
+    /// <summary>
     /// Gets the <c>Accept</c> header values sent in case of a subscription.
     /// </summary>
     public ImmutableArray<MediaTypeWithQualityHeaderValue> SubscriptionAcceptHeaderValues { get; }
+
+    /// <summary>
+    /// Gets a pre-formatted Accept header string for subscriptions.
+    /// </summary>
+    public string SubscriptionAcceptHeaderValue { get; }
 
     /// <summary>
     /// Called before the request is sent.
@@ -242,5 +267,16 @@ public class SourceSchemaHttpClientConfiguration
             new("application/jsonl") { CharSet = "utf-8" },
             new("text/event-stream") { CharSet = "utf-8" }
         ];
+
+        public static string DefaultHeader { get; } = FormatAcceptHeader(Default);
+
+        public static string VariableBatchingHeader { get; } = FormatAcceptHeader(VariableBatching);
+
+        public static string ApolloRequestBatchingHeader { get; } = FormatAcceptHeader(ApolloRequestBatching);
+
+        public static string SubscriptionHeader { get; } = FormatAcceptHeader(Subscription);
+
+        public static string FormatAcceptHeader(ImmutableArray<MediaTypeWithQualityHeaderValue> values)
+            => string.Join(", ", values);
     }
 }
