@@ -2,268 +2,339 @@
 title: "DataLoader"
 ---
 
-> If you want to read more about data loaders in general, you can head over to Facebook's [GitHub repository](https://github.com/facebook/dataloader).
+DataLoaders solve the N+1 problem in GraphQL. When the execution engine resolves a list of objects and each object needs related data, a naive implementation fires one database query per object. A DataLoader collects all those individual requests, waits for the execution engine to finish the current batch of resolvers, and then sends one query for all requested keys at once.
 
-Every data fetching technology suffers the _n+1_ problem.
+This page covers the source-generated DataLoader (the recommended approach), manual DataLoader classes, and batch resolvers (a v16 alternative for simpler cases). If you are new to GraphQL data fetching, start with [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) first.
 
-The difference between GraphQL and, for example, REST is that the _n+1_ problem occurs on the server rather than on the client.
-The clear benefit is that we only have to deal with this problem once on the server rather than on every client.
+# The N+1 Problem
 
-<Video videoId="gVIxde5nlWE" />
+Consider a schema where each product has a brand, and clients can query a list of products with their brands.
 
-To illustrate the issue that data loaders solve in this context, let’s assume we have the following schema:
+**GraphQL schema**
 
-```sdl
+```graphql
 type Query {
-  productById(id: ID): Product
+  products(first: 5): ProductsConnection
 }
 
 type Product {
-  id: ID
-  name: String
-  relatedProducts: [Product]
+  id: ID!
+  name: String!
+  brand: Brand!
+}
+
+type Brand {
+  id: ID!
+  name: String!
 }
 ```
 
-The above schema allows to fetch a product by its internal identifier and each product has a list of related products that is represented by a list of products.
-
-A query against the above schema could look like the following:
+**Client query**
 
 ```graphql
-{
-  a: productById(id: "a") {
-    name
-  }
-
-  b: productById(id: "b") {
-    name
+query {
+  products(first: 5) {
+    nodes {
+      name
+      brand {
+        name
+      }
+    }
   }
 }
 ```
 
-The above request fetches two products in one go without the need to call the backend twice. The problem with the GraphQL backend is that field resolvers are atomic and do not have any knowledge about the query as a whole. So, a field resolver does not know that it will be called multiple times in parallel to fetch similar or equal data from the same data source.
+Without a DataLoader, the `brand` resolver executes once per product. Five products means five database queries for brands, even if several products share the same brand. With 50 products, that becomes 50 queries. This is the N+1 problem: 1 query for the product list, plus N queries for related data.
 
-The idea of a DataLoader is to batch these two requests into one call to the database.
+A DataLoader batches those N brand lookups into a single query. The resolver asks the DataLoader for each brand by key. The DataLoader collects all keys, waits for the execution engine to drain the current resolver batch, and then fires one `WHERE id IN (...)` query for all requested brands.
 
-Let's look at some code to understand what data loaders are doing. First, let's have a look at how we would write our field resolver without data loaders:
+# Source-Generated DataLoader
 
-```csharp
-public async Task<Product?> GetProductByIdAsync(
-    string id,
-    CatalogContext dbContext,
-    CancellationToken cancellationToken)
-    => await dbContext.Products.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
-```
+The recommended way to define a DataLoader is with the `[DataLoader]` attribute and the source generator. You write a static method that accepts a list of keys and returns a dictionary of results. The source generator creates the DataLoader class and its interface at build time.
 
-The above example would result in two calls to the product repository that would then fetch the product one by one from our data source.
+## Batch DataLoader (one-to-one)
 
-If you think that through you see that each GraphQL request would cause multiple requests to our data source resulting in sluggish performance and unnecessary round-trips to our data source.
+Use a batch DataLoader when each key maps to at most one result. This is the most common pattern: fetching an entity by ID.
 
-This means that we reduced the round-trips from our client to our server with GraphQL but still have the round-trips between the data sources and the service layer.
-
-With data loaders we can now centralize the data fetching and reduce the number of round trips to our data source.
-
-Instead of fetching the data from the repository directly, we fetch the data from the data loader.
-The data loader batches all the requests together into one request to the database.
+**C# DataLoader**
 
 ```csharp
-// This is using the source-generated data loader.
-internal static class ProductDataLoader
+// DataLoaders/BrandDataLoaders.cs
+internal static class BrandDataLoaders
 {
     [DataLoader]
-    public static async Task<Dictionary<int, Product>> GetProductByIdAsync(
-        IReadOnlyList<int> productIds,
-        CatalogContext context,
-        CancellationToken cancellationToken)
-        => await context.Products
-            .Where(t => productIds.Contains(t.Id))
-            .ToDictionaryAsync(t => t.Id, cancellationToken);
-}
-
-public class Query
-{
-    public async Task<Product?> GetProductByIdAsync(
-        string id,
-        IProductByIdDataLoader productById,
-        CancellationToken cancellationToken)
-        => await productById.LoadAsync(id, cancellationToken);
+    public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
+        IReadOnlyList<int> ids,
+        CatalogContext db,
+        CancellationToken ct)
+        => await db.Brands
+            .Where(b => ids.Contains(b.Id))
+            .ToDictionaryAsync(b => b.Id, ct);
 }
 ```
 
-Alternatively, you can write a DataLoader by hand without our source generator:
+The source generator produces an `IBrandByIdDataLoader` interface and a `BrandByIdDataLoader` class. The name is derived from the method name: `Get` prefix and `Async` suffix are stripped, leaving `BrandById`.
+
+**C# resolver**
 
 ```csharp
-public class ProductByIdDataLoader : BatchDataLoader<int, Product>
+// Types/ProductNode.cs
+[ObjectType<Product>]
+public static partial class ProductNode
 {
-    private readonly IServiceProvider _services;
-
-    public ProductDataLoader1(
-        IServiceProvider services,
-        IBatchScheduler batchScheduler,
-        DataLoaderOptions options)
-        : base(batchScheduler, options)
-    {
-        _services = services;
-    }
-
-    protected override async Task<IReadOnlyDictionary<int, Product>> LoadBatchAsync(
-        IReadOnlyList<int> keys,
-        CancellationToken cancellationToken)
-    {
-        await using var scope = _services.CreateAsyncScope();
-        await using var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
-
-        return await context.Products
-            .Where(t => keys.Contains(t.Id))
-            .ToDictionaryAsync(t => t.Id, cancellationToken);
-    }
+    public static async Task<Brand> GetBrandAsync(
+        [Parent] Product product,
+        IBrandByIdDataLoader brandById,
+        CancellationToken ct)
+        => await brandById.LoadAsync(product.BrandId, ct);
 }
 ```
 
-# Execution
+The resolver requests a brand by key. The DataLoader collects all keys from all concurrently executing resolvers, then calls `GetBrandByIdAsync` once with the full list.
 
-With a data loader, you can fetch entities with a key.
-These are the two generics you have in the class data loaders:
+## Group DataLoader (one-to-many)
 
-```csharp
-public class BatchDataLoader<TId, TEntity>
-```
+Use a group DataLoader when each key maps to multiple results. This is common for relationships like "all products for a brand" or "all reviews for a product".
 
-`TId` is used as an identifier of `TEntity`. `TId` is the type of the values you put into `LoadAsync`.
-
-The execution engine of Hot Chocolate tries to batch as much as possible.
-It executes resolvers until the queue is empty and then triggers the data loader to resolve the data for the waiting resolvers.
-
-# Data Consistency
-
-DataLoader do not only batch calls to the database, they also cache the database response.
-A data loader guarantees data consistency in a single request.
-If you load an entity with a data loader in your request more than once, it is given that these two entities are equivalent.
-
-Data loaders do not fetch an entity if there is already an entity with the requested key in the cache.
-
-# Types of DataLoader
-
-In Hot Chocolate you can declare data loaders in two different ways.
-You can separate the data loading concern into separate classes or you can use a delegate in the resolver to define data loaders on the fly.
-Below you will find the different types of data loaders with examples for class and delegate definition.
-
-## Batch DataLoader (1:1)
-
-> One - To - One, usually used for fields like `productById` or one to one relations
-
-The batch data loader collects requests for entities and sends them as a batch request to the data source. Moreover, the data loader caches the retrieved entries within a request.
-
-The batch data loader gets the keys as `IReadOnlyList<TKey>` and returns an `Dictionary<TKey, TValue>`.
-
-> The `IReadOnlyList<TKey>` representing the key is a rented list and must not be stored or used outside of the `LoadAsync` method.
-
-### Source-Generated
+**C# DataLoader**
 
 ```csharp
-internal static class ProductDataLoader
-{
-    [DataLoader]
-    public static async Task<Dictionary<int, Product>> GetProductByIdAsync(
-        IReadOnlyList<int> productIds,
-        CatalogContext context,
-        CancellationToken cancellationToken)
-        => await context.Products
-            .Where(t => productIds.Contains(t.Id))
-            .ToDictionaryAsync(t => t.Id, cancellationToken);
-}
-
-public class Query
-{
-    public async Task<Product?> GetProductByIdAsync(
-        string id,
-        IProductByIdDataLoader productById,
-        CancellationToken cancellationToken)
-        => await productById.LoadAsync(id, cancellationToken);
-}
-```
-
-### Class
-
-```csharp
-public class ProductByIdDataLoader : BatchDataLoader<int, Product>
-{
-    private readonly IServiceProvider _services;
-
-    public ProductDataLoader1(
-        IServiceProvider services,
-        IBatchScheduler batchScheduler,
-        DataLoaderOptions options)
-        : base(batchScheduler, options)
-    {
-        _services = services;
-    }
-
-    protected override async Task<IReadOnlyDictionary<int, Product>> LoadBatchAsync(
-        IReadOnlyList<int> keys,
-        CancellationToken cancellationToken)
-    {
-        await using var scope = _services.CreateAsyncScope();
-        await using var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
-
-        return await context.Products
-            .Where(t => keys.Contains(t.Id))
-            .ToDictionaryAsync(t => t.Id, cancellationToken);
-    }
-}
-
-public class Query
-{
-    public async Task<Product?> GetProductByIdAsync(
-        string id,
-        ProductByIdDataLoader productById,
-        CancellationToken cancellationToken)
-        => await productById.LoadAsync(id, cancellationToken);
-}
-```
-
-## Group DataLoader (1:n)
-
-> One - To - Many, usually used for fields like `Brand.products` or one to many relations
-
-The batch data loader can also be used to fetch 1:n relations, where you get many items for a single key. In this case we simple group our data and return an array or a list of entities.
-
-### Source-Generated
-
-```csharp
-internal static class ProductDataLoader
+// DataLoaders/ProductDataLoaders.cs
+internal static class ProductDataLoaders
 {
     [DataLoader]
     public static async Task<Dictionary<int, Product[]>> GetProductsByBrandIdAsync(
         IReadOnlyList<int> brandIds,
-        CatalogContext context,
-        CancellationToken cancellationToken)
-        => await context.Products
-            .Where(t => brandIds.Contains(t.BrandId))
-            .GroupBy(t => t.BrandId)
-            .Select(t => new { t.Key, Items = t.OrderBy(p => p.Name).ToArray() })
-            .ToDictionaryAsync(t => t.Key, t => t.Items, cancellationToken);
+        CatalogContext db,
+        CancellationToken ct)
+        => await db.Products
+            .Where(p => brandIds.Contains(p.BrandId))
+            .GroupBy(p => p.BrandId)
+            .Select(g => new { g.Key, Items = g.OrderBy(p => p.Name).ToArray() })
+            .ToDictionaryAsync(g => g.Key, g => g.Items, ct);
 }
+```
 
+The return type is `Dictionary<int, Product[]>`. The source generator recognizes the array value type and generates a group DataLoader. The generated interface is `IProductsByBrandIdDataLoader`.
+
+**C# resolver**
+
+```csharp
+// Types/BrandNode.cs
 [ObjectType<Brand>]
 public static partial class BrandNode
 {
     public static async Task<Product[]> GetProductsAsync(
         [Parent] Brand brand,
-        IProductsByBrandIdDataLoader productById,
-        CancellationToken cancellationToken)
-        => await productById.LoadAsync(brand.Id, cancellationToken) ?? [];
+        IProductsByBrandIdDataLoader productsByBrandId,
+        CancellationToken ct)
+        => await productsByBrandId.LoadAsync(brand.Id, ct) ?? [];
 }
 ```
 
-### Class
+When the DataLoader returns `null` for a key (the brand has no products), use the null-coalescing operator to return an empty array.
+
+## DataLoader Options
+
+The `[DataLoader]` attribute accepts configuration options.
+
+| Property         | Type                       | Default             | Description                                                                                                                                                                               |
+| ---------------- | -------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Name`           | `string?`                  | Derived from method | Override the generated DataLoader class name.                                                                                                                                             |
+| `ServiceScope`   | `DataLoaderServiceScope`   | `Default`           | Controls how injected services are resolved. `DataLoaderScope` creates a dedicated scope. `OriginalScope` uses the request scope.                                                         |
+| `AccessModifier` | `DataLoaderAccessModifier` | `Default`           | Controls generated class visibility. `Public` makes both class and interface public. `Internal` makes both internal. `PublicInterface` makes the interface public and the class internal. |
 
 ```csharp
-public class ProductByBrandIdDataLoader : BatchDataLoader<int, Product[]>
+[DataLoader(ServiceScope = DataLoaderServiceScope.DataLoaderScope)]
+public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
+    IReadOnlyList<int> ids,
+    CatalogContext db,
+    CancellationToken ct)
+    => await db.Brands
+        .Where(b => ids.Contains(b.Id))
+        .ToDictionaryAsync(b => b.Id, ct);
+```
+
+Use `DataLoaderServiceScope.DataLoaderScope` when your data access service (like `DbContext`) is registered as scoped and you want the DataLoader to have its own scope, separate from the request scope. This prevents lifetime conflicts when the DataLoader outlives a single resolver.
+
+## How Execution Works
+
+The execution engine resolves fields in waves. Within each wave, resolvers run concurrently. When a resolver calls `LoadAsync` on a DataLoader, the key is queued but no database call happens yet. After all resolvers in the current wave finish, the engine dispatches all pending DataLoader batches. Each DataLoader fires a single call to its data source with the full set of collected keys.
+
+```text
+Wave 1: Resolve products(first: 5) → [Product1, Product2, Product3, Product4, Product5]
+         ↓
+Wave 2: Resolve brand for each product → DataLoader collects keys [1, 2, 1, 3, 2]
+         ↓
+Dispatch: DataLoader deduplicates → sends one query for brand IDs [1, 2, 3]
+         ↓
+Wave 3: Return cached Brand objects to each product resolver
+```
+
+DataLoaders also deduplicate keys. If two products share the same brand ID, the DataLoader sends that ID only once and returns the same Brand instance to both resolvers.
+
+## Data Consistency
+
+A DataLoader caches results for the duration of a single GraphQL request. If the same key is requested multiple times within one request, the DataLoader returns the cached result without hitting the data source again. This guarantees that all resolvers within a request see the same data for the same key.
+
+The cache is not shared across requests. Each request gets a fresh DataLoader instance with an empty cache.
+
+# Batch Resolvers
+
+Batch resolvers are an alternative to DataLoaders for cases where you want to resolve a field for multiple parent objects in a single method call without defining a separate DataLoader class. Instead of each resolver running independently and batching through a DataLoader, the execution engine collects all parent objects and calls your resolver once with the full list.
+
+## When to Use Batch Resolvers vs DataLoaders
+
+**Use a DataLoader** when the batched data is reused across multiple fields or resolvers. DataLoaders cache by key, so the same entity fetched in different parts of the query tree is only loaded once.
+
+**Use a batch resolver** when the resolved value is specific to one field and does not benefit from cross-field caching. Common examples: computed values, string formatting, or calling an external service that supports batch requests natively.
+
+## Defining a Batch Resolver
+
+Mark a method with `[BatchResolver]`. The `[Parent]` parameter and all arguments must be list types. The return type must also be a list, with one element per parent.
+
+**C# resolver**
+
+```csharp
+// Types/UserNode.cs
+[ObjectType<User>]
+public static partial class UserNode
+{
+    [BatchResolver]
+    public static List<string> GetDisplayName([Parent] List<User> users)
+    {
+        return users.Select(u => $"{u.FirstName} {u.LastName}").ToList();
+    }
+}
+```
+
+The execution engine collects all `User` parent objects being resolved in the current wave and calls `GetDisplayName` once with the full list. The returned list must have the same count and order as the input list.
+
+## Batch Resolvers with Services and Arguments
+
+Batch resolvers support dependency injection and field arguments. Arguments that are list types are collected from each parent context.
+
+```csharp
+// Types/UserNode.cs
+[ObjectType<User>]
+public static partial class UserNode
+{
+    [BatchResolver]
+    public static async Task<List<string>> GetGreeting(
+        [Parent] List<User> users,
+        GreetingService greetingService,
+        CancellationToken ct)
+    {
+        return await greetingService.GetGreetingsAsync(
+            users.Select(u => u.Id).ToList(), ct);
+    }
+}
+```
+
+## Handling Errors in Batch Resolvers
+
+Use `ResolverResult` to return per-item errors without failing the entire batch. Each element in the returned list can be either a success or an error.
+
+```csharp
+// Types/UserNode.cs
+[ObjectType<User>]
+public static partial class UserNode
+{
+    [BatchResolver]
+    public static List<ResolverResult> GetVerificationStatus([Parent] List<User> users)
+    {
+        return users.Select<User, ResolverResult>(user =>
+        {
+            if (user.Email is null)
+                return ResolverResult.Fail(
+                    ErrorBuilder.New()
+                        .SetMessage("User has no email address.")
+                        .Build());
+
+            return ResolverResult.Ok(user.IsVerified ? "verified" : "pending");
+        }).ToList();
+    }
+}
+```
+
+## Code-First Batch Resolvers
+
+In the code-first approach, use `ResolveBatch` on the field descriptor.
+
+```csharp
+// Types/UserType.cs
+public class UserType : ObjectType<User>
+{
+    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor
+            .Field("displayName")
+            .Type<StringType>()
+            .ResolveBatch(contexts =>
+            {
+                var results = new ResolverResult[contexts.Count];
+
+                for (var i = 0; i < contexts.Count; i++)
+                {
+                    var user = contexts[i].Parent<User>();
+                    results[i] = ResolverResult.Ok($"{user.FirstName} {user.LastName}");
+                }
+
+                return new ValueTask<IReadOnlyList<ResolverResult>>(results);
+            });
+    }
+}
+```
+
+You can also point to an external method with `ResolveBatchWith<T>`.
+
+```csharp
+descriptor
+    .Field("greeting")
+    .ResolveBatchWith<UserNode>(t => t.GetGreeting(default!));
+```
+
+# Conditional Data Fetching with Field Selection
+
+The `[IsSelected]` attribute lets a resolver check whether specific fields are selected in the query. This is useful for skipping expensive data fetching when the client does not need the result.
+
+```csharp
+// Types/ProductNode.cs
+[ObjectType<Product>]
+public static partial class ProductNode
+{
+    public static async Task<ProductDetails> GetDetailsAsync(
+        [Parent] Product product,
+        [IsSelected(nameof(ProductDetails.Inventory))] bool inventorySelected,
+        IProductDetailsDataLoader detailsLoader,
+        IInventoryService inventoryService,
+        CancellationToken ct)
+    {
+        var details = await detailsLoader.LoadAsync(product.Id, ct);
+
+        if (inventorySelected)
+        {
+            details.Inventory = await inventoryService.GetStockAsync(product.Id, ct);
+        }
+
+        return details;
+    }
+}
+```
+
+If the client query does not select the `inventory` field, `inventorySelected` is `false` and the inventory service call is skipped.
+
+# Manual DataLoader Classes
+
+You can write DataLoader classes by hand when you need full control over the batching logic. This is rarely needed since the source generator covers most cases.
+
+```csharp
+// DataLoaders/BrandByIdDataLoader.cs
+public class BrandByIdDataLoader : BatchDataLoader<int, Brand>
 {
     private readonly IServiceProvider _services;
 
-    public ProductByBrandIdDataLoader(
+    public BrandByIdDataLoader(
         IServiceProvider services,
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
@@ -272,56 +343,45 @@ public class ProductByBrandIdDataLoader : BatchDataLoader<int, Product[]>
         _services = services;
     }
 
-    protected override async Task<IReadOnlyDictionary<int, Product[]>> LoadBatchAsync(
+    protected override async Task<IReadOnlyDictionary<int, Brand>> LoadBatchAsync(
         IReadOnlyList<int> keys,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         await using var scope = _services.CreateAsyncScope();
-        await using var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
+        var db = scope.ServiceProvider.GetRequiredService<CatalogContext>();
 
-        return await context.Products
-            .Where(t => keys.Contains(t.BrandId))
-            .GroupBy(t => t.BrandId)
-            .Select(t => new { t.Key, Items = t.OrderBy(p => p.Name).ToArray() })
-            .ToDictionaryAsync(t => t.Key, t => t.Items, cancellationToken);
+        return await db.Brands
+            .Where(b => keys.Contains(b.Id))
+            .ToDictionaryAsync(b => b.Id, ct);
     }
-}
-
-[ObjectType<Brand>]
-public static partial class BrandNode
-{
-    public static async Task<Product[]> GetProductsAsync(
-        [Parent] Brand brand,
-        ProductsByBrandIdDataLoader productById,
-        CancellationToken cancellationToken)
-        => await productById.LoadAsync(brand.Id, cancellationToken) ?? [];
 }
 ```
 
-## Cache DataLoader
+> The `IReadOnlyList<TKey>` passed to `LoadBatchAsync` and source-generated methods is a rented list. Do not store or use it outside the method body.
 
-> No batching, just caching. This data loader is used rarely. You most likely want to use the batch data loader.
+# Troubleshooting
 
-The cache data loader is the easiest to implement since there is no batching involved. You can just use the initial `GetProductByIdAsync` method. We do not get the benefits of batching with this one, but if in a query the same entity is resolved more than once we will load it only once from the data source.
+## DataLoader returns null for a key that exists
 
-```csharp
-public class ProductCacheDataLoader : CacheDataLoader<int, Product?>
-{
-    private readonly IServiceProvider _services;
+The dictionary returned from your DataLoader method must use the same key values that were passed in. If you use a database column that does not match the requested key (for example, returning a dictionary keyed by `string` when the DataLoader expects `int`), the DataLoader cannot match results to requests and returns null.
 
-    public ProductDataLoader1(
-        IServiceProvider services,
-        DataLoaderOptions options)
-        : base(options)
-    {
-        _services = services;
-    }
+Verify that your `ToDictionaryAsync` key selector matches the key type of your DataLoader.
 
-    protected override async Task<Product?> LoadSingleAsync(int key, CancellationToken cancellationToken)
-    {
-        await using var scope = _services.CreateAsyncScope();
-        await using var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
-        return await context.Products.FirstOrDefaultAsync(t => t.Id == key, cancellationToken);
-    }
-}
-```
+## N+1 queries still appearing
+
+If you see individual queries instead of batched ones, check that you are injecting the DataLoader interface (like `IBrandByIdDataLoader`) into your resolver, not calling the database directly. Also verify that the DataLoader method is marked with `[DataLoader]` and the source generator is running (check for the generated `AddTypes` method in your build output).
+
+## Batch resolver returns wrong number of results
+
+A batch resolver must return a list with the same count as the input parent list. If the counts do not match, the execution engine raises an error. Verify that your method produces one result per input parent, in the same order.
+
+## Scoped service disposed before DataLoader executes
+
+If your `DbContext` or other scoped service is disposed before the DataLoader batch runs, use `DataLoaderServiceScope.DataLoaderScope` on the `[DataLoader]` attribute. This creates a dedicated service scope for the DataLoader, preventing the service from being disposed when the request scope ends.
+
+# Next Steps
+
+- **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
+- **Need pagination?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for cursor-based connections.
+- **Need to filter or sort data?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+- **Using Entity Framework?** See [Entity Framework](/docs/hotchocolate/v16/integrations/entity-framework) for integration patterns with DataLoaders.

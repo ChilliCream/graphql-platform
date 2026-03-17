@@ -2,19 +2,17 @@
 title: Instrumentation
 ---
 
-Hot Chocolate allows us to create custom diagnostic event listeners, tapping into internal instrumentation events and further processing them. This abstraction allows us to use the logging or tracing infrastructure that we want to use. Further, we provide a default implementation for open telemetry.
+Hot Chocolate lets you create diagnostic event listeners that tap into internal instrumentation events. You can use any logging or tracing infrastructure you prefer. Hot Chocolate also ships with a built-in OpenTelemetry integration aligned with the [proposed GraphQL semantic conventions](https://github.com/graphql/otel-wg/blob/main/spec).
 
-# Diagnostic events
+# Diagnostic Events
 
-Currently, we can implement diagnostic event listeners for the following event types:
+You can implement diagnostic event listeners for the following event types:
 
 - [Server events](#server-events)
 - [Execution events](#execution-events)
 - [DataLoader events](#dataloader-events)
 
-We will learn more about creating diagnostic event listeners for these event types in their respective sections.
-
-After creating a diagnostic event listener for any event type, we can register it by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`, specifying the newly developed diagnostic event listener as the generic type parameter.
+After creating a diagnostic event listener, register it by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`:
 
 ```csharp
 builder.Services
@@ -22,7 +20,7 @@ builder.Services
     .AddDiagnosticEventListener<MyExecutionEventListener>();
 ```
 
-If we need to access services within our event handlers, we can inject them using the constructor. Please note that injected services are effectively singleton since the diagnostic event listener is instantiated once.
+If you need to access services within your event handlers, inject them through the constructor. Injected services are effectively singletons because the diagnostic event listener is instantiated once.
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
@@ -32,7 +30,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
     public MyExecutionEventListener(ILogger<MyExecutionEventListener> logger)
         => _logger = logger;
 
-    public override void RequestError(IRequestContext context,
+    public override void RequestError(RequestContext context,
         Exception exception)
     {
         _logger.LogError(exception, "A request error occurred!");
@@ -40,13 +38,13 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 }
 ```
 
-> Warning: Diagnostic event handlers are executed synchronously as part of the GraphQL request. Long-running operations inside a diagnostic event handler will negatively impact the query performance. Expensive operations should only be enqueued from within the handler and processed by a background service.
+> Warning: Diagnostic event handlers execute synchronously as part of the GraphQL request. Long-running operations inside a handler negatively impact query performance. Enqueue expensive work from within the handler and process it in a background service.
 
 ## Scopes
 
-Most diagnostic event handlers have a return type of `void`, but some return an `IDisposable`. These event handlers enclose a specific operation, sort of like a scope. This scope is instantiated at the start of the operation and disposed of at the end of the operation.
+Most diagnostic event handlers return `void`, but some return an `IDisposable`. These handlers enclose a specific operation as a scope. The scope is created at the start of the operation and disposed at the end.
 
-We can simply create a class implementing `IDisposable` to create a scope.
+Create a class implementing `IDisposable` to define a scope:
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
@@ -56,8 +54,8 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
     public MyExecutionEventListener(ILogger<MyExecutionEventListener> logger)
         => _logger = logger;
 
-    // this is invoked at the start of the `ExecuteRequest` operation
-    public override IDisposable ExecuteRequest(IRequestContext context)
+    // Invoked at the start of the ExecuteRequest operation
+    public override IDisposable ExecuteRequest(RequestContext context)
     {
         var start = DateTime.UtcNow;
 
@@ -76,7 +74,7 @@ public class RequestScope : IDisposable
         _logger = logger;
     }
 
-    // this is invoked at the end of the `ExecuteRequest` operation
+    // Invoked at the end of the ExecuteRequest operation
     public void Dispose()
     {
         var end = DateTime.UtcNow;
@@ -88,10 +86,10 @@ public class RequestScope : IDisposable
 }
 ```
 
-If we are not interested in the scope of a specific diagnostic event handler, we can return an `EmptyScope`. Returning an empty scope where we do not need to track a span will reduce the performance impact of triggering your event.
+If you do not need to track a span for a specific event, return an `EmptyScope`. This reduces the performance impact of triggering the event.
 
 ```csharp
-public override IDisposable ExecuteRequest(IRequestContext context)
+public override IDisposable ExecuteRequest(RequestContext context)
 {
     _logger.LogInformation("Request execution started!");
 
@@ -101,83 +99,79 @@ public override IDisposable ExecuteRequest(IRequestContext context)
 
 ## Server Events
 
-We can instrument server events of the Hot Chocolate transport layer by creating a class inheriting from `ServerDiagnosticEventListener`.
+Instrument server events of the Hot Chocolate transport layer by creating a class that inherits from `ServerDiagnosticEventListener`:
 
 ```csharp
 public class MyServerEventListener : ServerDiagnosticEventListener
 {
-    public override IDisposable ExecuteHttpRequest(IRequestContext context)
+    public override IDisposable ExecuteHttpRequest(RequestContext context)
     {
         // Omitted code for brevity
     }
 }
 ```
 
-| Method name                | Description                                                                                                                   |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| ExecuteHttpRequest         | Called when starting to execute a GraphQL over HTTP request in the transport layer.                                           |
-| StartSingleRequest         | Called within the ExecuteHttpRequest scope and signals that a single GraphQL request will be executed.                        |
-| StartBatchRequest          | Called within the ExecuteHttpRequest scope and signals that a GraphQL batch request will be executed.                         |
-| StartOperationBatchRequest | Called within the ExecuteHttpRequest scope and signals that a GraphQL batch request will be executed.                         |
-| HttpRequestError           | Called within the ExecuteHttpRequest scope and signals that an error occurred while processing the GraphQL over HTTP request. |
-| ParseHttpRequest           | Called when starting to parse a GraphQL HTTP request.                                                                         |
-| ParserErrors               | Called within the ParseHttpRequest scope and signals that an error occurred while parsing the GraphQL request.                |
-| FormatHttpResponse         | Called when starting to format a GraphQL query result.                                                                        |
-| WebSocketSession           | Called when starting to establish a GraphQL WebSocket session.                                                                |
-| WebSocketSessionError      | Called within the WebSocketSession scope and signals that an error occurred that terminated the session.                      |
+| Method name                | Description                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| ExecuteHttpRequest         | Called when starting to execute a GraphQL over HTTP request in the transport layer.                          |
+| StartSingleRequest         | Called within the ExecuteHttpRequest scope, signals that a single GraphQL request will be executed.          |
+| StartBatchRequest          | Called within the ExecuteHttpRequest scope, signals that a GraphQL batch request will be executed.           |
+| StartOperationBatchRequest | Called within the ExecuteHttpRequest scope, signals that an operation batch request will be executed.        |
+| HttpRequestError           | Called within the ExecuteHttpRequest scope, signals an error while processing the GraphQL over HTTP request. |
+| ParseHttpRequest           | Called when starting to parse a GraphQL HTTP request.                                                        |
+| ParserErrors               | Called within the ParseHttpRequest scope, signals an error while parsing the GraphQL request.                |
+| FormatHttpResponse         | Called when starting to format a GraphQL query result.                                                       |
+| WebSocketSession           | Called when starting to establish a GraphQL WebSocket session.                                               |
+| WebSocketSessionError      | Called within the WebSocketSession scope, signals an error that terminated the session.                      |
 
 ## Execution Events
 
-We can hook into execution events of the Hot Chocolate execution engine by creating a class inheriting from `ExecutionDiagnosticEventListener`.
+Hook into execution events of the Hot Chocolate execution engine by creating a class that inherits from `ExecutionDiagnosticEventListener`:
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 {
-    public override IDisposable ExecuteRequest(IRequestContext context)
+    public override IDisposable ExecuteRequest(RequestContext context)
     {
         // Omitted code for brevity
     }
 }
 ```
 
-The following methods can be overridden.
+The following methods can be overridden:
 
-| Method name                         | Description                                                                                                                                    |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| ExecuteRequest                      | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a GraphQL request.                     |
-| RequestError                        | Called if the GraphQL request produced an error. Called immediately before the scope of `ExecuteRequest` is disposed.                          |
-| ExecuteSubscription                 | Scope that encloses the execution of a subscription query. Scope is created once a client subscribes and disposed once the subscription ends.  |
-| ParseDocument                       | Scope that encloses the parsing of a document.                                                                                                 |
-| SyntaxError                         | Called if a document could not be parsed due to a syntax error.                                                                                |
-| ValidateDocument                    | Scope that encloses the validation of a document.                                                                                              |
-| ValidationErrors                    | Called if errors occurred during the validation of the document.                                                                               |
-| AnalyzeOperationComplexity          | Called when starting to analyze the operation complexity.                                                                                      |
-| OperationComplexityAnalyzerCompiled | Called within AnalyzeOperationComplexity scope and reports that an analyzer was compiled.                                                      |
-| OperationComplexityResult           | Called within AnalyzeOperationComplexity scope and reports the outcome of the analyzer.                                                        |
-| CoerceVariables                     | Called when starting to coerce variables for a request.                                                                                        |
-| CompileOperation                    | Called when starting to compile the GraphQL operation from the syntax tree.                                                                    |
-| ExecuteOperation                    | Called when starting to execute the GraphQL operation and its resolvers.                                                                       |
-| ExecuteStream                       | Called within the execute operation scope if the result is a streamed result.                                                                  |
-| ExecuteDeferredTask                 | Called when starting to execute a deferred part an operation within the ExecuteStream scope or within the ExecuteSubscription scope.           |
-| StartProcessing                     | Scope that encloses the scheduling of some work, e.g. invoking a DataLoader or starting execution tasks.                                       |
-| StopProcessing                      | Called if the execution engine has to wait for resolvers to complete or whenever the execution has completed.                                  |
-| RunTask                             | Scope that encloses the execution of an execution task. A `ResolverExecutionTask` uses the `ResolveFieldValue` event instead.                  |
-| TaskError                           | Called if an execution task produced an error.                                                                                                 |
-| ResolveFieldValue                   | Scope that encloses the execution of a specific field resolver. (\*)                                                                           |
-| ResolverError                       | Called if a specific field resolver produces an error.                                                                                         |
-| OnSubscriptionEvent                 | Scope that encloses the computation of a subscription result, once the event stream has yielded a new payload.                                 |
-| SubscriptionEventResult             | Called once the subscription result has been successfully computed.                                                                            |
-| SubscriptionEventError              | Called if the computation of the subscription result produced an error.                                                                        |
-| SubscriptionTransportError          | Called if a subscription result could not be delivered to a client due to a transport issue.                                                   |
-| AddedDocumentToCache                | Called once a document has been added to `DocumentCache`.                                                                                      |
-| RetrievedDocumentFromCache          | Called once a document has been retrieved from the `DocumentCache`.                                                                            |
-| AddedOperationToCache               | Called once an operation has been added to the `OperationCache`.                                                                               |
-| RetrievedOperationFromCache         | Called once an operation has been retrieved from the `OperationCache`.                                                                         |
-| RetrievedDocumentFromStorage        | Called once a document has been retrieved from an operation document storage.                                                                  |
-| ExecutorCreated                     | Called once a request executor has been created. Executors are created once for a schema (includes stitched schemas) during the first request. |
-| ExecutorEvicted                     | Called once a request executor is evicted. This can happen if the schema or the configuration of the executor changes.                         |
+| Method name                         | Description                                                                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| ExecuteRequest                      | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a request.                   |
+| RequestError                        | Called if the GraphQL request produced an error. Called immediately before the scope of `ExecuteRequest` is disposed.                |
+| ExecuteSubscription                 | Scope that encloses the execution of a subscription query. Created when a client subscribes and disposed when the subscription ends. |
+| ParseDocument                       | Scope that encloses the parsing of a document.                                                                                       |
+| SyntaxError                         | Called if a document could not be parsed due to a syntax error.                                                                      |
+| ValidateDocument                    | Scope that encloses the validation of a document.                                                                                    |
+| ValidationErrors                    | Called if errors occurred during document validation.                                                                                |
+| AnalyzeOperationComplexity          | Called when starting to analyze operation complexity.                                                                                |
+| OperationComplexityAnalyzerCompiled | Called within AnalyzeOperationComplexity scope when an analyzer is compiled.                                                         |
+| OperationComplexityResult           | Called within AnalyzeOperationComplexity scope, reports the outcome of the analyzer.                                                 |
+| CoerceVariables                     | Called when starting to coerce variables for a request.                                                                              |
+| CompileOperation                    | Called when starting to compile the GraphQL operation from the syntax tree.                                                          |
+| ExecuteOperation                    | Called when starting to execute the GraphQL operation and its resolvers.                                                             |
+| StartProcessing                     | Scope that encloses the scheduling of work, such as invoking a DataLoader or starting execution tasks.                               |
+| StopProcessing                      | Called if the execution engine has to wait for resolvers to complete or whenever execution has completed.                            |
+| RunTask                             | Scope that encloses the execution of an execution task. A `ResolverExecutionTask` uses the `ResolveFieldValue` event instead.        |
+| TaskError                           | Called if an execution task produced an error.                                                                                       |
+| ResolveFieldValue                   | Scope that encloses the execution of a specific field resolver. (\*)                                                                 |
+| ResolverError                       | Called if a specific field resolver produces an error.                                                                               |
+| OnSubscriptionEvent                 | Scope that encloses the computation of a subscription result once the event stream yields a new payload.                             |
+| SubscriptionEventError              | Called if the computation of the subscription result produced an error.                                                              |
+| AddedDocumentToCache                | Called once a document has been added to `DocumentCache`.                                                                            |
+| RetrievedDocumentFromCache          | Called once a document has been retrieved from the `DocumentCache`.                                                                  |
+| AddedOperationToCache               | Called once an operation has been added to the `OperationCache`.                                                                     |
+| RetrievedOperationFromCache         | Called once an operation has been retrieved from the `OperationCache`.                                                               |
+| RetrievedDocumentFromStorage        | Called once a document has been retrieved from an operation document storage.                                                        |
+| ExecutorCreated                     | Called once a request executor has been created. Executors are created once per schema during the first request.                     |
+| ExecutorEvicted                     | Called once a request executor is evicted, which can happen if the schema or executor configuration changes.                         |
 
-(\*): The `ResolveFieldValue` event is not invoked per default, as it would be too much overhead to execute the event for each resolver used within a query. We have to override the `EnableResolveFieldValue` property for the execution engine to invoke the event handler.
+(\*): The `ResolveFieldValue` event is not invoked by default because it would add too much overhead for each resolver in a query. Override the `EnableResolveFieldValue` property to enable it:
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
@@ -193,7 +187,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 
 ## DataLoader Events
 
-We can hook into DataLoader events by creating a class inheriting from `DataLoaderDiagnosticEventListener`.
+Hook into DataLoader events by creating a class that inherits from `DataLoaderDiagnosticEventListener`:
 
 ```csharp
 public class MyDataLoaderEventListener : DataLoaderDiagnosticEventListener
@@ -206,31 +200,31 @@ public class MyDataLoaderEventListener : DataLoaderDiagnosticEventListener
 }
 ```
 
-The following methods can be overridden.
+The following methods can be overridden:
 
-| Method name           | Description                                                                                                     |
-| --------------------- | --------------------------------------------------------------------------------------------------------------- |
-| ExecuteBatch          | Scope that encloses a batch operation, i.e. the resolution of a specific set of keys.                           |
-| BatchResults          | Called once a batch operation has been completed, i.e. all items for a specific set of keys have been resolved. |
-| BatchError            | Called if a batch operation has failed.                                                                         |
-| BatchItemError        | Called for a specific item that contained an error within a batch operation.                                    |
-| ResolvedTaskFromCache | Called once a task to resolve an item by its key has been added or retrieved from the `TaskCache`.              |
+| Method name           | Description                                                                                              |
+| --------------------- | -------------------------------------------------------------------------------------------------------- |
+| ExecuteBatch          | Scope that encloses a batch operation, resolving a specific set of keys.                                 |
+| BatchResults          | Called once a batch operation has completed and all items for a specific set of keys have been resolved. |
+| BatchError            | Called if a batch operation has failed.                                                                  |
+| BatchItemError        | Called for a specific item that contained an error within a batch operation.                             |
+| ResolvedTaskFromCache | Called once a task to resolve an item by its key has been added or retrieved from the `TaskCache`.       |
 
 # OpenTelemetry
 
-OpenTelemetry is an open-source project and unified standard for service instrumentation or a way of measuring performance. Sponsored by the Cloud Native Computing Foundation (CNCF), it replaces OpenTracing and OpenCensus. The goal is to standardize how you collect and send telemetry data to a backend platform.
+OpenTelemetry is an open-source, vendor-neutral standard for collecting telemetry data. Sponsored by the Cloud Native Computing Foundation (CNCF), it replaces OpenTracing and OpenCensus.
 
-Hot Chocolate has implemented an OpenTelemetry integration, and you can easily opt into it instead of building a custom tracing integration.
+Hot Chocolate provides an OpenTelemetry integration that aligns with the [proposed GraphQL semantic conventions](https://github.com/graphql/otel-wg/blob/main/spec).
 
 <Video videoId="nCLSfJMihsg" />
 
 ## Setup
 
-To get started, add the `HotChocolate.Diagnostics` package to your project.
+Add the `HotChocolate.Diagnostics` package to your project:
 
 <PackageInstallation packageName="HotChocolate.Diagnostics" />
 
-Next, head over to your `Program.cs` and add `AddInstrumentation` to your GraphQL configuration.
+Add `AddInstrumentation` to your GraphQL configuration:
 
 ```csharp
 builder.Services
@@ -239,18 +233,16 @@ builder.Services
     .AddInstrumentation();
 ```
 
-Now, we need to add OpenTelemetry to our project, and in the example here, we will use it with a _Jaeger_ exporter.
-
-Let's first add the needed packages:
+Next, add OpenTelemetry to your project. In this example, you will use it with an OTLP exporter:
 
 ```bash
-dotnet add package OpenTelemetry.Extensions.Hosting --version 1.0.0-rc8
-dotnet add package OpenTelemetry.Instrumentation.AspNetCore --version 1.0.0-rc8
-dotnet add package OpenTelemetry.Instrumentation.Http --version 1.0.0-rc8
-dotnet add package OpenTelemetry.Exporter.Jaeger --version 1.1.0
+dotnet add package OpenTelemetry.Extensions.Hosting
+dotnet add package OpenTelemetry.Instrumentation.AspNetCore
+dotnet add package OpenTelemetry.Instrumentation.Http
+dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
 ```
 
-Now add the OpenTelemetry setup code to the `Program.cs`:
+Add the OpenTelemetry setup code to your `Program.cs`:
 
 ```csharp
 builder.Logging.AddOpenTelemetry(
@@ -263,20 +255,20 @@ builder.Logging.AddOpenTelemetry(
     });
 
 builder.Services
-    .AddOpenTelemetryTracing()
+    .AddOpenTelemetry()
     .WithTracing(
       b =>
       {
           b.AddHttpClientInstrumentation();
           b.AddAspNetCoreInstrumentation();
           b.AddHotChocolateInstrumentation();
-          b.AddJaegerExporter();
+          b.AddOtlpExporter();
       });
 ```
 
-`AddHotChocolateInstrumentation` will register the Hot Chocolate instrumentation events with OpenTelemetry.
+`AddHotChocolateInstrumentation` registers the Hot Chocolate instrumentation events with OpenTelemetry.
 
-Your `Program.cs` should look like the following:
+Your complete `Program.cs` should look like this:
 
 ```csharp
 using OpenTelemetry.Resources;
@@ -293,14 +285,14 @@ builder.Logging.AddOpenTelemetry(
     b => b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Demo")));
 
 builder.Services
-    .AddOpenTelemetryTracing()
+    .AddOpenTelemetry()
     .WithTracing(
       b =>
       {
           b.AddHttpClientInstrumentation();
           b.AddAspNetCoreInstrumentation();
           b.AddHotChocolateInstrumentation();
-          b.AddJaegerExporter();
+          b.AddOtlpExporter();
       });
 
 var app = builder.Build();
@@ -308,13 +300,41 @@ app.MapGraphQL();
 app.Run();
 ```
 
-When running GraphQL requests, you can now inspect in _Jaeger_ how the request performed and look into the various parts of the execution telemetry.
+When running GraphQL requests, you can inspect in your tracing backend how each request performed and examine the various parts of the execution telemetry.
 
 ![Jaeger](../../../shared/jaeger1.png)
 
+## Span Attributes
+
+Hot Chocolate emits span attributes that follow the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec). The root GraphQL span name contains the operation type (`query`, `mutation`, or `subscription`) to keep cardinality low. The operation name is available as the `graphql.operation.name` span attribute.
+
+Key attributes emitted on the root span:
+
+| Attribute                | Description                                                               |
+| ------------------------ | ------------------------------------------------------------------------- |
+| `graphql.operation.type` | The operation type: `query`, `mutation`, or `subscription`.               |
+| `graphql.operation.name` | The operation name, if provided.                                          |
+| `graphql.document`       | The GraphQL document string.                                              |
+| `graphql.document.hash`  | The document hash, formatted as `<algorithm>:<hash>` (e.g. `md5:<hash>`). |
+| `graphql.document.id`    | The document ID. Only set if the document is a trusted document.          |
+
+Additional attributes on field-level spans (when enabled):
+
+| Attribute                             | Description                          |
+| ------------------------------------- | ------------------------------------ |
+| `graphql.selection.field.name`        | The name of the resolved field.      |
+| `graphql.selection.field.parent_type` | The parent type declaring the field. |
+
+DataLoader spans:
+
+| Attribute                       | Description                  |
+| ------------------------------- | ---------------------------- |
+| `graphql.dataloader.batch.size` | Number of keys in the batch. |
+| `graphql.dataloader.batch.keys` | The keys in the batch.       |
+
 ## Options
 
-By default, we have not instrumented all of our execution events. You can drill deeper into the execution telemetry by adding more instrumentation scopes.
+By default, Hot Chocolate does not instrument all execution events. You can increase the level of detail by enabling more instrumentation scopes:
 
 ```csharp
 builder.Services
@@ -326,11 +346,11 @@ builder.Services
     });
 ```
 
-> Beware, adding more instrumentation scopes is not free and will add more performance overhead.
+> Warning: Adding more instrumentation scopes is not free and adds performance overhead.
 
 ![Jaeger](../../../shared/jaeger2.png)
 
-Further, if you work with elastic and you want to give your root activity a name that is associated with the executed operation, you can quickly just tell the instrumentation to do just that for you.
+You can also include the operation details in the root activity:
 
 ```csharp
 builder.Services
@@ -338,7 +358,7 @@ builder.Services
     .AddQueryType<Query>()
     .AddInstrumentation(o =>
     {
-        o.RenameRootActivity = true;
+        o.RequestDetails = RequestDetails.OperationName | RequestDetails.Document;
     });
 ```
 
@@ -346,19 +366,20 @@ builder.Services
 
 ## Enriching Activities
 
-You can inherit from `ActivityEnricher` and override the enrich method for an Activity to add custom data or remove default data.
+You can inherit from `ActivityEnricher` and override enrich methods to add custom data or remove default data from activities.
+
+In v16, the `ActivityEnricher` constructor no longer requires an `ObjectPool<StringBuilder>`:
 
 ```csharp
 public class CustomActivityEnricher : ActivityEnricher
 {
-    public CustomActivityEnricher(
-        ObjectPool<StringBuilder> stringBuilderPoolPool,
-        InstrumentationOptions options)
-        : base(stringBuilderPoolPool, options)
+    public CustomActivityEnricher(InstrumentationOptions options)
+        : base(options)
     {
     }
 
-    public override void EnrichResolveFieldValue(IMiddlewareContext context, Activity activity)
+    public override void EnrichResolveFieldValue(
+        IMiddlewareContext context, Activity activity)
     {
         base.EnrichResolveFieldValue(context, activity);
 
@@ -367,13 +388,52 @@ public class CustomActivityEnricher : ActivityEnricher
 }
 ```
 
-Register the custom activity enricher as a singleton:
+Register the custom activity enricher as a singleton and make it available to the schema services using `AddApplicationService`:
 
 ```csharp
 builder.Services.AddSingleton<ActivityEnricher, CustomActivityEnricher>();
 
-builder.Services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddApplicationService<ActivityEnricher>();
 ```
 
+The following enricher methods are available:
+
+| Method                                                                    | Description                                     |
+| ------------------------------------------------------------------------- | ----------------------------------------------- |
+| `EnrichExecuteRequest(RequestContext, Activity)`                          | Enrich the root request execution span.         |
+| `EnrichParserErrors(HttpContext, IReadOnlyList<IError>, Activity)`        | Enrich when parser errors occur.                |
+| `EnrichRequestError(RequestContext, Exception, Activity)`                 | Enrich when a request error occurs (exception). |
+| `EnrichRequestError(RequestContext, IError, Activity)`                    | Enrich when a request error occurs (IError).    |
+| `EnrichValidationErrors(RequestContext, IReadOnlyList<IError>, Activity)` | Enrich when validation errors occur.            |
+| `EnrichAnalyzeOperationCost(RequestContext, Activity)`                    | Enrich the operation cost analysis span.        |
+| `EnrichParseDocument(RequestContext, Activity)`                           | Enrich the document parsing span.               |
+| `EnrichValidateDocument(RequestContext, Activity)`                        | Enrich the document validation span.            |
+| `EnrichResolveFieldValue(IMiddlewareContext, Activity)`                   | Enrich an individual field resolver span.       |
+| `EnrichResolverError(IMiddlewareContext, IError, Activity)`               | Enrich when a field resolver error occurs.      |
+| `EnrichExecuteBatch<TKey>(IDataLoader, IReadOnlyList<TKey>, Activity)`    | Enrich a DataLoader batch span.                 |
+
+> Note: Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic convention attributes are applied by the instrumentation itself. Custom enrichers only add extra information.
+
 ![Jaeger](../../../shared/jaeger4.png)
+
+# Troubleshooting
+
+## No spans appear in the tracing backend
+
+Verify that you have called both `AddInstrumentation()` on the GraphQL server configuration and `AddHotChocolateInstrumentation()` on the OpenTelemetry tracing builder. Both are required.
+
+## Missing field-level spans
+
+Field-level spans are disabled by default because they add overhead for every resolver. Enable them by setting `o.Scopes = ActivityScopes.All` in the `AddInstrumentation` options. Alternatively, override `EnableResolveFieldValue` in a custom `ExecutionDiagnosticEventListener`.
+
+## Custom enricher not called
+
+Ensure the enricher is registered as a singleton (`AddSingleton<ActivityEnricher, CustomActivityEnricher>()`) and cross-registered in the schema services with `AddApplicationService<ActivityEnricher>()`.
+
+# Next Steps
+
+- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on streaming transports and response formatting.
+- [Warmup](/docs/hotchocolate/v16/server/warmup) for pre-populating caches at startup.
+- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16) for the full list of renamed and removed instrumentation attributes.

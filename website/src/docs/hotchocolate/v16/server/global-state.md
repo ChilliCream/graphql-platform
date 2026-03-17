@@ -2,13 +2,13 @@
 title: Global State
 ---
 
-Global State allows us to define properties on a per-request basis to be made available to all resolvers and middleware.
+Global State lets you define properties on a per-request basis and makes them available to all resolvers and middleware.
 
 # Initializing Global State
 
-We can add Global State using the `SetProperty` method on the `OperationRequestBuilder`. This method takes a `key` and a `value` as an argument. While the `key` needs to be a `string` the value can be of any type.
+Add Global State using the `SetProperty` method on the `OperationRequestBuilder`. This method takes a `key` and a `value` as arguments. The `key` must be a `string`, and the value can be of any type.
 
-Using an interceptor allows us to initialize the Global State before the request is being executed.
+Using an interceptor lets you initialize Global State before the request is executed.
 
 ```csharp
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -34,7 +34,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 
 # Accessing Global State
 
-We can access the Global State in our resolvers like the following.
+Access Global State in your resolvers as follows.
 
 <ExampleTabs>
 <Implementation>
@@ -54,9 +54,9 @@ public class Query
 }
 ```
 
-The `GlobalStateAttribute` accepts the `key` of the Global State `value` as an argument. An exception is thrown if no Global State value exists for the specified `key` or if the `value` can not be coerced to the type of the argument.
+The `GlobalStateAttribute` accepts the `key` of the Global State `value` as an argument. An exception is thrown if no Global State value exists for the specified `key` or if the `value` cannot be coerced to the type of the argument.
 
-It's a good practice to create a new attribute inheriting from `GlobalStateAttribute`.
+Creating a custom attribute that inherits from `GlobalStateAttribute` is a good practice:
 
 ```csharp
 public class UserIdAttribute : GlobalStateAttribute
@@ -96,9 +96,9 @@ public class QueryType : ObjectType
 }
 ```
 
-> Warning: If no value exists for the specified `key` a default value is returned an no exception is thrown.
+> Warning: If no value exists for the specified `key`, a default value is returned and no exception is thrown.
 
-We can also access the Global State through the `ContextData` dictionary on the `IResolverContext`.
+You can also access Global State through the `ContextData` dictionary on the `IResolverContext`:
 
 ```csharp
 descriptor
@@ -122,3 +122,18 @@ Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
+
+# Troubleshooting
+
+## GlobalState value is null or missing
+
+Verify that the interceptor sets the property before calling `base.OnCreateAsync`. Check that the key matches exactly (keys are case-sensitive).
+
+## Exception when accessing GlobalState
+
+The `[GlobalState]` attribute throws an exception when the key does not exist or the value cannot be cast to the target type. If the value might be absent, make the parameter nullable (for example, `string?`).
+
+# Next Steps
+
+- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for initializing state before request execution.
+- [Dependency Injection](/docs/hotchocolate/v16/server/dependency-injection) for injecting services into resolvers.

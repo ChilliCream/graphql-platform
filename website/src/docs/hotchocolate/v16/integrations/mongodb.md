@@ -1,24 +1,21 @@
 ---
 title: MongoDB
+description: Learn how to integrate MongoDB with Hot Chocolate v16, including filtering, sorting, projections, and pagination.
 ---
 
-Hot Chocolate has a data integration for MongoDB.
-With this integration, you can translate paging, filtering, sorting, and projections, directly into native MongoDB queries.
+Hot Chocolate has a data integration for MongoDB. With this integration, you can translate paging, filtering, sorting, and projections directly into native MongoDB queries.
 
-You can find an example project in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MongoDB)
+You can find an example project in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MongoDB).
 
 # Get Started
 
-To use the MongoDB integration, you need to install the package `HotChocolate.Data.MongoDb`.
+Install the `HotChocolate.Data.MongoDb` package:
 
 <PackageInstallation packageName="HotChocolate.Data.MongoDb" />
 
 # MongoExecutable
 
-The whole integration builds around `IExecutable<T>`.
-The integration provides you the extension method `AsExecutable` on `IMongoCollection<T>`, `IAggregateFluent<T>` and `IFindFluent<T>`
-The execution engine picks up the `IExecutable` and executes it efficiently.
-You are free to use any form of aggregation or find a pipeline before you execute `AsExecutable`
+The integration builds around `IExecutable<T>`. The `AsExecutable` extension method is available on `IMongoCollection<T>`, `IAggregateFluent<T>`, and `IFindFluent<T>`. The execution engine picks up the `IExecutable` and executes it efficiently. You can use any aggregation or find pipeline before calling `AsExecutable`.
 
 ```csharp
 [UsePaging]
@@ -31,7 +28,8 @@ public IExecutable<Person> GetPersons(IMongoCollection<Person> collection)
 }
 
 [UseFirstOrDefault]
-public IExecutable<Person> GetPersonById(IMongoCollection<Person> collection, Guid id)
+public IExecutable<Person> GetPersonById(
+    IMongoCollection<Person> collection, Guid id)
 {
     return collection.Find(x => x.Id == id).AsExecutable();
 }
@@ -39,7 +37,7 @@ public IExecutable<Person> GetPersonById(IMongoCollection<Person> collection, Gu
 
 # Filtering
 
-To use MongoDB filtering you need to register the convention on the schema builder:
+Register the MongoDB filtering convention on the schema builder:
 
 ```csharp
 builder.Services
@@ -48,11 +46,9 @@ builder.Services
     .AddMongoDbFiltering();
 ```
 
-> To use MongoDB filtering alongside with `IQueryable`/`IEnumerable`, you have to register the MongoDB convention under a different scope.
-> You can specify the scope on the schema builder by executing `AddMongoDbFiltering("yourScope")`.
-> You then have to specify this scope on each method you use MongoDb filtering: `[UseFiltering(Scope = "yourScope")]` or `UseFiltering(scope = "yourScope")`
+> To use MongoDB filtering alongside `IQueryable`/`IEnumerable`, register the MongoDB convention under a different scope: `AddMongoDbFiltering("yourScope")`. Then specify the scope on each resolver: `[UseFiltering(Scope = "yourScope")]`.
 
-Your filters are now converted to `BsonDocument`s and applied to the executable.
+Filters are converted to `BsonDocument`s and applied to the executable.
 
 _GraphQL Query:_
 
@@ -73,7 +69,7 @@ query GetPersons {
 }
 ```
 
-_Mongo Query_
+_Mongo Query:_
 
 ```json
 {
@@ -87,7 +83,7 @@ _Mongo Query_
 
 # Sorting
 
-To use MongoDB sorting you need to register the convention on the schema builder:
+Register the MongoDB sorting convention on the schema builder:
 
 ```csharp
 builder.Services
@@ -96,11 +92,9 @@ builder.Services
     .AddMongoDbSorting();
 ```
 
-> To use MongoDB Sorting alongside with `IQueryable`/`IEnumerable`, you have to register the MongoDB convention under a different scope.
-> You can specify the scope on the schema builder by executing `AddMongoDbSorting("yourScope")`.
-> You then have to specify this scope on each method you use MongoDb Sorting: `[UseSorting(Scope = "yourScope")]` or `UseSorting(scope = "yourScope")`
+> To use MongoDB sorting alongside `IQueryable`/`IEnumerable`, register the MongoDB convention under a different scope: `AddMongoDbSorting("yourScope")`. Then specify the scope on each resolver: `[UseSorting(Scope = "yourScope")]`.
 
-Your sorting is now converted to `BsonDocument`s and applied to the executable.
+Sorting is converted to `BsonDocument`s and applied to the executable.
 
 _GraphQL Query:_
 
@@ -116,7 +110,7 @@ query GetPersons {
 }
 ```
 
-_Mongo Query_
+_Mongo Query:_
 
 ```json
 {
@@ -128,7 +122,7 @@ _Mongo Query_
 
 # Projections
 
-To use MongoDB projections you need to register the convention on the schema builder:
+Register the MongoDB projection convention on the schema builder:
 
 ```csharp
 builder.Services
@@ -137,13 +131,9 @@ builder.Services
     .AddMongoDbProjections();
 ```
 
-> To use MongoDB Projections alongside with `IQueryable`/`IEnumerable`, you have to register the MongoDB convention under a different scope.
-> You can specify the scope on the schema builder by executing `AddMongoDbProjections("yourScope")`.
-> You then have to specify this scope on each method you use MongoDb Projections: `[UseProjections(Scope = "yourScope")]` or `UseProjections(scope = "yourScope")`
+> To use MongoDB projections alongside `IQueryable`/`IEnumerable`, register the MongoDB convention under a different scope: `AddMongoDbProjections("yourScope")`. Then specify the scope on each resolver: `[UseProjection(Scope = "yourScope")]`.
 
-Projections do not always lead to a performance increase.
-Even though MongoDB processes and transfers less data, it more often than not harms query performance.
-This [Medium article by Tek Loon](https://betterprogramming.pub/improve-mongodb-performance-using-projection-c08c38334269) explains how and when to use projections well.
+Projections do not always improve performance. Even though MongoDB processes and transfers less data, projections can sometimes harm query performance. See [this article by Tek Loon](https://betterprogramming.pub/improve-mongodb-performance-using-projection-c08c38334269) for guidance on when to use them.
 
 _GraphQL Query:_
 
@@ -158,7 +148,7 @@ query GetPersons {
 }
 ```
 
-_Mongo Query_
+_Mongo Query:_
 
 ```json
 {
@@ -170,7 +160,7 @@ _Mongo Query_
 
 # Paging
 
-In order to use pagination with MongoDB, we have to register the MongoDB specific pagination providers.
+Register the MongoDB-specific pagination providers:
 
 ```csharp
 builder.Services
@@ -182,7 +172,7 @@ builder.Services
 
 ## Cursor Pagination
 
-To use cursor based pagination annotate your resolver with `[UsePaging]` or `.UsePaging()`
+Annotate your resolver with `[UsePaging]` or `.UsePaging()` to use cursor-based pagination:
 
 ```csharp
 [UsePaging]
@@ -192,7 +182,7 @@ public IExecutable<Person> GetPersons(IMongoCollection<Person> collection)
 }
 ```
 
-You can then execute queries like the following one:
+Example query:
 
 ```graphql
 query GetPersons {
@@ -213,49 +203,34 @@ query GetPersons {
 }
 ```
 
-## Offset Pagination
-
-To use offset based pagination annotate your resolver with `[UseOffsetPaging]` or `.UseOffsetPaging()`
-
-```csharp
-[UseOffsetPaging]
-public IExecutable<Person> GetPersons(IMongoCollection<Person> collection)
-{
-    return collection.AsExecutable();
-}
-```
-
-You can then execute queries like the following one:
-
-```graphql
-query GetPersons {
-  persons(skip: 50, take: 50) {
-    items {
-      name
-      addresses {
-        city
-      }
-    }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-    }
-  }
-}
-```
-
 # FirstOrDefault / SingleOrDefault
 
-Sometimes you may want to return only a single object of a collection.
-To limit the response to one element you can use the `UseFirstOrDefault` or `UseSingleOrDefault` middleware.
-Hot Chocolate will rewrite the type of the field from a list type to an object type.
+To return a single object from a collection, use the `UseFirstOrDefault` or `UseSingleOrDefault` middleware. Hot Chocolate rewrites the field type from a list to an object type.
 
 ```csharp
 [UseFirstOrDefault]
-public IExecutable<Person> GetPersonById(IMongoCollection<Person> collection, Guid id)
+public IExecutable<Person> GetPersonById(
+    IMongoCollection<Person> collection, Guid id)
 {
     return collection.Find(x => x.Id == id).AsExecutable();
 }
 ```
+
+# Troubleshooting
+
+**Filters are not applied to the query**
+Verify that you registered `AddMongoDbFiltering()` on the schema builder. If you are using MongoDB alongside `IQueryable`, confirm that you set the correct scope on both the registration and the resolver attribute.
+
+**Sorting has no effect**
+Confirm that `AddMongoDbSorting()` is registered. Check that the field names in the sort input match the property names in your MongoDB model.
+
+**Projections cause errors or unexpected results**
+Not all query patterns benefit from projections. If you encounter issues, try removing `[UseProjection]` to determine whether projections are the cause.
+
+# Next Steps
+
+- [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for pagination setup
+- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for filtering concepts
+- [Executable](/docs/hotchocolate/v16/api-reference/executable) for the `IExecutable` abstraction
 
 <!-- spell-checker:ignore Shorton -->

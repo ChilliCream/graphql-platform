@@ -2,11 +2,11 @@
 title: Introspection
 ---
 
-Introspection is what enables GraphQL's rich tooling ecosystem as well powerful IDEs like [Nitro](/products/nitro) or GraphiQL.
+Introspection is what enables GraphQL's rich tooling ecosystem and powerful IDEs like [Nitro](/products/nitro) or GraphiQL.
 
-Every GraphQL server exposes a `__schema` and `__type` field on the query type as well as an `__typename` field on each type. These fields are used to gain insights into the schema of our GraphQL server.
+Every GraphQL server exposes a `__schema` and `__type` field on the query type as well as a `__typename` field on each type. These fields provide insights into the schema of your GraphQL server.
 
-Using the `__schema` field, we could for example list the names of all types our GraphQL server contains:
+Using the `__schema` field, you could list the names of all types your GraphQL server contains:
 
 ```graphql
 {
@@ -18,7 +18,7 @@ Using the `__schema` field, we could for example list the names of all types our
 }
 ```
 
-We could also request the fields plus their arguments of a specific type using the `__type` field:
+You could also request the fields plus their arguments of a specific type using the `__type` field:
 
 ```graphql
 {
@@ -36,7 +36,7 @@ We could also request the fields plus their arguments of a specific type using t
 }
 ```
 
-The `__typename` field will most likely be the introspection feature we as regular developers will be using the most. When working with [unions](/docs/hotchocolate/v16/defining-a-schema/unions) for example it can tell us the name of the type that's being returned, allowing us to handle the result accordingly.
+The `__typename` field is the introspection feature you will use the most in day-to-day development. When working with [unions](/docs/hotchocolate/v16/building-a-schema/unions), for example, it tells you the name of the type being returned, letting you handle the result accordingly.
 
 ```graphql
 {
@@ -52,15 +52,15 @@ The `__typename` field will most likely be the introspection feature we as regul
 }
 ```
 
-While these fields can be useful to us, they are mainly intended for use in developer tooling and as regular developers we are unlikely required to write our own introspection queries on a daily basis.
+While these fields can be useful to you directly, they are mainly intended for developer tooling. You are unlikely to write your own introspection queries on a daily basis.
 
 [Learn more about introspection](https://graphql.org/learn/introspection)
 
-# Disabling introspection
+# Disabling Introspection
 
-While introspection is a powerful feature that can tremendously improve our development workflow, it can also be used as an attack vector. A malicious user could for example request all details about all the types of our GraphQL server. Depending on the number of types this can degrade the performance of our GraphQL server. If our API should not be browsed by other developers we have the option to disable the introspection feature.
+While introspection is a powerful feature that can improve your development workflow, it can also be used as an attack vector. A malicious user could request all details about all types in your GraphQL server. Depending on the number of types, this can degrade performance. If your API should not be browsable by other developers, you have the option to disable introspection.
 
-We can disable introspection by calling `AllowIntrospection()` with a `false` argument on the `IRequestExecutorBuilder`.
+Disable introspection by calling `AllowIntrospection()` with a `false` argument on the `IRequestExecutorBuilder`:
 
 ```csharp
 builder.Services
@@ -68,9 +68,9 @@ builder.Services
     .AllowIntrospection(false);
 ```
 
-While clients can still issue introspection queries, Hot Chocolate will now return an error response.
+While clients can still issue introspection queries, Hot Chocolate returns an error response.
 
-But we most likely do not want to disable introspection while developing, so we can toggle it based on the current hosting environment.
+You most likely do not want to disable introspection while developing, so you can toggle it based on the current hosting environment:
 
 ```csharp
 builder.Services
@@ -78,9 +78,9 @@ builder.Services
     .AllowIntrospection(builder.Environment.IsDevelopment());
 ```
 
-## Allowlisting requests
+## Allowlisting Requests
 
-We can allow introspection on a per-request basis, while keeping it disabled for the majority of requests. In order to do this we need to create a request interceptor and determine based on the request, i.e. the `HttpContext`, whether we want to allow introspection or not.
+You can allow introspection on a per-request basis while keeping it disabled for the majority of requests. Create a request interceptor and determine based on the request (the `HttpContext`) whether to allow introspection.
 
 ```csharp
 public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
@@ -103,16 +103,16 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    // We disable introspection per default
+    // Disable introspection by default
     .AllowIntrospection(false)
     .AddHttpRequestInterceptor<IntrospectionInterceptor>();
 ```
 
 [Learn more about interceptors](/docs/hotchocolate/v16/server/interceptors)
 
-## Custom error message
+## Custom Error Message
 
-If a client tries to execute an introspection query whilst introspection is not allowed, he will receive an error message similar to the following:
+If a client tries to execute an introspection query when introspection is not allowed, they receive an error message similar to the following:
 
 ```json
 {
@@ -134,7 +134,7 @@ If a client tries to execute an introspection query whilst introspection is not 
 }
 ```
 
-If we need to customize the error message, we can do so in our request interceptor as well.
+If you need to customize the error message, do so in your request interceptor:
 
 ```csharp
 public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
@@ -149,7 +149,7 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
         }
         else
         {
-            // the header is not present i.e. introspection continues
+            // the header is not present, introspection continues
             // to be disallowed
             requestBuilder.SetIntrospectionNotAllowedMessage(
                 "Missing `X-Allow-Introspection` header");
@@ -160,3 +160,19 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
     }
 }
 ```
+
+# Troubleshooting
+
+## Introspection queries fail in development
+
+Verify that `AllowIntrospection` is set to `true` (or uses `builder.Environment.IsDevelopment()`) in your GraphQL server configuration. When using a per-request interceptor, check that the expected header is being sent.
+
+## Nitro cannot load the schema
+
+If Nitro cannot load the schema, introspection might be disabled. Enable it for development environments or configure the interceptor to allow introspection for Nitro requests.
+
+# Next Steps
+
+- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for per-request customization.
+- [Security](/docs/hotchocolate/v16/security) for a broader look at securing your GraphQL server.
+- [Endpoints](/docs/hotchocolate/v16/server/endpoints) for configuring the Nitro IDE.

@@ -2,11 +2,11 @@
 title: Endpoints
 ---
 
-Hot Chocolate comes with a set of ASP.NET Core middleware used for making the GraphQL server available via HTTP and WebSockets. There are also middleware for hosting our GraphQL IDE [Nitro](/products/nitro) as well as an endpoint used for downloading the schema in its SDL representation.
+Hot Chocolate provides a set of ASP.NET Core middleware for making the GraphQL server available via HTTP and WebSockets. There are also middleware for hosting the [Nitro](/products/nitro) GraphQL IDE and an endpoint for downloading the schema in its SDL representation.
 
 # MapGraphQL
 
-We can call `MapGraphQL()` on the `IEndpointRouteBuilder` to register all of the middleware a standard GraphQL server requires.
+Call `MapGraphQL()` on the `IEndpointRouteBuilder` to register all of the middleware a standard GraphQL server requires.
 
 ```csharp
 app.UseRouting();
@@ -17,7 +17,7 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-If you are using .NET 6 Minimal APIs, you can also call `MapGraphQL()` on the `app` builder directly, since it implements `IEndpointRouteBuilder`:
+With .NET 6+ Minimal APIs, you can call `MapGraphQL()` on the `app` builder directly since it implements `IEndpointRouteBuilder`:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -31,22 +31,22 @@ app.MapGraphQL();
 app.Run();
 ```
 
-The middleware registered by `MapGraphQL` makes the GraphQL server available at `/graphql` per default.
+The middleware registered by `MapGraphQL` makes the GraphQL server available at `/graphql` by default.
 
-We can customize the endpoint at which the GraphQL server is hosted like the following.
+You can customize the endpoint:
 
 ```csharp
 endpoints.MapGraphQL("/my/graphql/endpoint");
 ```
 
-Calling `MapGraphQL()` will enable the following functionality on the specified endpoint:
+Calling `MapGraphQL()` enables the following functionality on the specified endpoint:
 
 - HTTP GET and HTTP POST GraphQL requests are handled (Multipart included)
-- WebSocket GraphQL requests are handled (if the ASP.NET Core WebSocket Middleware has been registered)
-- Including the query string `?sdl` after the endpoint will download the GraphQL schema
-- Accessing the endpoint from a browser will load our GraphQL IDE [Nitro](/products/nitro)
+- WebSocket GraphQL requests are handled (if the ASP.NET Core WebSocket middleware has been registered)
+- Including the query string `?sdl` after the endpoint downloads the GraphQL schema
+- Accessing the endpoint from a browser loads the [Nitro](/products/nitro) GraphQL IDE
 
-We can customize the combined middleware using `GraphQLServerOptions` as shown below or we can only include the parts of the middleware we need and configure them explicitly.
+You can customize the combined middleware using `GraphQLServerOptions` as shown below, or include only the parts of the middleware you need and configure them individually.
 
 The following middleware are available:
 
@@ -57,7 +57,7 @@ The following middleware are available:
 
 ## GraphQLServerOptions
 
-We can influence the behavior of the middleware registered by `MapGraphQL` using `GraphQLServerOptions`.
+You can influence the behavior of the middleware registered by `MapGraphQL` using `GraphQLServerOptions`.
 
 ### EnableSchemaRequests
 
@@ -73,7 +73,7 @@ This setting controls whether the schema of the GraphQL server can be downloaded
 endpoints.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
 ```
 
-This setting controls whether the GraphQL server is able to handle GraphQL operations sent via the query string in a HTTP GET request.
+This setting controls whether the GraphQL server handles GraphQL operations sent via the query string in an HTTP GET request.
 
 ### AllowedGetOperations
 
@@ -81,9 +81,9 @@ This setting controls whether the GraphQL server is able to handle GraphQL opera
 endpoints.MapGraphQL().WithOptions(o => o.AllowedGetOperations = AllowedGetOperations.Query);
 ```
 
-If [EnableGetRequests](#enablegetrequests) is `true` we can control the allowed operations for HTTP GET requests using the `AllowedGetOperations` setting.
+If [EnableGetRequests](#enablegetrequests) is `true`, you can control the allowed operations for HTTP GET requests using the `AllowedGetOperations` setting.
 
-Per default only queries are accepted via HTTP GET. We can also allow mutations by setting `AllowedGetOperations` to `AllowedGetOperations.QueryAndMutation`.
+By default, only queries are accepted via HTTP GET. You can also allow mutations by setting `AllowedGetOperations` to `AllowedGetOperations.QueryAndMutation`.
 
 ### EnableMultipartRequests
 
@@ -91,15 +91,15 @@ Per default only queries are accepted via HTTP GET. We can also allow mutations 
 endpoints.MapGraphQL().WithOptions(o => o.EnableMultipartRequests = false);
 ```
 
-This setting controls whether the GraphQL server is able to handle HTTP Multipart forms, i.e. file uploads.
+This setting controls whether the GraphQL server handles HTTP multipart forms (file uploads).
 
 [Learn more about uploading files](/docs/hotchocolate/v16/server/files#upload-scalar)
 
 ### Tool
 
-We can specify options for Nitro using the `Tool` property.
+You can specify options for Nitro using the `Tool` property.
 
-We could for example only enable Nitro during development.
+For example, you could enable Nitro only during development:
 
 ```csharp
 app.UseRouting();
@@ -114,7 +114,7 @@ app.UseEndpoints(endpoints =>
 
 # MapNitroApp
 
-We can call `MapNitroApp()` on the `IEndpointRouteBuilder` to serve [Nitro](/products/nitro) on a different endpoint than the actual GraphQL endpoint.
+Call `MapNitroApp()` on the `IEndpointRouteBuilder` to serve [Nitro](/products/nitro) on a different endpoint than the actual GraphQL endpoint.
 
 ```csharp
 app.UseRouting();
@@ -125,11 +125,11 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-This would make Nitro accessible via a Web Browser at the `/graphql/ui` endpoint.
+This makes Nitro accessible via a web browser at the `/graphql/ui` endpoint.
 
 ## NitroAppOptions
 
-We can configure Nitro using `NitroAppOptions`.
+You can configure Nitro using `NitroAppOptions`.
 
 ### Enable
 
@@ -137,7 +137,7 @@ We can configure Nitro using `NitroAppOptions`.
 endpoints.MapNitroApp("/ui").WithOptions(o => o.Enable = false);
 ```
 
-This setting controls whether Nitro should be served or not.
+This setting controls whether Nitro is served.
 
 ### GraphQLEndpoint
 
@@ -153,7 +153,7 @@ This setting sets the GraphQL endpoint to use when creating new documents within
 endpoints.MapNitroApp("/ui").WithOptions(o => o.UseBrowserUrlAsGraphQLEndpoint = true);
 ```
 
-If set to `true` the current Web Browser URL is treated as the GraphQL endpoint when creating new documents within Nitro.
+If set to `true`, the current browser URL is treated as the GraphQL endpoint when creating new documents within Nitro.
 
 > Warning: [GraphQLEndpoint](#graphqlendpoint) takes precedence over this setting.
 
@@ -163,7 +163,7 @@ If set to `true` the current Web Browser URL is treated as the GraphQL endpoint 
 endpoints.MapNitroApp("/ui").WithOptions(o => o.Document = "{ __typename }");
 ```
 
-This setting allows us to set a default GraphQL document that should be a placeholder for each new document created using Nitro.
+This setting lets you set a default GraphQL document that serves as a placeholder for each new document created using Nitro.
 
 ### UseGet
 
@@ -185,7 +185,7 @@ endpoints.MapNitroApp("/ui").WithOptions(o =>
 });
 ```
 
-This setting allows us to specify default HTTP Headers that will be added to each new document created using Nitro.
+This setting lets you specify default HTTP headers that are added to each new document created using Nitro.
 
 ### IncludeCookies
 
@@ -193,7 +193,7 @@ This setting allows us to specify default HTTP Headers that will be added to eac
 endpoints.MapNitroApp("/ui").WithOptions(o => o.IncludeCookies = true);
 ```
 
-This setting specifies the default for including cookies in cross-origin when creating new documents within Nitro.
+This setting specifies the default for including cookies in cross-origin requests when creating new documents within Nitro.
 
 ### Title
 
@@ -201,7 +201,7 @@ This setting specifies the default for including cookies in cross-origin when cr
 endpoints.MapNitroApp("/ui").WithOptions(o => o.Title = "My GraphQL explorer");
 ```
 
-This setting controls the tab name, when Nitro is opened inside of a Web Browser.
+This setting controls the tab name when Nitro is opened inside a web browser.
 
 ### DisableTelemetry
 
@@ -209,7 +209,7 @@ This setting controls the tab name, when Nitro is opened inside of a Web Browser
 endpoints.MapNitroApp("/ui").WithOptions(o => o.DisableTelemetry = true);
 ```
 
-This setting allows us to disable telemetry events.
+This setting lets you disable telemetry events.
 
 ### GaTrackingId
 
@@ -217,7 +217,7 @@ This setting allows us to disable telemetry events.
 endpoints.MapNitroApp("/ui").WithOptions(o => o.GaTrackingId = "google-analytics-id");
 ```
 
-This setting allows us to set a custom Google Analytics Id, which in turn allows us to gain insights into the usage of Nitro hosted as part of our GraphQL server.
+This setting lets you set a custom Google Analytics ID, which allows you to gain insights into the usage of Nitro hosted as part of your GraphQL server.
 
 The following information is collected:
 
@@ -231,7 +231,7 @@ The following information is collected:
 
 # MapGraphQLHttp
 
-We can call `MapGraphQLHttp()` on the `IEndpointRouteBuilder` to make our GraphQL server available via HTTP at a specific endpoint.
+Call `MapGraphQLHttp()` on the `IEndpointRouteBuilder` to make your GraphQL server available via HTTP at a specific endpoint.
 
 ```csharp
 app.UseRouting();
@@ -242,11 +242,11 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-With the above configuration we could now issue HTTP GET / POST requests against the `/graphql/http` endpoint.
+With the above configuration, you can issue HTTP GET/POST requests against the `/graphql/http` endpoint.
 
 ## GraphQLServerOptions
 
-The HTTP endpoint can also be configured with per-endpoint overrides using `WithOptions`.
+The HTTP endpoint can also be configured with per-endpoint overrides using `WithOptions`:
 
 ```csharp
 endpoints.MapGraphQLHttp("/graphql/http").WithOptions(o => o.EnableGetRequests = false);
@@ -258,7 +258,7 @@ The same `GraphQLServerOptions` properties available on `MapGraphQL` can be over
 
 # MapGraphQLWebsocket
 
-We can call `MapGraphQLWebSocket()` on the `IEndpointRouteBuilder` to make our GraphQL server available via WebSockets at a specific endpoint.
+Call `MapGraphQLWebSocket()` on the `IEndpointRouteBuilder` to make your GraphQL server available via WebSockets at a specific endpoint.
 
 ```csharp
 app.UseRouting();
@@ -269,11 +269,11 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-With the above configuration we could now issue GraphQL subscription requests via WebSocket against the `/graphql/ws` endpoint.
+With the above configuration, you can issue GraphQL subscription requests via WebSocket against the `/graphql/ws` endpoint.
 
 # MapGraphQLSchema
 
-We can call `MapGraphQLSchema()` on the `IEndpointRouteBuilder` to make our GraphQL schema available at a specific endpoint.
+Call `MapGraphQLSchema()` on the `IEndpointRouteBuilder` to make your GraphQL schema available at a specific endpoint.
 
 ```csharp
 app.UseRouting();
@@ -284,4 +284,20 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-With the above configuration we could now download our `schema.graphql` file from the `/graphql/schema` endpoint.
+With the above configuration, you can download your `schema.graphql` file from the `/graphql/schema` endpoint.
+
+# Troubleshooting
+
+## Nitro not loading in the browser
+
+Check that the `Tool.Enable` setting is not set to `false`. In production environments, Nitro is often disabled. Set `o.Tool.Enable = true` or conditionally enable it based on the hosting environment.
+
+## WebSocket requests not working
+
+Ensure that the ASP.NET Core WebSocket middleware is registered before calling `MapGraphQL()`. Add `app.UseWebSockets()` to your middleware pipeline.
+
+# Next Steps
+
+- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on request and response formatting.
+- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for hooking into request processing.
+- [Introspection](/docs/hotchocolate/v16/server/introspection) for controlling schema visibility.

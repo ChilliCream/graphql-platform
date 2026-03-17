@@ -4,322 +4,60 @@ title: Cost Analysis
 
 import { List, Panel, Tab, Tabs } from "../../../../components/mdx/tabs";
 
-<Video videoId="R6Rq4kU_GfM" />
+If you expose a GraphQL API to the public internet, you cannot predict what queries clients will send. A single deeply nested query requesting thousands of nodes can bring your server to its knees. Cost analysis prevents this by calculating the cost of a query before executing it and rejecting queries that exceed your budget.
 
-Cost analysis is a useful tool to make your API more secure. With Hot Chocolate, static cost analysis is built in, and is based on the draft [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html).
+Hot Chocolate implements static cost analysis based on the draft [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html). It assigns weights to fields and estimates list sizes, then computes two metrics: **field cost** (execution impact) and **type cost** (data impact). Queries that exceed either limit are rejected before any resolver runs.
 
-# Directives
+# Why This Matters for Public APIs
 
-## Cost directive
-
-The purpose of the `@cost` directive is to define a weight for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response.
-
-The `weight` argument defines what value to add to the overall cost for every
-appearance, or possible appearance, of a type, field, argument, etc.
-
-The `@cost` directive can be applied to argument definitions, enums, field definitions, input field definitions, object types, and scalars.
-
-## List Size directive
-
-The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information.
-
-- The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field.
-- The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments.
-- The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields.
-- The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis will throw an error.
-
-The `@listSize` directive can only be applied to field definitions.
-
-# Defaults
-
-By default, Hot Chocolate will apply a cost weight of `10` to async resolvers, `1` to composite types, and `0` to scalar fields.
-
-Filtering and sorting field arguments and operations also have default cost weights, as shown in their respective [Options](#options) section below.
-
-Finally, resolvers using pagination will have list size settings applied automatically:
-
-<Tabs defaultValue={"connection"}>
-<List>
-<Tab value="connection">Connection</Tab>
-<Tab value="offset">Offset</Tab>
-</List>
-
-  <Panel value="connection">
+With REST, each endpoint has a predictable cost. You know that `GET /users` returns a page of users and takes a roughly constant amount of server time. With GraphQL, a client can construct a query that fans out across relationships:
 
 ```graphql
-books(first: Int, after: String, last: Int, before: String): BooksConnection
-  @listSize(
-    assumedSize: 50
-    slicingArguments: ["first", "last"]
-    sizedFields: ["edges", "nodes"]
-  )
-  @cost(weight: "10")
-```
-
-  </Panel>
-  <Panel value="offset">
-
-```graphql
-books(skip: Int, take: Int): BooksCollectionSegment
-  @listSize(
-    assumedSize: 50
-    slicingArguments: ["take"]
-    sizedFields: ["items"]
-  )
-  @cost(weight: "10")
-```
-
-  </Panel>
-</Tabs>
-
-# Applying a cost weight
-
-<ExampleTabs>
-
-<Implementation>
-
-When using an implementation-first approach, apply the `Cost` attribute to the query resolver.
-
-```csharp
-[QueryType]
-public static class Query
-{
-    [Cost(100)]
-    public static Book GetBook() => new("C# in depth.", new Author("Jon Skeet"));
-}
-```
-
-</Implementation>
-
-<Code>
-
-When using a code-first implementation, invoke the `Cost` method on the `IObjectFieldDescriptor`.
-
-```csharp
-public sealed class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor.Name(OperationTypeNames.Query);
-
-        descriptor
-            .Field("book")
-            .Resolve(_ => new Book("C# in depth.", new Author("Jon Skeet")))
-            .Cost(100);
+query {
+  users(first: 50) {
+    edges {
+      node {
+        orders(first: 50) {
+          edges {
+            node {
+              items(first: 50) {
+                edges {
+                  node {
+                    product {
+                      reviews(first: 50) {
+                        edges {
+                          node {
+                            author {
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
+  }
 }
 ```
 
-</Code>
+This query requests up to 50 x 50 x 50 x 50 = 6,250,000 nodes. Without cost analysis, the server would attempt to resolve all of them.
 
-<Schema>
+Cost analysis catches this at validation time and rejects the query before it consumes resources.
 
-When using a schema-first implementation, apply the `@cost` directive to the field.
+# How Cost Is Calculated
 
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(
-        """
-        type Query {
-            book: Book @cost(weight: "100")
-        }
+Hot Chocolate assigns default weights and computes two metrics:
 
-        type Book {
-            title: String!
-            author: Author!
-        }
+- **Field cost** represents the execution impact on the server. Async resolvers default to `10`, composite types to `1`, and scalars to `0`.
+- **Type cost** represents the number of objects the server instantiates.
 
-        type Author {
-            name: String!
-        }
-        """)
-    .BindRuntimeType<Query>();
-
-public sealed class Query
-{
-    public Book GetBook() => new("C# in depth.", new Author("Jon Skeet"));
-}
-```
-
-</Schema>
-
-</ExampleTabs>
-
-# Applying list size settings
-
-<ExampleTabs>
-
-<Implementation>
-
-When using an implementation-first approach, apply the `ListSize` attribute to a query resolver returning a list of items.
-
-```csharp
-[QueryType]
-public static class Query
-{
-    [ListSize(
-        AssumedSize = 100,
-        SlicingArguments = ["first", "last"],
-        SizedFields = ["edges", "nodes"],
-        RequireOneSlicingArgument = false)]
-    public static IEnumerable<Book> GetBooks()
-        => [new("C# in depth.", new Author("Jon Skeet"))];
-}
-```
-
-</Implementation>
-
-<Code>
-
-When using a code-first implementation, invoke the `ListSize` method on the `IObjectFieldDescriptor`.
-
-```csharp
-public sealed class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor.Name(OperationTypeNames.Query);
-
-        descriptor
-            .Field("books")
-            .Resolve<IEnumerable<Book>>(
-                _ => [new Book("C# in depth.", new Author("Jon Skeet"))])
-            .ListSize(
-                assumedSize: 100,
-                slicingArguments: ["first", "last"],
-                sizedFields: ["edges", "nodes"],
-                requireOneSlicingArgument: false);
-    }
-}
-```
-
-</Code>
-
-<Schema>
-
-When using a schema-first implementation, apply the `@listSize` directive to a field returning a list of items.
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(
-        """
-        type Query {
-            books: [Book!]!
-                @listSize(
-                    assumedSize: 100,
-                    slicingArguments: ["first", "last"],
-                    sizedFields: ["edges", "nodes"],
-                    requireOneSlicingArgument: false
-                )
-        }
-
-        type Book {
-            title: String!
-            author: Author!
-        }
-
-        type Author {
-            name: String!
-        }
-        """)
-    .BindRuntimeType<Query>();
-
-public sealed class Query
-{
-    public IEnumerable<Book> GetBooks()
-        => [new("C# in depth.", new Author("Jon Skeet"))];
-}
-```
-
-</Schema>
-
-</ExampleTabs>
-
-# Cost metrics
-
-Cost metrics include two properties, `FieldCost` and `TypeCost`:
-
-- `FieldCost` represents the execution impact on the server.
-- `TypeCost` represents the data impact on the server (instantiated objects).
-
-## Accessing cost metrics
-
-To access the cost metrics via the `IResolverContext` or `IMiddlewareContext`, use the context data key `WellKnownContextData.CostMetrics`:
-
-<Tabs defaultValue={"resolver"}>
-<List>
-<Tab value="resolver">Resolver</Tab>
-<Tab value="middleware">Middleware</Tab>
-</List>
-
-  <Panel value="resolver">
-
-```csharp
-public static Book GetBook(IResolverContext resolverContext)
-{
-    const string key = WellKnownContextData.CostMetrics;
-    var costMetrics = (CostMetrics)resolverContext.ContextData[key]!;
-
-    double fieldCost = costMetrics.FieldCost;
-    double typeCost = costMetrics.TypeCost;
-
-    // ...
-}
-```
-
-  </Panel>
-  <Panel value="middleware">
-
-```csharp
-public static class MyMiddlewareObjectFieldDescriptorExtension
-{
-    public static IObjectFieldDescriptor UseMyMiddleware(
-        this IObjectFieldDescriptor descriptor)
-    {
-        return descriptor
-            .Use(next => async context =>
-            {
-                const string key = WellKnownContextData.CostMetrics;
-                var costMetrics = (CostMetrics)context.ContextData[key]!;
-
-                double fieldCost = costMetrics.FieldCost;
-                double typeCost = costMetrics.TypeCost;
-
-                await next(context);
-            });
-    }
-}
-```
-
-  </Panel>
-</Tabs>
-
-## Reporting cost metrics
-
-To output the cost metrics, set an HTTP header named `GraphQL-Cost` with one of the following values:
-
-| Value      | Description                                                            |
-| ---------- | ---------------------------------------------------------------------- |
-| `report`   | The request is executed, and the costs are reported in the response.   |
-| `validate` | The costs are reported in the response, without executing the request. |
-
-> Note: When using `validate`, Nitro will currently _not_ display the response in the `Response` pane. Until this is fixed, you can inspect the response body in the request log.
-
-![Reporting costs in Nitro](../../../../images/reporting-costs.webp)
-
-# Cost calculation examples
-
-## Field cost
-
-<Tabs defaultValue={"object"}>
-<List>
-<Tab value="object">Object</Tab>
-<Tab value="connection">Connection</Tab>
-</List>
-
-  <Panel value="object">
+## Field Cost Example
 
 ```graphql
 query {
@@ -332,12 +70,10 @@ query {
     }
   }
 }
-
 # Field cost: 11
 ```
 
-  </Panel>
-  <Panel value="connection">
+For paginated fields, costs multiply by the page size:
 
 ```graphql
 query {
@@ -346,55 +82,24 @@ query {
     edges {
       # 1  (composite type)
       node {
-        # 50 (1 [composite type] x 50 items)
+        # 50 (1 x 50 items)
         title # 0  (scalar)
         author {
-          # 50 (1 [composite type] x 50 items)
+          # 50 (1 x 50 items)
           name # 0  (scalar)
         }
       }
     }
   }
 }
-
 # Field cost: 111
 ```
 
-  </Panel>
-</Tabs>
-
-## Type cost
-
-<Tabs defaultValue={"object"}>
-<List>
-<Tab value="object">Object</Tab>
-<Tab value="connection">Connection</Tab>
-</List>
-
-  <Panel value="object">
+## Type Cost Example
 
 ```graphql
 query {
   # 1 Query
-  book {
-    # 1 Book
-    title
-    author {
-      # 1 Author
-      name
-    }
-  }
-}
-
-# Type cost: 3
-```
-
-  </Panel>
-  <Panel value="connection">
-
-```graphql
-query {
-  # 1  Query
   books(first: 50) {
     # 50 BooksConnections
     edges {
@@ -410,96 +115,306 @@ query {
     }
   }
 }
-
 # Type cost: 152
 ```
 
-  </Panel>
-</Tabs>
+# Defaults for Paginated Fields
 
-# Options
+Hot Chocolate automatically annotates paginated fields with cost and list size directives. For connection-based pagination:
 
-## Cost options
+```graphql
+books(first: Int, after: String, last: Int, before: String): BooksConnection
+  @listSize(
+    assumedSize: 50
+    slicingArguments: ["first", "last"]
+    sizedFields: ["edges", "nodes"]
+  )
+  @cost(weight: "10")
+```
 
-Options for cost analysis.
+The `assumedSize` defaults to the `MaxPageSize` from your pagination options.
 
-| Option              | Description                                                   | Default |
-| ------------------- | ------------------------------------------------------------- | ------- |
-| MaxFieldCost        | Gets or sets the maximum allowed field cost.                  | 1_000   |
-| MaxTypeCost         | Gets or sets the maximum allowed type cost.                   | 1_000   |
-| EnforceCostLimits   | Defines if the analyzer shall enforce cost limits.            | true    |
-| ApplyCostDefaults   | Defines if cost defaults shall be applied to the schema.      | true    |
-| DefaultResolverCost | Gets or sets the default cost for an async resolver pipeline. | 10.0    |
+# Applying a Cost Weight
 
-Modifying cost options:
+Override the default cost for a specific field:
+
+<ExampleTabs>
+<Implementation>
 
 ```csharp
+// Types/BookQueries.cs
+[QueryType]
+public static partial class BookQueries
+{
+    [Cost(100)]
+    public static async Task<Book> GetBookAsync(int id, CatalogContext db, CancellationToken ct)
+        => await db.Books.FindAsync([id], ct);
+}
+```
+
+</Implementation>
+<Code>
+
+```csharp
+// Types/BookQueriesType.cs
+public class BookQueriesType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("book")
+            .Resolve(_ => new Book("C# in depth", new Author("Jon Skeet")))
+            .Cost(100);
+    }
+}
+```
+
+</Code>
+</ExampleTabs>
+
+# Applying List Size Settings
+
+For fields that return lists, control how cost analysis estimates the list size:
+
+<ExampleTabs>
+<Implementation>
+
+```csharp
+// Types/BookQueries.cs
+[QueryType]
+public static partial class BookQueries
+{
+    [ListSize(
+        AssumedSize = 100,
+        SlicingArguments = ["first", "last"],
+        SizedFields = ["edges", "nodes"],
+        RequireOneSlicingArgument = false)]
+    public static IEnumerable<Book> GetBooks()
+        => [new Book("C# in depth", new Author("Jon Skeet"))];
+}
+```
+
+</Implementation>
+<Code>
+
+```csharp
+// Types/BookQueriesType.cs
+public class BookQueriesType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("books")
+            .Resolve<IEnumerable<Book>>(
+                _ => [new Book("C# in depth", new Author("Jon Skeet"))])
+            .ListSize(
+                assumedSize: 100,
+                slicingArguments: ["first", "last"],
+                sizedFields: ["edges", "nodes"],
+                requireOneSlicingArgument: false);
+    }
+}
+```
+
+</Code>
+</ExampleTabs>
+
+# Inspecting Cost Metrics
+
+To see the cost of a query without changing enforcement, set the `GraphQL-Cost` HTTP header:
+
+| Header Value | Behavior                                                        |
+| ------------ | --------------------------------------------------------------- |
+| `report`     | Executes the request and includes cost metrics in the response. |
+| `validate`   | Returns cost metrics without executing the request.             |
+
+This is invaluable when tuning your cost configuration. Send representative queries from your client applications and review their costs before deploying changes.
+
+## Accessing Costs in Code
+
+Read cost metrics from `IResolverContext` or `IMiddlewareContext`:
+
+```csharp
+// Types/BookQueries.cs
+public static Book GetBook(IResolverContext context)
+{
+    var costMetrics = (CostMetrics)context.ContextData[WellKnownContextData.CostMetrics]!;
+
+    double fieldCost = costMetrics.FieldCost;
+    double typeCost = costMetrics.TypeCost;
+
+    // Use for logging, monitoring, etc.
+}
+```
+
+# Tuning Guide
+
+## Start with Defaults
+
+The defaults (`MaxFieldCost = 1000`, `MaxTypeCost = 1000`) work for many schemas. Deploy with defaults first and observe which queries are rejected.
+
+## Measure Real Queries
+
+Use the `GraphQL-Cost: report` header to measure the cost of your actual client queries. This gives you a baseline to tune from.
+
+## Adjust MaxFieldCost and MaxTypeCost
+
+Increase the limits if legitimate queries are rejected. Decrease them if you want tighter protection. The right values depend on your infrastructure and acceptable load.
+
+```csharp
+// Program.cs
 builder.Services
     .AddGraphQLServer()
     .ModifyCostOptions(options =>
     {
-        options.MaxFieldCost = 1_000;
-        options.MaxTypeCost = 1_000;
+        options.MaxFieldCost = 5_000;
+        options.MaxTypeCost = 5_000;
+    });
+```
+
+## Assign Custom Weights to Expensive Fields
+
+If a resolver calls an external API or runs an expensive query, increase its cost weight:
+
+```csharp
+[Cost(50)]
+public static async Task<Report> GetReportAsync(/* ... */)
+```
+
+## Use RequirePagingBoundaries
+
+Force clients to specify `first` or `last` on paginated fields. Without this, the cost analyzer uses `MaxPageSize` as the assumed list size, which may overestimate the cost of well-behaved queries:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt => opt.RequirePagingBoundaries = true);
+```
+
+# Real-World Example
+
+Consider a product catalog API with this schema:
+
+```graphql
+type Query {
+  products(first: Int, after: String): ProductsConnection
+}
+
+type Product {
+  name: String
+  reviews(first: Int, after: String): ReviewsConnection
+}
+
+type Review {
+  text: String
+  author: User
+}
+```
+
+With `MaxPageSize = 50` and default costs, a query requesting `products(first: 50) { ... reviews(first: 50) { ... } }` has:
+
+- Field cost: 10 (products resolver) + 1 (edges) + 50 (node) + 500 (reviews resolver, 10 x 50) + 50 (reviews edges) + 2500 (review node, 50 x 50) + 2500 (author, 50 x 50) = ~5,611
+- Type cost: 1 (Query) + 50 (Products) + 50 (ProductEdges) + 2500 (Reviews) + 2500 (ReviewEdges) + 2500 (Authors) = ~7,601
+
+With default limits of 1,000, this query is rejected. You can either increase the limits or reduce `MaxPageSize` for the `reviews` field:
+
+```csharp
+[UsePaging(MaxPageSize = 10)]
+public IQueryable<Review> GetReviews([Parent] Product product, CatalogContext db)
+    => db.Reviews.Where(r => r.ProductId == product.Id);
+```
+
+Now the cost drops to a level within the default budget.
+
+# Options Reference
+
+## Cost Options
+
+| Option                | Default | Description                                          |
+| --------------------- | ------- | ---------------------------------------------------- |
+| `MaxFieldCost`        | `1_000` | Maximum allowed field cost.                          |
+| `MaxTypeCost`         | `1_000` | Maximum allowed type cost.                           |
+| `EnforceCostLimits`   | `true`  | Whether to reject queries that exceed cost limits.   |
+| `ApplyCostDefaults`   | `true`  | Whether to apply default cost weights to the schema. |
+| `DefaultResolverCost` | `10.0`  | Default cost for an async resolver.                  |
+
+```csharp
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .ModifyCostOptions(options =>
+    {
+        options.MaxFieldCost = 5_000;
+        options.MaxTypeCost = 5_000;
         options.EnforceCostLimits = true;
         options.ApplyCostDefaults = true;
         options.DefaultResolverCost = 10.0;
     });
 ```
 
-## Filtering cost options
+## Filtering Cost Options
 
-Represents the cost options for filtering.
-
-| Option                              | Description                                                                | Default |
-| ----------------------------------- | -------------------------------------------------------------------------- | ------- |
-| DefaultFilterArgumentCost           | Gets or sets the default cost for a filter argument.                       | 10.0    |
-| DefaultFilterOperationCost          | Gets or sets the default cost for a filter operation.                      | 10.0    |
-| DefaultExpensiveFilterOperationCost | Gets or sets the default cost for an expensive filter argument.            | 20.0    |
-| VariableMultiplier                  | Gets or sets a multiplier when a variable is used for the filter argument. | 5       |
-
-Modifying filtering cost options:
+| Option                                | Default | Description                                                 |
+| ------------------------------------- | ------- | ----------------------------------------------------------- |
+| `DefaultFilterArgumentCost`           | `10.0`  | Cost for a filter argument.                                 |
+| `DefaultFilterOperationCost`          | `10.0`  | Cost for a filter operation.                                |
+| `DefaultExpensiveFilterOperationCost` | `20.0`  | Cost for an expensive filter operation.                     |
+| `VariableMultiplier`                  | `5`     | Multiplier when a variable is used for the filter argument. |
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .ModifyCostOptions(options =>
-    {
-        options.Filtering.DefaultFilterArgumentCost = 10.0;
-        options.Filtering.DefaultFilterOperationCost = 10.0;
-        options.Filtering.DefaultExpensiveFilterOperationCost = 20.0;
-        options.Filtering.VariableMultiplier = 5;
-    });
+options.Filtering.DefaultFilterArgumentCost = 10.0;
+options.Filtering.DefaultFilterOperationCost = 10.0;
 ```
 
-## Sorting cost options
+## Sorting Cost Options
 
-Represents the cost options for sorting.
-
-| Option                   | Description                                                            | Default |
-| ------------------------ | ---------------------------------------------------------------------- | ------- |
-| DefaultSortArgumentCost  | Gets or sets the default cost for a sort argument.                     | 10.0    |
-| DefaultSortOperationCost | Gets or sets the default cost for a sort operation.                    | 10.0    |
-| VariableMultiplier       | Gets or sets multiplier when a variable is used for the sort argument. | 5       |
-
-Modifying sorting cost options:
+| Option                     | Default | Description                                               |
+| -------------------------- | ------- | --------------------------------------------------------- |
+| `DefaultSortArgumentCost`  | `10.0`  | Cost for a sort argument.                                 |
+| `DefaultSortOperationCost` | `10.0`  | Cost for a sort operation.                                |
+| `VariableMultiplier`       | `5`     | Multiplier when a variable is used for the sort argument. |
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .ModifyCostOptions(options =>
-    {
-        options.Sorting.DefaultSortArgumentCost = 10.0;
-        options.Sorting.DefaultSortOperationCost = 10.0;
-        options.Sorting.VariableMultiplier = 5;
-    });
+options.Sorting.DefaultSortArgumentCost = 10.0;
+options.Sorting.DefaultSortOperationCost = 10.0;
 ```
 
-# Disabling cost limit enforcement
+# Disabling Cost Enforcement
 
-While we generally don't recommended disabling the enforcement of cost limits, you may wish to do so if you're using other methods to restrict operation complexity. If that's the case, simply set the `EnforceCostLimits` option to `false`:
+If you protect your API through other means (such as trusted documents), you can disable cost enforcement. The analyzer still computes costs for reporting, but does not reject queries:
 
 ```csharp
+// Program.cs
 builder.Services
     .AddGraphQLServer()
-    .ModifyCostOptions(o => o.EnforceCostLimits = false)
+    .ModifyCostOptions(o => o.EnforceCostLimits = false);
 ```
+
+# Troubleshooting
+
+## Legitimate queries are rejected
+
+Use the `GraphQL-Cost: report` header to inspect the cost of the rejected query. Common causes: the query fans out across multiple paginated fields, or a field has an unexpectedly high default cost. Increase `MaxFieldCost`/`MaxTypeCost` or reduce `MaxPageSize` on specific fields.
+
+## Cost seems too high for a small query
+
+Check whether the query includes paginated fields without specifying `first` or `last`. Without a slicing argument, cost analysis uses `MaxPageSize` (default 50) as the assumed list size. Enable `RequirePagingBoundaries` to force clients to specify the page size.
+
+## Cost metrics differ between environments
+
+Cost calculation depends on the schema and cost configuration. If different environments have different `MaxPageSize` or cost weights, the metrics will differ. Keep cost configuration consistent across environments.
+
+## Variable-based filters have unexpectedly high cost
+
+When a filter argument is provided as a variable (rather than inline), the analyzer cannot inspect its structure at validation time. It applies a `VariableMultiplier` (default 5) to account for worst-case complexity. This is intentional. Adjust `VariableMultiplier` if the default is too conservative.
+
+# Next Steps
+
+- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
+- **Building a private API?** See [Trusted Documents](/docs/hotchocolate/v16/performance/persisted-operations).
+- **Need to limit query depth?** See [Query Depth](/docs/hotchocolate/v16/security/query-depth).
+- **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).
