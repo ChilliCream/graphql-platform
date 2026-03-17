@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Xml;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -38,8 +37,7 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
         Description = description;
         Pattern = format switch
         {
-            DurationFormat.Iso8601
-                => @"^-?P(?:\d+W|(?=\d|T(?:\d|$))(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?)$",
+            DurationFormat.Iso8601 => null,
             DurationFormat.DotNet
                 => @"^-?(?:(?:\d{1,8})\.)?(?:[0-1]?\d|2[0-3]):(?:[0-5]?\d):(?:[0-5]?\d)(?:\.(?:\d{1,7}))?$",
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
@@ -60,9 +58,20 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
     /// <inheritdoc />
     protected override TimeSpan OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        if (TryParseStringValue(valueLiteral.Value, Format, out var value))
+        if (Format == DurationFormat.Iso8601)
         {
-            return value;
+            // Parse directly from UTF-8 bytes to avoid the string allocation.
+            if (Iso8601DurationParser.TryParse(valueLiteral.AsSpan(), out var value))
+            {
+                return value;
+            }
+        }
+        else
+        {
+            if (TimeSpan.TryParse(valueLiteral.Value, out var value))
+            {
+                return value;
+            }
         }
 
         throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
@@ -71,9 +80,21 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
     /// <inheritdoc />
     protected override TimeSpan OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (TryParseStringValue(inputValue.GetString()!, Format, out var value))
+        var str = inputValue.GetString()!;
+
+        if (Format == DurationFormat.Iso8601)
         {
-            return value;
+            if (Iso8601DurationParser.TryParse(str.AsSpan(), out var value))
+            {
+                return value;
+            }
+        }
+        else
+        {
+            if (TimeSpan.TryParse(str, out var value))
+            {
+                return value;
+            }
         }
 
         throw Scalar_Cannot_CoerceInputValue(this, inputValue);
@@ -82,57 +103,24 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
     /// <inheritdoc />
     protected override void OnCoerceOutputValue(TimeSpan runtimeValue, ResultElement resultValue)
     {
-        var serialized = Format == DurationFormat.Iso8601
-            ? XmlConvert.ToString(runtimeValue)
-            : runtimeValue.ToString("c");
-        resultValue.SetStringValue(serialized);
+        if (Format == DurationFormat.Iso8601)
+        {
+            // Format directly to UTF-8 bytes on the stack to avoid allocation.
+            Span<byte> buffer = stackalloc byte[64];
+            Iso8601DurationFormatter.TryFormat(runtimeValue, buffer, out var bytesWritten);
+            resultValue.SetStringValue(buffer[..bytesWritten]);
+        }
+        else
+        {
+            resultValue.SetStringValue(runtimeValue.ToString("c"));
+        }
     }
 
     /// <inheritdoc />
     protected override StringValueNode OnValueToLiteral(TimeSpan runtimeValue)
     {
         return Format == DurationFormat.Iso8601
-            ? new StringValueNode(XmlConvert.ToString(runtimeValue))
+            ? new StringValueNode(Iso8601DurationFormatter.Format(runtimeValue))
             : new StringValueNode(runtimeValue.ToString("c"));
-    }
-
-    private static bool TryParseStringValue(
-        string serialized,
-        DurationFormat format,
-        out TimeSpan value)
-    {
-        return format == DurationFormat.Iso8601
-            ? TryParseIso8601(serialized, out value)
-            : TryParseDotNet(serialized, out value);
-    }
-
-    private static bool TryParseIso8601(string serialized, out TimeSpan value)
-    {
-        try
-        {
-            if (Iso8601Duration.TryParse(serialized, out var nullable) && nullable.HasValue)
-            {
-                value = nullable.Value;
-                return true;
-            }
-        }
-        catch (FormatException)
-        {
-        }
-
-        value = default;
-        return false;
-    }
-
-    private static bool TryParseDotNet(string serialized, out TimeSpan value)
-    {
-        if (TimeSpan.TryParse(serialized, out var timeSpan))
-        {
-            value = timeSpan;
-            return true;
-        }
-
-        value = default;
-        return false;
     }
 }

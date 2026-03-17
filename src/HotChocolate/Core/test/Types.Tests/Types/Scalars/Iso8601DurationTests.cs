@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-public class Iso8601DurationTests
+public class Iso8601DurationParserTests
 {
     public static IEnumerable<object[]> TryParseTests => new List<object[]>
     {
@@ -11,10 +11,10 @@ public class Iso8601DurationTests
 
     [Theory]
     [MemberData(nameof(TryParseTests))]
-    public void TryParse(string duration, TimeSpan? expected)
+    public void TryParse(string duration, TimeSpan expected)
     {
         // act
-        var result = Iso8601Duration.TryParse(duration, out var actual);
+        var result = Iso8601DurationParser.TryParse(duration.AsSpan(), out var actual);
 
         // assert
         Assert.True(result);
