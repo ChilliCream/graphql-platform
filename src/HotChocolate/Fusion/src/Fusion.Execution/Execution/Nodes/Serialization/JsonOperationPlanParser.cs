@@ -180,7 +180,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         SelectionPath? target = null;
         List<OperationRequirement>? requirements = null;
         string[]? forwardedVariables = null;
-        string[]? responseNames = null;
+        SelectionSetNode? resultSelectionSet = null;
         int[]? dependencies = null;
         int? batchingGroupId = null;
 
@@ -221,12 +221,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
-        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
+        if (nodeElement.TryGetProperty("resultSelectionSet", out var resultSelectionSetElement)
+            && resultSelectionSetElement.GetString() is { Length: > 0 } resultSelectionSetSyntax)
         {
-            responseNames = responseNamesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
+            resultSelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(resultSelectionSetSyntax);
+        }
+
+        if (resultSelectionSet is null)
+        {
+            throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
 
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
@@ -259,7 +262,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             source ?? SelectionPath.Root,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            responseNames ?? [],
+            resultSelectionSet,
             conditions,
             batchingGroupId,
             requiresFileUpload);
@@ -285,7 +288,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         SelectionPath? source = null;
         List<OperationRequirement>? requirements = null;
         string[]? forwardedVariables = null;
-        string[]? responseNames = null;
+        SelectionSetNode? resultSelectionSet = null;
         int[]? dependencies = null;
         int? batchingGroupId = null;
 
@@ -325,12 +328,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
-        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
+        if (nodeElement.TryGetProperty("resultSelectionSet", out var resultSelectionSetElement)
+            && resultSelectionSetElement.GetString() is { Length: > 0 } resultSelectionSetSyntax)
         {
-            responseNames = responseNamesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
+            resultSelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(resultSelectionSetSyntax);
+        }
+
+        if (resultSelectionSet is null)
+        {
+            throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
 
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
@@ -363,7 +369,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             source ?? SelectionPath.Root,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            responseNames ?? [],
+            resultSelectionSet,
             conditions,
             batchingGroupId,
             requiresFileUpload);

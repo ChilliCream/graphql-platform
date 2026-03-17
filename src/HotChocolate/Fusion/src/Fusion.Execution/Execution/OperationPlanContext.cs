@@ -324,15 +324,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<string> responseNames,
+        ResultSelectionMap resultSelectionMap,
         bool containsErrors = true)
     {
         var canExecutionContinue =
-            _resultStore.AddPartialResults(
-                sourcePath,
-                results,
-                responseNames,
-                containsErrors);
+            _resultStore.AddPartialResults(sourcePath, results, resultSelectionMap, containsErrors);
 
         if (!canExecutionContinue)
         {
@@ -340,9 +336,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(SourceResultDocument result, ReadOnlySpan<string> responseNames)
+    internal void AddPartialResults(SourceResultDocument result, ResultSelectionMap resultSelectionMap)
     {
-        var canExecutionContinue = _resultStore.AddPartialResults(result, responseNames);
+        var canExecutionContinue = _resultStore.AddPartialResults(result, resultSelectionMap);
 
         if (!canExecutionContinue)
         {
@@ -350,9 +346,12 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    internal void AddErrors(
+        IError error,
+        ResultSelectionMap resultSelectionMap,
+        params ReadOnlySpan<Path> paths)
     {
-        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+        var canExecutionContinue = _resultStore.AddErrors(error, resultSelectionMap, paths);
 
         if (!canExecutionContinue)
         {
@@ -360,9 +359,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, ReadOnlySpan<CompactPath> paths)
+    internal void AddErrors(IError error, ResultSelectionMap resultSelectionMap, ReadOnlySpan<CompactPath> paths)
     {
-        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+        var canExecutionContinue = _resultStore.AddErrors(error, resultSelectionMap, paths);
 
         if (!canExecutionContinue)
         {
@@ -386,6 +385,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal OperationResult Complete(bool reusable = false)
     {
+        _resultStore.FinalizePocketedErrors();
+
         var environment = Schema.TryGetEnvironment();
 
         var trace = _collectTelemetry

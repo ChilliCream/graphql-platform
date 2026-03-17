@@ -48,6 +48,7 @@ internal sealed partial class FetchResultStore
 
         _result = new CompositeResultDocument(_operation, _includeFlags, _pathPool);
         _errors?.Clear();
+        _pocketedErrors?.Clear();
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -77,6 +78,7 @@ internal sealed partial class FetchResultStore
 
         // clear errors
         _errors?.Clear();
+        _pocketedErrors?.Clear();
 
         // clear collect target arrays to unroot CompositeResultDocument references;
         // if they grew too large during a burst, swap them for smaller ones.
