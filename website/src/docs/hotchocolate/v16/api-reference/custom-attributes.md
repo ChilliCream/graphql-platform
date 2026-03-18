@@ -215,4 +215,4 @@ Confirm that you are inheriting from the correct base class and that the `OnConf
 
 - [Building a schema](/docs/hotchocolate/v16/building-a-schema) for type system configuration
 - [Field middleware](/docs/hotchocolate/v16/execution-engine/field-middleware) for creating custom middleware
-- [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for field resolution patterns
+- [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for field resolution patterns

@@ -130,7 +130,7 @@ You can now open Nitro on your GraphQL server at `/graphql` and query your REST 
 
 # Using DataLoaders with REST
 
-When multiple GraphQL fields resolve data from the same REST endpoint, use a [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) to batch and deduplicate calls. This prevents sending redundant HTTP requests for the same resource.
+When multiple GraphQL fields resolve data from the same REST endpoint, use a [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) to batch and deduplicate calls. This prevents sending redundant HTTP requests for the same resource.
 
 ```csharp
 // DataLoaders/TodoByIdDataLoader.cs
@@ -173,6 +173,6 @@ If you see one HTTP request per item in a list, add a DataLoader to batch the ca
 
 # Next Steps
 
-- **Need to batch REST calls?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need to fetch from a database instead?** See [Fetching from Databases](/docs/hotchocolate/v16/fetching-data/fetching-from-databases).
-- **Need to understand resolvers?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
+- **Need to batch REST calls?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
+- **Need to fetch from a database instead?** See [Fetching from Databases](/docs/hotchocolate/v16/resolvers-and-data/fetching-from-databases).
+- **Need to understand resolvers?** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers).

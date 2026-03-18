@@ -136,4 +136,4 @@ The `[GlobalState]` attribute throws an exception when the key does not exist or
 # Next Steps
 
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for initializing state before request execution.
-- [Dependency Injection](/docs/hotchocolate/v16/server/dependency-injection) for injecting services into resolvers.
+- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for injecting services into resolvers.

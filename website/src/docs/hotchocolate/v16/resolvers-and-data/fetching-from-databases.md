@@ -125,7 +125,7 @@ EF Core tracks entities in the change tracker. If you modify an entity in one re
 
 # Next Steps
 
-- **Need to batch database calls?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need to optimize SQL queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
+- **Need to batch database calls?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
+- **Need to optimize SQL queries?** See [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections).
 - **Need to integrate with MongoDB?** See [MongoDB Integration](/docs/hotchocolate/v16/integrations/mongodb).
 - **Need to integrate with EF Core?** See [Entity Framework Integration](/docs/hotchocolate/v16/integrations/entity-framework).

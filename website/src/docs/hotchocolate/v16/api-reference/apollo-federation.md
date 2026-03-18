@@ -228,7 +228,7 @@ Key details:
 </Schema>
 </ExampleTabs>
 
-> We recommend using a [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) in reference resolvers. This helps avoid [the N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem).
+> We recommend using a [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) in reference resolvers. This helps avoid [the N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem).
 
 ## Register the Entity
 
@@ -427,6 +427,6 @@ Use `[GraphQLName("...")]` or `descriptor.Name("...")` to set the GraphQL name e
 
 # Next Steps
 
-- [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for resolver patterns
-- [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching in reference resolvers
+- [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for resolver patterns
+- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching in reference resolvers
 - [Apollo Federation docs](https://www.apollographql.com/docs/federation/) for supergraph configuration

@@ -227,7 +227,7 @@ builder.Services
 
 # MaxPageSize and Cost Analysis
 
-The `MaxPageSize` setting works together with [cost analysis](/docs/hotchocolate/v16/security/cost-analysis) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
+The `MaxPageSize` setting works together with [cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
 
 For public APIs, keep `MaxPageSize` conservative and use `RequirePagingBoundaries = true` to force clients to declare how many items they want.
 
@@ -323,7 +323,7 @@ public class UsersEdgeExtension
 }
 ```
 
-> If you use [projections](/docs/hotchocolate/v16/fetching-data/projections), some properties on your model may not be populated depending on what the client requested.
+> If you use [projections](/docs/hotchocolate/v16/resolvers-and-data/projections), some properties on your model may not be populated depending on what the client requested.
 
 # Nullable Cursor Keys
 
@@ -395,7 +395,7 @@ You have a nullable field as a cursor key and the paging handler cannot detect y
 
 # Next Steps
 
-- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
-- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
-- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
-- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
+- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering).
+- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting).
+- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections).
+- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis).

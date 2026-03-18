@@ -4,7 +4,7 @@ title: "DataLoader"
 
 DataLoaders solve the N+1 problem in GraphQL. When the execution engine resolves a list of objects and each object needs related data, a naive implementation fires one database query per object. A DataLoader collects all those individual requests, waits for the execution engine to finish the current batch of resolvers, and then sends one query for all requested keys at once.
 
-This page covers the source-generated DataLoader (the recommended approach), manual DataLoader classes, and batch resolvers (a v16 alternative for simpler cases). If you are new to GraphQL data fetching, start with [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) first.
+This page covers the source-generated DataLoader (the recommended approach), manual DataLoader classes, and batch resolvers (a v16 alternative for simpler cases). If you are new to GraphQL data fetching, start with [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) first.
 
 # The N+1 Problem
 
@@ -381,7 +381,7 @@ If your `DbContext` or other scoped service is disposed before the DataLoader ba
 
 # Next Steps
 
-- **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
-- **Need pagination?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for cursor-based connections.
-- **Need to filter or sort data?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+- **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers).
+- **Need pagination?** See [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for cursor-based connections.
+- **Need to filter or sort data?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) and [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting).
 - **Using Entity Framework?** See [Entity Framework](/docs/hotchocolate/v16/integrations/entity-framework) for integration patterns with DataLoaders.

@@ -168,7 +168,7 @@ builder.Services
     .AddMongoDbPagingProviders();
 ```
 
-[Learn more about pagination providers](/docs/hotchocolate/v16/fetching-data/pagination#providers)
+[Learn more about pagination providers](/docs/hotchocolate/v16/resolvers-and-data/pagination#providers)
 
 ## Cursor Pagination
 
@@ -229,8 +229,8 @@ Not all query patterns benefit from projections. If you encounter issues, try re
 
 # Next Steps
 
-- [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for pagination setup
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for filtering concepts
+- [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for pagination setup
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for filtering concepts
 - [Executable](/docs/hotchocolate/v16/api-reference/executable) for the `IExecutable` abstraction
 
 <!-- spell-checker:ignore Shorton -->

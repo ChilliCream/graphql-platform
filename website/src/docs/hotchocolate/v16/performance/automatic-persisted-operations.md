@@ -297,7 +297,7 @@ Check that the Redis connection string is correct and the server can connect to 
 
 # Next Steps
 
-- [Persisted Operations](/docs/hotchocolate/v16/performance/persisted-operations) for pre-registering operations ahead of deployment.
+- [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) for pre-registering operations ahead of deployment.
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on HTTP GET caching.
 
 <!-- spell-checker:ignore yeex -->

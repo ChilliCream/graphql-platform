@@ -137,5 +137,5 @@ When returning `IQueryable<T>`, Hot Chocolate materializes the query. If you use
 # Next Steps
 
 - **Need to control nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
-- **Need pagination instead of full lists?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to filter or sort lists?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+- **Need pagination instead of full lists?** See [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination).
+- **Need to filter or sort lists?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) and [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting).

@@ -224,5 +224,5 @@ If a non-repeatable directive is applied twice at the same location, validation 
 # Next Steps
 
 - **Need to deprecate fields?** See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning).
-- **Need to authorize fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
+- **Need to authorize fields?** See [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
 - **Need to extend types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).

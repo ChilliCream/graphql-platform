@@ -414,7 +414,7 @@ When a filter argument is provided as a variable (rather than inline), the analy
 
 # Next Steps
 
-- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
-- **Building a private API?** See [Trusted Documents](/docs/hotchocolate/v16/performance/persisted-operations).
-- **Need to limit query depth?** See [Query Depth](/docs/hotchocolate/v16/security/query-depth).
+- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
+- **Building a private API?** See [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
+- **Need to limit query depth?** See [Query Depth](/docs/hotchocolate/v16/securing-your-api/query-depth).
 - **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).

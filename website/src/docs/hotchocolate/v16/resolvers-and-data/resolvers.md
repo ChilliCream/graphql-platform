@@ -229,7 +229,7 @@ builder.Services
 
 Hot Chocolate resolves `CatalogService` from the DI container at execution time. This works for scoped, transient, and singleton services.
 
-[Learn more about dependency injection](/docs/hotchocolate/v16/server/dependency-injection)
+[Learn more about dependency injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection)
 
 ## Accessing the HttpContext
 
@@ -349,7 +349,7 @@ When using `[Parent]`, verify that the parent resolver actually returns a non-nu
 
 # Next Steps
 
-- **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to filter or sort?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+- **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
+- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination).
+- **Need to filter or sort?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) and [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting).
 - **Need to understand type extensions?** See [Extending Types](/docs/hotchocolate/v16/building-a-schema/extending-types).
