@@ -120,20 +120,6 @@ public static partial class GridQueries
 
 This produces `matrix: [[Int!]!]!` in the schema.
 
-# Troubleshooting
-
-## List returns as single item
-
-If you expected a list but the schema shows a single object, verify that the resolver return type is a collection (like `List<T>` or `T[]`). A single `T` return type produces a non-list field.
-
-## Null items in a non-null list
-
-If the list type is `[User!]!` but a null item appears at runtime, the execution engine raises an error and may null out the entire list or its parent. Either filter out nulls in the resolver or change the inner type to nullable (`List<User?>`).
-
-## IQueryable not executing
-
-When returning `IQueryable<T>`, Hot Chocolate materializes the query. If you use EF Core, verify that the `DbContext` lifetime is scoped per request. Use `[UseDbContext]` or register the context with the appropriate lifetime.
-
 # Next Steps
 
 - **Need to control nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).

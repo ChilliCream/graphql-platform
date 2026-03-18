@@ -157,20 +157,6 @@ public class TodoByIdDataLoader : BatchDataLoader<long, TodoItem>
 }
 ```
 
-# Troubleshooting
-
-## Generated client throws serialization errors
-
-Verify that the `Newtonsoft.Json` package is installed and the generated client version matches the OpenAPI spec version. Regenerate the client if the REST API schema has changed.
-
-## HTTP calls are slow or timing out
-
-Register the generated client with `AddHttpClient<T>()` to leverage `HttpClientFactory`, which manages connection pooling and lifetime. Set appropriate timeouts on the `HttpClient`.
-
-## N+1 requests to the REST API
-
-If you see one HTTP request per item in a list, add a DataLoader to batch the calls. Without batching, each GraphQL field triggers a separate REST call.
-
 # Next Steps
 
 - **Need to batch REST calls?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).

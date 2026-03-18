@@ -375,24 +375,6 @@ If no `ProviderName` is specified, the correct provider is selected based on the
 
 [Learn more about database integrations](/docs/hotchocolate/v16/integrations)
 
-# Troubleshooting
-
-## "Cannot determine the element type" error
-
-Ensure your resolver returns `IEnumerable<T>`, `IQueryable<T>`, or `Connection<T>`. If the return type is untyped (like `IEnumerable` without a generic argument), the paging middleware cannot determine the node type.
-
-## Missing `totalCount` field
-
-Enable `IncludeTotalCount` in `PagingOptions` or on the `[UsePaging]` attribute. This field is opt-in because computing the total count requires an additional database query.
-
-## Cursors appear to be wrong after sorting changes
-
-Cursors encode the position of an item based on the sort order at the time of the query. If you change the sort order between pages, cursors from the previous page may point to the wrong position. Ensure the sort order remains consistent across paginated requests.
-
-## "Nullable cursor key requires NullOrdering" error
-
-You have a nullable field as a cursor key and the paging handler cannot detect your database's null ordering behavior. Set `NullOrdering` explicitly in `PagingOptions`.
-
 # Next Steps
 
 - **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering).

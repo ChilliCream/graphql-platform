@@ -359,26 +359,6 @@ public class BrandByIdDataLoader : BatchDataLoader<int, Brand>
 
 > The `IReadOnlyList<TKey>` passed to `LoadBatchAsync` and source-generated methods is a rented list. Do not store or use it outside the method body.
 
-# Troubleshooting
-
-## DataLoader returns null for a key that exists
-
-The dictionary returned from your DataLoader method must use the same key values that were passed in. If you use a database column that does not match the requested key (for example, returning a dictionary keyed by `string` when the DataLoader expects `int`), the DataLoader cannot match results to requests and returns null.
-
-Verify that your `ToDictionaryAsync` key selector matches the key type of your DataLoader.
-
-## N+1 queries still appearing
-
-If you see individual queries instead of batched ones, check that you are injecting the DataLoader interface (like `IBrandByIdDataLoader`) into your resolver, not calling the database directly. Also verify that the DataLoader method is marked with `[DataLoader]` and the source generator is running (check for the generated `AddTypes` method in your build output).
-
-## Batch resolver returns wrong number of results
-
-A batch resolver must return a list with the same count as the input parent list. If the counts do not match, the execution engine raises an error. Verify that your method produces one result per input parent, in the same order.
-
-## Scoped service disposed before DataLoader executes
-
-If your `DbContext` or other scoped service is disposed before the DataLoader batch runs, use `DataLoaderServiceScope.DataLoaderScope` on the `[DataLoader]` attribute. This creates a dedicated service scope for the DataLoader, preventing the service from being disposed when the request scope ends.
-
 # Next Steps
 
 - **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers).

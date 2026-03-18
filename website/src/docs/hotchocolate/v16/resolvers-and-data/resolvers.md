@@ -329,24 +329,6 @@ public static partial class UserQueries
 
 When the client query includes the `address` field, `includeAddress` is `true` and the resolver loads the address eagerly. Otherwise, it skips the additional work.
 
-# Troubleshooting
-
-## Resolver not appearing in the schema
-
-Verify the method is `public`. Private, internal, and protected methods are not exposed as fields. Check that the class has the correct attribute (`[QueryType]`, `[MutationType]`, or `[ExtendObjectType]`) and is marked `partial` when using the source generator.
-
-## Service not injected
-
-Confirm the service is registered in the DI container. In v16, services are auto-recognized without `[Service]`, but the type must match exactly. If you register `IMyService` but the parameter is `MyService`, Hot Chocolate cannot resolve it.
-
-## CancellationToken not canceling
-
-Ensure you pass the `CancellationToken` through to your async calls. If you use `CancellationToken.None` or ignore the token, Hot Chocolate cannot cancel the operation when the client disconnects.
-
-## Parent value is null
-
-When using `[Parent]`, verify that the parent resolver actually returns a non-null value. If the parent field is nullable and resolves to `null`, child resolvers do not execute.
-
 # Next Steps
 
 - **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).

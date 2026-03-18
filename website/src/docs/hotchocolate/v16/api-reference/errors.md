@@ -75,17 +75,6 @@ builder
 
 > Do not enable `IncludeExceptionDetails` in production. Exception details can leak security-sensitive information.
 
-# Troubleshooting
-
-**"Unexpected Execution Error" with no details**
-Register an `IErrorFilter` to translate exceptions into meaningful GraphQL errors. Alternatively, enable `IncludeExceptionDetails` during development to see the full exception.
-
-**Error filter not being invoked**
-Verify that you registered the filter using `AddErrorFilter<T>()` on `IServiceCollection`. If you are using the split service provider model in v16, you may need to register the filter's dependencies using `AddApplicationService<T>()` on the `IRequestExecutorBuilder`.
-
-**ReportError does not appear in the response**
-Confirm that the resolver continues to execute after calling `ReportError`. Non-terminating errors require the resolver to return a value (or `null`).
-
 # Next Steps
 
 - [Mutation conventions](/docs/hotchocolate/v16/building-a-schema/mutations) for structured mutation error handling

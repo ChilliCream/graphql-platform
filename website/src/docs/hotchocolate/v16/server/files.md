@@ -322,20 +322,6 @@ Serving the file through a dedicated HTTP endpoint makes caching much easier and
 
 If you are using a cloud provider for file storage, you are likely already accessing files using a URL and can expose this URL as a `String` field in your graph. If infrastructure for serving files is not in place, you can set up file serving with ASP.NET Core or a dedicated web server like nginx.
 
-# Troubleshooting
-
-## "Upload scalar can only be used as input"
-
-The `Upload` scalar is only valid as an input type. You cannot use it as a return type for a field. To expose files in responses, return a URL string pointing to the file instead.
-
-## File upload fails with 413 or size limit error
-
-Configure `FormOptions` to increase `MultipartBodyLengthLimit`. Depending on your hosting environment, you may also need to adjust Kestrel or IIS request body size limits.
-
-## "FileValueNode" not found after upgrading to v16
-
-The type was renamed to `UploadValueNode`. Update all references in your custom scalar logic or tests.
-
 # Next Steps
 
 - [Arguments](/docs/hotchocolate/v16/building-a-schema/arguments) for details on defining input arguments.

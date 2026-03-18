@@ -330,59 +330,6 @@ app.Run();
 
 The private API setup is shorter, has fewer knobs to tune, and provides a stronger security guarantee. The tradeoff is the build-time extraction step, which your client tooling handles automatically.
 
-# Troubleshooting
-
-## "PersistedQueryNotFound" error
-
-The server cannot find an operation matching the hash sent by the client. Verify that:
-
-- The operation files are present in the configured storage directory.
-- The file names match the format `{hash}.graphql`.
-- The server process has read access to the directory.
-
-If you are using the Nitro client registry, confirm that the client version has been published and that the API ID and stage match your server configuration.
-
-## Hash mismatch between client and server
-
-The client and server must use the same hashing algorithm and encoding format. Hot Chocolate defaults to MD5 with hex encoding. If your client uses SHA256 or a different encoding, configure the server to match:
-
-```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .AddSha256DocumentHashProvider(HashFormat.Hex)
-    .UsePersistedOperationPipeline()
-    .AddFileSystemOperationDocumentStorage("./persisted-operations");
-```
-
-Check your client's build output to see which algorithm and format it uses.
-
-## Operations blocked during development
-
-If `OnlyAllowPersistedDocuments` is enabled and you are sending ad-hoc queries during development, the server rejects them. Either switch to `UseAutomaticPersistedOperationPipeline()` for your development environment or add an HTTP request interceptor that calls `AllowNonPersistedOperation()` for developer requests. See [Development workflow](#development-workflow) above.
-
-## Relay sends "doc_id" instead of "id"
-
-Relay's default network layer uses `doc_id` as the field name for the operation hash. Hot Chocolate expects `id`. Update your Relay network layer to send `id`:
-
-```js
-// relay-network.js
-function fetchQuery(operation, variables) {
-  return fetch("/graphql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id: operation.id, // not doc_id
-      variables,
-    }),
-  }).then((response) => response.json());
-}
-```
-
-## Stale operations after schema changes
-
-When you change your GraphQL schema, previously extracted operations may no longer be valid. Re-run the client build to extract updated operations and redeploy them to the server. The [Nitro client registry](/docs/nitro/apis/client-registry) catches these mismatches automatically during the validation step.
-
 # Next Steps
 
 - **Need to set up persisted operations storage?** See [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) for filesystem, Redis, and Azure Blob Storage options.

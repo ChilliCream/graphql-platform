@@ -198,20 +198,6 @@ builder.Services
                     ?? new NoOpStringBuilderPool())));
 ```
 
-# Troubleshooting
-
-## Descriptions not appearing in schema
-
-Verify that `GenerateDocumentationFile` is set to `true` in your `.csproj`. Without this, the XML file is not generated and Hot Chocolate has no documentation to read.
-
-## XML docs overridden by empty attribute
-
-In implementation-first, `[GraphQLDescription]` with an empty or null value falls back to XML documentation. In code-first, `Description("")` takes precedence and produces an empty description. Remove the explicit `Description()` call to let XML docs take effect.
-
-## Descriptions missing after adding custom naming convention
-
-When you register a custom `INamingConventions`, you must pass an `XmlDocumentationProvider` to the constructor. Without it, the convention cannot resolve XML documentation.
-
 # Next Steps
 
 - **Need to deprecate fields?** See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning).

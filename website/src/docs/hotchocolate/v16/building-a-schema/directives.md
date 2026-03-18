@@ -207,20 +207,6 @@ type Bar @a @b {
 
 The directive middleware executes in order: `a`, `b`, `c`, `d`, `e`, `f`. Object-level directives run first, followed by field-definition directives, followed by query directives.
 
-# Troubleshooting
-
-## Directive not recognized in query
-
-Verify the directive is registered with `.AddDirectiveType<T>()` and that its location includes executable locations (like `FIELD`). Type-system directives cannot be used in client queries.
-
-## Middleware not executing
-
-Confirm the directive location matches where it is applied. A directive with `DirectiveLocation.Object` does not fire when applied to a field in a query.
-
-## Duplicate directive error
-
-If a non-repeatable directive is applied twice at the same location, validation fails. Either mark the directive as `.Repeatable()` or apply it only once.
-
 # Next Steps
 
 - **Need to deprecate fields?** See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning).

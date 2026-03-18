@@ -485,36 +485,6 @@ app.MapGraphQL().WithOptions(o =>
 
 If a request is rejected because it lacks the required preflight header, the server responds with a `400 Bad Request` status.
 
-# Troubleshooting
-
-## Clients receive v0.2 format unexpectedly
-
-In v16, the default incremental delivery format changed from v0.1 to v0.2. If your clients expect v0.1, either update the clients to send `incrementalSpec=v0.1` in the `Accept` header, or change the server default to `IncrementalDeliveryFormat.Version_0_1`.
-
-## "Unexpected Content-Type" errors on legacy clients
-
-If your clients expect `application/json` responses and cannot handle `application/graphql-response+json`, configure `HttpTransportVersion.Legacy` in the response formatter options.
-
-## WebSocket connections fail or are not upgraded
-
-Verify that `app.UseWebSockets()` is called before `app.MapGraphQL()` in your middleware pipeline. Without the ASP.NET Core WebSocket middleware registered, WebSocket upgrade requests are ignored and fall through to the HTTP handler, which returns a `404` response.
-
-## WebSocket connections drop after a period of inactivity
-
-The default keep-alive interval is 5 seconds. If your infrastructure (load balancers, proxies) has shorter idle timeouts, decrease `KeepAliveInterval`. If you disabled keep-alive by setting it to `null`, re-enable it or configure your infrastructure to allow long-lived connections.
-
-## Client times out during connection initialization
-
-The server closes the WebSocket if the client does not send `connection_init` within 10 seconds (the default `ConnectionInitializationTimeout`). If your client needs more time (for example, to complete authentication), increase the timeout via `ModifyServerOptions`.
-
-## SSE connections are closed prematurely by a proxy
-
-Some reverse proxies and CDNs buffer SSE responses or enforce short timeouts on streaming connections. Configure your proxy to disable response buffering for the GraphQL endpoint and set a sufficiently long read timeout.
-
-## Multipart requests are rejected with 400
-
-If `EnforceMultipartRequestsPreflightHeader` is `true` (the default), the client must include a preflight header such as `GraphQL-Preflight: 1` with multipart requests. Check that your client sends this header.
-
 # Next Steps
 
 - [Endpoints](/docs/hotchocolate/v16/server/endpoints) for configuring the GraphQL middleware and per-endpoint options.

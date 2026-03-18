@@ -202,17 +202,6 @@ Field middleware runs during field resolution, allowing you to add logic before 
 
 The resolver compiler builds an optimized resolver pipeline for each field. You can customize it by providing parameter expression builders.
 
-# Troubleshooting
-
-**Middleware not executing in the expected order**
-Verify that you are using the correct `before` or `after` key. Print the pipeline at startup by inspecting the `RequestExecutorOptions.Pipeline` during configuration.
-
-**"The middleware with the key ... was not found" error**
-The anchor key you specified in `before` or `after` does not exist in the pipeline. Check that the middleware you are referencing is registered and that the key matches a `WellKnownRequestMiddleware` constant.
-
-**Custom middleware runs but has no effect**
-Confirm that you are calling `await next(context)` to continue the pipeline. If you do not call the next delegate, downstream middleware (including execution) will not run.
-
 # Next Steps
 
 - [Field middleware](/docs/hotchocolate/v16/execution-engine/field-middleware) for per-field processing

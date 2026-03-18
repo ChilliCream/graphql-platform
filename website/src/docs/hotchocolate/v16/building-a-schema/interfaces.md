@@ -318,20 +318,6 @@ builder.Services
 
 Register intermediate interfaces (like `DatedMessage`) explicitly if they are not returned directly from a resolver field.
 
-# Troubleshooting
-
-## "Type is not registered" error
-
-Every type that implements an interface must be registered with `.AddType<T>()`. Hot Chocolate cannot discover implementing types automatically.
-
-## Interface field not appearing on implementing type
-
-The implementing object type must declare the same fields as the interface. If a field is missing, the schema fails validation. Ensure the C# class includes properties matching all interface members.
-
-## Multiple interfaces with same field name
-
-If a type implements two interfaces that both declare a field with the same name and type, the field appears once on the implementing type. If the types differ, the schema fails to build. Rename one of the fields using `[GraphQLName]`.
-
 # Next Steps
 
 - **Need types without shared fields?** See [Unions](/docs/hotchocolate/v16/defining-a-schema/unions).

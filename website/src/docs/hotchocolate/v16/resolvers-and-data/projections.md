@@ -271,24 +271,6 @@ public class UserType : ObjectType<User>
 </Code>
 </ExampleTabs>
 
-# Troubleshooting
-
-## Properties return default values
-
-Projections require a public setter on each property they operate on. If a property has only a getter (or uses `init`), the projected value cannot be assigned and the default value is returned.
-
-## HC0099: Do not combine QueryContext with UseProjection
-
-Remove either `[UseProjection]` or `QueryContext<T>`. Using both on the same field produces conflicting projection behavior.
-
-## Nested properties are null
-
-Verify that the navigation property is included in the EF Core model. If the relationship is not configured in the database context, the projection middleware cannot include it in the query.
-
-## All columns are loaded despite using projections
-
-Ensure the resolver returns `IQueryable<T>`, not a materialized collection. If you call `.ToList()` or `.AsEnumerable()` before returning, the projection middleware has no `IQueryable` to apply `Select` to.
-
 # Next Steps
 
 - **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering).

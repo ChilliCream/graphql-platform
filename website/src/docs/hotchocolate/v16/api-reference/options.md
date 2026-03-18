@@ -262,17 +262,6 @@ builder.Services
 | `DefaultScope`  | `CacheControlScope` | `Public` | The default cache scope applied to fields when `ApplyDefaults` is `true`. Values: `Public`, `Private`.                                                                                        |
 | `ApplyDefaults` | `bool`              | `true`   | When `true`, applies `DefaultMaxAge` and `DefaultScope` to all fields that do not already have a `@cacheControl` directive, are on the Query root type, or are responsible for fetching data. |
 
-# Troubleshooting
-
-**Options changes do not take effect**
-Verify that you are calling the correct `Modify*` method. For example, `ModifyOptions` modifies schema options, while `ModifyRequestOptions` modifies execution options. These are separate configuration APIs.
-
-**Execution timeout errors in development**
-When the debugger is attached, the default timeout is 30 minutes. In production, it defaults to 30 seconds. You can override it with `ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(60))`.
-
-**Batching returns an error**
-Batching is disabled by default in v16. Enable it with `ModifyServerOptions(o => o.Batching = AllowedBatching.All)`.
-
 # Next Steps
 
 - [Execution engine](/docs/hotchocolate/v16/execution-engine) for pipeline configuration

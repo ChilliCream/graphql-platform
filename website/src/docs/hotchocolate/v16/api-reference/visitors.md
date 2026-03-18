@@ -140,14 +140,6 @@ query {
 }
 ```
 
-# Troubleshooting
-
-**Visitor does not enter child nodes**
-Verify that the `Enter` method returns `Continue`. Returning `Skip` or `Break` prevents traversal of child nodes.
-
-**State is lost between nodes**
-The `SyntaxWalker` is stateless. All state must be stored on the `TContext` object. Verify that you push and pop state correctly in `OnBeforeEnter` and `OnAfterLeave`.
-
 # Next Steps
 
 - [Language reference](/docs/hotchocolate/v16/api-reference/language) for AST node types

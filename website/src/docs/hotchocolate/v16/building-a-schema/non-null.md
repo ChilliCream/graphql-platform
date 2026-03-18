@@ -151,20 +151,6 @@ public class BookType : ObjectType<Book>
 
 Both produce `genres: [String!]` in the schema.
 
-# Troubleshooting
-
-## Field unexpectedly nullable
-
-Verify that NRT is enabled in your project. Without NRT, all reference type fields default to nullable. Check your `.csproj` for `<Nullable>enable</Nullable>`.
-
-## Resolver returns null for non-null field
-
-When a resolver returns `null` for a non-null field, the execution engine propagates the null up to the nearest nullable parent field. If no parent is nullable, the entire `data` response becomes `null`. Either make the field nullable in the schema or ensure the resolver always returns a value.
-
-## Input field nullability mismatch
-
-Input fields follow the same NRT rules. If a client sends `null` for a non-null input field, the request fails validation. Ensure your input classes accurately reflect which fields are optional.
-
 # Next Steps
 
 - **Need to define lists?** See [Lists](/docs/hotchocolate/v16/defining-a-schema/lists).

@@ -85,14 +85,6 @@ The interface defines the `NodeKind` of the node.
 | InputObjectTypeExtension  | [Input type extension](https://spec.graphql.org/June2018/#sec-Input-Object-Extensions)                                | Schema           | input foo {}                    |
 | DirectiveDefinition       | [Directive definition](https://spec.graphql.org/June2018/#sec-Type-System.Directives)                                 | Schema           | directive @foo on               |
 
-# Troubleshooting
-
-**Syntax node prints unexpected output**
-Call `ToString()` on the node to see its GraphQL representation. Compare this with the original input to identify discrepancies.
-
-**Custom syntax node not recognized**
-Hot Chocolate uses a fixed set of node kinds. If you need custom nodes, work with the existing node types and use the extension data properties to attach metadata.
-
 # Next Steps
 
 - [Visitors](/docs/hotchocolate/v16/api-reference/visitors) for traversing the AST
