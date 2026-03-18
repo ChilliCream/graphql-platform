@@ -119,8 +119,7 @@ public static partial class ActivityTestHelper
                     StackTracePathRegex().Replace(stackTrace, match =>
                     {
                         var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
-                        var lineNumber = match.Groups["line"].Value;
-                        return $" in {fileName}:line {lineNumber}";
+                        return $" in {fileName}";
                     }));
             }
             else

@@ -30,6 +30,11 @@ public sealed class OperationCompiler
         _typeNameField = new TypeNameField(nonNullStringType);
     }
 
+    /// <summary>
+    /// Gets the Fusion schema definition for which we can compile operations.
+    /// </summary>
+    public FusionSchemaDefinition Schema => _schema;
+
     public Operation Compile(string id, string hash, OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);

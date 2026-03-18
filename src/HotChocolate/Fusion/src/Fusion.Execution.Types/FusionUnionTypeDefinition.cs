@@ -14,6 +14,7 @@ namespace HotChocolate.Fusion.Types;
 /// </summary>
 public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTypeDefinition
 {
+    private FusionTypeFlags _flags;
     private bool _completed;
 
     /// <summary>
@@ -61,6 +62,25 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTyp
     /// Gets a value indicating whether this union type is marked as inaccessible.
     /// </summary>
     public bool IsInaccessible { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this type is shared across multiple source schemas.
+    /// </summary>
+    public bool IsSharedType => (_flags & FusionTypeFlags.Shared) != 0;
+
+    /// <summary>
+    /// Gets a value indicating whether this type is an entity type.
+    /// An entity type is shared and has lookups that allow it to be
+    /// resolved independently by source schemas.
+    /// </summary>
+    public bool IsEntityType => (_flags & FusionTypeFlags.Entity) != 0;
+
+    /// <summary>
+    /// Gets a value indicating whether this type is a value type.
+    /// A value type is shared across multiple source schemas but has no
+    /// entity lookups — it cannot be independently resolved.
+    /// </summary>
+    public bool IsValueType => IsSharedType && !IsEntityType;
 
     /// <summary>
     /// Gets metadata about this union type in its source schemas.
@@ -144,6 +164,7 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTyp
         Types = context.Types;
         Sources = context.Sources;
         Features = context.Features;
+        SetFlags(context.Sources);
 
         _completed = true;
     }
@@ -176,6 +197,23 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTyp
 
             default:
                 return false;
+        }
+    }
+
+    private void SetFlags(SourceUnionTypeCollection sources)
+    {
+        if (sources.Schemas.Length > 1)
+        {
+            _flags |= FusionTypeFlags.Shared;
+        }
+
+        foreach (var source in sources)
+        {
+            if (source.Lookups.Length > 0)
+            {
+                _flags |= FusionTypeFlags.Entity;
+                break;
+            }
         }
     }
 
