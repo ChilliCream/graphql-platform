@@ -33,6 +33,28 @@ builder.Services
 
 If needed, you can inject services into your custom `HttpRequestInterceptor` using its constructor.
 
+## Delegate-based interceptor
+
+For lightweight interception logic, you can register a delegate instead of creating a class. The delegate receives the `HttpContext`, the `IRequestExecutor`, the `OperationRequestBuilder`, and a `CancellationToken`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpRequestInterceptor(
+        async (context, executor, builder, ct) =>
+        {
+            var tenantId = context.Request.Headers["X-Tenant-Id"]
+                .FirstOrDefault();
+
+            if (tenantId is not null)
+            {
+                builder.SetProperty("TenantId", tenantId);
+            }
+        });
+```
+
+The delegate-based interceptor extends `DefaultHttpRequestInterceptor`. Your delegate runs first, and then the default `OnCreateAsync` implementation executes, which sets up the `ClaimsPrincipal` and other global state. This means you can safely set properties in the delegate without worrying about missing base behavior.
+
 ## OnCreateAsync
 
 This method is invoked for **every** GraphQL request sent via HTTP. It is a good place to set global state variables, extend the identity of the authenticated user, or perform any per-request work.
@@ -65,24 +87,54 @@ Create a new class inheriting from `DefaultSocketSessionInterceptor` to provide 
 public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
 {
     public override ValueTask<ConnectionStatus> OnConnectAsync(
-        ISocketConnection connection, InitializeConnectionMessage message,
+        ISocketSession session, IOperationMessagePayload connectionInitMessage,
         CancellationToken cancellationToken)
     {
-        return base.OnConnectAsync(connection, message, cancellationToken);
-    }
-
-    public override ValueTask OnRequestAsync(ISocketConnection connection,
-        OperationRequestBuilder requestBuilder,
-        CancellationToken cancellationToken)
-    {
-        return base.OnRequestAsync(connection, requestBuilder,
+        return base.OnConnectAsync(session, connectionInitMessage,
             cancellationToken);
     }
 
-    public override ValueTask OnCloseAsync(ISocketConnection connection,
+    public override ValueTask OnRequestAsync(ISocketSession session,
+        string operationSessionId, OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
-        return base.OnCloseAsync(connection, cancellationToken);
+        return base.OnRequestAsync(session, operationSessionId,
+            requestBuilder, cancellationToken);
+    }
+
+    public override ValueTask<OperationResult> OnResultAsync(
+        ISocketSession session, string operationSessionId,
+        OperationResult result, CancellationToken cancellationToken)
+    {
+        return base.OnResultAsync(session, operationSessionId, result,
+            cancellationToken);
+    }
+
+    public override ValueTask OnCompleteAsync(ISocketSession session,
+        string operationSessionId, CancellationToken cancellationToken)
+    {
+        return base.OnCompleteAsync(session, operationSessionId,
+            cancellationToken);
+    }
+
+    public override ValueTask<IReadOnlyDictionary<string, object?>?> OnPingAsync(
+        ISocketSession session, IOperationMessagePayload pingMessage,
+        CancellationToken cancellationToken)
+    {
+        return base.OnPingAsync(session, pingMessage, cancellationToken);
+    }
+
+    public override ValueTask OnPongAsync(ISocketSession session,
+        IOperationMessagePayload pongMessage,
+        CancellationToken cancellationToken)
+    {
+        return base.OnPongAsync(session, pongMessage, cancellationToken);
+    }
+
+    public override ValueTask OnCloseAsync(ISocketSession session,
+        CancellationToken cancellationToken)
+    {
+        return base.OnCloseAsync(session, cancellationToken);
     }
 }
 ```
@@ -101,47 +153,50 @@ You do not have to override every method shown above. Override only the ones you
 
 ## OnConnectAsync
 
-This method is invoked **once** when a client attempts to initialize a WebSocket connection. You can accept or reject specific connection requests.
+This method is invoked **once** when a client sends a `connection_init` message to initialize a WebSocket connection. You can accept or reject specific connection requests.
 
 ```csharp
-public async override ValueTask<ConnectionStatus> OnConnectAsync(
-    ISocketConnection connection, InitializeConnectionMessage message,
+public override ValueTask<ConnectionStatus> OnConnectAsync(
+    ISocketSession session, IOperationMessagePayload connectionInitMessage,
     CancellationToken cancellationToken)
 {
     if (condition)
     {
-        return ConnectionStatus.Reject("Connection rejected for X reason!");
+        return new(ConnectionStatus.Reject("Connection rejected for X reason!"));
     }
 
-    return ConnectionStatus.Accept();
+    return new(ConnectionStatus.Accept());
 }
 ```
 
-You also get access to the `InitializeConnectionMessage`. If a client sends a payload with this message (for example, an auth token), you can access it:
+The `connectionInitMessage` payload contains any data the client sent with the `connection_init` message. If a client sends a payload (for example, an auth token), you can access it:
 
 ```csharp
-public async override ValueTask<ConnectionStatus> OnConnectAsync(
-    ISocketConnection connection, InitializeConnectionMessage message,
+public override ValueTask<ConnectionStatus> OnConnectAsync(
+    ISocketSession session, IOperationMessagePayload connectionInitMessage,
     CancellationToken cancellationToken)
 {
-    if (message.Payload?.TryGetValue("MyKey", out object? value) == true)
+    if (connectionInitMessage.As<Dictionary<string, object?>>()
+        ?.TryGetValue("authToken", out var token) == true)
     {
-        // ...
+        // Validate token ...
     }
 
-    return ConnectionStatus.Accept();
+    return new(ConnectionStatus.Accept());
 }
 ```
 
 ## OnRequestAsync
 
-This method is invoked for **every** GraphQL request a client sends using the already established WebSocket connection. It is a good place to set global state variables, extend the identity of the authenticated user, or perform any per-request work.
+This method is invoked for **every** GraphQL request a client sends using the already established WebSocket connection. It receives the `operationSessionId` assigned by the client for this particular operation. It is a good place to set global state variables, extend the identity of the authenticated user, or perform any per-request work.
 
 ```csharp
-public override ValueTask OnRequestAsync(ISocketConnection connection,
-    OperationRequestBuilder requestBuilder, CancellationToken cancellationToken)
+public override ValueTask OnRequestAsync(ISocketSession session,
+    string operationSessionId, OperationRequestBuilder requestBuilder,
+    CancellationToken cancellationToken)
 {
-    return base.OnRequestAsync(connection, requestBuilder, cancellationToken);
+    return base.OnRequestAsync(session, operationSessionId, requestBuilder,
+        cancellationToken);
 }
 ```
 
@@ -153,9 +208,72 @@ Most of the configuration is done through the `OperationRequestBuilder` injected
 
 If you want to fail the request before it is executed, throw a `GraphQLException`. The middleware translates this exception to a proper GraphQL error response for the client.
 
+## OnResultAsync
+
+This method is invoked before each result is serialized and sent to the client. You can modify the `OperationResult` or replace it entirely. For subscriptions, this method is called for every emitted result.
+
+```csharp
+public override ValueTask<OperationResult> OnResultAsync(
+    ISocketSession session, string operationSessionId,
+    OperationResult result, CancellationToken cancellationToken)
+{
+    // Inspect or modify the result before it is sent to the client.
+    return base.OnResultAsync(session, operationSessionId, result,
+        cancellationToken);
+}
+```
+
+The default implementation returns the result unmodified.
+
+## OnCompleteAsync
+
+This method is invoked when an operation finishes execution. For subscriptions, it fires when the subscription stream completes or is stopped by the client. This method is guaranteed to run even if the operation fails or the connection closes, making it a reliable place for cleanup logic.
+
+```csharp
+public override ValueTask OnCompleteAsync(ISocketSession session,
+    string operationSessionId, CancellationToken cancellationToken)
+{
+    // Clean up resources for the completed operation.
+    return base.OnCompleteAsync(session, operationSessionId,
+        cancellationToken);
+}
+```
+
+> Note: The cancellation token may already be canceled if the connection closed unexpectedly. Handle `OperationCanceledException` if your cleanup logic calls async APIs.
+
+## OnPingAsync
+
+This method is invoked when the server receives a `ping` message from the client. Return a dictionary of key-value pairs to include as the payload in the corresponding `pong` response, or return `null` for an empty pong.
+
+```csharp
+public override ValueTask<IReadOnlyDictionary<string, object?>?> OnPingAsync(
+    ISocketSession session, IOperationMessagePayload pingMessage,
+    CancellationToken cancellationToken)
+{
+    return new(new Dictionary<string, object?>
+    {
+        ["serverTime"] = DateTimeOffset.UtcNow.ToString("O"),
+    });
+}
+```
+
+## OnPongAsync
+
+This method is invoked when the server receives a `pong` message from the client in response to a server-initiated ping. You can use it for latency tracking or connection health monitoring.
+
+```csharp
+public override ValueTask OnPongAsync(ISocketSession session,
+    IOperationMessagePayload pongMessage,
+    CancellationToken cancellationToken)
+{
+    // Log round-trip time or update health metrics.
+    return base.OnPongAsync(session, pongMessage, cancellationToken);
+}
+```
+
 ## OnCloseAsync
 
-This method is invoked once a client closes the WebSocket connection or the connection is terminated in any other way.
+This method is invoked once when the client closes the WebSocket connection or the connection is terminated in any other way.
 
 # OperationRequestBuilder
 
@@ -235,5 +353,5 @@ Always call `base.OnCreateAsync` (for HTTP) or `base.OnRequestAsync` (for WebSoc
 # Next Steps
 
 - [Global State](/docs/hotchocolate/v16/server/global-state) for sharing per-request data between resolvers.
-- [Dependency Injection](/docs/hotchocolate/v16/server/dependency-injection) for details on service injection and switching providers.
-- [Introspection](/docs/hotchocolate/v16/server/introspection) for controlling introspection on a per-request basis.
+- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for details on service injection and switching providers.
+- [Introspection](/docs/hotchocolate/v16/securing-your-api/introspection) for controlling introspection on a per-request basis.

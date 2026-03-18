@@ -54,6 +54,7 @@ The following middleware are available:
 - [MapGraphQLHttp](#mapgraphqlhttp)
 - [MapGraphQLWebsocket](#mapgraphqlwebsocket)
 - [MapGraphQLSchema](#mapgraphqlschema)
+- [MapGraphQLPersistedOperations](#mapgraphqlpersistedoperations)
 
 ## GraphQLServerOptions
 
@@ -286,6 +287,173 @@ app.UseEndpoints(endpoints =>
 
 With the above configuration, you can download your `schema.graphql` file from the `/graphql/schema` endpoint.
 
+# MapGraphQLPersistedOperations
+
+Call `MapGraphQLPersistedOperations()` on the `IEndpointRouteBuilder` to expose persisted operations via REST-like URLs. This enables clients to execute pre-registered GraphQL operations using a simple URL pattern instead of sending a full GraphQL request body.
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddPersistedOperations(); // Register a persisted operation storage provider
+
+var app = builder.Build();
+
+app.MapGraphQL();
+app.MapGraphQLPersistedOperations();
+
+app.Run();
+```
+
+The default path is `/graphql/persisted`. The endpoint supports two URL patterns:
+
+| Pattern                          | Example                             | Description                                                    |
+| -------------------------------- | ----------------------------------- | -------------------------------------------------------------- |
+| `/{operationId}`                 | `/graphql/persisted/abc123`         | Execute a persisted operation by its ID                        |
+| `/{operationId}/{operationName}` | `/graphql/persisted/abc123/GetUser` | Execute a specific named operation within a persisted document |
+
+Both GET and POST requests are supported. With POST requests, you can pass variables and extensions in the request body.
+
+## Custom Path
+
+You can customize the path:
+
+```csharp
+app.MapGraphQLPersistedOperations("/api/operations");
+```
+
+## Requiring an Operation Name
+
+If you want to enforce that clients always specify an operation name in the URL, set `requireOperationName` to `true`:
+
+```csharp
+app.MapGraphQLPersistedOperations(requireOperationName: true);
+```
+
+When enabled, requests to `/{operationId}` without an operation name return a `400 Bad Request` response.
+
+For details on storing and managing persisted operations, see [Trusted Documents](/docs/hotchocolate/v16/securing-your-api/trusted-documents).
+
+# AddGraphQLServer Parameters
+
+The `AddGraphQLServer()` method on `IServiceCollection` accepts parameters that control request parsing and default security behavior.
+
+```csharp
+builder.Services.AddGraphQLServer(
+    maxAllowedRequestSize: 20 * 1000 * 1024,  // ~20 MB (default)
+    disableDefaultSecurity: false);             // default
+```
+
+## maxAllowedRequestSize
+
+Controls the maximum allowed size (in bytes) of an incoming GraphQL request body. The default is `20 * 1000 * 1024` (approximately 20 MB). If a request exceeds this limit, it is rejected before parsing.
+
+Reduce this value if you expect only small queries and want to protect against excessively large payloads:
+
+```csharp
+builder.Services.AddGraphQLServer(
+    maxAllowedRequestSize: 1 * 1000 * 1024); // ~1 MB
+```
+
+## disableDefaultSecurity
+
+When `false` (the default), `AddGraphQLServer()` automatically enables these security features:
+
+- **Cost analysis**: Protects against expensive queries by analyzing the computational cost of each operation.
+- **Introspection disabled in production**: Introspection is automatically turned off when `IHostEnvironment.IsDevelopment()` returns `false`.
+- **MaxAllowedFieldCycleDepthRule**: Prevents deeply cyclic field selections in production.
+
+If you need full control over which security features are enabled, set `disableDefaultSecurity` to `true` and configure each feature individually:
+
+```csharp
+builder.Services
+    .AddGraphQLServer(disableDefaultSecurity: true)
+    .AddCostAnalyzer(); // Opt in to specific features manually
+```
+
+> Warning: Disabling default security removes important protections. Only do this if you are configuring equivalent protections manually.
+
+# GraphQLServerOptions Reference
+
+The full set of properties available on `GraphQLServerOptions` is listed below. You can set these via `ModifyServerOptions` (schema-level) or `WithOptions` (per-endpoint).
+
+| Property                                  | Type                   | Default       | Description                                                                                                                     |
+| ----------------------------------------- | ---------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `EnableGetRequests`                       | `bool`                 | `true`        | Controls whether HTTP GET requests are accepted.                                                                                |
+| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`       | Which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`. |
+| `EnableMultipartRequests`                 | `bool`                 | `true`        | Controls whether multipart form requests (file uploads) are accepted.                                                           |
+| `EnableSchemaRequests`                    | `bool`                 | `true`        | Controls whether the schema SDL can be downloaded via `?sdl`.                                                                   |
+| `EnableSchemaFileSupport`                 | `bool`                 | `true`        | Controls whether the schema SDL is served as a downloadable file.                                                               |
+| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`       | When `true`, GET requests must include a CSRF preflight header.                                                                 |
+| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`        | When `true`, multipart requests must include a CSRF preflight header.                                                           |
+| `Batching`                                | `AllowedBatching`      | `None`        | Which batching modes are allowed.                                                                                               |
+| `MaxBatchSize`                            | `int`                  | `1024`        | Maximum number of operations in a single batch. `0` means unlimited.                                                            |
+| `Sockets`                                 | `GraphQLSocketOptions` | _(see below)_ | WebSocket-specific options.                                                                                                     |
+| `Tool`                                    | `NitroAppOptions`      | _(see below)_ | Nitro IDE options.                                                                                                              |
+
+The `Sockets` property contains a `GraphQLSocketOptions` object with these properties:
+
+| Property                          | Type        | Default                    | Description                                                              |
+| --------------------------------- | ----------- | -------------------------- | ------------------------------------------------------------------------ |
+| `ConnectionInitializationTimeout` | `TimeSpan`  | `TimeSpan.FromSeconds(10)` | Time the client has to send `connection_init` after opening a WebSocket. |
+| `KeepAliveInterval`               | `TimeSpan?` | `TimeSpan.FromSeconds(5)`  | Interval for server keep-alive pings. `null` disables keep-alive.        |
+
+# Per-Endpoint Configuration with WithOptions
+
+Hot Chocolate uses a delegate-based `WithOptions` pattern to configure options per-endpoint. The delegate receives the options object, and you modify it in place. These overrides are applied on top of the schema-level defaults set via `ModifyServerOptions`.
+
+## MapGraphQL
+
+```csharp
+app.MapGraphQL().WithOptions(o =>
+{
+    o.EnableGetRequests = false;
+    o.AllowedGetOperations = AllowedGetOperations.Query;
+    o.Tool.Enable = false;
+});
+```
+
+## MapGraphQLHttp
+
+```csharp
+app.MapGraphQLHttp("/graphql/http").WithOptions(o =>
+{
+    o.EnableMultipartRequests = false;
+    o.EnforceGetRequestsPreflightHeader = true;
+});
+```
+
+## MapGraphQLWebSocket
+
+The WebSocket endpoint accepts a delegate over `GraphQLSocketOptions` directly:
+
+```csharp
+app.MapGraphQLWebSocket("/graphql/ws").WithOptions(o =>
+{
+    o.ConnectionInitializationTimeout = TimeSpan.FromSeconds(30);
+    o.KeepAliveInterval = TimeSpan.FromSeconds(12);
+});
+```
+
+## Schema-Level Defaults
+
+To set defaults that apply to all endpoints, use `ModifyServerOptions` on the request executor builder:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyServerOptions(o =>
+    {
+        o.EnableGetRequests = false;
+        o.Sockets.KeepAliveInterval = TimeSpan.FromSeconds(15);
+        o.Tool.Enable = false;
+    });
+```
+
+Per-endpoint `WithOptions` overrides take precedence over schema-level defaults.
+
 # Troubleshooting
 
 ## Nitro not loading in the browser
@@ -296,8 +464,21 @@ Check that the `Tool.Enable` setting is not set to `false`. In production enviro
 
 Ensure that the ASP.NET Core WebSocket middleware is registered before calling `MapGraphQL()`. Add `app.UseWebSockets()` to your middleware pipeline.
 
+## Persisted operation returns 400 "Missing operationId"
+
+Verify that the URL matches the expected pattern. The operation ID must be the first path segment after the persisted operations base path (for example, `/graphql/persisted/abc123`). If `requireOperationName` is `true`, you must also provide the operation name as the second path segment.
+
+## Large requests rejected before execution
+
+If large queries or mutations are rejected before reaching the execution engine, the `maxAllowedRequestSize` parameter on `AddGraphQLServer()` is likely too small. Increase it to accommodate your expected payload sizes.
+
+## Introspection disabled unexpectedly in production
+
+When `disableDefaultSecurity` is `false` (the default), introspection is automatically turned off in non-development environments. If you need introspection available in production (for example, behind authentication), either set `disableDefaultSecurity: true` and configure security features manually, or explicitly re-enable introspection after `AddGraphQLServer()`.
+
 # Next Steps
 
-- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on request and response formatting.
+- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on request formats, response formats, WebSocket transport, and SSE.
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for hooking into request processing.
-- [Introspection](/docs/hotchocolate/v16/server/introspection) for controlling schema visibility.
+- [Trusted Documents](/docs/hotchocolate/v16/securing-your-api/trusted-documents) for the full persisted operations workflow.
+- [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) for understanding the default security cost analyzer.

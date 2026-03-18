@@ -24,7 +24,7 @@ builder.Services
     .AddMartenFiltering();
 ```
 
-[Learn more about filtering](/docs/hotchocolate/v16/fetching-data/filtering).
+[Learn more about filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering).
 
 # Sorting
 
@@ -37,19 +37,19 @@ builder.Services
     .AddMartenSorting();
 ```
 
-[Learn more about sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+[Learn more about sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting).
 
 # Projections
 
 Projections work out of the box with Marten. No custom configuration is needed.
 
-[Learn more about projections](/docs/hotchocolate/v16/fetching-data/projections).
+[Learn more about projections](/docs/hotchocolate/v16/resolvers-and-data/projections).
 
 # Paging
 
 Pagination works out of the box with Marten. No custom configuration is needed.
 
-[Learn more about pagination](/docs/hotchocolate/v16/fetching-data/pagination).
+[Learn more about pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination).
 
 # Troubleshooting
 
@@ -61,6 +61,6 @@ Confirm that you registered `AddMartenSorting()`. The default sorting convention
 
 # Next Steps
 
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for filtering concepts
-- [Sorting](/docs/hotchocolate/v16/fetching-data/sorting) for sorting concepts
-- [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for pagination setup
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for filtering concepts
+- [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting) for sorting concepts
+- [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for pagination setup

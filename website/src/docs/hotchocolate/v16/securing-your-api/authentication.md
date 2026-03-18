@@ -68,7 +68,7 @@ builder.Services
     .AddQueryType<Query>();
 ```
 
-Calling `AddAuthorization()` on the `IRequestExecutorBuilder` registers the `@authorize` directive and makes the authenticated user's identity available to resolvers. It does not lock out unauthenticated users. To restrict access, use [authorization](/docs/hotchocolate/v16/security/authorization).
+Calling `AddAuthorization()` on the `IRequestExecutorBuilder` registers the `@authorize` directive and makes the authenticated user's identity available to resolvers. It does not lock out unauthenticated users. To restrict access, use [authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
 
 # Accessing the ClaimsPrincipal
 
@@ -187,6 +187,6 @@ Verify that the identity provider includes the expected claims in the token. Som
 
 # Next Steps
 
-- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
+- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
 - **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).
 - **Need to customize request handling?** See [Interceptors](/docs/hotchocolate/v16/server/interceptors).

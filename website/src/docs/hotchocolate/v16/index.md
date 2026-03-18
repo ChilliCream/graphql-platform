@@ -70,9 +70,9 @@ A public API is consumed by third-party developers or external clients. GitHub's
 
 Hot Chocolate provides **cost analysis** for this scenario. You assign weights to fields and connections, and the server rejects operations that exceed the budget before execution begins.
 
-- [Cost analysis](/docs/hotchocolate/v16/security/cost-analysis) explains field weights, type costs, and budget configuration.
-- [Authorization](/docs/hotchocolate/v16/security/authorization) limits access to types and fields based on roles or policies.
-- [Controlling introspection](/docs/hotchocolate/v16/server/introspection) lets you restrict schema visibility in production.
+- [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) explains field weights, type costs, and budget configuration.
+- [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization) limits access to types and fields based on roles or policies.
+- [Controlling introspection](/docs/hotchocolate/v16/securing-your-api/introspection) lets you restrict schema visibility in production.
 
 ## Private GraphQL
 
@@ -80,7 +80,7 @@ A private API is consumed by your own applications. This is how Meta built and o
 
 Hot Chocolate provides **trusted documents** for this scenario. You extract all operations from your client applications during their build process, register them with the server, and the server only accepts pre-registered operations.
 
-- [Trusted documents](/docs/hotchocolate/v16/performance/persisted-operations) covers the full workflow: extraction, registration, and enforcement.
+- [Trusted documents](/docs/hotchocolate/v16/performance/trusted-documents) covers the full workflow: extraction, registration, and enforcement.
 - [Strawberry Shake](/docs/strawberryshake/v16) and [Relay](https://relay.dev/docs/guides/persisted-queries/) both support build-time operation extraction.
 
 These two approaches complement each other. A common setup is trusted documents for your own frontend applications and cost analysis for partner integrations.
@@ -113,7 +113,7 @@ Where you go from here depends on what you need:
 
 - **"I want to understand the schema system."** Read [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema). It covers queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for the full resolver API.
+- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for the full resolver API.
 
 - **"I need to secure my API."** See [Securing Your API](/docs/hotchocolate/v16/security) for authentication, authorization, cost analysis, and trusted documents.
 

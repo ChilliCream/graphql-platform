@@ -296,6 +296,6 @@ Hot Chocolate validates the order of built-in data middleware (paging, filtering
 # Next Steps
 
 - [Execution engine overview](/docs/hotchocolate/v16/execution-engine) for request-level middleware
-- [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for field resolution
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [sorting](/docs/hotchocolate/v16/fetching-data/sorting) middleware
-- [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) middleware
+- [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for field resolution
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) and [sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting) middleware
+- [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) middleware

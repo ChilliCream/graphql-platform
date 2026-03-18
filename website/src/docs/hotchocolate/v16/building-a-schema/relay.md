@@ -297,7 +297,7 @@ descriptor
 </Code>
 </ExampleTabs>
 
-Node resolvers are ideal places to use [DataLoaders](/docs/hotchocolate/v16/fetching-data/dataloader) for efficient batched fetching.
+Node resolvers are ideal places to use [DataLoaders](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for efficient batched fetching.
 
 ## Node with Type Extensions
 
@@ -397,7 +397,7 @@ In v16, `MaxAllowedNodeBatchSize` has moved from the `Node` type configuration t
 
 # Next Steps
 
-- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need pagination?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
+- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
+- **Need pagination?** See [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination).
 - **Need to understand ID types?** See [Scalars](/docs/hotchocolate/v16/defining-a-schema/scalars).
 - **Need to extend types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).

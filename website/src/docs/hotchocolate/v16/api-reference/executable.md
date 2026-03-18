@@ -125,4 +125,4 @@ This occurs when `SingleOrDefaultAsync` finds multiple results. Verify that your
 
 - [Entity Framework integration](/docs/hotchocolate/v16/integrations/entity-framework) for EF Core executables
 - [MongoDB integration](/docs/hotchocolate/v16/integrations/mongodb) for MongoDB executables
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for applying filters to executables
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for applying filters to executables

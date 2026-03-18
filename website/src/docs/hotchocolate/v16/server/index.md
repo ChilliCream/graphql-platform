@@ -28,7 +28,7 @@ For WebSockets, the interceptor also handles lifecycle events such as when a cli
 
 Hot Chocolate recognizes services registered in your DI container and injects them into resolvers automatically. In v16, services are resolved implicitly without requiring the `[Service]` attribute.
 
-[Learn more about dependency injection](/docs/hotchocolate/v16/server/dependency-injection)
+[Learn more about dependency injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection)
 
 # Warmup
 
@@ -46,7 +46,7 @@ Global State lets you define properties on a per-request basis and makes them av
 
 Introspection lets you query the type system of your GraphQL server using regular GraphQL queries. While this powers developer tooling, it can also be an attack vector. You can control who is allowed to issue introspection queries.
 
-[Learn more about introspection](/docs/hotchocolate/v16/server/introspection)
+[Learn more about introspection](/docs/hotchocolate/v16/securing-your-api/introspection)
 
 # Files
 

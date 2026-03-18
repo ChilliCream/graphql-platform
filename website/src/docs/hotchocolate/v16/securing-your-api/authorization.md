@@ -6,7 +6,7 @@ Authorization controls what an authenticated user can access. Hot Chocolate prov
 
 Authentication is a prerequisite. You must first validate a user's identity before evaluating their permissions.
 
-[Learn how to set up authentication](/docs/hotchocolate/v16/security/authentication)
+[Learn how to set up authentication](/docs/hotchocolate/v16/securing-your-api/authentication)
 
 # Setup
 
@@ -354,6 +354,6 @@ When `RequireAuthorization()` is applied to `MapGraphQL()`, it blocks all sub-mi
 
 # Next Steps
 
-- **Need to set up authentication first?** See [Authentication](/docs/hotchocolate/v16/security/authentication).
-- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
+- **Need to set up authentication first?** See [Authentication](/docs/hotchocolate/v16/securing-your-api/authentication).
+- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis).
 - **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).

@@ -330,8 +330,8 @@ The CRS is currently fixed. The user must know the CRS of the backend to perform
 
 # Next Steps
 
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for general filtering concepts
-- [Projections](/docs/hotchocolate/v16/fetching-data/projections) for projection setup
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for general filtering concepts
+- [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections) for projection setup
 - [Entity Framework integration](/docs/hotchocolate/v16/integrations/entity-framework) for EF Core setup
 
 <!-- spell-checker:ignore ndistance -->

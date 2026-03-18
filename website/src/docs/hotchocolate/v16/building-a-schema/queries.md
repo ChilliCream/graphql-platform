@@ -187,4 +187,4 @@ If two `[QueryType]` classes define methods that produce the same GraphQL field 
 - **Need to write data?** See [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations).
 - **Need real-time updates?** See [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions).
 - **Need to understand how types map to the schema?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need to fetch data efficiently?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) and [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
+- **Need to fetch data efficiently?** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) and [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).

@@ -180,7 +180,7 @@ This is expected behavior. Batch results stream back as they complete. Use the `
 # Next Steps
 
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on streaming transports and incremental delivery.
-- [Persisted Operations](/docs/hotchocolate/v16/performance/persisted-operations) for reducing request payload size.
+- [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) for reducing request payload size.
 - [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#batching-is-now-disabled-by-default) for the batching migration details.
 
 <!-- spell-checker:ignore Cbnia, Yero -->

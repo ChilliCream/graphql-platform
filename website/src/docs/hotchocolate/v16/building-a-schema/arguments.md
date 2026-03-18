@@ -225,4 +225,4 @@ If a global ID cannot be deserialized, the error message indicates a type mismat
 - **Need structured input?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
 - **Need to understand nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
 - **Need global IDs?** See [Relay](/docs/hotchocolate/v16/defining-a-schema/relay).
-- **Need to set up resolvers?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
+- **Need to set up resolvers?** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers).
