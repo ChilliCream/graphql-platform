@@ -230,7 +230,7 @@ internal static class Iso8601DurationParser
         return true;
     }
 
-    private interface ICharReader<T> where T : struct
+    private interface ICharReader<in T> where T : struct
     {
         static abstract bool IsChar(T value, char c);
         static abstract bool IsDigit(T value);

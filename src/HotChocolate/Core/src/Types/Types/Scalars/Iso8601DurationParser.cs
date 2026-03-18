@@ -25,7 +25,7 @@ internal static class Iso8601DurationParser
         where T : struct, IEquatable<T>
         where TReader : struct, ICharReader<T>
     {
-        result = default;
+        result = TimeSpan.Zero;
 
         if (input.IsEmpty)
         {
@@ -228,7 +228,7 @@ internal static class Iso8601DurationParser
         return true;
     }
 
-    private interface ICharReader<T> where T : struct
+    private interface ICharReader<in T> where T : struct
     {
         static abstract bool IsChar(T value, char c);
         static abstract bool IsDigit(T value);

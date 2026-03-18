@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Buffers.Text;
 
 namespace HotChocolate.Types;
@@ -44,18 +43,18 @@ internal static class Iso8601DurationFormatter
         ulong absTicks;
         unchecked
         {
-            absTicks = isNegative ? (ulong)(-ticks) : (ulong)ticks;
+            absTicks = isNegative ? (ulong)-ticks : (ulong)ticks;
         }
 
         // Decompose the absolute duration into components.
-        var days = (int)(absTicks / (ulong)TimeSpan.TicksPerDay);
-        var remainingTicks = absTicks % (ulong)TimeSpan.TicksPerDay;
-        var hours = (int)(remainingTicks / (ulong)TimeSpan.TicksPerHour);
-        remainingTicks %= (ulong)TimeSpan.TicksPerHour;
-        var minutes = (int)(remainingTicks / (ulong)TimeSpan.TicksPerMinute);
-        remainingTicks %= (ulong)TimeSpan.TicksPerMinute;
-        var seconds = (int)(remainingTicks / (ulong)TimeSpan.TicksPerSecond);
-        var fracTicks = (int)(remainingTicks % (ulong)TimeSpan.TicksPerSecond);
+        var days = (int)(absTicks / TimeSpan.TicksPerDay);
+        var remainingTicks = absTicks % TimeSpan.TicksPerDay;
+        var hours = (int)(remainingTicks / TimeSpan.TicksPerHour);
+        remainingTicks %= TimeSpan.TicksPerHour;
+        var minutes = (int)(remainingTicks / TimeSpan.TicksPerMinute);
+        remainingTicks %= TimeSpan.TicksPerMinute;
+        var seconds = (int)(remainingTicks / TimeSpan.TicksPerSecond);
+        var fracTicks = (int)(remainingTicks % TimeSpan.TicksPerSecond);
 
         var pos = 0;
 
@@ -165,16 +164,6 @@ internal static class Iso8601DurationFormatter
 
         bytesWritten = pos;
         return true;
-    }
-
-    /// <summary>
-    /// Formats a <see cref="TimeSpan"/> as an ISO 8601 duration string into an <see cref="IBufferWriter{T}"/>.
-    /// </summary>
-    public static void Format(TimeSpan value, IBufferWriter<byte> writer)
-    {
-        var span = writer.GetSpan(MaxBufferSize);
-        TryFormat(value, span, out var bytesWritten);
-        writer.Advance(bytesWritten);
     }
 
     /// <summary>

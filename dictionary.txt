@@ -41,8 +41,8 @@ contentfiles
 Contoso
 conv
 CQRS
-CUST
 creds
+CUST
 dataloaders
 debuggable
 decompile
@@ -58,6 +58,7 @@ entityframework
 EPSG
 esque
 evolvability
+Expando
 Fanout
 FFFFFFFZ
 fffzzz
@@ -83,8 +84,8 @@ Hmac
 hotchocolate
 Includable
 inheritdocs
-inmemory
 initializable
+inmemory
 inspectable
 Kellner
 Kydne
@@ -186,6 +187,7 @@ streamable
 Structs
 subgraphs
 sublicensable
+Subsecond
 subselections
 supergraph
 Swashbuckle
@@ -197,6 +199,8 @@ Testcontainers
 Toub
 Touchpoint
 TOWGS
+traceparent
+tracestate
 Trimmable
 Tzdb
 unlisten
@@ -214,6 +218,3 @@ websockets
 Wilhuff
 Wunder
 xunit
-Expando
-traceparent
-tracestate

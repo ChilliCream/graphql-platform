@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Buffers.Text;
 using NodaTime;
 
@@ -49,7 +48,7 @@ internal static class Iso8601DurationFormatter
         var hours = value.Hours;
         var minutes = value.Minutes;
         var seconds = value.Seconds;
-        var nanos = (int)value.SubsecondNanoseconds;
+        var nanos = value.SubsecondNanoseconds;
 
         var pos = 0;
 
@@ -159,16 +158,6 @@ internal static class Iso8601DurationFormatter
 
         bytesWritten = pos;
         return true;
-    }
-
-    /// <summary>
-    /// Formats a <see cref="Duration"/> as an ISO 8601 duration string into an <see cref="IBufferWriter{T}"/>.
-    /// </summary>
-    public static void Format(Duration value, IBufferWriter<byte> writer)
-    {
-        var span = writer.GetSpan(MaxBufferSize);
-        TryFormat(value, span, out var bytesWritten);
-        writer.Advance(bytesWritten);
     }
 
     /// <summary>
