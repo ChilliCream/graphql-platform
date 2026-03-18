@@ -7,7 +7,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Text.Json;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -15,8 +14,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
-    private readonly SelectionSetNode _resultSelectionSet;
-    private readonly ResultSelectionMap _resultSelectionMap;
+    private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
@@ -33,7 +31,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         SelectionPath source,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
-        SelectionSetNode resultSelectionSet,
+        ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
         int? batchingGroupId,
         bool requiresFileUpload)
@@ -47,7 +45,6 @@ public sealed class OperationExecutionNode : ExecutionNode
         _requirements = requirements;
         _forwardedVariables = forwardedVariables;
         _resultSelectionSet = resultSelectionSet;
-        _resultSelectionMap = ResultSelectionMap.Create(resultSelectionSet);
         _conditions = conditions;
         _requiresFileUpload = requiresFileUpload;
     }
@@ -74,12 +71,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the result selection set fulfilled by this operation.
     /// </summary>
-    public SelectionSetNode ResultSelectionSet => _resultSelectionSet;
-
-    /// <summary>
-    /// Gets the pre-computed result selection map for allocation-free field lookups.
-    /// </summary>
-    internal ResultSelectionMap ResultSelectionMap => _resultSelectionMap;
+    internal ResultSelectionSet ResultSelectionSet => _resultSelectionSet;
 
     /// <inheritdoc />
     public override string? SchemaName => _schemaName;
@@ -223,7 +215,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 singleResult.Dispose();
             }
 
-            AddErrors(context, exception, variables, _resultSelectionMap);
+            AddErrors(context, exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -234,7 +226,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     buffer.AsSpan(0, index),
-                    _resultSelectionMap,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
             else if (singleResult is not null)
@@ -243,7 +235,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
-                    _resultSelectionMap,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
             else
@@ -251,7 +243,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     [],
-                    _resultSelectionMap,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
         }
@@ -265,7 +257,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            AddErrors(context, exception, variables, _resultSelectionMap);
+            AddErrors(context, exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
         finally
@@ -325,7 +317,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception ex)
         {
-            AddErrors(context, ex, variables, _resultSelectionMap);
+            AddErrors(context, ex, variables, _resultSelectionSet);
             context.DiagnosticEvents.SourceSchemaTransportError(context, this, schemaName, ex);
             return SubscriptionResult.Failed(subscriptionId, ex);
         }
@@ -335,13 +327,13 @@ public sealed class OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         Exception exception,
         ImmutableArray<VariableValues> variables,
-        ResultSelectionMap resultSelectionMap)
+        ResultSelectionSet resultSelectionSet)
     {
         var error = ErrorBuilder.FromException(exception).Build();
 
         if (variables.Length == 0)
         {
-            context.AddErrors(error, resultSelectionMap, Path.Root);
+            context.AddErrors(error, resultSelectionSet, Path.Root);
         }
         else
         {
@@ -368,7 +360,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     }
                 }
 
-                context.AddErrors(error, resultSelectionMap, pathBuffer.AsSpan(0, pathBufferLength));
+                context.AddErrors(error, resultSelectionSet, pathBuffer.AsSpan(0, pathBufferLength));
             }
             finally
             {
@@ -493,14 +485,14 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
                     _subscriptionId,
                     exception);
-                _context.AddErrors(error, _node._resultSelectionMap);
+                _context.AddErrors(error, _node._resultSelectionSet);
                 return false;
             }
 
             if (hasResult)
             {
                 _resultBuffer[0] = _resultEnumerator.Current;
-                _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionMap);
+                _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet);
 
                 Current = new EventMessageResult(
                     _node.Id,

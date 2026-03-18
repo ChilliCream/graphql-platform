@@ -324,11 +324,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ResultSelectionMap resultSelectionMap,
+        ResultSelectionSet resultSelectionSet,
         bool containsErrors = true)
     {
         var canExecutionContinue =
-            _resultStore.AddPartialResults(sourcePath, results, resultSelectionMap, containsErrors);
+            _resultStore.AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors);
 
         if (!canExecutionContinue)
         {
@@ -336,9 +336,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(SourceResultDocument result, ResultSelectionMap resultSelectionMap)
+    internal void AddPartialResults(SourceResultDocument result, ResultSelectionSet resultSelectionSet)
     {
-        var canExecutionContinue = _resultStore.AddPartialResults(result, resultSelectionMap);
+        var canExecutionContinue = _resultStore.AddPartialResults(result, resultSelectionSet);
 
         if (!canExecutionContinue)
         {
@@ -348,10 +348,10 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal void AddErrors(
         IError error,
-        ResultSelectionMap resultSelectionMap,
+        ResultSelectionSet resultSelectionSet,
         params ReadOnlySpan<Path> paths)
     {
-        var canExecutionContinue = _resultStore.AddErrors(error, resultSelectionMap, paths);
+        var canExecutionContinue = _resultStore.AddErrors(error, resultSelectionSet, paths);
 
         if (!canExecutionContinue)
         {
@@ -359,9 +359,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddErrors(IError error, ResultSelectionMap resultSelectionMap, ReadOnlySpan<CompactPath> paths)
+    internal void AddErrors(IError error, ResultSelectionSet resultSelectionSet, ReadOnlySpan<CompactPath> paths)
     {
-        var canExecutionContinue = _resultStore.AddErrors(error, resultSelectionMap, paths);
+        var canExecutionContinue = _resultStore.AddErrors(error, resultSelectionSet, paths);
 
         if (!canExecutionContinue)
         {

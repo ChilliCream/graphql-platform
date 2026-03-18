@@ -310,8 +310,9 @@ public sealed partial class OperationPlanner
                     var operationSource = operation.ToSourceText();
                     int? batchingGroupId = batchingGroupLookup.TryGetValue(step.Id, out var groupId) ? groupId : null;
 
-                    var resultSelectionSet = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
-                    resultSelectionSet = PruneNonValueTypeChildren(resultSelectionSet, operationStep.Type, schema);
+                    var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
+                    selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
+                    var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
 
                     var node = new OperationExecutionNode(
                         operationStep.Id,
@@ -829,7 +830,7 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Strips child selection sets from fields whose return type is not a value type.
-    /// This allows <see cref="ResultSelectionMap"/> to only build the tree along value-type paths,
+    /// This allows <see cref="ResultSelectionSet"/> to only build the tree along value-type paths,
     /// reducing memory for the common case where most fields are not value types.
     /// </summary>
     private static SelectionSetNode PruneNonValueTypeChildren(

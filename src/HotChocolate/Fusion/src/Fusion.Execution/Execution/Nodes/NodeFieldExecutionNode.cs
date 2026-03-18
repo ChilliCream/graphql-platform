@@ -10,7 +10,7 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
 {
     private readonly Dictionary<string, ExecutionNode> _branches = [];
     private ExecutionNode _fallbackQuery = null!;
-    private readonly ResultSelectionMap _resultSelectionMap;
+    private readonly ResultSelectionSet _resultSelectionSet;
     private readonly string _responseName;
     private readonly IValueNode _idValue;
     private readonly ExecutionNodeCondition[] _conditions;
@@ -23,7 +23,7 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
     {
         _responseName = responseName;
         var resultSelectionSet = new SelectionSetNode([new FieldNode(responseName)]);
-        _resultSelectionMap = ResultSelectionMap.Create(resultSelectionSet);
+        _resultSelectionSet = ResultSelectionSet.Create(resultSelectionSet);
         _idValue = idValue;
         Id = id;
         _conditions = conditions;
@@ -85,7 +85,7 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
                 .SetExtension("originalValue", id)
                 .Build();
 
-            context.AddErrors(error, _resultSelectionMap, Path.Root);
+            context.AddErrors(error, _resultSelectionSet, Path.Root);
 
             return ValueTask.FromResult(ExecutionStatus.Failed);
         }

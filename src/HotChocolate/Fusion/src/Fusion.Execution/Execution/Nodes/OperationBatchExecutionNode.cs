@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Text.Json;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -12,8 +11,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
-    private readonly SelectionSetNode _resultSelectionSet;
-    private readonly ResultSelectionMap _resultSelectionMap;
+    private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
@@ -30,7 +28,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         SelectionPath source,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
-        SelectionSetNode resultSelectionSet,
+        ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
         int? batchingGroupId,
         bool requiresFileUpload)
@@ -44,7 +42,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         _requirements = requirements;
         _forwardedVariables = forwardedVariables;
         _resultSelectionSet = resultSelectionSet;
-        _resultSelectionMap = ResultSelectionMap.Create(resultSelectionSet);
         _conditions = conditions;
         _requiresFileUpload = requiresFileUpload;
     }
@@ -71,12 +68,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the result selection set fulfilled by this operation.
     /// </summary>
-    public SelectionSetNode ResultSelectionSet => _resultSelectionSet;
-
-    /// <summary>
-    /// Gets the pre-computed result selection map for allocation-free field lookups.
-    /// </summary>
-    internal ResultSelectionMap ResultSelectionMap => _resultSelectionMap;
+    internal ResultSelectionSet ResultSelectionSet => _resultSelectionSet;
 
     /// <inheritdoc />
     public override string? SchemaName => _schemaName;
@@ -219,7 +211,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 singleResult.Dispose();
             }
 
-            AddErrors(context, exception, variables, _resultSelectionMap);
+            AddErrors(context, exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -230,7 +222,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     buffer.AsSpan(0, index),
-                    _resultSelectionMap,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
             else if (singleResult is not null)
@@ -239,7 +231,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
-                    _resultSelectionMap,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
             else
@@ -247,7 +239,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     [],
-                    _resultSelectionMap,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
         }
@@ -261,7 +253,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            AddErrors(context, exception, variables, _resultSelectionMap);
+            AddErrors(context, exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
         finally
@@ -286,13 +278,13 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         OperationPlanContext context,
         Exception exception,
         ImmutableArray<VariableValues> variables,
-        ResultSelectionMap resultSelectionMap)
+        ResultSelectionSet resultSelectionSet)
     {
         var error = ErrorBuilder.FromException(exception).Build();
 
         if (variables.Length == 0)
         {
-            context.AddErrors(error, resultSelectionMap, Path.Root);
+            context.AddErrors(error, resultSelectionSet, Path.Root);
         }
         else
         {
@@ -319,7 +311,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                     }
                 }
 
-                context.AddErrors(error, resultSelectionMap, pathBuffer.AsSpan(0, pathBufferLength));
+                context.AddErrors(error, resultSelectionSet, pathBuffer.AsSpan(0, pathBufferLength));
             }
             finally
             {

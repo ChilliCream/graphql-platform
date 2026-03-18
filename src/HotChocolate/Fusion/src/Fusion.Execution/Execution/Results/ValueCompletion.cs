@@ -51,7 +51,7 @@ internal sealed class ValueCompletion
         SourceResultElement source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
-        ResultSelectionMap resultSelectionMap)
+        ResultSelectionSet resultSelectionSet)
     {
         if (source is not { ValueKind: JsonValueKind.Object })
         {
@@ -59,7 +59,7 @@ internal sealed class ValueCompletion
             var canExecutionContinue = BuildResultForInvalidSource(
                 source,
                 target,
-                resultSelectionMap,
+                resultSelectionSet,
                 error);
 
             if (!canExecutionContinue)
@@ -81,6 +81,7 @@ internal sealed class ValueCompletion
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
+            var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
             if (!TryCompleteValue(
                     property.Value,
                     resultField,
@@ -88,7 +89,7 @@ internal sealed class ValueCompletion
                     selection,
                     selection.Type,
                     0,
-                    resultSelectionMap))
+                    childSet))
             {
                 switch (_errorHandlingMode)
                 {
@@ -112,7 +113,7 @@ internal sealed class ValueCompletion
 
     /// <summary>
     /// Tries to <c>null</c> and assign the <paramref name="error"/> to the path
-    /// of each field selected by <paramref name="resultSelectionMap"/>.
+    /// of each field selected by <paramref name="resultSelectionSet"/>.
     /// </summary>
     /// <returns>
     /// <c>true</c>, if the execution can continue.
@@ -120,14 +121,14 @@ internal sealed class ValueCompletion
     /// </returns>
     public bool BuildErrorResult(
         CompositeResultElement target,
-        ResultSelectionMap resultSelectionMap,
+        ResultSelectionSet resultSelectionSet,
         IError error,
         CompactPath path)
     {
         var operation = target.Operation;
         var errorPath = path.ToPath(operation);
 
-        foreach (var responseName in resultSelectionMap.ResponseNames)
+        foreach (var responseName in resultSelectionSet.ResponseNames)
         {
             if (!target.TryGetProperty(responseName, out var fieldResult)
                 || fieldResult.IsInternal)
@@ -229,14 +230,14 @@ internal sealed class ValueCompletion
     private bool BuildResultForInvalidSource(
         SourceResultElement source,
         CompositeResultElement target,
-        ResultSelectionMap resultSelectionMap,
+        ResultSelectionSet resultSelectionSet,
         IError? error)
     {
         if (source.ValueKind is JsonValueKind.Null && IsValueType(target.Type))
         {
             if (error is not null)
             {
-                PocketErrors(target.Path, resultSelectionMap, error);
+                PocketErrors(target.Path, resultSelectionSet, error);
             }
 
             return true;
@@ -247,7 +248,7 @@ internal sealed class ValueCompletion
                 .SetMessage("Unexpected Execution Error")
                 .Build();
 
-        return BuildErrorResult(target, resultSelectionMap, fallbackError, target.CompactPath);
+        return BuildErrorResult(target, resultSelectionSet, fallbackError, target.CompactPath);
     }
 
     private bool ApplyPocketedErrors(CompositeResultElement target)
@@ -326,9 +327,9 @@ internal sealed class ValueCompletion
         return true;
     }
 
-    private void PocketErrors(Path path, ResultSelectionMap resultSelectionMap, IError error)
+    private void PocketErrors(Path path, ResultSelectionSet resultSelectionSet, IError error)
     {
-        foreach (var responseName in resultSelectionMap.ResponseNames)
+        foreach (var responseName in resultSelectionSet.ResponseNames)
         {
             _store.PocketError(path.Append(responseName), error);
         }
@@ -362,7 +363,7 @@ internal sealed class ValueCompletion
         Selection selection,
         IType type,
         int depth,
-        ResultSelectionMap? resultSelectionMap)
+        ResultSelectionSet? resultSelectionSet)
     {
         if (type.Kind is TypeKind.NonNull)
         {
@@ -408,9 +409,9 @@ internal sealed class ValueCompletion
             if (source.ValueKind is JsonValueKind.Null && IsValueType(type))
             {
                 if (errorTrie?.FindFirstError() is { } error
-                    && resultSelectionMap?.TryGetChild(selection.ResponseName) is { } childMap)
+                    && resultSelectionSet is not null)
                 {
-                    PocketErrors(target.Path, childMap, error);
+                    PocketErrors(target.Path, resultSelectionSet, error);
                 }
 
                 // For shared parent types we keep the target untouched so that
@@ -455,7 +456,7 @@ internal sealed class ValueCompletion
                     selection,
                     type,
                     depth,
-                    resultSelectionMap?.TryGetChild(selection.ResponseName));
+                    resultSelectionSet);
 
             case TypeKind.Object:
                 return TryCompleteObjectValue(
@@ -465,7 +466,7 @@ internal sealed class ValueCompletion
                     errorTrie,
                     depth,
                     target,
-                    resultSelectionMap?.TryGetChild(selection.ResponseName));
+                    resultSelectionSet);
 
             case TypeKind.Interface or TypeKind.Union:
                 return TryCompleteAbstractValue(
@@ -475,7 +476,7 @@ internal sealed class ValueCompletion
                     selection,
                     type,
                     depth,
-                    resultSelectionMap?.TryGetChild(selection.ResponseName));
+                    resultSelectionSet);
 
             case TypeKind.Scalar or TypeKind.Enum:
                 target.SetLeafValue(source);
@@ -493,7 +494,7 @@ internal sealed class ValueCompletion
         Selection selection,
         IType type,
         int depth,
-        ResultSelectionMap? resultSelectionMap)
+        ResultSelectionSet? resultSelectionSet)
     {
         AssertDepthAllowed(ref depth);
 
@@ -554,7 +555,7 @@ internal sealed class ValueCompletion
                     selection,
                     elementType,
                     depth,
-                    resultSelectionMap);
+                    resultSelectionSet);
             }
             else if (isLeaf)
             {
@@ -570,7 +571,7 @@ internal sealed class ValueCompletion
                     selection,
                     elementType,
                     depth,
-                    resultSelectionMap);
+                    resultSelectionSet);
             }
             else
             {
@@ -581,7 +582,7 @@ internal sealed class ValueCompletion
                     errorTrieForIndex,
                     depth,
                     targetElement,
-                    resultSelectionMap);
+                    resultSelectionSet);
             }
 
             if (!completed)
@@ -609,7 +610,7 @@ TryCompleteList_MoveNext:
         ErrorTrie? errorTrie,
         int depth,
         CompositeResultElement target,
-        ResultSelectionMap? resultSelectionMap)
+        ResultSelectionSet? resultSelectionSet)
     {
         var namedType = type.NamedType();
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
@@ -621,7 +622,7 @@ TryCompleteList_MoveNext:
             parentSelection,
             objectType,
             depth,
-            resultSelectionMap);
+            resultSelectionSet);
     }
 
     private bool TryCompleteObjectValue(
@@ -631,7 +632,7 @@ TryCompleteList_MoveNext:
         Selection parentSelection,
         IObjectTypeDefinition objectType,
         int depth,
-        ResultSelectionMap? resultSelectionMap)
+        ResultSelectionSet? resultSelectionSet)
     {
         AssertDepthAllowed(ref depth);
 
@@ -656,8 +657,9 @@ TryCompleteList_MoveNext:
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
+            var childSet = resultSelectionSet?.TryGetChild(selection.ResponseName, objectType);
             if (!TryCompleteValue(property.Value,
-                targetProperty, errorTrieForResponseName, selection, selection.Type, depth, resultSelectionMap))
+                targetProperty, errorTrieForResponseName, selection, selection.Type, depth, childSet))
             {
                 return false;
             }
@@ -673,8 +675,8 @@ TryCompleteList_MoveNext:
         Selection selection,
         IType type,
         int depth,
-        ResultSelectionMap? resultSelectionMap)
-        => TryCompleteObjectValue(source, target, errorTrie, selection, GetType(type, source), depth, resultSelectionMap);
+        ResultSelectionSet? resultSelectionSet)
+        => TryCompleteObjectValue(source, target, errorTrie, selection, GetType(type, source), depth, resultSelectionSet);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IObjectTypeDefinition GetType(IType type, SourceResultElement data)

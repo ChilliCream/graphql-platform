@@ -54,13 +54,13 @@ internal sealed partial class FetchResultStore : IDisposable
     public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ResultSelectionMap resultSelectionMap)
-        => AddPartialResults(sourcePath, results, resultSelectionMap, containsErrors: true);
+        ResultSelectionSet resultSelectionSet)
+        => AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors: true);
 
     public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ResultSelectionMap resultSelectionMap,
+        ResultSelectionSet resultSelectionSet,
         bool containsErrors)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -76,13 +76,13 @@ internal sealed partial class FetchResultStore : IDisposable
         if (!containsErrors)
         {
             return results.Length == 1
-                ? AddSinglePartialResultNoErrors(sourcePath, results[0], resultSelectionMap)
-                : AddPartialResultsNoErrors(sourcePath, results, resultSelectionMap);
+                ? AddSinglePartialResultNoErrors(sourcePath, results[0], resultSelectionSet)
+                : AddPartialResultsNoErrors(sourcePath, results, resultSelectionSet);
         }
 
         if (results.Length == 1)
         {
-            return AddSinglePartialResult(sourcePath, results[0], resultSelectionMap);
+            return AddSinglePartialResult(sourcePath, results[0], resultSelectionSet);
         }
 
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
@@ -132,7 +132,7 @@ internal sealed partial class FetchResultStore : IDisposable
                             result.AdditionalPaths.AsSpan(),
                             dataElementsSpan[i],
                             errorTriesSpan[i],
-                            resultSelectionMap))
+                            resultSelectionSet))
                     {
                         return false;
                     }
@@ -158,7 +158,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private bool AddPartialResultsNoErrors(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ResultSelectionMap resultSelectionMap)
+        ResultSelectionSet resultSelectionSet)
     {
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
         var dataElementsSpan = dataElements.AsSpan(0, results.Length);
@@ -186,7 +186,7 @@ internal sealed partial class FetchResultStore : IDisposable
                             result.AdditionalPaths.AsSpan(),
                             dataElementsSpan[i],
                             errorTrie: null,
-                            resultSelectionMap))
+                            resultSelectionSet))
                     {
                         return false;
                     }
@@ -210,7 +210,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private bool AddSinglePartialResult(
         SelectionPath sourcePath,
         SourceSchemaResult result,
-        ResultSelectionMap resultSelectionMap)
+        ResultSelectionSet resultSelectionSet)
     {
         _memory.Push(result);
 
@@ -234,7 +234,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     result.AdditionalPaths.AsSpan(),
                     dataElement,
                     errorTrie,
-                    resultSelectionMap);
+                    resultSelectionSet);
             }
         }
         finally
@@ -249,7 +249,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private bool AddSinglePartialResultNoErrors(
         SelectionPath sourcePath,
         SourceSchemaResult result,
-        ResultSelectionMap resultSelectionMap)
+        ResultSelectionSet resultSelectionSet)
     {
         _memory.Push(result);
         var dataElement = GetDataElement(sourcePath, result.Data);
@@ -264,7 +264,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     result.AdditionalPaths.AsSpan(),
                     dataElement,
                     errorTrie: null,
-                    resultSelectionMap);
+                    resultSelectionSet);
             }
         }
         finally
@@ -282,7 +282,7 @@ internal sealed partial class FetchResultStore : IDisposable
     /// <param name="document">
     /// The document that contains partial results that need to be merged into the `Data` segment of the result.
     /// </param>
-    /// <param name="resultSelectionMap">
+    /// <param name="resultSelectionSet">
     /// The root selection set the document provides data for.
     /// </param>
     /// <returns>
@@ -291,7 +291,7 @@ internal sealed partial class FetchResultStore : IDisposable
     /// <exception cref="ArgumentException">
     /// <paramref name="document"/> is null.
     /// </exception>
-    public bool AddPartialResults(SourceResultDocument document, ResultSelectionMap resultSelectionMap)
+    public bool AddPartialResults(SourceResultDocument document, ResultSelectionSet resultSelectionSet)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(document);
@@ -303,7 +303,7 @@ internal sealed partial class FetchResultStore : IDisposable
 
             return _valueCompletion.BuildResult(
                 partial,
-                data, errorTrie: null, resultSelectionMap: resultSelectionMap);
+                data, errorTrie: null, resultSelectionSet: resultSelectionSet);
         }
     }
 
@@ -315,7 +315,7 @@ internal sealed partial class FetchResultStore : IDisposable
 
     public bool AddErrors(
         IError error,
-        ResultSelectionMap resultSelectionMap,
+        ResultSelectionSet resultSelectionSet,
         params ReadOnlySpan<Path> paths)
     {
         lock (_lock)
@@ -340,7 +340,7 @@ internal sealed partial class FetchResultStore : IDisposable
                 var canExecutionContinue =
                     _valueCompletion.BuildErrorResult(
                         element,
-                        resultSelectionMap,
+                        resultSelectionSet,
                         error,
                         element.CompactPath);
                 if (!canExecutionContinue)
@@ -359,7 +359,7 @@ AddErrors_Next:
 
     public bool AddErrors(
         IError error,
-        ResultSelectionMap resultSelectionMap,
+        ResultSelectionSet resultSelectionSet,
         ReadOnlySpan<CompactPath> paths)
     {
         lock (_lock)
@@ -384,7 +384,7 @@ AddErrors_Next:
                 var canExecutionContinue =
                     _valueCompletion.BuildErrorResult(
                         element,
-                        resultSelectionMap,
+                        resultSelectionSet,
                         error,
                         path);
                 if (!canExecutionContinue)
@@ -506,16 +506,16 @@ AddErrors_Next:
         ReadOnlySpan<CompactPath> additionalPaths,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
-        ResultSelectionMap resultSelectionMap)
+        ResultSelectionSet resultSelectionSet)
     {
-        if (!SaveSafeResult(resultData, path, dataElement, errorTrie, resultSelectionMap))
+        if (!SaveSafeResult(resultData, path, dataElement, errorTrie, resultSelectionSet))
         {
             return false;
         }
 
         for (var i = 0; i < additionalPaths.Length; i++)
         {
-            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionMap))
+            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
             {
                 return false;
             }
@@ -529,7 +529,7 @@ AddErrors_Next:
         CompactPath path,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
-        ResultSelectionMap resultSelectionMap)
+        ResultSelectionSet resultSelectionSet)
     {
         if (resultData.IsNullOrInvalidated)
         {
@@ -547,7 +547,7 @@ AddErrors_Next:
                 dataElement,
                 element,
                 errorTrie,
-                resultSelectionMap);
+                resultSelectionSet);
 
         if (canExecutionContinue)
         {

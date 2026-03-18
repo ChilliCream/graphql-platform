@@ -8,8 +8,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class IntrospectionExecutionNode : ExecutionNode
 {
     private readonly Selection[] _selections;
-    private readonly SelectionSetNode _resultSelectionSet;
-    private readonly ResultSelectionMap _resultSelectionMap;
+    private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
 
     public IntrospectionExecutionNode(
@@ -28,8 +27,8 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
         Id = id;
         _selections = selections;
-        _resultSelectionSet = new SelectionSetNode(selections.Select(t => t.SyntaxNodes[0].Node).ToArray());
-        _resultSelectionMap = ResultSelectionMap.Create(_resultSelectionSet);
+        var selectionSetNode = new SelectionSetNode(selections.Select(t => t.SyntaxNodes[0].Node).ToArray());
+        _resultSelectionSet = ResultSelectionSet.Create(selectionSetNode);
         _conditions = conditions;
     }
 
@@ -73,7 +72,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         }
 
         ExecuteSelections(context, backlog);
-        context.AddPartialResults(resultBuilder.Build(), _resultSelectionMap);
+        context.AddPartialResults(resultBuilder.Build(), _resultSelectionSet);
 
         return new ValueTask<ExecutionStatus>(ExecutionStatus.Success);
     }

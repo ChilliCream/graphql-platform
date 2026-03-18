@@ -3,6 +3,7 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -87,10 +88,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             var nodeType = nodeElement.GetProperty("type").GetString()!;
             var id = nodeElement.GetProperty("id").GetInt32();
 
+            var schema = _operationCompiler.Schema;
             (ExecutionNode, int[]?, Dictionary<string, int>?, int?) node = nodeType switch
             {
-                "Operation" => ParseOperationNode(nodeElement, id),
-                "OperationBatch" => ParseOperationBatchNode(nodeElement, id),
+                "Operation" => ParseOperationNode(nodeElement, id, schema),
+                "OperationBatch" => ParseOperationBatchNode(nodeElement, id, schema),
                 "Introspection" => ParseIntrospectionNode(nodeElement, id, operation),
                 "Node" => ParseNodeFieldNode(nodeElement, id, operation),
                 _ => throw new NotSupportedException($"Unsupported node type: {nodeType}")
@@ -162,7 +164,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static (OperationExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationNode(
-        JsonElement nodeElement, int id)
+        JsonElement nodeElement, int id, ISchemaDefinition schema)
     {
         string? schemaName = null;
         if (nodeElement.TryGetProperty("schema", out var schemaElement))
@@ -262,7 +264,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             source ?? SelectionPath.Root,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            resultSelectionSet,
+            ResultSelectionSet.Create(resultSelectionSet, schema),
             conditions,
             batchingGroupId,
             requiresFileUpload);
@@ -271,7 +273,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static (OperationBatchExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationBatchNode(
-        JsonElement nodeElement, int id)
+        JsonElement nodeElement, int id, ISchemaDefinition schema)
     {
         string? schemaName = null;
         if (nodeElement.TryGetProperty("schema", out var schemaElement))
@@ -369,7 +371,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             source ?? SelectionPath.Root,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            resultSelectionSet,
+            ResultSelectionSet.Create(resultSelectionSet, schema),
             conditions,
             batchingGroupId,
             requiresFileUpload);
