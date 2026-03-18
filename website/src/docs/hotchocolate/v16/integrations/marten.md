@@ -51,14 +51,6 @@ Pagination works out of the box with Marten. No custom configuration is needed.
 
 [Learn more about pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination).
 
-# Troubleshooting
-
-**Filtering produces unexpected results or errors**
-Verify that you registered `AddMartenFiltering()` instead of the default `AddFiltering()`. The Marten convention translates LINQ expressions into a format compatible with the Marten LINQ provider.
-
-**Sorting does not apply correctly**
-Confirm that you registered `AddMartenSorting()`. The default sorting convention may generate expressions that the Marten LINQ provider cannot process.
-
 # Next Steps
 
 - [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for filtering concepts

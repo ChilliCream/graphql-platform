@@ -78,16 +78,6 @@ Hot Chocolate is not bound to a specific database or architecture. You can fetch
 - [Fetching from databases](/docs/hotchocolate/v16/resolvers-and-data/fetching-from-databases)
 - [Fetching from REST APIs](/docs/hotchocolate/v16/resolvers-and-data/fetching-from-rest)
 
-# Troubleshooting
-
-## Resolver returns null unexpectedly
-
-Verify that your resolver returns the correct type. If it returns `Task<T>`, ensure you `await` the result. Check that any injected services are registered in the DI container.
-
-## N+1 query problem
-
-If you see one database query per item in a list, you are likely missing a DataLoader. Use a [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) to batch and deduplicate requests.
-
 # Next Steps
 
 - **New to resolvers?** Start with [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers).

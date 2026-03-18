@@ -226,20 +226,6 @@ Diagnostic event handlers execute synchronously as part of the GraphQL request. 
 
 [Learn more about instrumentation](/docs/hotchocolate/v16/server/instrumentation)
 
-# Troubleshooting
-
-## Cache hit rate is low despite stable operations
-
-The operation name is part of the cache key. If clients send the same document with different operation names, each variant occupies a separate cache slot. Verify that your clients use consistent operation names. If the number of distinct operations exceeds your cache size, increase `PreparedOperationCacheSize`.
-
-## Projections do not reduce the SQL query
-
-Verify that the resolver returns `IQueryable<T>` and that `[UseProjection]` is applied. If you are using `QueryContext<T>`, do not also apply `[UseProjection]` on the same field. Check that projected properties have public setters.
-
-## DataLoader dispatches too many batches
-
-By default, the batch dispatcher waits up to 50ms before dispatching. If you see many small batches, verify that your resolvers are structured so that sibling fields resolve in the same execution step. Deeply nested resolver chains can cause sequential dispatches rather than batched ones.
-
 # Next Steps
 
 - **Server warmup:** [Warmup](/docs/hotchocolate/v16/server/warmup) covers custom warmup tasks and lazy initialization.

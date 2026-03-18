@@ -340,16 +340,6 @@ If you have disabled introspection globally, `AllowIntrospection` lets you enabl
 requestBuilder.AllowIntrospection();
 ```
 
-# Troubleshooting
-
-## Interceptor not being called
-
-Verify that you registered the interceptor using `AddHttpRequestInterceptor<T>()` or `AddSocketSessionInterceptor<T>()` on the `IRequestExecutorBuilder`. If the interceptor depends on application services, you may need to register them with `AddApplicationService<T>()`.
-
-## Missing ClaimsPrincipal in resolvers
-
-Always call `base.OnCreateAsync` (for HTTP) or `base.OnRequestAsync` (for WebSocket) in your interceptor. The base implementation is responsible for setting up the `ClaimsPrincipal` and other global state.
-
 # Next Steps
 
 - [Global State](/docs/hotchocolate/v16/server/global-state) for sharing per-request data between resolvers.

@@ -372,28 +372,6 @@ app.Run();
 
 Adjust the specific values (`MaxPageSize`, `MaxFieldCost`, `MaxTypeCost`, depth limit, rate limit window) to match your schema and infrastructure. Use the `GraphQL-Cost: report` header to measure real query costs and tune from there.
 
-# Troubleshooting
-
-## Legitimate client queries are rejected by cost analysis
-
-Send the query with the `GraphQL-Cost: report` header to inspect its field cost and type cost. Common causes: the query fans out across multiple paginated fields, or a resolver has a high default cost. Either increase `MaxFieldCost`/`MaxTypeCost` or reduce `MaxPageSize` on the specific fields that cause the fan-out.
-
-## Clients receive "first or last argument required" errors
-
-This happens when `RequirePagingBoundaries` is enabled and the client does not specify `first` or `last` on a paginated field. This is the intended behavior for public APIs. Document the requirement in your API guide and include `first` in your example queries.
-
-## Authorization errors for authenticated users
-
-Verify you are using `HotChocolate.Authorization.AuthorizeAttribute`, not `Microsoft.AspNetCore.Authorization.AuthorizeAttribute`. Also check that `AddAuthorization()` is called on both `IServiceCollection` and `IRequestExecutorBuilder`, and that `UseAuthentication()` comes before `UseAuthorization()` in the middleware pipeline.
-
-## Introspection works in development but not in production
-
-If you used `AllowIntrospection(builder.Environment.IsDevelopment())`, introspection is disabled in all non-development environments. This is typically what you want. If you need introspection in production for specific clients, use a request interceptor to allow it based on authentication.
-
-## Rate limiting does not seem to apply
-
-Ensure `app.UseRateLimiter()` is called before `app.UseEndpoints()` in the middleware pipeline, and that `RequireRateLimiting("graphql")` is chained onto `MapGraphQL()`. Also verify that the rate limiter policy name matches between `AddFixedWindowLimiter` and `RequireRateLimiting`.
-
 # Next Steps
 
 - **Cost analysis reference:** [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) covers all options, custom weights, filtering and sorting costs, and the tuning guide.

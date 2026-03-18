@@ -259,20 +259,6 @@ public class PetInputType : InputObjectType<PetInput>
 
 All fields on a `@oneOf` input must be nullable. Hot Chocolate validates at runtime that exactly one field is provided.
 
-# Troubleshooting
-
-## Input type not appearing in schema
-
-Verify the class is used as a parameter in a resolver. If the class is not referenced by any resolver, Hot Chocolate does not include it in the schema. In code-first, register it explicitly with `.AddType<T>()`.
-
-## Constructor validation error at startup
-
-If you use an immutable type and the constructor parameters do not match the properties, Hot Chocolate throws at schema build time. Verify that each parameter name matches a property name (case-insensitive first letter) and that types align.
-
-## `Optional<T>` field still required
-
-When using `Optional<T>` on a non-nullable type, add `[DefaultValue]` to make it optional in the schema. Without a default value, the field remains required.
-
 # Next Steps
 
 - **Need scalar arguments?** See [Arguments](/docs/hotchocolate/v16/defining-a-schema/arguments).

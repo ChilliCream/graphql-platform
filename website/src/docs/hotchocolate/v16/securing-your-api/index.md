@@ -112,29 +112,6 @@ builder.Services
 
 [Learn more about hashing providers](/docs/hotchocolate/v16/performance/trusted-documents#hashing-algorithms)
 
-# Troubleshooting
-
-## Queries rejected with cost exceeded error
-
-Review your cost analysis configuration. The default limits (`MaxFieldCost = 1000`, `MaxTypeCost = 1000`) may be too low for your schema. Use the `GraphQL-Cost: report` header to inspect the cost of your queries before adjusting limits.
-
-[Learn how to tune cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis)
-
-## Authenticated users receive "not authorized" errors
-
-Verify the middleware order in your pipeline: `UseAuthentication()` must come before `UseAuthorization()`. Also check that `AddAuthorization()` is called on both `IServiceCollection` and `IRequestExecutorBuilder`.
-
-## Introspection disabled in development
-
-If introspection is disabled and you cannot use Nitro, enable it conditionally:
-
-```csharp
-if (app.Environment.IsDevelopment())
-{
-    // Introspection is allowed by default
-}
-```
-
 # Next Steps
 
 - **Building a public API?** Start with [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis).

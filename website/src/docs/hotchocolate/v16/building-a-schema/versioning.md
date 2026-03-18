@@ -205,20 +205,6 @@ Consumers query feature stability through introspection:
 }
 ```
 
-# Troubleshooting
-
-## Deprecated field still returned in queries
-
-Deprecation does not remove a field. The field continues to work normally. Deprecation only marks it in introspection so tools can warn consumers. Remove the field from the schema when you are confident no consumers depend on it.
-
-## Opt-in field not visible in introspection
-
-Fields with `@requiresOptIn` are hidden by default. Use the `includeOptIn` argument in introspection queries to reveal them. Also verify that `EnableOptInFeatures = true` is set in your schema options.
-
-## Cannot deprecate required argument
-
-GraphQL does not allow deprecating a non-null argument without a default value. Add a default value to the argument first, then apply the deprecation.
-
 # Next Steps
 
 - **Need to add descriptions?** See [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation).

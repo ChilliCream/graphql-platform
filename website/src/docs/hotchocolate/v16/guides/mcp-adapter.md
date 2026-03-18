@@ -293,39 +293,6 @@ builder.Services
 
 When the Fusion gateway schema changes (for example, a new subgraph is composed), connected MCP clients receive tool list changed notifications automatically.
 
-# Troubleshooting
-
-**"You must call AddMcp()" error when starting the application**
-
-You called `MapGraphQLMcp()` without registering the MCP services. Add `.AddMcp()` and `.AddMcpStorage()` to your GraphQL builder chain before calling `MapGraphQLMcp()`.
-
-**Tools do not appear in the MCP client**
-
-Verify that your `IMcpStorage` implementation returns the tool definitions from `GetOperationToolDefinitionsAsync`. If a tool's GraphQL operation references fields that do not exist on the schema, the adapter silently skips it and logs validation errors. Attach an `McpDiagnosticEventListener` to inspect validation errors:
-
-```csharp
-builder.Services
-    .AddGraphQL()
-    .AddMcp()
-    .AddMcpStorage(myStorage)
-    .AddDiagnosticEventListener(_ => new MyMcpListener());
-
-public class MyMcpListener : McpDiagnosticEventListener
-{
-    public override void ValidationErrors(IReadOnlyList<IError> errors)
-    {
-        foreach (var error in errors)
-        {
-            Console.WriteLine(error.Message);
-        }
-    }
-}
-```
-
-**Tool list does not update after changing storage**
-
-Ensure your `IMcpStorage` implementation pushes events through the `IObservable<OperationToolStorageEventArgs>` interface when definitions change. Without these events, connected MCP clients are not notified.
-
 # Next Steps
 
 - [Error Handling](/docs/hotchocolate/v16/guides/error-handling) to customize how GraphQL errors appear in MCP tool results.

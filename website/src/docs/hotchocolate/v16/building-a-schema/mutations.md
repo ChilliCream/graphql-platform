@@ -406,20 +406,6 @@ builder.Services
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
 
-# Troubleshooting
-
-## Input type not generated
-
-Verify that mutation conventions are enabled (`AddMutationConventions`). Without conventions, Hot Chocolate uses the method parameters directly as field arguments instead of wrapping them in an input type.
-
-## Domain error not appearing on payload
-
-Check that the exception type is annotated with `[Error(typeof(...))]` on the mutation method. Also verify mutation conventions are enabled. Domain errors require the convention's payload rewriting to work.
-
-## Multiple mutations execute out of order
-
-GraphQL guarantees serial execution of top-level mutation fields. If mutations appear to run out of order, verify that you are sending them as multiple fields in a single `mutation` operation, not as separate requests.
-
 # Next Steps
 
 - **Need to read data?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).

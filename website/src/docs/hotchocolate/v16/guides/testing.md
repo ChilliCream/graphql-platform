@@ -309,20 +309,6 @@ public async Task Error_Filter_Masks_Internal_Errors()
 }
 ```
 
-# Troubleshooting
-
-## Test hangs on BuildRequestExecutorAsync
-
-This can happen when a required service is missing from the `ServiceCollection`. Check that all services your resolvers inject are registered. The executor build step resolves all types and their dependencies at startup.
-
-## Snapshot mismatch after intentional change
-
-Delete the old snapshot file from the `__snapshots__/` directory and re-run the test. CookieCrumble creates a new snapshot with the updated output. Review the new snapshot to confirm it matches your expectation.
-
-## ExpectOperationResult throws an exception
-
-`ExpectOperationResult()` throws if the execution result is not a standard operation result (for example, if it is a streaming result from `@defer` or `@stream`). For streaming results, use the appropriate streaming result type instead.
-
 # Next Steps
 
 - **Error handling reference:** [Error Handling Guide](/docs/hotchocolate/v16/guides/error-handling) covers error types, error filters, and how to structure error responses.

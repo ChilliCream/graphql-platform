@@ -306,24 +306,6 @@ builder.Services
         .BindRuntimeType<string, EmailAddressOperationFilterInputType>());
 ```
 
-# Troubleshooting
-
-## Filter argument not appearing on the field
-
-Verify that `AddFiltering()` is called on the schema builder and `[UseFiltering]` is applied to the resolver. Both are required.
-
-## "or" filter behaves like "and"
-
-The `or` combinator must be used at the top level of the `where` argument. Placing `or` inside a field's operation object results in `and` behavior. Use the array syntax: `where: { or: [{ ... }, { ... }] }`.
-
-## Custom scalar not recognized by filter
-
-Register the filter type for your custom scalar through the filter convention using `BindRuntimeType`. Built-in scalars are bound automatically, but custom scalars require explicit binding.
-
-## Filters not translating to SQL
-
-Ensure your resolver returns `IQueryable<T>`, not `IEnumerable<T>`. When you return `IEnumerable<T>`, filters are applied in memory after loading all data from the database.
-
 # Next Steps
 
 - **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting).

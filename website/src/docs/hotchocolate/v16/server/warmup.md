@@ -154,20 +154,6 @@ builder.Services
 
 With lazy initialization enabled, the schema is constructed when it is first needed, either when a request is executed or when the schema is otherwise accessed. Depending on the size of your schema and the configured warmup tasks, this causes initial requests to run longer than they would with eager initialization.
 
-# Troubleshooting
-
-## Warmup task runs but cache misses still occur
-
-The operation name is part of the cache key. If your client sends an operation name that differs from the one in your warmup request (or omits it when the warmup includes one), the cache lookup will miss. Ensure the warmup request matches what the client sends.
-
-## Server takes too long to start
-
-If your warmup tasks execute heavy operations, consider marking them as warmup requests with `MarkAsWarmupRequest()`. This skips the actual execution of the operation while still populating the document and operation caches.
-
-## Schema errors surface at startup
-
-This is the expected behavior of eager initialization. Fix the schema errors before proceeding. If you need to defer errors to runtime (not recommended), set `options.LazyInitialization = true`.
-
 # Next Steps
 
 - [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for monitoring request execution and tracing.
