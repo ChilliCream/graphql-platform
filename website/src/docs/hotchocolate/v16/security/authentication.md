@@ -2,25 +2,24 @@
 title: Authentication
 ---
 
-Authentication allows us to determine a user's identity. This is of course a prerequisite for authorization, but it also allows us to access the authenticated user in our resolvers. This is useful, if we for example want to build a `me` field that fetches details about the authenticated user.
+Authentication determines a user's identity. It is a prerequisite for authorization and also lets you access the authenticated user in your resolvers, for example to build a `me` field that returns the current user's profile.
 
-Hot Chocolate fully embraces the authentication capabilities of ASP.NET Core, making it easy to reuse existing authentication configuration and integrating a variety of authentication providers.
+Hot Chocolate integrates with the ASP.NET Core authentication system, so you can reuse existing authentication configuration and any supported authentication provider.
 
 [Learn more about authentication in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authentication)
 
 # Setup
 
-Setting up authentication is largely the same as in any other ASP.NET Core application.
+Setting up authentication follows the same pattern as any ASP.NET Core application. The example below uses JWT bearer tokens, but you can substitute any authentication scheme that ASP.NET Core supports.
 
-**In the following example we are using JWTs, but we could use any other authentication scheme supported by ASP.NET Core.**
-
-1. Install the `Microsoft.AspNetCore.Authentication.JwtBearer` package
+## 1. Install the JWT Bearer Package
 
 <PackageInstallation packageName="Microsoft.AspNetCore.Authentication.JwtBearer" external />
 
-2. Register the JWT authentication scheme
+## 2. Register the Authentication Scheme
 
 ```csharp
+// Program.cs
 var signingKey = new SymmetricSecurityKey(
     Encoding.UTF8.GetBytes("MySuperSecretKey"));
 
@@ -28,24 +27,25 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.TokenValidationParameters =
-            new TokenValidationParameters
-            {
-                ValidIssuer = "https://auth.chillicream.com",
-                ValidAudience = "https://graphql.chillicream.com",
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = signingKey
-            };
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidIssuer = "https://auth.chillicream.com",
+            ValidAudience = "https://graphql.chillicream.com",
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = signingKey
+        };
     });
 ```
 
-> Warning: This is an example configuration that's not intended for use in a real world application.
+> This is an example configuration. Use a proper key management solution for production.
 
-3. Register the ASP.NET Core authentication middleware with the request pipeline by calling `UseAuthentication`
+## 3. Add Authentication Middleware
+
+Register the authentication middleware in the request pipeline:
 
 ```csharp
+// Program.cs
 app.UseRouting();
-
 app.UseAuthentication();
 
 app.UseEndpoints(endpoints =>
@@ -54,40 +54,44 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-The above takes care of parsing and validating an incoming HTTP request.
-
-In order to make the authentication result available to our resolvers, we need to complete some additional, Hot Chocolate specific steps.
-
-1. Install the `HotChocolate.AspNetCore.Authorization` package
+## 4. Install the Hot Chocolate Authorization Package
 
 <PackageInstallation packageName="HotChocolate.AspNetCore.Authorization" />
 
-2. Call `AddAuthorization()` on the `IRequestExecutorBuilder`
+## 5. Register Authorization on the Schema
 
 ```csharp
+// Program.cs
 builder.Services
     .AddGraphQLServer()
     .AddAuthorization()
     .AddQueryType<Query>();
 ```
 
-Adding authorization does not lock out unauthenticated users. It only exposes the identity of the authenticated user to our application through a `ClaimsPrincipal`. If we want to prevent certain users from querying our graph, we need to utilize authorization.
-
-[Learn more about authorization](/docs/hotchocolate/v16/security/authorization)
+Calling `AddAuthorization()` on the `IRequestExecutorBuilder` registers the `@authorize` directive and makes the authenticated user's identity available to resolvers. It does not lock out unauthenticated users. To restrict access, use [authorization](/docs/hotchocolate/v16/security/authorization).
 
 # Accessing the ClaimsPrincipal
 
-The [ClaimsPrincipal](https://docs.microsoft.com/dotnet/api/system.security.claims.claimsprincipal) of an authenticated user can be accessed in our resolvers like the following.
+After authentication, the `ClaimsPrincipal` of the current user is available in your resolvers.
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-public class Query
+// Types/UserQueries.cs
+[QueryType]
+public static partial class UserQueries
 {
-    public User GetMe(ClaimsPrincipal claimsPrincipal)
+    public static User? GetMe(ClaimsPrincipal claimsPrincipal, UserService users)
     {
-        // Omitted code for brevity
+        var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userId is null)
+        {
+            return null;
+        }
+
+        return users.GetById(userId);
     }
 }
 ```
@@ -96,7 +100,8 @@ public class Query
 <Code>
 
 ```csharp
-public class QueryType : ObjectType
+// Types/UserQueriesType.cs
+public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
@@ -105,37 +110,83 @@ public class QueryType : ObjectType
             .Resolve(context =>
             {
                 var claimsPrincipal = context.GetUser();
+                var userId = claimsPrincipal?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                // Omitted code for brevity
+                if (userId is null)
+                {
+                    return null;
+                }
+
+                var users = context.Service<UserService>();
+                return users.GetById(userId);
             });
     }
 }
 ```
 
 </Code>
-<Schema>
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          me: User
-        }
-    ")
-    .AddResolver("Query", "me", (context) =>
-    {
-        var claimsPrincipal = context.GetUser();
-
-        // Omitted code for brevity
-    })
-```
-
-</Schema>
 </ExampleTabs>
 
-With the authenticated user's `ClaimsPrincipal`, we can now access their claims.
+Use `ClaimsPrincipal` to read claims such as the user ID, email, or roles:
 
 ```csharp
 var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+var isAdmin = claimsPrincipal.IsInRole("Administrator");
 ```
+
+# Modifying the ClaimsPrincipal
+
+If you need to add claims or identities to the `ClaimsPrincipal` before it reaches your resolvers, register an `IHttpRequestInterceptor`:
+
+```csharp
+// Interceptors/HttpRequestInterceptor.cs
+public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
+{
+    public override ValueTask OnCreateAsync(
+        HttpContext context,
+        IRequestExecutor requestExecutor,
+        OperationRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
+    {
+        var identity = new ClaimsIdentity();
+        identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
+        context.User.AddIdentity(identity);
+
+        return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+    }
+}
+```
+
+```csharp
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpRequestInterceptor<HttpRequestInterceptor>();
+```
+
+[Learn more about interceptors](/docs/hotchocolate/v16/server/interceptors)
+
+# Troubleshooting
+
+## ClaimsPrincipal is empty or unauthenticated
+
+Verify that `UseAuthentication()` is called before `MapGraphQL()` in the middleware pipeline. If the middleware order is incorrect, the authentication handler never processes the request.
+
+## JWT token is not validated
+
+Check that the token validation parameters (issuer, audience, signing key) match the values used to generate the token. Enable detailed errors in development to see the specific validation failure.
+
+## "Bearer error=invalid_token" in response headers
+
+This usually means the token is expired or the signing key does not match. Inspect the token at [jwt.io](https://jwt.io) to verify its claims and expiration.
+
+## Claims are missing
+
+Verify that the identity provider includes the expected claims in the token. Some providers require explicit scope or claim configuration. Check the `ClaimsPrincipal.Claims` collection in a resolver to see what was parsed.
+
+# Next Steps
+
+- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
+- **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).
+- **Need to customize request handling?** See [Interceptors](/docs/hotchocolate/v16/server/interceptors).

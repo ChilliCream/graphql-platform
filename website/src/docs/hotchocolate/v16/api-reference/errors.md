@@ -1,18 +1,23 @@
 ---
 title: Errors
+description: Learn how to handle, create, and filter GraphQL errors in Hot Chocolate v16.
 ---
 
-GraphQL errors in Hot Chocolate are passed to the operation result by returning an instance of `IError` or an enumerable of `IError` in a field resolver.
+Hot Chocolate provides several ways to report errors from your GraphQL resolvers. You can return `IError` instances, throw a `GraphQLException`, or use non-terminating field errors through `IResolverContext.ReportError`.
 
-Moreover, you can throw a `GraphQLException` that will be be caught by the execution engine and translated to a field error.
+# Returning Errors
 
-One further way to raise an error are non-terminating field errors. This can be raised by using `IResolverContext.ReportError`. With this you can provide a result and raise an error for your current field.
+Return an `IError` or `IEnumerable<IError>` from a field resolver to report errors in the GraphQL response.
 
-> If you do want to log errors head over to our diagnostic source [documentation](/docs/hotchocolate/v16/server/instrumentation) and see how you can hook up your logging framework of choice to it.
+Throw a `GraphQLException` from any resolver, and the execution engine catches it and translates it into a field error.
+
+Call `IResolverContext.ReportError` to raise a non-terminating error. This allows you to return a result and report an error for the same field.
+
+> To log errors, see the [instrumentation documentation](/docs/hotchocolate/v16/server/instrumentation) for connecting your logging framework.
 
 # Error Builder
 
-Since errors can have a lot of properties, we have introduced a new error builder which provides a nice API without thousands of overloads.
+Errors can have many properties. The `ErrorBuilder` provides a fluent API for constructing them:
 
 ```csharp
 var error = ErrorBuilder
@@ -24,17 +29,15 @@ var error = ErrorBuilder
 
 # Error Filters
 
-If some other exception is thrown during execution, then the execution engine will create an instance of `IError` with the message **Unexpected Execution Error** and the actual exception assigned to the error. However, the exception details will not be serialized so by default the user will only see the error message **Unexpected Execution Error**.
+When an unexpected exception is thrown during execution, the engine creates an `IError` with the message **Unexpected Execution Error** and attaches the original exception. Exception details are not serialized by default, so the user sees only the generic message.
 
-If you want to translate exceptions into errors with useful information then you can write an `IErrorFilter`.
-
-An error filter has to be registered as a service.
+To translate exceptions into errors with useful information, implement an `IErrorFilter` and register it:
 
 ```csharp
 builder.Services.AddErrorFilter<MyErrorFilter>();
 ```
 
-It is also possible to just register the error filter as a delegate like the following.
+You can also register a filter as a delegate:
 
 ```csharp
 builder.Services.AddErrorFilter(error =>
@@ -48,7 +51,7 @@ builder.Services.AddErrorFilter(error =>
 });
 ```
 
-Since errors are immutable we have added some helper functions like `WithMessage`, `WithCode` and so on that create a new error with the desired properties. Moreover, you can create an error builder from an error and modify multiple properties and then rebuild the error object.
+Errors are immutable. Helper methods like `WithMessage`, `WithCode`, and others return a new error with the desired properties. You can also create a builder from an existing error to modify multiple properties:
 
 ```csharp
 return ErrorBuilder
@@ -60,7 +63,7 @@ return ErrorBuilder
 
 # Exception Details
 
-In order to automatically add exception details to your GraphQL errors, you can enable the `IncludeExceptionDetails` option. By default this will be enabled when the debugger is attached.
+To include exception details in GraphQL errors automatically, enable the `IncludeExceptionDetails` option. By default, this is enabled when the debugger is attached:
 
 ```csharp
 builder
@@ -69,3 +72,22 @@ builder
         o => o.IncludeExceptionDetails =
             builder.Environment.IsDevelopment());
 ```
+
+> Do not enable `IncludeExceptionDetails` in production. Exception details can leak security-sensitive information.
+
+# Troubleshooting
+
+**"Unexpected Execution Error" with no details**
+Register an `IErrorFilter` to translate exceptions into meaningful GraphQL errors. Alternatively, enable `IncludeExceptionDetails` during development to see the full exception.
+
+**Error filter not being invoked**
+Verify that you registered the filter using `AddErrorFilter<T>()` on `IServiceCollection`. If you are using the split service provider model in v16, you may need to register the filter's dependencies using `AddApplicationService<T>()` on the `IRequestExecutorBuilder`.
+
+**ReportError does not appear in the response**
+Confirm that the resolver continues to execute after calling `ReportError`. Non-terminating errors require the resolver to return a value (or `null`).
+
+# Next Steps
+
+- [Mutation conventions](/docs/hotchocolate/v16/building-a-schema/mutations) for structured mutation error handling
+- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for logging and diagnostics
+- [Options reference](/docs/hotchocolate/v16/api-reference/options) for `IncludeExceptionDetails` and other settings

@@ -386,22 +386,97 @@ So, if you were referencing HotChocolate.Execution or HotChocolate.Fetching dire
 
 ## Simpler Scalar Type
 
-TODO
+In v16, creating custom scalar types is more straightforward. The `ScalarType<TRuntimeType>` base class now uses a streamlined API. Instead of overriding both `Serialize`/`Deserialize` and `ParseLiteral`/`ParseValue`/`ParseResult`, you override a smaller set of methods:
+
+- `OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue)` -- writes the serialized value directly to the result element
+- `OnValueToLiteral(TRuntimeType runtimeValue)` -- converts a runtime value to an AST literal node
+- `OnLiteralToValue(IValueNode valueLiteral)` -- converts an AST literal node to a runtime value
+
+The old `Serialize`, `Deserialize`, `ParseLiteral`, `ParseValue`, and `ParseResult` methods still exist on the base `ScalarType` class for backward compatibility, but the new methods on `ScalarType<TRuntimeType>` are the recommended approach.
+
+```diff
+-public class MyScalar : ScalarType
++public class MyScalar : ScalarType<MyRuntimeType>
+ {
+-    public MyScalar() : base("MyScalar") { }
+-
+-    public override Type RuntimeType => typeof(MyRuntimeType);
+-
+-    public override bool IsInstanceOfType(IValueNode valueSyntax) => ...;
+-    public override object? ParseLiteral(IValueNode valueSyntax) => ...;
+-    public override IValueNode ParseValue(object? runtimeValue) => ...;
+-    public override IValueNode ParseResult(object? resultValue) => ...;
+-    public override bool TrySerialize(object? runtimeValue, out object? resultValue) => ...;
+-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue) => ...;
++    public MyScalar() : base("MyScalar") { }
++
++    protected override MyRuntimeType OnLiteralToValue(IValueNode valueLiteral) => ...;
++
++    protected override IValueNode OnValueToLiteral(MyRuntimeType runtimeValue) => ...;
++
++    protected override void OnCoerceOutputValue(
++        MyRuntimeType runtimeValue, ResultElement resultValue) => ...;
+ }
+```
 
 ## Removed Scalars
 
-TODO
+The following scalar types have been removed in v16. If your schema uses any of them, you need to either remove the usage or re-implement them as custom scalars.
 
-NegativeFloat
-NonNegativeFloat
-NegativeInt
-NonPositiveInt
-NonEmptyString
-NonNegativeInt
+| Removed Scalar     | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| `NegativeFloat`    | Represented a float value less than 0                |
+| `NonNegativeFloat` | Represented a float value greater than or equal to 0 |
+| `NegativeInt`      | Represented an int value less than 0                 |
+| `NonPositiveInt`   | Represented an int value less than or equal to 0     |
+| `NonEmptyString`   | Represented a non-empty string value                 |
+| `NonNegativeInt`   | Represented an int value greater than or equal to 0  |
+
+If you need equivalent validation behavior, create a custom scalar that extends `ScalarType<TRuntimeType>` and validates the value in `OnLiteralToValue` and `OnCoerceOutputValue`.
 
 ## OperationRequestBuilder
 
-TODO
+The `OperationRequestBuilder` has been updated in v16. The most notable changes:
+
+**`AddVariableValues` renamed to `SetVariableValues`**
+
+```diff
+var request = OperationRequestBuilder.New()
+    .SetDocument("{ hero { name } }")
+-   .AddVariableValues(new Dictionary<string, object?> { ["id"] = 1 })
++   .SetVariableValues(new Dictionary<string, object?> { ["id"] = 1 })
+    .Build();
+```
+
+**Variable values are now JSON-based**
+
+`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`. When you pass a dictionary of CLR objects, values are serialized to JSON internally. You can also pass variables directly as a JSON string:
+
+```csharp
+var request = OperationRequestBuilder.New()
+    .SetDocument("query ($id: ID!) { node(id: $id) { id } }")
+    .SetVariableValues("""{ "id": "42" }""")
+    .Build();
+```
+
+**Global state methods**
+
+The context data methods have been renamed:
+
+```diff
+-builder.AddProperty("key", value);
++builder.SetGlobalState("key", value);
+```
+
+Additional methods include `AddGlobalState`, `TryAddGlobalState`, and `RemoveGlobalState`.
+
+**`From` factory method**
+
+Use `OperationRequestBuilder.From(request)` to create a builder pre-populated from an existing request, instead of manually copying properties.
+
+**Features collection**
+
+The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
 
 ## Any and Json scalars merged
 
