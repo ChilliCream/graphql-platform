@@ -1,19 +1,20 @@
 ---
 title: Entity Framework Core
+description: Learn how to integrate Entity Framework Core with Hot Chocolate v16, including DbContext injection and factory patterns.
 ---
 
-[Entity Framework Core](https://docs.microsoft.com/ef/core/) is a powerful object-relational mapping framework that has become a staple when working with SQL-based databases in .NET Core applications.
+[Entity Framework Core](https://docs.microsoft.com/ef/core/) is a powerful object-relational mapping framework that has become a staple when working with SQL-based databases in .NET applications.
 
-# Resolver injection of a DbContext
+# Resolver Injection of a DbContext
 
-When using the [default scope](/docs/hotchocolate/v16/server/dependency-injection#default-scope) for queries, each execution of a query that accepts a scoped DbContext will receive a **separate** instance, avoiding [threading issues](https://learn.microsoft.com/en-gb/ef/core/dbcontext-configuration/#avoiding-dbcontext-threading-issues).
+When using the [default scope](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection#default-scope) for queries, each resolver that accepts a scoped `DbContext` receives a **separate** instance. This avoids [threading issues](https://learn.microsoft.com/en-gb/ef/core/dbcontext-configuration/#avoiding-dbcontext-threading-issues).
 
 ```csharp
 public static async Task<Book?> GetBookByIdAsync(
     ApplicationDbContext dbContext) => // ...
 ```
 
-When using the [default scope](/docs/hotchocolate/v16/server/dependency-injection#default-scope) for mutations, each execution of a mutation that accepts a scoped DbContext will receive the **same** request-scoped instance, as mutations are executed sequentially.
+When using the [default scope](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection#default-scope) for mutations, each mutation resolver that accepts a scoped `DbContext` receives the **same** request-scoped instance, as mutations execute sequentially.
 
 ```csharp
 public static async Task<Book> AddBookAsync(
@@ -21,17 +22,17 @@ public static async Task<Book> AddBookAsync(
     AppDbContext dbContext) => // ...
 ```
 
-See the [Dependency Injection](/docs/hotchocolate/v16/server/dependency-injection) documentation for more details.
+See the [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) documentation for more details.
 
-> Warning: Changing the default scope for queries will likely result in the error "A second operation started on this context before a previous operation completed", since Entity Framework Core does not support multiple parallel operations being run on the same DbContext instance.
+> Warning: Changing the default scope for queries will likely result in the error "A second operation started on this context before a previous operation completed", because Entity Framework Core does not support multiple parallel operations on the same `DbContext` instance.
 
-# Using a DbContext factory
+# Using a DbContext Factory
 
-In order to use a DbContext factory, you need to register your DbContext with Hot Chocolate. To do so, an additional package needs to be installed:
+To use a `DbContext` factory, register your `DbContext` with Hot Chocolate. Install the additional package:
 
 <PackageInstallation packageName="HotChocolate.Data.EntityFramework" />
 
-Once installed, you can simply call the `RegisterDbContextFactory<T>` method on the `IRequestExecutorBuilder`. The Hot Chocolate Resolver Compiler will then take care of correctly injecting your DbContext instance into your resolvers.
+Call the `RegisterDbContextFactory<T>` method on the `IRequestExecutorBuilder`. The Hot Chocolate resolver compiler then takes care of injecting your `DbContext` instance into resolvers.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -44,7 +45,7 @@ builder.Services
 
 builder.Services
     .AddGraphQLServer()
-    .RegisterDbContextFactory<ApplicationDbContext>() // ⬅️
+    .RegisterDbContextFactory<ApplicationDbContext>()
     .AddTypes();
 ```
 
@@ -57,7 +58,7 @@ public static class Query
 {
     public static async Task<Book?> GetBookByIdAsync(
         Guid id,
-        ApplicationDbContext dbContext) // ⬅️
+        ApplicationDbContext dbContext)
     {
         return await dbContext.Books.FindAsync(id);
     }
@@ -80,7 +81,6 @@ public sealed class QueryType : ObjectType
             .Argument("id", a => a.Type<NonNullType<UuidType>>())
             .Resolve(async ctx => await ctx
                 .Service<IDbContextFactory<ApplicationDbContext>>()
-                // ⬆️
                 .CreateDbContext()
                 .Books
                 .FindAsync(ctx.ArgumentValue<Guid>("id")));
@@ -91,22 +91,20 @@ public sealed class QueryType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the implementation-first or code-first example.
+Take a look at the annotation-based or code-first example.
 
 </Schema>
 </ExampleTabs>
 
-> Warning: As shown above, you still need to add your `DbContextFactory` to the dependency injection container, by calling `AddDbContextFactory<T>` or `AddPooledDbContextFactory<T>`. `RegisterDbContextFactory<T>` on its own is not enough.
+> Warning: You still need to add your `DbContextFactory` to the dependency injection container by calling `AddDbContextFactory<T>` or `AddPooledDbContextFactory<T>`. `RegisterDbContextFactory<T>` on its own is not enough.
 
-# Working with a DbContext factory
+# Working with a DbContext Factory
 
-When you use a DbContext factory, you need to access your DbContext differently if it is not being directly injected into a resolver. In the following sections we will take a look at some of the changes that you need to make.
+When you use a `DbContext` factory, you need to access the `DbContext` differently outside of direct resolver injection.
 
 ## DataLoaders
 
-When creating DataLoaders that need access to your DbContext, you need to inject the `IDbContextFactory<T>` using the constructor.
-
-The DbContext should only be created **and disposed** in the `LoadBatchAsync` method.
+When creating DataLoaders that need access to your `DbContext`, inject the `IDbContextFactory<T>` through the constructor. Create and dispose the `DbContext` within the `LoadBatchAsync` method.
 
 ```csharp
 public sealed class BookByIdDataLoader : BatchDataLoader<Guid, Book>
@@ -138,11 +136,11 @@ public sealed class BookByIdDataLoader : BatchDataLoader<Guid, Book>
 }
 ```
 
-> Warning: It is important that you dispose the DbContext. In the example above we use the `using` statement to dispose the DbContext after it is no longer required.
+> Warning: Dispose the `DbContext` after use. The example above uses the `using` statement for this purpose.
 
 ## Services
 
-When creating services, they now need to inject the `IDbContextFactory<T>` instead of the DbContext directly.
+Services that need a `DbContext` should inject `IDbContextFactory<T>` instead of the `DbContext` directly.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -150,7 +148,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<ApplicationDbContext>(
     options => options.UseSqlServer("YOUR_CONNECTION_STRING"));
 
-builder.Services.AddScoped<BookService>()
+builder.Services.AddScoped<BookService>();
 
 builder.Services
     .AddGraphQLServer()
@@ -220,9 +218,26 @@ public sealed class QueryType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the implementation-first or code-first example.
+Take a look at the annotation-based or code-first example.
 
 </Schema>
 </ExampleTabs>
 
-> Warning: It is important that you dispose the DbContext when your service is being disposed. In the example above we are implementing `IAsyncDisposable` and disposing the created DbContext in the `DisposeAsync` method. This method will be invoked by the dependency injection system.
+> Warning: Dispose the `DbContext` when the service is disposed. The example above implements `IAsyncDisposable` and disposes the `DbContext` in `DisposeAsync`.
+
+# Troubleshooting
+
+**"A second operation started on this context before a previous operation completed"**
+This error means multiple resolvers share the same `DbContext` instance in parallel. Use the default resolver scope (which creates a separate `DbContext` per resolver for queries) or switch to a `DbContext` factory.
+
+**DbContext is not injected into the resolver**
+Verify that you registered the factory with `RegisterDbContextFactory<T>()` on the `IRequestExecutorBuilder` and that the `DbContextFactory` is also registered in the DI container.
+
+**DbContext is disposed before use in DataLoaders**
+Create the `DbContext` inside the `LoadBatchAsync` method and dispose it there. Do not create it in the constructor.
+
+# Next Steps
+
+- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for DI scope configuration
+- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching patterns
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for applying filters to EF Core queries

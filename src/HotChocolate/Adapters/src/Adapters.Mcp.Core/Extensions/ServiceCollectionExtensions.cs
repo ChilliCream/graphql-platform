@@ -96,6 +96,7 @@ internal static class ServiceCollectionExtensions
                 })
                 .WithHttpTransport(options =>
                 {
+#pragma warning disable MCPEXP002 // https://github.com/modelcontextprotocol/csharp-sdk/issues/1416
                     options.RunSessionHandler = async (_, mcpServer, token) =>
                     {
                         if (mcpServer.SessionId == null)
@@ -116,6 +117,7 @@ internal static class ServiceCollectionExtensions
                             mcpServers.TryRemove(mcpServer.SessionId, out var _);
                         }
                     };
+#pragma warning restore MCPEXP002
                 })
                 .WithListPromptsHandler(
                     (context, _) => ValueTask.FromResult(ListPromptsHandler.Handle(context)))

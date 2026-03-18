@@ -1,164 +1,175 @@
 ---
-title: "Custom Attributes"
+title: Attribute Reference
+description: Comprehensive reference of all built-in attributes in Hot Chocolate v16 for configuring your GraphQL schema.
 ---
 
-Hot Chocolate allows to define a schema in various ways. When defining schemas with pure .NET types and custom attributes we need a way to access advanced features like custom field middleware that we have at our disposal with schema types.
+Hot Chocolate provides a wide range of attributes that you can apply to your .NET types, properties, methods, and parameters to configure the GraphQL schema. This page serves as a comprehensive reference.
 
-```csharp
-public class QueryType : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor.Field(t => t.Strings).UsePaging<StringType>();
-    }
-}
-```
+# Root Type Attributes
 
-This is where descriptor attributes come in. Descriptor attributes allow us to package descriptor configurations into an attribute that can be used to decorate our .NET types. Descriptor attributes act like an interceptor into the configuration of the inferred schema type.
+These attributes mark a class as a root operation type for your schema.
 
-# Built-In Attributes
+| Attribute            | Namespace      | Description                                         |
+| -------------------- | -------------- | --------------------------------------------------- |
+| `[QueryType]`        | `HotChocolate` | Marks a static class as the root query type.        |
+| `[MutationType]`     | `HotChocolate` | Marks a static class as the root mutation type.     |
+| `[SubscriptionType]` | `HotChocolate` | Marks a static class as the root subscription type. |
 
-We have prepared the following set of built-in descriptor attributes.
+# Type Configuration Attributes
 
-> ⚠️ **Note:** As middleware comprises the stages of a sequential _pipeline_, the ordering is important. The correct order to use is `UsePaging`, `UseFiltering`, `UseSorting`.
+These attributes control how .NET types map to GraphQL types.
 
-## UsePagingAttribute
+| Attribute                       | Namespace      | Description                                                                                   |
+| ------------------------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| `[ObjectType<T>]`               | `HotChocolate` | Marks a class as a GraphQL object type bound to the specified runtime type `T`.               |
+| `[ExtendObjectType<T>]`         | `HotChocolate` | Extends an existing GraphQL object type bound to the runtime type `T` with additional fields. |
+| `[GraphQLName("name")]`         | `HotChocolate` | Overrides the inferred GraphQL name for a type, field, or argument.                           |
+| `[GraphQLType<T>]`              | `HotChocolate` | Overrides the inferred GraphQL type for a field or argument to the specified type `T`.        |
+| `[GraphQLDescription("...")]`   | `HotChocolate` | Sets the description for a type, field, or argument in the GraphQL schema.                    |
+| `[GraphQLDeprecated("reason")]` | `HotChocolate` | Marks a field or enum value as deprecated with the specified reason.                          |
+| `[GraphQLIgnore]`               | `HotChocolate` | Excludes a property or method from the GraphQL schema.                                        |
 
-The `UsePagingAttribute` allows us to use the paging middleware by annotating it to a property or method.
+# Data Fetching Attributes
 
-```csharp
-public class Query
-{
-    [UsePaging]
-    public IQueryable<Foo> GetFoos()
-    {
-        ...
-    }
-}
-```
+These attributes configure data loading and resolver behavior.
 
-## UseFilteringAttribute
+| Attribute      | Namespace      | Description                                                                                           |
+| -------------- | -------------- | ----------------------------------------------------------------------------------------------------- |
+| `[DataLoader]` | `GreenDonut`   | Marks a static method as a DataLoader resolver. The source generator creates the DataLoader type.     |
+| `[IsSelected]` | `HotChocolate` | Indicates that a resolver parameter should receive whether a specific field is selected in the query. |
 
-The `UseFilteringAttribute` allows us to apply the filtering middleware to a property or method.
+# Authorization Attributes
 
-```csharp
-public class Query
-{
-    [UseFiltering]
-    public IQueryable<Foo> GetFoos()
-    {
-        ...
-    }
-}
-```
+| Attribute     | Namespace                    | Description                                                                                            |
+| ------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `[Authorize]` | `HotChocolate.Authorization` | Applies authorization policies to a type or field. Supports `Policy`, `Roles`, and `Apply` parameters. |
 
-> Warning: Be sure to install the `HotChocolate.Types.Filters` NuGet package.
+# Error Handling Attributes
 
-## UseSortingAttribute
+| Attribute    | Namespace      | Description                                                                       |
+| ------------ | -------------- | --------------------------------------------------------------------------------- |
+| `[Error<T>]` | `HotChocolate` | Registers an error type `T` for a mutation field when using mutation conventions. |
 
-The `UseSortingAttribute` allows us to apply the sorting middleware to a property or method.
+# Cost Analysis Attributes
 
-```csharp
-public class Query
-{
-    [UseSorting]
-    public IQueryable<Foo> GetFoos()
-    {
-        ...
-    }
-}
-```
+| Attribute    | Namespace                   | Description                                                                                |
+| ------------ | --------------------------- | ------------------------------------------------------------------------------------------ |
+| `[Cost]`     | `HotChocolate.CostAnalysis` | Sets the cost weight for a field, used by the cost analyzer to calculate query complexity. |
+| `[ListSize]` | `HotChocolate.CostAnalysis` | Declares the expected list size for a field, used by the cost analyzer.                    |
 
-> Warning: Be sure to install the `HotChocolate.Types.Sorting` NuGet package.
+# Identity Attributes
 
-## AuthorizeAttribute
+| Attribute | Namespace      | Description                                                                                          |
+| --------- | -------------- | ---------------------------------------------------------------------------------------------------- |
+| `[ID]`    | `HotChocolate` | Marks a field as a global object identifier. The value is encoded as a base64 ID with the type name. |
+| `[ID<T>]` | `HotChocolate` | Marks a field as a global object identifier associated with a specific GraphQL type `T`.             |
 
-The `AuthorizeAttribute` allows to apply the authorize directives to a class, struct, interface, property or method. The attribute will only be applied if the inferred type is an object type.
+# Resolver Parameter Attributes
 
-```csharp
-public class Query
-{
-    [Authorize(Policy = "MyPolicy")]
-    public IQueryable<Foo> GetFoos()
-    {
-        ...
-    }
-}
-```
+These attributes control how parameters are injected into resolvers.
 
-# Attribute Chaining
+| Attribute              | Namespace      | Description                                                                   |
+| ---------------------- | -------------- | ----------------------------------------------------------------------------- |
+| `[Parent]`             | `HotChocolate` | Injects the parent (resolved value of the parent field) into the resolver.    |
+| `[Service]`            | `HotChocolate` | Injects a service from the dependency injection container.                    |
+| `[ScopedService]`      | `HotChocolate` | Injects a scoped service. Equivalent to `[Service]` for the current DI scope. |
+| `[GlobalState("key")]` | `HotChocolate` | Injects a value from the global request state by key.                         |
+| `[ScopedState("key")]` | `HotChocolate` | Injects a value from the scoped state by key.                                 |
+| `[LocalState("key")]`  | `HotChocolate` | Injects a value from the local (field-scoped) state by key.                   |
 
-Attributes can by default be chained, meaning that the attributes are applied in order from the top one to the bottom one.
+# Subscription Attributes
 
-The following code ...
+| Attribute         | Namespace      | Description                                                                                                        |
+| ----------------- | -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `[Subscribe]`     | `HotChocolate` | Marks a method as a subscription resolver that subscribes to an event stream.                                      |
+| `[EventMessage]`  | `HotChocolate` | Injects the event message payload into a subscription resolver.                                                    |
+| `[Topic("name")]` | `HotChocolate` | Specifies the topic name for subscription event routing. Can also be applied to parameters to use a dynamic topic. |
 
-```csharp
-public class Query
-{
-    [UsePaging]
-    [UseFiltering]
-    [UseSorting]
-    public IQueryable<Foo> GetFoos()
-    {
-        ...
-    }
-}
-```
+# Data Middleware Attributes
 
-... would translate to:
+These attributes apply middleware to fields for pagination, filtering, sorting, and projection.
 
-```csharp
-public class QueryType
-    : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor.Field(t => t.Foos)
-            .UsePaging<ObjectType<Foo>>()
-            .UseFiltering()
-            .UseSorting();
-    }
-}
-```
+> Middleware ordering matters. The correct attribute order from top to bottom is: `[UsePaging]`, `[UseProjection]`, `[UseFiltering]`, `[UseSorting]`.
+
+| Attribute         | Namespace            | Description                                                         |
+| ----------------- | -------------------- | ------------------------------------------------------------------- |
+| `[UsePaging]`     | `HotChocolate.Types` | Applies cursor-based pagination to the field.                       |
+| `[UseFiltering]`  | `HotChocolate.Data`  | Applies filtering capabilities to the field.                        |
+| `[UseSorting]`    | `HotChocolate.Data`  | Applies sorting capabilities to the field.                          |
+| `[UseProjection]` | `HotChocolate.Data`  | Applies field projection to push selection down to the data source. |
+
+# Mutation Convention Attributes
+
+| Attribute                 | Namespace            | Description                                                                                 |
+| ------------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
+| `[UseMutationConvention]` | `HotChocolate.Types` | Applies mutation conventions (input wrapping, payload type generation) to a mutation field. |
+
+# Relay / Global Object Identification Attributes
+
+| Attribute        | Namespace                  | Description                                                                                |
+| ---------------- | -------------------------- | ------------------------------------------------------------------------------------------ |
+| `[NodeResolver]` | `HotChocolate.Types.Relay` | Marks a method as the resolver for the `node` field, used in Global Object Identification. |
+
+# Schema Design Attributes
+
+| Attribute                    | Namespace      | Description                                                                  |
+| ---------------------------- | -------------- | ---------------------------------------------------------------------------- |
+| `[RequiresOptIn("feature")]` | `HotChocolate` | Marks a field as requiring opt-in, used with the `@requiresOptIn` directive. |
+
+# Fusion / Federation Attributes
+
+These attributes are used when building Fusion subgraphs or Apollo Federation subgraphs.
+
+| Attribute        | Namespace                       | Description                                                              |
+| ---------------- | ------------------------------- | ------------------------------------------------------------------------ |
+| `[Lookup]`       | `HotChocolate.Fusion`           | Marks a resolver as a lookup resolver for entity resolution in Fusion.   |
+| `[EntityKey]`    | `HotChocolate.Fusion`           | Marks a property as part of the entity key in Fusion.                    |
+| `[Shareable]`    | `HotChocolate.ApolloFederation` | Indicates that a field can be resolved by multiple subgraphs.            |
+| `[Inaccessible]` | `HotChocolate.ApolloFederation` | Hides a field from the composed supergraph schema.                       |
+| `[Internal]`     | `HotChocolate.Fusion`           | Marks a field as internal, visible only within the subgraph.             |
+| `[Is]`           | `HotChocolate.Fusion`           | Provides a mapping expression for entity resolution in Fusion.           |
+| `[Require]`      | `HotChocolate.Fusion`           | Specifies that a lookup resolver requires certain fields to be provided. |
 
 # Custom Descriptor Attributes
 
-It is super simple to create custom descriptor attributes and package complex functionality in simple to use attributes.
+You can create custom attributes to package descriptor configurations for reuse. Hot Chocolate provides base classes for each descriptor type:
+
+- `ObjectTypeDescriptorAttribute`
+- `ObjectFieldDescriptorAttribute`
+- `InputObjectTypeDescriptorAttribute`
+- `InputFieldDescriptorAttribute`
+- `InterfaceTypeDescriptorAttribute`
+- `InterfaceFieldDescriptorAttribute`
+- `EnumTypeDescriptorAttribute`
+- `EnumValueDescriptorAttribute`
+- `UnionTypeDescriptorAttribute`
+- `ArgumentDescriptorAttribute`
+
+Each base class pre-configures the allowed attribute targets. For example, `ObjectFieldDescriptorAttribute` is valid only on methods and properties.
 
 ```csharp
-public class SomeMiddlewareAttribute
-    : ObjectFieldDescriptorAttribute
+public class UseMyMiddlewareAttribute : ObjectFieldDescriptorAttribute
 {
-    public override void OnConfigure(
+    public UseMyMiddlewareAttribute([CallerLineNumber] int order = 0)
+    {
+        Order = order;
+    }
+
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
-        descriptor.Use(next => context => ...);
+        descriptor.Use(next => async ctx =>
+        {
+            // Custom logic
+            await next(ctx);
+        });
     }
 }
 ```
 
-Within the `OnConfigure` method you can do what you actually would do in the `Configure` method of a type.
-
-But you also get some context information about where the configuration was applied to, like you get the member to which the attribute was applied to and you get the descriptor context.
-
-We have one descriptor base class for each first-class descriptor type.
-
-- EnumTypeDescriptorAttribute
-- EnumValueDescriptorAttribute
-- InputObjectTypeDescriptorAttribute
-- InputFieldDescriptorAttribute
-- InterfaceTypeDescriptorAttribute
-- InterfaceFieldDescriptorAttribute
-- ObjectTypeDescriptorAttribute
-- ObjectFieldDescriptorAttribute
-- UnionTypeDescriptorAttribute
-- ArgumentDescriptorAttribute
-
-All of these attribute base classes have already the allowed attribute targets applied. That means that we pre-configured the `ObjectFieldDescriptorAttribute` for instance to be only valid on methods and properties.
-
-If you want to build more complex attributes that can be applied to multiple targets like an interface type and an object type at the same time then you can use our `DescriptorAttribute` base class. This base class is not pre-configured and lets you probe for configuration types.
+For attributes that target multiple descriptor types, use the `DescriptorAttribute` base class:
 
 ```csharp
 [AttributeUsage(
@@ -172,16 +183,16 @@ public sealed class MyCustomAttribute : DescriptorAttribute
         IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
-        if(element is MemberInfo member)
+        if (element is MemberInfo member)
         {
-            switch(descriptor)
+            switch (descriptor)
             {
                 case IInterfaceFieldDescriptor interfaceField:
-                    // do something ...
+                    // Configure interface field
                     break;
 
-                case IObjectFieldDescriptor interfaceField:
-                    // do something ...
+                case IObjectFieldDescriptor objectField:
+                    // Configure object field
                     break;
             }
         }
@@ -189,4 +200,19 @@ public sealed class MyCustomAttribute : DescriptorAttribute
 }
 ```
 
-It is simple to use these attributes. Just annotating a type or a property with an attribute will add the packaged functionality. The types can be used in conjunction with schema types or without.
+# Troubleshooting
+
+**Attribute does not appear to have any effect**
+Verify that the attribute is in the correct namespace and that the NuGet package is installed. Some attributes (like `[UseFiltering]`) require additional packages such as `HotChocolate.Data`.
+
+**Middleware attribute ordering is wrong**
+Attribute order in C# is not guaranteed. Middleware attributes use `[CallerLineNumber]` to infer order. Place attributes on separate lines with the correct top-to-bottom order: `[UsePaging]`, `[UseProjection]`, `[UseFiltering]`, `[UseSorting]`.
+
+**Custom attribute not being applied**
+Confirm that you are inheriting from the correct base class and that the `OnConfigure` method calls the expected descriptor methods.
+
+# Next Steps
+
+- [Building a schema](/docs/hotchocolate/v16/building-a-schema) for type system configuration
+- [Field middleware](/docs/hotchocolate/v16/execution-engine/field-middleware) for creating custom middleware
+- [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for field resolution patterns
