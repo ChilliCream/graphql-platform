@@ -37,6 +37,7 @@ CCPA
 chillicream
 Codespaces
 colocated
+csclient
 combinators
 contentfiles
 Contoso
@@ -88,12 +89,14 @@ inheritdocs
 initializable
 inmemory
 inspectable
+keepalive
 Kellner
 Kydne
 LASTEXITCODE
 Leia
 LICEN*
 Linq
+Liquibase
 Marek
 matchesBrics
 MCPEXP
@@ -217,4 +220,5 @@ VXNlcjox
 websockets
 Wilhuff
 Wunder
+xact
 xunit

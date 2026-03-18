@@ -396,7 +396,7 @@ Multiple consumers can process messages from the same queue concurrently. The tr
 
 When a message processing attempt fails, the message is released back to the queue with its `delivery_count` incremented. Redelivery is delayed using exponential backoff computed in SQL:
 
-```
+```text
 delay = 2^min(delivery_count, 10) seconds
 ```
 
