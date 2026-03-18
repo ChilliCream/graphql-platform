@@ -46,7 +46,7 @@ internal sealed class EditStagesCommand : Command
     {
         console.WriteOperationTitle();
 
-        const string apiMessage = "For which api do you want to edit the stages?";
+        const string apiMessage = "For which API do you want to edit the stages?";
 
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
@@ -97,7 +97,7 @@ internal sealed class EditStagesCommand : Command
         string apiId,
         CancellationToken cancellationToken)
     {
-        var updatedStages = await client.FetchStagesAsync(apiId, cancellationToken);
+        var updatedStages = await client.FetchStagesAsync(console, apiId, cancellationToken);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -155,11 +155,13 @@ file static class ClientExtensions
 {
     public static async Task<IReadOnlyList<StageUpdateInput>> FetchStagesAsync(
         this IApiClient client,
+        IAnsiConsole console,
         string apiId,
         CancellationToken cancellationToken)
     {
         var result = await client.ListStagesQuery.ExecuteAsync(apiId, cancellationToken);
-        var data = result.EnsureData();
+        console.EnsureNoErrors(result);
+        var data = console.EnsureData(result);
         var stages = (data.Node as IListStagesQuery_Node_Api)?.Stages;
         if (stages is null)
         {
@@ -191,10 +193,11 @@ file static class ClientExtensions
 
         var updateResult = await client.UpdateStages.ExecuteAsync(updateInput, cancellationToken);
 
-        updateResult.EnsureData();
-        console.PrintErrorsAndExit(updateResult.Data?.UpdateStages.Errors);
+        console.EnsureNoErrors(updateResult);
+        var data = console.EnsureData(updateResult);
+        console.PrintErrorsAndExit(data.UpdateStages.Errors);
 
-        var items = updateResult.Data?.UpdateStages.Api?.Stages
+        var items = data.UpdateStages.Api?.Stages
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray() ?? [];
 
@@ -221,7 +224,7 @@ file static class Extensions
 
         await SelectableTable
             .From(updatedStages)
-            .Title($"Edit the stages of api {apiId}")
+            .Title($"Edit the stages of API {apiId}")
             .AddColumn("Name", x => x.Name)
             .AddColumn("DisplayName", x => x.DisplayName)
             .AddColumn("After", x => x.Conditions!.Select(y => y.AfterStage).Join(","))

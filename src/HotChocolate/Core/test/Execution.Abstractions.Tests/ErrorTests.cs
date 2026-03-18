@@ -204,6 +204,6 @@ public class ErrorTests
         error = error.WithPath(Path.FromList(["foo"]));
 
         // assert
-        Assert.Equal("/foo", error.Path!.Print());
+        Assert.Equal("foo", error.Path!.Print());
     }
 }

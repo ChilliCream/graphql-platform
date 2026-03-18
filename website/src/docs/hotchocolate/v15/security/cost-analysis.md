@@ -39,35 +39,35 @@ Filtering and sorting field arguments and operations also have default cost weig
 Finally, resolvers using pagination will have list size settings applied automatically:
 
 <Tabs defaultValue={"connection"}>
-  <List>
-    <Tab value="connection">Connection</Tab>
-    <Tab value="offset">Offset</Tab>
-  </List>
+<List>
+<Tab value="connection">Connection</Tab>
+<Tab value="offset">Offset</Tab>
+</List>
 
   <Panel value="connection">
 
-  ```graphql
-  books(first: Int, after: String, last: Int, before: String): BooksConnection
-    @listSize(
-      assumedSize: 50
-      slicingArguments: ["first", "last"]
-      sizedFields: ["edges", "nodes"]
-    )
-    @cost(weight: "10")
-  ```
+```graphql
+books(first: Int, after: String, last: Int, before: String): BooksConnection
+  @listSize(
+    assumedSize: 50
+    slicingArguments: ["first", "last"]
+    sizedFields: ["edges", "nodes"]
+  )
+  @cost(weight: "10")
+```
 
   </Panel>
   <Panel value="offset">
 
-  ```graphql
-  books(skip: Int, take: Int): BooksCollectionSegment
-    @listSize(
-      assumedSize: 50
-      slicingArguments: ["take"]
-      sizedFields: ["items"]
-    )
-    @cost(weight: "10")
-  ```
+```graphql
+books(skip: Int, take: Int): BooksCollectionSegment
+  @listSize(
+    assumedSize: 50
+    slicingArguments: ["take"]
+    sizedFields: ["items"]
+  )
+  @cost(weight: "10")
+```
 
   </Panel>
 </Tabs>
@@ -249,49 +249,49 @@ Cost metrics include two properties, `FieldCost` and `TypeCost`:
 To access the cost metrics via the `IResolverContext` or `IMiddlewareContext`, use the context data key `WellKnownContextData.CostMetrics`:
 
 <Tabs defaultValue={"resolver"}>
-  <List>
-    <Tab value="resolver">Resolver</Tab>
-    <Tab value="middleware">Middleware</Tab>
-  </List>
+<List>
+<Tab value="resolver">Resolver</Tab>
+<Tab value="middleware">Middleware</Tab>
+</List>
 
   <Panel value="resolver">
 
-  ```csharp
-  public static Book GetBook(IResolverContext resolverContext)
-  {
-      const string key = WellKnownContextData.CostMetrics;
-      var costMetrics = (CostMetrics)resolverContext.ContextData[key]!;
+```csharp
+public static Book GetBook(IResolverContext resolverContext)
+{
+    const string key = WellKnownContextData.CostMetrics;
+    var costMetrics = (CostMetrics)resolverContext.ContextData[key]!;
 
-      double fieldCost = costMetrics.FieldCost;
-      double typeCost = costMetrics.TypeCost;
+    double fieldCost = costMetrics.FieldCost;
+    double typeCost = costMetrics.TypeCost;
 
-      // ...
-  }
-  ```
+    // ...
+}
+```
 
   </Panel>
   <Panel value="middleware">
 
-  ```csharp
-  public static class MyMiddlewareObjectFieldDescriptorExtension
-  {
-      public static IObjectFieldDescriptor UseMyMiddleware(
-          this IObjectFieldDescriptor descriptor)
-      {
-          return descriptor
-              .Use(next => async context =>
-              {
-                  const string key = WellKnownContextData.CostMetrics;
-                  var costMetrics = (CostMetrics)context.ContextData[key]!;
+```csharp
+public static class MyMiddlewareObjectFieldDescriptorExtension
+{
+    public static IObjectFieldDescriptor UseMyMiddleware(
+        this IObjectFieldDescriptor descriptor)
+    {
+        return descriptor
+            .Use(next => async context =>
+            {
+                const string key = WellKnownContextData.CostMetrics;
+                var costMetrics = (CostMetrics)context.ContextData[key]!;
 
-                  double fieldCost = costMetrics.FieldCost;
-                  double typeCost = costMetrics.TypeCost;
+                double fieldCost = costMetrics.FieldCost;
+                double typeCost = costMetrics.TypeCost;
 
-                  await next(context);
-              });
-      }
-  }
-  ```
+                await next(context);
+            });
+    }
+}
+```
 
   </Panel>
 </Tabs>
@@ -301,7 +301,7 @@ To access the cost metrics via the `IResolverContext` or `IMiddlewareContext`, u
 To output the cost metrics, set an HTTP header named `GraphQL-Cost` with one of the following values:
 
 | Value      | Description                                                            |
-|------------|------------------------------------------------------------------------|
+| ---------- | ---------------------------------------------------------------------- |
 | `report`   | The request is executed, and the costs are reported in the response.   |
 | `validate` | The costs are reported in the response, without executing the request. |
 
@@ -314,45 +314,51 @@ To output the cost metrics, set an HTTP header named `GraphQL-Cost` with one of 
 ## Field cost
 
 <Tabs defaultValue={"object"}>
-  <List>
-    <Tab value="object">Object</Tab>
-    <Tab value="connection">Connection</Tab>
-  </List>
+<List>
+<Tab value="object">Object</Tab>
+<Tab value="connection">Connection</Tab>
+</List>
 
   <Panel value="object">
 
-  ```graphql
-  query {
-    book {     # 10 (async resolver)
-      title    # 0  (scalar)
-      author { # 1  (composite type)
-        name   # 0  (scalar)
-      }
+```graphql
+query {
+  book {
+    # 10 (async resolver)
+    title # 0  (scalar)
+    author {
+      # 1  (composite type)
+      name # 0  (scalar)
     }
   }
+}
 
-  # Field cost: 11
-  ```
+# Field cost: 11
+```
 
   </Panel>
   <Panel value="connection">
 
-  ```graphql
-  query {
-    books(first: 50) { # 10 (async resolver)
-      edges {          # 1  (composite type)
-        node {         # 50 (1 [composite type] x 50 items)
-          title        # 0  (scalar)
-          author {     # 50 (1 [composite type] x 50 items)
-            name       # 0  (scalar)
-          }
+```graphql
+query {
+  books(first: 50) {
+    # 10 (async resolver)
+    edges {
+      # 1  (composite type)
+      node {
+        # 50 (1 [composite type] x 50 items)
+        title # 0  (scalar)
+        author {
+          # 50 (1 [composite type] x 50 items)
+          name # 0  (scalar)
         }
       }
     }
   }
+}
 
-  # Field cost: 111
-  ```
+# Field cost: 111
+```
 
   </Panel>
 </Tabs>
@@ -360,45 +366,53 @@ To output the cost metrics, set an HTTP header named `GraphQL-Cost` with one of 
 ## Type cost
 
 <Tabs defaultValue={"object"}>
-  <List>
-    <Tab value="object">Object</Tab>
-    <Tab value="connection">Connection</Tab>
-  </List>
+<List>
+<Tab value="object">Object</Tab>
+<Tab value="connection">Connection</Tab>
+</List>
 
   <Panel value="object">
 
-  ```graphql
-  query {      # 1 Query
-    book {     # 1 Book
-      title
-      author { # 1 Author
-        name
-      }
+```graphql
+query {
+  # 1 Query
+  book {
+    # 1 Book
+    title
+    author {
+      # 1 Author
+      name
     }
   }
+}
 
-  # Type cost: 3
-  ```
+# Type cost: 3
+```
 
   </Panel>
   <Panel value="connection">
 
-  ```graphql
-  query {              # 1  Query
-    books(first: 50) { # 50 BooksConnections
-      edges {          # 1  BooksEdge
-        node {         # 50 Books
-          title
-          author {     # 50 Authors
-            name
-          }
+```graphql
+query {
+  # 1  Query
+  books(first: 50) {
+    # 50 BooksConnections
+    edges {
+      # 1  BooksEdge
+      node {
+        # 50 Books
+        title
+        author {
+          # 50 Authors
+          name
         }
       }
     }
   }
+}
 
-  # Type cost: 152
-  ```
+# Type cost: 152
+```
 
   </Panel>
 </Tabs>
@@ -410,7 +424,7 @@ To output the cost metrics, set an HTTP header named `GraphQL-Cost` with one of 
 Options for cost analysis.
 
 | Option              | Description                                                   | Default |
-|---------------------|---------------------------------------------------------------|---------|
+| ------------------- | ------------------------------------------------------------- | ------- |
 | MaxFieldCost        | Gets or sets the maximum allowed field cost.                  | 1_000   |
 | MaxTypeCost         | Gets or sets the maximum allowed type cost.                   | 1_000   |
 | EnforceCostLimits   | Defines if the analyzer shall enforce cost limits.            | true    |
@@ -437,7 +451,7 @@ builder.Services
 Represents the cost options for filtering.
 
 | Option                              | Description                                                                | Default |
-|-------------------------------------|----------------------------------------------------------------------------|---------|
+| ----------------------------------- | -------------------------------------------------------------------------- | ------- |
 | DefaultFilterArgumentCost           | Gets or sets the default cost for a filter argument.                       | 10.0    |
 | DefaultFilterOperationCost          | Gets or sets the default cost for a filter operation.                      | 10.0    |
 | DefaultExpensiveFilterOperationCost | Gets or sets the default cost for an expensive filter argument.            | 20.0    |
@@ -462,7 +476,7 @@ builder.Services
 Represents the cost options for sorting.
 
 | Option                   | Description                                                            | Default |
-|--------------------------|------------------------------------------------------------------------|---------|
+| ------------------------ | ---------------------------------------------------------------------- | ------- |
 | DefaultSortArgumentCost  | Gets or sets the default cost for a sort argument.                     | 10.0    |
 | DefaultSortOperationCost | Gets or sets the default cost for a sort operation.                    | 10.0    |
 | VariableMultiplier       | Gets or sets multiplier when a variable is used for the sort argument. | 5       |

@@ -23,7 +23,9 @@ internal static class FusionPublishHelpers
         string tag,
         string? subgraphId,
         string? subgraphName,
+        SourceSchemaVersion[]? sourceSchemaVersions,
         bool waitForApproval,
+        SourceMetadataInput? source,
         StatusContext? statusContext,
         IAnsiConsole console,
         IApiClient client,
@@ -36,7 +38,17 @@ internal static class FusionPublishHelpers
             StageName = stageName,
             SubgraphName = subgraphName,
             SubgraphApiId = subgraphId,
-            WaitForApproval = waitForApproval
+            WaitForApproval = waitForApproval,
+            Source = source,
+            Subgraphs = sourceSchemaVersions is { Length: > 0 }
+                ? sourceSchemaVersions
+                    .Select(x => new FusionSubgraphVersionInput
+                    {
+                        Name = x.Name,
+                        Tag = x.Version
+                    })
+                    .ToArray()
+                : null
         };
 
         var result = await client.BeginFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
@@ -48,7 +60,7 @@ internal static class FusionPublishHelpers
             throw Exit("Failed to request deployment slot.");
         }
 
-        console.MarkupLine($"Your request id is [blue]{requestId}[/]");
+        console.MarkupLine($"Your request ID is [blue]{requestId}[/]");
 
         using var stopSignal = new Subject<Unit>();
         var subscription = client.OnFusionConfigurationPublishingTaskChanged
@@ -61,11 +73,7 @@ internal static class FusionPublishHelpers
 
         void OnNext(IOperationResult<IOnFusionConfigurationPublishingTaskChangedResult> x)
         {
-            if (x.Errors is { Count: > 0 } errors)
-            {
-                console.PrintErrorsAndExit(errors);
-                throw Exit("Something went wrong while monitoring the publish task.");
-            }
+            console.EnsureNoErrors(x);
 
             switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)
             {
@@ -139,28 +147,36 @@ internal static class FusionPublishHelpers
     public static async Task<Stream?> DownloadLatestFusionArchiveAsync(
         string apiId,
         string stageName,
-        IApiClient client,
+        bool isFgp,
         IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
-        var result =
-            await client.FetchConfiguration.ExecuteAsync(apiId, stageName, cancellationToken);
+        using var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
 
-        result.EnsureNoErrors();
+        var request = CreateDownloadLatestConfigurationRequest(apiId, stageName, isFgp);
 
-        var downloadUrl = result.Data?.FusionConfigurationByApiId?.DownloadUrl;
+        var response = await httpClient.SendAsync(request, cancellationToken);
 
-        if (string.IsNullOrEmpty(downloadUrl))
+        if (response.StatusCode is HttpStatusCode.NotFound)
         {
             return null;
         }
 
-        var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
-        var downloadResult = await httpClient.GetAsync(downloadUrl, cancellationToken);
+        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            throw new ExitException(
+                $"Got a HTTP {response.StatusCode} while attempting to download the latest fusion configuration. "
+                + "Make sure that you have the proper credentials / permissions to execute this command.");
+        }
 
-        downloadResult.EnsureSuccessStatusCode();
+        response.EnsureSuccessStatusCode();
 
-        return await downloadResult.Content.ReadAsStreamAsync(cancellationToken);
+        var memoryStream = new MemoryStream();
+        await response.Content.CopyToAsync(memoryStream, cancellationToken);
+
+        memoryStream.Position = 0;
+
+        return memoryStream;
     }
 
     public static async Task<FusionSourceSchemaArchive> DownloadSourceSchemaArchiveAsync(
@@ -210,8 +226,7 @@ internal static class FusionPublishHelpers
     {
         var input = new CommitFusionConfigurationPublishInput
         {
-            RequestId = requestId,
-            Configuration = new(stream, "gateway.far")
+            RequestId = requestId, Configuration = new(stream, "gateway.far")
         };
 
         var result =
@@ -232,11 +247,7 @@ internal static class FusionPublishHelpers
         await foreach (var x in subscription.ToAsyncEnumerable()
             .WithCancellation(cancellationToken))
         {
-            if (x.Errors is { Count: > 0 } errors)
-            {
-                console.PrintErrorsAndExit(errors);
-                throw Exit("No request id returned");
-            }
+            console.EnsureNoErrors(x);
 
             switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)
             {
@@ -380,6 +391,26 @@ internal static class FusionPublishHelpers
         return true;
     }
 
+    private static HttpRequestMessage CreateDownloadLatestConfigurationRequest(
+        string apiId,
+        string stageName,
+        bool isFgp)
+    {
+        var escapedApiId = Uri.EscapeDataString(apiId);
+        var escapedStageName = Uri.EscapeDataString(stageName);
+
+        var requestUri = $"/api/v1/apis/{escapedApiId}/fusion/configurations/latest/download"
+            + $"?stage={escapedStageName}";
+
+        if (!isFgp)
+        {
+            requestUri += "&format=far"
+                + $"&fusionVersion={Uri.EscapeDataString(WellKnownVersions.LatestGatewayFormatVersion.ToString())}";
+        }
+
+        return new HttpRequestMessage(HttpMethod.Get, requestUri);
+    }
+
     private static HttpRequestMessage CreateDownloadSourceSchemaVersionRequest(
         string apiId,
         string sourceSchemaName,
@@ -392,6 +423,8 @@ internal static class FusionPublishHelpers
 
         return new HttpRequestMessage(HttpMethod.Get, requestUri);
     }
+
+    internal sealed record SourceSchemaVersion(string Name, string Version);
 
     private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
     {

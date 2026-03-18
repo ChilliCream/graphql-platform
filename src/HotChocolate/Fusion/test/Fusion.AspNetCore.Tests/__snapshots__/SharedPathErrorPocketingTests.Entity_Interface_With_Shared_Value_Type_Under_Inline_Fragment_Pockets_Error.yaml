@@ -1,0 +1,187 @@
+title: Entity_Interface_With_Shared_Value_Type_Under_Inline_Fragment_Pockets_Error
+request:
+  document: |
+    {
+      node {
+        ... on Product {
+          shared {
+            a
+            b
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "shared": {
+            "a": null,
+            "b": "SharedData: U2hhcmVkRGF0YToy"
+          }
+        }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "node",
+            "shared",
+            "a"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface INode @key(fields: "id") {
+        id: Int!
+      }
+
+      type Product implements INode @key(fields: "id") {
+        id: Int!
+        shared: SharedData @shareable @error
+      }
+
+      type Query {
+        node: INode @shareable
+        productA(id: Int!): Product @lookup
+      }
+
+      type SharedData @shareable {
+        a: String
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_854c0b21_1 {
+              node {
+                __typename
+                ... on Product {
+                  shared {
+                    a
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "path": [
+                      "node",
+                      "shared"
+                    ]
+                  }
+                ],
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "shared": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface INode @key(fields: "id") {
+        id: Int!
+      }
+
+      type Product implements INode @key(fields: "id") {
+        id: Int!
+        shared: SharedData @shareable
+      }
+
+      type Query {
+        node: INode @shareable
+        productB(id: Int!): Product @lookup
+      }
+
+      type SharedData @shareable {
+        b: String
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_854c0b21_2 {
+              node {
+                __typename
+                ... on Product {
+                  shared {
+                    b
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "shared": {
+                      "b": "SharedData: U2hhcmVkRGF0YToy"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node {
+            __typename @fusion__requirement
+            ... on Product {
+              shared {
+                a
+                b
+              }
+            }
+          }
+        }
+      hash: 854c0b2123f005940cd054f30953d09d
+      searchSpace: 2
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_854c0b21_1 {
+          node {
+            __typename
+            ... on Product {
+              shared {
+                a
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_854c0b21_2 {
+          node {
+            __typename
+            ... on Product {
+              shared {
+                b
+              }
+            }
+          }
+        }

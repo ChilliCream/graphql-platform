@@ -96,7 +96,8 @@ public static class FieldDescriptorUtilities
         ICollection<ArgumentConfiguration> arguments,
         MemberInfo? member,
         ParameterInfo[] parameters,
-        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders,
+        bool isBatchResolver = false)
     {
         ArgumentNullException.ThrowIfNull(arguments);
 
@@ -121,7 +122,7 @@ public static class FieldDescriptorUtilities
                 {
                     var argumentDefinition =
                         ArgumentDescriptor
-                            .New(context, parameter)
+                            .New(context, parameter, isBatchResolver)
                             .CreateConfiguration();
 
                     if (!string.IsNullOrEmpty(argumentDefinition.Name)

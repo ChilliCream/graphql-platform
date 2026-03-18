@@ -146,7 +146,7 @@ const Newsletter = styled.div`
   }
 `;
 
-const NewsletterTitle = styled.h3`
+const NewsletterTitle = styled.h2`
   flex: 0 0 auto;
   margin-bottom: 24px;
 
@@ -184,7 +184,7 @@ const Media = styled.div`
   );
 `;
 
-const MediaTitle = styled.h3`
+const MediaTitle = styled.h2`
   flex: 0 0 auto;
   margin-bottom: 32px;
 `;
@@ -206,6 +206,11 @@ const MediaBox = styled.div`
 `;
 
 const MediaConnectLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   text-decoration: none;
   color: ${THEME_COLORS.footerLink};
   transition: color 0.2s ease-in-out;

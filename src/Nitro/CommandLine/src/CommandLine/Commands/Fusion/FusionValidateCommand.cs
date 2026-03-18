@@ -12,7 +12,6 @@ using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Options;
 using HotChocolate.Fusion.Packaging;
 using StrawberryShake;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -118,7 +117,7 @@ internal sealed class FusionValidateCommand : Command
             var existingArchiveStream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
                 apiId,
                 stageName,
-                client,
+                isFgp: false,
                 httpClientFactory,
                 ct);
 
@@ -203,11 +202,7 @@ internal sealed class FusionValidateCommand : Command
 
             await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
             {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
-                }
+                console.EnsureNoErrors(x);
 
                 switch (x.Data?.OnSchemaVersionValidationUpdate)
                 {
@@ -266,7 +261,7 @@ internal sealed class FusionValidateCommand : Command
         if (configuration is null)
         {
             throw new InvalidOperationException(
-                $"Failed to retrieve gateway configuration from the fusion archive (format version: {latestVersion}). "
+                $"Failed to retrieve gateway configuration from the Fusion archive (format version: {latestVersion}). "
                 + "The archive may be corrupted, unsupported, or missing required configuration.");
         }
 

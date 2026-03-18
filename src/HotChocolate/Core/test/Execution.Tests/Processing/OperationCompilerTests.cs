@@ -1975,6 +1975,7 @@ public class OperationCompilerTests
                 var compiledSelection = new Selection(
                     context.NewSelectionId(),
                     "someName",
+                    SelectionPath.Root,
                     baz,
                     [new FieldSelectionNode(bazSelection, 0)],
                     [],

@@ -6,7 +6,6 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using StrawberryShake;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -19,6 +18,7 @@ internal sealed class ValidateClientCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ClientIdOption>.Instance);
         AddOption(Opt<OperationsFileOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -27,6 +27,7 @@ internal sealed class ValidateClientCommand : Command
             Opt<StageNameOption>.Instance,
             Opt<ClientIdOption>.Instance,
             Opt<OperationsFileOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -36,6 +37,7 @@ internal sealed class ValidateClientCommand : Command
         string stage,
         string clientId,
         FileInfo operationsFile,
+        string? sourceMetadataJson,
         CancellationToken ct)
     {
         console.Title($"Validate to {stage.EscapeMarkup()}");
@@ -68,7 +70,8 @@ internal sealed class ValidateClientCommand : Command
             {
                 ClientId = clientId,
                 Stage = stage,
-                Operations = new Upload(stream, "operations.graphql")
+                Operations = new Upload(stream, "operations.graphql"),
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             console.Log("Create validation request");
@@ -85,11 +88,7 @@ internal sealed class ValidateClientCommand : Command
 
             await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
             {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
-                }
+                console.EnsureNoErrors(x);
 
                 switch (x.Data?.OnClientVersionValidationUpdate)
                 {

@@ -85,11 +85,13 @@ public static class EndpointRouteBuilderExtensions
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         requestPipeline.MapGraphQL(path, schemaNameOrDefault);
+        var serverOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaNameOrDefault);
 
         return new GraphQLEndpointConventionBuilder(
             endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
-                .WithDisplayName("Hot Chocolate GraphQL Pipeline"));
+                .WithDisplayName("Hot Chocolate GraphQL Pipeline")
+                .WithMetadata(serverOptions.Tool));
     }
 
     /// <summary>
@@ -125,15 +127,16 @@ public static class EndpointRouteBuilderExtensions
         var executorEvents = applicationBuilder.ApplicationServices.GetRequiredService<IRequestExecutorEvents>();
         var formOptions = applicationBuilder.ApplicationServices.GetRequiredService<IOptions<FormOptions>>();
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaName);
+        var serverOptions = applicationBuilder.ApplicationServices.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
 
         applicationBuilder
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor))
-            .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor))
-            .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, formOptions))
-            .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor))
-            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, path, MiddlewareRoutingType.Integrated))
-            .UseNitroApp(path)
+            .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
+            .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
+            .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
+            .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
+            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, path, MiddlewareRoutingType.Integrated))
+            .UseNitroApp(path, serverOptions.Tool)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -204,12 +207,13 @@ public static class EndpointRouteBuilderExtensions
         var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
         var formOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptions<FormOptions>>();
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
+        var serverOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaNameOrDefault);
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor))
-            .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, formOptions))
-            .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor))
+            .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
+            .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
+            .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -241,7 +245,7 @@ public static class EndpointRouteBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
     /// </exception>
-    public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
+    public static GraphQLWebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
         [StringSyntax("Route")] string pattern = GraphQLWebSocketPath,
         string? schemaName = null)
@@ -266,7 +270,7 @@ public static class EndpointRouteBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
     /// </exception>
-    public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
+    public static GraphQLWebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern pattern,
         string? schemaName = null)
@@ -282,10 +286,11 @@ public static class EndpointRouteBuilderExtensions
         var executorProvider = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorProvider>();
         var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
+        var serverOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaNameOrDefault);
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor))
+            .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -297,7 +302,7 @@ public static class EndpointRouteBuilderExtensions
                 .Map(pattern, requestPipeline.Build())
                 .WithDisplayName("Hot Chocolate GraphQL WebSocket Pipeline"));
 
-        return new WebSocketEndpointConventionBuilder(builder);
+        return new GraphQLWebSocketEndpointConventionBuilder(builder);
     }
 
     /// <summary>
@@ -360,10 +365,11 @@ public static class EndpointRouteBuilderExtensions
         var executorProvider = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorProvider>();
         var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
+        var serverOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaNameOrDefault);
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, PathString.Empty, MiddlewareRoutingType.Explicit))
+            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, PathString.Empty, MiddlewareRoutingType.Explicit))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -426,9 +432,10 @@ public static class EndpointRouteBuilderExtensions
 
         var pattern = Parse(toolPath + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var nitroOptions = new NitroAppOptions { GraphQLEndpoint = relativeRequestPath };
 
         requestPipeline
-            .UseNitroApp(toolPath)
+            .UseNitroApp(toolPath, nitroOptions)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -438,7 +445,7 @@ public static class EndpointRouteBuilderExtensions
         var builder = endpointRouteBuilder
             .Map(pattern, requestPipeline.Build())
             .WithDisplayName("Nitro Pipeline")
-            .WithMetadata(new NitroAppOptions { GraphQLEndpoint = relativeRequestPath });
+            .WithMetadata(nitroOptions);
 
         return new NitroAppEndpointConventionBuilder(builder);
     }
@@ -504,13 +511,15 @@ public static class EndpointRouteBuilderExtensions
     }
 
     /// <summary>
-    /// Specifies the GraphQL server options.
+    /// Specifies per-endpoint overrides for <see cref="GraphQLServerOptions"/>.
+    /// The overrides are applied on top of the schema-level defaults configured
+    /// via <c>ModifyServerOptions</c>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="GraphQLEndpointConventionBuilder"/>.
     /// </param>
-    /// <param name="serverOptions">
-    /// The GraphQL server options.
+    /// <param name="configure">
+    /// A delegate to configure the server options for this endpoint.
     /// </param>
     /// <returns>
     /// Returns the <see cref="GraphQLEndpointConventionBuilder"/> so that
@@ -518,43 +527,111 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static GraphQLEndpointConventionBuilder WithOptions(
         this GraphQLEndpointConventionBuilder builder,
-        GraphQLServerOptions serverOptions)
-        => builder
-            .WithMetadata(serverOptions)
-            .WithMetadata(serverOptions.Tool.ToNitroAppOptions());
+        Action<GraphQLServerOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.Add(c =>
+        {
+            c.Metadata.Add(new GraphQLServerOptionsOverride(configure));
+
+            var options = new GraphQLServerOptions();
+
+            for (var i = c.Metadata.Count - 1; i >= 0; i--)
+            {
+                if (c.Metadata[i] is NitroAppOptions toolOptions)
+                {
+                    options.Tool = toolOptions.Clone();
+                    break;
+                }
+            }
+
+            configure(options);
+            c.Metadata.Add(options.Tool);
+        });
+
+        return builder;
+    }
 
     /// <summary>
-    /// Specifies the GraphQL HTTP request options.
+    /// Specifies per-endpoint overrides for <see cref="GraphQLServerOptions"/>.
+    /// The overrides are applied on top of the schema-level defaults configured
+    /// via <c>ModifyServerOptions</c>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="GraphQLHttpEndpointConventionBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to configure the server options for this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="GraphQLHttpEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    public static GraphQLHttpEndpointConventionBuilder WithOptions(
+        this GraphQLHttpEndpointConventionBuilder builder,
+        Action<GraphQLServerOptions> configure)
+    {
+        builder.Add(c => c.Metadata.Add(new GraphQLServerOptionsOverride(configure)));
+        return builder;
+    }
+
+    /// <summary>
+    /// Specifies per-endpoint overrides for <see cref="GraphQLSocketOptions"/>.
+    /// The overrides are applied on top of the schema-level defaults configured
+    /// via <c>ModifyServerOptions</c>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="GraphQLWebSocketEndpointConventionBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to configure the socket options for this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="GraphQLWebSocketEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    public static GraphQLWebSocketEndpointConventionBuilder WithOptions(
+        this GraphQLWebSocketEndpointConventionBuilder builder,
+        Action<GraphQLSocketOptions> configure)
+    {
+        builder.Add(c => c.Metadata.Add(
+            new GraphQLServerOptionsOverride(o => configure(o.Sockets))));
+        return builder;
+    }
+
+    /// <summary>
+    /// Specifies the Nitro tool options for this endpoint.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="GraphQLEndpointConventionBuilder"/>.
     /// </param>
-    /// <param name="httpOptions">
-    /// The GraphQL HTTP request options.
+    /// <param name="configure">
+    /// A delegate to configure the tool options.
     /// </param>
     /// <returns>
     /// Returns the <see cref="GraphQLEndpointConventionBuilder"/> so that
     /// configuration can be chained.
     /// </returns>
-    public static GraphQLHttpEndpointConventionBuilder WithOptions(
-        this GraphQLHttpEndpointConventionBuilder builder,
-        GraphQLHttpOptions httpOptions) =>
-        builder.WithMetadata(
-            new GraphQLServerOptions
-            {
-                AllowedGetOperations = httpOptions.AllowedGetOperations,
-                EnableGetRequests = httpOptions.EnableGetRequests,
-                EnableMultipartRequests = httpOptions.EnableMultipartRequests
-            });
+    public static GraphQLEndpointConventionBuilder WithOptions(
+        this GraphQLEndpointConventionBuilder builder,
+        Action<NitroAppOptions> configure)
+    {
+        var options = new NitroAppOptions();
+        configure(options);
+        builder.Add(c => c.Metadata.Add(options));
+        return builder;
+    }
 
     /// <summary>
-    /// Specifies the Nitro tooling options.
+    /// Specifies the Nitro tool options for this endpoint.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="NitroAppEndpointConventionBuilder"/>.
     /// </param>
-    /// <param name="toolOptions">
-    /// The Nitro tooling options.
+    /// <param name="configure">
+    /// A delegate to configure the tool options.
     /// </param>
     /// <returns>
     /// Returns the <see cref="NitroAppEndpointConventionBuilder"/> so that
@@ -562,29 +639,13 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static NitroAppEndpointConventionBuilder WithOptions(
         this NitroAppEndpointConventionBuilder builder,
-        GraphQLToolOptions toolOptions)
+        Action<NitroAppOptions> configure)
     {
-        builder.Add(c => c.Metadata.Add(toolOptions.ToNitroAppOptions()));
+        var options = new NitroAppOptions();
+        configure(options);
+        builder.Add(c => c.Metadata.Add(options));
         return builder;
     }
-
-    /// <summary>
-    /// Specifies the GraphQL over Websocket options.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="WebSocketEndpointConventionBuilder"/>.
-    /// </param>
-    /// <param name="socketOptions">
-    /// The GraphQL socket options.
-    /// </param>
-    /// <returns>
-    /// Returns the <see cref="WebSocketEndpointConventionBuilder"/> so that
-    /// configuration can be chained.
-    /// </returns>
-    public static WebSocketEndpointConventionBuilder WithOptions(
-        this WebSocketEndpointConventionBuilder builder,
-        GraphQLSocketOptions socketOptions) =>
-        builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions });
 
     private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
     {
@@ -595,20 +656,4 @@ public static class EndpointRouteBuilderExtensions
             schemaName = provider.SchemaNames[0];
         }
     }
-
-    internal static NitroAppOptions ToNitroAppOptions(this GraphQLToolOptions options)
-        => new()
-        {
-            ServeMode = ServeMode.Version(options.ServeMode.Mode),
-            Title = options.Title,
-            Document = options.Document,
-            UseBrowserUrlAsGraphQLEndpoint = options.UseBrowserUrlAsGraphQLEndpoint,
-            GraphQLEndpoint = options.GraphQLEndpoint,
-            IncludeCookies = options.IncludeCookies,
-            HttpHeaders = options.HttpHeaders,
-            UseGet = options.HttpMethod == DefaultHttpMethod.Get,
-            Enable = options.Enable,
-            GaTrackingId = options.GaTrackingId,
-            DisableTelemetry = options.DisableTelemetry
-        };
 }

@@ -20,6 +20,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         AddOption(Opt<OptionalSubgraphIdOption>.Instance);
         AddOption(Opt<OptionalSubgraphNameOption>.Instance);
         AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -48,6 +49,9 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
             context.ParseResult.GetValueForOption(Opt<OptionalSubgraphNameOption>.Instance)!;
         var waitForApproval =
             context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
+        var sourceMetadataJson =
+            context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
+        var source = SourceMetadataHelper.Parse(sourceMetadataJson);
 
         console.Title("Requesting a deployment slot");
 
@@ -74,7 +78,9 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 tag,
                 subgraphId,
                 subgraphName,
+                sourceSchemaVersions: null,
                 waitForApproval,
+                source,
                 ctx,
                 console,
                 client,

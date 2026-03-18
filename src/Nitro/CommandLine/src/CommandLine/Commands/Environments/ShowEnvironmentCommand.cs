@@ -34,8 +34,8 @@ internal sealed class ShowEnvironmentCommand : Command
         CancellationToken cancellationToken)
     {
         var result = await client.ShowEnvironmentCommandQuery.ExecuteAsync(id, cancellationToken);
-
-        var data = result.EnsureData();
+        console.EnsureNoErrors(result);
+        var data = console.EnsureData(result);
 
         if (data.Node is IEnvironmentDetailPrompt_Environment node)
         {
@@ -44,7 +44,7 @@ internal sealed class ShowEnvironmentCommand : Command
         else
         {
             console.ErrorLine(
-                $"Could not find a environment with id {id.EscapeMarkup().AsHighlight()}");
+                $"Could not find an environment with ID {id.EscapeMarkup().AsHighlight()}");
         }
 
         return ExitCodes.Success;

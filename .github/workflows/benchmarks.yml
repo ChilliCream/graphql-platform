@@ -2,13 +2,19 @@ name: Benchmarks
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, closed]
     branches:
       - main
       - main-version-*
+    paths:
+      - 'src/HotChocolate/Fusion/**'
+      - '.github/workflows/benchmarks.yml'
   push:
     branches:
       - main
+    paths:
+      - 'src/HotChocolate/Fusion/**'
+      - '.github/workflows/benchmarks.yml'
 
 concurrency:
   group: benchmarks-${{ github.event.pull_request.number || github.ref }}
@@ -17,7 +23,7 @@ concurrency:
 jobs:
   setup:
     name: "Initialize Benchmark Report"
-    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    if: github.event.action != 'closed' && github.event_name == 'pull_request' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -49,7 +55,7 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'benchmarking-2', label: '2' },
+              { group: 'benchmarking-1', label: '1' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
@@ -72,7 +78,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 2 = benchmarking-2*';
+            md += '*Runner 1 = benchmarking-1*';
 
             const encodedData = Buffer.from(JSON.stringify({})).toString('base64');
             const timestamp = new Date().toUTCString();
@@ -110,7 +116,7 @@ jobs:
   benchmark:
     name: "${{ matrix.test-name }} ${{ matrix.mode-label }} (${{ matrix.runner-label }})"
     needs: [setup]
-    if: "!cancelled() && (github.event_name == 'push' || github.event.pull_request.draft == false)"
+    if: "!cancelled() && github.event.action != 'closed' && (github.event_name == 'push' || github.event.pull_request.draft == false)"
     runs-on:
       group: ${{ matrix.runner-group }}
     permissions:
@@ -121,10 +127,10 @@ jobs:
       matrix:
         test: [no-recursion, deep-recursion, variable-batch]
         mode: [constant, ramping]
-        runner-group: [benchmarking-2]
+        runner-group: [benchmarking-1]
         include:
-          - runner-group: benchmarking-2
-            runner-label: "Runner 2"
+          - runner-group: benchmarking-1
+            runner-label: "Runner 1"
           - test: no-recursion
             test-name: "Simple Composite Query"
           - test: deep-recursion
@@ -175,11 +181,11 @@ jobs:
           fi
 
       - name: Make scripts executable
-        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion/benchmarks/k6
         run: chmod +x *.sh
 
       - name: Run benchmark
-        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion/benchmarks/k6
         run: |
           ./run-single-benchmark.sh \
             "${{ matrix.test }}" \
@@ -193,7 +199,7 @@ jobs:
         if: always()
         with:
           name: benchmark-${{ matrix.test }}-${{ matrix.mode }}-${{ matrix.runner-group }}
-          path: src/HotChocolate/Fusion-vnext/benchmarks/k6/result.json
+          path: src/HotChocolate/Fusion/benchmarks/k6/result.json
           retention-days: 30
 
       # Lightweight progressive PR update — reads only the local result.json
@@ -211,7 +217,7 @@ jobs:
             let result;
             try {
               result = JSON.parse(fs.readFileSync(
-                'src/HotChocolate/Fusion-vnext/benchmarks/k6/result.json', 'utf8'));
+                'src/HotChocolate/Fusion/benchmarks/k6/result.json', 'utf8'));
             } catch (e) {
               console.log('No result.json found, skipping comment update');
               return;
@@ -262,7 +268,7 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'benchmarking-2', label: '2' },
+              { group: 'benchmarking-1', label: '1' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
@@ -302,7 +308,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 2 = benchmarking-2*';
+            md += '*Runner 1 = benchmarking-1*';
 
             // Build comment body with hidden data block
             const encodedData = Buffer.from(JSON.stringify(allResults)).toString('base64');
@@ -331,7 +337,7 @@ jobs:
   report:
     name: "Final Performance Report"
     needs: [setup, benchmark]
-    if: "!cancelled() && github.event_name == 'pull_request'"
+    if: "!cancelled() && github.event.action != 'closed' && github.event_name == 'pull_request'"
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -432,7 +438,7 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'benchmarking-2', label: '2' },
+              { group: 'benchmarking-1', label: '1' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
@@ -472,7 +478,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 2 = benchmarking-2*';
+            md += '*Runner 1 = benchmarking-1*';
 
             // Build comment body
             const encodedData = Buffer.from(JSON.stringify(allResults)).toString('base64');

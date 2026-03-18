@@ -168,10 +168,11 @@ internal sealed class SelectionExpressionBuilder
                 var typeCondition = Expression.TypeIs(context.Parent, typeNode.Type);
                 var selectionSet = BuildSelectionSetExpression(newContext, typeNode);
 
-                if (selectionSet is null)
-                {
-                    throw new InvalidOperationException();
-                }
+                // If a type condition only selects non-bindable fields like __typename,
+                // BuildSelectionSetExpression returns null. Reuse the source instance
+                // instead so the branch remains query-parameter dependent and does not
+                // get parameterized as a constant by EF.
+                selectionSet ??= newParent;
 
                 var castedSelectionSet = Expression.Convert(selectionSet, context.ParentType);
                 switchExpression = Expression.Condition(typeCondition, castedSelectionSet, switchExpression);
@@ -279,13 +280,9 @@ internal sealed class SelectionExpressionBuilder
                     return Expression.Convert(Expression.Constant(p.DefaultValue), p.ParameterType);
                 }
 
-                if (!p.ParameterType.IsValueType && IsMarkedAsExplicitlyNonNullable(p))
-                {
-                    throw new InvalidOperationException(
-                        $"Cannot construct '{context.ParentType.Name}': missing required argument '{p.Name}' "
-                        + "(non-nullable reference type with no default value).");
-                }
-
+                // Partial projections can omit constructor arguments that are not selected.
+                // We fall back to default values for missing arguments to keep selector
+                // construction non-throwing for record-like types.
                 return Expression.Default(p.ParameterType);
             }).ToArray();
 
@@ -636,7 +633,4 @@ internal sealed class SelectionExpressionBuilder
         => type.GetConstructor(Type.EmptyTypes) is not null
             && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
                 .Any(t => t.GetParameters().Length > 0);
-
-    private static bool IsMarkedAsExplicitlyNonNullable(ParameterInfo parameter)
-        => new NullabilityInfoContext().Create(parameter).WriteState is NullabilityState.NotNull;
 }

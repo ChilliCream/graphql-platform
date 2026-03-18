@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities;
 

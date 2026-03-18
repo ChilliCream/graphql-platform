@@ -5,6 +5,7 @@ accessibilities
 agrc
 Alderaan
 Andi
+apphost
 appsettings
 ASPDEPR004
 ASPDEPR008
@@ -17,6 +18,7 @@ backplane
 backpressure
 Badurina
 bananacakepop
+basicsaga
 bbox
 BCPROCKS
 bfnrt
@@ -38,8 +40,10 @@ colocated
 combinators
 contentfiles
 Contoso
+conv
 CQRS
 creds
+CUST
 dataloaders
 debuggable
 decompile
@@ -55,6 +59,7 @@ entityframework
 EPSG
 esque
 evolvability
+Expando
 Fanout
 FFFFFFFZ
 fffzzz
@@ -81,6 +86,7 @@ hotchocolate
 Includable
 inheritdocs
 initializable
+inmemory
 inspectable
 Kellner
 Kydne
@@ -90,6 +96,7 @@ LICEN*
 Linq
 Marek
 matchesBrics
+MCPEXP
 MediatR
 Memberwise
 mercurius
@@ -147,6 +154,7 @@ reencode
 refetched
 relayjs
 reprojected
+requestreply
 resharper
 resheader
 resmimetype
@@ -171,6 +179,7 @@ sortings
 Specwise
 sqft
 srid
+sszzz
 Staib
 Starships
 starwars
@@ -191,10 +200,13 @@ Testcontainers
 Toub
 Touchpoint
 TOWGS
+traceparent
+tracestate
 Trimmable
 Tzdb
 unlisten
 unpublish
+unserialized
 Unsubscriber
 uppercased
 Upsert
@@ -206,4 +218,3 @@ websockets
 Wilhuff
 Wunder
 xunit
-Expando

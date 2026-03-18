@@ -494,7 +494,7 @@ builder.Services
 
 # Schema Evolution
 
-## Progressive Field Migration with `[Override]`
+## Progressive Field Migration
 
 Use `[Override]` to migrate a field from one subgraph to another without breaking existing queries.
 
@@ -534,7 +534,7 @@ public static partial class ProductNode
 
 The `[Override]` attribute tells the gateway: "This field used to be resolved by the `products-api` subgraph, but now this subgraph resolves it." The gateway routes queries to the new resolver, and the old resolver is no longer called.
 
-## Excluding Experimental Features with `[Tag]`
+## Excluding Experimental Features with Tags
 
 Mark fields or types with `[Tag]` to exclude them from composition during development:
 

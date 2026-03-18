@@ -37,16 +37,16 @@ public static class AuthorizeRequestExecutorBuilder
                 s.GetRequiredService<AuthorizationCache>()));
 
         var prepareAuthorization = PrepareAuthorizationMiddleware.Create();
-        builder.InsertUseRequest(
-            before: WellKnownRequestMiddleware.DocumentValidationMiddleware,
-            middleware: prepareAuthorization.Middleware,
-            key: prepareAuthorization.Key);
+        builder.UseRequest(
+            prepareAuthorization.Middleware,
+            key: prepareAuthorization.Key,
+            before: WellKnownRequestMiddleware.DocumentValidationMiddleware);
 
         var authorizeRequest = AuthorizeRequestMiddleware.Create();
-        builder.AppendUseRequest(
-            after: WellKnownRequestMiddleware.DocumentValidationMiddleware,
-            middleware: authorizeRequest.Middleware,
-            key: authorizeRequest.Key);
+        builder.UseRequest(
+            authorizeRequest.Middleware,
+            key: authorizeRequest.Key,
+            after: WellKnownRequestMiddleware.DocumentValidationMiddleware);
         return builder;
     }
 

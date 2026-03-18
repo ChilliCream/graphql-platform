@@ -63,7 +63,7 @@ src/
 │   │   └── Subscriptions/     # Real-time subscriptions
 │   ├── AspNetCore/            # ASP.NET Core integration
 │   ├── Language/              # GraphQL parsing & syntax
-│   ├── Fusion-vnext/          # Distributed GraphQL (next gen)
+│   ├── Fusion/                # Distributed GraphQL (next gen)
 │   ├── Data/                  # EF Core, MongoDB, etc.
 │   └── Utilities/             # Shared utilities
 ├── GreenDonut/                # Data fetching primitives (DataLoader, pagination, etc.)

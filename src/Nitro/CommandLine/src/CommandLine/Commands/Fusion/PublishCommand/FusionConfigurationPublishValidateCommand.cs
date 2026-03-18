@@ -40,12 +40,12 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
             context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(cancellationToken) ??
             throw new ExitException(
-                "No request id was provided and no request id was found in the cache. Please provide a request id.");
+                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
         var archiveFile =
             context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
 
-        console.Title("Validating the composition of a fusion configuration");
+        console.Title("Validating the composition of a Fusion configuration");
 
         if (console.IsHumanReadable())
         {
@@ -104,11 +104,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
             void OnNext(IOperationResult<IOnFusionConfigurationPublishingTaskChangedResult> @event)
             {
-                if (@event.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
-                }
+                console.EnsureNoErrors(@event);
 
                 switch (@event.Data?.OnFusionConfigurationPublishingTaskChanged)
                 {

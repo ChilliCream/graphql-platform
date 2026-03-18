@@ -42,6 +42,7 @@ internal sealed class FusionPublishCommand : Command
         AddOption(Opt<SourceSchemaFileListOption>.Instance);
         AddOption(archiveOption);
         AddOption(Opt<WorkingDirectoryOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
         AddValidator(result =>
@@ -72,6 +73,7 @@ internal sealed class FusionPublishCommand : Command
             var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
             var apiClient = context.BindingContext.GetRequiredService<IApiClient>();
@@ -85,6 +87,7 @@ internal sealed class FusionPublishCommand : Command
                 apiId,
                 stageName,
                 tag,
+                sourceMetadataJson,
                 console,
                 apiClient,
                 httpClientFactory,
@@ -100,11 +103,14 @@ internal sealed class FusionPublishCommand : Command
         string apiId,
         string stageName,
         string tag,
+        string? sourceMetadataJson,
         IAnsiConsole console,
         IApiClient client,
         IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
+        var source = SourceMetadataHelper.Parse(sourceMetadataJson);
+
         if (archiveFile is not null)
         {
             if (!File.Exists(archiveFile))
@@ -117,9 +123,9 @@ internal sealed class FusionPublishCommand : Command
                 stageName,
                 tag,
                 archiveFile,
+                source,
                 console,
                 client,
-                httpClientFactory,
                 cancellationToken);
         }
 
@@ -198,21 +204,23 @@ internal sealed class FusionPublishCommand : Command
             stageName,
             tag,
             newSourceSchemas,
+            sourceSchemaVersions,
             compositionSettings: null,
+            source,
             console,
             client,
             httpClientFactory,
             cancellationToken);
     }
 
-    internal static async Task<int> PublishFusionConfigurationAsync(
+    private static async Task<int> PublishFusionConfigurationAsync(
         string apiId,
         string stageName,
         string tag,
         string archiveFilePath,
+        SourceMetadataInput? source,
         IAnsiConsole console,
         IApiClient client,
-        IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
         await using var archiveStream = File.Open(archiveFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -237,7 +245,9 @@ internal sealed class FusionPublishCommand : Command
                                 tag,
                                 subgraphId: null,
                                 subgraphName: null,
+                                sourceSchemaVersions: null,
                                 waitForApproval: false,
+                                source,
                                 context,
                                 console,
                                 client,
@@ -288,7 +298,9 @@ internal sealed class FusionPublishCommand : Command
                     tag,
                     subgraphId: null,
                     subgraphName: null,
+                    sourceSchemaVersions: null,
                     waitForApproval: false,
+                    source,
                     statusContext: null,
                     console,
                     client,
@@ -330,12 +342,14 @@ internal sealed class FusionPublishCommand : Command
         return ExitCodes.Success;
     }
 
-    internal static async Task<int> PublishFusionConfigurationAsync(
+    private static async Task<int> PublishFusionConfigurationAsync(
         string apiId,
         string stageName,
         string tag,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        FusionPublishHelpers.SourceSchemaVersion[] sourceSchemaVersions,
         CompositionSettings? compositionSettings,
+        SourceMetadataInput? source,
         IAnsiConsole console,
         IApiClient client,
         IHttpClientFactory httpClientFactory,
@@ -472,11 +486,11 @@ internal sealed class FusionPublishCommand : Command
                 apiId,
                 stageName,
                 tag,
-                // As we could be publishing multiple source schemas,
-                // we do not associate this publish with a specific subgraph.
                 subgraphId: null,
                 subgraphName: null,
+                sourceSchemaVersions,
                 waitForApproval: false,
+                source,
                 statusContext,
                 console,
                 client,
@@ -499,7 +513,7 @@ internal sealed class FusionPublishCommand : Command
             var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
                 apiId,
                 stageName,
-                client,
+                isFgp: false,
                 httpClientFactory,
                 cancellationToken);
 
@@ -534,7 +548,7 @@ internal sealed class FusionPublishCommand : Command
         }
     }
 
-    private static SourceSchemaVersion ParseSourceSchemaVersion(string input, string tag)
+    private static FusionPublishHelpers.SourceSchemaVersion ParseSourceSchemaVersion(string input, string tag)
     {
         var atIndex = input.LastIndexOf('@');
 
@@ -553,7 +567,7 @@ internal sealed class FusionPublishCommand : Command
                 throw new ArgumentException("The source schema version after the '@' cannot be empty.", nameof(input));
             }
 
-            return new SourceSchemaVersion(name, version);
+            return new FusionPublishHelpers.SourceSchemaVersion(name, version);
         }
 
         if (string.IsNullOrWhiteSpace(input))
@@ -561,8 +575,6 @@ internal sealed class FusionPublishCommand : Command
             throw new ArgumentException("The source schema name cannot be empty.", nameof(input));
         }
 
-        return new SourceSchemaVersion(input, tag);
+        return new FusionPublishHelpers.SourceSchemaVersion(input, tag);
     }
-
-    private sealed record SourceSchemaVersion(string Name, string Version);
 }

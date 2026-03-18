@@ -37,8 +37,8 @@ internal sealed class ShowClientCommand : Command
         CancellationToken cancellationToken)
     {
         var result = await client.ShowClientCommandQuery.ExecuteAsync(id, cancellationToken);
-
-        var data = result.EnsureData();
+        console.EnsureNoErrors(result);
+        var data = console.EnsureData(result);
 
         if (data.Node is IClientDetailPrompt_Client node)
         {
@@ -48,7 +48,7 @@ internal sealed class ShowClientCommand : Command
         else
         {
             console.ErrorLine(
-                $"Could not find a api with id {id.EscapeMarkup().AsHighlight()}");
+                $"Could not find a client with ID {id.EscapeMarkup().AsHighlight()}");
         }
 
         return ExitCodes.Success;

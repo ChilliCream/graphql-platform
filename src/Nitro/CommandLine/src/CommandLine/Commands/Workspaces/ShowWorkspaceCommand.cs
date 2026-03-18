@@ -35,8 +35,8 @@ internal sealed class ShowWorkspaceCommand : Command
         CancellationToken cancellationToken)
     {
         var result = await client.ShowWorkspaceCommandQuery.ExecuteAsync(id, cancellationToken);
-
-        var data = result.EnsureData();
+        console.EnsureNoErrors(result);
+        var data = console.EnsureData(result);
 
         if (data.Node is IWorkspaceDetailPrompt_Workspace node)
         {
@@ -44,7 +44,7 @@ internal sealed class ShowWorkspaceCommand : Command
         }
         else
         {
-            throw Exit($"Could not find a workspace with id {id.EscapeMarkup().AsHighlight()}");
+            throw Exit($"Could not find a workspace with ID {id.EscapeMarkup().AsHighlight()}");
         }
 
         return ExitCodes.Success;

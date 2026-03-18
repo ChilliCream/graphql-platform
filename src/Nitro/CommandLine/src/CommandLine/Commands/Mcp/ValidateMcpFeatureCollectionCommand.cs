@@ -7,7 +7,6 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using StrawberryShake;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -21,6 +20,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
         AddOption(Opt<McpPromptFilePatternOption>.Instance);
         AddOption(Opt<McpToolFilePatternOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -30,6 +30,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             Opt<McpFeatureCollectionIdOption>.Instance,
             Opt<McpPromptFilePatternOption>.Instance,
             Opt<McpToolFilePatternOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -40,6 +41,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         string mcpFeatureCollectionId,
         List<string> promptPatterns,
         List<string> toolPatterns,
+        string? sourceMetadataJson,
         CancellationToken ct)
     {
         console.Title($"Validate against {stage.EscapeMarkup()}");
@@ -94,7 +96,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             {
                 McpFeatureCollectionId = mcpFeatureCollectionId,
                 Stage = stage,
-                Collection = new Upload(archiveStream, "collection.zip")
+                Collection = new Upload(archiveStream, "collection.zip"),
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             var requestId = await ValidateAsync(console, client, input, ct);
@@ -109,11 +112,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
             {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
-                }
+                console.EnsureNoErrors(x);
 
                 switch (x.Data?.OnMcpFeatureCollectionVersionValidationUpdate)
                 {

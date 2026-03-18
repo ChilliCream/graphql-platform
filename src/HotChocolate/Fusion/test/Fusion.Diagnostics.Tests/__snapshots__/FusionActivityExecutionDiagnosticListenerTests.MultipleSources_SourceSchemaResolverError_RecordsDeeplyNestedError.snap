@@ -1,0 +1,201 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:241c617bf9ec34fef187d8b149fd8498"
+        },
+        {
+          "Key": "graphql.document.body",
+          "Value": "{\n  sayHello\n  deepB {\n    deeperB {\n      causeFatalError\n    }\n  }\n}"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationPlanToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:241c617bf9ec34fef187d8b149fd8498"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:241c617bf9ec34fef187d8b149fd8498"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:241c617bf9ec34fef187d8b149fd8498"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:241c617bf9ec34fef187d8b149fd8498"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "GraphQL Step Execution",
+              "DisplayName": "GraphQL Step Execution",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:241c617bf9ec34fef187d8b149fd8498"
+                },
+                {
+                  "Key": "graphql.operation.step.id",
+                  "Value": "1"
+                },
+                {
+                  "Key": "graphql.operation.step.kind",
+                  "Value": "operation"
+                },
+                {
+                  "Key": "graphql.operation.step.plan.id",
+                  "Value": "7e050d004b624ec0c905bfba84445a17dd0cc54657187f55d6c3b5ee61931c69"
+                },
+                {
+                  "Key": "graphql.source.name",
+                  "Value": "b"
+                },
+                {
+                  "Key": "graphql.source.operation.name",
+                  "Value": "Op_241c617b_1"
+                },
+                {
+                  "Key": "graphql.source.operation.kind",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.source.operation.hash",
+                  "Value": "sha256:7dfcb1cc48aa6c4d4750dc471f2f71b0c1acf70356383ea909d2c5994dc65d6f"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Step Execution",
+              "DisplayName": "GraphQL Step Execution",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:241c617bf9ec34fef187d8b149fd8498"
+                },
+                {
+                  "Key": "graphql.operation.step.id",
+                  "Value": "2"
+                },
+                {
+                  "Key": "graphql.operation.step.kind",
+                  "Value": "operation"
+                },
+                {
+                  "Key": "graphql.operation.step.plan.id",
+                  "Value": "7e050d004b624ec0c905bfba84445a17dd0cc54657187f55d6c3b5ee61931c69"
+                },
+                {
+                  "Key": "graphql.source.name",
+                  "Value": "a"
+                },
+                {
+                  "Key": "graphql.source.operation.name",
+                  "Value": "Op_241c617b_2"
+                },
+                {
+                  "Key": "graphql.source.operation.kind",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.source.operation.hash",
+                  "Value": "sha256:23e6ec3292fdaf4949c838051e42d74bee6c27bed8b0720637c4b77d961f3ef3"
+                }
+              ],
+              "event": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
