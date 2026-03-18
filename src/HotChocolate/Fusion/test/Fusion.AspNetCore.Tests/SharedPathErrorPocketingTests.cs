@@ -432,8 +432,6 @@ public class SharedPathErrorPocketingTests : FusionTestBase
             request,
             new Uri("http://localhost:5000/graphql"));
 
-        using var response = await result.ReadAsResultAsync();
-
         await MatchSnapshotAsync(gateway, request, result);
     }
 }
