@@ -13,7 +13,8 @@ RUN git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions /home/n
 RUN sed -i 's/ZSH_THEME=".*"/ZSH_THEME="agnoster"/' /home/node/.zshrc \
     && sed -i 's/plugins=(.*)/plugins=(git gh node npm docker zsh-autosuggestions zsh-syntax-highlighting)/' /home/node/.zshrc \
     && echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/node/.zshrc \
-    && echo 'alias claude-d="claude --dangerously-skip-permissions"' >> /home/node/.zshrc
+    && echo 'alias claude-d="claude --dangerously-skip-permissions"' >> /home/node/.zshrc \
+    && echo 'DEFAULT_USER=$USER' >> /home/node/.zshrc
 
 # Set zsh as default shell
 RUN chsh -s /bin/zsh node

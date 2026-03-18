@@ -67,7 +67,8 @@ RUN git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions /home/v
 RUN sed -i 's/ZSH_THEME=".*"/ZSH_THEME="agnoster"/' /home/vscode/.zshrc \
     && sed -i 's/plugins=(.*)/plugins=(git gh dotnet docker zsh-autosuggestions zsh-syntax-highlighting)/' /home/vscode/.zshrc \
     && echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/vscode/.zshrc \
-    && echo 'alias claude-d="claude --dangerously-skip-permissions"' >> /home/vscode/.zshrc
+    && echo 'alias claude-d="claude --dangerously-skip-permissions"' >> /home/vscode/.zshrc \
+    && echo 'DEFAULT_USER=$USER' >> /home/vscode/.zshrc
 
 # Set zsh as default shell for vscode user
 RUN chsh -s /bin/zsh vscode
