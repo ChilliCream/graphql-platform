@@ -436,6 +436,14 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        if (valueSelector is null && typeof(TElement) != typeof(TValue))
+        {
+            throw new ArgumentNullException(
+                nameof(valueSelector),
+                $"A valueSelector must be provided when TElement ({typeof(TElement).Name}) "
+                + $"differs from TValue ({typeof(TValue).Name}).");
+        }
+
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
 
         // extract the selector before ensuring group props are selected,

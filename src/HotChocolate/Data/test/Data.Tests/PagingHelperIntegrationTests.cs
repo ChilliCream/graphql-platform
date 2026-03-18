@@ -914,6 +914,40 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task BatchPaging_Backward_With_ValueSelector_ToConnectionAsync()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        var brandId = await SeedMinimalAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments { Last = 2 };
+
+        var results = await context.Products
+            .Where(t => t.BrandId == brandId)
+            .Select(t => new { t.BrandId, Product = t })
+            .OrderBy(t => t.Product.Name)
+            .ThenBy(t => t.Product.Id)
+            .ToBatchPageAsync(
+                keySelector: t => t.BrandId,
+                valueSelector: t => t.Product,
+                pagingArgs);
+
+        // Assert
+        Assert.True(results.TryGetValue(brandId, out var page));
+
+        var connection = await new ValueTask<Page<Product>>(page!).ToConnectionAsync();
+        Assert.Equal(2, connection.Edges.Count);
+        Assert.All(connection.Edges, edge => Assert.False(string.IsNullOrEmpty(edge.Cursor)));
+        Assert.True(page!.HasPreviousPage);
+        Assert.False(page.HasNextPage);
+        Assert.Equal("Product 0-2", connection.Edges[0].Node.Name);
+        Assert.Equal("Product 0-3", connection.Edges[1].Node.Name);
+    }
+
+    [Fact]
     public async Task Map_Page_To_Connection_With_Dto()
     {
         // Arrange
@@ -1173,7 +1207,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         context.Brands.Add(brand);
         context.Products.AddRange(
             new Product { Name = "Product 0-0", Type = type, Brand = brand },
-            new Product { Name = "Product 0-1", Type = type, Brand = brand });
+            new Product { Name = "Product 0-1", Type = type, Brand = brand },
+            new Product { Name = "Product 0-2", Type = type, Brand = brand },
+            new Product { Name = "Product 0-3", Type = type, Brand = brand });
 
         await context.SaveChangesAsync();
         return brand.Id;

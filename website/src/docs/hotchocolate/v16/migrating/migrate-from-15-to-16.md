@@ -251,11 +251,11 @@ Most of the properties you'd want to modify are now immutable data structures th
 
 `OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
 
-## Page
+## Page and cursor API changes
 
-`Page<T>` is now abstract.
+### `Page<T>` is now abstract
 
-If you previously created a page directly with `new Page<T>(...)`, switch to one of the following:
+`Page<T>` can no longer be instantiated directly. Use the static factory methods instead:
 
 - Use `Page<T>.Empty` when you just need to return an empty page.
 - Use `Page<T>.Create(...)` when you need to construct a page yourself.
@@ -274,6 +274,52 @@ If you previously created a page directly with `new Page<T>(...)`, switch to one
 +    createCursor: product => CreateCursor(product),
 +    totalCount: totalCount);
 ```
+
+### `CreateCursor` now takes an index instead of an item
+
+`Page<T>.CreateCursor` previously accepted a `T` item. It now accepts a zero-based `int` index into the page's `Items` array. This enables cursor generation from the underlying source element when a `valueSelector` projection is used.
+
+```diff
+-string cursor = page.CreateCursor(page.First);
++string cursor = page.CreateCursor(page.FirstIndex!.Value);
+```
+
+Use the new convenience extension methods `CreateStartCursor()` and `CreateEndCursor()` when you only need boundary cursors:
+
+```diff
+-var startCursor = page.First is not null ? page.CreateCursor(page.First) : null;
+-var endCursor = page.Last is not null ? page.CreateCursor(page.Last) : null;
++var startCursor = page.CreateStartCursor();
++var endCursor = page.CreateEndCursor();
+```
+
+Two new properties, `FirstIndex` and `LastIndex`, return the zero-based indices of the first and last items (or `null` for an empty page).
+
+### `Edge<T>` constructor changes
+
+A new constructor overload accepts the item, its zero-based index, and a `Func<int, string>` cursor resolver:
+
+```diff
+-new Edge<T>(item, cursor: page.CreateCursor)
++new Edge<T>(item, index, cursor: page.CreateCursor)
+```
+
+The existing `Edge<T>(T node, Func<T, string> resolveCursor)` constructor is still available for cases where the cursor is resolved from the item itself.
+
+### `ToConnectionAsync` with custom edge factory
+
+The `ToConnectionAsync` overloads that accept a custom edge factory now pass the zero-based item index instead of the item's cursor:
+
+```diff
+-.ToConnectionAsync((source, page) =>
+-    new MyEdge(source, edge => page.CreateCursor(edge.Node)));
++.ToConnectionAsync((source, page, index) =>
++    new MyEdge(source, page.CreateCursor(index)));
+```
+
+### `ToBatchPageAsync` with `valueSelector`
+
+`ToBatchPageAsync<TKey, TValue, TElement>` now supports a `valueSelector` parameter (`Func<TElement, TValue>`) that projects each source element before the page is returned, while preserving the original elements for correct cursor generation. Passing `null` for `valueSelector` is only valid when `TElement` and `TValue` are the same type; a mismatched combination throws `ArgumentNullException` at runtime.
 
 ## OperationResult changes
 
