@@ -66,7 +66,7 @@ internal sealed class FetchResultStorePool : IDisposable
         {
             _stores = new FetchResultStore?[levels[levels.Length - 1]];
             _levels = levels;
-            _currentLevel = levels.Length - 1;
+            _currentLevel = 0;
             _lock = new SpinLock(Debugger.IsAttached);
             _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimInterval, trimInterval);
         }
@@ -82,7 +82,12 @@ internal sealed class FetchResultStorePool : IDisposable
             {
                 _lock.Enter(ref lockTaken);
 
-                if (_index < _stores.Length)
+                if (_index >= _levels[_currentLevel] && _currentLevel < _levels.Length - 1)
+                {
+                    _currentLevel++;
+                }
+
+                if (_index < _levels[_currentLevel])
                 {
                     store = _stores[_index];
                     _stores[_index++] = null;
