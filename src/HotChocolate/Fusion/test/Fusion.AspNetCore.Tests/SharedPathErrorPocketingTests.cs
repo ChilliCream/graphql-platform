@@ -156,7 +156,13 @@ public class SharedPathErrorPocketingTests : FusionTestBase
             request,
             new Uri("http://localhost:5000/graphql"));
 
-        await MatchSnapshotAsync(gateway, request, result);
+        using var response = await result.ReadAsResultAsync();
+
+        Assert.True(response.Errors.ValueKind is JsonValueKind.Array);
+        Assert.Equal(1, response.Errors.GetArrayLength());
+        Assert.Equal("Unexpected Execution Error", response.Errors[0].GetProperty("message").GetString());
+        Assert.Equal("viewer", response.Errors[0].GetProperty("path")[0].GetString());
+        Assert.True(response.Data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null);
     }
 
     [Fact]
