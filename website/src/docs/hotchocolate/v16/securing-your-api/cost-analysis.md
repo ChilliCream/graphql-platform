@@ -394,27 +394,9 @@ builder.Services
     .ModifyCostOptions(o => o.EnforceCostLimits = false);
 ```
 
-# Troubleshooting
-
-## Legitimate queries are rejected
-
-Use the `GraphQL-Cost: report` header to inspect the cost of the rejected query. Common causes: the query fans out across multiple paginated fields, or a field has an unexpectedly high default cost. Increase `MaxFieldCost`/`MaxTypeCost` or reduce `MaxPageSize` on specific fields.
-
-## Cost seems too high for a small query
-
-Check whether the query includes paginated fields without specifying `first` or `last`. Without a slicing argument, cost analysis uses `MaxPageSize` (default 50) as the assumed list size. Enable `RequirePagingBoundaries` to force clients to specify the page size.
-
-## Cost metrics differ between environments
-
-Cost calculation depends on the schema and cost configuration. If different environments have different `MaxPageSize` or cost weights, the metrics will differ. Keep cost configuration consistent across environments.
-
-## Variable-based filters have unexpectedly high cost
-
-When a filter argument is provided as a variable (rather than inline), the analyzer cannot inspect its structure at validation time. It applies a `VariableMultiplier` (default 5) to account for worst-case complexity. This is intentional. Adjust `VariableMultiplier` if the default is too conservative.
-
 # Next Steps
 
-- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
-- **Building a private API?** See [Trusted Documents](/docs/hotchocolate/v16/performance/persisted-operations).
-- **Need to limit query depth?** See [Query Depth](/docs/hotchocolate/v16/security/query-depth).
+- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
+- **Building a private API?** See [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
+- **Need to limit query depth?** See [Query Depth](/docs/hotchocolate/v16/securing-your-api/query-depth).
 - **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).

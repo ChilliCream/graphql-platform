@@ -168,23 +168,9 @@ You can override the generated name with `[GraphQLName]`:
 public static List<Book> GetBooks() => /* ... */;
 ```
 
-# Troubleshooting
-
-## "Root type class should be partial" (HC0091)
-
-The source generator requires `[QueryType]` classes to be `partial`. Add the `partial` keyword to the class declaration.
-
-## Field not appearing in the schema
-
-Verify the method is `public`. Private and internal methods are not exposed as fields. Also check that the class has the `[QueryType]` attribute and is `partial`.
-
-## Duplicate field name
-
-If two `[QueryType]` classes define methods that produce the same GraphQL field name, the schema fails to build. Rename one of the methods or use `[GraphQLName]` to disambiguate.
-
 # Next Steps
 
 - **Need to write data?** See [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations).
 - **Need real-time updates?** See [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions).
 - **Need to understand how types map to the schema?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need to fetch data efficiently?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) and [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
+- **Need to fetch data efficiently?** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) and [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).

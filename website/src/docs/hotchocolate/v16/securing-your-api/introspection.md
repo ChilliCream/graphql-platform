@@ -161,16 +161,6 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 }
 ```
 
-# Troubleshooting
-
-## Introspection queries fail in development
-
-Verify that `AllowIntrospection` is set to `true` (or uses `builder.Environment.IsDevelopment()`) in your GraphQL server configuration. When using a per-request interceptor, check that the expected header is being sent.
-
-## Nitro cannot load the schema
-
-If Nitro cannot load the schema, introspection might be disabled. Enable it for development environments or configure the interceptor to allow introspection for Nitro requests.
-
 # Next Steps
 
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for per-request customization.

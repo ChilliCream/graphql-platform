@@ -175,25 +175,11 @@ You can browse the schema by clicking the **Schema** tab next to **Operation**. 
 
 Your GraphQL server is running and responding to queries.
 
-# Troubleshooting
-
-## Port already in use
-
-If `dotnet run` fails with an "address already in use" error, another process is using port 5095. Either stop that process or change the port in `Properties/launchSettings.json`.
-
-## Schema available does not appear in Nitro
-
-Verify the endpoint URL in Nitro matches the URL printed in the terminal output. If you changed the port, update the endpoint in Nitro accordingly.
-
-## Template not found
-
-If `dotnet new graphql` fails with "No templates matched the input template name", re-run `dotnet new install HotChocolate.Templates` and verify the installation succeeded.
-
 # Next Steps
 
 - **"I want to learn about the type system."** See [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema) for queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I want to fetch data from a database."** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batched data fetching, or [Entity Framework](/docs/hotchocolate/v16/integrations/entity-framework) for EF Core integration.
+- **"I want to fetch data from a database."** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batched data fetching, or [Entity Framework](/docs/hotchocolate/v16/integrations/entity-framework) for EF Core integration.
 
 - **"I want a deeper tutorial."** Check out the [GraphQL Workshop](https://github.com/ChilliCream/graphql-workshop) for a hands-on walkthrough covering types, resolvers, DataLoaders, filtering, and more.
 

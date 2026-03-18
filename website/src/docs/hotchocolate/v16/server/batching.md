@@ -163,24 +163,10 @@ If you are using a JavaScript client, consider:
 
 For more details about streaming transports, see [HTTP Transport](/docs/hotchocolate/v16/server/http-transport#streaming-transports).
 
-# Troubleshooting
-
-## "Batching is not allowed" error
-
-Batching is disabled by default in v16. Enable it by calling `ModifyServerOptions` and setting the `Batching` property to the appropriate `AllowedBatching` flag.
-
-## Batch exceeds maximum size
-
-The default maximum batch size is 1024 operations. If you need a larger batch, increase the limit with `ModifyServerOptions(o => o.MaxBatchSize = <value>)`. Setting it to `0` removes the limit.
-
-## Results arriving out of order
-
-This is expected behavior. Batch results stream back as they complete. Use the `requestIndex` and `variableIndex` fields in the response to correlate results with their corresponding requests.
-
 # Next Steps
 
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on streaming transports and incremental delivery.
-- [Persisted Operations](/docs/hotchocolate/v16/performance/persisted-operations) for reducing request payload size.
+- [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) for reducing request payload size.
 - [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#batching-is-now-disabled-by-default) for the batching migration details.
 
 <!-- spell-checker:ignore Cbnia, Yero -->

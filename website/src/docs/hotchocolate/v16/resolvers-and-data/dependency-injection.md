@@ -299,20 +299,6 @@ builder.Services
 
 [Learn more about interceptors](/docs/hotchocolate/v16/server/interceptors)
 
-# Troubleshooting
-
-## Service not injected into resolver
-
-Verify that the service is registered in the DI container. In v16, the `[Service]` attribute is no longer required for standard (non-keyed) services. If the parameter type matches a registered service, it is injected automatically. If you are using a keyed service, you must apply `[Service("key")]`.
-
-## Service behaves as a singleton unexpectedly
-
-Check that you are not injecting the service through a constructor on a GraphQL type class. GraphQL types are singletons, which means any constructor-injected dependency also becomes a singleton. Use resolver method parameters instead.
-
-## Application service not available in diagnostic listener
-
-If you inject an application service into a schema-level component (such as a diagnostic event listener), you must cross-register the service using `AddApplicationService<T>()` on the `IRequestExecutorBuilder`.
-
 # Next Steps
 
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for setting request-scoped state and services.

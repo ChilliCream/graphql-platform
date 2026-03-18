@@ -47,7 +47,7 @@ A filter convention is a .NET class that implements `IFilterConvention`. Instead
 
 ## Descriptor
 
-Most descriptor capabilities are documented under [Filtering](/docs/hotchocolate/v16/fetching-data/filtering). Read the parts about `FilterConventions` there first.
+Most descriptor capabilities are documented under [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering). Read the parts about `FilterConventions` there first.
 
 Two features on the descriptor are specific to extensibility:
 
@@ -285,19 +285,8 @@ builder.Services
                     y => y.AddFieldHandler<QueryableStringInvariantEqualsHandler>()))));
 ```
 
-# Troubleshooting
-
-**Custom handler is not invoked**
-Verify that your handler's `CanHandle` method returns `true` for the expected field. Handlers are checked in registration order, and the first match wins.
-
-**Filter operations not appearing in the schema**
-Confirm that you registered the operation on the convention descriptor and that the operation is applied to the correct `FilterInputType<T>` using the `Configure` method.
-
-**"Provider not found" errors**
-Ensure that the convention and provider are registered on the schema builder. If you are using scoped conventions, verify the scope matches between the registration and the attribute.
-
 # Next Steps
 
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for using built-in filtering
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for using built-in filtering
 - [Visitors](/docs/hotchocolate/v16/api-reference/visitors) for understanding the visitor pattern
 - [MongoDB integration](/docs/hotchocolate/v16/integrations/mongodb) for MongoDB-specific filtering

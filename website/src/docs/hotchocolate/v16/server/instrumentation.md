@@ -418,20 +418,6 @@ The following enricher methods are available:
 
 ![Jaeger](../../../shared/jaeger4.png)
 
-# Troubleshooting
-
-## No spans appear in the tracing backend
-
-Verify that you have called both `AddInstrumentation()` on the GraphQL server configuration and `AddHotChocolateInstrumentation()` on the OpenTelemetry tracing builder. Both are required.
-
-## Missing field-level spans
-
-Field-level spans are disabled by default because they add overhead for every resolver. Enable them by setting `o.Scopes = ActivityScopes.All` in the `AddInstrumentation` options. Alternatively, override `EnableResolveFieldValue` in a custom `ExecutionDiagnosticEventListener`.
-
-## Custom enricher not called
-
-Ensure the enricher is registered as a singleton (`AddSingleton<ActivityEnricher, CustomActivityEnricher>()`) and cross-registered in the schema services with `AddApplicationService<ActivityEnricher>()`.
-
 # Next Steps
 
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on streaming transports and response formatting.

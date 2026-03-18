@@ -22,7 +22,7 @@ The first approach stores operation documents ahead of time (before deployment).
 
 Strawberry Shake, [Relay](https://relay.dev/docs/guides/persisted-queries/), and [Apollo](https://www.apollographql.com/docs/react/api/link/persisted-queries/) client all support this approach.
 
-[Learn more about persisted operations](/docs/hotchocolate/v16/performance/persisted-operations)
+[Learn more about persisted operations](/docs/hotchocolate/v16/performance/trusted-documents)
 
 ## Automatic Persisted Operations
 

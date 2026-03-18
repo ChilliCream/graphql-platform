@@ -147,6 +147,6 @@ Modifiers wrap other types to change their nullability or turn them into lists.
 
 - **"I want to define my first query."** Start with [Queries](/docs/hotchocolate/v16/defining-a-schema/queries). It covers the `[QueryType]` attribute, naming conventions, and how to register multiple query classes.
 
-- **"I want to fetch data from a database."** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for how fields load data, and [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching.
+- **"I want to fetch data from a database."** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for how fields load data, and [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching.
 
 - **"I want to understand how my C# types become GraphQL types."** Read [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types) for a detailed walkthrough of the mapping rules.

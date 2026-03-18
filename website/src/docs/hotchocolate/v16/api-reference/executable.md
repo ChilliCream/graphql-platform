@@ -113,16 +113,8 @@ public class EntityFrameworkExecutable<T> : QueryableExecutable<T>
 }
 ```
 
-# Troubleshooting
-
-**Executable returns all items instead of applying filters**
-Verify that you registered the correct filtering provider for your database (e.g., `AddMongoDbFiltering()` for MongoDB). The `IExecutable` must be paired with the appropriate data middleware.
-
-**"Sequence contains more than one element" exception**
-This occurs when `SingleOrDefaultAsync` finds multiple results. Verify that your query criteria produce a unique result, or use `FirstOrDefaultAsync` instead.
-
 # Next Steps
 
 - [Entity Framework integration](/docs/hotchocolate/v16/integrations/entity-framework) for EF Core executables
 - [MongoDB integration](/docs/hotchocolate/v16/integrations/mongodb) for MongoDB executables
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for applying filters to executables
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for applying filters to executables

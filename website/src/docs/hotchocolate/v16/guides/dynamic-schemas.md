@@ -221,6 +221,7 @@ builder.Services
 
 # Next Steps
 
-- **Need to extend existing types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).
-- **Need to define types with the descriptor API?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need to understand type modules in depth?** Explore the `ITypeModule` interface in the Hot Chocolate source code under `src/HotChocolate/Core/src/Types/`.
+- **Extending existing types:** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).
+- **Defining types with the descriptor API:** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
+- **Warmup after schema rebuilds:** See [Warmup](/docs/hotchocolate/v16/server/warmup) for pre-populating caches when the schema changes.
+- **Type module source code:** Explore the `ITypeModule` interface in the Hot Chocolate source code under `src/HotChocolate/Core/src/Types/`.

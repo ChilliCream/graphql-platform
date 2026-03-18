@@ -281,23 +281,9 @@ curl -g 'http://localhost:5000/graphql/?extensions={"persistedQuery":{"version":
 { "data": { "__typename": "Query" } }
 ```
 
-# Troubleshooting
-
-## "PersistedQueryNotFound" on every request
-
-The in-memory storage is lost on server restart. If you need persistence across restarts, use a Redis or filesystem-based operation document storage.
-
-## Hash mismatch between client and server
-
-Verify that both the client and server use the same hashing algorithm (MD5, SHA1, or SHA256) and the same encoding format (Base64 or Hex).
-
-## Operations not persisted in Redis
-
-Check that the Redis connection string is correct and the server can connect to the Redis instance. Verify the Redis instance is running and accessible from the server.
-
 # Next Steps
 
-- [Persisted Operations](/docs/hotchocolate/v16/performance/persisted-operations) for pre-registering operations ahead of deployment.
+- [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) for pre-registering operations ahead of deployment.
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on HTTP GET caching.
 
 <!-- spell-checker:ignore yeex -->

@@ -60,30 +60,30 @@ Code-first is useful when you need to decouple the GraphQL schema shape from you
 
 Both approaches can be mixed in the same project. You can use implementation-first for most types and drop into code-first for specific cases that need more control.
 
-# Two Paths for Securing Your API
+# Public and Private GraphQL
 
-How you secure your GraphQL server depends on who consumes it. Hot Chocolate supports two distinct security models that address different threat profiles.
+Most GraphQL APIs fall into one of two categories, and the choice shapes how you configure Hot Chocolate.
 
-## Public APIs (third-party consumers)
+## Public GraphQL
 
-If external developers or third-party clients query your API (like the GitHub GraphQL API), you cannot control what operations they send. Clients can construct arbitrary queries, including deeply nested or expensive ones.
+A public API is consumed by third-party developers or external clients. GitHub's GraphQL API is the canonical example. You publish a schema, and external teams build applications against it. Because you do not control the clients, they can send any operation they want.
 
-For this scenario, use **cost analysis** to assign weights to fields and limit the total cost of any single operation. Combine it with execution depth limits, pagination limits, and introspection controls.
+Hot Chocolate provides **cost analysis** for this scenario. You assign weights to fields and connections, and the server rejects operations that exceed the budget before execution begins.
 
-- [Cost analysis](/docs/hotchocolate/v16/security/cost-analysis) assigns field-level weights and enforces per-request budgets.
-- [Controlling introspection](/docs/hotchocolate/v16/server/introspection) restricts schema exposure in production.
-- [Authorization](/docs/hotchocolate/v16/security/authorization) limits access to specific types and fields based on roles or policies.
+- [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) explains field weights, type costs, and budget configuration.
+- [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization) limits access to types and fields based on roles or policies.
+- [Controlling introspection](/docs/hotchocolate/v16/securing-your-api/introspection) lets you restrict schema visibility in production.
 
-## Private APIs (first-party consumers)
+## Private GraphQL
 
-If only your own applications query the API (like Meta's internal GraphQL usage), you control all the clients. You know every operation at build time.
+A private API is consumed by your own applications. This is how Meta built and operates GraphQL internally. You control both the server and every client. You know every operation at build time.
 
-For this scenario, use **trusted documents**. Extract all operations from your client applications during their build process, register them with the server, and reject any operation that is not pre-registered. This eliminates most attack vectors entirely: clients can only execute operations you have reviewed and approved.
+Hot Chocolate provides **trusted documents** for this scenario. You extract all operations from your client applications during their build process, register them with the server, and the server only accepts pre-registered operations.
 
-- [Trusted documents](/docs/hotchocolate/v16/performance/persisted-operations) explains the full workflow: extraction, registration, and enforcement.
+- [Trusted documents](/docs/hotchocolate/v16/performance/trusted-documents) covers the full workflow: extraction, registration, and enforcement.
 - [Strawberry Shake](/docs/strawberryshake/v16) and [Relay](https://relay.dev/docs/guides/persisted-queries/) both support build-time operation extraction.
 
-You can combine both models. A common pattern is to use trusted documents for your own frontend applications and cost analysis as a fallback for partner integrations.
+These two approaches complement each other. A common setup is trusted documents for your own frontend applications and cost analysis for partner integrations.
 
 # Key Terminology
 
@@ -113,7 +113,7 @@ Where you go from here depends on what you need:
 
 - **"I want to understand the schema system."** Read [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema). It covers queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for the full resolver API.
+- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for the full resolver API.
 
 - **"I need to secure my API."** See [Securing Your API](/docs/hotchocolate/v16/security) for authentication, authorization, cost analysis, and trusted documents.
 

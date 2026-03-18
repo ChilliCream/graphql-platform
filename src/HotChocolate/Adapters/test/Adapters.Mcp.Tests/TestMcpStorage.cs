@@ -50,12 +50,17 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
     {
         await _promptSemaphore.WaitAsync(cancellationToken);
 
-        if (!_prompts.TryAdd(promptDefinition.Name, promptDefinition))
+        try
         {
-            _prompts[promptDefinition.Name] = promptDefinition;
+            if (!_prompts.TryAdd(promptDefinition.Name, promptDefinition))
+            {
+                _prompts[promptDefinition.Name] = promptDefinition;
+            }
         }
-
-        _promptSemaphore.Release();
+        finally
+        {
+            _promptSemaphore.Release();
+        }
 
         NotifySubscribers(promptDefinition.Name, promptDefinition, PromptStorageEventType.Updated);
     }
@@ -66,12 +71,17 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
     {
         await _toolSemaphore.WaitAsync(cancellationToken);
 
-        if (!_tools.TryAdd(toolDefinition.Name, toolDefinition))
+        try
         {
-            _tools[toolDefinition.Name] = toolDefinition;
+            if (!_tools.TryAdd(toolDefinition.Name, toolDefinition))
+            {
+                _tools[toolDefinition.Name] = toolDefinition;
+            }
         }
-
-        _toolSemaphore.Release();
+        finally
+        {
+            _toolSemaphore.Release();
+        }
 
         NotifySubscribers(toolDefinition.Name, toolDefinition, OperationToolStorageEventType.Updated);
     }

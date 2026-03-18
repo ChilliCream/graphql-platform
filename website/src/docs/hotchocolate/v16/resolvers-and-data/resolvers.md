@@ -229,7 +229,7 @@ builder.Services
 
 Hot Chocolate resolves `CatalogService` from the DI container at execution time. This works for scoped, transient, and singleton services.
 
-[Learn more about dependency injection](/docs/hotchocolate/v16/server/dependency-injection)
+[Learn more about dependency injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection)
 
 ## Accessing the HttpContext
 
@@ -329,27 +329,9 @@ public static partial class UserQueries
 
 When the client query includes the `address` field, `includeAddress` is `true` and the resolver loads the address eagerly. Otherwise, it skips the additional work.
 
-# Troubleshooting
-
-## Resolver not appearing in the schema
-
-Verify the method is `public`. Private, internal, and protected methods are not exposed as fields. Check that the class has the correct attribute (`[QueryType]`, `[MutationType]`, or `[ExtendObjectType]`) and is marked `partial` when using the source generator.
-
-## Service not injected
-
-Confirm the service is registered in the DI container. In v16, services are auto-recognized without `[Service]`, but the type must match exactly. If you register `IMyService` but the parameter is `MyService`, Hot Chocolate cannot resolve it.
-
-## CancellationToken not canceling
-
-Ensure you pass the `CancellationToken` through to your async calls. If you use `CancellationToken.None` or ignore the token, Hot Chocolate cannot cancel the operation when the client disconnects.
-
-## Parent value is null
-
-When using `[Parent]`, verify that the parent resolver actually returns a non-null value. If the parent field is nullable and resolves to `null`, child resolvers do not execute.
-
 # Next Steps
 
-- **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to filter or sort?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+- **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
+- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination).
+- **Need to filter or sort?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) and [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting).
 - **Need to understand type extensions?** See [Extending Types](/docs/hotchocolate/v16/building-a-schema/extending-types).

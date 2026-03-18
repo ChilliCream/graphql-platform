@@ -68,7 +68,7 @@ builder.Services
     .AddQueryType<Query>();
 ```
 
-Calling `AddAuthorization()` on the `IRequestExecutorBuilder` registers the `@authorize` directive and makes the authenticated user's identity available to resolvers. It does not lock out unauthenticated users. To restrict access, use [authorization](/docs/hotchocolate/v16/security/authorization).
+Calling `AddAuthorization()` on the `IRequestExecutorBuilder` registers the `@authorize` directive and makes the authenticated user's identity available to resolvers. It does not lock out unauthenticated users. To restrict access, use [authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
 
 # Accessing the ClaimsPrincipal
 
@@ -167,26 +167,8 @@ builder.Services
 
 [Learn more about interceptors](/docs/hotchocolate/v16/server/interceptors)
 
-# Troubleshooting
-
-## ClaimsPrincipal is empty or unauthenticated
-
-Verify that `UseAuthentication()` is called before `MapGraphQL()` in the middleware pipeline. If the middleware order is incorrect, the authentication handler never processes the request.
-
-## JWT token is not validated
-
-Check that the token validation parameters (issuer, audience, signing key) match the values used to generate the token. Enable detailed errors in development to see the specific validation failure.
-
-## "Bearer error=invalid_token" in response headers
-
-This usually means the token is expired or the signing key does not match. Inspect the token at [jwt.io](https://jwt.io) to verify its claims and expiration.
-
-## Claims are missing
-
-Verify that the identity provider includes the expected claims in the token. Some providers require explicit scope or claim configuration. Check the `ClaimsPrincipal.Claims` collection in a resolver to see what was parsed.
-
 # Next Steps
 
-- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
+- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
 - **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).
 - **Need to customize request handling?** See [Interceptors](/docs/hotchocolate/v16/server/interceptors).

@@ -123,17 +123,7 @@ Take a look at the implementation-first or code-first example.
 </Schema>
 </ExampleTabs>
 
-# Troubleshooting
-
-## GlobalState value is null or missing
-
-Verify that the interceptor sets the property before calling `base.OnCreateAsync`. Check that the key matches exactly (keys are case-sensitive).
-
-## Exception when accessing GlobalState
-
-The `[GlobalState]` attribute throws an exception when the key does not exist or the value cannot be cast to the target type. If the value might be absent, make the parameter nullable (for example, `string?`).
-
 # Next Steps
 
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for initializing state before request execution.
-- [Dependency Injection](/docs/hotchocolate/v16/server/dependency-injection) for injecting services into resolvers.
+- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for injecting services into resolvers.
