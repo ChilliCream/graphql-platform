@@ -1,4 +1,13 @@
 <Solution>
+  <Folder Name="/examples/" />
+  <Folder Name="/examples/PostgresTransport/">
+    <Project Path="examples/PostgresTransport/PostgresTransport.AppHost/PostgresTransport.AppHost.csproj" />
+    <Project Path="examples/PostgresTransport/PostgresTransport.Contracts/PostgresTransport.Contracts.csproj" />
+    <Project Path="examples/PostgresTransport/PostgresTransport.NotificationService/PostgresTransport.NotificationService.csproj" />
+    <Project Path="examples/PostgresTransport/PostgresTransport.OrderService/PostgresTransport.OrderService.csproj" />
+    <Project Path="examples/PostgresTransport/PostgresTransport.ServiceDefaults/PostgresTransport.ServiceDefaults.csproj" />
+    <Project Path="examples/PostgresTransport/PostgresTransport.ShippingService/PostgresTransport.ShippingService.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
     <Project Path="src/Mocha.EntityFrameworkCore.Postgres/Mocha.EntityFrameworkCore.Postgres.csproj" />
