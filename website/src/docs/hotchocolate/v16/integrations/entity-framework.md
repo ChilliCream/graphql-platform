@@ -225,17 +225,6 @@ Take a look at the annotation-based or code-first example.
 
 > Warning: Dispose the `DbContext` when the service is disposed. The example above implements `IAsyncDisposable` and disposes the `DbContext` in `DisposeAsync`.
 
-# Troubleshooting
-
-**"A second operation started on this context before a previous operation completed"**
-This error means multiple resolvers share the same `DbContext` instance in parallel. Use the default resolver scope (which creates a separate `DbContext` per resolver for queries) or switch to a `DbContext` factory.
-
-**DbContext is not injected into the resolver**
-Verify that you registered the factory with `RegisterDbContextFactory<T>()` on the `IRequestExecutorBuilder` and that the `DbContextFactory` is also registered in the DI container.
-
-**DbContext is disposed before use in DataLoaders**
-Create the `DbContext` inside the `LoadBatchAsync` method and dispose it there. Do not create it in the constructor.
-
 # Next Steps
 
 - [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for DI scope configuration

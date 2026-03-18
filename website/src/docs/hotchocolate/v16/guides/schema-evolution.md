@@ -298,20 +298,6 @@ When you need to make a breaking change, follow this sequence:
 3. Wait for consumers to migrate (monitor usage if possible).
 4. Remove the deprecated field.
 
-# Troubleshooting
-
-## Deprecated field still returned in queries
-
-Deprecation does not remove a field. The field continues to work normally. Deprecation marks the field in introspection so tools can warn consumers. Remove the field from the schema when you are confident no consumers depend on it.
-
-## Opt-in field not visible in introspection
-
-Fields with `@requiresOptIn` are hidden by default. Use the `includeOptIn` argument in introspection queries to reveal them. Also verify that `EnableOptInFeatures = true` is set in your schema options.
-
-## Descriptions not appearing in schema
-
-Verify that `GenerateDocumentationFile` is set to `true` in your `.csproj`. Without this setting, the XML file is not generated and Hot Chocolate has no documentation to read.
-
 # Next Steps
 
 - **Schema documentation reference:** [Documentation](/docs/hotchocolate/v16/building-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.

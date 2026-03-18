@@ -219,20 +219,6 @@ builder.Services
     .AddType(productType);
 ```
 
-# Troubleshooting
-
-## Schema not updating after TypesChanged
-
-Verify that the `TypesChanged` event is wired up and fired. The schema rebuild is asynchronous, so there may be a brief delay before the new schema is active. Check the logs for schema build errors.
-
-## CreateUnsafe produces validation errors
-
-`CreateUnsafe` bypasses the descriptor-level validation. If a type definition is incomplete (missing required fields, invalid type references), the error surfaces during schema construction. Verify all field definitions have valid type references and resolvers.
-
-## Dynamic types not visible in introspection
-
-Types created through `ITypeModule` must be registered as part of the schema. Verify that your module returns them from `CreateTypesAsync`. If a type is an extension, ensure the base type it extends exists in the schema.
-
 # Next Steps
 
 - **Need to extend existing types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).

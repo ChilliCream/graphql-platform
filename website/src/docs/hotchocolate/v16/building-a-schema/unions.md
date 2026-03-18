@@ -122,20 +122,6 @@ Choose a union when the grouped types have no meaningful shared fields. Choose a
 | Query shared fields directly | No    | Yes       |
 | Types can belong to multiple | Yes   | Yes       |
 
-# Troubleshooting
-
-## "No types registered for union"
-
-A union must contain at least one member type. Verify that you have registered each implementing class with `.AddType<T>()` or included it in the `UnionType` configuration.
-
-## Unexpected `null` for union field
-
-If the resolver returns a type that is not part of the union, Hot Chocolate cannot resolve it and returns `null`. Verify the runtime type implements the marker interface or is listed in the union configuration.
-
-## Cannot query `__typename` on union
-
-The `__typename` meta-field is available on all union members. Clients can include `__typename` inside any inline fragment to determine which type was returned.
-
 # Next Steps
 
 - **Need shared fields across types?** See [Interfaces](/docs/hotchocolate/v16/defining-a-schema/interfaces).

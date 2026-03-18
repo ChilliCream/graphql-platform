@@ -200,17 +200,6 @@ public sealed class MyCustomAttribute : DescriptorAttribute
 }
 ```
 
-# Troubleshooting
-
-**Attribute does not appear to have any effect**
-Verify that the attribute is in the correct namespace and that the NuGet package is installed. Some attributes (like `[UseFiltering]`) require additional packages such as `HotChocolate.Data`.
-
-**Middleware attribute ordering is wrong**
-Attribute order in C# is not guaranteed. Middleware attributes use `[CallerLineNumber]` to infer order. Place attributes on separate lines with the correct top-to-bottom order: `[UsePaging]`, `[UseProjection]`, `[UseFiltering]`, `[UseSorting]`.
-
-**Custom attribute not being applied**
-Confirm that you are inheriting from the correct base class and that the `OnConfigure` method calls the expected descriptor methods.
-
 # Next Steps
 
 - [Building a schema](/docs/hotchocolate/v16/building-a-schema) for type system configuration

@@ -550,42 +550,6 @@ public class UserByEmailResultType : UnionType
 </Code>
 </ExampleTabs>
 
-# Troubleshooting
-
-## Exception messages not showing in responses
-
-By default, Hot Chocolate replaces exception messages with `"Unexpected Execution Error"` when no debugger is attached. This is a security measure. To see the original messages during development, enable `IncludeExceptionDetails`:
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true);
-```
-
-In production, use an [error filter](#error-filters) to log the original exception and return a safe message to the client.
-
-## Error types not appearing in the schema
-
-Verify that mutation conventions are enabled. Domain errors on payloads require mutation conventions to rewrite the schema.
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddMutationConventions(applyToAllMutations: true);
-```
-
-Also check that the `[Error(typeof(...))]` attribute is on the mutation method, not on the class.
-
-## AggregateException not unwrapping into multiple errors
-
-Hot Chocolate unwraps `AggregateException` automatically, but only for exception types declared with `[Error]` on the mutation. If an inner exception type is not declared, it is treated as a request error and appears in the top-level `errors` array instead.
-
-Make sure every exception type inside the `AggregateException` has a corresponding `[Error]` attribute on the mutation.
-
-## Error class missing required interface fields
-
-If you have a custom error interface (e.g., one that requires both `message` and `code`), every error class must expose matching properties. If a property is missing, schema generation fails. Check that each error class has all the properties defined by the interface.
-
 # Next Steps
 
 - **Need mutation conventions?** See [Mutations](/docs/hotchocolate/v16/building-a-schema/mutations) for the full pattern including inputs, payloads, and naming customization.

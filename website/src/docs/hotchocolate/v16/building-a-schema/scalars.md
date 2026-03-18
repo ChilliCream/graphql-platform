@@ -36,38 +36,6 @@ Hot Chocolate automatically maps .NET types to GraphQL scalars. When you use a `
 
 Hot Chocolate only exposes scalars that your schema uses. Unused scalars do not appear in the generated schema.
 
-# Breaking Changes in v16
-
-Several scalars have been renamed or replaced in v16. If you are upgrading from v15, review these changes.
-
-**Renamed scalars:**
-
-- `TimeSpan` is now `Duration`
-- `Byte` (previously mapped to `byte`) is now `UnsignedByte`. The `Byte` scalar now maps to `sbyte`.
-
-**New scalars:**
-
-- `URI` replaces `URL` as the default scalar for `System.Uri`
-- `Base64String` replaces the deprecated `ByteArray` scalar for `byte[]`
-- `UnsignedShort`, `UnsignedInt`, and `UnsignedLong` support unsigned integer types
-
-**Removed scalars:**
-
-The following scalars from the `HotChocolate.Types.Scalars` package have been removed:
-
-- `NegativeFloat`
-- `NonNegativeFloat`
-- `NegativeInt`
-- `NonPositiveInt`
-- `NonNegativeInt`
-- `NonEmptyString`
-
-If you relied on these for validation, define a [custom scalar](#custom-scalars) or use field middleware for validation instead.
-
-**Merged scalars:**
-
-- The `Json` scalar has been merged into `Any`. Use `Any` wherever you previously used `Json`.
-
 # Built-in Spec Scalars
 
 ## String
@@ -687,53 +655,6 @@ protected override LeafCoercionException FormatException(string runtimeValue)
     => new LeafCoercionException(
         $"'{runtimeValue}' is not a valid hex color. Expected format: #RGB or #RRGGBB.",
         this);
-```
-
-# Troubleshooting
-
-## Wrong scalar inferred for a field
-
-If a field uses a different scalar than expected, check the [mapping table](#net-type-to-graphql-scalar-mapping) for the default binding. You can override the inferred scalar with `[GraphQLType]`:
-
-```csharp
-[GraphQLType<UuidType>]
-public string GetExternalId() => Guid.NewGuid().ToString();
-```
-
-Or bind a runtime type globally:
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .BindRuntimeType<string, UuidType>();
-```
-
-## "Cannot resolve scalar type" error
-
-Verify that the scalar type is registered. Built-in scalars are registered automatically, but custom scalars and NodaTime scalars require explicit registration with `.AddType<T>()`.
-
-## Returning Dictionary from Any field throws an error
-
-Register the JSON type converter. The `Any` scalar uses `JsonElement` as its runtime type and cannot serialize dictionaries without it:
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddJsonTypeConverter();
-```
-
-## Scalar renamed after upgrading to v16
-
-Check the [breaking changes](#breaking-changes-in-v16) section. Several scalars were renamed in v16 (`TimeSpan` to `Duration`, `Byte` to `UnsignedByte`). If clients depend on the old name, register the scalar explicitly with the old name by creating a custom type that inherits from the new scalar base class.
-
-## UUID format mismatch
-
-The `UUID` scalar defaults to the `D` format (`00000000-0000-0000-0000-000000000000`). If your clients expect a different format, register the scalar with the desired format specifier:
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddType(new UuidType('N'));
 ```
 
 # Next Steps

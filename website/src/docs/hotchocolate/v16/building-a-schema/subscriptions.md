@@ -383,28 +383,6 @@ type Subscription {
 
 Group your subscription classes by domain area, the same way you would split queries and mutations.
 
-# Troubleshooting
-
-## Subscription field not appearing in the schema
-
-Verify the method has both the `[Subscribe]` attribute and a parameter marked with `[EventMessage]`. Both are required. Also check that the class has `[SubscriptionType]` and is `partial`.
-
-## Events published but subscribers receive nothing
-
-Make sure the topic string in `sender.SendAsync(topic, ...)` matches the subscription field. By default, the topic is the method name (e.g., `OnBookAdded`). Use `nameof(BookSubscriptions.OnBookAdded)` to keep them in sync. If you use `[Topic]`, ensure the topic string or pattern matches exactly.
-
-## WebSocket connection closes immediately
-
-Confirm that `app.UseWebSockets()` is called before `app.MapGraphQL()` in your middleware pipeline. Without the WebSocket middleware, the server cannot upgrade the connection.
-
-## "Only one subscription type can be registered"
-
-If you use code-first, only one class can be registered with `AddSubscriptionType<T>()`. To split subscription fields across classes, switch to the source generator approach with `[SubscriptionType]` on multiple `partial` classes.
-
-## Events not shared across server instances
-
-The in-memory provider only delivers events within a single process. Switch to Redis, NATS, or Postgres for multi-instance deployments.
-
 # Next Steps
 
 - **Need to read data?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).

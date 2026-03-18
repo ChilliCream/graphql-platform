@@ -268,39 +268,6 @@ builder.Services
 
 The Fusion gateway composes schemas from multiple subgraphs. The OpenAPI adapter generates REST endpoints that execute operations against the composed schema, so a single REST endpoint can fetch data from multiple subgraphs transparently.
 
-# Troubleshooting
-
-**Endpoint returns 404**
-
-Verify that your `IOpenApiDefinitionStorage` returns the definitions and that the route in the `@http` directive matches the URL you are requesting. Check that you called both `MapOpenApiEndpoints()` and `MapGraphQL()` in your endpoint configuration. If you added a definition at runtime, wait for the hot-reload cycle to complete.
-
-**Request body is not parsed**
-
-The adapter requires a `Content-Type: application/json` header on POST and PUT requests. Other content types are rejected. Ensure the `@body` directive is present on the variable that should receive the request body.
-
-**Endpoint returns 500 with validation errors**
-
-The operation references a field or type that does not exist on the GraphQL schema. The adapter validates definitions on startup and logs errors. Attach an `OpenApiDiagnosticEventListener` to inspect validation details:
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddOpenApiDefinitionStorage(myStorage)
-    .AddDiagnosticEventListener(_ => new MyOpenApiListener());
-
-public class MyOpenApiListener : OpenApiDiagnosticEventListener
-{
-    public override void ValidationErrors(
-        IReadOnlyList<OpenApiDefinitionValidationError> errors)
-    {
-        foreach (var error in errors)
-        {
-            Console.WriteLine(error.Message);
-        }
-    }
-}
-```
-
 # Next Steps
 
 - [MCP Adapter](/docs/hotchocolate/v16/guides/mcp-adapter) to expose your GraphQL schema as MCP tools for AI agents.

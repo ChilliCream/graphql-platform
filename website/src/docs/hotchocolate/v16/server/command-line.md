@@ -37,16 +37,6 @@ dotnet run -- schema export --output schema.graphql
 - `--output`: The path to the file where the schema is exported. If no output path is specified, the schema prints to the console.
 - `--schema-name`: The name of the schema to export. If no schema name is specified, the default schema is exported.
 
-# Troubleshooting
-
-## Exit code not propagated
-
-If your CI/CD pipeline does not detect command failures, verify that you return the result of `RunWithGraphQLCommandsAsync`. The method now returns an exit code, and not returning it causes the process to always exit with `0`.
-
-## Schema export fails with errors
-
-Schema errors surface at startup in v16 due to eager initialization. Fix the schema errors reported in the console output before exporting.
-
 # Next Steps
 
 - [Warmup](/docs/hotchocolate/v16/server/warmup) for details on startup behavior and schema initialization.

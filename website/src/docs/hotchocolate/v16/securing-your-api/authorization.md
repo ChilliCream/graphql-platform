@@ -334,24 +334,6 @@ app.UseEndpoints(endpoints =>
 
 [Learn more about available middleware](/docs/hotchocolate/v16/server/endpoints)
 
-# Troubleshooting
-
-## Authorization not enforced
-
-Verify you are using `HotChocolate.Authorization.AuthorizeAttribute`, not `Microsoft.AspNetCore.Authorization.AuthorizeAttribute`. The Microsoft attribute is ignored by the Hot Chocolate pipeline.
-
-## "AUTH_NOT_AUTHENTICATED" for authenticated users
-
-Check the middleware order: `UseAuthentication()` must come before `UseAuthorization()`, and both must come before `MapGraphQL()`. Also verify that `AddAuthorization()` is called on both `IServiceCollection` and `IRequestExecutorBuilder`.
-
-## Policy always fails
-
-Verify that the `AuthorizationHandler` is registered in the DI container and that the handler calls `context.Succeed(requirement)` when the requirement is met. A handler that does not call `Succeed` results in an implicit failure.
-
-## Nitro is blocked by global authorization
-
-When `RequireAuthorization()` is applied to `MapGraphQL()`, it blocks all sub-middleware including Nitro. Split the middleware into `MapGraphQLHttp()` and `MapNitroApp()` and apply authorization only to `MapGraphQLHttp()`.
-
 # Next Steps
 
 - **Need to set up authentication first?** See [Authentication](/docs/hotchocolate/v16/securing-your-api/authentication).

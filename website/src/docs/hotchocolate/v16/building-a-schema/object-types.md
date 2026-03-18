@@ -528,34 +528,6 @@ Clients query dictionary fields like any other list.
 
 This works with any key and value types. For example, `Dictionary<string, int>` produces `KeyValuePairOfStringAndInt32` with the appropriate scalar types.
 
-# Troubleshooting
-
-## Field not appearing in the schema
-
-Verify the property or method is `public`. Private, internal, and protected members are not exposed. If using code-first with explicit binding, confirm you have added the field with `descriptor.Field(...)`.
-
-## "Type is not registered" error
-
-In the code-first approach, `ObjectType<T>` types must be registered with `.AddType<T>()`. Unlike implementation-first types, they are not auto-discovered.
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddType<AuthorType>();
-```
-
-## Nullable field shows as non-null (or vice versa)
-
-Check your project's nullable reference type settings. If `<Nullable>enable</Nullable>` is set in your `.csproj`, then `string` maps to `String!`. If nullable reference types are not enabled, `string` maps to `String` (nullable). See the [nullability table](#nullability) above.
-
-## Property returning null causes execution error
-
-If a field is non-null in the schema (for example, `String!`) but your resolver returns `null`, the execution engine raises an error. Either return a non-null value or change the C# type to nullable (e.g., `string?`).
-
-## Dictionary field generates unexpected type name
-
-Dictionary fields produce auto-generated type names like `KeyValuePairOfStringAndString`. You cannot rename the generated key-value pair type directly. If you need a custom name, define a dedicated class instead of using a dictionary.
-
 # Next Steps
 
 - **Need to define query entry points?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).

@@ -454,28 +454,6 @@ builder.Services
 
 Per-endpoint `WithOptions` overrides take precedence over schema-level defaults.
 
-# Troubleshooting
-
-## Nitro not loading in the browser
-
-Check that the `Tool.Enable` setting is not set to `false`. In production environments, Nitro is often disabled. Set `o.Tool.Enable = true` or conditionally enable it based on the hosting environment.
-
-## WebSocket requests not working
-
-Ensure that the ASP.NET Core WebSocket middleware is registered before calling `MapGraphQL()`. Add `app.UseWebSockets()` to your middleware pipeline.
-
-## Persisted operation returns 400 "Missing operationId"
-
-Verify that the URL matches the expected pattern. The operation ID must be the first path segment after the persisted operations base path (for example, `/graphql/persisted/abc123`). If `requireOperationName` is `true`, you must also provide the operation name as the second path segment.
-
-## Large requests rejected before execution
-
-If large queries or mutations are rejected before reaching the execution engine, the `maxAllowedRequestSize` parameter on `AddGraphQLServer()` is likely too small. Increase it to accommodate your expected payload sizes.
-
-## Introspection disabled unexpectedly in production
-
-When `disableDefaultSecurity` is `false` (the default), introspection is automatically turned off in non-development environments. If you need introspection available in production (for example, behind authentication), either set `disableDefaultSecurity: true` and configure security features manually, or explicitly re-enable introspection after `AddGraphQLServer()`.
-
 # Next Steps
 
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on request formats, response formats, WebSocket transport, and SSE.
