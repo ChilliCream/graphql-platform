@@ -19,6 +19,9 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
 
     public DurationFormat Format { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DurationType"/> class.
+    /// </summary>
     public DurationType(
         DurationFormat format = DurationFormat.Iso8601,
         BindingBehavior bind = BindingBehavior.Implicit)
@@ -26,6 +29,9 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DurationType"/> class.
+    /// </summary>
     public DurationType(
         string name,
         string? description = null,
@@ -37,7 +43,8 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
         Description = description;
         Pattern = format switch
         {
-            DurationFormat.Iso8601 => null,
+            DurationFormat.Iso8601
+                => @"^-?P(?:-?\d+Y)?(?:-?\d+M)?(?:-?\d+W)?(?:-?\d+D)?(?:T(?:-?\d+H)?(?:-?\d+M)?(?:-?\d+(?:[.,]\d+)?S)?)?$",
             DurationFormat.DotNet
                 => @"^-?(?:(?:\d{1,8})\.)?(?:[0-1]?\d|2[0-3]):(?:[0-5]?\d):(?:[0-5]?\d)(?:\.(?:\d{1,7}))?$",
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
@@ -49,6 +56,9 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
         }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DurationType"/> class.
+    /// </summary>
     [ActivatorUtilitiesConstructor]
     public DurationType()
         : this(ScalarNames.Duration, TypeResources.DurationType_Description)
@@ -118,9 +128,7 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
 
     /// <inheritdoc />
     protected override StringValueNode OnValueToLiteral(TimeSpan runtimeValue)
-    {
-        return Format == DurationFormat.Iso8601
+        => Format == DurationFormat.Iso8601
             ? new StringValueNode(Iso8601DurationFormatter.Format(runtimeValue))
             : new StringValueNode(runtimeValue.ToString("c"));
-    }
 }

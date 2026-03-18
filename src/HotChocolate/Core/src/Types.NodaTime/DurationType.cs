@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Text.Json;
 using NodaTime;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -8,15 +9,14 @@ using static HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types.NodaTime;
 
 /// <summary>
-/// The <c>Duration</c> scalar type represents a fixed, calendar-independent length of time
-/// expressed as an ISO 8601 duration string with nanosecond precision.
-/// Format: <c>[-]P[nY][nM][nW][nD][T[nH][nM][n[.f]S]]</c>
+/// The <c>Duration</c> scalar type represents a duration of time. It is intended for scenarios
+/// where you need to represent time intervals, such as elapsed time, timeout durations, scheduling
+/// intervals, or any measurement of time that is not tied to a specific date or time.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/duration.html">Specification</seealso>
 public class DurationType : ScalarType<Duration, StringValueNode>
 {
-    private const string DurationDescription =
-        "Represents a fixed, calendar-independent length of time "
-        + "expressed as an ISO 8601 duration string with nanosecond precision.";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/duration.html";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DurationType"/> class.
@@ -27,7 +27,10 @@ public class DurationType : ScalarType<Duration, StringValueNode>
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
-        Description = description ?? DurationDescription;
+        Description = description;
+        Pattern =
+            @"^-?P(?:-?\d+Y)?(?:-?\d+M)?(?:-?\d+W)?(?:-?\d+D)?(?:T(?:-?\d+H)?(?:-?\d+M)?(?:-?\d+(?:[.,]\d+)?S)?)?$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -37,7 +40,7 @@ public class DurationType : ScalarType<Duration, StringValueNode>
     public DurationType()
         : this(
             ScalarNames.Duration,
-            DurationDescription,
+            TypeResources.DurationType_Description,
             BindingBehavior.Implicit)
     {
     }
