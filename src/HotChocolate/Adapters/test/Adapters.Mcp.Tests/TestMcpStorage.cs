@@ -57,7 +57,7 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
 
         _promptSemaphore.Release();
 
-        NotifySubscribers(promptDefinition.Name, promptDefinition, PromptStorageEventType.Added);
+        NotifySubscribers(promptDefinition.Name, promptDefinition, PromptStorageEventType.Updated);
     }
 
     public async Task AddOrUpdateToolAsync(
@@ -73,7 +73,7 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
 
         _toolSemaphore.Release();
 
-        NotifySubscribers(toolDefinition.Name, toolDefinition, OperationToolStorageEventType.Added);
+        NotifySubscribers(toolDefinition.Name, toolDefinition, OperationToolStorageEventType.Updated);
     }
 
     public IDisposable Subscribe(IObserver<PromptStorageEventArgs> observer)
@@ -91,7 +91,7 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
         PromptDefinition? promptDefinition,
         PromptStorageEventType type)
     {
-        if (type is PromptStorageEventType.Added)
+        if (type is PromptStorageEventType.Updated)
         {
             ArgumentNullException.ThrowIfNull(promptDefinition);
         }
@@ -115,7 +115,7 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
         OperationToolDefinition? toolDefinition,
         OperationToolStorageEventType type)
     {
-        if (type is OperationToolStorageEventType.Added)
+        if (type is OperationToolStorageEventType.Updated)
         {
             ArgumentNullException.ThrowIfNull(toolDefinition);
         }
