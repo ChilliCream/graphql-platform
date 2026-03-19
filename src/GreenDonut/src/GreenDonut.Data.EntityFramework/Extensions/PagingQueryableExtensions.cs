@@ -372,7 +372,7 @@ public static class PagingQueryableExtensions
     /// The type of the value selected from the items in the queryable.
     /// </typeparam>
     /// <typeparam name="TElement">
-    /// The type of the items in the queryable.
+    /// The type of the source elements from which keys and values are projected.
     /// </typeparam>
     /// <returns></returns>
     /// <exception cref="ArgumentException">
@@ -421,7 +421,7 @@ public static class PagingQueryableExtensions
     /// The type of the items in the queryable.
     /// </typeparam>
     /// <typeparam name="TElement">
-    /// The type of the items in the queryable.
+    /// The type of the source elements from which keys and values are projected.
     /// </typeparam>
     /// <returns></returns>
     /// <exception cref="ArgumentException">
@@ -471,6 +471,13 @@ public static class PagingQueryableExtensions
             throw new ArgumentException(
                 "You can specify either `first` or `last`, but not both as this can lead to unpredictable results.",
                 nameof(arguments));
+        }
+
+        if (valueSelector is null && !typeof(TValue).IsAssignableFrom(typeof(TElement)))
+        {
+            throw new ArgumentException(
+                "If no value selector is provided, the source element type must be assignable to the value type.",
+                nameof(valueSelector));
         }
 
         if (arguments.EnableRelativeCursors
