@@ -261,18 +261,20 @@ public sealed class ConcurrencyLimiterMiddlewareTests : ReceiveMiddlewareTestBas
     [Fact]
     public async Task InvokeAsync_Should_ReleaseSemaphore_When_HandlerThrows()
     {
-        // arrange
+        // arrange — use ID-based throwing so retries of the "throws" message
+        // keep throwing (a mutable flag was flaky because the transport retried
+        // the message after the flag was cleared, recording it unexpectedly).
         var recorder = new MessageRecorder();
         await using var provider = await CreateBusAsync(b =>
         {
             b.Services.AddSingleton(recorder);
-            b.Services.AddSingleton<ThrowOnceHandler>();
+            b.Services.AddSingleton<ConditionalThrowHandler>();
             b.AddConcurrencyLimiter(o => o.MaxConcurrency = 1);
-            b.AddEventHandler<ThrowOnceHandler>();
+            b.AddEventHandler<ConditionalThrowHandler>();
         });
 
-        var throwOnceHandler = provider.GetRequiredService<ThrowOnceHandler>();
-        throwOnceHandler.ShouldThrow = true;
+        var handler = provider.GetRequiredService<ConditionalThrowHandler>();
+        handler.ThrowForIds.Add("throws");
 
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
@@ -282,9 +284,6 @@ public sealed class ConcurrencyLimiterMiddlewareTests : ReceiveMiddlewareTestBas
 
         // No deterministic signal for a swallowed exception; let the fault settle.
         await Task.Delay(200, CancellationToken.None);
-
-        // Set handler to succeed
-        throwOnceHandler.ShouldThrow = false;
 
         // Second message should be processed (proving semaphore was released)
         await bus.PublishAsync(new TestEvent { Id = "succeeds" }, CancellationToken.None);
@@ -433,25 +432,6 @@ public sealed class ConcurrencyLimiterMiddlewareTests : ReceiveMiddlewareTestBas
         public void Release()
         {
             _release.TrySetResult();
-        }
-    }
-
-    /// <summary>
-    /// Handler that can be configured to throw once.
-    /// </summary>
-    private sealed class ThrowOnceHandler(MessageRecorder recorder) : IEventHandler<TestEvent>
-    {
-        public bool ShouldThrow { get; set; }
-
-        public ValueTask HandleAsync(TestEvent message, CancellationToken ct)
-        {
-            if (ShouldThrow)
-            {
-                throw new InvalidOperationException("Configured to throw");
-            }
-
-            recorder.Record(message);
-            return default;
         }
     }
 
