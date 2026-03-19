@@ -82,7 +82,10 @@ sourceSchemas:
             ) {
               votableById(id: $__fusion_1_id) {
                 __typename
-                viewerCanVote
+                ... on Discussion {
+                  __typename
+                  viewerCanVote
+                }
               }
             }
           variables: |
@@ -112,8 +115,8 @@ operationPlan:
           }
         }
       hash: fb4e28df20f489a10c0f71a560445d04
-      searchSpace: 1
-      expandedNodes: 2
+      searchSpace: 2
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
@@ -134,11 +137,14 @@ operationPlan:
         ) {
           votableById(id: $__fusion_1_id) {
             __typename
-            viewerCanVote
+            ... on Discussion {
+              __typename
+              viewerCanVote
+            }
           }
         }
-      source: $.votableById
-      target: $.votable
+      source: $.votableById<Discussion>
+      target: $.votable<Discussion>
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
