@@ -172,7 +172,10 @@ internal static class Iso8601DurationFormatter
     public static string Format(TimeSpan value)
     {
         Span<byte> buffer = stackalloc byte[MaxBufferSize];
-        TryFormat(value, buffer, out var bytesWritten);
+        if (!TryFormat(value, buffer, out var bytesWritten))
+        {
+            throw new InvalidOperationException("Failed to format TimeSpan value.");
+        }
 
         // All output characters are ASCII, so direct byte-to-char widening is safe.
         Span<char> chars = stackalloc char[bytesWritten];
