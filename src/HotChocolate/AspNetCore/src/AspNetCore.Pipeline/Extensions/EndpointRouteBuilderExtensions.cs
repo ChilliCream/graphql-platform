@@ -529,7 +529,28 @@ public static class EndpointRouteBuilderExtensions
         this GraphQLEndpointConventionBuilder builder,
         Action<GraphQLServerOptions> configure)
     {
-        builder.Add(c => c.Metadata.Add(new GraphQLServerOptionsOverride(configure)));
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.Add(c =>
+        {
+            c.Metadata.Add(new GraphQLServerOptionsOverride(configure));
+
+            var options = new GraphQLServerOptions();
+
+            for (var i = c.Metadata.Count - 1; i >= 0; i--)
+            {
+                if (c.Metadata[i] is NitroAppOptions toolOptions)
+                {
+                    options.Tool = toolOptions.Clone();
+                    break;
+                }
+            }
+
+            configure(options);
+            c.Metadata.Add(options.Tool);
+        });
+
         return builder;
     }
 

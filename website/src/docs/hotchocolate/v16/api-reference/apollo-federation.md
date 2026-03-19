@@ -228,7 +228,7 @@ Key details:
 </Schema>
 </ExampleTabs>
 
-> We recommend using a [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) in reference resolvers. This helps avoid [the N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem).
+> We recommend using a [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) in reference resolvers. This helps avoid [the N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem).
 
 ## Register the Entity
 
@@ -414,19 +414,8 @@ query {
 
 For creating a supergraph, see the [Apollo Router documentation](https://www.apollographql.com/docs/router/quickstart/) or [`@apollo/gateway` documentation](https://www.npmjs.com/package/@apollo/gateway).
 
-# Troubleshooting
-
-**"\_entities" query returns null for a representation**
-Verify that the `__typename` value matches the GraphQL type name exactly and that the key field names and types match the entity definition.
-
-**Reference resolver parameter mismatch**
-The parameter name in the reference resolver must match the GraphQL field name (not the C# property name). For example, if the GraphQL field is `id`, the parameter must be `string id`.
-
-**Entity type name does not match across subgraphs**
-Use `[GraphQLName("...")]` or `descriptor.Name("...")` to set the GraphQL name explicitly if the C# class names differ.
-
 # Next Steps
 
-- [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for resolver patterns
-- [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching in reference resolvers
+- [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for resolver patterns
+- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching in reference resolvers
 - [Apollo Federation docs](https://www.apollographql.com/docs/federation/) for supergraph configuration

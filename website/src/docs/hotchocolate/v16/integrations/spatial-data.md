@@ -317,21 +317,10 @@ The `within` filter is an implementation of `Geometry.Within`.
 
 The negation is `nwithin`.
 
-# Troubleshooting
-
-**Spatial types not appearing in the schema**
-Verify that `AddSpatialTypes()` is called on the schema builder. If you are using filtering or projections, also call `AddSpatialFiltering()` or `AddSpatialProjections()`.
-
-**"No handler found" error for spatial filter operations**
-Ensure that both `AddFiltering()` and `AddSpatialFiltering()` are registered.
-
-**Coordinate reference system mismatch**
-The CRS is currently fixed. The user must know the CRS of the backend to perform spatial filtering. Re-projection features are planned for future releases.
-
 # Next Steps
 
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for general filtering concepts
-- [Projections](/docs/hotchocolate/v16/fetching-data/projections) for projection setup
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for general filtering concepts
+- [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections) for projection setup
 - [Entity Framework integration](/docs/hotchocolate/v16/integrations/entity-framework) for EF Core setup
 
 <!-- spell-checker:ignore ndistance -->

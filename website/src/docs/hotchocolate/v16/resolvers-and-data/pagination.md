@@ -227,7 +227,7 @@ builder.Services
 
 # MaxPageSize and Cost Analysis
 
-The `MaxPageSize` setting works together with [cost analysis](/docs/hotchocolate/v16/security/cost-analysis) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
+The `MaxPageSize` setting works together with [cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
 
 For public APIs, keep `MaxPageSize` conservative and use `RequirePagingBoundaries = true` to force clients to declare how many items they want.
 
@@ -323,7 +323,7 @@ public class UsersEdgeExtension
 }
 ```
 
-> If you use [projections](/docs/hotchocolate/v16/fetching-data/projections), some properties on your model may not be populated depending on what the client requested.
+> If you use [projections](/docs/hotchocolate/v16/resolvers-and-data/projections), some properties on your model may not be populated depending on what the client requested.
 
 # Nullable Cursor Keys
 
@@ -375,27 +375,9 @@ If no `ProviderName` is specified, the correct provider is selected based on the
 
 [Learn more about database integrations](/docs/hotchocolate/v16/integrations)
 
-# Troubleshooting
-
-## "Cannot determine the element type" error
-
-Ensure your resolver returns `IEnumerable<T>`, `IQueryable<T>`, or `Connection<T>`. If the return type is untyped (like `IEnumerable` without a generic argument), the paging middleware cannot determine the node type.
-
-## Missing `totalCount` field
-
-Enable `IncludeTotalCount` in `PagingOptions` or on the `[UsePaging]` attribute. This field is opt-in because computing the total count requires an additional database query.
-
-## Cursors appear to be wrong after sorting changes
-
-Cursors encode the position of an item based on the sort order at the time of the query. If you change the sort order between pages, cursors from the previous page may point to the wrong position. Ensure the sort order remains consistent across paginated requests.
-
-## "Nullable cursor key requires NullOrdering" error
-
-You have a nullable field as a cursor key and the paging handler cannot detect your database's null ordering behavior. Set `NullOrdering` explicitly in `PagingOptions`.
-
 # Next Steps
 
-- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
-- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
-- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
-- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
+- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering).
+- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting).
+- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections).
+- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis).

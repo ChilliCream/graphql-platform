@@ -168,7 +168,7 @@ builder.Services
     .AddMongoDbPagingProviders();
 ```
 
-[Learn more about pagination providers](/docs/hotchocolate/v16/fetching-data/pagination#providers)
+[Learn more about pagination providers](/docs/hotchocolate/v16/resolvers-and-data/pagination#providers)
 
 ## Cursor Pagination
 
@@ -216,21 +216,10 @@ public IExecutable<Person> GetPersonById(
 }
 ```
 
-# Troubleshooting
-
-**Filters are not applied to the query**
-Verify that you registered `AddMongoDbFiltering()` on the schema builder. If you are using MongoDB alongside `IQueryable`, confirm that you set the correct scope on both the registration and the resolver attribute.
-
-**Sorting has no effect**
-Confirm that `AddMongoDbSorting()` is registered. Check that the field names in the sort input match the property names in your MongoDB model.
-
-**Projections cause errors or unexpected results**
-Not all query patterns benefit from projections. If you encounter issues, try removing `[UseProjection]` to determine whether projections are the cause.
-
 # Next Steps
 
-- [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for pagination setup
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for filtering concepts
+- [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for pagination setup
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for filtering concepts
 - [Executable](/docs/hotchocolate/v16/api-reference/executable) for the `IExecutable` abstraction
 
 <!-- spell-checker:ignore Shorton -->

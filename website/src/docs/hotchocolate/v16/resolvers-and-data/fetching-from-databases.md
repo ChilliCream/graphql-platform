@@ -113,19 +113,9 @@ When you return `IQueryable<T>`, the pagination, projection, filtering, and sort
 
 [Learn more about the Entity Framework integration](/docs/hotchocolate/v16/integrations/entity-framework)
 
-# Troubleshooting
-
-## DbContext concurrency issues
-
-If you see errors about concurrent operations on a `DbContext`, register it with `AddDbContextPool` or `AddPooledDbContextFactory`. Hot Chocolate runs sibling resolvers in parallel, so each resolver needs its own `DbContext` instance.
-
-## Resolver returns stale data
-
-EF Core tracks entities in the change tracker. If you modify an entity in one resolver and read it in another within the same request, the change tracker may return the cached version. Use `.AsNoTracking()` for read-only queries to avoid this.
-
 # Next Steps
 
-- **Need to batch database calls?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need to optimize SQL queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
+- **Need to batch database calls?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
+- **Need to optimize SQL queries?** See [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections).
 - **Need to integrate with MongoDB?** See [MongoDB Integration](/docs/hotchocolate/v16/integrations/mongodb).
 - **Need to integrate with EF Core?** See [Entity Framework Integration](/docs/hotchocolate/v16/integrations/entity-framework).

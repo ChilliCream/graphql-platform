@@ -239,20 +239,6 @@ A client is expected to send an `id` field containing the operation document has
 
 > Note: [Relay's persisted queries documentation](https://relay.dev/docs/guides/persisted-queries/#network-layer-changes) uses `doc_id` instead of `id`. Be sure to change it to `id`.
 
-# Troubleshooting
-
-## "PersistedQueryNotFound" error
-
-Verify that the operation document is stored in the configured storage (filesystem, Redis, or Azure Blob Storage) with the correct hash as the key. Check that the hashing algorithm and format (Base64 vs Hex) match between client and server.
-
-## Dynamic operations blocked unexpectedly
-
-If `OnlyAllowPersistedDocuments` is enabled, all requests without a valid `id` are rejected. Use a custom HTTP request interceptor to allow specific requests through.
-
-## Hash mismatch between client and server
-
-Ensure both the client and server use the same hashing algorithm (MD5, SHA1, or SHA256) and the same encoding format (Base64 or Hex).
-
 # Next Steps
 
 - [Automatic Persisted Operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) for dynamically storing operations at runtime.

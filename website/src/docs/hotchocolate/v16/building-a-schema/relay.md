@@ -297,7 +297,7 @@ descriptor
 </Code>
 </ExampleTabs>
 
-Node resolvers are ideal places to use [DataLoaders](/docs/hotchocolate/v16/fetching-data/dataloader) for efficient batched fetching.
+Node resolvers are ideal places to use [DataLoaders](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for efficient batched fetching.
 
 ## Node with Type Extensions
 
@@ -377,27 +377,9 @@ builder.Services
     });
 ```
 
-# Troubleshooting
-
-## "No type implements Node"
-
-At least one type must implement the `Node` interface when `AddGlobalObjectIdentification` is called. Annotate a type with `[Node]` or use `ImplementsNode()` in code-first.
-
-## Node resolver not found
-
-Hot Chocolate looks for a static method named `Get`, `GetAsync`, `Get{TypeName}`, or `Get{TypeName}Async`. If your method uses a different name, annotate it with `[NodeResolver]`.
-
-## Global ID deserialization fails
-
-If a client sends an ID that was serialized for a different type, deserialization fails with a type mismatch error. Verify the `[ID]` type name matches between the field that produced the ID and the argument that consumes it.
-
-## MaxAllowedNodeBatchSize
-
-In v16, `MaxAllowedNodeBatchSize` has moved from the `Node` type configuration to the `AddGlobalObjectIdentification` options. Pass it when calling `AddGlobalObjectIdentification(opts => opts.MaxAllowedNodeBatchSize = 50)`.
-
 # Next Steps
 
-- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need pagination?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
+- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
+- **Need pagination?** See [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination).
 - **Need to understand ID types?** See [Scalars](/docs/hotchocolate/v16/defining-a-schema/scalars).
 - **Need to extend types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).

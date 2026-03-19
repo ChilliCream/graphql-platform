@@ -18,7 +18,7 @@ Combine cost analysis with:
 - **Execution depth limits** to prevent deeply nested queries.
 - **Execution timeouts** to abort long-running queries.
 
-[Learn more about cost analysis](/docs/hotchocolate/v16/security/cost-analysis)
+[Learn more about cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis)
 
 # Private APIs: Trusted Documents
 
@@ -26,7 +26,7 @@ Private APIs serve known clients that you control, such as your own web or mobil
 
 With trusted documents, you extract all GraphQL operations from your client at build time and register them with the server. At runtime, the server only accepts operations it recognizes. This eliminates the risk of arbitrary queries entirely.
 
-[Learn more about trusted documents](/docs/hotchocolate/v16/performance/persisted-operations)
+[Learn more about trusted documents](/docs/hotchocolate/v16/performance/trusted-documents)
 
 # Defense in Depth
 
@@ -36,13 +36,13 @@ Regardless of whether your API is public or private, apply these additional prot
 
 Authentication determines who is making a request. Hot Chocolate integrates with the ASP.NET Core authentication system, supporting JWT, cookies, and other authentication schemes.
 
-[Learn more about authentication](/docs/hotchocolate/v16/security/authentication)
+[Learn more about authentication](/docs/hotchocolate/v16/securing-your-api/authentication)
 
 ## Authorization
 
 Authorization controls what an authenticated user can access. Hot Chocolate provides the `@authorize` directive for field-level and type-level access control, integrating with ASP.NET Core roles and policies.
 
-[Learn more about authorization](/docs/hotchocolate/v16/security/authorization)
+[Learn more about authorization](/docs/hotchocolate/v16/securing-your-api/authorization)
 
 ## Execution Depth
 
@@ -97,7 +97,7 @@ builder.Services
 
 Introspection powers developer tools but can also reveal your schema to attackers. You can restrict or disable introspection in production.
 
-[Learn more about introspection](/docs/hotchocolate/v16/server/introspection#disabling-introspection)
+[Learn more about introspection](/docs/hotchocolate/v16/securing-your-api/introspection#disabling-introspection)
 
 ## FIPS Compliance
 
@@ -110,34 +110,11 @@ builder.Services
     .AddSha256DocumentHashProvider();
 ```
 
-[Learn more about hashing providers](/docs/hotchocolate/v16/performance/persisted-operations#hashing-algorithms)
-
-# Troubleshooting
-
-## Queries rejected with cost exceeded error
-
-Review your cost analysis configuration. The default limits (`MaxFieldCost = 1000`, `MaxTypeCost = 1000`) may be too low for your schema. Use the `GraphQL-Cost: report` header to inspect the cost of your queries before adjusting limits.
-
-[Learn how to tune cost analysis](/docs/hotchocolate/v16/security/cost-analysis)
-
-## Authenticated users receive "not authorized" errors
-
-Verify the middleware order in your pipeline: `UseAuthentication()` must come before `UseAuthorization()`. Also check that `AddAuthorization()` is called on both `IServiceCollection` and `IRequestExecutorBuilder`.
-
-## Introspection disabled in development
-
-If introspection is disabled and you cannot use Nitro, enable it conditionally:
-
-```csharp
-if (app.Environment.IsDevelopment())
-{
-    // Introspection is allowed by default
-}
-```
+[Learn more about hashing providers](/docs/hotchocolate/v16/performance/trusted-documents#hashing-algorithms)
 
 # Next Steps
 
-- **Building a public API?** Start with [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
-- **Building a private API?** Start with [Trusted Documents](/docs/hotchocolate/v16/performance/persisted-operations).
-- **Need authentication?** See [Authentication](/docs/hotchocolate/v16/security/authentication).
-- **Need authorization?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
+- **Building a public API?** Start with [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis).
+- **Building a private API?** Start with [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
+- **Need authentication?** See [Authentication](/docs/hotchocolate/v16/securing-your-api/authentication).
+- **Need authorization?** See [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization).

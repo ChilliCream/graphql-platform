@@ -278,24 +278,6 @@ public class PostExtensions
 
 The extension applies to every object type that implements `IPost`, not to the interface type itself.
 
-# Troubleshooting
-
-## Extension not applied
-
-Verify you have registered the extension with `.AddTypeExtension<T>()`. Unlike regular types, extensions require explicit registration.
-
-## Source generator extension not discovered
-
-When using `[ExtendObjectType<T>]` with the source generator, the class must be `partial`. The source generator cannot extend non-partial classes.
-
-## Conflicting field names
-
-If an extension adds a field that already exists on the type, the schema fails to build. Either remove the duplicate field or use `[BindMember]` to replace the existing one.
-
-## Extension across assemblies
-
-Type extensions work across assembly boundaries. The assembly containing the extension must reference the assembly containing the original type and must use the Hot Chocolate source generator. Register the extension types in the main project's service configuration.
-
 # Next Steps
 
 - **Need to define root types?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries) and [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations).

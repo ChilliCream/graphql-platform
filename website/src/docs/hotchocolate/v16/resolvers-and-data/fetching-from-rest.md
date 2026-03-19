@@ -130,7 +130,7 @@ You can now open Nitro on your GraphQL server at `/graphql` and query your REST 
 
 # Using DataLoaders with REST
 
-When multiple GraphQL fields resolve data from the same REST endpoint, use a [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) to batch and deduplicate calls. This prevents sending redundant HTTP requests for the same resource.
+When multiple GraphQL fields resolve data from the same REST endpoint, use a [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) to batch and deduplicate calls. This prevents sending redundant HTTP requests for the same resource.
 
 ```csharp
 // DataLoaders/TodoByIdDataLoader.cs
@@ -157,22 +157,8 @@ public class TodoByIdDataLoader : BatchDataLoader<long, TodoItem>
 }
 ```
 
-# Troubleshooting
-
-## Generated client throws serialization errors
-
-Verify that the `Newtonsoft.Json` package is installed and the generated client version matches the OpenAPI spec version. Regenerate the client if the REST API schema has changed.
-
-## HTTP calls are slow or timing out
-
-Register the generated client with `AddHttpClient<T>()` to leverage `HttpClientFactory`, which manages connection pooling and lifetime. Set appropriate timeouts on the `HttpClient`.
-
-## N+1 requests to the REST API
-
-If you see one HTTP request per item in a list, add a DataLoader to batch the calls. Without batching, each GraphQL field triggers a separate REST call.
-
 # Next Steps
 
-- **Need to batch REST calls?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need to fetch from a database instead?** See [Fetching from Databases](/docs/hotchocolate/v16/fetching-data/fetching-from-databases).
-- **Need to understand resolvers?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
+- **Need to batch REST calls?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
+- **Need to fetch from a database instead?** See [Fetching from Databases](/docs/hotchocolate/v16/resolvers-and-data/fetching-from-databases).
+- **Need to understand resolvers?** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers).

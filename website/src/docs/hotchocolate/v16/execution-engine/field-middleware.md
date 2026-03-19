@@ -282,20 +282,9 @@ descriptor
     })
 ```
 
-# Troubleshooting
-
-**Middleware executes in an unexpected order**
-Verify the declaration order. Middleware declared first runs first on the way down, but processes results last on the way back up. If you are using attributes, check the `Order` property or the line numbers.
-
-**Result is null after calling next(context)**
-The field resolver may have returned `null`, or a preceding middleware may have set `Result` to `null`. Check whether all required data is available in the resolver.
-
-**Middleware pipeline validation error at startup**
-Hot Chocolate validates the order of built-in data middleware (paging, filtering, sorting) by default. If you receive an ordering error, rearrange your middleware so that `UsePaging` is declared before `UseFiltering`, which is declared before `UseSorting`.
-
 # Next Steps
 
 - [Execution engine overview](/docs/hotchocolate/v16/execution-engine) for request-level middleware
-- [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for field resolution
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [sorting](/docs/hotchocolate/v16/fetching-data/sorting) middleware
-- [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) middleware
+- [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for field resolution
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) and [sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting) middleware
+- [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) middleware

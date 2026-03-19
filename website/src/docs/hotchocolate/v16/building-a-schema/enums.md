@@ -206,20 +206,6 @@ public class UserRoleType : EnumType<string>
 
 This is useful when enum values come from configuration or a database rather than a compile-time C# enum.
 
-# Troubleshooting
-
-## Enum value not recognized
-
-If a client sends a string like `"guest"` (lowercase) and the schema expects `GUEST`, the request fails validation. Verify the client is sending the exact `UPPER_SNAKE_CASE` value.
-
-## Duplicate enum type name
-
-If two C# enums produce the same GraphQL name, the schema fails to build. Use `[GraphQLName]` on one of the enums to disambiguate.
-
-## Code-first enum not applied
-
-If you are using `EnumType<T>` and the enum does not appear in the schema, verify you have registered it with `.AddType<UserRoleType>()`. Code-first enums require explicit registration.
-
 # Next Steps
 
 - **Need to define output types?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).

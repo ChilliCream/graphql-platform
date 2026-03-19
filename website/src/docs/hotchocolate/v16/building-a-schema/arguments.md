@@ -206,23 +206,9 @@ type Query {
 }
 ```
 
-# Troubleshooting
-
-## Argument not appearing in schema
-
-Verify the parameter is `public` and is not a type that Hot Chocolate recognizes as a service (like `CancellationToken`, `ClaimsPrincipal`, or types registered in DI). Service types are injected but not exposed as arguments.
-
-## Wrong nullability on argument
-
-Check whether nullable reference types are enabled in your project. With NRT enabled, `string` is non-null and `string?` is nullable. Without NRT, all reference types default to nullable. See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
-
-## ID deserialization fails
-
-If a global ID cannot be deserialized, the error message indicates a type mismatch. Verify that the `[ID]` type name matches the type that serialized the ID. If using `[ID(nameof(Product))]`, the ID must have been serialized for the `Product` type.
-
 # Next Steps
 
 - **Need structured input?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
 - **Need to understand nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
 - **Need global IDs?** See [Relay](/docs/hotchocolate/v16/defining-a-schema/relay).
-- **Need to set up resolvers?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
+- **Need to set up resolvers?** See [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers).

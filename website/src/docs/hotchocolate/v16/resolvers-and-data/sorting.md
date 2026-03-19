@@ -259,27 +259,9 @@ For fields where no explicit binding exists, `DefaultSortEnumType` (with `ASC` a
 descriptor.AddDefaults().DefaultBinding<AscOnlySortEnumType>();
 ```
 
-# Troubleshooting
-
-## Sort argument not appearing on the field
-
-Verify that `AddSorting()` is called on the schema builder and `[UseSorting]` is applied to the resolver. Both are required.
-
-## Sorting not translating to SQL
-
-Ensure your resolver returns `IQueryable<T>`, not `IEnumerable<T>`. When you return `IEnumerable<T>`, sorting happens in memory after loading all data from the database.
-
-## Collection properties appear in sort input
-
-Sorting does not apply to collection properties because ordering by a list is not meaningful. If collection properties appear in your sort type, you may need to use `BindFieldsExplicitly` and specify only the fields you want.
-
-## Null values sort in unexpected order
-
-Set `NullOrdering` in `PagingOptions` to match your database's native behavior. PostgreSQL defaults to nulls-last, while SQL Server defaults to nulls-first.
-
 # Next Steps
 
-- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
-- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
-- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
+- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering).
+- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination).
+- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections).
+- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis).
