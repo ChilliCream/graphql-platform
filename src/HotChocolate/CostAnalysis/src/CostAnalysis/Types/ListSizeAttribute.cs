@@ -21,7 +21,7 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     /// This property is intended to be set via attribute initialization only;
     /// reading the value at runtime is not supported.
     /// </summary>
-    /// <exception cref="NotSupportedException"> Thrown when attempting to read this property at runtime. </exception>
+    /// <exception cref="NotSupportedException">Thrown when attempting to read this property at runtime.</exception>
     public int AssumedSize
     {
         get => throw new NotSupportedException();
@@ -44,7 +44,7 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     /// This property is intended to be set via attribute initialization only;
     /// reading the value at runtime is not supported.
     /// </summary>
-    /// <exception cref="NotSupportedException"> Thrown when attempting to read this property at runtime. </exception>
+    /// <exception cref="NotSupportedException">Thrown when attempting to read this property at runtime.</exception>
     public int SlicingArgumentDefaultValue
     {
         get => throw new NotSupportedException();
