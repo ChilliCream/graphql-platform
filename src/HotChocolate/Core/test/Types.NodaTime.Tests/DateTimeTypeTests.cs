@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using NodaTime;
 
-namespace HotChocolate.Types.NodaTime.Tests;
+namespace HotChocolate.Types.NodaTime;
 
 public class DateTimeTypeTests
 {
