@@ -10,11 +10,12 @@ request:
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "Unexpected Execution Error"
+      "data": {
+        "votable": {
+          "id": "RGlzY3Vzc2lvbjox",
+          "viewerCanVote": true
         }
-      ]
+      }
     }
 sourceSchemas:
   - name: A
@@ -38,6 +39,26 @@ sourceSchemas:
       type Query {
         votable: Votable
       }
+    interactions:
+      - request:
+          document: |
+            query Op_fb4e28df_1 {
+              votable {
+                __typename
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "id": "RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
   - name: B
     schema: |
       schema {
@@ -63,3 +84,96 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup
         commentById(id: ID!): Comment @lookup
       }
+    interactions:
+      - request:
+          document: |
+            query Op_fb4e28df_2(
+              $__fusion_1_id: ID!
+            ) {
+              discussionById(id: $__fusion_1_id) {
+                __typename
+                viewerCanVote
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          votable {
+            __typename @fusion__requirement
+            id
+            id @fusion__requirement
+            viewerCanVote
+          }
+        }
+      hash: fb4e28df20f489a10c0f71a560445d04
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_fb4e28df_1 {
+          votable {
+            __typename
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_fb4e28df_2(
+          $__fusion_1_id: ID!
+        ) {
+          discussionById(id: $__fusion_1_id) {
+            __typename
+            viewerCanVote
+          }
+        }
+      source: $.discussionById
+      target: $.votable<Discussion>
+      batchingGroupId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_fb4e28df_3(
+          $__fusion_2_id: ID!
+        ) {
+          commentById(id: $__fusion_2_id) {
+            __typename
+            viewerCanVote
+          }
+        }
+      source: $.commentById
+      target: $.votable<Comment>
+      batchingGroupId: 1
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
