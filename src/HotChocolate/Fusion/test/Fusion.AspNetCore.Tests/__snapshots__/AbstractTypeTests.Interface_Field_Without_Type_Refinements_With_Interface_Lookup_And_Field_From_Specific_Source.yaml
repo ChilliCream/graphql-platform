@@ -1,0 +1,166 @@
+title: Interface_Field_Without_Type_Refinements_With_Interface_Lookup_And_Field_From_Specific_Source
+request:
+  document: |
+    {
+      votable {
+        id
+        totalVotes
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "votable": {
+          "id": "RGlzY3Vzc2lvbjox",
+          "totalVotes": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+      }
+
+      type Discussion implements Votable @key(fields: "id") {
+        id: ID!
+      }
+
+      type Query {
+        votable: Votable
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_1bcbe788_1 {
+              votable {
+                __typename
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "id": "RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+
+      type Discussion implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+
+      type Query {
+        votableById(id: ID!): Votable @lookup @shareable
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Votable {
+        id: ID!
+        totalVotes: Int!
+      }
+
+      type Discussion implements Votable {
+        id: ID!
+        totalVotes: Int!
+      }
+
+      type Query {
+        votableById(id: ID!): Votable @lookup @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_1bcbe788_2(
+              $__fusion_1_id: ID!
+            ) {
+              votableById(id: $__fusion_1_id) {
+                __typename
+                totalVotes
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votableById": {
+                    "__typename": "Discussion",
+                    "totalVotes": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          votable {
+            __typename @fusion__requirement
+            id
+            id @fusion__requirement
+            totalVotes
+          }
+        }
+      hash: 1bcbe788569dbb79a305829bc99385cf
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_1bcbe788_1 {
+          votable {
+            __typename
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: C
+      operation: |
+        query Op_1bcbe788_2(
+          $__fusion_1_id: ID!
+        ) {
+          votableById(id: $__fusion_1_id) {
+            __typename
+            totalVotes
+          }
+        }
+      source: $.votableById
+      target: $.votable
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

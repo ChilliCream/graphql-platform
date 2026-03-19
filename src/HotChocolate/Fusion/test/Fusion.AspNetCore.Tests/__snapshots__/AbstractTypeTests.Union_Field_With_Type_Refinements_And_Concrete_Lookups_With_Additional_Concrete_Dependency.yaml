@@ -1,0 +1,246 @@
+title: Union_Field_With_Type_Refinements_And_Concrete_Lookups_With_Additional_Concrete_Dependency
+request:
+  document: |
+    {
+      search {
+        ... on User {
+          reputation
+          profile
+        }
+        ... on Product {
+          price
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "search": {
+          "reputation": 123,
+          "profile": "User: VXNlcjox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+
+      type Query {
+        search: SearchResult
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+      }
+
+      union SearchResult = User | Product
+    interactions:
+      - request:
+          document: |
+            query Op_e8751f64_1 {
+              search {
+                __typename
+                ... on User {
+                  id
+                }
+                ... on Product {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "search": {
+                    "__typename": "User",
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        id: ID!
+        price: Float!
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup @shareable
+        productById(id: ID!): Product @lookup
+      }
+
+      type User {
+        id: ID!
+        reputation: Int!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e8751f64_3(
+              $__fusion_2_id: ID!
+            ) {
+              userById(id: $__fusion_2_id) {
+                reputation
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reputation": 123
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup @shareable
+      }
+
+      type User {
+        id: ID!
+        profile: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e8751f64_4(
+              $__fusion_3_id: ID!
+            ) {
+              userById(id: $__fusion_3_id) {
+                profile
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "profile": "User: VXNlcjox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          search {
+            __typename @fusion__requirement
+            ... on User {
+              reputation
+              profile
+              id @fusion__requirement
+            }
+            ... on Product {
+              price
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: e8751f643c686c83b20ce5da12fee405
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_e8751f64_1 {
+          search {
+            __typename
+            ... on User {
+              id
+            }
+            ... on Product {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_e8751f64_2(
+          $__fusion_1_id: ID!
+        ) {
+          productById(id: $__fusion_1_id) {
+            price
+          }
+        }
+      source: $.productById
+      target: $.search<Product>
+      batchingGroupId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_e8751f64_3(
+          $__fusion_2_id: ID!
+        ) {
+          userById(id: $__fusion_2_id) {
+            reputation
+          }
+        }
+      source: $.userById
+      target: $.search<User>
+      batchingGroupId: 1
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: C
+      operation: |
+        query Op_e8751f64_4(
+          $__fusion_3_id: ID!
+        ) {
+          userById(id: $__fusion_3_id) {
+            profile
+          }
+        }
+      source: $.userById
+      target: $.search<User>
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
