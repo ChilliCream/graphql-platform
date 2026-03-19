@@ -219,7 +219,7 @@ public sealed class StaticQueryAnalysisTests
                 """,
                 "examples { field1, field2 }"
             },
-            // @listSize directive with slicing arguments and slicing arguments default value.
+            // @listSize directive with slicing arguments and slicing argument default value.
             // (no limit in query, with assumedSize, slicingArgumentDefaultValue: 42 and requireOneSlicingArgument: false).
             {
                 9,
