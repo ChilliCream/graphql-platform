@@ -73,6 +73,13 @@ RUN sed -i 's/ZSH_THEME=".*"/ZSH_THEME="agnoster"/' /home/vscode/.zshrc \
 # Set zsh as default shell for vscode user
 RUN chsh -s /bin/zsh vscode
 
+# Configure GitHub SSH to use port 443 (avoids firewall blocks on port 22)
+RUN mkdir -p /home/vscode/.ssh \
+    && printf "Host github.com\n    Hostname ssh.github.com\n    Port 443\n    User git\n" > /home/vscode/.ssh/config \
+    && chown -R vscode:vscode /home/vscode/.ssh \
+    && chmod 700 /home/vscode/.ssh \
+    && chmod 600 /home/vscode/.ssh/config
+
 # Clean up
 RUN rm dotnet-install.sh \
     && apt-get clean \
