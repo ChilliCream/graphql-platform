@@ -18,8 +18,16 @@ public sealed class FusionObjectTypeDefinition(
     : FusionComplexTypeDefinition(name, description, isInaccessible, fieldsDefinition)
     , IObjectTypeDefinition
 {
+    private FusionTypeFlags _flags;
+
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
+
+    /// <inheritdoc />
+    public override bool IsSharedType => (_flags & FusionTypeFlags.Shared) != 0;
+
+    /// <inheritdoc />
+    public override bool IsEntityType => (_flags & FusionTypeFlags.Entity) != 0;
 
     /// <summary>
     /// Gets metadata about this object type in its source schemas.
@@ -43,6 +51,7 @@ public sealed class FusionObjectTypeDefinition(
         Implements = context.Interfaces;
         base.Sources = context.Sources;
         Features = context.Features;
+        SetFlags(context.Sources);
 
         Complete();
     }
@@ -70,6 +79,23 @@ public sealed class FusionObjectTypeDefinition(
         }
 
         return false;
+    }
+
+    private void SetFlags(ISourceComplexTypeCollection<SourceObjectType> sources)
+    {
+        if (sources.Schemas.Length > 1)
+        {
+            _flags |= FusionTypeFlags.Shared;
+        }
+
+        foreach (var source in sources)
+        {
+            if (source.Lookups.Length > 0)
+            {
+                _flags |= FusionTypeFlags.Entity;
+                break;
+            }
+        }
     }
 
     /// <summary>

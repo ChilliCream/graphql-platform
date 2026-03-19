@@ -3,13 +3,24 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
+/// <summary>
+/// Parses a JSON-encoded operation plan into an <see cref="OperationPlan"/>,
+/// reconstructing the operation, execution nodes, and their dependency graph.
+/// </summary>
 public sealed class JsonOperationPlanParser : OperationPlanParser
 {
     private readonly OperationCompiler _operationCompiler;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="JsonOperationPlanParser"/>.
+    /// </summary>
+    /// <param name="operationCompiler">
+    /// The compiler used to compile parsed operation definitions.
+    /// </param>
     public JsonOperationPlanParser(OperationCompiler operationCompiler)
     {
         ArgumentNullException.ThrowIfNull(operationCompiler);
@@ -17,6 +28,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         _operationCompiler = operationCompiler;
     }
 
+    /// <inheritdoc />
     public override OperationPlan Parse(ReadOnlyMemory<byte> planSourceText)
     {
         using var document = JsonDocument.Parse(planSourceText);
@@ -76,10 +88,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             var nodeType = nodeElement.GetProperty("type").GetString()!;
             var id = nodeElement.GetProperty("id").GetInt32();
 
+            var schema = _operationCompiler.Schema;
             (ExecutionNode, int[]?, Dictionary<string, int>?, int?) node = nodeType switch
             {
-                "Operation" => ParseOperationNode(nodeElement, id),
-                "OperationBatch" => ParseOperationBatchNode(nodeElement, id),
+                "Operation" => ParseOperationNode(nodeElement, id, schema),
+                "OperationBatch" => ParseOperationBatchNode(nodeElement, id, schema),
                 "Introspection" => ParseIntrospectionNode(nodeElement, id, operation),
                 "Node" => ParseNodeFieldNode(nodeElement, id, operation),
                 _ => throw new NotSupportedException($"Unsupported node type: {nodeType}")
@@ -151,7 +164,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static (OperationExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationNode(
-        JsonElement nodeElement, int id)
+        JsonElement nodeElement, int id, ISchemaDefinition schema)
     {
         string? schemaName = null;
         if (nodeElement.TryGetProperty("schema", out var schemaElement))
@@ -169,7 +182,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         SelectionPath? target = null;
         List<OperationRequirement>? requirements = null;
         string[]? forwardedVariables = null;
-        string[]? responseNames = null;
+        SelectionSetNode? resultSelectionSet = null;
         int[]? dependencies = null;
         int? batchingGroupId = null;
 
@@ -210,12 +223,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
-        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
+        if (nodeElement.TryGetProperty("resultSelectionSet", out var resultSelectionSetElement)
+            && resultSelectionSetElement.GetString() is { Length: > 0 } resultSelectionSetSyntax)
         {
-            responseNames = responseNamesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
+            resultSelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(resultSelectionSetSyntax);
+        }
+
+        if (resultSelectionSet is null)
+        {
+            throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
 
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
@@ -248,7 +264,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             source ?? SelectionPath.Root,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            responseNames ?? [],
+            ResultSelectionSet.Create(resultSelectionSet, schema),
             conditions,
             batchingGroupId,
             requiresFileUpload);
@@ -257,7 +273,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static (OperationBatchExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationBatchNode(
-        JsonElement nodeElement, int id)
+        JsonElement nodeElement, int id, ISchemaDefinition schema)
     {
         string? schemaName = null;
         if (nodeElement.TryGetProperty("schema", out var schemaElement))
@@ -274,7 +290,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         SelectionPath? source = null;
         List<OperationRequirement>? requirements = null;
         string[]? forwardedVariables = null;
-        string[]? responseNames = null;
+        SelectionSetNode? resultSelectionSet = null;
         int[]? dependencies = null;
         int? batchingGroupId = null;
 
@@ -314,12 +330,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
-        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
+        if (nodeElement.TryGetProperty("resultSelectionSet", out var resultSelectionSetElement)
+            && resultSelectionSetElement.GetString() is { Length: > 0 } resultSelectionSetSyntax)
         {
-            responseNames = responseNamesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
+            resultSelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(resultSelectionSetSyntax);
+        }
+
+        if (resultSelectionSet is null)
+        {
+            throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
 
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
@@ -352,7 +371,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             source ?? SelectionPath.Root,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            responseNames ?? [],
+            ResultSelectionSet.Create(resultSelectionSet, schema),
             conditions,
             batchingGroupId,
             requiresFileUpload);

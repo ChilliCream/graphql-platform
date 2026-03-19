@@ -1,11 +1,9 @@
 ---
 title: Executable
+description: Learn how to use the IExecutable interface to abstract data sources in Hot Chocolate v16.
 ---
 
-The `IExecutable` and `IExecutable<T>` interfaces are intended to be used by data providers.
-These interfaces can abstract any kind of data source.
-The data or domain layer can wrap data in an executable and pass it to the GraphQL layer.
-A GraphQL resolver that returns an `IExecutable<T>` is recognized as a list.
+The `IExecutable` and `IExecutable<T>` interfaces abstract data sources in Hot Chocolate. Your data or domain layer can wrap a data source in an executable and pass it to the GraphQL layer. A resolver that returns `IExecutable<T>` is recognized as a list.
 
 ```csharp
 public class User
@@ -31,54 +29,45 @@ type Query {
 }
 ```
 
-This abstraction can be used to completely decouple the GraphQL layer form the database-specific knowledge.
+This abstraction completely decouples the GraphQL layer from database-specific knowledge.
 
-Filtering, sorting, projections et al, can pick up the executable and apply logic to it. There is still
-a database-specific provider needed for these features, but it is opaque to the GraphQL layer.
+Filtering, sorting, and projections can pick up the executable and apply logic to it. A database-specific provider is still needed for these features, but it is opaque to the GraphQL layer.
 
-The `IExecutable` is known to the execution engine. The engine calls `ToListAsync`, `FirstOrDefault` or
-`SingleOrDefault` on the executable. The executable shall execute it in the most efficient way for the
-database.
+The execution engine calls `ToListAsync`, `FirstOrDefaultAsync`, or `SingleOrDefaultAsync` on the executable. The executable runs these operations in the most efficient way for the database.
 
 # API
 
 ## Source
 
 ```csharp
-    object Source { get; }
+object Source { get; }
 ```
 
-The source property stores the current state of the executable
-
-In the EntityFramework executable this property holds the `IQueryable`. In the `MongoExecutable` it is the
-`DbSet<T>` or the `IAggregateFluent<T>`. `Source` is deliberately read-only. If you have a custom implementation
-of `IExecutable` and you want to set the `Source`, you should create a method that returns a new executable
-with the new source
+The `Source` property holds the current state of the executable. For Entity Framework, this holds the `IQueryable`. For MongoDB, it is the `DbSet<T>` or `IAggregateFluent<T>`. `Source` is read-only. If you have a custom `IExecutable` implementation and need to change the source, create a method that returns a new executable with the new source.
 
 ## ToListAsync
 
 ```csharp
-    ValueTask<IList> ToListAsync(CancellationToken cancellationToken);
+ValueTask<IList> ToListAsync(CancellationToken cancellationToken);
 ```
 
-Should return a list of `<T>`.
+Returns a list of items.
 
-## FirstOrDefault
+## FirstOrDefaultAsync
 
 ```csharp
-    ValueTask<IList> FirstOrDefault(CancellationToken cancellationToken);
+ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken);
 ```
 
-Should return the first element of a sequence, or a default value if the sequence contains no elements.
+Returns the first element of the sequence, or a default value if the sequence contains no elements.
 
-## SingleOrDefault
+## SingleOrDefaultAsync
 
 ```csharp
-    ValueTask<IList> SingleOrDefault(CancellationToken cancellationToken);
+ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken);
 ```
 
-Should return the only element of a default value if no such element exists. This method
-should throw an exception if more than one element satisfies the condition.
+Returns the only element of the sequence, or a default value if no element exists. Throws an exception if more than one element satisfies the condition.
 
 ## Print
 
@@ -86,9 +75,11 @@ should throw an exception if more than one element satisfies the condition.
 string Print();
 ```
 
-Prints the executable in its current state
+Prints the executable in its current state. This is useful for debugging and logging the generated query.
 
 # Example
+
+The following shows the Entity Framework implementation:
 
 ```csharp
 public class EntityFrameworkExecutable<T> : QueryableExecutable<T>
@@ -101,17 +92,13 @@ public class EntityFrameworkExecutable<T> : QueryableExecutable<T>
     {
     }
 
-    /// <summary>
-    /// Returns a new enumerable executable with the provided source
-    /// </summary>
-    /// <param name="source">The source that should be set</param>
-    /// <returns>The new instance of an enumerable executable</returns>
     public QueryableExecutable<T> WithSource(IQueryable<T> source)
     {
         return new QueryableExecutable<T>(source);
     }
 
-    public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
+    public override async ValueTask<IList> ToListAsync(
+        CancellationToken cancellationToken) =>
         await Source.ToListAsync(cancellationToken).ConfigureAwait(false);
 
     public override async ValueTask<object?> FirstOrDefaultAsync(
@@ -125,3 +112,9 @@ public class EntityFrameworkExecutable<T> : QueryableExecutable<T>
     public override string Print() => Source.ToQueryString();
 }
 ```
+
+# Next Steps
+
+- [Entity Framework integration](/docs/hotchocolate/v16/integrations/entity-framework) for EF Core executables
+- [MongoDB integration](/docs/hotchocolate/v16/integrations/mongodb) for MongoDB executables
+- [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering) for applying filters to executables

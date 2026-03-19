@@ -105,6 +105,25 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition, IFus
         => Fields;
 
     /// <summary>
+    /// Gets a value indicating whether this type is shared across multiple source schemas.
+    /// </summary>
+    public abstract bool IsSharedType { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this type is an entity type.
+    /// An entity type is shared and has lookups that allow it to be
+    /// resolved independently by source schemas.
+    /// </summary>
+    public abstract bool IsEntityType { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this type is a value type.
+    /// A value type is shared across multiple source schemas but has no
+    /// entity lookups — it cannot be independently resolved.
+    /// </summary>
+    public bool IsValueType => IsSharedType && !IsEntityType;
+
+    /// <summary>
     /// Gets metadata about this complex type in its source schemas.
     /// Each entry in the collection provides information about this complex type
     /// that is specific to the source schemas the type was composed of.

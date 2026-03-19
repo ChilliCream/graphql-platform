@@ -1,4 +1,4 @@
-ThreadPool.SetMinThreads(1024, 1024);
+ThreadPool.SetMinThreads(512, 512);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +11,7 @@ builder.Services.AddHttpClient("Fusion")
 
 builder
     .AddGraphQLGateway()
-    .ModifyPlannerOptions(o => o.EnableRequestGrouping = true)
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddFileSystemConfiguration("gateway.far");
 
 var app = builder.Build();
 

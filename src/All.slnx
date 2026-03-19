@@ -173,6 +173,7 @@
   </Folder>
   <Folder Name="/HotChocolate/Diagnostics/" />
   <Folder Name="/HotChocolate/Diagnostics/src/">
+    <Project Path="HotChocolate/Diagnostics/src/Diagnostics.Core/HotChocolate.Diagnostics.Core.csproj" />
     <Project Path="HotChocolate/Diagnostics/src/Diagnostics/HotChocolate.Diagnostics.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Diagnostics/test/">

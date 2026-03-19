@@ -1,5 +1,5 @@
 ---
-title: "Field Ownership and Sharing"
+title: "Field Ownership"
 ---
 
 Field ownership defines which subgraph is responsible for each field in the composite schema. Clear ownership boundaries keep composition predictable and prevent semantic drift across teams.

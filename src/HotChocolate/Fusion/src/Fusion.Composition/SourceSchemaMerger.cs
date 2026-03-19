@@ -51,6 +51,10 @@ internal sealed class SourceSchemaMerger
             new Dictionary<string, IDirectiveMerger>
             {
                 {
+                    DirectiveNames.Authorize,
+                    new AuthorizeDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
                     DirectiveNames.CacheControl,
                     new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior)
                 },
@@ -738,6 +742,8 @@ internal sealed class SourceSchemaMerger
             () =>
             {
                 var memberDefinitions = typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.Authorize]
+                    .MergeDirectives(objectType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Cost]
@@ -862,6 +868,8 @@ internal sealed class SourceSchemaMerger
             {
                 var memberDefinitions =
                     fieldGroup.Select(g => new DirectivesProviderInfo(g.Field, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.Authorize]
+                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Cost]

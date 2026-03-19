@@ -4,15 +4,15 @@ title: Warmup
 
 By default, Hot Chocolate constructs the schema eagerly during server startup. This means the schema and request executor are fully initialized before Kestrel begins accepting requests, ensuring initial requests perform optimally without any cold-start penalty.
 
-This eager initialization also tightens the development feedback loop as schema misconfigurations will cause errors at startup rather than when the first request arrives.
+This eager initialization also tightens the development feedback loop because schema misconfigurations cause errors at startup rather than when the first request arrives.
 
-In environments with load balancers, this default behavior works seamlessly with health checks and Readiness Probes, since your server won't report as ready until the schema is fully constructed.
+In environments with load balancers, this default behavior works well with health checks and readiness probes, since your server does not report as ready until the schema is fully constructed.
 
-# Warming up the executor
+# Warming Up the Executor
 
-While eager initialization ensures your schema is ready at startup, you might want to go further and pre-populate in-memory caches like the document and operation cache before serving any requests.
+While eager initialization ensures your schema is ready at startup, you might want to go further and pre-populate in-memory caches like the document cache and operation cache before serving any requests.
 
-You can add warmup tasks using the `AddWarmupTask()` method, which allows you to execute requests against the newly created schema during initialization:
+Register warmup tasks using the `AddWarmupTask()` method to execute requests against the newly created schema during initialization:
 
 ```csharp
 builder.Services
@@ -23,11 +23,11 @@ builder.Services
     });
 ```
 
-The warmup process is blocking, meaning the server won't start answering requests until both the schema creation and all warmup tasks have finished.
+The warmup process is blocking. The server does not start answering requests until both the schema creation and all warmup tasks have finished.
 
-By default, warmup tasks run both at server startup and whenever the schema is rebuilt at runtime (for example, when using [dynamic schemas](/docs/hotchocolate/v16/defining-a-schema/dynamic-schemas)). When the request executor changes, warmup tasks execute in the background while requests continue to be handled by the old request executor. Once warmup is complete, requests will be served by the new and already warmed-up request executor.
+By default, warmup tasks run both at server startup and whenever the schema is rebuilt at runtime (for example, when using [dynamic schemas](/docs/hotchocolate/v16/building-a-schema/dynamic-schemas)). When the request executor changes, warmup tasks execute in the background while requests continue to be handled by the old request executor. Once warmup completes, requests are served by the new and already warmed-up request executor.
 
-Since the execution of an operation could have side-effects, you might want to only warm up the executor but skip the actual execution of the request. For this you can mark an operation as a warmup request:
+Since the execution of an operation could have side-effects, you might want to warm up the executor but skip the actual execution of the request. Mark an operation as a warmup request for this purpose:
 
 ```csharp
 var request = OperationRequestBuilder.New()
@@ -38,9 +38,9 @@ var request = OperationRequestBuilder.New()
 await executor.ExecuteAsync(request, cancellationToken);
 ```
 
-Requests marked as warmup requests will be able to skip security measures like persisted operations and will finish without actually executing the specified operation.
+Requests marked as warmup requests skip security measures like persisted operations and finish without actually executing the specified operation.
 
-Keep in mind that the operation name is part of the operation cache. If your client is sending an operation name, you also want to include that operation name in the warmup request, or the actual request will miss the cache:
+Keep in mind that the operation name is part of the operation cache. If your client sends an operation name, include that operation name in the warmup request as well, or the actual request will miss the cache:
 
 ```csharp
 var request = OperationRequestBuilder.New()
@@ -52,9 +52,9 @@ var request = OperationRequestBuilder.New()
 await executor.ExecuteAsync(request, cancellationToken);
 ```
 
-## Custom warmup tasks
+## Custom Warmup Tasks
 
-For more control over warmup behavior, you can implement the `IRequestExecutorWarmupTask` interface:
+For more control over warmup behavior, implement the `IRequestExecutorWarmupTask` interface:
 
 ```csharp
 builder.Services
@@ -75,8 +75,36 @@ public class MyWarmupTask : IRequestExecutorWarmupTask
 }
 ```
 
-The `ApplyOnlyOnStartup` property controls whether the warmup task should run only at server startup (`true`) or also when the request executor is rebuilt at runtime (`false`, the default).
-Register your custom warmup task using any of these approaches:
+The `ApplyOnlyOnStartup` property controls whether the warmup task runs only at server startup (`true`) or also when the request executor is rebuilt at runtime (`false`, the default).
+
+You can register your custom warmup task using either the delegate form or the generic form:
+
+```csharp
+// Delegate form
+builder.Services
+    .AddGraphQLServer()
+    .AddWarmupTask(async (executor, ct) =>
+    {
+        await executor.ExecuteAsync("{ __typename }", ct);
+    });
+
+// Generic form with IRequestExecutorWarmupTask
+builder.Services
+    .AddGraphQLServer()
+    .AddWarmupTask<MyWarmupTask>();
+```
+
+## Exporting the Schema on Startup
+
+If you need to export the schema as part of your startup process (for example, for CI/CD or schema registry integration), use the `ExportSchemaOnStartup()` method:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ExportSchemaOnStartup("./schema.graphql");
+```
+
+This writes the schema SDL to the specified file path during server initialization.
 
 <!--
 ### Accessing services
@@ -114,7 +142,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 ```
 -->
 
-# Opting into lazy initialization
+# Opting into Lazy Initialization
 
 If you need to defer schema construction until the first request (though this is rarely recommended), you can opt into lazy initialization:
 
@@ -124,4 +152,10 @@ builder.Services
     .ModifyOptions(options => options.LazyInitialization = true)
 ```
 
-With lazy initialization enabled, the schema will only be constructed when it's first needed. Either when a request is executed or when the schema is otherwise accessed. Depending on the size of your schema and the configured warmup tasks, this will cause initial requests to run longer than they would with eager initialization.
+With lazy initialization enabled, the schema is constructed when it is first needed, either when a request is executed or when the schema is otherwise accessed. Depending on the size of your schema and the configured warmup tasks, this causes initial requests to run longer than they would with eager initialization.
+
+# Next Steps
+
+- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for monitoring request execution and tracing.
+- [Dynamic Schemas](/docs/hotchocolate/v16/building-a-schema/dynamic-schemas) for schemas that change at runtime.
+- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#eager-initialization-by-default) for migration details on the `InitializeOnStartup` removal.

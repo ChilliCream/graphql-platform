@@ -101,6 +101,37 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Fetch_Tool_When_Disabled_With_ServerOptions_Override()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(o => o.Tool.Enable = false));
+
+        // act
+        var result = await GetAsync(server, "/graphql/index.html");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Tool_Config_With_ServerOptions_Override_Using_Global_Tool_Options()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o => o.Tool.Title = "Global"),
+            configureConventions: e => e.WithOptions(o => o.Tool.Title += " Local"));
+
+        // act
+        var result = await GetNitroConfigAsync(server);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Fetch_Tool_Config_With_Options()
     {
         // arrange

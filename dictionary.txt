@@ -5,6 +5,7 @@ accessibilities
 agrc
 Alderaan
 Andi
+apphost
 appsettings
 ASPDEPR004
 ASPDEPR008
@@ -95,6 +96,7 @@ LICEN*
 Linq
 Marek
 matchesBrics
+MCPEXP
 MediatR
 Memberwise
 mercurius

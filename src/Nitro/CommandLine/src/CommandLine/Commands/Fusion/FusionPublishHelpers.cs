@@ -400,7 +400,7 @@ internal static class FusionPublishHelpers
         var escapedStageName = Uri.EscapeDataString(stageName);
 
         var requestUri = $"/api/v1/apis/{escapedApiId}/fusion/configurations/latest/download"
-            + $"?stageName={escapedStageName}";
+            + $"?stage={escapedStageName}";
 
         if (!isFgp)
         {
