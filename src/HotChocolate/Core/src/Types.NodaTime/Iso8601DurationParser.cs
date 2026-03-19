@@ -10,13 +10,6 @@ namespace HotChocolate.Types.NodaTime;
 /// </summary>
 internal static class Iso8601DurationParser
 {
-    // Pre-computed unit durations to avoid repeated construction.
-    private static readonly Duration s_oneYear = Duration.FromDays(365);
-    private static readonly Duration s_oneMonth = Duration.FromDays(30);
-    private static readonly Duration s_oneWeek = Duration.FromDays(7);
-    private static readonly Duration s_oneDay = Duration.FromDays(1);
-    private static readonly Duration s_oneHour = Duration.FromHours(1);
-
     /// <summary>
     /// Attempts to parse an ISO 8601 duration string from a UTF-16 character span.
     /// </summary>
@@ -160,25 +153,30 @@ internal static class Iso8601DurationParser
                     return false;
                 }
 
+                // Apply sign to the integer value before constructing the Duration to avoid overflow.
+                var shouldNegate = componentNegative != overallNegative;
+                var signedIntegerPart = shouldNegate ? -integerPart : integerPart;
+                var signedFractionalNanos = shouldNegate ? -fractionalNanos : fractionalNanos;
+
                 Duration component;
 
                 if (!inTimePart)
                 {
                     if (TReader.IsChar(designator, 'Y'))
                     {
-                        component = s_oneYear * integerPart;
+                        component = Duration.FromDays(signedIntegerPart * 365);
                     }
                     else if (TReader.IsChar(designator, 'M'))
                     {
-                        component = s_oneMonth * integerPart;
+                        component = Duration.FromDays(signedIntegerPart * 30);
                     }
                     else if (TReader.IsChar(designator, 'W'))
                     {
-                        component = s_oneWeek * integerPart;
+                        component = Duration.FromDays(signedIntegerPart * 7);
                     }
                     else if (TReader.IsChar(designator, 'D'))
                     {
-                        component = s_oneDay * integerPart;
+                        component = Duration.FromDays((int)signedIntegerPart);
                     }
                     else
                     {
@@ -189,16 +187,16 @@ internal static class Iso8601DurationParser
                 {
                     if (TReader.IsChar(designator, 'H'))
                     {
-                        component = s_oneHour * integerPart;
+                        component = Duration.FromHours(signedIntegerPart);
                     }
                     else if (TReader.IsChar(designator, 'M'))
                     {
-                        component = Duration.FromMinutes(integerPart);
+                        component = Duration.FromMinutes(signedIntegerPart);
                     }
                     else if (TReader.IsChar(designator, 'S'))
                     {
-                        component = Duration.FromSeconds(integerPart)
-                            + Duration.FromNanoseconds(fractionalNanos);
+                        component = Duration.FromSeconds(signedIntegerPart)
+                            + Duration.FromNanoseconds(signedFractionalNanos);
                     }
                     else
                     {
@@ -206,17 +204,15 @@ internal static class Iso8601DurationParser
                     }
                 }
 
-                // Apply both per-component and overall signs immediately.
-                if (componentNegative != overallNegative)
-                {
-                    component = -component;
-                }
-
                 accumulated += component;
                 hasAnyComponent = true;
             }
         }
         catch (OverflowException)
+        {
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
         {
             return false;
         }

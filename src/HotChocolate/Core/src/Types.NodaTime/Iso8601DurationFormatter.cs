@@ -38,17 +38,15 @@ internal static class Iso8601DurationFormatter
         }
 
         var isNegative = value < Duration.Zero;
-        if (isNegative)
-        {
-            value = -value;
-        }
 
-        // Decompose the absolute duration into components.
-        var days = value.Days;
-        var hours = value.Hours;
-        var minutes = value.Minutes;
-        var seconds = value.Seconds;
-        var nanos = value.SubsecondNanoseconds;
+        // Decompose the duration into components.
+        // We extract absolute values of each component rather than negating the entire duration
+        // to avoid overflow when handling Duration.MinValue.
+        var days = Math.Abs(value.Days);
+        var hours = Math.Abs(value.Hours);
+        var minutes = Math.Abs(value.Minutes);
+        var seconds = Math.Abs(value.Seconds);
+        var nanos = Math.Abs(value.SubsecondNanoseconds);
 
         var pos = 0;
 
