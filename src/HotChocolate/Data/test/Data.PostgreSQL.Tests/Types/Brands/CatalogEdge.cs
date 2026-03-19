@@ -7,17 +7,17 @@ namespace HotChocolate.Data.Types.Brands;
 /// An edge in a connection.
 /// </summary>
 [GraphQLName("{0}Edge")]
-public class CatalogEdge<TEntity>(Page<TEntity> page, int index) : IEdge<TEntity>
+public class CatalogEdge<TEntity>(Page<TEntity> page, PageEntry<TEntity> entry) : IEdge<TEntity>
 {
     /// <summary>
     /// The item at the end of the edge.
     /// </summary>
-    public TEntity Node => page.Items[index];
+    public TEntity Node => entry.Item;
 
     object? IEdge.Node => Node;
 
     /// <summary>
     /// A cursor for use in pagination.
     /// </summary>
-    public string Cursor => page.CreateCursor(index);
+    public string Cursor => page.CreateCursor(entry);
 }

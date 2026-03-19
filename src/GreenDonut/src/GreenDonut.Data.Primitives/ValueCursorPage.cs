@@ -10,34 +10,34 @@ namespace GreenDonut.Data;
 /// </typeparam>
 internal sealed class ValueCursorPage<T> : Page<T>
 {
-    private readonly Func<T, int, int, int, string> _createCursor;
+    private readonly Func<EdgeEntry<T>, string> _createCursor;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ValueCursorPage{T}"/> class.
     /// </summary>
     public ValueCursorPage(
-        ImmutableArray<T> items,
+        ImmutableArray<PageEntry<T>> entries,
         bool hasNextPage,
         bool hasPreviousPage,
         Func<T, string> createCursor,
         int? totalCount = null)
-        : base(items, hasNextPage, hasPreviousPage, totalCount)
+        : base(entries, hasNextPage, hasPreviousPage, totalCount)
     {
-        _createCursor = (item, _, _, _) => createCursor(item);
+        _createCursor = entry => createCursor(entry.Node);
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ValueCursorPage{T}"/> class.
     /// </summary>
     public ValueCursorPage(
-        ImmutableArray<T> items,
+        ImmutableArray<PageEntry<T>> entries,
         bool hasNextPage,
         bool hasPreviousPage,
-        Func<T, int, int, int, string> createCursor,
+        Func<EdgeEntry<T>, string> createCursor,
         int index,
         int requestedPageSize,
         int totalCount)
-        : base(items, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount)
+        : base(entries, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount)
     {
         _createCursor = createCursor;
     }
@@ -48,5 +48,5 @@ internal sealed class ValueCursorPage<T> : Page<T>
     public static new ValueCursorPage<T> Empty { get; } = new([], false, false, _ => string.Empty);
 
     protected override string CreateCursor(int index, int offset, int pageIndex, int totalCount)
-        => _createCursor(Items[index], offset, pageIndex, totalCount);
+        => _createCursor(new EdgeEntry<T>(Entries[index].Item, offset, pageIndex, totalCount));
 }

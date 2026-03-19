@@ -9,13 +9,13 @@ namespace GreenDonut.Data;
 /// <typeparam name="T">
 /// The type of the items.
 /// </typeparam>
-public abstract class Page<T> : IEnumerable<T>
+public abstract class Page<T> : IReadOnlyList<T>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Page{T}"/> class.
     /// </summary>
-    /// <param name="items">
-    /// The items of the page.
+    /// <param name="entries">
+    /// The entries of the page.
     /// </param>
     /// <param name="hasNextPage">
     /// Defines if there is a next page.
@@ -27,12 +27,12 @@ public abstract class Page<T> : IEnumerable<T>
     /// The total count of items in the dataset.
     /// </param>
     protected Page(
-        ImmutableArray<T> items,
+        ImmutableArray<PageEntry<T>> entries,
         bool hasNextPage,
         bool hasPreviousPage,
         int? totalCount = null)
     {
-        Items = items;
+        Entries = entries;
         HasNextPage = hasNextPage;
         HasPreviousPage = hasPreviousPage;
         TotalCount = totalCount;
@@ -41,8 +41,8 @@ public abstract class Page<T> : IEnumerable<T>
     /// <summary>
     /// Initializes a new instance of the <see cref="Page{T}"/> class.
     /// </summary>
-    /// <param name="items">
-    /// The items of the page.
+    /// <param name="entries">
+    /// The entries of the page.
     /// </param>
     /// <param name="hasNextPage">
     /// Defines if there is a next page.
@@ -60,14 +60,14 @@ public abstract class Page<T> : IEnumerable<T>
     /// The total count of items in the dataset.
     /// </param>
     protected Page(
-        ImmutableArray<T> items,
+        ImmutableArray<PageEntry<T>> entries,
         bool hasNextPage,
         bool hasPreviousPage,
         int index,
         int requestedPageSize,
         int totalCount)
     {
-        Items = items;
+        Entries = entries;
         HasNextPage = hasNextPage;
         HasPreviousPage = hasPreviousPage;
         Index = index;
@@ -76,29 +76,32 @@ public abstract class Page<T> : IEnumerable<T>
     }
 
     /// <summary>
-    /// Gets the items of this page.
+    /// Gets the entries of this page.
     /// </summary>
-    public ImmutableArray<T> Items { get; }
+    public ImmutableArray<PageEntry<T>> Entries { get; }
 
     /// <summary>
-    /// Gets the first item of this page.
+    /// Gets the number of items in this page.
     /// </summary>
-    public T? First => Items.Length > 0 ? Items[0] : default;
+    public int Count => Entries.Length;
 
     /// <summary>
-    /// Gets the zero-based index of the first item of this page.
+    /// Gets the item at the specified index.
     /// </summary>
-    public int? FirstIndex => Items.Length > 0 ? 0 : null;
+    /// <param name="index">
+    /// The zero-based index of the item.
+    /// </param>
+    public T this[int index] => Entries[index].Item;
 
     /// <summary>
-    /// Gets the last item of this page.
+    /// Gets the first entry of this page.
     /// </summary>
-    public T? Last => Items.Length > 0 ? Items[^1] : default;
+    public PageEntry<T>? First => Entries.Length > 0 ? Entries[0] : null;
 
     /// <summary>
-    /// Gets the zero-based index of the last item of this page.
+    /// Gets the last entry of this page.
     /// </summary>
-    public int? LastIndex => Items.Length > 0 ? Items.Length - 1 : null;
+    public PageEntry<T>? Last => Entries.Length > 0 ? Entries[^1] : null;
 
     /// <summary>
     /// Defines if there is a next page.
@@ -128,30 +131,42 @@ public abstract class Page<T> : IEnumerable<T>
     public int? TotalCount { get; }
 
     /// <summary>
-    /// Creates a cursor for an item of this page.
+    /// Creates a cursor for an entry of this page.
     /// </summary>
-    /// <param name="index">
-    /// The zero-based index of the item for which a cursor shall be created.
+    /// <param name="entry">
+    /// The entry for which a cursor shall be created.
     /// </param>
     /// <returns>
-    /// Returns a cursor for the item.
+    /// Returns a cursor for the entry.
     /// </returns>
-    public string CreateCursor(int index)
+    public string CreateCursor(PageEntry<T> entry)
     {
-        EnsureIndex(index);
-        return CreateCursor(index, 0, 0, 0);
+        EnsureIndex(entry.Index);
+        return CreateCursor(entry.Index, 0, 0, 0);
     }
 
-    public string CreateCursor(int index, int offset)
+    /// <summary>
+    /// Creates a relative cursor for an entry of this page.
+    /// </summary>
+    /// <param name="entry">
+    /// The entry for which a cursor shall be created.
+    /// </param>
+    /// <param name="offset">
+    /// The offset relative to the current cursor position.
+    /// </param>
+    /// <returns>
+    /// Returns a cursor for the entry.
+    /// </returns>
+    public string CreateCursor(PageEntry<T> entry, int offset)
     {
-        EnsureIndex(index);
+        EnsureIndex(entry.Index);
 
         if (Index is null || TotalCount is null)
         {
             throw new InvalidOperationException("This page does not allow relative cursors.");
         }
 
-        return CreateCursor(index, offset, Index.Value, TotalCount.Value);
+        return CreateCursor(entry.Index, offset, Index.Value, TotalCount.Value);
     }
 
     /// <summary>
@@ -163,7 +178,7 @@ public abstract class Page<T> : IEnumerable<T>
 
     private void EnsureIndex(int index)
     {
-        if ((uint)index >= (uint)Items.Length)
+        if ((uint)index >= (uint)Entries.Length)
         {
             throw new ArgumentOutOfRangeException(nameof(index));
         }
@@ -172,11 +187,18 @@ public abstract class Page<T> : IEnumerable<T>
     /// <summary>
     /// Gets the enumerator for the items of this page.
     /// </summary>
-    public IEnumerator<T> GetEnumerator()
-        => ((IEnumerable<T>)Items).GetEnumerator();
+    public Enumerator GetEnumerator() => new(Entries);
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    {
+        foreach (var entry in Entries)
+        {
+            yield return entry.Item;
+        }
+    }
 
     IEnumerator IEnumerable.GetEnumerator()
-        => GetEnumerator();
+        => ((IEnumerable<T>)this).GetEnumerator();
 
     /// <summary>
     /// Creates a page whose cursor can be created directly from the page item.
@@ -187,7 +209,7 @@ public abstract class Page<T> : IEnumerable<T>
         bool hasPreviousPage,
         Func<T, string> createCursor,
         int? totalCount = null)
-        => new ValueCursorPage<T>(items, hasNextPage, hasPreviousPage, createCursor, totalCount);
+        => new ValueCursorPage<T>(ToEntries(items), hasNextPage, hasPreviousPage, createCursor, totalCount);
 
     /// <summary>
     /// Creates a page whose cursor can be created directly from the page item.
@@ -196,12 +218,12 @@ public abstract class Page<T> : IEnumerable<T>
         ImmutableArray<T> items,
         bool hasNextPage,
         bool hasPreviousPage,
-        Func<T, int, int, int, string> createCursor,
+        Func<EdgeEntry<T>, string> createCursor,
         int index,
         int requestedPageSize,
         int totalCount)
         => new ValueCursorPage<T>(
-            items,
+            ToEntries(items),
             hasNextPage,
             hasPreviousPage,
             createCursor,
@@ -220,7 +242,7 @@ public abstract class Page<T> : IEnumerable<T>
         Func<TElement, string> createCursor,
         int? totalCount = null)
         => new ElementCursorPage<TElement, T>(
-            items,
+            ToEntries(items),
             elements,
             hasNextPage,
             hasPreviousPage,
@@ -235,12 +257,12 @@ public abstract class Page<T> : IEnumerable<T>
         ImmutableArray<TElement> elements,
         bool hasNextPage,
         bool hasPreviousPage,
-        Func<TElement, int, int, int, string> createCursor,
+        Func<EdgeEntry<TElement>, string> createCursor,
         int index,
         int requestedPageSize,
         int totalCount)
         => new ElementCursorPage<TElement, T>(
-            items,
+            ToEntries(items),
             elements,
             hasNextPage,
             hasPreviousPage,
@@ -248,4 +270,46 @@ public abstract class Page<T> : IEnumerable<T>
             index,
             requestedPageSize,
             totalCount);
+
+    internal static ImmutableArray<PageEntry<T>> ToEntries(ImmutableArray<T> items)
+    {
+        if (items.IsEmpty)
+        {
+            return [];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<PageEntry<T>>(items.Length);
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            builder.Add(new PageEntry<T>(items[i], i));
+        }
+
+        return builder.MoveToImmutable();
+    }
+
+    /// <summary>
+    /// A struct-based enumerator that yields the nodes of the page entries.
+    /// </summary>
+    public struct Enumerator
+    {
+        private readonly ImmutableArray<PageEntry<T>> _entries;
+        private int _index;
+
+        internal Enumerator(ImmutableArray<PageEntry<T>> entries)
+        {
+            _entries = entries;
+            _index = -1;
+        }
+
+        /// <summary>
+        /// Gets the current item.
+        /// </summary>
+        public T Current => _entries[_index].Item;
+
+        /// <summary>
+        /// Advances the enumerator to the next item.
+        /// </summary>
+        public bool MoveNext() => ++_index < _entries.Length;
+    }
 }

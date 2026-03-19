@@ -11,7 +11,7 @@ public static class PageCursorExtensions
     public static string? CreateStartCursor<T>(this Page<T> page)
     {
         ArgumentNullException.ThrowIfNull(page);
-        return page.FirstIndex is not null ? page.CreateCursor(page.FirstIndex.Value) : null;
+        return page.First is not null ? page.CreateCursor(page.First.Value) : null;
     }
 
     /// <summary>
@@ -20,6 +20,6 @@ public static class PageCursorExtensions
     public static string? CreateEndCursor<T>(this Page<T> page)
     {
         ArgumentNullException.ThrowIfNull(page);
-        return page.LastIndex is not null ? page.CreateCursor(page.LastIndex.Value) : null;
+        return page.Last is not null ? page.CreateCursor(page.Last.Value) : null;
     }
 }

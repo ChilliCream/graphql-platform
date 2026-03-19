@@ -102,7 +102,7 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
 
         // assert
         Assert.NotNull(secondPage);
-        Assert.Equal(2, secondPage.Items.Length);
+        Assert.Equal(2, secondPage.Count);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
 
         // assert
         Assert.NotNull(secondPage);
-        Assert.Equal(2, secondPage.Items.Length);
+        Assert.Equal(2, secondPage.Count);
     }
 
     private static async Task SeedFileSystemAsync(string connectionString)

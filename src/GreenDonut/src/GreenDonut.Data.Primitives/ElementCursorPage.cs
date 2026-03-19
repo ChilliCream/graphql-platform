@@ -14,52 +14,55 @@ namespace GreenDonut.Data;
 internal sealed class ElementCursorPage<TElement, TValue> : Page<TValue>
 {
     private readonly ImmutableArray<TElement> _elements;
-    private readonly Func<TElement, int, int, int, string> _createCursor;
+    private readonly Func<EdgeEntry<TElement>, string> _createCursor;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ElementCursorPage{TElement,TValue}"/> class.
     /// </summary>
     public ElementCursorPage(
-        ImmutableArray<TValue> items,
+        ImmutableArray<PageEntry<TValue>> entries,
         ImmutableArray<TElement> elements,
         bool hasNextPage,
         bool hasPreviousPage,
         Func<TElement, string> createCursor,
         int? totalCount = null)
-        : base(items, hasNextPage, hasPreviousPage, totalCount)
+        : base(entries, hasNextPage, hasPreviousPage, totalCount)
     {
-        EnsureEqualLength(items, elements);
+        EnsureEqualLength(entries, elements);
         _elements = elements;
-        _createCursor = (item, _, _, _) => createCursor(item);
+        _createCursor = entry => createCursor(entry.Node);
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ElementCursorPage{TElement,TValue}"/> class.
     /// </summary>
     public ElementCursorPage(
-        ImmutableArray<TValue> items,
+        ImmutableArray<PageEntry<TValue>> entries,
         ImmutableArray<TElement> elements,
         bool hasNextPage,
         bool hasPreviousPage,
-        Func<TElement, int, int, int, string> createCursor,
+        Func<EdgeEntry<TElement>, string> createCursor,
         int index,
         int requestedPageSize,
         int totalCount)
-        : base(items, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount)
+        : base(entries, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount)
     {
-        EnsureEqualLength(items, elements);
+        EnsureEqualLength(entries, elements);
         _elements = elements;
         _createCursor = createCursor;
     }
 
     protected override string CreateCursor(int index, int offset, int pageIndex, int totalCount)
-        => _createCursor(_elements[index], offset, pageIndex, totalCount);
+        => _createCursor(new EdgeEntry<TElement>(_elements[index], offset, pageIndex, totalCount));
 
-    private static void EnsureEqualLength(ImmutableArray<TValue> items, ImmutableArray<TElement> elements)
+    private static void EnsureEqualLength(
+        ImmutableArray<PageEntry<TValue>> entries,
+        ImmutableArray<TElement> elements)
     {
-        if (items.Length != elements.Length)
+        if (entries.Length != elements.Length)
         {
-            throw new ArgumentException("The items and elements collections must have the same length.");
+            throw new ArgumentException(
+                "The items and elements collections must have the same length.");
         }
     }
 }

@@ -262,7 +262,14 @@ public static class PagingQueryableExtensions
         }
 
         var pageIndex = CreateIndex(arguments, cursor, totalCount);
-        return CreateValueCursorPage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, requestedCount, totalCount);
+        return CreateValueCursorPage(
+            Page<T>.ToEntries(builder.ToImmutable()),
+            arguments,
+            keys,
+            fetchCount,
+            pageIndex,
+            requestedCount,
+            totalCount);
     }
 
     /// <summary>
@@ -436,14 +443,6 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        if (valueSelector is null && typeof(TElement) != typeof(TValue))
-        {
-            throw new ArgumentNullException(
-                nameof(valueSelector),
-                $"A valueSelector must be provided when TElement ({typeof(TElement).Name}) "
-                + $"differs from TValue ({typeof(TValue).Name}).");
-        }
-
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
 
         // extract the selector before ensuring group props are selected,
@@ -537,7 +536,7 @@ public static class PagingQueryableExtensions
 
             if (valueSelector is not null)
             {
-                var builder = ImmutableArray.CreateBuilder<TValue>(itemCount);
+                var entryBuilder = ImmutableArray.CreateBuilder<PageEntry<TValue>>(itemCount);
                 var elementBuilder = ImmutableArray.CreateBuilder<TElement>(itemCount);
 
                 if (batchExpression.IsBackward)
@@ -545,7 +544,7 @@ public static class PagingQueryableExtensions
                     for (var i = itemCount - 1; i >= 0; i--)
                     {
                         var element = item.Items[i];
-                        builder.Add(valueSelector(element));
+                        entryBuilder.Add(new PageEntry<TValue>(valueSelector(element), entryBuilder.Count));
                         elementBuilder.Add(element);
                     }
                 }
@@ -554,13 +553,13 @@ public static class PagingQueryableExtensions
                     for (var i = 0; i < itemCount; i++)
                     {
                         var element = item.Items[i];
-                        builder.Add(valueSelector(element));
+                        entryBuilder.Add(new PageEntry<TValue>(valueSelector(element), entryBuilder.Count));
                         elementBuilder.Add(element);
                     }
                 }
 
                 var page = CreateElementCursorPage(
-                    builder.ToImmutable(),
+                    entryBuilder.ToImmutable(),
                     elementBuilder.ToImmutable(),
                     arguments,
                     keys,
@@ -572,25 +571,25 @@ public static class PagingQueryableExtensions
             }
             else
             {
-                var builder = ImmutableArray.CreateBuilder<TValue>(itemCount);
+                var entryBuilder = ImmutableArray.CreateBuilder<PageEntry<TValue>>(itemCount);
 
                 if (batchExpression.IsBackward)
                 {
                     for (var i = itemCount - 1; i >= 0; i--)
                     {
-                        builder.Add((TValue)(object)item.Items[i]!);
+                        entryBuilder.Add(new PageEntry<TValue>((TValue)(object)item.Items[i]!, entryBuilder.Count));
                     }
                 }
                 else
                 {
                     for (var i = 0; i < itemCount; i++)
                     {
-                        builder.Add((TValue)(object)item.Items[i]!);
+                        entryBuilder.Add(new PageEntry<TValue>((TValue)(object)item.Items[i]!, entryBuilder.Count));
                     }
                 }
 
                 var page = CreateValueCursorPage(
-                    builder.ToImmutable(),
+                    entryBuilder.ToImmutable(),
                     arguments,
                     keys,
                     item.Items.Count,
@@ -660,7 +659,7 @@ public static class PagingQueryableExtensions
     }
 
     private static Page<T> CreateValueCursorPage<T>(
-        ImmutableArray<T> items,
+        ImmutableArray<PageEntry<T>> entries,
         PagingArguments arguments,
         CursorKey[] keys,
         int fetchCount,
@@ -673,17 +672,17 @@ public static class PagingQueryableExtensions
         if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
         {
             return new ValueCursorPage<T>(
-                items,
+                entries,
                 hasNext,
                 hasPrevious,
-                (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
+                entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
                 index ?? 1,
                 requestedPageSize.Value,
                 totalCount.Value);
         }
 
         return new ValueCursorPage<T>(
-            items,
+            entries,
             hasNext,
             hasPrevious,
             item => CursorFormatter.Format(item, keys),
@@ -691,7 +690,7 @@ public static class PagingQueryableExtensions
     }
 
     private static Page<TValue> CreateElementCursorPage<TElement, TValue>(
-        ImmutableArray<TValue> items,
+        ImmutableArray<PageEntry<TValue>> entries,
         ImmutableArray<TElement> elements,
         PagingArguments arguments,
         CursorKey[] keys,
@@ -705,18 +704,18 @@ public static class PagingQueryableExtensions
         if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
         {
             return new ElementCursorPage<TElement, TValue>(
-                items,
+                entries,
                 elements,
                 hasNext,
                 hasPrevious,
-                (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
+                entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
                 index ?? 1,
                 requestedPageSize.Value,
                 totalCount.Value);
         }
 
         return new ElementCursorPage<TElement, TValue>(
-            items,
+            entries,
             elements,
             hasNext,
             hasPrevious,

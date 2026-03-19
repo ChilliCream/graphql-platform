@@ -33,7 +33,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -80,7 +80,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -127,7 +127,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -174,7 +174,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -230,7 +230,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
@@ -287,7 +287,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -343,7 +343,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
@@ -400,7 +400,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -456,7 +456,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -512,7 +512,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddTypeExtension(typeof(BrandExtensions))
             .AddPagingArguments()
@@ -568,7 +568,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddTypeExtension(typeof(BrandExtensionsWithSelect))
             .AddPagingArguments()
@@ -637,12 +637,12 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     result.HasNextPage,
                     result.HasPreviousPage,
-                    First = result.First?.Id,
+                    First = result.First?.Item.Id,
                     FirstCursor = result.CreateStartCursor(),
-                    Last = result.Last?.Id,
+                    Last = result.Last?.Item.Id,
                     LastCursor = result.CreateEndCursor()
                 })
-            .Add(result.Items)
+            .Add(result.ToArray())
             .MatchMarkdownAsync();
     }
 
@@ -673,12 +673,12 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     result.HasNextPage,
                     result.HasPreviousPage,
-                    First = result.First?.Id,
+                    First = result.First?.Item.Id,
                     FirstCursor = result.CreateStartCursor(),
-                    Last = result.Last?.Id,
+                    Last = result.Last?.Item.Id,
                     LastCursor = result.CreateEndCursor()
                 })
-            .Add(result.Items)
+            .Add(result.ToArray())
             .MatchMarkdownAsync();
     }
 
@@ -713,12 +713,12 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     result.HasNextPage,
                     result.HasPreviousPage,
-                    First = result.First?.Id,
+                    First = result.First?.Item.Id,
                     FirstCursor = result.CreateStartCursor(),
-                    Last = result.Last?.Id,
+                    Last = result.Last?.Item.Id,
                     LastCursor = result.CreateEndCursor()
                 })
-            .Add(result.Items)
+            .Add(result.ToArray())
             .MatchMarkdownAsync();
     }
 
@@ -749,12 +749,12 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     result.HasNextPage,
                     result.HasPreviousPage,
-                    First = result.First?.Id,
+                    First = result.First?.Item.Id,
                     FirstCursor = result.CreateStartCursor(),
-                    Last = result.Last?.Id,
+                    Last = result.Last?.Item.Id,
                     LastCursor = result.CreateEndCursor()
                 })
-            .Add(result.Items)
+            .Add(result.ToArray())
             .MatchMarkdownAsync();
     }
 
@@ -789,12 +789,12 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     result.HasNextPage,
                     result.HasPreviousPage,
-                    First = result.First?.Id,
+                    First = result.First?.Item.Id,
                     FirstCursor = result.CreateStartCursor(),
-                    Last = result.Last?.Id,
+                    Last = result.Last?.Item.Id,
                     LastCursor = result.CreateEndCursor()
                 })
-            .Add(result.Items)
+            .Add(result.ToArray())
             .MatchMarkdownAsync();
     }
 
@@ -832,7 +832,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     First = page.Value.CreateStartCursor(),
                     Last = page.Value.CreateEndCursor(),
-                    page.Value.Items
+                    Items = page.Value.ToArray()
                 },
                 name: page.Key.ToString());
         }
@@ -874,7 +874,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     First = page.Value.CreateStartCursor(),
                     Last = page.Value.CreateEndCursor(),
-                    page.Value.Items
+                    Items = page.Value.ToArray()
                 },
                 name: page.Key.ToString());
         }
@@ -959,7 +959,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<QueryConnection>()
             .AddTypeExtension(typeof(BrandConnectionEdgeExtensions))
             .AddPagingArguments()
@@ -1008,7 +1008,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<QueryConnection2>()
             .AddTypeExtension(typeof(BrandConnectionEdgeExtensions2))
             .AddPagingArguments()
@@ -1057,7 +1057,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new FooBarContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<QueryNullable>()
             .AddPagingArguments()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
@@ -1111,7 +1111,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new FooBarContext(connectionString))
-            .AddGraphQL()
+            .AddGraphQLServer()
             .AddQueryType<QueryNullable>()
             .AddPagingArguments()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
@@ -1339,7 +1339,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
                 .ToPageAsync(arguments, cancellationToken: ct)
-                .ToConnectionAsync((brand, page, index) => new BrandEdge(brand, page.CreateCursor(index)));
+                .ToConnectionAsync((page, entry) => new BrandEdge(page, entry));
         }
     }
 
@@ -1355,7 +1355,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
                 .ToPageAsync(arguments, cancellationToken: ct)
-                .ToConnectionAsync((brand, cursor) => new BrandEdge2(brand, cursor));
+                .ToConnectionAsync((page, entry) => new BrandEdge2(page, entry));
         }
     }
 
@@ -1394,10 +1394,10 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
 
     public class BrandEdge : Edge<BrandDto>
     {
-        public BrandEdge(Brand brand, string cursor)
-            : base(new BrandDto(brand.Id, brand.Name), cursor)
+        public BrandEdge(Page<Brand> page, PageEntry<Brand> entry)
+            : base(new BrandDto(entry.Item.Id, entry.Item.Name), page.CreateCursor(entry))
         {
-            Brand = brand;
+            Brand = entry.Item;
         }
 
         public Brand Brand { get; }
@@ -1405,10 +1405,10 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
 
     public class BrandEdge2 : Edge<BrandDto>
     {
-        public BrandEdge2(Brand brand, string cursor)
-            : base(new BrandDto(brand.Id, brand.Name), cursor)
+        public BrandEdge2(Page<Brand> page, PageEntry<Brand> entry)
+            : base(new BrandDto(entry.Item.Id, entry.Item.Name), page.CreateCursor(entry))
         {
-            Brand = brand;
+            Brand = entry.Item;
         }
 
         public Brand Brand { get; }

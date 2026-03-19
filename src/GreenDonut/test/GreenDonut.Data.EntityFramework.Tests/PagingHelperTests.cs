@@ -61,7 +61,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
-        var cursor = page.CreateCursor(page.LastIndex!.Value, 2);
+        var cursor = page.CreateCursor(page.Last!.Value, 2);
         arguments = new PagingArguments(2, after: cursor);
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -83,12 +83,12 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var first = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // -> get second page
-        var cursor = first.CreateCursor(first.LastIndex!.Value, 0);
+        var cursor = first.CreateCursor(first.Last!.Value, 0);
         arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // -> get third page
-        cursor = page.CreateCursor(page.LastIndex!.Value, 0);
+        cursor = page.CreateCursor(page.Last!.Value, 0);
         arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -105,7 +105,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         17  Product 0-16
         18  Product 0-17
         */
-        cursor = page.CreateCursor(page.LastIndex!.Value, -1);
+        cursor = page.CreateCursor(page.Last!.Value, -1);
         arguments = new PagingArguments(last: 2, before: cursor);
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -124,9 +124,9 @@ public class PagingHelperTests(PostgreSqlResource resource)
         */
         new
         {
-            First = page.First!.Name,
-            Last = page.Last!.Name,
-            ItemsCount = page.Items.Length
+            First = page.First!.Value.Item.Name,
+            Last = page.Last!.Value.Item.Name,
+            ItemsCount = page.Count
         }.MatchMarkdownSnapshot();
     }
 
@@ -384,7 +384,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
                 {
                     First = page.Value.CreateStartCursor(),
                     Last = page.Value.CreateEndCursor(),
-                    page.Value.Items
+                    Items = page.Value.ToArray()
                 },
                 name: page.Key.ToString());
         }

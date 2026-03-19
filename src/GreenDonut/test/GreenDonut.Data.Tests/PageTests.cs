@@ -20,8 +20,8 @@ public class PageTests
         var second = page.CreateEndCursor();
 
         // assert
-        Assert.Equal(0, page.FirstIndex);
-        Assert.Equal(1, page.LastIndex);
+        Assert.Equal(0, page.First!.Value.Index);
+        Assert.Equal(1, page.Last!.Value.Index);
         Assert.Equal("1", first);
         Assert.Equal("2", second);
     }
@@ -37,7 +37,7 @@ public class PageTests
             createCursor: static value => value);
 
         // act
-        void Action() => page.CreateCursor(-1);
+        void Action() => page.CreateCursor(new PageEntry<string>("a", -1));
 
         // assert
         Assert.Throws<ArgumentOutOfRangeException>(Action);
@@ -54,21 +54,21 @@ public class PageTests
             createCursor: static value => value);
 
         // act
-        void Action() => page.CreateCursor(1);
+        void Action() => page.CreateCursor(new PageEntry<string>("a", 1));
 
         // assert
         Assert.Throws<ArgumentOutOfRangeException>(Action);
     }
 
     [Fact]
-    public void FirstAndLastIndex_AreNull_OnEmptyPage()
+    public void FirstAndLast_AreNull_OnEmptyPage()
     {
         // arrange
         var page = Page<string>.Empty;
 
         // assert
-        Assert.Null(page.FirstIndex);
-        Assert.Null(page.LastIndex);
+        Assert.Null(page.First);
+        Assert.Null(page.Last);
         Assert.Null(page.CreateStartCursor());
         Assert.Null(page.CreateEndCursor());
     }
@@ -82,8 +82,7 @@ public class PageTests
             elements: ImmutableArray.Create(1, 2),
             hasNextPage: true,
             hasPreviousPage: true,
-            createCursor: static (element, offset, pageIndex, totalCount)
-                => $"{element}:{offset}:{pageIndex}:{totalCount}",
+            createCursor: static entry => $"{entry.Node}:{entry.Offset}:{entry.PageIndex}:{entry.TotalCount}",
             index: 3,
             requestedPageSize: 2,
             totalCount: 10);
@@ -107,8 +106,7 @@ public class PageTests
             elements: ImmutableArray.Create(1, 2),
             hasNextPage: true,
             hasPreviousPage: true,
-            createCursor: static (element, offset, pageIndex, totalCount)
-                => $"{element}:{offset}:{pageIndex}:{totalCount}",
+            createCursor: static entry => $"{entry.Node}:{entry.Offset}:{entry.PageIndex}:{entry.TotalCount}",
             index: 1,
             requestedPageSize: 2,
             totalCount: 10);

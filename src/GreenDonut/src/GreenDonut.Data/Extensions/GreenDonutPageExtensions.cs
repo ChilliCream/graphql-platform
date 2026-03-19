@@ -30,7 +30,7 @@ public static class GreenDonutPageExtensions
     /// </exception>
     /// <remarks>
     /// This method creates cursors for the previous pages based on the current page.
-    /// The cursors are created using the <see cref="Page{T}.CreateCursor(int, int)"/> method.
+    /// The cursors are created using the <see cref="Page{T}.CreateCursor(PageEntry{T}, int)"/> method.
     /// </remarks>
     public static ImmutableArray<PageCursor> CreateRelativeBackwardCursors<T>(this Page<T> page, int maxCursors = 5)
     {
@@ -43,11 +43,12 @@ public static class GreenDonutPageExtensions
                 "Max cursors must be greater than or equal to 0.");
         }
 
-        if (page.FirstIndex is null || page.Index is null || page.Index == 1)
+        if (page.First is null || page.Index is null || page.Index == 1)
         {
             return [];
         }
 
+        var firstEntry = page.First.Value;
         var previousPages = page.Index.Value - 1;
         var cursors = ImmutableArray.CreateBuilder<PageCursor>();
 
@@ -58,7 +59,7 @@ public static class GreenDonutPageExtensions
             cursors.Insert(
                 0,
                 new PageCursor(
-                    page.CreateCursor(page.FirstIndex.Value, i),
+                    page.CreateCursor(firstEntry, i),
                     previousPages + i));
         }
 
@@ -88,7 +89,7 @@ public static class GreenDonutPageExtensions
     /// </exception>
     /// <remarks>
     /// This method creates cursors for the next pages based on the current page.
-    /// The cursors are created using the <see cref="Page{T}.CreateCursor(int, int)"/> method.
+    /// The cursors are created using the <see cref="Page{T}.CreateCursor(PageEntry{T}, int)"/> method.
     /// </remarks>
     public static ImmutableArray<PageCursor> CreateRelativeForwardCursors<T>(this Page<T> page, int maxCursors = 5)
     {
@@ -101,7 +102,7 @@ public static class GreenDonutPageExtensions
                 "Max cursors must be greater than or equal to 0.");
         }
 
-        if (page.LastIndex is null || page.Index is null)
+        if (page.Last is null || page.Index is null)
         {
             return [];
         }
@@ -113,15 +114,15 @@ public static class GreenDonutPageExtensions
             return [];
         }
 
+        var lastEntry = page.Last.Value;
         var cursors = ImmutableArray.CreateBuilder<PageCursor>();
-        var lastIndex = page.LastIndex.Value;
-        cursors.Add(new PageCursor(page.CreateCursor(lastIndex, 0), page.Index.Value + 1));
+        cursors.Add(new PageCursor(page.CreateCursor(lastEntry, 0), page.Index.Value + 1));
 
         for (var i = 1; i < maxCursors && page.Index + i < totalPages; i++)
         {
             cursors.Add(
                 new PageCursor(
-                    page.CreateCursor(lastIndex, i),
+                    page.CreateCursor(lastEntry, i),
                     page.Index.Value + i + 1));
         }
 

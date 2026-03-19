@@ -28,12 +28,12 @@ public class ProductConnection : ConnectionBase<Product, ProductsEdge, Connectio
         {
             if (_edges is null)
             {
-                var items = _page.Items;
-                var edges = new ProductsEdge[items.Length];
+                var entries = _page.Entries;
+                var edges = new ProductsEdge[entries.Length];
 
-                for (var i = 0; i < items.Length; i++)
+                for (var i = 0; i < entries.Length; i++)
                 {
-                    edges[i] = new ProductsEdge(_page, i);
+                    edges[i] = new ProductsEdge(_page, entries[i]);
                 }
 
                 _edges = edges;
@@ -46,7 +46,7 @@ public class ProductConnection : ConnectionBase<Product, ProductsEdge, Connectio
     /// <summary>
     /// A flattened list of the nodes.
     /// </summary>
-    public IReadOnlyList<Product>? Nodes => _page.Items;
+    public IReadOnlyList<Product>? Nodes => _page;
 
     /// <summary>
     /// Information to aid in pagination.
@@ -75,16 +75,16 @@ public class ProductConnection : ConnectionBase<Product, ProductsEdge, Connectio
     [GraphQLType<NonNullType<ListType<NonNullType<StringType>>>>]
     public IEnumerable<string> GetEndCursors(int count)
     {
-        if (_page.LastIndex is null)
+        if (_page.Count == 0)
         {
             yield break;
         }
 
-        var lastIndex = _page.LastIndex.Value;
+        var lastEntry = _page.Entries[^1];
 
         for (var i = 0; i < count; i++)
         {
-            yield return _page.CreateCursor(lastIndex, i);
+            yield return _page.CreateCursor(lastEntry, i);
         }
     }
 }
