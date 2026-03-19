@@ -1,12 +1,14 @@
 using System.Globalization;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 
 namespace HotChocolate.Types.NodaTime;
 
-public class LocalTimeTypeTests
+public sealed class LocalTimeTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
@@ -243,6 +245,78 @@ public class LocalTimeTypeTests
 
         // assert
         Assert.Equal(expectedPattern, type.Pattern);
+    }
+
+    [Fact]
+    public async Task Integration_SingleRuntimeType()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QuerySingleRuntimeType))
+            .AddNodaTime()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result =
+            await executor.ExecuteAsync("""{ localTime(input: "23:59:59.999999999") }""");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "localTime": "23:59:59.999999999"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Integration_TwoRuntimeTypes()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QueryTwoRuntimeTypes))
+            .AddNodaTime(bindBclTypes: true)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                localTime1(input: "23:59:59.999999999")
+                localTime2(input: "23:59:59.999999999")
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "localTime1": "23:59:59.9999999",
+                "localTime2": "23:59:59.999999999"
+              }
+            }
+            """);
+    }
+
+    [QueryType]
+    private static class QuerySingleRuntimeType
+    {
+        public static LocalTime GetLocalTime(LocalTime input) => input;
+    }
+
+    [QueryType]
+    private static class QueryTwoRuntimeTypes
+    {
+        public static TimeOnly GetLocalTime1(TimeOnly input) => input;
+
+        public static LocalTime GetLocalTime2(LocalTime input) => input;
     }
 
     public static TheoryData<byte, string, LocalTime> ValidInput()

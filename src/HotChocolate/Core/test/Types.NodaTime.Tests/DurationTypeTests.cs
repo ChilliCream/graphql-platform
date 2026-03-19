@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 
 namespace HotChocolate.Types.NodaTime;
@@ -222,6 +224,79 @@ public sealed class DurationTypeTests
 
         // assert
         Assert.Equal(TypeKind.Scalar, kind);
+    }
+
+    [Fact]
+    public async Task Integration_SingleRuntimeType()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QuerySingleRuntimeType))
+            .AddNodaTime()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result =
+            await executor.ExecuteAsync(
+                """{ duration(input: "P16777215DT23H59M59.999999999S") }""");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "duration": "P16777215DT23H59M59.999999999S"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Integration_TwoRuntimeTypes()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QueryTwoRuntimeTypes))
+            .AddNodaTime(bindBclTypes: true)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                duration1(input: "P16777215DT23H59M59.999999999S")
+                duration2(input: "P16777215DT23H59M59.999999999S")
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "duration1": "?",
+                "duration2": "P16777215DT23H59M59.999999999S"
+              }
+            }
+            """);
+    }
+
+    [QueryType]
+    private static class QuerySingleRuntimeType
+    {
+        public static Duration GetDuration(Duration input) => input;
+    }
+
+    [QueryType]
+    private static class QueryTwoRuntimeTypes
+    {
+        public static TimeSpan GetDuration1(TimeSpan input) => input;
+
+        public static Duration GetDuration2(Duration input) => input;
     }
 
     private static JsonElement ParseInputValue(string sourceText)

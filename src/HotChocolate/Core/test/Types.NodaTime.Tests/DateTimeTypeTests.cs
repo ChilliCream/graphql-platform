@@ -1,12 +1,14 @@
 using System.Globalization;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 
 namespace HotChocolate.Types.NodaTime;
 
-public class DateTimeTypeTests
+public sealed class DateTimeTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
@@ -271,6 +273,79 @@ public class DateTimeTypeTests
 
         // assert
         Assert.Equal(expectedPattern, type.Pattern);
+    }
+
+    [Fact]
+    public async Task Integration_SingleRuntimeType()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QuerySingleRuntimeType))
+            .AddNodaTime()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result =
+            await executor.ExecuteAsync(
+                """{ dateTime(input: "9999-12-31T23:59:59.999999999Z") }""");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "dateTime": "9999-12-31T23:59:59.999999999Z"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Integration_TwoRuntimeTypes()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QueryTwoRuntimeTypes))
+            .AddNodaTime(bindBclTypes: true)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                dateTime1(input: "9999-12-31T23:59:59.999999999Z")
+                dateTime2(input: "9999-12-31T23:59:59.999999999Z")
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "dateTime1": "9999-12-31T23:59:59.9999999Z",
+                "dateTime2": "9999-12-31T23:59:59.999999999Z"
+              }
+            }
+            """);
+    }
+
+    [QueryType]
+    private static class QuerySingleRuntimeType
+    {
+        public static OffsetDateTime GetDateTime(OffsetDateTime input) => input;
+    }
+
+    [QueryType]
+    private static class QueryTwoRuntimeTypes
+    {
+        public static DateTimeOffset GetDateTime1(DateTimeOffset input) => input;
+
+        public static OffsetDateTime GetDateTime2(OffsetDateTime input) => input;
     }
 
     public static TheoryData<byte, string, OffsetDateTime> ValidInput()

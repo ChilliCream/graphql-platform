@@ -1,12 +1,14 @@
 using System.Globalization;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 
 namespace HotChocolate.Types.NodaTime;
 
-public class LocalDateTypeTests
+public sealed class LocalDateTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
@@ -192,6 +194,78 @@ public class LocalDateTypeTests
 
         // assert
         Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public async Task Integration_SingleRuntimeType()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QuerySingleRuntimeType))
+            .AddNodaTime()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result =
+            await executor.ExecuteAsync("""{ localDate(input: "9999-12-31") }""");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "localDate": "9999-12-31"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Integration_TwoRuntimeTypes()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QueryTwoRuntimeTypes))
+            .AddNodaTime(bindBclTypes: true)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                localDate1(input: "9999-12-31")
+                localDate2(input: "9999-12-31")
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "localDate1": "9999-12-31",
+                "localDate2": "9999-12-31"
+              }
+            }
+            """);
+    }
+
+    [QueryType]
+    private static class QuerySingleRuntimeType
+    {
+        public static LocalDate GetLocalDate(LocalDate input) => input;
+    }
+
+    [QueryType]
+    private static class QueryTwoRuntimeTypes
+    {
+        public static DateOnly GetLocalDate1(DateOnly input) => input;
+
+        public static LocalDate GetLocalDate2(LocalDate input) => input;
     }
 
     public static TheoryData<string, LocalDate> ValidLocalDateScalarStrings()

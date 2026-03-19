@@ -1,12 +1,14 @@
 using System.Globalization;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 
 namespace HotChocolate.Types.NodaTime;
 
-public class LocalDateTimeTypeTests
+public sealed class LocalDateTimeTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
@@ -243,6 +245,79 @@ public class LocalDateTimeTypeTests
 
         // assert
         Assert.Equal(expectedPattern, type.Pattern);
+    }
+
+    [Fact]
+    public async Task Integration_SingleRuntimeType()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QuerySingleRuntimeType))
+            .AddNodaTime()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result =
+            await executor.ExecuteAsync(
+                """{ localDateTime(input: "9999-12-31T23:59:59.999999999") }""");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "localDateTime": "9999-12-31T23:59:59.999999999"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Integration_TwoRuntimeTypes()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QueryTwoRuntimeTypes))
+            .AddNodaTime(bindBclTypes: true)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                localDateTime1(input: "9999-12-31T23:59:59.999999999")
+                localDateTime2(input: "9999-12-31T23:59:59.999999999")
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "localDateTime1": "9999-12-31T23:59:59.9999999",
+                "localDateTime2": "9999-12-31T23:59:59.999999999"
+              }
+            }
+            """);
+    }
+
+    [QueryType]
+    private static class QuerySingleRuntimeType
+    {
+        public static LocalDateTime GetLocalDateTime(LocalDateTime input) => input;
+    }
+
+    [QueryType]
+    private static class QueryTwoRuntimeTypes
+    {
+        public static DateTime GetLocalDateTime1(DateTime input) => input;
+
+        public static LocalDateTime GetLocalDateTime2(LocalDateTime input) => input;
     }
 
     public static TheoryData<byte, string, LocalDateTime> ValidInput()
