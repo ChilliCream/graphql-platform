@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Types;
+using Lookup = HotChocolate.Fusion.Types.Metadata.Lookup;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -35,6 +36,12 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
     /// Removes all plan nodes from the queue.
     /// </summary>
     public void Clear() => _queue.Clear();
+
+    /// <summary>
+    /// Enqueues and scores a single plan node to this queue.
+    /// </summary>
+    public void Enqueue(PlanNode node)
+        => _queue.Enqueue(node, PlannerCostEstimator.ScoreNode(node, schema));
 
     /// <summary>
     /// Expands a plan node's next work item into all possible branches
@@ -80,24 +87,17 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         }
     }
 
-    /// <summary>
-    /// Enqueues and scores a single plan node to this queue.
-    /// </summary>
-    public void Enqueue(PlanNode node)
-        => _queue.Enqueue(node, PlannerCostEstimator.ScoreNode(node, schema));
-
     private void EnqueueRootPlanNodes(
         PlanNode planNodeTemplate,
         OperationWorkItem workItem)
     {
         foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            Enqueue(
-                planNodeTemplate with
-                {
-                    SchemaName = schemaName,
-                    ResolutionCost = resolutionCost
-                });
+            Enqueue(planNodeTemplate with
+            {
+                SchemaName = schemaName,
+                ResolutionCost = resolutionCost
+            });
         }
     }
 
@@ -109,28 +109,36 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.SelectionSet.Id);
         var type = (FusionComplexTypeDefinition)workItem.SelectionSet.Type;
 
-        double EstimateBranchLowerBound(Backlog branchBacklog)
-            => PlannerCostEstimator.EstimateRemainingCost(
-                planNodeTemplate.Options,
-                planNodeTemplate.MaxDepth,
-                planNodeTemplate.OpsPerLevel,
-                branchBacklog.Cost);
+        // If this work item already carries a chosen lookup, keep it and
+        // only align the node schema to the lookup schema.
+        if (workItem.Lookup is not null)
+        {
+            var branchBacklog = backlog.Push(workItem);
+            var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
 
-        // Each branch starts from the same popped template and
-        // mutates a local copy of backlog state.
-        // This avoids recomputing backlog shape
-        // from collections for every candidate.
+            Enqueue(planNodeTemplate with
+            {
+                SchemaName = workItem.Lookup.SchemaName,
+                ResolutionCost = GetResolutionCost(workItem.SelectionSet, workItem.Lookup.SchemaName),
+                Backlog = branchBacklog,
+                RemainingCost = branchRemainingCost
+            });
+            return;
+        }
+
+        // For abstract types, try to resolve through per-concrete-type lookups
+        // before falling through to the standard abstract-type lookup path.
+        if (type.Kind is TypeKind.Interface or TypeKind.Union)
+        {
+            TryEnqueueConcreteTypeLookupPlanNodes(planNodeTemplate, workItem, backlog, allCandidateSchemas, type);
+        }
+
+        // Each branch starts from the same popped template and mutates a local copy
+        // of backlog state. This avoids recomputing backlog shape from collections
+        // for every candidate.
         foreach (var (toSchema, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
         {
             if (toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            // if the target schema has no lookup for the abstract type itself,
-            // try resolving through per-concrete-type lookups instead.
-            if (type.Kind is TypeKind.Interface or TypeKind.Union
-                && TryEnqueueConcreteTypeLookupPlanNode(toSchema, resolutionCost))
             {
                 continue;
             }
@@ -143,15 +151,14 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             {
                 var lookupWorkItem = workItem with { Lookup = bestLookup };
                 var branchBacklog = backlog.Push(lookupWorkItem);
-                var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-                Enqueue(
-                    planNodeTemplate with
-                    {
-                        SchemaName = toSchema,
-                        ResolutionCost = resolutionCost,
-                        Backlog = branchBacklog,
-                        RemainingCost = branchRemainingCost
-                    });
+                var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                Enqueue(planNodeTemplate with
+                {
+                    SchemaName = toSchema,
+                    ResolutionCost = resolutionCost,
+                    Backlog = branchBacklog,
+                    RemainingCost = branchRemainingCost
+                });
                 continue;
             }
 
@@ -160,15 +167,14 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             {
                 var lookupWorkItem = workItem with { Lookup = lookup };
                 var branchBacklog = backlog.Push(lookupWorkItem);
-                var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-                Enqueue(
-                    planNodeTemplate with
-                    {
-                        SchemaName = toSchema,
-                        ResolutionCost = resolutionCost,
-                        Backlog = branchBacklog,
-                        RemainingCost = branchRemainingCost
-                    });
+                var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                Enqueue(planNodeTemplate with
+                {
+                    SchemaName = toSchema,
+                    ResolutionCost = resolutionCost,
+                    Backlog = branchBacklog,
+                    RemainingCost = branchRemainingCost
+                });
 
                 hasEnqueuedDirectLookup = true;
             }
@@ -187,24 +193,43 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                     StringComparer.Ordinal))
                 {
                     var branchBacklog = backlog.Push(lookupThroughPathWorkItem);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-                    Enqueue(
-                        planNodeTemplate with
-                        {
-                            SchemaName = toSchema,
-                            SelectionSetIndex = index,
-                            ResolutionCost = resolutionCost + cost,
-                            Backlog = branchBacklog,
-                            RemainingCost = branchRemainingCost
-                        });
+                    var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                    Enqueue(planNodeTemplate with
+                    {
+                        SchemaName = toSchema,
+                        SelectionSetIndex = index,
+                        ResolutionCost = resolutionCost + cost,
+                        Backlog = branchBacklog,
+                        RemainingCost = branchRemainingCost
+                    });
                 }
             }
         }
+    }
 
-        // When the target schema has no lookup that returns the abstract type directly,
-        // we try to resolve through per-concrete-type lookups instead.
-        bool TryEnqueueConcreteTypeLookupPlanNode(string toSchema, double resolutionCost)
+    /// <summary>
+    /// Resolves an abstract type (interface/union) by finding per-concrete-type lookups.
+    /// First tries to keep all concrete types on a single schema (fewer network hops),
+    /// then falls back to spreading each concrete type to its best available schema.
+    /// </summary>
+    private bool TryEnqueueConcreteTypeLookupPlanNodes(
+        PlanNode planNodeTemplate,
+        OperationWorkItem workItem,
+        Backlog backlog,
+        ImmutableHashSet<string> allCandidateSchemas,
+        FusionComplexTypeDefinition type)
+    {
+        var enqueued = false;
+
+        // Phase 1: we try to find a single schema that can resolve all concrete types as
+        // this would allow us to batch all requests to these into a single GraphQL batch request.
+        foreach (var (toSchema, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
         {
+            if (toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             // if the target schema already has a lookup returning the abstract type,
             // let the normal lookup path handle it.
             var hasAbstractLookups = schema
@@ -213,11 +238,12 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             if (hasAbstractLookups)
             {
-                return false;
+                continue;
             }
 
             var branchBacklog = backlog;
             var fromSchemas = allCandidateSchemas.Remove(toSchema);
+            var allFound = true;
 
             // for each concrete type that implements the abstract type,
             // find a lookup in the target schema.
@@ -232,11 +258,11 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                                 && t.FieldType.Name.Equals(possibleType.Name, StringComparison.Ordinal));
                 }
 
-                // If any concrete type lacks a lookup we bail out so the normal path can try instead.
-                // otherwise, we could end up with silent failures at runtime.
+                // If any concrete type lacks a lookup we skip this schema.
                 if (concreteLookup is null)
                 {
-                    return false;
+                    allFound = false;
+                    break;
                 }
 
                 // rewrite the selection set to target the concrete type with a
@@ -251,9 +277,14 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 branchBacklog = branchBacklog.Push(lookupWorkItem);
             }
 
-            // all concrete types have lookups, enqueue a single plan node
+            if (!allFound)
+            {
+                continue;
+            }
+
+            // all concrete types have lookups in this schema, enqueue a single plan node
             // that fans out to each concrete type at execution time.
-            var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
+            var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
             Enqueue(planNodeTemplate with
             {
                 SchemaName = toSchema,
@@ -262,8 +293,123 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 RemainingCost = branchRemainingCost
             });
 
+            enqueued = true;
+        }
+
+        if (enqueued)
+        {
             return true;
         }
+
+        // Phase 2: if we do not find a single schema that can can resolve all concrete types we
+        // try to distribute each concrete type to the best available schema.
+        var crossBacklog = backlog;
+        string? topSchema = null;
+        double topCost = 0;
+
+        foreach (var possibleType in schema.GetPossibleTypes(type))
+        {
+            // rewrite the selection set to target the concrete type with a
+            // fragment path so the executor can match the runtime type.
+            var selectionSet = new SelectionSet(
+                workItem.SelectionSet.Id,
+                workItem.SelectionSet.Node,
+                possibleType,
+                workItem.SelectionSet.Path.AppendFragment(possibleType.Name));
+
+            Lookup? concreteLookup = null;
+            string? lookupSchema = null;
+            double lookupCost = 0;
+
+            // scan candidate schemas for the best lookup for this concrete type.
+            foreach (var (candidateSchema, candidateCost) in schema.GetPossibleSchemas(selectionSet))
+            {
+                if (candidateSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (schema.TryGetBestDirectLookup(
+                        possibleType,
+                        allCandidateSchemas.Remove(candidateSchema),
+                        candidateSchema,
+                        out var directLookup))
+                {
+                    concreteLookup = directLookup;
+                    lookupSchema = candidateSchema;
+                    lookupCost = candidateCost;
+                    break;
+                }
+
+                var fallbackLookup = schema
+                    .GetPossibleLookupsOrdered(possibleType, candidateSchema)
+                    .FirstOrDefault(
+                        t => !t.IsInternal
+                            && t.FieldType.Name.Equals(possibleType.Name, StringComparison.Ordinal));
+
+                if (fallbackLookup is not null)
+                {
+                    concreteLookup = fallbackLookup;
+                    lookupSchema = candidateSchema;
+                    lookupCost = candidateCost;
+                    break;
+                }
+            }
+
+            // If any concrete type lacks a lookup we bail out;
+            // otherwise, we could end up with silent failures at runtime.
+            if (concreteLookup is null)
+            {
+                return false;
+            }
+
+            // The backlog is LIFO, so the last pushed item is processed first.
+            // Track its schema so the plan node's SchemaName matches.
+            topSchema = lookupSchema;
+            topCost = lookupCost;
+
+            var lookupWorkItem = workItem with { SelectionSet = selectionSet, Lookup = concreteLookup };
+            crossBacklog = crossBacklog.Push(lookupWorkItem);
+        }
+
+        if (topSchema is null)
+        {
+            return false;
+        }
+
+        // all concrete types have lookups, enqueue a single plan node
+        // that fans out to each concrete type at execution time.
+        var crossRemainingCost = EstimateRemainingCost(planNodeTemplate, crossBacklog);
+        Enqueue(planNodeTemplate with
+        {
+            SchemaName = topSchema,
+            ResolutionCost = topCost,
+            Backlog = crossBacklog,
+            RemainingCost = crossRemainingCost
+        });
+
+        return true;
+    }
+
+    private static double EstimateRemainingCost(PlanNode planNodeTemplate, Backlog branchBacklog)
+        => PlannerCostEstimator.EstimateRemainingCost(
+            planNodeTemplate.Options,
+            planNodeTemplate.MaxDepth,
+            planNodeTemplate.OpsPerLevel,
+            branchBacklog.Cost);
+
+    private double GetResolutionCost(SelectionSet selectionSet, string schemaName)
+    {
+        foreach (var (candidateSchema, candidateCost) in schema.GetPossibleSchemas(selectionSet))
+        {
+            if (candidateSchema.Equals(schemaName, StringComparison.Ordinal))
+            {
+                return candidateCost;
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"Schema '{schemaName}' is not a valid candidate for selection set '{selectionSet.Type.Name}'.");
     }
 
     private void EnqueueNodeLookupPlanNodes(
@@ -273,13 +419,6 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         var backlog = planNodeTemplate.Backlog.Pop(out _);
         var type = workItem.SelectionSet.Type;
         var hasEnqueuedLookup = false;
-
-        double EstimateBranchLowerBound(Backlog branchBacklog)
-            => PlannerCostEstimator.EstimateRemainingCost(
-                planNodeTemplate.Options,
-                planNodeTemplate.MaxDepth,
-                planNodeTemplate.OpsPerLevel,
-                branchBacklog.Cost);
 
         // Same branching rule as lookup work items:
         // copy backlog state per branch, then
@@ -301,15 +440,14 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             var lookupWorkItem = workItem with { Lookup = byIdLookup };
             var branchBacklog = backlog.Push(lookupWorkItem);
-            var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-            Enqueue(
-                planNodeTemplate with
-                {
-                    SchemaName = schemaName,
-                    ResolutionCost = resolutionCost,
-                    Backlog = branchBacklog,
-                    RemainingCost = branchRemainingCost
-                });
+            var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+            Enqueue(planNodeTemplate with
+            {
+                SchemaName = schemaName,
+                ResolutionCost = resolutionCost,
+                Backlog = branchBacklog,
+                RemainingCost = branchRemainingCost
+            });
 
             hasEnqueuedLookup = true;
         }
@@ -327,14 +465,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             var lookupWorkItem = workItem with { Lookup = byIdLookup };
             var branchBacklog = backlog.Push(lookupWorkItem);
-            var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-            Enqueue(
-                planNodeTemplate with
-                {
-                    SchemaName = byIdLookup.SchemaName,
-                    Backlog = branchBacklog,
-                    RemainingCost = branchRemainingCost
-                });
+            var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+            Enqueue(planNodeTemplate with
+            {
+                SchemaName = byIdLookup.SchemaName,
+                Backlog = branchBacklog,
+                RemainingCost = branchRemainingCost
+            });
         }
     }
 
@@ -345,13 +482,6 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         var backlog = planNodeTemplate.Backlog.Pop(out _);
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.Selection.SelectionSetId);
         var selectionSetType = workItem.Selection.Field.DeclaringType;
-
-        double EstimateBranchLowerBound(Backlog branchBacklog)
-            => PlannerCostEstimator.EstimateRemainingCost(
-                planNodeTemplate.Options,
-                planNodeTemplate.MaxDepth,
-                planNodeTemplate.OpsPerLevel,
-                branchBacklog.Cost);
 
         // Requirement planning can fork into inline and lookup paths.
         // Both are scored from the same popped template by cloning and
@@ -368,13 +498,12 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             if (schemaName == planNodeTemplate.SchemaName)
             {
                 var inlineBacklog = backlog.Push(workItem);
-                var inlineRemainingCost = EstimateBranchLowerBound(inlineBacklog);
-                Enqueue(
-                    planNodeTemplate with
-                    {
-                        Backlog = inlineBacklog,
-                        RemainingCost = inlineRemainingCost,
-                    });
+                var inlineRemainingCost = EstimateRemainingCost(planNodeTemplate, inlineBacklog);
+                Enqueue(planNodeTemplate with
+                {
+                    Backlog = inlineBacklog,
+                    RemainingCost = inlineRemainingCost,
+                });
 
                 if (schema.TryGetBestDirectLookup(
                     selectionSetType,
@@ -384,14 +513,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 {
                     var lookupWorkItem = workItem with { Lookup = bestLookup };
                     var branchBacklog = backlog.Push(lookupWorkItem);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-                    Enqueue(
-                        planNodeTemplate with
-                        {
-                            SchemaName = schemaName,
-                            Backlog = branchBacklog,
-                            RemainingCost = branchRemainingCost
-                        });
+                    var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                    Enqueue(planNodeTemplate with
+                    {
+                        SchemaName = schemaName,
+                        Backlog = branchBacklog,
+                        RemainingCost = branchRemainingCost
+                    });
                     continue;
                 }
 
@@ -399,14 +527,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
                     var branchBacklog = backlog.Push(lookupWorkItem);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-                    Enqueue(
-                        planNodeTemplate with
-                        {
-                            SchemaName = schemaName,
-                            Backlog = branchBacklog,
-                            RemainingCost = branchRemainingCost
-                        });
+                    var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                    Enqueue(planNodeTemplate with
+                    {
+                        SchemaName = schemaName,
+                        Backlog = branchBacklog,
+                        RemainingCost = branchRemainingCost
+                    });
                 }
             }
             else
@@ -419,14 +546,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 {
                     var lookupWorkItem = workItem with { Lookup = bestLookup };
                     var branchBacklog = backlog.Push(lookupWorkItem);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-                    Enqueue(
-                        planNodeTemplate with
-                        {
-                            SchemaName = schemaName,
-                            Backlog = branchBacklog,
-                            RemainingCost = branchRemainingCost
-                        });
+                    var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                    Enqueue(planNodeTemplate with
+                    {
+                        SchemaName = schemaName,
+                        Backlog = branchBacklog,
+                        RemainingCost = branchRemainingCost
+                    });
                     continue;
                 }
 
@@ -434,14 +560,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
                     var branchBacklog = backlog.Push(lookupWorkItem);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
-                    Enqueue(
-                        planNodeTemplate with
-                        {
-                            SchemaName = schemaName,
-                            Backlog = branchBacklog,
-                            RemainingCost = branchRemainingCost
-                        });
+                    var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                    Enqueue(planNodeTemplate with
+                    {
+                        SchemaName = schemaName,
+                        Backlog = branchBacklog,
+                        RemainingCost = branchRemainingCost
+                    });
                 }
             }
         }
