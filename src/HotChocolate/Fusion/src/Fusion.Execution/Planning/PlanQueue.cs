@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -126,6 +127,14 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 continue;
             }
 
+            // if the target schema has no lookup for the abstract type itself,
+            // try resolving through per-concrete-type lookups instead.
+            if (type.Kind is TypeKind.Interface or TypeKind.Union
+                && TryEnqueueConcreteTypeLookupPlanNode(toSchema, resolutionCost))
+            {
+                continue;
+            }
+
             if (schema.TryGetBestDirectLookup(
                 type,
                 allCandidateSchemas.Remove(toSchema),
@@ -190,6 +199,70 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                         });
                 }
             }
+        }
+
+        // When the target schema has no lookup that returns the abstract type directly,
+        // we try to resolve through per-concrete-type lookups instead.
+        bool TryEnqueueConcreteTypeLookupPlanNode(string toSchema, double resolutionCost)
+        {
+            // if the target schema already has a lookup returning the abstract type,
+            // let the normal lookup path handle it.
+            var hasAbstractLookups = schema
+                .GetPossibleLookupsOrdered(type, toSchema)
+                .Any(t => t.FieldType.Name.Equals(type.Name, StringComparison.Ordinal));
+
+            if (hasAbstractLookups)
+            {
+                return false;
+            }
+
+            var branchBacklog = backlog;
+            var fromSchemas = allCandidateSchemas.Remove(toSchema);
+
+            // for each concrete type that implements the abstract type,
+            // find a lookup in the target schema.
+            foreach (var possibleType in schema.GetPossibleTypes(type))
+            {
+                if (!schema.TryGetBestDirectLookup(possibleType, fromSchemas, toSchema, out var concreteLookup))
+                {
+                    concreteLookup = schema
+                        .GetPossibleLookupsOrdered(possibleType, toSchema)
+                        .FirstOrDefault(
+                            t => !t.IsInternal
+                                && t.FieldType.Name.Equals(possibleType.Name, StringComparison.Ordinal));
+                }
+
+                // If any concrete type lacks a lookup we bail out so the normal path can try instead.
+                // otherwise, we could end up with silent failures at runtime.
+                if (concreteLookup is null)
+                {
+                    return false;
+                }
+
+                // rewrite the selection set to target the concrete type with a
+                // fragment path so the executor can match the runtime type.
+                var selectionSet = new SelectionSet(
+                    workItem.SelectionSet.Id,
+                    workItem.SelectionSet.Node,
+                    possibleType,
+                    workItem.SelectionSet.Path.AppendFragment(possibleType.Name));
+
+                var lookupWorkItem = workItem with { SelectionSet = selectionSet, Lookup = concreteLookup };
+                branchBacklog = branchBacklog.Push(lookupWorkItem);
+            }
+
+            // all concrete types have lookups, enqueue a single plan node
+            // that fans out to each concrete type at execution time.
+            var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
+            Enqueue(planNodeTemplate with
+            {
+                SchemaName = toSchema,
+                ResolutionCost = resolutionCost,
+                Backlog = branchBacklog,
+                RemainingCost = branchRemainingCost
+            });
+
+            return true;
         }
     }
 
