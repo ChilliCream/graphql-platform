@@ -3,7 +3,7 @@ using Mocha.Sagas;
 namespace Mocha.Tests;
 
 /// <summary>
-/// Unit tests for <see cref="InMemorySagaStateStorage"/> — pure storage CRUD operations.
+/// Unit tests for <see cref="InMemorySagaStateStorage"/> - pure storage CRUD operations.
 /// </summary>
 public class InMemorySagaStateStorageTests
 {

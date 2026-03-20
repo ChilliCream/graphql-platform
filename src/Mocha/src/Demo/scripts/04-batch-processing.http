@@ -134,7 +134,7 @@ Content-Type: application/json
 ### Check results (wait ~10 seconds for batch timeout to expire)
 ### ============================================
 
-### Should now show 2 revenue summaries — one Size, one Time
+### Should now show 2 revenue summaries - one Size, one Time
 GET {{billingUrl}}/api/revenue-summaries
 
 ###

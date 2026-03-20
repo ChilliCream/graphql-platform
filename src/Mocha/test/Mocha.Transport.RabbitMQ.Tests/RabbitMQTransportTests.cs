@@ -376,7 +376,7 @@ public class RabbitMQTransportTests
         var context = (IMessagingConfigurationContext)runtime;
         var topologyAddress = ((RabbitMQMessagingTopology)transport.Topology).Address;
 
-        // act — use the full topology base address with q/ path
+        // act - use the full topology base address with q/ path
         var config = transport.CreateEndpointConfiguration(context, new Uri(topologyAddress, "q/my-queue"));
 
         // assert
@@ -395,7 +395,7 @@ public class RabbitMQTransportTests
         var context = (IMessagingConfigurationContext)runtime;
         var topologyAddress = ((RabbitMQMessagingTopology)transport.Topology).Address;
 
-        // act — use the full topology base address with e/ path
+        // act - use the full topology base address with e/ path
         var config = transport.CreateEndpointConfiguration(context, new Uri(topologyAddress, "e/my-exchange"));
 
         // assert
@@ -427,7 +427,7 @@ public class RabbitMQTransportTests
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
-        // act & assert — no exception thrown
+        // act & assert - no exception thrown
         await transport.DisposeAsync();
     }
 
@@ -438,11 +438,11 @@ public class RabbitMQTransportTests
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
-        // act — call twice
+        // act - call twice
         await transport.DisposeAsync();
         await transport.DisposeAsync();
 
-        // assert — no exception
+        // assert - no exception
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>

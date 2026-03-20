@@ -8,7 +8,7 @@ export type EdgeRouting = "smart" | "simple";
 interface TopologyFlowProps {
   data: DiagramData;
   trace?: MessageTrace | null;
-  /** @deprecated No longer used — trace tab is now part of the LeftSidebar. */
+  /** @deprecated No longer used - trace tab is now part of the LeftSidebar. */
   enableTraceTimeline?: boolean;
   /** Content to render in the left sidebar's Trace tab. When provided, the Trace tab appears. */
   traceContent?: ReactNode;

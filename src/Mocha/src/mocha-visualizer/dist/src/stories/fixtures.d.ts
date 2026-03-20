@@ -107,43 +107,43 @@ export declare const detailSagaNode: {
 };
 export declare const minimalDiagram: DiagramData;
 export declare const emptyDiagram: DiagramData;
-/** Endpoint with dispatch subType — different icon color from receive */
+/** Endpoint with dispatch subType - different icon color from receive */
 export declare const compactEndpointDispatch: CompactNodeData;
-/** Entity with no entityKind — falls back to generic cube icon */
+/** Entity with no entityKind - falls back to generic cube icon */
 export declare const compactEntityNoKind: CompactNodeData;
 /** Entity with topic entityKind */
 export declare const compactEntityTopic: CompactNodeData;
-/** Very long label — tests CSS text-overflow truncation */
+/** Very long label - tests CSS text-overflow truncation */
 export declare const compactLongLabel: CompactNodeData;
-/** Route with no direction — tests default rendering */
+/** Route with no direction - tests default rendering */
 export declare const routeNoDirection: SimpleRouteNodeData;
 /** Route with reply kind */
 export declare const routeReply: SimpleRouteNodeData;
-/** All counts zero — bottom row should be hidden */
+/** All counts zero - bottom row should be hidden */
 export declare const summaryServiceZeroCounts: SummaryServiceNodeData;
 /** Only consumers, no messages/sagas/transports */
 export declare const summaryServiceConsumersOnly: SummaryServiceNodeData;
-/** No entity kind breakdown — falls back to totalEntityCount */
+/** No entity kind breakdown - falls back to totalEntityCount */
 export declare const summaryTransportNoKinds: SummaryTransportNodeData;
 /** Single entity kind */
 export declare const summaryTransportOneKind: SummaryTransportNodeData;
-/** Bare state — no response, no sendActions, not initial or final */
+/** Bare state - no response, no sendActions, not initial or final */
 export declare const focusBare: FocusStateNodeData;
 /** State with only a single send action, no response */
 export declare const focusSendOnly: FocusStateNodeData;
 /** State with response but no send actions */
 export declare const focusResponseOnly: FocusStateNodeData;
-/** Single-state saga — only an initial+final state with no transitions */
+/** Single-state saga - only an initial+final state with no transitions */
 export declare const singleStateSaga: Saga;
 /** Saga with no outbound transitions from any state */
 export declare const noTransitionsSaga: Saga;
-/** Empty trace — no activities at all */
+/** Empty trace - no activities at all */
 export declare const emptyTrace: MessageTrace;
 /** Single-activity trace */
 export declare const singleActivityTrace: MessageTrace;
 /** Trace with request/reply + saga transition activities */
 export declare const requestReplySagaTrace: MessageTrace;
-/** Binding node with properties — tests binding detail section */
+/** Binding node with properties - tests binding detail section */
 export declare const detailBindingNode: {
   id: string;
   type: string;
@@ -163,7 +163,7 @@ export declare const detailBindingNode: {
     };
   };
 };
-/** Entity node with no properties — tests conditional rendering */
+/** Entity node with no properties - tests conditional rendering */
 export declare const detailEntityNoPropsNode: {
   id: string;
   type: string;
@@ -180,7 +180,7 @@ export declare const detailEntityNoPropsNode: {
     };
   };
 };
-/** Node with no fullData — falls back to node.data */
+/** Node with no fullData - falls back to node.data */
 export declare const detailNoFullDataNode: {
   id: string;
   type: string;
@@ -189,7 +189,7 @@ export declare const detailNoFullDataNode: {
     nodeType: string;
   };
 };
-/** Message node — tests the default info-only path */
+/** Message node - tests the default info-only path */
 export declare const detailMessageNode: {
   id: string;
   type: string;

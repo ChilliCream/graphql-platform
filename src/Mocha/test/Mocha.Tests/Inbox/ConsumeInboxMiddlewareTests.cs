@@ -139,7 +139,7 @@ public class ConsumeInboxMiddlewareTests
         // Act
         await middleware.InvokeAsync(context, next);
 
-        // Assert — next was called but no recording because Envelope is null
+        // Assert - next was called but no recording because Envelope is null
         Assert.Empty(inbox.RecordedEnvelopes);
     }
 
@@ -161,7 +161,7 @@ public class ConsumeInboxMiddlewareTests
             return ValueTask.CompletedTask;
         };
 
-        // Act — launch N concurrent consumers all trying to process the same MessageId
+        // Act - launch N concurrent consumers all trying to process the same MessageId
         var tasks = Enumerable.Range(0, concurrency).Select(_ => Task.Run(async () =>
         {
             var middleware = new ConsumeInboxMiddleware(NullLogger<ConsumeInboxMiddleware>.Instance);
@@ -175,7 +175,7 @@ public class ConsumeInboxMiddlewareTests
 
         await Task.WhenAll(tasks);
 
-        // Assert — exactly one consumer should have processed the message
+        // Assert - exactly one consumer should have processed the message
         Assert.Equal(1, processedCount);
         Assert.Single(inbox.RecordedEnvelopes);
         Assert.Equal(messageId, inbox.RecordedEnvelopes.First().MessageId);

@@ -7,10 +7,12 @@ namespace Mocha.Transport.InMemory;
 /// Implementations receive the strongly-typed <see cref="InMemoryReceiveEndpointConfiguration"/>
 /// instead of the base <see cref="ReceiveEndpointConfiguration"/>, enabling transport-specific defaults.
 /// </remarks>
-public interface IInMemoryReceiveEndpointConfigurationConvention : IReceiveEndpointConvention
+public interface IInMemoryReceiveEndpointConfigurationConvention
+    : IEndpointConfigurationConvention<ReceiveEndpointConfiguration>
 {
-    void IConfigurationConvention<ReceiveEndpointConfiguration>.Configure(
+    void IEndpointConfigurationConvention<ReceiveEndpointConfiguration>.Configure(
         IMessagingConfigurationContext context,
+        MessagingTransport transport,
         ReceiveEndpointConfiguration configuration)
     {
         if (configuration is not InMemoryReceiveEndpointConfiguration inMemoryConfiguration)
@@ -18,13 +20,22 @@ public interface IInMemoryReceiveEndpointConfigurationConvention : IReceiveEndpo
             return;
         }
 
-        Configure(context, inMemoryConfiguration);
+        if (transport is not InMemoryMessagingTransport inMemoryTransport)
+        {
+            return;
+        }
+
+        Configure(context, inMemoryTransport, inMemoryConfiguration);
     }
 
     /// <summary>
     /// Applies convention-defined defaults to an in-memory receive endpoint configuration.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
+    /// <param name="transport">The in-memory messaging transport instance.</param>
     /// <param name="configuration">The strongly-typed in-memory receive endpoint configuration to modify.</param>
-    void Configure(IMessagingConfigurationContext context, InMemoryReceiveEndpointConfiguration configuration);
+    void Configure(
+        IMessagingConfigurationContext context,
+        InMemoryMessagingTransport transport,
+        InMemoryReceiveEndpointConfiguration configuration);
 }

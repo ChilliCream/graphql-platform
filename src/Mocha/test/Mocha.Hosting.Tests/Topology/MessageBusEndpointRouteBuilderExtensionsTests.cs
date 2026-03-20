@@ -61,7 +61,7 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
         var content = await response.Content.ReadAsStringAsync(default);
         var doc = JsonDocument.Parse(content);
 
-        // Assert — the response has DiagramData shape: { services: [...], transports: [...] }
+        // Assert - the response has DiagramData shape: { services: [...], transports: [...] }
         Assert.True(
             doc.RootElement.TryGetProperty("services", out var servicesElement),
             "Response JSON should contain a 'services' property.");

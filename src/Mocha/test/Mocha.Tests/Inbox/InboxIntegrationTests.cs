@@ -29,7 +29,7 @@ public class InboxIntegrationTests
         // act
         await bus.PublishAsync(new InboxTestEvent { Payload = "record-me" }, CancellationToken.None);
 
-        // assert — handler received the message and inbox recorded it
+        // assert - handler received the message and inbox recorded it
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
         await WaitUntilAsync(() => inbox.RecordedEnvelopes.Count >= 1, s_timeout);
         Assert.Single(inbox.RecordedEnvelopes);
@@ -53,11 +53,11 @@ public class InboxIntegrationTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish two distinct messages (each gets its own MessageId)
+        // act - publish two distinct messages (each gets its own MessageId)
         await bus.PublishAsync(new InboxTestEvent { Payload = "first" }, CancellationToken.None);
         await bus.PublishAsync(new InboxTestEvent { Payload = "second" }, CancellationToken.None);
 
-        // assert — both messages are received and recorded (they have different IDs)
+        // assert - both messages are received and recorded (they have different IDs)
         Assert.True(
             await recorder.WaitAsync(s_timeout, expectedCount: 2),
             "Handler did not receive both events within timeout");
@@ -88,7 +88,7 @@ public class InboxIntegrationTests
         await bus.PublishAsync(new InboxTestEvent { Payload = "second" }, CancellationToken.None);
         await bus.PublishAsync(new InboxTestEvent { Payload = "third" }, CancellationToken.None);
 
-        // assert — all three captured
+        // assert - all three captured
         Assert.True(
             await recorder.WaitAsync(s_timeout, expectedCount: 3),
             "Handler did not receive all 3 events within timeout");
@@ -132,7 +132,7 @@ public class InboxIntegrationTests
         // act
         await bus.PublishAsync(new InboxTestEvent { Payload = "skip-inbox" }, CancellationToken.None);
 
-        // assert — handler received the message but inbox did NOT record it
+        // assert - handler received the message but inbox did NOT record it
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
 
         // Give a short delay to ensure no async recording happens
