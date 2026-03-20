@@ -19,7 +19,7 @@ public class AutoProvisionIntegrationTests
     [Fact]
     public async Task PublishAsync_Should_Deliver_When_AutoProvisionEnabledByDefault()
     {
-        // arrange — default auto-provision (true)
+        // arrange - default auto-provision (true)
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
@@ -36,7 +36,7 @@ public class AutoProvisionIntegrationTests
         // act
         await messageBus.PublishAsync(new OrderCreated { OrderId = "AP-1" }, CancellationToken.None);
 
-        // assert — message is delivered because topology was auto-provisioned
+        // assert - message is delivered because topology was auto-provisioned
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event");
         var order = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
         Assert.Equal("AP-1", order.OrderId);
@@ -45,7 +45,7 @@ public class AutoProvisionIntegrationTests
     [Fact]
     public async Task PublishAsync_Should_Deliver_When_AutoProvisionExplicitlyEnabled()
     {
-        // arrange — explicit auto-provision true
+        // arrange - explicit auto-provision true
         var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
@@ -97,7 +97,7 @@ public class AutoProvisionIntegrationTests
     [Fact]
     public async Task ExplicitTopology_Should_Deliver_When_AutoProvisionEnabledOnResources()
     {
-        // arrange — transport auto-provision disabled, but individual resources enabled
+        // arrange - transport auto-provision disabled, but individual resources enabled
         var capture = new OrderCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
@@ -124,7 +124,7 @@ public class AutoProvisionIntegrationTests
         // act
         await messageBus.PublishAsync(new OrderCreated { OrderId = "AP-4" }, CancellationToken.None);
 
-        // assert — resources were explicitly enabled, so message should be delivered
+        // assert - resources were explicitly enabled, so message should be delivered
         Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the message");
         var message = Assert.Single(capture.Messages);
         Assert.Equal("AP-4", message.OrderId);
@@ -133,7 +133,7 @@ public class AutoProvisionIntegrationTests
     [Fact]
     public async Task ExplicitTopology_Should_Deliver_When_PreProvisionedAndAutoProvisionDisabled()
     {
-        // arrange — pre-provision resources manually, then disable auto-provision
+        // arrange - pre-provision resources manually, then disable auto-provision
         var capture = new OrderCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
 
@@ -170,7 +170,7 @@ public class AutoProvisionIntegrationTests
         // act
         await messageBus.PublishAsync(new OrderCreated { OrderId = "AP-5" }, CancellationToken.None);
 
-        // assert — pre-provisioned resources work with auto-provision disabled
+        // assert - pre-provisioned resources work with auto-provision disabled
         Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the message");
         var message = Assert.Single(capture.Messages);
         Assert.Equal("AP-5", message.OrderId);
@@ -179,7 +179,7 @@ public class AutoProvisionIntegrationTests
     [Fact]
     public async Task ExplicitTopology_Should_Deliver_When_MixedAutoProvision()
     {
-        // arrange — transport enabled, some resources disabled but pre-provisioned
+        // arrange - transport enabled, some resources disabled but pre-provisioned
         var capture = new OrderCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
 

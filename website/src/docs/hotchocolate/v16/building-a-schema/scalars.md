@@ -234,16 +234,32 @@ Beyond the five spec scalars, Hot Chocolate provides these scalars out of the bo
 
 ## DateTime Configuration
 
-The `DateTime` scalar defaults to UTC. You can configure the precision and format using `DateTimeOptions`:
+`HotChocolate.Types.DateTimeOptions` configures the built-in BCL-backed `DateTime`, `LocalDateTime`, and `LocalTime` scalars:
+
+- `InputPrecision` controls how many fractional second digits are accepted during parsing, up to `9`.
+- `OutputPrecision` controls how many fractional second digits are written during serialization, up to `7`.
+- `ValidateInputFormat` controls whether input is validated against the expected scalar format before parsing.
+
+Although the built-in scalars can parse up to 9 fractional second digits, the underlying BCL types only preserve up to 7 digits (100-nanosecond precision), so additional digits are rounded during parsing.
+
+To customize the built-in scalars, register configured scalar instances explicitly:
 
 ```csharp
 // Program.cs
 builder.Services
     .AddGraphQLServer()
-    .ModifyOptions(o =>
+    .AddType(new DateTimeType(new DateTimeOptions
     {
-        o.DateTimeOptions.DateTimePrecision = DateTimePrecision.Milliseconds;
-    });
+        OutputPrecision = 3
+    }))
+    .AddType(new LocalDateTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3
+    }))
+    .AddType(new LocalTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3
+    }));
 ```
 
 <Video videoId="gO3bNKBmXZM" />
@@ -418,47 +434,81 @@ public string GetEmail() => "test@example.com";
 
 [Learn more about explicit types](/docs/hotchocolate/v16/building-a-schema/object-types#explicit-types)
 
-## NodaTime
+# NodaTime Scalars
 
 For [NodaTime](https://github.com/nodatime/nodatime) types, install the dedicated package:
 
 <PackageInstallation packageName="HotChocolate.Types.NodaTime" />
 
-| Type           | Description                                                                             | Example                                       |
-| -------------- | --------------------------------------------------------------------------------------- | --------------------------------------------- |
-| DateTimeZone   | [NodaTime DateTimeZone](https://nodatime.org/TimeZones)                                 | `"Europe/Rome"`                               |
-| Duration       | [NodaTime Duration](https://nodatime.org/3.0.x/userguide/duration-patterns)             | `"-123:07:53:10.019"`                         |
-| Instant        | [NodaTime Instant](https://nodatime.org/3.0.x/userguide/instant-patterns)               | `"2020-02-20T17:42:59Z"`                      |
-| IsoDayOfWeek   | [NodaTime IsoDayOfWeek](https://nodatime.org/3.0.x/api/NodaTime.IsoDayOfWeek.html)      | `7`                                           |
-| LocalDate      | [NodaTime LocalDate](https://nodatime.org/3.0.x/userguide/localdate-patterns)           | `"2020-12-25"`                                |
-| LocalDateTime  | [NodaTime LocalDateTime](https://nodatime.org/3.0.x/userguide/localdatetime-patterns)   | `"2020-12-25T13:46:78"`                       |
-| LocalTime      | [NodaTime LocalTime](https://nodatime.org/3.0.x/userguide/localtime-patterns)           | `"12:42:13.03101"`                            |
-| OffsetDateTime | [NodaTime OffsetDateTime](https://nodatime.org/3.0.x/userguide/offsetdatetime-patterns) | `"2020-12-25T13:46:78+02:35"`                 |
-| OffsetDate     | [NodaTime OffsetDate](https://nodatime.org/3.0.x/userguide/offsetdate-patterns)         | `"2020-12-25+02:35"`                          |
-| OffsetTime     | [NodaTime OffsetTime](https://nodatime.org/3.0.x/userguide/offsettime-patterns)         | `"13:46:78+02:35"`                            |
-| Offset         | [NodaTime Offset](https://nodatime.org/3.0.x/userguide/offset-patterns)                 | `"+02:35"`                                    |
-| Period         | [NodaTime Period](https://nodatime.org/3.0.x/userguide/period-patterns)                 | `"P-3W3DT139t"`                               |
-| ZonedDateTime  | [NodaTime ZonedDateTime](https://nodatime.org/3.0.x/userguide/zoneddatetime-patterns)   | `"2020-12-31T19:40:13 Asia/Kathmandu +05:45"` |
+`HotChocolate.Types.NodaTime` provides alternative implementations of the same five built-in date and time scalars defined by the specifications on [scalars.graphql.org](https://scalars.graphql.org/):
 
-When returning a NodaTime type from a resolver, register the corresponding scalar type explicitly:
+| GraphQL Scalar     | NodaTime Runtime Type                                                         | Replaces Built-in Mapping       |
+| ------------------ | ----------------------------------------------------------------------------- | ------------------------------- |
+| [DateTime][5]      | [OffsetDateTime](https://nodatime.org/3.2.x/api/NodaTime.OffsetDateTime.html) | `DateTimeOffset`                |
+| [Duration][7]      | [Duration](https://nodatime.org/3.2.x/api/NodaTime.Duration.html)             | (see note below for `TimeSpan`) |
+| [LocalDate][8]     | [LocalDate](https://nodatime.org/3.2.x/api/NodaTime.LocalDate.html)           | `DateOnly`                      |
+| [LocalDateTime][9] | [LocalDateTime](https://nodatime.org/3.2.x/api/NodaTime.LocalDateTime.html)   | `DateTime`                      |
+| [LocalTime][10]    | [LocalTime](https://nodatime.org/3.2.x/api/NodaTime.LocalTime.html)           | `TimeOnly`                      |
 
-```csharp
-// Types/ScheduleQueries.cs
-public sealed class ScheduleQueries
-{
-    public Duration GetDuration() => Duration.FromMinutes(3);
-}
-```
+> **Note:** The `Duration` scalar uses `NodaTime.Duration` as its runtime type. Calling `AddNodaTime()` does **not** automatically bind `System.TimeSpan` to `DurationType` or register `TimeSpan`↔`NodaTime.Duration` converters, as the runtime types are not compatible.
+
+These NodaTime scalars expose the same `@specifiedBy` URLs and implement the same GraphQL scalar specifications as the built-in versions, but they use NodaTime runtime types and may differ subtly in behavior. For example, the NodaTime implementations support up to 9 fractional second digits (nanosecond precision), whereas the equivalent BCL types only support up to 7 fractional second digits (100-nanosecond precision).
+
+Register them with `AddNodaTime()`:
 
 ```csharp
 // Program.cs
 builder.Services
     .AddGraphQLServer()
-    .AddQueryType<ScheduleQueries>()
-    .AddType<DurationType>();
+    .AddNodaTime();
 ```
 
-This package was originally developed by [@shoooe](https://github.com/shoooe).
+`AddNodaTime()` registers the five scalar types above and configures the related CLR bindings and converters automatically.
+
+If you prefer, you can still register individual scalar types explicitly. For example:
+
+```csharp
+// Program.cs
+using NodaTimeDurationType = HotChocolate.Types.NodaTime.DurationType;
+
+builder.Services
+    .AddGraphQLServer()
+    .AddType<NodaTimeDurationType>();
+```
+
+## NodaTime scalar options
+
+`HotChocolate.Types.NodaTime.DateTimeOptions` configures the NodaTime-backed `DateTime`, `LocalDateTime`, and `LocalTime` scalars:
+
+- `InputPrecision` controls how many fractional second digits are accepted during parsing, up to `9`.
+- `OutputPrecision` controls how many fractional second digits are written during serialization, up to `9`.
+
+Unlike the built-in BCL-backed scalars, the NodaTime implementations preserve up to 9 fractional second digits (nanosecond precision).
+
+If you need non-default NodaTime precision settings, register those scalar types individually instead of using `AddNodaTime()`:
+
+```csharp
+// Program.cs
+using NodaTimeDateTimeOptions = HotChocolate.Types.NodaTime.DateTimeOptions;
+using NodaTimeDateTimeType = HotChocolate.Types.NodaTime.DateTimeType;
+using NodaTimeLocalDateTimeType = HotChocolate.Types.NodaTime.LocalDateTimeType;
+using NodaTimeLocalTimeType = HotChocolate.Types.NodaTime.LocalTimeType;
+
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new NodaTimeDateTimeType(new NodaTimeDateTimeOptions
+    {
+        OutputPrecision = 3
+    }))
+    .AddType(new NodaTimeLocalDateTimeType(new NodaTimeDateTimeOptions
+    {
+        OutputPrecision = 3
+    }))
+    .AddType(new NodaTimeLocalTimeType(new NodaTimeDateTimeOptions
+    {
+        OutputPrecision = 3
+    }));
+```
 
 # Binding Behavior
 

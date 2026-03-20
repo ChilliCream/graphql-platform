@@ -41,7 +41,7 @@ public class OrderPlacedBatchHandler(BillingDbContext db, ILogger<OrderPlacedBat
         await db.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
-            "Revenue summary created: {SummaryId} — {OrderCount} orders, ${TotalRevenue:F2} total, mode={Mode}",
+            "Revenue summary created: {SummaryId} - {OrderCount} orders, ${TotalRevenue:F2} total, mode={Mode}",
             summary.Id,
             summary.OrderCount,
             summary.TotalRevenue,

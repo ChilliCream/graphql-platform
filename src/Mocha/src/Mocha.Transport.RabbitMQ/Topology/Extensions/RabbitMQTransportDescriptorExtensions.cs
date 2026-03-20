@@ -10,7 +10,7 @@ public static class RabbitMQTransportDescriptorExtensions
     internal static IRabbitMQMessagingTransportDescriptor AddDefaults(
         this IRabbitMQMessagingTransportDescriptor descriptor)
     {
-        descriptor.AddConvention(new RabbitMQDefaultReceiveEndpointEndpointConvention());
+        descriptor.AddConvention(new RabbitMQDefaultReceiveEndpointConvention());
         descriptor.AddConvention(new RabbitMQReceiveEndpointTopologyConvention());
         descriptor.AddConvention(new RabbitMQDispatchEndpointTopologyConvention());
 

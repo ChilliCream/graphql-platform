@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Features;
 using Mocha.Inbox;
@@ -42,7 +41,7 @@ public class ConsumeInboxMiddlewareTests
         var envelope = new MessageEnvelope { MessageId = messageId, MessageType = "urn:message:test" };
 
         // Pre-record the message for the same consumer type
-        await inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None);
+        await inbox.RecordAsync(envelope, s_testConsumerType, CancellationToken.None);
         inbox.RecordedEnvelopes.Clear(); // Clear so we can detect if re-recorded
 
         var nextCalled = false;
@@ -139,7 +138,7 @@ public class ConsumeInboxMiddlewareTests
         // Act
         await middleware.InvokeAsync(context, next);
 
-        // Assert — next was called but no recording because Envelope is null
+        // Assert - next was called but no recording because Envelope is null
         Assert.Empty(inbox.RecordedEnvelopes);
     }
 
@@ -161,7 +160,7 @@ public class ConsumeInboxMiddlewareTests
             return ValueTask.CompletedTask;
         };
 
-        // Act — launch N concurrent consumers all trying to process the same MessageId
+        // Act - launch N concurrent consumers all trying to process the same MessageId
         var tasks = Enumerable.Range(0, concurrency).Select(_ => Task.Run(async () =>
         {
             var middleware = new ConsumeInboxMiddleware(NullLogger<ConsumeInboxMiddleware>.Instance);
@@ -175,7 +174,7 @@ public class ConsumeInboxMiddlewareTests
 
         await Task.WhenAll(tasks);
 
-        // Assert — exactly one consumer should have processed the message
+        // Assert - exactly one consumer should have processed the message
         Assert.Equal(1, processedCount);
         Assert.Single(inbox.RecordedEnvelopes);
         Assert.Equal(messageId, inbox.RecordedEnvelopes.First().MessageId);
@@ -185,7 +184,7 @@ public class ConsumeInboxMiddlewareTests
     /// The consumer type name used in tests to simulate a consumer identity.
     /// Matches the full type name of the nested <see cref="TestConsumer"/> class.
     /// </summary>
-    private static readonly string TestConsumerType = typeof(TestConsumer).FullName!;
+    private static readonly string s_testConsumerType = typeof(TestConsumer).FullName!;
 
     /// <summary>
     /// Creates a <see cref="ReceiveContext"/> (which implements both

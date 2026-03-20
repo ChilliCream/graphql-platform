@@ -272,7 +272,7 @@ public class InMemorySagaTransactionTests
         // arrange
         var transaction = NoOpSagaTransaction.Instance;
 
-        // act & assert — no observable side-effect; NoOpSagaTransaction is
+        // act & assert - no observable side-effect; NoOpSagaTransaction is
         // intentionally a no-op so "did not throw" is the behavioral contract.
         await transaction.CommitAsync(CancellationToken.None);
     }
@@ -283,7 +283,7 @@ public class InMemorySagaTransactionTests
         // arrange
         var transaction = NoOpSagaTransaction.Instance;
 
-        // act & assert — no observable side-effect; NoOpSagaTransaction is
+        // act & assert - no observable side-effect; NoOpSagaTransaction is
         // intentionally a no-op so "did not throw" is the behavioral contract.
         await transaction.RollbackAsync(CancellationToken.None);
     }
@@ -294,7 +294,7 @@ public class InMemorySagaTransactionTests
         // arrange
         var transaction = NoOpSagaTransaction.Instance;
 
-        // act & assert — no observable side-effect; NoOpSagaTransaction is
+        // act & assert - no observable side-effect; NoOpSagaTransaction is
         // intentionally a no-op so "did not throw" is the behavioral contract.
         await transaction.DisposeAsync();
     }
@@ -316,7 +316,7 @@ public class InMemorySagaTransactionTests
         // arrange
         var transaction = NoOpSagaTransaction.Instance;
 
-        // act & assert — no observable side-effect; NoOpSagaTransaction is
+        // act & assert - no observable side-effect; NoOpSagaTransaction is
         // intentionally a no-op so "did not throw" is the behavioral contract.
         await transaction.CommitAsync(CancellationToken.None);
         await transaction.CommitAsync(CancellationToken.None);
@@ -329,7 +329,7 @@ public class InMemorySagaTransactionTests
         // arrange
         var transaction = NoOpSagaTransaction.Instance;
 
-        // act & assert — no observable side-effect; NoOpSagaTransaction is
+        // act & assert - no observable side-effect; NoOpSagaTransaction is
         // intentionally a no-op so "did not throw" is the behavioral contract.
         await transaction.RollbackAsync(CancellationToken.None);
         await transaction.RollbackAsync(CancellationToken.None);
@@ -342,7 +342,7 @@ public class InMemorySagaTransactionTests
         // arrange
         var transaction = NoOpSagaTransaction.Instance;
 
-        // act & assert — no observable side-effect; NoOpSagaTransaction is
+        // act & assert - no observable side-effect; NoOpSagaTransaction is
         // intentionally a no-op so "did not throw" is the behavioral contract.
         await transaction.DisposeAsync();
         await transaction.DisposeAsync();

@@ -12,7 +12,7 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 /// <para>
 /// Uses a <c>TaskCompletionSource</c> to implement auto-reset semantics.
 /// Unlike <c>SemaphoreSlim</c>, this approach does not accumulate waiters
-/// across loop iterations — each <c>WaitAsync</c> atomically exchanges
+/// across loop iterations - each <c>WaitAsync</c> atomically exchanges
 /// the TCS, and <c>Set</c> signals whoever is currently waiting.
 /// </para>
 /// </summary>
@@ -34,7 +34,7 @@ internal sealed class ResilientOutboxSignal : IOutboxSignal
         {
             if (!_tcs.TrySetResult())
             {
-                // TCS was already cancelled or faulted — replace with a
+                // TCS was already cancelled or faulted - replace with a
                 // pre-completed TCS so the next WaitAsync sees the signal.
                 _tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
                 _tcs.TrySetResult();
@@ -57,7 +57,7 @@ internal sealed class ResilientOutboxSignal : IOutboxSignal
 
             if (task.IsCanceled || task.IsFaulted)
             {
-                // Previous waiter was cancelled — replace with fresh TCS
+                // Previous waiter was cancelled - replace with fresh TCS
                 _tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             }
 

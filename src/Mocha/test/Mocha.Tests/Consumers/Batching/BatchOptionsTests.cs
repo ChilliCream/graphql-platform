@@ -44,7 +44,7 @@ public sealed class BatchOptionsTests
     [Fact]
     public void AddBatchHandler_Should_Succeed_When_MaxBatchSizeIsOne()
     {
-        // arrange & act — edge case: batch size of 1 is valid
+        // arrange & act - edge case: batch size of 1 is valid
         var runtime = CreateRuntime(b => b.AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = 1));
 
         // assert

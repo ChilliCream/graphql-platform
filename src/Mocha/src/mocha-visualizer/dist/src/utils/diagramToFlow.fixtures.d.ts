@@ -8,7 +8,7 @@ import { DiagramData } from "../types/diagram";
  */
 export declare const minimalDiagram: DiagramData;
 /**
- * Empty diagram — no services, no transports.
+ * Empty diagram - no services, no transports.
  */
 export declare const emptyDiagram: DiagramData;
 /**

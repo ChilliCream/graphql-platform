@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.0" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>PostgresTransport.AppHost</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PostgresTransport.OrderService\PostgresTransport.OrderService.csproj" />
+    <ProjectReference Include="..\PostgresTransport.ShippingService\PostgresTransport.ShippingService.csproj" />
+    <ProjectReference Include="..\PostgresTransport.NotificationService\PostgresTransport.NotificationService.csproj" />
+  </ItemGroup>
+</Project>
