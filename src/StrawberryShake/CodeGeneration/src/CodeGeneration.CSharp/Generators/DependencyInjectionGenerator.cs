@@ -56,6 +56,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Guid"] = UUIDSerializer,
         ["Json"] = AnySerializer,
         ["JSON"] = AnySerializer,
+        ["TimeSpan"] = DurationSerializer,
         ["Uri"] = UriSerializer,
         ["Url"] = UrlSerializer,
         ["Uuid"] = UUIDSerializer
