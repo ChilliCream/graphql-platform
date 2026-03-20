@@ -42,7 +42,7 @@ public sealed class BatchCollectorTests
             },
             timeProvider: fakeTime);
 
-        // act — add 1 message (below max size), advance time past timeout
+        // act - add 1 message (below max size), advance time past timeout
         await AddEntries(collector, 1);
         fakeTime.Advance(timeout.Add(TimeSpan.FromMilliseconds(10)));
 
@@ -94,7 +94,7 @@ public sealed class BatchCollectorTests
         var dispatched = new BatchRecorder<TestEvent>();
         await using var collector = CreateCollector(dispatched, opts => opts.MaxBatchSize = 3);
 
-        // act — add 7 entries: expect 2 full batches (3 + 3) and 1 remaining
+        // act - add 7 entries: expect 2 full batches (3 + 3) and 1 remaining
         await AddEntries(collector, 7);
 
         // wait for the two size-triggered batches
@@ -122,7 +122,7 @@ public sealed class BatchCollectorTests
         const int totalMessages = 100;
         await using var collector = CreateCollector(dispatched, opts => opts.MaxBatchSize = batchSize);
 
-        // act — add messages concurrently from multiple threads
+        // act - add messages concurrently from multiple threads
         var tasks = Enumerable
             .Range(0, totalMessages)
             .Select(i => Task.Run(async () => await collector.Add(CreateContext($"msg-{i}"))))
@@ -135,7 +135,7 @@ public sealed class BatchCollectorTests
             await dispatched.WaitAsync(s_timeout, expectedCount: totalMessages / batchSize),
             "Not all batches were dispatched under concurrent load");
 
-        // assert — total messages across all batches should equal totalMessages
+        // assert - total messages across all batches should equal totalMessages
         var totalDispatched = dispatched.Batches.Sum(b => b.Count);
         Assert.Equal(totalMessages, totalDispatched);
     }
@@ -149,7 +149,7 @@ public sealed class BatchCollectorTests
         const int totalMessages = batchSize * 2;
         await using var collector = CreateCollector(dispatched, opts => opts.MaxBatchSize = batchSize);
 
-        // act — add 2×MaxBatchSize messages concurrently
+        // act - add 2×MaxBatchSize messages concurrently
         var tasks = Enumerable
             .Range(0, totalMessages)
             .Select(_ => Task.Run(async () => await collector.Add(CreateContext("x"))))
@@ -157,7 +157,7 @@ public sealed class BatchCollectorTests
 
         await Task.WhenAll(tasks);
 
-        // assert — exactly 2 batches dispatched
+        // assert - exactly 2 batches dispatched
         Assert.True(
             await dispatched.WaitAsync(s_timeout, expectedCount: 2),
             "Expected exactly 2 batches to be dispatched");
@@ -177,13 +177,13 @@ public sealed class BatchCollectorTests
         var dispatched = new BatchRecorder<TestEvent>();
         await using var collector = CreateCollector(dispatched, opts => opts.MaxBatchSize = 5);
 
-        // act — add 5 messages sequentially
+        // act - add 5 messages sequentially
         for (var i = 0; i < 5; i++)
         {
             await collector.Add(CreateContext($"msg-{i}"));
         }
 
-        // assert — batch dispatched in order
+        // assert - batch dispatched in order
         Assert.True(await dispatched.WaitAsync(s_timeout), "Batch was not dispatched");
 
         var batch = dispatched.Single();

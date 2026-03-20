@@ -17,31 +17,38 @@ public class ActivityEnricher(InstrumentationOptions options) : ActivityEnricher
 
     public virtual void EnrichCompileOperation(
         RequestContext context,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichResolveFieldValue(
         IMiddlewareContext context,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichResolverError(
         IMiddlewareContext context,
         IError error,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichExecuteBatch<TKey>(
         IDataLoader dataLoader,
         IReadOnlyList<TKey> keys,
-        Activity activity) where TKey : notnull { }
+        Activity activity) where TKey : notnull
+    { }
 
     public virtual void EnrichRunBatchDispatchCoordinator(
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichBatchDispatchError(
         Exception exception,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichOnSubscriptionEvent(
         RequestContext context,
         ulong subscriptionId,
-        Activity activity) { }
+        Activity activity)
+    { }
 }

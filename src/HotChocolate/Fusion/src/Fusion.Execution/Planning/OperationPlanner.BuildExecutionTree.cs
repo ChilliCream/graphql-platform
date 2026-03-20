@@ -889,7 +889,7 @@ public sealed partial class OperationPlanner
 
                 case InlineFragmentNode inlineFragment:
                 {
-                    ITypeDefinition? fragmentType = inlineFragment.TypeCondition is not null
+                    var fragmentType = inlineFragment.TypeCondition is not null
                         && schema.Types.TryGetType(inlineFragment.TypeCondition.Name.Value, out var resolvedType)
                             ? resolvedType
                             : parentType;

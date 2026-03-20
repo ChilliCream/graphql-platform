@@ -37,7 +37,7 @@ builder.Services
     .AddMessageBus()
     // AddInstrumentation() registers the built-in OpenTelemetryDiagnosticObserver.
     // Without this call, Mocha uses a no-op observer with zero overhead.
-    // Spans are emitted to the "Mocha" activity source — subscribe via AddSource("Mocha").
+    // Spans are emitted to the "Mocha" activity source - subscribe via AddSource("Mocha").
     .AddInstrumentation()
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
@@ -53,9 +53,9 @@ app.MapGet("/orders", async (IMessageBus bus) =>
     var orderId = Guid.NewGuid();
 
     // Three linked spans are created per message flow:
-    //   1. "publish {destination}" — created by dispatch instrumentation
-    //   2. "receive {endpoint}"   — created by receive instrumentation
-    //   3. "consumer {handler}"   — created as a child of the receive span
+    //   1. "publish {destination}" - created by dispatch instrumentation
+    //   2. "receive {endpoint}"   - created by receive instrumentation
+    //   3. "consumer {handler}"   - created as a child of the receive span
     await bus.PublishAsync(
         new OrderPlaced(orderId, "Mechanical Keyboard", 149.99m),
         CancellationToken.None);
@@ -86,7 +86,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
         // Log entries written here automatically include TraceId and SpanId
         // when OpenTelemetry logging is configured, enabling log-trace correlation.
         logger.LogInformation(
-            "Order received: {OrderId} — {ProductName} for {Amount:C}",
+            "Order received: {OrderId} - {ProductName} for {Amount:C}",
             message.OrderId,
             message.ProductName,
             message.Amount);

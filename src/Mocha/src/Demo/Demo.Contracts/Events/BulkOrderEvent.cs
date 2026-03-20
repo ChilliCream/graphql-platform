@@ -2,7 +2,7 @@ namespace Demo.Contracts.Events;
 
 /// <summary>
 /// Lightweight event for high-volume batch processing demos.
-/// Unlike OrderPlacedEvent, this has no per-message handler — only a batch handler
+/// Unlike OrderPlacedEvent, this has no per-message handler - only a batch handler
 /// with MaxBatchSize=500 processes these events.
 /// </summary>
 public sealed class BulkOrderEvent

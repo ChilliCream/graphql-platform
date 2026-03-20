@@ -59,7 +59,7 @@ public sealed class ChannelProcessor<T> : IAsyncDisposable
             }
             catch
             {
-                // Best-effort — worker may have faulted.
+                // Best-effort - worker may have faulted.
             }
         }
 

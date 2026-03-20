@@ -6,10 +6,13 @@ namespace Mocha.Transport.RabbitMQ;
 /// Default convention that assigns queue names, error endpoints, and skipped endpoints
 /// to RabbitMQ receive endpoint configurations that do not already have them set.
 /// </summary>
-public sealed class RabbitMQDefaultReceiveEndpointEndpointConvention : IRabbitMQReceiveEndpointConfigurationConvention
+public sealed class RabbitMQDefaultReceiveEndpointConvention : IRabbitMQReceiveEndpointConfigurationConvention
 {
     /// <inheritdoc />
-    public void Configure(IMessagingConfigurationContext context, RabbitMQReceiveEndpointConfiguration configuration)
+    public void Configure(
+        IMessagingConfigurationContext context,
+        RabbitMQMessagingTransport transport,
+        RabbitMQReceiveEndpointConfiguration configuration)
     {
         configuration.QueueName ??= configuration.Name;
 
@@ -18,23 +21,13 @@ public sealed class RabbitMQDefaultReceiveEndpointEndpointConvention : IRabbitMQ
             if (configuration.ErrorEndpoint is null)
             {
                 var errorName = context.Naming.GetReceiveEndpointName(queueName, ReceiveEndpointKind.Error);
-                configuration.ErrorEndpoint = new UriBuilder
-                {
-                    Host = "",
-                    Scheme = "rabbitmq",
-                    Path = "q/" + errorName
-                }.Uri;
+                configuration.ErrorEndpoint = new Uri($"{transport.Schema}:q/{errorName}");
             }
 
             if (configuration.SkippedEndpoint is null)
             {
                 var skippedName = context.Naming.GetReceiveEndpointName(queueName, ReceiveEndpointKind.Skipped);
-                configuration.SkippedEndpoint = new UriBuilder
-                {
-                    Host = "",
-                    Scheme = "rabbitmq",
-                    Path = "q/" + skippedName
-                }.Uri;
+                configuration.SkippedEndpoint = new Uri($"{transport.Schema}:q/{skippedName}");
             }
         }
     }

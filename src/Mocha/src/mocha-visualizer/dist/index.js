@@ -162,7 +162,7 @@ const s = {
     border-radius: 6px !important;
   }
 
-  /* Handle Styles — invisible since the graph is static (no connecting) */
+  /* Handle Styles - invisible since the graph is static (no connecting) */
   .react-flow__handle {
     width: 1px;
     height: 1px;
@@ -196,7 +196,7 @@ const s = {
     transition: opacity 0.15s ease;
   }
 
-  /* Trace Overlay — active path nodes */
+  /* Trace Overlay - active path nodes */
   .react-flow__node.trace-active .compact-node {
     border-color: ${s.colors.accent.fg};
     box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
@@ -207,7 +207,7 @@ const s = {
     box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
   }
 
-  /* Trace Overlay — inferred transport-internal nodes */
+  /* Trace Overlay - inferred transport-internal nodes */
   .react-flow__node.trace-inferred .compact-node {
     border-style: dashed;
     opacity: 0.65;
@@ -218,7 +218,7 @@ const s = {
     opacity: 0.65;
   }
 
-  /* Trace Overlay — error nodes */
+  /* Trace Overlay - error nodes */
   .react-flow__node.trace-error .compact-node {
     border-color: ${s.colors.danger.fg};
     box-shadow: 0 0 0 2px rgba(248, 81, 73, 0.3);
@@ -229,7 +229,7 @@ const s = {
     box-shadow: 0 0 0 2px rgba(248, 81, 73, 0.3);
   }
 
-  /* Trace Overlay — focused node (currently selected step) */
+  /* Trace Overlay - focused node (currently selected step) */
   .react-flow__node.trace-focused .compact-node {
     border-color: #79c0ff;
     box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.6), 0 0 12px rgba(88, 166, 255, 0.4);
@@ -253,18 +253,18 @@ const s = {
     }
   }
 
-  /* Trace Overlay — hidden nodes (traceDisplayMode='hide') */
+  /* Trace Overlay - hidden nodes (traceDisplayMode='hide') */
   .react-flow__node.hidden {
     display: none;
   }
 
-  /* Saga Focus Mode — highlighted nodes */
+  /* Saga Focus Mode - highlighted nodes */
   .react-flow__node.saga-focus-highlighted .focus-state-node {
     border-color: ${s.colors.accent.fg};
     box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3), 0 0 8px rgba(88, 166, 255, 0.15);
   }
 
-  /* Saga Focus Mode — dimmed nodes */
+  /* Saga Focus Mode - dimmed nodes */
   .react-flow__node.saga-focus-dimmed .focus-state-node {
     opacity: 0.3;
   }
@@ -277,13 +277,13 @@ const s = {
     transition: opacity 0.15s ease;
   }
 
-  /* Saga Focus Mode — highlighted edges */
+  /* Saga Focus Mode - highlighted edges */
   .react-flow__edge.saga-focus-highlighted path {
     stroke-width: 3 !important;
     filter: brightness(1.3);
   }
 
-  /* Saga Focus Mode — dimmed edges */
+  /* Saga Focus Mode - dimmed edges */
   .react-flow__edge.saga-focus-dimmed path {
     opacity: 0.2;
   }
@@ -306,7 +306,7 @@ const s = {
     }
   }
 
-  /* Search Highlight — pulsing border on focused search result */
+  /* Search Highlight - pulsing border on focused search result */
   .react-flow__node.search-highlight .compact-node,
   .react-flow__node.search-highlight .route-node {
     border-color: #79c0ff;

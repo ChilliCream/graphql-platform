@@ -123,7 +123,7 @@ public class RabbitMQBusDefaultsTests
             Arguments = new Dictionary<string, object> { ["x-delivery-limit"] = 3 }
         });
 
-        // assert — explicit argument wins, default argument is added
+        // assert - explicit argument wins, default argument is added
         Assert.Equal(3, queue.Arguments["x-delivery-limit"]);
         Assert.Equal(10, queue.Arguments["x-max-priority"]);
     }
@@ -137,7 +137,7 @@ public class RabbitMQBusDefaultsTests
         // act
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration { Name = "test-queue" });
 
-        // assert — only standard defaults, no x-queue-type argument
+        // assert - only standard defaults, no x-queue-type argument
         Assert.True(queue.Durable);
         Assert.False(queue.AutoDelete);
         Assert.DoesNotContain("x-queue-type", queue.Arguments.Keys);
@@ -274,7 +274,7 @@ public class RabbitMQBusDefaultsTests
     [Fact]
     public void ConfigureDefaults_Should_SkipQueueType_When_AutoDeleteIsTrue()
     {
-        // arrange — auto-delete queues (e.g. reply queues) are incompatible with quorum
+        // arrange - auto-delete queues (e.g. reply queues) are incompatible with quorum
         var (_, _, topology) = CreateTopology(t =>
             t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum));
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration
@@ -290,7 +290,7 @@ public class RabbitMQBusDefaultsTests
     [Fact]
     public void ConfigureDefaults_Should_SkipQueueType_When_ExclusiveIsTrue()
     {
-        // arrange — exclusive queues are incompatible with quorum
+        // arrange - exclusive queues are incompatible with quorum
         var (_, _, topology) = CreateTopology(t =>
             t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum));
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration
@@ -306,7 +306,7 @@ public class RabbitMQBusDefaultsTests
     [Fact]
     public void ConfigureDefaults_Should_SkipStreamQueueType_When_AutoDeleteIsTrue()
     {
-        // arrange — auto-delete queues are incompatible with stream
+        // arrange - auto-delete queues are incompatible with stream
         var (_, _, topology) = CreateTopology(t =>
             t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Stream));
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration
@@ -322,7 +322,7 @@ public class RabbitMQBusDefaultsTests
     [Fact]
     public void ConfigureDefaults_Should_SkipAllDefaults_When_QueueIsIncompatible()
     {
-        // arrange — both queue type and arguments are skipped for incompatible queues
+        // arrange - both queue type and arguments are skipped for incompatible queues
         // since default arguments may be queue-type-specific (e.g. x-delivery-limit)
         var (_, _, topology) = CreateTopology(t =>
             t.ConfigureDefaults(d =>
@@ -337,7 +337,7 @@ public class RabbitMQBusDefaultsTests
             AutoDelete = true
         });
 
-        // assert — both queue type and arguments are skipped
+        // assert - both queue type and arguments are skipped
         Assert.DoesNotContain("x-queue-type", queue.Arguments.Keys);
         Assert.DoesNotContain("x-delivery-limit", queue.Arguments.Keys);
     }
@@ -414,7 +414,7 @@ public class RabbitMQBusDefaultsTests
 
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration { Name = "test-queue" });
 
-        // assert — both calls are applied
+        // assert - both calls are applied
         Assert.Equal("quorum", queue.Arguments["x-queue-type"]);
         Assert.Equal(5, queue.Arguments["x-delivery-limit"]);
     }
@@ -431,7 +431,7 @@ public class RabbitMQBusDefaultsTests
 
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration { Name = "test-queue" });
 
-        // assert — last write wins
+        // assert - last write wins
         Assert.Equal("stream", queue.Arguments["x-queue-type"]);
     }
 

@@ -231,6 +231,15 @@ public class ScalarGeneratorTests
             "scalar Uri",
             "scalar URI",
             "extend schema @key(fields: \"id\")");
+
+    [Fact]
+    public void TimeSpan_Type() =>
+        AssertResult(
+            "query GetPerson { person { timeSpan } }",
+            "type Query { person: Person }",
+            "type Person { timeSpan:TimeSpan }",
+            "scalar TimeSpan",
+            "extend schema @key(fields: \"id\")");
 }
 
 public class Custom;

@@ -207,7 +207,7 @@ internal static class ThrowHelper
         => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    TypeResources.ThrowHelper_KeyValuePairType_InvalidRuntimeType,
+                    ThrowHelper_KeyValuePairType_InvalidRuntimeType,
                     typeName)
                 .Build());
 

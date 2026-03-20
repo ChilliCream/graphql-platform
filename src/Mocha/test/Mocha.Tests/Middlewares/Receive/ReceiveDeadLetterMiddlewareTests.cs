@@ -40,11 +40,11 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         var context = new StubReceiveContext { Services = CreateServices(), Runtime = new StubMessagingRuntime() };
         var next = CreateThrowingDelegate(new InvalidOperationException("boom"));
 
-        // act — dead letter's job IS to swallow handler exceptions and route to
+        // act - dead letter's job IS to swallow handler exceptions and route to
         // the error endpoint, so "did not throw" is the primary assertion.
         await middleware.InvokeAsync(context, next);
 
-        // assert — the middleware must also mark the message as consumed
+        // assert - the middleware must also mark the message as consumed
         // so downstream middleware does not re-process it.
         var feature = context.Features.GetOrSet<ReceiveConsumerFeature>();
         Assert.True(feature.MessageConsumed);
@@ -283,7 +283,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         // act - first message throws, second should succeed
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "fail-1" }, CancellationToken.None);
 
-        // Let the fault propagate before publishing the next message —
+        // Let the fault propagate before publishing the next message -
         // no deterministic signal for a swallowed exception.
         await Task.Delay(200, default);
 
@@ -344,7 +344,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     [Fact]
     public async Task InvokeAsync_Should_DeliverToErrorEndpoint_When_HandlerThrows()
     {
-        // arrange — with an error endpoint convention, the fault middleware (inside
+        // arrange - with an error endpoint convention, the fault middleware (inside
         // the dead letter) sends faulted messages to the error queue. Dead letter
         // sees MessageConsumed = true and does not re-forward.
         await using var provider = await CreateBusWithErrorEndpointAsync(b =>
@@ -356,7 +356,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         // act
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "dl-err-1" }, CancellationToken.None);
 
-        // assert — one message on the error queue with fault headers
+        // assert - one message on the error queue with fault headers
         var errorQueue = GetErrorQueue(provider);
         var items = await ConsumeFromQueueAsync(errorQueue, expectedCount: 1);
 
@@ -411,20 +411,20 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — 5 messages: 3 succeed, 2 fail
+        // act - 5 messages: 3 succeed, 2 fail
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "dl-ok-1" }, CancellationToken.None);
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "dl-fail-1" }, CancellationToken.None);
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "dl-ok-2" }, CancellationToken.None);
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "dl-fail-2" }, CancellationToken.None);
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "dl-ok-3" }, CancellationToken.None);
 
-        // assert — 3 successes recorded by handler
+        // assert - 3 successes recorded by handler
         Assert.True(
             await recorder.WaitAsync(Timeout, expectedCount: 3),
             "Should receive exactly 3 successful messages");
         Assert.Equal(3, recorder.Messages.Count);
 
-        // assert — 2 faults on error queue
+        // assert - 2 faults on error queue
         var errorQueue = GetErrorQueue(provider);
         var items = await ConsumeFromQueueAsync(errorQueue, expectedCount: 2);
 
@@ -485,16 +485,12 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     {
         public void Configure(
             IMessagingConfigurationContext context,
+            InMemoryMessagingTransport transport,
             InMemoryReceiveEndpointConfiguration configuration)
         {
             if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
             {
-                configuration.ErrorEndpoint ??= new UriBuilder
-                {
-                    Host = "",
-                    Scheme = "memory",
-                    Path = "q/" + queueName + "_error"
-                }.Uri;
+                configuration.ErrorEndpoint ??= new Uri($"{transport.Schema}:q/{queueName}_error");
             }
         }
     }

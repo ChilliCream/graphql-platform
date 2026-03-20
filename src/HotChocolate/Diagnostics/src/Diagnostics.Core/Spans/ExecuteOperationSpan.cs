@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
