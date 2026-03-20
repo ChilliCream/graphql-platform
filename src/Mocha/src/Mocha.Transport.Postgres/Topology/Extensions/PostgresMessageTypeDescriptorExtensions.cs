@@ -16,7 +16,7 @@ public static class PostgresMessageTypeDescriptorExtensions
         this IOutboundRouteDescriptor descriptor,
         string schema,
         string queueName)
-        => descriptor.Destination(new Uri($"{schema}:q/{queueName}"));
+        => descriptor.Destination(new Uri($"{schema}:///q/{queueName}"));
 
     /// <summary>
     /// Routes the outbound message to a PostgreSQL queue using the default schema.
@@ -38,7 +38,7 @@ public static class PostgresMessageTypeDescriptorExtensions
         this IOutboundRouteDescriptor descriptor,
         string schema,
         string topicName)
-        => descriptor.Destination(new Uri($"{schema}:t/{topicName}"));
+        => descriptor.Destination(new Uri($"{schema}:///t/{topicName}"));
 
     /// <summary>
     /// Routes the outbound message to a PostgreSQL topic using the default schema.

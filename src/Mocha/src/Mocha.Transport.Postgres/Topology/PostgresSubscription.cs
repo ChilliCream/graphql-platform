@@ -29,7 +29,7 @@ public sealed class PostgresSubscription : TopologyResource<PostgresSubscription
     protected override void OnComplete(PostgresSubscriptionConfiguration configuration)
     {
         var builder = new UriBuilder(Topology.Address);
-        builder.Path = Path.Combine(builder.Path, "b", "t", Source.Name, "q", Destination.Name);
+        builder.Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/b/t/" + Source.Name + "/q/" + Destination.Name;
         Address = builder.Uri;
     }
 

@@ -9,7 +9,10 @@ namespace Mocha.Transport.RabbitMQ;
 public sealed class RabbitMQDefaultReceiveEndpointConvention : IRabbitMQReceiveEndpointConfigurationConvention
 {
     /// <inheritdoc />
-    public void Configure(IMessagingConfigurationContext context, RabbitMQReceiveEndpointConfiguration configuration)
+    public void Configure(
+        IMessagingConfigurationContext context,
+        RabbitMQMessagingTransport transport,
+        RabbitMQReceiveEndpointConfiguration configuration)
     {
         configuration.QueueName ??= configuration.Name;
 
@@ -21,7 +24,7 @@ public sealed class RabbitMQDefaultReceiveEndpointConvention : IRabbitMQReceiveE
                 configuration.ErrorEndpoint = new UriBuilder
                 {
                     Host = "",
-                    Scheme = "rabbitmq",
+                    Scheme = transport.Schema,
                     Path = "q/" + errorName
                 }.Uri;
             }
@@ -32,7 +35,7 @@ public sealed class RabbitMQDefaultReceiveEndpointConvention : IRabbitMQReceiveE
                 configuration.SkippedEndpoint = new UriBuilder
                 {
                     Host = "",
-                    Scheme = "rabbitmq",
+                    Scheme = transport.Schema,
                     Path = "q/" + skippedName
                 }.Uri;
             }

@@ -58,8 +58,8 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public static class Defaults
     {
         /// <summary>
-        /// The default maximum concurrency for receive endpoints, set to the number of available processors.
+        /// The default maximum concurrency for receive endpoints, set to twice the number of available processors.
         /// </summary>
-        public static int MaxConcurrency = Environment.ProcessorCount * 2;
+        public static readonly int MaxConcurrency = Environment.ProcessorCount * 2;
     }
 }

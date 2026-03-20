@@ -66,7 +66,13 @@ public sealed class PostgresFixture : IAsyncLifetime
     private static string GenerateDatabaseName(string testName, string filePath)
     {
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(filePath)))[..8];
-        return $"mocha_{testName}_{hash}".ToLowerInvariant();
+        // PostgreSQL limits database names to 63 bytes. Reserve space for prefix + hash + underscores.
+        const int maxLength = 63;
+        const int overhead = 6 + 1 + 8; // "mocha_" + "_" + hash
+        var truncatedName = testName.Length > maxLength - overhead
+            ? testName[..(maxLength - overhead)]
+            : testName;
+        return $"mocha_{truncatedName}_{hash}".ToLowerInvariant();
     }
 }
 

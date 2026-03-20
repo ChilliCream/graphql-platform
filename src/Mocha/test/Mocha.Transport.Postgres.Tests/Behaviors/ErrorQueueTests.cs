@@ -32,8 +32,8 @@ public class ErrorQueueTests
                 t.Endpoint("handler-ep").Handler<ThrowingOrderHandler>().FaultEndpoint("postgres:///q/handler-q_error");
                 t.Endpoint("error-ep")
                     .Queue("handler-q_error")
-                    // we mark it as an error because only then no route will be provisoned for the
-                    // spy (otherwise the normal order hanlder publish will also go to the spy)
+                    // we mark it as an error because only then no route will be provisioned for the
+                    // spy (otherwise the normal order handler publish will also go to the spy)
                     .Kind(ReceiveEndpointKind.Error)
                     .Consumer<ErrorSpyConsumer>();
             })
@@ -77,8 +77,8 @@ public class ErrorQueueTests
                 t.DispatchEndpoint("payment-dispatch").ToQueue("payment-q").Send<ProcessPayment>();
                 t.Endpoint("payment-error-ep")
                     .Queue("payment-q_error")
-                    // we mark it as an error because only then no route will be provisoned for the
-                    // spy (otherwise the normal order hanlder publish will also go to the spy)
+                    // we mark it as an error because only then no route will be provisioned for the
+                    // spy (otherwise the normal order handler publish will also go to the spy)
                     .Kind(ReceiveEndpointKind.Error)
                     .Consumer<PaymentErrorSpyConsumer>();
             })
@@ -118,8 +118,8 @@ public class ErrorQueueTests
                 t.Endpoint("error-ep")
                     .Consumer<ErrorSpyConsumer>()
                     .Queue("handler-q_error")
-                    // we mark it as an error because only then no route will be provisoned for the
-                    // spy (otherwise the normal order hanlder publish will also go to the spy)
+                    // we mark it as an error because only then no route will be provisioned for the
+                    // spy (otherwise the normal order handler publish will also go to the spy)
                     .Kind(ReceiveEndpointKind.Error);
             })
             .BuildTestBusAsync();

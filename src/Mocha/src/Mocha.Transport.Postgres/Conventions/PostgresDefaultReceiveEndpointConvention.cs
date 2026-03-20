@@ -11,8 +11,12 @@ public sealed class PostgresDefaultReceiveEndpointConvention : IPostgresReceiveE
     /// and applies bus-level endpoint defaults.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
+    /// <param name="transport">The PostgreSQL messaging transport instance.</param>
     /// <param name="configuration">The receive endpoint configuration to apply defaults to.</param>
-    public void Configure(IMessagingConfigurationContext context, PostgresReceiveEndpointConfiguration configuration)
+    public void Configure(
+        IMessagingConfigurationContext context,
+        PostgresMessagingTransport transport,
+        PostgresReceiveEndpointConfiguration configuration)
     {
         configuration.QueueName ??= configuration.Name;
 
@@ -24,7 +28,7 @@ public sealed class PostgresDefaultReceiveEndpointConvention : IPostgresReceiveE
                 configuration.ErrorEndpoint = new UriBuilder
                 {
                     Host = "",
-                    Scheme = "postgres",
+                    Scheme = transport.Schema,
                     Path = "q/" + errorName
                 }.Uri;
             }
@@ -35,14 +39,13 @@ public sealed class PostgresDefaultReceiveEndpointConvention : IPostgresReceiveE
                 configuration.SkippedEndpoint = new UriBuilder
                 {
                     Host = "",
-                    Scheme = "postgres",
+                    Scheme = transport.Schema,
                     Path = "q/" + skippedName
                 }.Uri;
             }
         }
 
-        var transport = context.Transports.OfType<PostgresMessagingTransport>().FirstOrDefault();
-        if (transport?.Topology is PostgresMessagingTopology topology)
+        if (transport.Topology is PostgresMessagingTopology topology)
         {
             topology.Defaults.Endpoint.ApplyTo(configuration);
         }

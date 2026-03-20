@@ -28,7 +28,10 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         }
 
         _maxPrefetch = configuration.MaxPrefetch;
-        _consumerDispatchConcurrency = (ushort)Math.Clamp(configuration.MaxConcurrency ?? 1, 1, (int)ushort.MaxValue);
+        _consumerDispatchConcurrency = (ushort)Math.Clamp(
+            configuration.MaxConcurrency ?? ReceiveEndpointConfiguration.Defaults.MaxConcurrency,
+            1,
+            (int)ushort.MaxValue);
     }
 
     protected override void OnComplete(
