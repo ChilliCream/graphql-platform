@@ -206,7 +206,7 @@ internal static class Iso8601DurationParser
                     else if (TReader.IsChar(designator, 'D'))
                     {
                         componentMask = 8;
-                        component = Duration.FromDays(signedIntegerPart);
+                        component = Duration.FromDays(checked((int)signedIntegerPart));
                     }
                     else
                     {
