@@ -310,7 +310,7 @@ public sealed class DateTimeTypeTests
             .AddGraphQL()
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QueryTwoRuntimeTypes))
-            .AddNodaTime(bindBclTypes: true)
+            .AddNodaTime()
             .BuildRequestExecutorAsync();
 
         // act
