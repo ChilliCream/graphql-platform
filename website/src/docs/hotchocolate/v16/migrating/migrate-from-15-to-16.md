@@ -762,6 +762,64 @@ builder
     .AddType(new DurationType("TimeSpan"));
 ```
 
+## NodaTime scalars now implement the GraphQL scalar specifications
+
+The `HotChocolate.Types.NodaTime` package was rewritten in v16 to align its scalar behavior with the specifications published on [scalars.graphql.org](https://scalars.graphql.org/).
+This is a breaking change if you relied on the old NodaTime scalar set or on the looser parsing behavior of the previous implementation.
+
+### Only five NodaTime scalars remain built in
+
+The package now only ships these spec-based scalar implementations:
+
+- `DateTimeType`
+- `DurationType`
+- `LocalDateType`
+- `LocalDateTimeType`
+- `LocalTimeType`
+
+These scalars expose `@specifiedBy` URLs and follow the corresponding scalar specifications for parsing and serialization.
+
+### Legacy NodaTime scalars were removed
+
+The following scalar types are no longer included in `HotChocolate.Types.NodaTime`:
+
+- `DateTimeZoneType`
+- `InstantType`
+- `IsoDayOfWeekType`
+- `OffsetDateType`
+- `OffsetTimeType`
+- `OffsetType`
+- `PeriodType`
+- `ZonedDateTimeType`
+
+If your schema used any of these scalars in v15, your project will no longer compile after upgrading until you remove them or provide your own replacement implementations.
+
+If you still need one of the removed scalars, add it back manually in your application as a custom scalar.
+
+### Use `AddNodaTime()` to register the new scalars
+
+v16 adds a dedicated `AddNodaTime()` extension method that registers all five built-in NodaTime scalars and the related CLR bindings and converters:
+
+```diff
+builder.Services
+    .AddGraphQLServer()
+-   .AddType<DateTimeType>()
+-   .AddType<DurationType>()
+-   .AddType<LocalDateType>()
+-   .AddType<LocalDateTimeType>()
+-   .AddType<LocalTimeType>();
++   .AddNodaTime();
+```
+
+`AddNodaTime()` also configures these runtime type mappings:
+
+- `DateTimeOffset` to `DateTimeType`
+- `DateTime` to `LocalDateTimeType`
+- `DateOnly` to `LocalDateType`
+- `TimeOnly` to `LocalTimeType`
+
+If you prefer, you can still register the remaining scalar types individually instead of using `AddNodaTime()`.
+
 ## AddInstrumentation
 
 ### `InstrumentationOptions` changes
