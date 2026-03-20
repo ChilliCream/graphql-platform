@@ -164,7 +164,7 @@ Publishing fans out to all subscribed queues in a single SQL statement. Each sub
 
 ## Default topology for send handlers
 
-When you register a request handler for send (fire-and-forget), the transport creates a single queue. Only one handler processes each message -- this is the point-to-point guarantee.
+When you register a request handler for send (fire-and-forget), the transport creates a single queue. Only one handler processes each message - this is the point-to-point guarantee.
 
 # Configure transport-level defaults
 
@@ -246,10 +246,10 @@ Changing `Schema` and `TablePrefix` shifts all table names accordingly. For exam
 
 The transport runs migrations automatically on first use. Migrations are protected by a PostgreSQL advisory lock (`pg_advisory_xact_lock`) to prevent concurrent migration attempts from multiple service instances starting simultaneously.
 
-Each migration is tracked in the migrations table and is idempotent -- running the same migration twice has no effect. The migration creates the schema if it does not exist, then applies each pending migration in order within a single transaction.
+Each migration is tracked in the migrations table and is idempotent - running the same migration twice has no effect. The migration creates the schema if it does not exist, then applies each pending migration in order within a single transaction.
 
 :::warning
-**Advisory lock scope.** The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe -- it serializes migrations but does not block normal message operations.
+**Advisory lock scope.** The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
 :::
 
 # Declare custom topology
@@ -304,7 +304,7 @@ builder.Services
 
 # Control auto-provisioning
 
-By default, the transport auto-provisions all topology resources (topics, queues, subscriptions) in the database at startup. In environments where database schema is managed externally -- for example by Flyway, Liquibase, or a CI/CD pipeline -- you can disable auto-provisioning so the transport expects resources to already exist.
+By default, the transport auto-provisions all topology resources (topics, queues, subscriptions) in the database at startup. In environments where database schema is managed externally - for example by Flyway, Liquibase, or a CI/CD pipeline - you can disable auto-provisioning so the transport expects resources to already exist.
 
 ## Disable globally
 
