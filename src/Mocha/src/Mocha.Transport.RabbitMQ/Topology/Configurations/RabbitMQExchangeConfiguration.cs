@@ -3,7 +3,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Configuration for a RabbitMQ exchange.
 /// </summary>
-public sealed class RabbitMQExchangeConfiguration : TopologyConfiguration
+public sealed class RabbitMQExchangeConfiguration : TopologyConfiguration<RabbitMQMessagingTopology>
 {
     /// <summary>
     /// Gets or sets the name of the exchange.

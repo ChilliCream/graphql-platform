@@ -12,7 +12,7 @@ public class RabbitMQHandlerBindingTests
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>(), t => t.BindHandlersImplicitly());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
-        // assert — implicit binding should auto-create receive endpoints for registered handlers
+        // assert - implicit binding should auto-create receive endpoints for registered handlers
         Assert.NotEmpty(transport.ReceiveEndpoints);
         Assert.Contains(transport.ReceiveEndpoints, e => e.Kind == ReceiveEndpointKind.Default);
     }
@@ -20,7 +20,7 @@ public class RabbitMQHandlerBindingTests
     [Fact]
     public void BindHandlersExplicitly_Should_ThrowOnBuild_When_HandlersNotManuallyBound()
     {
-        // arrange & act & assert — registering a handler but not manually binding it
+        // arrange & act & assert - registering a handler but not manually binding it
         // should throw because the inbound route is unconnected
         Assert.ThrowsAny<InvalidOperationException>(() => CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>(), t => t.BindHandlersExplicitly()));
     }
@@ -39,18 +39,18 @@ public class RabbitMQHandlerBindingTests
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
-        // assert — manually declared endpoint should exist
+        // assert - manually declared endpoint should exist
         Assert.Contains(transport.ReceiveEndpoints, e => e.Name == "ep");
     }
 
     [Fact]
     public void BindHandlersExplicitly_Should_NotAutoCreateEndpoints_When_NoHandlersRegistered()
     {
-        // arrange & act — no handlers registered, explicit binding
+        // arrange & act - no handlers registered, explicit binding
         var runtime = CreateRuntime(_ => { }, t => t.BindHandlersExplicitly());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
-        // assert — no auto-created receive endpoints
+        // assert - no auto-created receive endpoints
         Assert.DoesNotContain(transport.ReceiveEndpoints, e => e.Kind == ReceiveEndpointKind.Default);
     }
 
@@ -61,11 +61,11 @@ public class RabbitMQHandlerBindingTests
         var runtime = CreateRuntime(
             b => b.AddEventHandler<OrderCreatedHandler>(),
             t =>
-            { } // no binding mode call — default should be implicit
+            { } // no binding mode call - default should be implicit
         );
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
-        // assert — default implicit binding should auto-create endpoints
+        // assert - default implicit binding should auto-create endpoints
         Assert.NotEmpty(transport.ReceiveEndpoints);
         Assert.Contains(transport.ReceiveEndpoints, e => e.Kind == ReceiveEndpointKind.Default);
     }

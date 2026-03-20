@@ -138,7 +138,7 @@ app.MapPost(
         });
     });
 
-// Bulk order dispatch — fires thousands of BulkOrderEvents for batch processing demo
+// Bulk order dispatch - fires thousands of BulkOrderEvents for batch processing demo
 app.MapPost(
     "/api/orders/bulk",
     async (BulkOrderRequest request, IMessageBus messageBus, ILogger<Program> logger) =>

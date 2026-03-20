@@ -6,7 +6,7 @@ namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class EnumCursorKeySerializer<T> : ICursorKeySerializer where T : struct, INumber<T>
 {
-    private static readonly MethodInfo _compareTo = CompareToResolver.GetCompareToMethod<T>();
+    private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<T>();
 
     public bool IsSupported(Type type)
     {
@@ -15,7 +15,7 @@ internal sealed class EnumCursorKeySerializer<T> : ICursorKeySerializer where T 
     }
 
     public MethodInfo GetCompareToMethod(Type type)
-        => _compareTo;
+        => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
     {

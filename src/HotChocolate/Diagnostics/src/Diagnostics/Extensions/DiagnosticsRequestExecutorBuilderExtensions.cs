@@ -1,9 +1,7 @@
-using System.Text;
 using HotChocolate.Diagnostics;
 using HotChocolate.Diagnostics.Listeners;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

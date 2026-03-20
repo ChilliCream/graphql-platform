@@ -319,6 +319,10 @@ public static class SchemaHelper
             runtimeType: TypeNames.String);
         TryAddLeafType(
             leafTypes,
+            typeName: "TimeSpan",
+            runtimeType: TypeNames.TimeSpan);
+        TryAddLeafType(
+            leafTypes,
             typeName: ScalarNames.UnsignedByte,
             runtimeType: TypeNames.Byte,
             serializationType: TypeNames.Byte);
@@ -370,6 +374,8 @@ public static class SchemaHelper
             serializationType: TypeNames.String);
 
         // register aliases
+        schemaBuilder.AddType(new DurationType());
+        schemaBuilder.AddType(new DurationType("TimeSpan"));
         schemaBuilder.AddType(new UriType());
         schemaBuilder.AddType(new UriType("Uri"));
         schemaBuilder.AddType(new UrlType());
