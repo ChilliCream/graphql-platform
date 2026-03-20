@@ -56,7 +56,7 @@ public struct DateTimeOptions
                 throw new ArgumentOutOfRangeException(
                     nameof(OutputPrecision),
                     value,
-                    TypeResources.DateTimeOptions_OutputPrecision_InvalidValue);
+                    NodaTimeResources.DateTimeOptions_OutputPrecision_InvalidValue);
             }
 
             field = value;

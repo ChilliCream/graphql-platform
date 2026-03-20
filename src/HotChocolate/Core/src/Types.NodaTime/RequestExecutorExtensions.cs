@@ -24,7 +24,6 @@ public static class RequestExecutorExtensions
                 .AddType<LocalDateType>()
                 .AddType<LocalTimeType>()
                 .BindRuntimeType<DateTimeOffset, DateTimeType>()
-                .BindRuntimeType<TimeSpan, DurationType>()
                 .BindRuntimeType<DateTime, LocalDateTimeType>()
                 .BindRuntimeType<DateOnly, LocalDateType>()
                 .BindRuntimeType<TimeOnly, LocalTimeType>()
