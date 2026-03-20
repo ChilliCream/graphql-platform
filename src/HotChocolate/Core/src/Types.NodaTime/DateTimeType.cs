@@ -105,7 +105,7 @@ public class DateTimeType : ScalarType<OffsetDateTime, StringValueNode>
 
     private bool TryParseStringValue(string serialized, out OffsetDateTime value)
     {
-        var result = _inputPattern.Parse(serialized);
+        var result = _inputPattern.Parse(serialized.Replace('t', 'T').Replace('z', 'Z'));
 
         if (result.Success)
         {

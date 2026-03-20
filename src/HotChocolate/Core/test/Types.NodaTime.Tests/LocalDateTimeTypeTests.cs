@@ -334,6 +334,13 @@ public sealed class LocalDateTimeTypeTests
                 DateTimeOptions.DefaultInputPrecision,
                 "2023-12-24t15:30:00.123456789",
                 new LocalDateTime(2023, 12, 24, 15, 30, 0, 123).PlusNanoseconds(456_789)
+            },
+            // Additional cases.
+            // Lowercase t separator without fractional seconds.
+            {
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24t15:30:00",
+                new LocalDateTime(2023, 12, 24, 15, 30, 0, 0)
             }
         };
     }

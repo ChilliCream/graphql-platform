@@ -364,6 +364,33 @@ public sealed class DateTimeTypeTests
                 new OffsetDateTime(
                     new LocalDateTime(2023, 12, 24, 15, 30, 0, 123),
                     Offset.FromHours(1)).PlusNanoseconds(456_789)
+            },
+            // Additional cases.
+            // Lowercase t separator.
+            {
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24t15:30:00Z",
+                new OffsetDateTime(new LocalDateTime(2023, 12, 24, 15, 30, 0, 0), Offset.Zero)
+            },
+            // Lowercase z offset.
+            {
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24T15:30:00z",
+                new OffsetDateTime(new LocalDateTime(2023, 12, 24, 15, 30, 0, 0), Offset.Zero)
+            },
+            // Lowercase t separator and z offset.
+            {
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24t15:30:00z",
+                new OffsetDateTime(new LocalDateTime(2023, 12, 24, 15, 30, 0, 0), Offset.Zero)
+            },
+            // Lowercase t separator with fractional seconds and offset.
+            {
+                DateTimeOptions.DefaultInputPrecision,
+                "2023-12-24t15:30:00.123456789+01:00",
+                new OffsetDateTime(
+                    new LocalDateTime(2023, 12, 24, 15, 30, 0, 123),
+                    Offset.FromHours(1)).PlusNanoseconds(456_789)
             }
         };
     }
