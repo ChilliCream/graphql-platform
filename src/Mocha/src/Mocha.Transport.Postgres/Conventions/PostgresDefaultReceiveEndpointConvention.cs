@@ -25,23 +25,13 @@ public sealed class PostgresDefaultReceiveEndpointConvention : IPostgresReceiveE
             if (configuration.ErrorEndpoint is null)
             {
                 var errorName = context.Naming.GetReceiveEndpointName(queueName, ReceiveEndpointKind.Error);
-                configuration.ErrorEndpoint = new UriBuilder
-                {
-                    Host = "",
-                    Scheme = transport.Schema,
-                    Path = "q/" + errorName
-                }.Uri;
+                configuration.ErrorEndpoint = new Uri($"{transport.Schema}:q/{errorName}");
             }
 
             if (configuration.SkippedEndpoint is null)
             {
                 var skippedName = context.Naming.GetReceiveEndpointName(queueName, ReceiveEndpointKind.Skipped);
-                configuration.SkippedEndpoint = new UriBuilder
-                {
-                    Host = "",
-                    Scheme = transport.Schema,
-                    Path = "q/" + skippedName
-                }.Uri;
+                configuration.SkippedEndpoint = new Uri($"{transport.Schema}:q/{skippedName}");
             }
         }
 
