@@ -442,13 +442,15 @@ For [NodaTime](https://github.com/nodatime/nodatime) types, install the dedicate
 
 `HotChocolate.Types.NodaTime` provides alternative implementations of the same five built-in date and time scalars defined by the specifications on [scalars.graphql.org](https://scalars.graphql.org/):
 
-| GraphQL Scalar     | NodaTime Runtime Type                                                         | Replaces Built-in Mapping |
-| ------------------ | ----------------------------------------------------------------------------- | ------------------------- |
-| [DateTime][5]      | [OffsetDateTime](https://nodatime.org/3.2.x/api/NodaTime.OffsetDateTime.html) | `DateTimeOffset`          |
-| [Duration][7]      | [Duration](https://nodatime.org/3.2.x/api/NodaTime.Duration.html)             | `TimeSpan`                |
-| [LocalDate][8]     | [LocalDate](https://nodatime.org/3.2.x/api/NodaTime.LocalDate.html)           | `DateOnly`                |
-| [LocalDateTime][9] | [LocalDateTime](https://nodatime.org/3.2.x/api/NodaTime.LocalDateTime.html)   | `DateTime`                |
-| [LocalTime][10]    | [LocalTime](https://nodatime.org/3.2.x/api/NodaTime.LocalTime.html)           | `TimeOnly`                |
+| GraphQL Scalar     | NodaTime Runtime Type                                                         | Replaces Built-in Mapping       |
+| ------------------ | ----------------------------------------------------------------------------- | ------------------------------- |
+| [DateTime][5]      | [OffsetDateTime](https://nodatime.org/3.2.x/api/NodaTime.OffsetDateTime.html) | `DateTimeOffset`                |
+| [Duration][7]      | [Duration](https://nodatime.org/3.2.x/api/NodaTime.Duration.html)             | (see note below for `TimeSpan`) |
+| [LocalDate][8]     | [LocalDate](https://nodatime.org/3.2.x/api/NodaTime.LocalDate.html)           | `DateOnly`                      |
+| [LocalDateTime][9] | [LocalDateTime](https://nodatime.org/3.2.x/api/NodaTime.LocalDateTime.html)   | `DateTime`                      |
+| [LocalTime][10]    | [LocalTime](https://nodatime.org/3.2.x/api/NodaTime.LocalTime.html)           | `TimeOnly`                      |
+
+> **Note:** The `Duration` scalar uses `NodaTime.Duration` as its runtime type. Calling `AddNodaTime()` does **not** automatically bind `System.TimeSpan` to `DurationType` or register `TimeSpan`↔`NodaTime.Duration` converters, as the runtime types are not compatible.
 
 These NodaTime scalars expose the same `@specifiedBy` URLs and implement the same GraphQL scalar specifications as the built-in versions, but they use NodaTime runtime types and may differ subtly in behavior. For example, the NodaTime implementations support up to 9 fractional second digits (nanosecond precision), whereas the equivalent BCL types only support up to 7 fractional second digits (100-nanosecond precision).
 
