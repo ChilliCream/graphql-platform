@@ -157,6 +157,29 @@ public sealed class Iso8601DurationParserTests
         // Fractional without an integer part (debatable, but parser requires it)
         "PT.5S",
 
+        // Decimal separator without fractional digits
+        "PT1.S",
+        "PT1,S",
+        "PT0.S",
+        "PT0,S",
+
+        // Out-of-order components
+        "PT1S1H",
+        "PT1M1H",
+        "P1D1Y",
+        "P1D1M",
+        "P1W1Y",
+        "P1D1W",
+
+        // Duplicated components
+        "P1Y1Y",
+        "P1M1M",
+        "P1W1W",
+        "P1D1D",
+        "PT1H1H",
+        "PT1M1M",
+        "PT1S1S",
+
         // Overflow - exceeds Duration.MaxValue
         "P16777217D",
         "-P16777217D",

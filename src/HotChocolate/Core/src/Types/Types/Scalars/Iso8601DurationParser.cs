@@ -60,6 +60,11 @@ internal static class Iso8601DurationParser
         var hasAnyComponent = false;
         var inTimePart = false;
 
+        // Track which components we've seen to enforce order and uniqueness.
+        // Date components: Y=1, M=2, W=4, D=8
+        // Time components: H=16, M=32, S=64
+        var seenComponents = 0;
+
         try
         {
             checked
@@ -118,6 +123,12 @@ internal static class Iso8601DurationParser
                         hasFraction = true;
                         pos++;
 
+                        // At least one fractional digit is required after the decimal separator.
+                        if (pos >= input.Length || !TReader.IsDigit(input[pos]))
+                        {
+                            return false;
+                        }
+
                         // Parse up to 7 fractional digits (tick precision = 100ns).
                         var fractionDigits = 0;
                         while (pos < input.Length && TReader.IsDigit(input[pos]) && fractionDigits < 7)
@@ -134,9 +145,21 @@ internal static class Iso8601DurationParser
                         }
 
                         // Scale up to 7 decimal places (ticks).
-                        for (var i = fractionDigits; i < 7; i++)
+                        // Use power-of-10 lookup for better performance.
+                        if (fractionDigits < 7)
                         {
-                            fractionalTicks *= 10;
+                            var multiplier = fractionDigits switch
+                            {
+                                0 => 10_000_000L,
+                                1 => 1_000_000L,
+                                2 => 100_000L,
+                                3 => 10_000L,
+                                4 => 1_000L,
+                                5 => 100L,
+                                6 => 10L,
+                                _ => 1L
+                            };
+                            fractionalTicks *= multiplier;
                         }
                     }
 
@@ -156,23 +179,28 @@ internal static class Iso8601DurationParser
                     }
 
                     long componentTicks;
+                    int componentMask;
 
                     if (!inTimePart)
                     {
                         if (TReader.IsChar(designator, 'Y'))
                         {
+                            componentMask = 1;
                             componentTicks = integerPart * 365 * TimeSpan.TicksPerDay;
                         }
                         else if (TReader.IsChar(designator, 'M'))
                         {
+                            componentMask = 2;
                             componentTicks = integerPart * 30 * TimeSpan.TicksPerDay;
                         }
                         else if (TReader.IsChar(designator, 'W'))
                         {
+                            componentMask = 4;
                             componentTicks = integerPart * 7 * TimeSpan.TicksPerDay;
                         }
                         else if (TReader.IsChar(designator, 'D'))
                         {
+                            componentMask = 8;
                             componentTicks = integerPart * TimeSpan.TicksPerDay;
                         }
                         else
@@ -184,14 +212,17 @@ internal static class Iso8601DurationParser
                     {
                         if (TReader.IsChar(designator, 'H'))
                         {
+                            componentMask = 16;
                             componentTicks = integerPart * TimeSpan.TicksPerHour;
                         }
                         else if (TReader.IsChar(designator, 'M'))
                         {
+                            componentMask = 32;
                             componentTicks = integerPart * TimeSpan.TicksPerMinute;
                         }
                         else if (TReader.IsChar(designator, 'S'))
                         {
+                            componentMask = 64;
                             componentTicks = integerPart * TimeSpan.TicksPerSecond
                                 + fractionalTicks;
                         }
@@ -200,6 +231,24 @@ internal static class Iso8601DurationParser
                             return false;
                         }
                     }
+
+                    // Check for duplicate or out-of-order components.
+                    // Components must appear in order: Y M W D (H M S)
+                    // Duplicate: component bit is already set.
+                    if ((seenComponents & componentMask) != 0)
+                    {
+                        return false;
+                    }
+
+                    // Out of order: any higher-order bit is set (components after this one).
+                    // Since masks are powers of 2 in ascending order (1,2,4,8,16,32,64),
+                    // checking if seenComponents >= componentMask catches out-of-order cases.
+                    if (seenComponents >= componentMask)
+                    {
+                        return false;
+                    }
+
+                    seenComponents |= componentMask;
 
                     // Apply both per-component and overall signs immediately.
                     // This keeps the running total closer to zero, avoiding

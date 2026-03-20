@@ -61,6 +61,11 @@ internal static class Iso8601DurationParser
         var hasAnyComponent = false;
         var inTimePart = false;
 
+        // Track which components we've seen to enforce order and uniqueness.
+        // Date components: Y=1, M=2, W=4, D=8
+        // Time components: H=16, M=32, S=64
+        var seenComponents = 0;
+
         try
         {
             while (pos < input.Length)
@@ -117,6 +122,12 @@ internal static class Iso8601DurationParser
                     hasFraction = true;
                     pos++;
 
+                    // At least one fractional digit is required after the decimal separator.
+                    if (pos >= input.Length || !TReader.IsDigit(input[pos]))
+                    {
+                        return false;
+                    }
+
                     var fractionDigits = 0;
                     while (pos < input.Length && TReader.IsDigit(input[pos]) && fractionDigits < 9)
                     {
@@ -132,9 +143,23 @@ internal static class Iso8601DurationParser
                     }
 
                     // Scale up to 9 decimal places (nanoseconds).
-                    for (var i = fractionDigits; i < 9; i++)
+                    // Use power-of-10 lookup for better performance.
+                    if (fractionDigits < 9)
                     {
-                        fractionalNanos *= 10;
+                        var multiplier = fractionDigits switch
+                        {
+                            0 => 1_000_000_000L,
+                            1 => 100_000_000L,
+                            2 => 10_000_000L,
+                            3 => 1_000_000L,
+                            4 => 100_000L,
+                            5 => 10_000L,
+                            6 => 1_000L,
+                            7 => 100L,
+                            8 => 10L,
+                            _ => 1L
+                        };
+                        fractionalNanos *= multiplier;
                     }
                 }
 
@@ -159,23 +184,28 @@ internal static class Iso8601DurationParser
                 var signedFractionalNanos = shouldNegate ? -fractionalNanos : fractionalNanos;
 
                 Duration component;
+                int componentMask;
 
                 if (!inTimePart)
                 {
                     if (TReader.IsChar(designator, 'Y'))
                     {
+                        componentMask = 1;
                         component = Duration.FromDays(signedIntegerPart * 365);
                     }
                     else if (TReader.IsChar(designator, 'M'))
                     {
+                        componentMask = 2;
                         component = Duration.FromDays(signedIntegerPart * 30);
                     }
                     else if (TReader.IsChar(designator, 'W'))
                     {
+                        componentMask = 4;
                         component = Duration.FromDays(signedIntegerPart * 7);
                     }
                     else if (TReader.IsChar(designator, 'D'))
                     {
+                        componentMask = 8;
                         component = Duration.FromDays((int)signedIntegerPart);
                     }
                     else
@@ -187,14 +217,17 @@ internal static class Iso8601DurationParser
                 {
                     if (TReader.IsChar(designator, 'H'))
                     {
+                        componentMask = 16;
                         component = Duration.FromHours(signedIntegerPart);
                     }
                     else if (TReader.IsChar(designator, 'M'))
                     {
+                        componentMask = 32;
                         component = Duration.FromMinutes(signedIntegerPart);
                     }
                     else if (TReader.IsChar(designator, 'S'))
                     {
+                        componentMask = 64;
                         component = Duration.FromSeconds(signedIntegerPart)
                             + Duration.FromNanoseconds(signedFractionalNanos);
                     }
@@ -203,6 +236,24 @@ internal static class Iso8601DurationParser
                         return false;
                     }
                 }
+
+                // Check for duplicate or out-of-order components.
+                // Components must appear in order: Y M W D (H M S)
+                // Duplicate: component bit is already set.
+                if ((seenComponents & componentMask) != 0)
+                {
+                    return false;
+                }
+
+                // Out of order: any higher-order bit is set (components after this one).
+                // Since masks are powers of 2 in ascending order (1,2,4,8,16,32,64),
+                // checking if seenComponents >= componentMask catches out-of-order cases.
+                if (seenComponents >= componentMask)
+                {
+                    return false;
+                }
+
+                seenComponents |= componentMask;
 
                 accumulated += component;
                 hasAnyComponent = true;
