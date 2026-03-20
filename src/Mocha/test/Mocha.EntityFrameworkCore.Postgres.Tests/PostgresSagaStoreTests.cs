@@ -99,7 +99,7 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
         var initial = new TestSagaState(id, "Initial") { Data = "seed" };
         await store1.SaveAsync(saga, initial, default);
 
-        // Act — use an explicit transaction on store1 to hold a row lock.
+        // Act - use an explicit transaction on store1 to hold a row lock.
         // Store1 updates within a transaction (reads V1, writes V2, row locked).
         await context1.Database.BeginTransactionAsync(default);
         var fromStore1 = new TestSagaState(id, "FromStore1") { Data = "store1" };
@@ -114,11 +114,11 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
         // Give store2 time to SELECT and block on the UPDATE row lock.
         await Task.Delay(200, default);
 
-        // Commit store1's transaction — version changes V1→V2, row lock released.
+        // Commit store1's transaction - version changes V1→V2, row lock released.
         // Postgres READ COMMITTED re-evaluates store2's WHERE: version=V1 no longer matches.
         await context1.Database.CommitTransactionAsync(default);
 
-        // Assert — store2's update should find 0 rows and throw.
+        // Assert - store2's update should find 0 rows and throw.
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => store2Task);
     }
 

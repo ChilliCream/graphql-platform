@@ -11,7 +11,7 @@ public class CustomHeaderTests
     [Fact]
     public async Task PublishAsync_Should_PropagateHeaders_When_CustomHeadersSet()
     {
-        // arrange — register handler + IConsumer wiretap; both receive via fan-out
+        // arrange - register handler + IConsumer wiretap; both receive via fan-out
         var recorder = new MessageRecorder();
         var capture = new HeaderCapture();
         await using var provider = await new ServiceCollection()
@@ -35,7 +35,7 @@ public class CustomHeaderTests
             },
             CancellationToken.None);
 
-        // assert — consumer wiretap receives headers through the pipeline
+        // assert - consumer wiretap receives headers through the pipeline
         Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the event within timeout");
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.TryGetValue("x-tenant", out var tenant), "Custom header 'x-tenant' not found");
@@ -47,7 +47,7 @@ public class CustomHeaderTests
     [Fact]
     public async Task SendAsync_Should_PropagateHeaders_When_CustomHeadersSet()
     {
-        // arrange — register throwing handler + IConsumer on error queue to capture headers
+        // arrange - register throwing handler + IConsumer on error queue to capture headers
         var capture = new HeaderCapture();
         await using var provider = await new ServiceCollection()
             .AddSingleton(capture)
@@ -73,13 +73,13 @@ public class CustomHeaderTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — send with custom headers; handler throws so message routes to error queue
+        // act - send with custom headers; handler throws so message routes to error queue
         await bus.SendAsync(
             new ProcessPayment { OrderId = "ORD-HDR", Amount = 10.00m },
             new SendOptions { Headers = new() { ["x-tenant"] = "acme" } },
             CancellationToken.None);
 
-        // assert — error queue consumer preserves custom headers alongside fault headers
+        // assert - error queue consumer preserves custom headers alongside fault headers
         Assert.True(await capture.WaitAsync(s_timeout), "Error consumer did not receive the faulted message");
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(

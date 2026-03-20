@@ -32,10 +32,10 @@ public class BusDefaultsIntegrationTests
             .AddRabbitMQ(t => t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum))
             .BuildTestBusAsync();
 
-        // act — verify the queue was created as quorum
+        // act - verify the queue was created as quorum
         var queues = await ListQueuesAsync(vhost.VhostName);
 
-        // assert — application queues should be quorum type (reply queues are
+        // assert - application queues should be quorum type (reply queues are
         // auto-delete and correctly remain classic since quorum doesn't support that)
         var appQueues = queues.Where(q => !q.Name.StartsWith("response-")).ToList();
         Assert.NotEmpty(appQueues);
@@ -94,10 +94,10 @@ public class BusDefaultsIntegrationTests
             })
             .BuildTestBusAsync();
 
-        // act — verify queues are quorum
+        // act - verify queues are quorum
         var queues = await ListQueuesAsync(vhost.VhostName);
 
-        // assert — application queues should be quorum type (reply queues are
+        // assert - application queues should be quorum type (reply queues are
         // auto-delete and correctly remain classic since quorum doesn't support that)
         var appQueues = queues.Where(q => !q.Name.StartsWith("response-")).ToList();
         Assert.NotEmpty(appQueues);
@@ -158,7 +158,7 @@ public class BusDefaultsIntegrationTests
                 t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum);
                 t.BindHandlersExplicitly();
 
-                // Explicitly declare a classic queue — should override the quorum default
+                // Explicitly declare a classic queue - should override the quorum default
                 t.DeclareExchange("order-ex");
                 t.DeclareQueue("classic-q").QueueType(RabbitMQQueueType.Classic);
                 t.DeclareBinding("order-ex", "classic-q");
@@ -168,10 +168,10 @@ public class BusDefaultsIntegrationTests
             })
             .BuildTestBusAsync();
 
-        // act — verify queue types
+        // act - verify queue types
         var queues = await ListQueuesAsync(vhost.VhostName);
 
-        // assert — the classic-q should be classic, not quorum
+        // assert - the classic-q should be classic, not quorum
         var classicQueue = queues.First(q => q.Name == "classic-q");
         Assert.Equal("classic", classicQueue.Type);
     }

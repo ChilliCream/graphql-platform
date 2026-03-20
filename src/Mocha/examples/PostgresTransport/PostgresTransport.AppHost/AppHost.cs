@@ -1,6 +1,6 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Infrastructure — single Postgres instance with a shared messaging database
+// Infrastructure - single Postgres instance with a shared messaging database
 var postgres = builder.AddPostgres("postgres").WithPgAdmin();
 var messagingDb = postgres.AddDatabase("messaging-db");
 

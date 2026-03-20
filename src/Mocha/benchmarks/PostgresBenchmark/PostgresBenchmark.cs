@@ -29,7 +29,8 @@ var timeout = TimeSpan.FromSeconds(120);
 //  PostgreSQL connection
 // ═══════════════════════════════════════════════════════════════════════════
 
-var connectionString = args.FirstOrDefault()
+var connectionString =
+    args.FirstOrDefault()
     ?? Environment.GetEnvironmentVariable("BENCHMARK_CONNECTION_STRING")
     ?? "Host=localhost;Database=mocha_bench;Username=postgres;Password=postgres";
 
@@ -47,7 +48,7 @@ Console.WriteLine($"  Request    : {requestCount:N0} round-trips");
 Console.WriteLine();
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  Service B — Consumer (start first so topology is provisioned)
+//  Service B - Consumer (start first so topology is provisioned)
 // ═══════════════════════════════════════════════════════════════════════════
 
 var collector = new LatencyCollector();
@@ -59,8 +60,7 @@ var consumerApp = WebApplication.CreateSlimBuilder().Build();
     var b = WebApplication.CreateSlimBuilder();
     b.WebHost.UseUrls("http://localhost:5101");
     b.Services.AddSingleton(collector);
-    b.Services
-        .AddMessageBus()
+    b.Services.AddMessageBus()
         .AddEventHandler<BenchmarkEventHandler>()
         .AddEventHandler<BenchmarkCommandHandler>()
         .AddRequestHandler<BenchmarkRequestHandler>()
@@ -75,9 +75,7 @@ var consumerApp = WebApplication.CreateSlimBuilder().Build();
 
             // Explicit queue for the Send pattern
             t.DeclareQueue("bench-cmd");
-            t.Endpoint("bench-cmd-ep")
-                .Queue("bench-cmd")
-                .Handler<BenchmarkCommandHandler>();
+            t.Endpoint("bench-cmd-ep").Queue("bench-cmd").Handler<BenchmarkCommandHandler>();
         });
     consumerApp = b.Build();
 }
@@ -89,7 +87,7 @@ Console.WriteLine(" done");
 await Task.Delay(3_000);
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  Service A — Producer
+//  Service A - Producer
 // ═══════════════════════════════════════════════════════════════════════════
 
 Console.Write("  Starting Service A (producer) …");
@@ -98,16 +96,13 @@ var producerApp = WebApplication.CreateSlimBuilder().Build();
 {
     var b = WebApplication.CreateSlimBuilder();
     b.WebHost.UseUrls("http://localhost:5102");
-    b.Services
-        .AddMessageBus()
+    b.Services.AddMessageBus()
         .AddPostgres(t =>
         {
             t.ConnectionString(connectionString);
 
             // Dispatch endpoint so SendAsync routes BenchmarkCommand to the queue
-            t.DispatchEndpoint("bench-cmd-dispatch")
-                .ToQueue("bench-cmd")
-                .Send<BenchmarkCommand>();
+            t.DispatchEndpoint("bench-cmd-dispatch").ToQueue("bench-cmd").Send<BenchmarkCommand>();
         });
     producerApp = b.Build();
 }
@@ -138,7 +133,7 @@ Console.WriteLine(" done");
 Console.WriteLine();
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  Scenario 1 — Publish / Subscribe
+//  Scenario 1 - Publish / Subscribe
 // ═══════════════════════════════════════════════════════════════════════════
 
 Console.WriteLine("  ── Publish / Subscribe ──────────────────────────────");
@@ -152,8 +147,7 @@ var sw = Stopwatch.StartNew();
         new ParallelOptions { MaxDegreeOfParallelism = producerConcurrency },
         async (i, ct) =>
         {
-            await bus.PublishAsync(
-                new BenchmarkEvent { SentTicks = Stopwatch.GetTimestamp(), Sequence = i }, ct);
+            await bus.PublishAsync(new BenchmarkEvent { SentTicks = Stopwatch.GetTimestamp(), Sequence = i }, ct);
         });
 }
 
@@ -162,7 +156,7 @@ sw.Stop();
 PrintResults("Latency", messageCount, sw.Elapsed, collector.GetSortedSamples());
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  Scenario 2 — Send (point-to-point)
+//  Scenario 2 - Send (point-to-point)
 // ═══════════════════════════════════════════════════════════════════════════
 
 Console.WriteLine("  ── Send (point-to-point) ───────────────────────────");
@@ -176,8 +170,7 @@ sw = Stopwatch.StartNew();
         new ParallelOptions { MaxDegreeOfParallelism = producerConcurrency },
         async (i, ct) =>
         {
-            await bus.SendAsync(
-                new BenchmarkCommand { SentTicks = Stopwatch.GetTimestamp(), Sequence = i }, ct);
+            await bus.SendAsync(new BenchmarkCommand { SentTicks = Stopwatch.GetTimestamp(), Sequence = i }, ct);
         });
 }
 
@@ -186,7 +179,7 @@ sw.Stop();
 PrintResults("Latency", messageCount, sw.Elapsed, collector.GetSortedSamples());
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  Scenario 3 — Request / Reply
+//  Scenario 3 - Request / Reply
 // ═══════════════════════════════════════════════════════════════════════════
 
 Console.WriteLine("  ── Request / Reply ─────────────────────────────────");
@@ -197,22 +190,22 @@ sw = Stopwatch.StartNew();
     const int concurrency = 10;
     const int perWorker = requestCount / concurrency;
 
-    var tasks = Enumerable.Range(0, concurrency).Select(async w =>
-    {
-        // Last worker picks up the remainder.
-        var count = w < concurrency - 1 ? perWorker : requestCount - perWorker * (concurrency - 1);
-
-        using var scope = producerApp.Services.CreateScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        for (var i = 0; i < count; i++)
+    var tasks = Enumerable
+        .Range(0, concurrency)
+        .Select(async w =>
         {
-            var start = Stopwatch.GetTimestamp();
-            await bus.RequestAsync(
-                new BenchmarkRequest { Sequence = i },
-                CancellationToken.None);
-            requestSamples.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
-        }
-    });
+            // Last worker picks up the remainder.
+            var count = w < concurrency - 1 ? perWorker : requestCount - perWorker * (concurrency - 1);
+
+            using var scope = producerApp.Services.CreateScope();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            for (var i = 0; i < count; i++)
+            {
+                var start = Stopwatch.GetTimestamp();
+                await bus.RequestAsync(new BenchmarkRequest { Sequence = i }, CancellationToken.None);
+                requestSamples.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+            }
+        });
 
     await Task.WhenAll(tasks);
 }
@@ -302,8 +295,7 @@ public sealed class BenchmarkResponse
 //  Handlers (Service B)
 // ═══════════════════════════════════════════════════════════════════════════
 
-public sealed class BenchmarkEventHandler(LatencyCollector collector)
-    : IEventHandler<BenchmarkEvent>
+public sealed class BenchmarkEventHandler(LatencyCollector collector) : IEventHandler<BenchmarkEvent>
 {
     public ValueTask HandleAsync(BenchmarkEvent message, CancellationToken cancellationToken)
     {
@@ -312,8 +304,7 @@ public sealed class BenchmarkEventHandler(LatencyCollector collector)
     }
 }
 
-public sealed class BenchmarkCommandHandler(LatencyCollector collector)
-    : IEventHandler<BenchmarkCommand>
+public sealed class BenchmarkCommandHandler(LatencyCollector collector) : IEventHandler<BenchmarkCommand>
 {
     public ValueTask HandleAsync(BenchmarkCommand message, CancellationToken cancellationToken)
     {
@@ -322,12 +313,9 @@ public sealed class BenchmarkCommandHandler(LatencyCollector collector)
     }
 }
 
-public sealed class BenchmarkRequestHandler
-    : IEventRequestHandler<BenchmarkRequest, BenchmarkResponse>
+public sealed class BenchmarkRequestHandler : IEventRequestHandler<BenchmarkRequest, BenchmarkResponse>
 {
-    public ValueTask<BenchmarkResponse> HandleAsync(
-        BenchmarkRequest request,
-        CancellationToken cancellationToken)
+    public ValueTask<BenchmarkResponse> HandleAsync(BenchmarkRequest request, CancellationToken cancellationToken)
     {
         return new(new BenchmarkResponse { Status = "ok" });
     }
@@ -378,8 +366,7 @@ public sealed class LatencyCollector
         catch (OperationCanceledException)
         {
             var received = Volatile.Read(ref _received);
-            throw new TimeoutException(
-                $"Timed out waiting for messages. Received {received} of {_expected}.");
+            throw new TimeoutException($"Timed out waiting for messages. Received {received} of {_expected}.");
         }
     }
 

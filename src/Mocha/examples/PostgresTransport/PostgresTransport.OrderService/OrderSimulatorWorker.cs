@@ -28,7 +28,7 @@ public sealed class OrderSimulatorWorker(
         // Give the bus a moment to finish starting up
         await Task.Delay(3000, stoppingToken);
 
-        logger.LogInformation("Order simulator started — placing orders every 5 seconds");
+        logger.LogInformation("Order simulator started - placing orders every 5 seconds");
 
         while (!stoppingToken.IsCancellationRequested)
         {

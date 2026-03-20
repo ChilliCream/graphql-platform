@@ -87,7 +87,7 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
         var envelope = CreateTestEnvelope();
         await inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None);
 
-        // Act — check with a different consumer type
+        // Act - check with a different consumer type
         var exists = await inbox.ExistsAsync(envelope.MessageId!, AltConsumerType, CancellationToken.None);
 
         // Assert
@@ -104,7 +104,7 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
         var envelope = CreateTestEnvelope();
         await inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None);
 
-        // Act & Assert — ON CONFLICT DO NOTHING should prevent errors
+        // Act & Assert - ON CONFLICT DO NOTHING should prevent errors
         var ex = await Record.ExceptionAsync(() =>
             inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None).AsTask());
 
@@ -120,11 +120,11 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
 
         var envelope = CreateTestEnvelope();
 
-        // Act — record same message for two different consumer types
+        // Act - record same message for two different consumer types
         await inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None);
         await inbox.RecordAsync(envelope, AltConsumerType, CancellationToken.None);
 
-        // Assert — both should exist
+        // Assert - both should exist
         var existsFirst = await inbox.ExistsAsync(envelope.MessageId!, TestConsumerType, CancellationToken.None);
         var existsSecond = await inbox.ExistsAsync(envelope.MessageId!, AltConsumerType, CancellationToken.None);
         Assert.True(existsFirst);
@@ -159,7 +159,7 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
         var envelope = CreateTestEnvelope();
         await inbox.TryClaimAsync(envelope, TestConsumerType, CancellationToken.None);
 
-        // Act — second claim attempt for the same message ID and consumer type
+        // Act - second claim attempt for the same message ID and consumer type
         var claimed = await inbox.TryClaimAsync(envelope, TestConsumerType, CancellationToken.None);
 
         // Assert
@@ -176,10 +176,10 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
         var envelope = CreateTestEnvelope();
         await inbox.TryClaimAsync(envelope, TestConsumerType, CancellationToken.None);
 
-        // Act — claim the same message with a different consumer type
+        // Act - claim the same message with a different consumer type
         var claimed = await inbox.TryClaimAsync(envelope, AltConsumerType, CancellationToken.None);
 
-        // Assert — should succeed because each consumer type claims independently
+        // Assert - should succeed because each consumer type claims independently
         Assert.True(claimed);
     }
 
@@ -193,7 +193,7 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
         var envelope = CreateTestEnvelope();
         await inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None);
 
-        // Act — try to claim a message that was already recorded via RecordAsync
+        // Act - try to claim a message that was already recorded via RecordAsync
         var claimed = await inbox.TryClaimAsync(envelope, TestConsumerType, CancellationToken.None);
 
         // Assert
@@ -239,7 +239,7 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
         var envelope = CreateTestEnvelope();
         await inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None);
 
-        // Act — message was just inserted, so it should not be cleaned up
+        // Act - message was just inserted, so it should not be cleaned up
         var deleted = await inbox.CleanupAsync(TimeSpan.FromDays(7), CancellationToken.None);
 
         // Assert
@@ -249,7 +249,7 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task CleanupAsync_Should_DeleteMessages_When_TimeProviderAdvancedPastRetention()
     {
-        // Arrange — start the fake clock at "now" and insert a message
+        // Arrange - start the fake clock at "now" and insert a message
         var baseTime = DateTimeOffset.UtcNow;
         var fakeTime = new FakeTimeProvider(baseTime);
         var (context, inbox) = await CreateInboxAsync(fakeTime);
@@ -258,14 +258,14 @@ public sealed class PostgresMessageInboxTests : IClassFixture<PostgresFixture>
         var envelope = CreateTestEnvelope();
         await inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None);
 
-        // Act 1 — clock has not advanced, message should be retained
+        // Act 1 - clock has not advanced, message should be retained
         var deletedBefore = await inbox.CleanupAsync(TimeSpan.FromDays(7), CancellationToken.None);
         Assert.Equal(0, deletedBefore);
 
         // Advance the fake clock past the retention period
         fakeTime.Advance(TimeSpan.FromDays(8));
 
-        // Act 2 — now the message is older than the retention period
+        // Act 2 - now the message is older than the retention period
         var deletedAfter = await inbox.CleanupAsync(TimeSpan.FromDays(7), CancellationToken.None);
 
         // Assert

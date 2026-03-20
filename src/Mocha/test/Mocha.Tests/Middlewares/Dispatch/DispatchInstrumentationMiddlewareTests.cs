@@ -71,7 +71,7 @@ public sealed class DispatchInstrumentationMiddlewareTests
             // expected
         }
 
-        // assert — activity should be disposed even when exception occurs (using statement)
+        // assert - activity should be disposed even when exception occurs (using statement)
         Assert.True(activity.WasDisposed, "Activity should be disposed even when exception occurs");
     }
 
@@ -114,7 +114,7 @@ public sealed class DispatchInstrumentationMiddlewareTests
     [Fact]
     public async Task InvokeAsync_Should_CallWithActivityOnHeaders_When_Invoked()
     {
-        // arrange — WithActivity() is a no-op when Activity.Current is null,
+        // arrange - WithActivity() is a no-op when Activity.Current is null,
         // but we verify the middleware calls next and does not throw.
         var observer = new MockBusDiagnosticObserver();
         var middleware = new DispatchInstrumentationMiddleware(observer);
@@ -122,7 +122,7 @@ public sealed class DispatchInstrumentationMiddlewareTests
 
         DispatchDelegate next = _ => ValueTask.CompletedTask;
 
-        // act — should not throw even without an active Activity
+        // act - should not throw even without an active Activity
         await middleware.InvokeAsync(context, next);
 
         // assert

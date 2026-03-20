@@ -160,7 +160,7 @@ public class PooledBufferAllocatorTests
         using var allocator = new PooledBufferAllocator(pool, minBufferSize: 1024);
         var slices = new List<Memory<byte>>();
 
-        // act — 100 x 10 = 1000 bytes, fits in one 1024-byte buffer
+        // act - 100 x 10 = 1000 bytes, fits in one 1024-byte buffer
         for (var i = 0; i < 100; i++)
         {
             var slice = allocator.GetMemory(10);

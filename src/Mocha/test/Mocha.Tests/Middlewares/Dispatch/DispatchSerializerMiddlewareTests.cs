@@ -25,7 +25,7 @@ public sealed class DispatchSerializerMiddlewareTests
         // act
         await middleware.InvokeAsync(context, next);
 
-        // assert — envelope was pre-set, so serialization is bypassed and next is called
+        // assert - envelope was pre-set, so serialization is bypassed and next is called
         Assert.True(nextCalled);
     }
 
@@ -42,7 +42,7 @@ public sealed class DispatchSerializerMiddlewareTests
         // act
         await middleware.InvokeAsync(context, next);
 
-        // assert — the original envelope should be unchanged
+        // assert - the original envelope should be unchanged
         Assert.Same(originalEnvelope, context.Envelope);
         Assert.Equal("pre-built-1", context.Envelope.MessageId);
     }
@@ -162,7 +162,7 @@ public sealed class DispatchSerializerMiddlewareTests
             return ValueTask.CompletedTask;
         };
 
-        // act — create the middleware from the factory and invoke with pre-set envelope
+        // act - create the middleware from the factory and invoke with pre-set envelope
         var middlewareDelegate = configuration.Middleware(factoryContext, terminalNext);
         var context = new DispatchContext { Envelope = new MessageEnvelope() };
         await middlewareDelegate(context);

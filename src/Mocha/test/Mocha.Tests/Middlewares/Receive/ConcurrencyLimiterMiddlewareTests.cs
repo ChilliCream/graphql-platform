@@ -261,7 +261,7 @@ public sealed class ConcurrencyLimiterMiddlewareTests : ReceiveMiddlewareTestBas
     [Fact]
     public async Task InvokeAsync_Should_ReleaseSemaphore_When_HandlerThrows()
     {
-        // arrange — use ID-based throwing so retries of the "throws" message
+        // arrange - use ID-based throwing so retries of the "throws" message
         // keep throwing (a mutable flag was flaky because the transport retried
         // the message after the flag was cleared, recording it unexpectedly).
         var recorder = new MessageRecorder();

@@ -78,7 +78,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         // act - publish a message whose handler will throw
         await bus.PublishAsync(new FaultTestEvent { Id = "will-fail" }, CancellationToken.None);
 
-        // Deterministic sync not available — no observable side-effect to wait on
+        // Deterministic sync not available - no observable side-effect to wait on
         // after a swallowed fault, so a brief delay lets the pipeline finish.
         await Task.Delay(500, default);
 
@@ -245,7 +245,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act & assert — exact exception type depends on transport timing:
+        // act & assert - exact exception type depends on transport timing:
         // RemoteErrorException if the fault response arrives, TaskCanceledException
         // if the CTS fires first. Both confirm the handler did not succeed.
         using var cts = new CancellationTokenSource(Timeout);
@@ -286,7 +286,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — exact exception type depends on transport timing (see comment
+        // act - exact exception type depends on transport timing (see comment
         // in ThrowException test above). When it IS a RemoteErrorException we
         // can verify fault details; otherwise just confirm failure.
         using var cts = new CancellationTokenSource(Timeout);
@@ -346,7 +346,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         // act
         await bus.PublishAsync(new FaultTestEvent { Id = "err-1" }, CancellationToken.None);
 
-        // assert — consume from the error queue and verify fault headers
+        // assert - consume from the error queue and verify fault headers
         var errorQueue = GetErrorQueue(provider);
         var items = await ConsumeFromQueueAsync(errorQueue, expectedCount: 1);
 
@@ -407,20 +407,20 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — 5 messages: 3 succeed, 2 fail
+        // act - 5 messages: 3 succeed, 2 fail
         await bus.PublishAsync(new FaultTestEvent { Id = "mixed-ok-1" }, CancellationToken.None);
         await bus.PublishAsync(new FaultTestEvent { Id = "mixed-fail-1" }, CancellationToken.None);
         await bus.PublishAsync(new FaultTestEvent { Id = "mixed-ok-2" }, CancellationToken.None);
         await bus.PublishAsync(new FaultTestEvent { Id = "mixed-fail-2" }, CancellationToken.None);
         await bus.PublishAsync(new FaultTestEvent { Id = "mixed-ok-3" }, CancellationToken.None);
 
-        // assert — 3 successes recorded by handler
+        // assert - 3 successes recorded by handler
         Assert.True(
             await recorder.WaitAsync(Timeout, expectedCount: 3),
             "Should receive exactly 3 successful messages");
         Assert.Equal(3, recorder.Messages.Count);
 
-        // assert — 2 faults on error queue
+        // assert - 2 faults on error queue
         var errorQueue = GetErrorQueue(provider);
         var items = await ConsumeFromQueueAsync(errorQueue, expectedCount: 2);
 

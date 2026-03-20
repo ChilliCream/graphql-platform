@@ -41,7 +41,7 @@ public class AutoProvisionTests
         // arrange & act
         var (_, _, topology) = CreateTopology(t => t.DeclareExchange("ex1"));
 
-        // assert — null means it inherits the topology default
+        // assert - null means it inherits the topology default
         var exchange = topology.Exchanges.Single(e => e.Name == "ex1");
         Assert.Null(exchange.AutoProvision);
     }
@@ -56,7 +56,7 @@ public class AutoProvisionTests
             t.DeclareExchange("ex1").AutoProvision(true);
         });
 
-        // assert — explicit true overrides topology false
+        // assert - explicit true overrides topology false
         var exchange = topology.Exchanges.Single(e => e.Name == "ex1");
         Assert.True(exchange.AutoProvision);
     }
@@ -71,7 +71,7 @@ public class AutoProvisionTests
             t.DeclareExchange("ex1").AutoProvision(false);
         });
 
-        // assert — explicit false overrides topology true
+        // assert - explicit false overrides topology true
         var exchange = topology.Exchanges.Single(e => e.Name == "ex1");
         Assert.False(exchange.AutoProvision);
     }
@@ -177,7 +177,7 @@ public class AutoProvisionTests
         // act
         var description = transport.Describe();
 
-        // assert — all entities should have autoProvision in their properties
+        // assert - all entities should have autoProvision in their properties
         Assert.NotNull(description.Topology);
         foreach (var entity in description.Topology!.Entities)
         {
@@ -207,7 +207,7 @@ public class AutoProvisionTests
 
         var description = transport.Describe();
 
-        // assert — all entities and links should have autoProvision = false
+        // assert - all entities and links should have autoProvision = false
         Assert.NotNull(description.Topology);
         foreach (var entity in description.Topology!.Entities.Where(e => e.Name is "ex1" or "q1"))
         {
@@ -256,13 +256,13 @@ public class AutoProvisionTests
     [Fact]
     public void Convention_Should_PropagateAutoProvision_When_ReceiveEndpointCreated()
     {
-        // arrange — the reply endpoint always sets AutoProvision = true
+        // arrange - the reply endpoint always sets AutoProvision = true
         var runtime = CreateRuntime(b =>
             b.AddRequestHandler<GetOrderStatusHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = (RabbitMQMessagingTopology)transport.Topology;
 
-        // act — find the reply queue (temporary, auto-provisioned)
+        // act - find the reply queue (temporary, auto-provisioned)
         var replyEndpoint = transport.ReceiveEndpoints
             .FirstOrDefault(e => e.Kind == ReceiveEndpointKind.Reply);
 
@@ -278,13 +278,13 @@ public class AutoProvisionTests
     [Fact]
     public void Descriptor_AutoProvision_Should_ReturnSelf_When_Chaining()
     {
-        // arrange & act — just verify the builder compiles and chains correctly
+        // arrange & act - just verify the builder compiles and chains correctly
         var (_, transport, _) = CreateTopology(t =>
             t.AutoProvision(false)
              .DeclareExchange("ex1")
              .AutoProvision(true));
 
-        // assert — the last call wins
+        // assert - the last call wins
         var exchange = ((RabbitMQMessagingTopology)transport.Topology)
             .Exchanges.Single(e => e.Name == "ex1");
         Assert.True(exchange.AutoProvision);

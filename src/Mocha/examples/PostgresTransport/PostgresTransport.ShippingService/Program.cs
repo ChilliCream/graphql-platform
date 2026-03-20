@@ -25,7 +25,7 @@ app.MapDefaultEndpoints();
 
 app.MapGet("/", () => "Shipping Service (Postgres Transport)");
 
-// Ship an order — publishes OrderShippedEvent
+// Ship an order - publishes OrderShippedEvent
 app.MapPost(
     "/api/shipments",
     async (CreateShipmentRequest request, IMessageBus messageBus) =>
