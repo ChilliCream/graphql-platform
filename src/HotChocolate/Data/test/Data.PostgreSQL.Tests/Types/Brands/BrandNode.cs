@@ -40,7 +40,7 @@ public static partial class BrandNode
         [Service] CatalogContext context,
         CancellationToken cancellationToken)
     {
-        var brandIds = brands.Select(b => b.Id).ToList();
+        var brandIds = brands.ConvertAll(b => b.Id);
 
         var counts = await context.Products
             .Where(p => brandIds.Contains(p.BrandId))
@@ -48,7 +48,7 @@ public static partial class BrandNode
             .Select(g => new { BrandId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.BrandId, g => g.Count, cancellationToken);
 
-        return brands.Select(b => counts.GetValueOrDefault(b.Id, 0)).ToList();
+        return brands.ConvertAll(b => counts.GetValueOrDefault(b.Id, 0));
     }
 
     [BindMember(nameof(Brand.SupplierId))]

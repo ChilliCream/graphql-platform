@@ -87,8 +87,8 @@ public static class HotChocolateFusionServiceCollectionExtensions
         => builder.ConfigureSchemaServices(
             static (_, s) => s.TryAddSingleton(
                 new FetchResultStorePool(
-                    levels: [64, 128, 256, 512],
-                    trimInterval: TimeSpan.FromMinutes(5))));
+                    levels: [64, 128, 256, 512, 1024, 2048, 4096],
+                    trimInterval: TimeSpan.FromMinutes(2))));
 
     private static IFusionGatewayBuilder AddDocumentCache(this IFusionGatewayBuilder builder)
     {

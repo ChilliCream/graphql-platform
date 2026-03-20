@@ -108,7 +108,7 @@ internal sealed class PathSegmentPool : IDisposable
             _segmentArraySize = segmentArraySize;
             _buffers = new int[numberOfBuffers][];
             _levels = levels;
-            _currentLevel = _levels.Length - 1;
+            _currentLevel = 0;
 
             if (preAllocate)
             {
@@ -142,7 +142,12 @@ internal sealed class PathSegmentPool : IDisposable
             {
                 _lock.Enter(ref lockTaken);
 
-                if (_index < buffers.Length)
+                if (_index >= _levels[_currentLevel] && _currentLevel < _levels.Length - 1)
+                {
+                    _currentLevel++;
+                }
+
+                if (_index < _levels[_currentLevel])
                 {
                     buffer = buffers[_index];
                     buffers[_index++] = null;
