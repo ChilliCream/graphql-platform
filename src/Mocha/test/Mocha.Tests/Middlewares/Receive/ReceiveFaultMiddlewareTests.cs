@@ -493,16 +493,12 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
     {
         public void Configure(
             IMessagingConfigurationContext context,
+            InMemoryMessagingTransport transport,
             InMemoryReceiveEndpointConfiguration configuration)
         {
             if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
             {
-                configuration.ErrorEndpoint ??= new UriBuilder
-                {
-                    Host = "",
-                    Scheme = "memory",
-                    Path = "q/" + queueName + "_error"
-                }.Uri;
+                configuration.ErrorEndpoint ??= new Uri($"{transport.Schema}:q/{queueName}_error");
             }
         }
     }
