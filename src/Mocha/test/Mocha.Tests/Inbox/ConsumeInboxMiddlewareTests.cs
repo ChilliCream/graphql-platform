@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Features;
 using Mocha.Inbox;
@@ -42,7 +41,7 @@ public class ConsumeInboxMiddlewareTests
         var envelope = new MessageEnvelope { MessageId = messageId, MessageType = "urn:message:test" };
 
         // Pre-record the message for the same consumer type
-        await inbox.RecordAsync(envelope, TestConsumerType, CancellationToken.None);
+        await inbox.RecordAsync(envelope, s_testConsumerType, CancellationToken.None);
         inbox.RecordedEnvelopes.Clear(); // Clear so we can detect if re-recorded
 
         var nextCalled = false;
@@ -185,7 +184,7 @@ public class ConsumeInboxMiddlewareTests
     /// The consumer type name used in tests to simulate a consumer identity.
     /// Matches the full type name of the nested <see cref="TestConsumer"/> class.
     /// </summary>
-    private static readonly string TestConsumerType = typeof(TestConsumer).FullName!;
+    private static readonly string s_testConsumerType = typeof(TestConsumer).FullName!;
 
     /// <summary>
     /// Creates a <see cref="ReceiveContext"/> (which implements both

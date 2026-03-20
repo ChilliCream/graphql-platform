@@ -1,7 +1,5 @@
 using System.Diagnostics;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
