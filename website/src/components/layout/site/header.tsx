@@ -183,7 +183,7 @@ const Container = styled.header`
   justify-content: center;
   box-sizing: border-box;
   border-bottom: 1px solid ${THEME_COLORS.boxBorder};
-  width: 100vw;
+  width: 100%;
   height: 72px;
 
   ${ApplyBackdropBlur(48, `background-color: ${THEME_COLORS.backgroundMenu};`)}
