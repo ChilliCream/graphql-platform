@@ -62,30 +62,35 @@ public sealed class SocketResult : IDisposable
 
             IDataMessage? message;
 
-            do
+            try
             {
-                message = await observer.TryReadNextAsync(cancellationToken);
-
-                switch (message)
+                do
                 {
-                    case NextMessage next:
-                        yield return next.Payload;
-                        break;
+                    message = await observer.TryReadNextAsync(cancellationToken);
 
-                    case ErrorMessage error:
-                        yield return error.Payload;
-                        message = null;
-                        completion.MarkDataStreamCompleted();
-                        break;
+                    switch (message)
+                    {
+                        case NextMessage next:
+                            yield return next.Payload;
+                            break;
 
-                    case CompleteMessage:
-                        message = null;
-                        completion.MarkDataStreamCompleted();
-                        break;
-                }
-            } while (!cancellationToken.IsCancellationRequested && message is not null);
+                        case ErrorMessage error:
+                            yield return error.Payload;
+                            message = null;
+                            completion.MarkDataStreamCompleted();
+                            break;
 
-            completion.TrySendCompleteMessage();
+                        case CompleteMessage:
+                            message = null;
+                            completion.MarkDataStreamCompleted();
+                            break;
+                    }
+                } while (!cancellationToken.IsCancellationRequested && message is not null);
+            }
+            finally
+            {
+                completion.TrySendCompleteMessage();
+            }
         }
 
         public void Dispose()
