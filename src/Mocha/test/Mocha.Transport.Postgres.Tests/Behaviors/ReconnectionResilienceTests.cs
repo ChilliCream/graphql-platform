@@ -312,9 +312,13 @@ public class ReconnectionResilienceTests
         {
             receivedPayloads.Add(payload);
             if (string.IsNullOrEmpty(payload))
+            {
                 reconnectedSignal.Release();
+            }
             else
+            {
                 signal.Release();
+            }
         });
 
         await listener.StartAsync(CancellationToken.None);

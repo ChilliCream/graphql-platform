@@ -98,11 +98,11 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
 
         var secondPage = await context.Pets
             .With(query, sort => sort.AddDescending(e => e.Name))
-            .ToPageAsync(arguments with { After = firstPage.CreateCursor(firstPage.Last!) });
+            .ToPageAsync(arguments with { After = firstPage.CreateEndCursor() });
 
         // assert
         Assert.NotNull(secondPage);
-        Assert.Equal(2, secondPage.Items.Length);
+        Assert.Equal(2, secondPage.Count);
     }
 
     [Fact]
@@ -135,13 +135,13 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
             .With(query, sort => sort.AddDescending(e => e.Name))
             .ToBatchPageAsync(
                 e => e.OwnerId,
-                arguments with { After = firstPage.CreateCursor(firstPage.Last!) });
+                arguments with { After = firstPage.CreateEndCursor() });
 
         var secondPage = Assert.Single(secondMap).Value;
 
         // assert
         Assert.NotNull(secondPage);
-        Assert.Equal(2, secondPage.Items.Length);
+        Assert.Equal(2, secondPage.Count);
     }
 
     private static async Task SeedFileSystemAsync(string connectionString)

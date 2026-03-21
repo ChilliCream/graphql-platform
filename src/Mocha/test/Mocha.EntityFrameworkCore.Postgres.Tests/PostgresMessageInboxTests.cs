@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
-using Mocha.EntityFrameworkCore.Postgres;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Inbox;
 using Mocha.Middlewares;

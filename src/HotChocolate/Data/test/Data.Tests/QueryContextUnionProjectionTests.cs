@@ -267,7 +267,7 @@ public class QueryContextUnionProjectionTests
                 var pageItems = allItems.Take(take).ToImmutableArray();
                 var hasNext = allItems.Length > take;
 
-                map[key] = new Page<InspectionDefinition>(
+                map[key] = Page<InspectionDefinition>.Create(
                     pageItems,
                     hasNextPage: hasNext,
                     hasPreviousPage: false,

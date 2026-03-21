@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Xml;
+using HotChocolate.Types;
 
 namespace StrawberryShake.Serialization;
 
@@ -56,7 +56,7 @@ public class DurationSerializer : ScalarSerializer<string, TimeSpan>
         {
             if (_format == DurationFormat.Iso8601)
             {
-                resultValue = XmlConvert.ToString(timeSpan);
+                resultValue = Iso8601DurationFormatter.Format(timeSpan);
                 return true;
             }
 
@@ -70,15 +70,14 @@ public class DurationSerializer : ScalarSerializer<string, TimeSpan>
 
     private static bool TryDeserializeIso8601(string serialized, out TimeSpan? value)
     {
-        try
+        if (Iso8601DurationParser.TryParse(serialized.AsSpan(), out var parsed))
         {
-            return Iso8601Duration.TryParse(serialized, out value);
+            value = parsed;
+            return true;
         }
-        catch (FormatException)
-        {
-            value = null;
-            return false;
-        }
+
+        value = null;
+        return false;
     }
 
     private static bool TryDeserializeDotNet(string serialized, out TimeSpan? value)

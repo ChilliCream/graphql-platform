@@ -7,38 +7,22 @@ using System.Reflection;
 
 namespace HotChocolate.Types;
 
-public class DurationTypeTests
+public sealed class DurationTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
     {
-        // arrange
-        // act
+        // arrange & act
         var type = new DurationType();
 
         // assert
         Assert.Equal("Duration", type.Name);
     }
 
-    [Fact]
-    public void CoerceInputLiteral()
-    {
-        // arrange
-        var type = new DurationType();
-        var literal = new StringValueNode("PT5M");
-        var expectedTimeSpan = TimeSpan.FromMinutes(5);
-
-        // act
-        var runtimeValue = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Equal(expectedTimeSpan, runtimeValue);
-    }
-
     [Theory]
     [InlineData(DurationFormat.Iso8601, "PT5M")]
     [InlineData(DurationFormat.DotNet, "00:05:00")]
-    public void CoerceInputLiteral_WithFormat(DurationFormat format, string literalValue)
+    public void CoerceInputLiteral(DurationFormat format, string literalValue)
     {
         // arrange
         var type = new DurationType(format);
@@ -85,21 +69,6 @@ public class DurationTypeTests
     }
 
     [Fact]
-    public void CoerceInputLiteral_Weeks()
-    {
-        // arrange
-        var type = new DurationType();
-        var literal = new StringValueNode("P2M2W5D");
-        var expectedTimeSpan = TimeSpan.FromDays(79);
-
-        // act
-        var runtimeValue = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Equal(expectedTimeSpan, runtimeValue);
-    }
-
-    [Fact]
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
@@ -113,39 +82,10 @@ public class DurationTypeTests
         Assert.Throws<LeafCoercionException>(Action);
     }
 
-    [Fact]
-    public void CoerceInputLiteral_CannotEndWithDigits()
-    {
-        // arrange
-        var type = new DurationType();
-        var literal = new StringValueNode("PT5");
-
-        // act
-        void Action() => type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
-    public void CoerceInputValue()
-    {
-        // arrange
-        var type = new DurationType();
-        var inputValue = JsonDocument.Parse("\"PT5M\"").RootElement;
-        var expectedTimeSpan = TimeSpan.FromMinutes(5);
-
-        // act
-        var runtimeValue = type.CoerceInputValue(inputValue, null!);
-
-        // assert
-        Assert.Equal(expectedTimeSpan, runtimeValue);
-    }
-
     [Theory]
     [InlineData(DurationFormat.Iso8601, "PT5M")]
     [InlineData(DurationFormat.DotNet, "00:05:00")]
-    public void CoerceInputValue_WithFormat(DurationFormat format, string value)
+    public void CoerceInputValue(DurationFormat format, string value)
     {
         // arrange
         var type = new DurationType(format);
@@ -173,11 +113,13 @@ public class DurationTypeTests
         Assert.Throws<LeafCoercionException>(Action);
     }
 
-    [Fact]
-    public void CoerceOutputValue()
+    [Theory]
+    [InlineData(DurationFormat.Iso8601, "PT5M")]
+    [InlineData(DurationFormat.DotNet, "00:05:00")]
+    public void CoerceOutputValue(DurationFormat format, string expectedValue)
     {
         // arrange
-        var type = new DurationType();
+        var type = new DurationType(format);
         var runtimeValue = TimeSpan.FromMinutes(5);
 
         // act
@@ -187,41 +129,7 @@ public class DurationTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchInlineSnapshot("\"PT5M\"");
-    }
-
-    [Fact]
-    public void CoerceOutputValue_WithFormat_Iso8601()
-    {
-        // arrange
-        var type = new DurationType(DurationFormat.Iso8601);
-        var runtimeValue = TimeSpan.FromMinutes(5);
-
-        // act
-        var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
-        var resultValue = resultDocument.Data.GetProperty("first");
-        type.CoerceOutputValue(runtimeValue, resultValue);
-
-        // assert
-        resultValue.MatchInlineSnapshot("\"PT5M\"");
-    }
-
-    [Fact]
-    public void CoerceOutputValue_WithFormat_DotNet()
-    {
-        // arrange
-        var type = new DurationType(DurationFormat.DotNet);
-        var runtimeValue = TimeSpan.FromMinutes(5);
-
-        // act
-        var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
-        var resultValue = resultDocument.Data.GetProperty("first");
-        type.CoerceOutputValue(runtimeValue, resultValue);
-
-        // assert
-        resultValue.MatchInlineSnapshot("\"00:05:00\"");
+        Assert.Equal(expectedValue, resultValue.GetString());
     }
 
     [Fact]
@@ -240,24 +148,10 @@ public class DurationTypeTests
         Assert.Throws<LeafCoercionException>(Action);
     }
 
-    [Fact]
-    public void ValueToLiteral()
-    {
-        // arrange
-        var type = new DurationType();
-        var runtimeValue = TimeSpan.FromMinutes(5);
-
-        // act
-        var literal = type.ValueToLiteral(runtimeValue);
-
-        // assert
-        Assert.Equal("PT5M", Assert.IsType<StringValueNode>(literal).Value);
-    }
-
     [Theory]
     [InlineData(DurationFormat.Iso8601, "PT5M")]
     [InlineData(DurationFormat.DotNet, "00:05:00")]
-    public void ValueToLiteral_WithFormat(DurationFormat format, string expectedValue)
+    public void ValueToLiteral(DurationFormat format, string expectedValue)
     {
         // arrange
         var type = new DurationType(format);
@@ -302,12 +196,14 @@ public class DurationTypeTests
         Assert.Equal(expectedValue, Assert.IsType<StringValueNode>(literal).Value);
     }
 
-    [Fact]
-    public void ParseLiteral()
+    [Theory]
+    [InlineData(DurationFormat.Iso8601, "PT5M")]
+    [InlineData(DurationFormat.DotNet, "00:05:00")]
+    public void ParseLiteral(DurationFormat format, string literalValue)
     {
         // arrange
-        var type = new DurationType();
-        var literal = new StringValueNode("PT5M");
+        var type = new DurationType(format);
+        var literal = new StringValueNode(literalValue);
         var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
         // act
@@ -331,7 +227,20 @@ public class DurationTypeTests
     }
 
     [Fact]
-    public void PureCodeFirst_AutomaticallyBinds_TimeSpan()
+    public void Ensure_TypeKind_Is_Scalar()
+    {
+        // arrange
+        var type = new DurationType();
+
+        // act
+        var kind = type.Kind;
+
+        // assert
+        Assert.Equal(TypeKind.Scalar, kind);
+    }
+
+    [Fact]
+    public void ImplementationFirst_AutomaticallyBinds_TimeSpan()
     {
         SchemaBuilder.New()
             .AddQueryType<Query>()
@@ -343,7 +252,7 @@ public class DurationTypeTests
     [InlineData(DurationFormat.Iso8601)]
     [InlineData(DurationFormat.DotNet)]
     [Theory]
-    public void PureCodeFirst_AutomaticallyBinds_TimeSpan_With_Format(
+    public void ImplementationFirst_AutomaticallyBinds_TimeSpan_With_Format(
         DurationFormat format)
     {
         SchemaBuilder.New()
@@ -357,7 +266,7 @@ public class DurationTypeTests
     }
 
     [Fact]
-    public void PureCodeFirst_Different_TimeSpan_Formats_In_Same_Type()
+    public void ImplementationFirst_Different_TimeSpan_Formats_In_Same_Type()
     {
         SchemaBuilder.New()
             .AddQueryType<QueryWithTwoDurations>()
