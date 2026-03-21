@@ -140,9 +140,8 @@ public sealed class SocketClient : ISocket
 
             return read > 0;
         }
-        catch
+        catch (WebSocketException)
         {
-            // swallow exception, there's nothing we can reasonably do.
             return false;
         }
     }
