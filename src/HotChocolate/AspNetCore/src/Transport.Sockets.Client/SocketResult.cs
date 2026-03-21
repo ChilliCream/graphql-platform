@@ -14,12 +14,13 @@ public sealed class SocketResult : IDisposable
     internal SocketResult(
         DataMessageObserver observer,
         IDisposable subscription,
-        IDataCompletion completion)
+        IDataCompletion completion,
+        CancellationTokenRegistration cancellationRegistration)
     {
         ArgumentNullException.ThrowIfNull(observer);
         ArgumentNullException.ThrowIfNull(subscription);
 
-        _enumerable = new ResultEnumerable(observer, subscription, completion);
+        _enumerable = new ResultEnumerable(observer, subscription, completion, cancellationRegistration);
     }
 
     /// <summary>
@@ -44,7 +45,8 @@ public sealed class SocketResult : IDisposable
     private sealed class ResultEnumerable(
         DataMessageObserver observer,
         IDisposable subscription,
-        IDataCompletion completion)
+        IDataCompletion completion,
+        CancellationTokenRegistration cancellationRegistration)
         : IAsyncEnumerable<OperationResult>, IDisposable
     {
         private bool _started;
@@ -89,6 +91,7 @@ public sealed class SocketResult : IDisposable
         public void Dispose()
         {
             completion.TrySendCompleteMessage();
+            cancellationRegistration.Dispose();
             subscription.Dispose();
             observer.Dispose();
         }
