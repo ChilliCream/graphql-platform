@@ -535,7 +535,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     private sealed class NodeCompletionSet(int bitsetWordCount) : IDisposable
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
         private readonly object _sync = new();
+#endif
         private ExecutionNode[] _dependents = [];
         private ulong[]? _seenDependents;
         private int _count;

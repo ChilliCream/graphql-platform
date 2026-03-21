@@ -11,7 +11,11 @@ public sealed class PostgresMessagingTopology(
     bool autoProvision)
     : MessagingTopology<PostgresMessagingTransport>(transport, address)
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
     private readonly List<PostgresTopic> _topics = [];
     private readonly List<PostgresQueue> _queues = [];
     private readonly List<PostgresSubscription> _subscriptions = [];

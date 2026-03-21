@@ -18,7 +18,11 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 /// </summary>
 internal sealed class ResilientOutboxSignal : IOutboxSignal
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
     private TaskCompletionSource _tcs;
 
     public ResilientOutboxSignal()

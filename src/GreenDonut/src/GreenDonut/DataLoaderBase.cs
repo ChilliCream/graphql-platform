@@ -25,7 +25,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     : IDataLoader<TKey, TValue>
     where TKey : notnull
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly IBatchScheduler _batchScheduler;
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;

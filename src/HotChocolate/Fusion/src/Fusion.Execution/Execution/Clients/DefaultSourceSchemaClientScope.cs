@@ -8,7 +8,11 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SourceSchemaClientConfigurations _configurations;
