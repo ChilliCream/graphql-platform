@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     gnupg2 \
     lsb-release \
     software-properties-common \
-    openssh-server
+    openssh-server \
+    bubblewrap
 
 # Configure SSH server
 RUN mkdir /var/run/sshd \
@@ -38,8 +39,8 @@ RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
     && apt-get install -y nodejs
 
-# Install Yarn
-RUN npm install -g yarn
+# Install Yarn, update npm, and install Codex CLI
+RUN npm install -g yarn npm@11.12.0 @openai/codex
 
 # Install Claude Code (as vscode user so it installs to their home directory)
 RUN su - vscode -c "curl -fsSL https://claude.ai/install.sh | bash"
@@ -68,6 +69,8 @@ RUN sed -i 's/ZSH_THEME=".*"/ZSH_THEME="agnoster"/' /home/vscode/.zshrc \
     && sed -i 's/plugins=(.*)/plugins=(git gh dotnet docker zsh-autosuggestions zsh-syntax-highlighting)/' /home/vscode/.zshrc \
     && echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/vscode/.zshrc \
     && echo 'alias claude-d="claude --dangerously-skip-permissions"' >> /home/vscode/.zshrc \
+    && echo 'alias codex-a="codex --full-auto"' >> /home/vscode/.zshrc \
+    && echo 'alias codex-d="codex --dangerously-bypass-approvals-and-sandbox"' >> /home/vscode/.zshrc \
     && echo 'DEFAULT_USER=$USER' >> /home/vscode/.zshrc
 
 # Set zsh as default shell for vscode user
