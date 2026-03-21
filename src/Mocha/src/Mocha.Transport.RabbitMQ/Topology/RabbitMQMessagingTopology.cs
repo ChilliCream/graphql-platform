@@ -11,7 +11,11 @@ public sealed class RabbitMQMessagingTopology(
     bool autoProvision)
     : MessagingTopology<RabbitMQMessagingTransport>(transport, baseAddress)
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
     private readonly List<RabbitMQExchange> _exchanges = [];
     private readonly List<RabbitMQQueue> _queues = [];
     private readonly List<RabbitMQBinding> _bindings = [];

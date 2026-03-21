@@ -198,7 +198,11 @@ public sealed class ChannelProcessorTests
     /// </summary>
     private sealed class InvocationTracker<T>
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _lock = new();
+#else
         private readonly object _lock = new();
+#endif
         private readonly List<T> _items = [];
         private TaskCompletionSource? _waiter;
         private int _expected;

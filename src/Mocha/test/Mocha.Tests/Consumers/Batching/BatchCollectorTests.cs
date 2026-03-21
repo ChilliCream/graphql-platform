@@ -270,7 +270,11 @@ public sealed class BatchCollectorTests
     private sealed class BatchRecorder<TEvent>
     {
         private readonly SemaphoreSlim _semaphore = new(0);
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
         private readonly object _sync = new();
+#endif
         private readonly List<MessageBatch<TEvent>> _batches = [];
 
         public IReadOnlyList<MessageBatch<TEvent>> Batches

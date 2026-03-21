@@ -12,7 +12,11 @@ public sealed class TestMcpStorage : IMcpStorage, IDisposable
     private ImmutableList<ObserverSession<PromptStorageEventArgs>> _promptSessions = [];
     private ImmutableList<ObserverSession<OperationToolStorageEventArgs>> _toolSessions = [];
     private bool _disposed;
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
 
     public async ValueTask<IEnumerable<PromptDefinition>> GetPromptDefinitionsAsync(
         CancellationToken cancellationToken = default)
