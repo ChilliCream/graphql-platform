@@ -149,7 +149,7 @@ public sealed class SocketClient : ISocket
 
     public ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed)
         {
             _cts.Cancel();
             _cts.Dispose();

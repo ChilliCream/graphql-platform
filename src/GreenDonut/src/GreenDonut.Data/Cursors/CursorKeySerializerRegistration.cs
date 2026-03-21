@@ -7,7 +7,11 @@ namespace GreenDonut.Data.Cursors;
 /// </summary>
 public static class CursorKeySerializerRegistration
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock s_sync = new();
+#else
     private static readonly object s_sync = new();
+#endif
 
     private static ICursorKeySerializer[] s_serializers =
     [
