@@ -140,7 +140,7 @@ public sealed class SocketClient : ISocket
 
             return read > 0;
         }
-        catch (WebSocketException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return false;
         }
