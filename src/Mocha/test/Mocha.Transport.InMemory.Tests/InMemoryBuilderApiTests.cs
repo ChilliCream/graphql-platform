@@ -11,7 +11,7 @@ public class InMemoryBuilderApiTests
     [Fact]
     public async Task DeclareBinding_Should_DeliverMessage_When_TopicBoundToQueue()
     {
-        // arrange — declare a manual topic, queue, and binding via the builder API
+        // arrange - declare a manual topic, queue, and binding via the builder API
         var recorder = new MessageRecorder();
         await using var provider = await new ServiceCollection()
             .AddSingleton(recorder)
@@ -28,13 +28,13 @@ public class InMemoryBuilderApiTests
             .BuildServiceProvider();
         var bus = provider.GetRequiredService<IMessageBus>();
 
-        // act — send through the topic
+        // act - send through the topic
         await bus.SendAsync(
             new TestEvent("bound-msg"),
             new SendOptions { Endpoint = new Uri("queue://manual-queue") },
             CancellationToken.None);
 
-        // assert — queue receives the message via the binding
+        // assert - queue receives the message via the binding
         Assert.True(
             await recorder.WaitAsync(s_timeout),
             "Handler should receive message routed via ToQueue on dispatch endpoint");
@@ -43,7 +43,7 @@ public class InMemoryBuilderApiTests
     [Fact]
     public async Task DeclareBinding_Should_FanOut_When_MultipleQueuesBoundToTopic()
     {
-        // arrange — 1 topic, 3 queues, 3 keyed handlers; publish fans out to all 3
+        // arrange - 1 topic, 3 queues, 3 keyed handlers; publish fans out to all 3
         var recorder1 = new MessageRecorder();
         var recorder2 = new MessageRecorder();
         var recorder3 = new MessageRecorder();
@@ -79,7 +79,7 @@ public class InMemoryBuilderApiTests
         // act
         await bus.PublishAsync(new OrderCreated { OrderId = "fan-msg" }, CancellationToken.None);
 
-        // assert — all 3 handlers receive the message
+        // assert - all 3 handlers receive the message
         Assert.True(await recorder1.WaitAsync(s_timeout), "First fan-out handler did not receive the event");
         Assert.True(await recorder2.WaitAsync(s_timeout), "Second fan-out handler did not receive the event");
         Assert.True(await recorder3.WaitAsync(s_timeout), "Third fan-out handler did not receive the event");
@@ -95,7 +95,7 @@ public class InMemoryBuilderApiTests
     [Fact]
     public async Task DeclareBinding_Should_Chain_When_TopicBoundToTopicBoundToQueue()
     {
-        // arrange — topic -> topic -> queue chain via builder API; handler on final queue
+        // arrange - topic -> topic -> queue chain via builder API; handler on final queue
         var recorder = new MessageRecorder();
         await using var provider = await new ServiceCollection()
             .AddSingleton(recorder)
@@ -121,7 +121,7 @@ public class InMemoryBuilderApiTests
         // act
         await bus.PublishAsync(new OrderCreated { OrderId = "chain-msg" }, CancellationToken.None);
 
-        // assert — message traverses topic chain and lands at the handler
+        // assert - message traverses topic chain and lands at the handler
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the chained event");
 
         var msg = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
@@ -131,7 +131,7 @@ public class InMemoryBuilderApiTests
     [Fact]
     public async Task DeclareBinding_Should_CoexistWithConvention_When_HandlerAlsoRegistered()
     {
-        // arrange — convention handler + extra consumer both receive from the same publish topic
+        // arrange - convention handler + extra consumer both receive from the same publish topic
         var recorder = new MessageRecorder();
         var extraRecorder = new MessageRecorder();
         await using var provider = await new ServiceCollection()
@@ -146,20 +146,20 @@ public class InMemoryBuilderApiTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish through the bus so both convention and consumer bindings fire
+        // act - publish through the bus so both convention and consumer bindings fire
         await bus.PublishAsync(new OrderCreated { OrderId = "coexist-test" }, CancellationToken.None);
 
-        // assert — convention handler receives the message
+        // assert - convention handler receives the message
         Assert.True(await recorder.WaitAsync(s_timeout), "Convention handler should receive the event");
 
-        // assert — consumer also receives the message via fan-out
+        // assert - consumer also receives the message via fan-out
         Assert.True(await extraRecorder.WaitAsync(s_timeout), "Consumer should receive the event via fan-out");
     }
 
     [Fact]
     public async Task ToInMemoryQueue_Should_RouteMessage_When_SpecifiedOnDispatchEndpoint()
     {
-        // arrange — use ToQueue on dispatch endpoint to route ProcessPayment to a specific queue
+        // arrange - use ToQueue on dispatch endpoint to route ProcessPayment to a specific queue
         var recorder = new MessageRecorder();
         await using var provider = await new ServiceCollection()
             .AddSingleton(recorder)
@@ -187,7 +187,7 @@ public class InMemoryBuilderApiTests
     [Fact]
     public async Task ToInMemoryTopic_Should_RouteMessage_When_SpecifiedOnDispatchEndpoint()
     {
-        // arrange — use convention-based topic routing for events
+        // arrange - use convention-based topic routing for events
         var recorder = new MessageRecorder();
         await using var provider = await new ServiceCollection()
             .AddSingleton(recorder)
@@ -199,7 +199,7 @@ public class InMemoryBuilderApiTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish event which routes to topic by convention
+        // act - publish event which routes to topic by convention
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-TOPIC" }, CancellationToken.None);
 
         // assert
@@ -212,7 +212,7 @@ public class InMemoryBuilderApiTests
     [Fact]
     public async Task Endpoint_Should_ReceiveMessages_When_ConfiguredWithQueueAndHandler()
     {
-        // arrange — builder.Endpoint("ep").Queue("q").Handler<T>()
+        // arrange - builder.Endpoint("ep").Queue("q").Handler<T>()
         // Register handler at the host level so routes are discovered, and bind it
         // to a specific queue via the transport endpoint configuration.
         var recorder = new MessageRecorder();
@@ -227,10 +227,10 @@ public class InMemoryBuilderApiTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — send a request that should be routed to the configured endpoint
+        // act - send a request that should be routed to the configured endpoint
         await bus.SendAsync(new ProcessPayment { OrderId = "ORD-EP", Amount = 25m }, CancellationToken.None);
 
-        // assert — handler receives
+        // assert - handler receives
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler on configured endpoint should receive message");
 
         var msg = Assert.IsType<ProcessPayment>(Assert.Single(recorder.Messages));
@@ -240,7 +240,7 @@ public class InMemoryBuilderApiTests
     [Fact]
     public void Topology_Should_MatchSnapshot_When_BuilderDeclaresTopicQueueBinding()
     {
-        // arrange & act — topology declarations via builder API
+        // arrange & act - topology declarations via builder API
         var runtime = new ServiceCollection()
             .AddMessageBus()
             .AddInMemory(t =>
@@ -261,7 +261,7 @@ public class InMemoryBuilderApiTests
     [Fact]
     public void Topology_Should_MatchSnapshot_When_BuilderAndConventionCombined()
     {
-        // arrange & act — convention handler + builder-declared topology
+        // arrange & act - convention handler + builder-declared topology
         var builder = new ServiceCollection().AddMessageBus();
         builder.Host(h => h.ServiceName("test-app"));
         var runtime = builder

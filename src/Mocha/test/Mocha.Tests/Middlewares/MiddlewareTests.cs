@@ -109,7 +109,7 @@ public class MiddlewareTests
         // act
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // assert — bus is a DefaultMessageBus registered by AddMessageBus
+        // assert - bus is a DefaultMessageBus registered by AddMessageBus
         Assert.IsType<DefaultMessageBus>(bus);
     }
 
@@ -190,7 +190,7 @@ public class MiddlewareTests
             // expected path
         }
 
-        // Task.Delay: negative wait — proves the cancelled event was NOT delivered
+        // Task.Delay: negative wait - proves the cancelled event was NOT delivered
         await Task.Delay(200, default);
         Assert.DoesNotContain(recorder.Messages, m => m is OrderCreated oc && oc.OrderId == "cancelled");
     }
@@ -239,7 +239,7 @@ public class MiddlewareTests
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         Assert.True(runtime.IsStarted);
 
-        // act & assert — dispose completes without throwing.
+        // act & assert - dispose completes without throwing.
         // No observable state change beyond clean disposal; the runtime
         // does not expose a "disposed" flag.
         await runtime.DisposeAsync();

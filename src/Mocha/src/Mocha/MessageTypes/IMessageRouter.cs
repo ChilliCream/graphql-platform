@@ -77,7 +77,11 @@ public interface IMessageRouter
 /// </summary>
 public sealed class MessageRouter : IMessageRouter
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
 
     // Inbound storage and indexes
     private readonly Dictionary<InboundRoute, InboundTrackedState> _inboundRoutes = [];

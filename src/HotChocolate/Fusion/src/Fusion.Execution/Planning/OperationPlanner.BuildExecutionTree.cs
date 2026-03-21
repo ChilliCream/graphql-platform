@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -309,6 +310,10 @@ public sealed partial class OperationPlanner
                     var operationSource = operation.ToSourceText();
                     int? batchingGroupId = batchingGroupLookup.TryGetValue(step.Id, out var groupId) ? groupId : null;
 
+                    var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
+                    selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
+                    var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
+
                     var node = new OperationExecutionNode(
                         operationStep.Id,
                         operationSource,
@@ -317,7 +322,7 @@ public sealed partial class OperationPlanner
                         operationStep.Source,
                         requirements,
                         variables?.Count > 0 ? variables.ToArray() : [],
-                        GetResponseNamesFromPath(operationStep.Definition, operationStep.Source),
+                        resultSelectionSet,
                         operationStep.Conditions,
                         batchingGroupId,
                         requiresFileUpload);
@@ -623,7 +628,7 @@ public sealed partial class OperationPlanner
                     primary.Source,
                     canonicalRequirements,
                     primary.ForwardedVariables.ToArray(),
-                    primary.ResponseNames.ToArray(),
+                    primary.ResultSelectionSet,
                     primary.Conditions.ToArray(),
                     primary.BatchingGroupId,
                     primary.RequiresFileUpload);
@@ -774,43 +779,7 @@ public sealed partial class OperationPlanner
         return text;
     }
 
-    private static string[] GetResponseNamesFromPath(
-        OperationDefinitionNode operationDefinition,
-        SelectionPath path)
-    {
-        var selectionSet = GetSelectionSetNodeFromPath(operationDefinition, path);
-
-        if (selectionSet is null)
-        {
-            return [];
-        }
-
-        var responseNames = new List<string>();
-
-        var stack = new Stack<ISelectionNode>(selectionSet.Selections);
-
-        while (stack.TryPop(out var selection))
-        {
-            switch (selection)
-            {
-                case FieldNode fieldNode:
-                    responseNames.Add(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
-                    break;
-
-                case InlineFragmentNode inlineFragmentNode:
-                    foreach (var child in inlineFragmentNode.SelectionSet.Selections)
-                    {
-                        stack.Push(child);
-                    }
-
-                    break;
-            }
-        }
-
-        return [.. responseNames];
-    }
-
-    private static SelectionSetNode? GetSelectionSetNodeFromPath(
+    private static SelectionSetNode GetSelectionSetNodeFromPath(
         OperationDefinitionNode operationDefinition,
         SelectionPath path)
     {
@@ -831,12 +800,9 @@ public sealed partial class OperationPlanner
                 {
                     var selection = current.Selections
                         .OfType<InlineFragmentNode>()
-                        .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name);
-
-                    if (selection is null)
-                    {
-                        return null;
-                    }
+                        .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name)
+                        ?? throw new InvalidOperationException(
+                            $"Inline fragment on type '{segment.Name}' not found at path segment {i}.");
 
                     current = selection.SelectionSet;
                     break;
@@ -849,7 +815,8 @@ public sealed partial class OperationPlanner
 
                     if (selection?.SelectionSet is null)
                     {
-                        return null;
+                        throw new InvalidOperationException(
+                            $"Field '{segment.Name}' not found or has no selection set at path segment {i}.");
                     }
 
                     current = selection.SelectionSet;
@@ -859,6 +826,98 @@ public sealed partial class OperationPlanner
         }
 
         return current;
+    }
+
+    /// <summary>
+    /// Strips child selection sets from fields whose return type is not a value type.
+    /// This allows <see cref="ResultSelectionSet"/> to only build the tree along value-type paths,
+    /// reducing memory for the common case where most fields are not value types.
+    /// </summary>
+    private static SelectionSetNode PruneNonValueTypeChildren(
+        SelectionSetNode selectionSet,
+        ITypeDefinition parentType,
+        ISchemaDefinition schema)
+    {
+        if (parentType is not IComplexTypeDefinition complexType)
+        {
+            return selectionSet;
+        }
+
+        var changed = false;
+        var selections = new ISelectionNode[selectionSet.Selections.Count];
+
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            var selection = selectionSet.Selections[i];
+
+            switch (selection)
+            {
+                case FieldNode field when field.SelectionSet is not null:
+                {
+                    var responseName = field.Alias?.Value ?? field.Name.Value;
+
+                    if (complexType.Fields.TryGetField(responseName, out var fieldDef))
+                    {
+                        var fieldNamedType = fieldDef.Type.NamedType();
+
+                        if (fieldNamedType is FusionComplexTypeDefinition { IsValueType: true } valueType)
+                        {
+                            // Recurse into value type children to prune their non-value-type descendants.
+                            var pruned = PruneNonValueTypeChildren(field.SelectionSet, valueType, schema);
+
+                            if (!ReferenceEquals(pruned, field.SelectionSet))
+                            {
+                                selections[i] = new FieldNode(
+                                    field.Name, field.Alias, field.Directives, field.Arguments, pruned);
+                                changed = true;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            // Not a value type — strip the child selection set.
+                            selections[i] = new FieldNode(
+                                field.Name, field.Alias, field.Directives, field.Arguments, null);
+                            changed = true;
+                            continue;
+                        }
+                    }
+
+                    selections[i] = selection;
+                    break;
+                }
+
+                case InlineFragmentNode inlineFragment:
+                {
+                    var fragmentType = inlineFragment.TypeCondition is not null
+                        && schema.Types.TryGetType(inlineFragment.TypeCondition.Name.Value, out var resolvedType)
+                            ? resolvedType
+                            : parentType;
+
+                    var pruned = PruneNonValueTypeChildren(inlineFragment.SelectionSet, fragmentType, schema);
+
+                    if (!ReferenceEquals(pruned, inlineFragment.SelectionSet))
+                    {
+                        selections[i] = new InlineFragmentNode(
+                            inlineFragment.Location,
+                            inlineFragment.TypeCondition,
+                            inlineFragment.Directives,
+                            pruned);
+                        changed = true;
+                        continue;
+                    }
+
+                    selections[i] = selection;
+                    break;
+                }
+
+                default:
+                    selections[i] = selection;
+                    break;
+            }
+        }
+
+        return changed ? new SelectionSetNode(selections) : selectionSet;
     }
 
     private static bool DoVariablesContainUploadScalar(

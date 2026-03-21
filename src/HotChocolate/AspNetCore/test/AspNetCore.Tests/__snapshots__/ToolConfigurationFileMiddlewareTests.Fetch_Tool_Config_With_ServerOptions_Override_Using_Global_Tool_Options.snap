@@ -1,0 +1,14 @@
+{
+  "Content": "{\"title\":\"Global Local\",\"useBrowserUrlAsEndpoint\":true,\"useGet\":false}",
+  "ContentType": {
+    "CharSet": "utf-8",
+    "Parameters": [
+      {
+        "Name": "charset",
+        "Value": "utf-8"
+      }
+    ],
+    "MediaType": "application/json"
+  },
+  "StatusCode": "OK"
+}

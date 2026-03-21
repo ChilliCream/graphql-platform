@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
@@ -63,7 +64,10 @@ public abstract partial class FusionTestBase
 
         await TryWriteOperationPlanAsync(writer, gateway, results);
 
-        snapshot.Add(sb.ToString());
+        // Strip source file line numbers from stack traces so that line shifts
+        // in production code do not cause snapshot mismatches.
+        var snapshotText = StackTraceLineRegex().Replace(sb.ToString(), " in $1");
+        snapshot.Add(snapshotText);
 
         foreach (var result in results)
         {
@@ -540,6 +544,9 @@ public abstract partial class FusionTestBase
 
         return true;
     }
+
+    [GeneratedRegex(@" in (\S+\.cs):line \d+", RegexOptions.CultureInvariant)]
+    private static partial Regex StackTraceLineRegex();
 
     protected class RawRequest
     {

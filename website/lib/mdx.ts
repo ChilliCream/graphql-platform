@@ -306,6 +306,18 @@ function replaceDottedComponents(source: string): string {
   return result;
 }
 
+// Rename <Code> to <ExampleCode> to avoid conflict with the HTML <code> element.
+// When using format:"md" with rehype-raw, tag names are lowercased per the HTML spec,
+// so <Code> becomes <code>. Since <code> is a standard inline HTML element, the parser
+// cannot nest block content inside it, causing tab content to spill out.
+function renameCodeComponent(source: string): string {
+  return source
+    .replaceAll("<Code>", "<ExampleCode>")
+    .replaceAll("</Code>", "</ExampleCode>")
+    .replaceAll("<Code ", "<ExampleCode ")
+    .replaceAll("<Code/>", "<ExampleCode/>");
+}
+
 export function extractHeadings(
   source: string
 ): Array<{ depth: number; value: string }> {
@@ -373,7 +385,9 @@ function resolveImagePaths(source: string, originPath: string): string {
 export async function compileMdxContent(source: string, originPath = "") {
   const cleaned = resolveImagePaths(
     fixJsxAttributes(
-      expandSelfClosingTags(replaceDottedComponents(stripImports(source)))
+      expandSelfClosingTags(
+        renameCodeComponent(replaceDottedComponents(stripImports(source)))
+      )
     ),
     originPath
   );

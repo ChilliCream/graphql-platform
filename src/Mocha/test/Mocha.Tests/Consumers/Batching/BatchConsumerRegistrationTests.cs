@@ -71,17 +71,17 @@ public sealed class BatchConsumerRegistrationTests
             b.AddEventHandler<TestEventHandler>();
         });
 
-        // assert — batch handler + event handler + reply consumer
+        // assert - batch handler + event handler + reply consumer
         Assert.Equal(3, runtime.Consumers.Count);
     }
 
     [Fact]
     public void AddHandler_Should_AutoDetectBatchHandler_When_IBatchEventHandlerRegistered()
     {
-        // arrange & act — use AddHandler (auto-detect) on the message bus builder directly
+        // arrange & act - use AddHandler (auto-detect) on the message bus builder directly
         var runtime = CreateRuntime(b => b.ConfigureMessageBus(mb => mb.AddHandler<TestBatchHandler>()));
 
-        // assert — should be registered as a BatchConsumer
+        // assert - should be registered as a BatchConsumer
         var consumer = runtime.Consumers.First(c => c.Name == nameof(TestBatchHandler));
         Assert.NotNull(consumer);
         Assert.IsType<BatchConsumer<TestBatchHandler, TestEvent>>(consumer);

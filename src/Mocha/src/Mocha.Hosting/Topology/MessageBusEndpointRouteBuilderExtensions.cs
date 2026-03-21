@@ -23,7 +23,7 @@ public static class MessageBusEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps an HTTP GET endpoint that exposes the message bus topology as JSON for diagnostic purposes.
     /// This endpoint reveals internal routing, consumer, and endpoint details and should only be
-    /// used during development — similar to <c>UseDeveloperExceptionPage</c>.
+    /// used during development - similar to <c>UseDeveloperExceptionPage</c>.
     /// </summary>
     /// <param name="endpoints">The endpoint route builder to extend.</param>
     /// <param name="path">The URL path for the topology endpoint. Defaults to <c>/.well-known/message-topology</c>.</param>

@@ -66,7 +66,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var recorder = new MessageRecorder();
         await using var env = await CreateBusWithOutboxAsync(recorder);
 
-        // Act — publish concurrently from separate scopes
+        // Act - publish concurrently from separate scopes
         var tasks = Enumerable
             .Range(0, count)
             .Select(async i =>
@@ -93,7 +93,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
     [Fact]
     public async Task Outbox_Should_ProcessPendingMessages_When_WorkerStartsAfterPersist()
     {
-        // Arrange — persist messages before the worker starts
+        // Arrange - persist messages before the worker starts
         const int count = 3;
         var connectionString = await fixture.CreateDatabaseAsync();
         var recorder = new MessageRecorder();
@@ -146,7 +146,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
 
         try
         {
-            // Assert — all pre-existing messages are processed
+            // Assert - all pre-existing messages are processed
             Assert.True(
                 await recorder.WaitAsync(s_timeout, count),
                 "Worker should process messages that were persisted before it started");
@@ -236,7 +236,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
                 await svc.StartAsync(default);
             }
 
-            // Assert — message published during downtime is delivered.
+            // Assert - message published during downtime is delivered.
             // Wait until "during-stop" appears in the recorder's messages.
             using var waitCts = new CancellationTokenSource(s_timeout);
             while (!recorder.Messages.OfType<TestEvent>().Any(e => e.Payload == "during-stop"))
@@ -269,7 +269,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var recorder = new MessageRecorder();
         await using var env = await CreateBusWithOutboxAsync(recorder);
 
-        // Act — publish messages at intervals while worker is running
+        // Act - publish messages at intervals while worker is running
         for (var i = 0; i < 5; i++)
         {
             using var scope = env.Provider.CreateScope();
@@ -297,7 +297,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var recorder = new MessageRecorder();
         await using var env = await CreateBusWithOutboxAsync(recorder);
 
-        // Act — multiple scopes publishing simultaneously
+        // Act - multiple scopes publishing simultaneously
         var tasks = Enumerable
             .Range(0, scopeCount)
             .Select(async scopeIndex =>

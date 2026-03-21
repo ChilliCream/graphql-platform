@@ -71,7 +71,7 @@ public class RabbitMQConsumerManagerTests
         // act
         await manager.DisposeAsync();
 
-        // assert — registering after dispose via the internal method should still work
+        // assert - registering after dispose via the internal method should still work
         // (the manager clears its list during dispose).
         // We verify dispose completes without error.
         // The consumers' internal state (ConsumerTag/Channel) should be null after dispose.
@@ -107,7 +107,7 @@ public class RabbitMQConsumerManagerTests
         consumer.Channel = channelMock.Object;
         consumer.ConsumerTag = "tag-1";
 
-        // act — should not throw despite consumer dispose failure
+        // act - should not throw despite consumer dispose failure
         var exception = await Record.ExceptionAsync(() => manager.DisposeAsync().AsTask());
 
         // assert

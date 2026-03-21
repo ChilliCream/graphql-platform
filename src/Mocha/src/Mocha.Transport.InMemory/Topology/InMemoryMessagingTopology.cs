@@ -11,7 +11,11 @@ namespace Mocha.Transport.InMemory;
 public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transport, Uri baseAddress)
     : MessagingTopology<InMemoryMessagingTransport>(transport, baseAddress)
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
     private readonly List<InMemoryTopic> _topics = [];
     private readonly List<InMemoryQueue> _queues = [];
     private readonly List<InMemoryBinding> _bindings = [];

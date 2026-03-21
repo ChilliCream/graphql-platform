@@ -60,6 +60,42 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;apply&apos; argument of the @authorize directive must be of type ApplyPolicy..
+        /// </summary>
+        internal static string AuthorizeDirective_ApplyArgument_Invalid {
+            get {
+                return ResourceManager.GetString("AuthorizeDirective_ApplyArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The value &apos;{0}&apos; for argument &apos;apply&apos; in the @authorize directive is invalid..
+        /// </summary>
+        internal static string AuthorizeDirective_ApplyArgument_InvalidEnumValue {
+            get {
+                return ResourceManager.GetString("AuthorizeDirective_ApplyArgument_InvalidEnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;policy&apos; argument of the @authorize directive must be of type String..
+        /// </summary>
+        internal static string AuthorizeDirective_PolicyArgument_Invalid {
+            get {
+                return ResourceManager.GetString("AuthorizeDirective_PolicyArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;roles&apos; argument of the @authorize directive must be of type [String!]..
+        /// </summary>
+        internal static string AuthorizeDirective_RolesArgument_Invalid {
+            get {
+                return ResourceManager.GetString("AuthorizeDirective_RolesArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} (Schema: &apos;{1}&apos;).
         /// </summary>
         internal static string CompositionLogExtensions_EntryMessageWithSchemaName {

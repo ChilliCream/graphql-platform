@@ -1,29 +1,30 @@
 ---
-title: "Integrations"
+title: Integrations
+description: Learn how to integrate Hot Chocolate v16 with Entity Framework Core, MongoDB, Spatial Data, and Marten.
 ---
 
-In this section we will look at different technologies and how you can integrate them into your GraphQL server.
+This section covers how to integrate different data technologies into your Hot Chocolate GraphQL server.
 
 # Entity Framework Core
 
-Using Entity Framework Core requires some additional setup to play nicely with the concurrent nature of GraphQL resolvers. You will learn how to correctly use your `DbContext` in different scenarios and also how to tune Entity Framework Core for maximum throughput of your GraphQL server.
+Entity Framework Core requires additional setup to work with the concurrent nature of GraphQL resolvers. You will learn how to use your `DbContext` correctly in different scenarios and tune Entity Framework Core for maximum throughput.
 
-[Learn more about our Entity Framework Core integration](/docs/hotchocolate/v16/integrations/entity-framework)
+[Learn more about the Entity Framework Core integration](/docs/hotchocolate/v16/integrations/entity-framework)
 
 # MongoDB
 
-You will learn how to access MongoDB from within your resolvers and how to translate our pagination, projection, filtering and sorting capabilities to native MongoDB queries.
+You will learn how to access MongoDB from your resolvers and how to translate pagination, projection, filtering, and sorting capabilities to native MongoDB queries.
 
-[Learn more about our MongoDB integration](/docs/hotchocolate/v16/integrations/mongodb)
+[Learn more about the MongoDB integration](/docs/hotchocolate/v16/integrations/mongodb)
 
 # Spatial Data
 
-You will learn how you can expose [NetTopologySuite types](https://github.com/NetTopologySuite/NetTopologySuite) in form of [GeoJSON](https://geojson.org/) and how to integrate it with our data APIs.
+You will learn how to expose [NetTopologySuite types](https://github.com/NetTopologySuite/NetTopologySuite) as [GeoJSON](https://geojson.org/) and how to integrate them with the data APIs.
 
-[Learn more about our Spatial Data integration](/docs/hotchocolate/v16/integrations/spatial-data)
+[Learn more about the Spatial Data integration](/docs/hotchocolate/v16/integrations/spatial-data)
 
 # Marten
 
-Marten requires some custom configurations to work well with the `HotChocolate.Data` package. You will learn how to configure your schema to integrate seamlessly with Marten.
+Marten requires custom configurations to work with the `HotChocolate.Data` package. You will learn how to configure your schema to integrate with Marten.
 
-[Learn more about our Marten integration](/docs/hotchocolate/v16/integrations/marten)
+[Learn more about the Marten integration](/docs/hotchocolate/v16/integrations/marten)

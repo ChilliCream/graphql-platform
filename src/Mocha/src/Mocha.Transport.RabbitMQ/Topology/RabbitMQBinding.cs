@@ -62,7 +62,7 @@ public sealed class RabbitMQExchangeBinding : RabbitMQBinding
     protected override void OnComplete(RabbitMQBindingConfiguration configuration)
     {
         var builder = new UriBuilder(Topology.Address);
-        builder.Path = Path.Combine(builder.Path, "b", "e", Source.Name, "e", Destination.Name);
+        builder.Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/b/e/" + Source.Name + "/e/" + Destination.Name;
         Address = builder.Uri;
     }
 
@@ -103,7 +103,7 @@ public sealed class RabbitMQQueueBinding : RabbitMQBinding
     protected override void OnComplete(RabbitMQBindingConfiguration configuration)
     {
         var builder = new UriBuilder(Topology.Address);
-        builder.Path = Path.Combine(builder.Path, "b", "e", Source.Name, "q", Destination.Name);
+        builder.Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/b/e/" + Source.Name + "/q/" + Destination.Name;
         Address = builder.Uri;
     }
 

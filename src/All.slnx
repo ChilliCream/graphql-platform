@@ -348,6 +348,7 @@
     <Project Path="Mocha/src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="Mocha/src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
+    <Project Path="Mocha/src/Mocha.Transport.Postgres/Mocha.Transport.Postgres.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
     <Project Path="Mocha/src/Mocha/Mocha.csproj" />
   </Folder>
@@ -369,6 +370,7 @@
     <Project Path="Mocha/test/Mocha.Tests/Mocha.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.InMemory.Tests/Mocha.Transport.InMemory.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Transport.Postgres.Tests/Mocha.Transport.Postgres.Tests.csproj" />
   </Folder>
   <Folder Name="/Nitro/" />
   <Folder Name="/Nitro/CommandLine/" />

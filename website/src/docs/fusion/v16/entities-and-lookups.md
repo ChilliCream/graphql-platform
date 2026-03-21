@@ -407,7 +407,7 @@ builder
 
 ## Next Steps
 
-- **Need field ownership and sharing contracts?** See [Field Ownership and Sharing](/docs/fusion/v16/field-ownership-and-sharing).
+- **Need field ownership contracts?** See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing).
 - **Need argument mapping and cross-subgraph dependencies?** See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) for `@is`, `@require`, and FieldSelectionMap patterns.
 - **Need runtime performance guidance?** See Hot Chocolate docs for DataLoader and batching patterns used inside lookup resolvers.
 - **Ready to go to production?** See [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization) for securing your gateway and subgraphs, or [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for setting up independent subgraph deployments.

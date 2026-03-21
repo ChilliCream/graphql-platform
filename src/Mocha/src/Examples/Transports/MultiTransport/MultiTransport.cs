@@ -13,14 +13,14 @@ builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedHandler>()
     .AddEventHandler<AuditHandler>()
-    // First InMemory transport — the default transport for most handlers.
+    // First InMemory transport - the default transport for most handlers.
     // Handlers are discovered and bound automatically using default conventions.
     .AddInMemory(transport =>
     {
         transport.IsDefaultTransport(); // All unrouted handlers go here
         transport.Name("primary");
     })
-    // Second InMemory transport — dedicated to the audit pipeline.
+    // Second InMemory transport - dedicated to the audit pipeline.
     // BindHandlersExplicitly() means only handlers explicitly assigned via
     // .Handler<T>() on an endpoint descriptor are bound to this transport.
     .AddInMemory(transport =>
@@ -29,7 +29,7 @@ builder.Services
         transport.BindHandlersExplicitly();
 
         // Route AuditHandler exclusively to this transport's endpoint.
-        // OrderPlacedHandler is NOT bound here — it runs on the primary transport.
+        // OrderPlacedHandler is NOT bound here - it runs on the primary transport.
         transport.Endpoint("audit-queue")
             .Handler<AuditHandler>();
     });
@@ -76,7 +76,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "[primary] Order {OrderId} — {ProductName} for {Amount:C}",
+            "[primary] Order {OrderId} - {ProductName} for {Amount:C}",
             message.OrderId,
             message.ProductName,
             message.Amount);

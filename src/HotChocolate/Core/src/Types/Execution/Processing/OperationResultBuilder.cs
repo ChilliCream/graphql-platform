@@ -7,7 +7,11 @@ namespace HotChocolate.Execution;
 
 internal sealed class OperationResultBuilder : IOperationResultBuilder
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
 
     public int RequestIndex { get; set; } = -1;
 

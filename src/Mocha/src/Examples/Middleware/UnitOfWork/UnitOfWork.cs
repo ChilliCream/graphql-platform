@@ -65,7 +65,7 @@ public class OrderPlacedHandler(
         await repository.SaveOrderAsync(message.OrderId, message.ProductName, message.Amount);
 
         logger.LogInformation(
-            "Order saved: {OrderId} — {ProductName} for {Amount:C}",
+            "Order saved: {OrderId} - {ProductName} for {Amount:C}",
             message.OrderId,
             message.ProductName,
             message.Amount);

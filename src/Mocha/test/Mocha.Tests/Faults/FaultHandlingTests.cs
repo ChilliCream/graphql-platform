@@ -27,7 +27,7 @@ public class FaultHandlingTests
         // fire-and-forget publish
         await Task.Delay(500, default);
 
-        // assert — runtime should still be functional after swallowed fault.
+        // assert - runtime should still be functional after swallowed fault.
         // No observable side-effect beyond runtime stability; IsStarted is the
         // strongest available signal that the runtime survived the fault.
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -44,7 +44,7 @@ public class FaultHandlingTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act & assert — exact exception type depends on transport timing:
+        // act & assert - exact exception type depends on transport timing:
         // RemoteErrorException if the fault response arrives, TaskCanceledException
         // if the CTS fires first. Both confirm the handler did not succeed.
         using var cts = new CancellationTokenSource(s_timeout);
@@ -63,7 +63,7 @@ public class FaultHandlingTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act & assert — exact exception type depends on transport timing:
+        // act & assert - exact exception type depends on transport timing:
         // RemoteErrorException if the fault response arrives, TaskCanceledException
         // if the CTS fires first. Both confirm the handler did not succeed.
         using var cts = new CancellationTokenSource(s_timeout);
@@ -71,7 +71,7 @@ public class FaultHandlingTests
             await bus.RequestAsync(new TestRequest { Data = "err" }, cts.Token)
         );
 
-        // assert — if the fault arrived we get rich error info
+        // assert - if the fault arrived we get rich error info
         if (ex is RemoteErrorException remote)
         {
             Assert.NotNull(remote.ErrorMessage);
@@ -98,7 +98,7 @@ public class FaultHandlingTests
         // Task.Delay: allows async pipeline to complete; deterministic sync not possible for fire-and-forget publish
         await Task.Delay(1000, default);
 
-        // assert — no observable side-effect beyond runtime stability after
+        // assert - no observable side-effect beyond runtime stability after
         // swallowed faults; IsStarted confirms the runtime survived.
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         Assert.True(runtime.IsStarted);
@@ -144,7 +144,7 @@ public class FaultHandlingTests
         // Task.Delay: allows async pipeline to complete; deterministic sync not possible for fire-and-forget send
         await Task.Delay(500, default);
 
-        // assert — no observable side-effect beyond runtime stability after
+        // assert - no observable side-effect beyond runtime stability after
         // swallowed fault; IsStarted confirms the runtime survived.
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         Assert.True(runtime.IsStarted);
@@ -176,7 +176,7 @@ public class FaultHandlingTests
 
         var exceptions = await Task.WhenAll(tasks);
 
-        // assert — all 5 got proper exceptions; if the fault arrived we get rich error info
+        // assert - all 5 got proper exceptions; if the fault arrived we get rich error info
         Assert.Equal(5, exceptions.Length);
         Assert.All(
             exceptions,

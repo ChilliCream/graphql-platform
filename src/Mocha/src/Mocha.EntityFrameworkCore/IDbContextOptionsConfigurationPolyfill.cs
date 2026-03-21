@@ -1,6 +1,4 @@
 #if !NET9_0_OR_GREATER
-using Microsoft.EntityFrameworkCore;
-
 namespace Microsoft.EntityFrameworkCore.Infrastructure;
 
 /// <summary>

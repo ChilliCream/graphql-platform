@@ -9,8 +9,12 @@ public sealed class InMemoryDefaultReceiveEndpointEndpointConvention : IInMemory
     /// Sets the queue name to the endpoint name if it has not been explicitly configured.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
+    /// <param name="transport">The in-memory messaging transport instance.</param>
     /// <param name="configuration">The receive endpoint configuration to apply defaults to.</param>
-    public void Configure(IMessagingConfigurationContext context, InMemoryReceiveEndpointConfiguration configuration)
+    public void Configure(
+        IMessagingConfigurationContext context,
+        InMemoryMessagingTransport transport,
+        InMemoryReceiveEndpointConfiguration configuration)
     {
         configuration.QueueName ??= configuration.Name;
     }

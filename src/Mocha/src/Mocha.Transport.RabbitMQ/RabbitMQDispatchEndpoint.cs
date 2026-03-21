@@ -61,17 +61,18 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             Span<Range> ranges = stackalloc Range[3];
             var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 
-            int kindIndex,
-                nameIndex;
+            int kindIndex;
+            int nameIndex;
+
             if (segmentCount == 3)
             {
-                // vhost/kind/name — vhost adds an extra leading segment
+                // vhost/kind/name - vhost adds an extra leading segment
                 kindIndex = 1;
                 nameIndex = 2;
             }
             else if (segmentCount == 2)
             {
-                // kind/name — default vhost "/" disappears with RemoveEmptyEntries
+                // kind/name - default vhost "/" disappears with RemoveEmptyEntries
                 kindIndex = 0;
                 nameIndex = 1;
             }

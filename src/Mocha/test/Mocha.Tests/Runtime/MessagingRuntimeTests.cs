@@ -38,7 +38,7 @@ public class MessagingRuntimeTests
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         Assert.True(runtime.IsStarted);
 
-        // act & assert — dispose completes without throwing.
+        // act & assert - dispose completes without throwing.
         // No observable state change beyond clean disposal; the runtime
         // does not expose a "disposed" flag.
         await runtime.DisposeAsync();
@@ -55,7 +55,7 @@ public class MessagingRuntimeTests
         // act
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // assert — bus is a DefaultMessageBus registered by AddMessageBus
+        // assert - bus is a DefaultMessageBus registered by AddMessageBus
         Assert.IsType<DefaultMessageBus>(bus);
     }
 

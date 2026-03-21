@@ -54,11 +54,11 @@ public sealed class ChannelProcessorTests
             },
             concurrency: 2);
 
-        // act — write 2 items; both workers should enter the handler concurrently
+        // act - write 2 items; both workers should enter the handler concurrently
         channel.Writer.TryWrite(1);
         channel.Writer.TryWrite(2);
 
-        // assert — if both workers entered, the barrier completes within timeout
+        // assert - if both workers entered, the barrier completes within timeout
         var completed = await Task.WhenAny(barrier.Task, Task.Delay(s_timeout));
         Assert.Same(barrier.Task, completed);
     }
@@ -86,7 +86,7 @@ public sealed class ChannelProcessorTests
         channel.Writer.Complete();
         await processor.DisposeAsync();
 
-        // assert — writing after dispose should not be processed
+        // assert - writing after dispose should not be processed
         var newChannel = Channel.CreateUnbounded<int>();
         // Workers are disposed, so no further processing occurs.
         // Verify dispose completed without hanging (implicit: we reached this line).
@@ -116,11 +116,11 @@ public sealed class ChannelProcessorTests
             },
             concurrency: 1);
 
-        // act — first item throws, second item should still be processed
+        // act - first item throws, second item should still be processed
         channel.Writer.TryWrite(1);
         channel.Writer.TryWrite(2);
 
-        // assert — item 2 is eventually processed after ContinuousTask restarts the loop
+        // assert - item 2 is eventually processed after ContinuousTask restarts the loop
         await received.WaitAsync(s_timeout, expectedCount: 1);
         Assert.Contains(2, received.Items);
     }
@@ -148,11 +148,11 @@ public sealed class ChannelProcessorTests
             },
             concurrency: 1);
 
-        // act — write an item so the handler starts blocking, then dispose
+        // act - write an item so the handler starts blocking, then dispose
         channel.Writer.TryWrite(1);
         await processor.DisposeAsync();
 
-        // assert — the handler's cancellation token was triggered
+        // assert - the handler's cancellation token was triggered
         var completed = await Task.WhenAny(tokenCancelled.Task, Task.Delay(s_timeout));
         Assert.Same(tokenCancelled.Task, completed);
     }
@@ -160,7 +160,7 @@ public sealed class ChannelProcessorTests
     [Fact]
     public async Task Handler_Should_ReceiveItems_When_SourceIsCustomAsyncEnumerable()
     {
-        // arrange — use a custom source instead of a channel to verify the abstraction
+        // arrange - use a custom source instead of a channel to verify the abstraction
         var items = new[] { 10, 20, 30 };
         var received = new InvocationTracker<int>();
 
@@ -198,7 +198,11 @@ public sealed class ChannelProcessorTests
     /// </summary>
     private sealed class InvocationTracker<T>
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _lock = new();
+#else
         private readonly object _lock = new();
+#endif
         private readonly List<T> _items = [];
         private TaskCompletionSource? _waiter;
         private int _expected;

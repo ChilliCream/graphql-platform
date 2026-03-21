@@ -30,7 +30,7 @@ public class SagaIntegrationTests
             },
             CancellationToken.None);
 
-        // assert — saga should transition to "AwaitingPayment"
+        // assert - saga should transition to "AwaitingPayment"
         await WaitUntilAsync(() => storage.Load<OrderSagaState>("order-processing-saga", sagaId) is not null, s_timeout);
         var state = storage.Load<OrderSagaState>("order-processing-saga", sagaId)!;
         Assert.Equal("AwaitingPayment", state.State);
@@ -200,7 +200,7 @@ public class SagaIntegrationTests
         }
     }
 
-    // Initial event: NOT ICorrelatable — saga creates new state via StateFactory.
+    // Initial event: NOT ICorrelatable - saga creates new state via StateFactory.
     // The SagaId property is used by StateFactory to set a deterministic state.Id
     // so subsequent events can look up the saga by CorrelationId.
     public sealed class OrderPlacedEvent

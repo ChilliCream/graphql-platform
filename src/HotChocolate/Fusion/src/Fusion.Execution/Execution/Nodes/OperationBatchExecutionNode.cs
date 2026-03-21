@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -10,7 +11,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
-    private readonly string[] _responseNames;
+    private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
@@ -27,7 +28,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         SelectionPath source,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
-        string[] responseNames,
+        ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
         int? batchingGroupId,
         bool requiresFileUpload)
@@ -40,7 +41,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         _source = source;
         _requirements = requirements;
         _forwardedVariables = forwardedVariables;
-        _responseNames = responseNames;
+        _resultSelectionSet = resultSelectionSet;
         _conditions = conditions;
         _requiresFileUpload = requiresFileUpload;
     }
@@ -65,9 +66,9 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     public int? BatchingGroupId => _batchingGroupId;
 
     /// <summary>
-    /// Gets the response names of the target selection sets that are fulfilled by this operation.
+    /// Gets the result selection set fulfilled by this operation.
     /// </summary>
-    public ReadOnlySpan<string> ResponseNames => _responseNames;
+    internal ResultSelectionSet ResultSelectionSet => _resultSelectionSet;
 
     /// <inheritdoc />
     public override string? SchemaName => _schemaName;
@@ -210,7 +211,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 singleResult.Dispose();
             }
 
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -221,7 +222,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     buffer.AsSpan(0, index),
-                    _responseNames,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
             else if (singleResult is not null)
@@ -230,7 +231,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
-                    _responseNames,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
             else
@@ -238,7 +239,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     [],
-                    _responseNames,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
         }
@@ -252,7 +253,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
         finally
@@ -277,13 +278,13 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         OperationPlanContext context,
         Exception exception,
         ImmutableArray<VariableValues> variables,
-        ReadOnlySpan<string> responseNames)
+        ResultSelectionSet resultSelectionSet)
     {
         var error = ErrorBuilder.FromException(exception).Build();
 
         if (variables.Length == 0)
         {
-            context.AddErrors(error, responseNames, Path.Root);
+            context.AddErrors(error, resultSelectionSet, Path.Root);
         }
         else
         {
@@ -294,7 +295,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
             }
 
-            var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
+            var pathBuffer = ArrayPool<CompactPath>.Shared.Rent(pathBufferLength);
 
             try
             {
@@ -310,12 +311,12 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                     }
                 }
 
-                context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));
+                context.AddErrors(error, resultSelectionSet, pathBuffer.AsSpan(0, pathBufferLength));
             }
             finally
             {
                 pathBuffer.AsSpan(0, pathBufferLength).Clear();
-                ArrayPool<Path>.Shared.Return(pathBuffer);
+                ArrayPool<CompactPath>.Shared.Return(pathBuffer);
             }
         }
     }

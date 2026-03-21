@@ -82,10 +82,10 @@ public sealed record InvoiceCreated(Guid InvoiceId, Guid OrderId, decimal Amount
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    // Outbox table — required for the transactional outbox
+    // Outbox table - required for the transactional outbox
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
-    // Inbox table — required for idempotent message consumption
+    // Inbox table - required for idempotent message consumption
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
     // Your business data
@@ -114,7 +114,7 @@ public class Order
 
 // With UseTransaction() active, this handler runs inside a database transaction.
 // With UsePostgresOutbox() active, calls to bus.PublishAsync() write to the outbox
-// table rather than directly to RabbitMQ — within the same transaction.
+// table rather than directly to RabbitMQ - within the same transaction.
 // With UsePostgresInbox() active, the inbox middleware checks whether this message
 // has already been processed before invoking the handler, preventing duplicates.
 // After db.SaveChangesAsync() commits the transaction, the outbox processor
@@ -154,7 +154,7 @@ public class InvoiceCreatedHandler(ILogger<InvoiceCreatedHandler> logger)
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Invoice {InvoiceId} created for order {OrderId} — amount {Amount:C}",
+            "Invoice {InvoiceId} created for order {OrderId} - amount {Amount:C}",
             message.InvoiceId,
             message.OrderId,
             message.Amount);
