@@ -265,56 +265,6 @@ using Mocha.Mediator;
 [assembly: MediatorModule("Billing")]
 ```
 
-## What the source generator produces
-
-At compile time, the Mocha source generator:
-
-1. **Scans** your assembly for all handler implementations
-2. **Generates** an `Add{ModuleName}()` extension method on `IMediatorHostBuilder`
-3. **Registers** all handlers with the configured `ServiceLifetime`
-4. **Creates** `MediatorPipelineConfiguration` entries with terminal delegates built via `PipelineBuilder`
-
-For example, given assembly name `Demo.Catalog` and this handler:
-
-```csharp
-public sealed class PlaceOrderCommandHandler
-    : ICommandHandler<PlaceOrderCommand, PlaceOrderResult> { ... }
-```
-
-The generator produces:
-
-```csharp
-public static class CatalogMediatorBuilderExtensions
-{
-    public static IMediatorHostBuilder AddCatalog(
-        this IMediatorHostBuilder builder)
-    {
-        var services = builder.Services;
-        var lifetime = builder.Options.ServiceLifetime;
-
-        // Register handlers
-        services.Add(new ServiceDescriptor(
-            typeof(ICommandHandler<PlaceOrderCommand, PlaceOrderResult>),
-            typeof(PlaceOrderCommandHandler),
-            lifetime));
-
-        // Register pipelines
-        MediatorHostBuilderExtensions.ConfigureMediator(builder, static b =>
-        {
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PlaceOrderCommand),
-                ResponseType = typeof(PlaceOrderResult),
-                Terminal = PipelineBuilder
-                    .BuildCommandTerminal<PlaceOrderCommand, PlaceOrderResult>()
-            });
-        });
-
-        return builder;
-    }
-}
-```
-
 ## Configure service lifetime
 
 By default, handlers are registered as `Scoped`. To change the default:
@@ -330,23 +280,6 @@ builder.Services
 ```
 
 Call `ConfigureOptions` before `Add{ModuleName}()` so the source-generated method reads the updated lifetime.
-
-## How the mediator dispatches
-
-When you call `SendAsync`, `QueryAsync`, or `PublishAsync`, the `Mediator` class:
-
-1. **Rents** a `MediatorContext` from an object pool (thread-static fast path, then `ObjectPool` fallback)
-2. **Initializes** the context with the message, message type, service provider, and cancellation token
-3. **Looks up** the pre-compiled pipeline delegate for the message type (O(1) frozen dictionary lookup)
-4. **Invokes** the pipeline delegate
-5. **Returns** the context to the pool
-
-## Performance characteristics
-
-- **Context pooling:** `MediatorContext` objects are pooled with a thread-static fast path for zero-contention reuse
-- **Zero-allocation async:** Uses `PoolingAsyncValueTaskMethodBuilder` to avoid allocating `Task` objects on the hot path
-- **O(1) pipeline lookup:** Pre-compiled pipelines stored in a frozen dictionary, built once at startup
-- **No reflection at runtime:** All handler resolution and pipeline compilation happens at startup or compile time
 
 # Named mediators
 
@@ -381,17 +314,7 @@ var billingMediator = serviceProvider
     .GetRequiredKeyedService<IMediator>("billing");
 ```
 
-Each named mediator has its own handler registrations, middleware pipeline, and `MediatorRuntime`. The default mediator (registered with `AddMediator()` without a name) is resolved normally without keyed services.
-
-# The Unit type
-
-`Unit` is a readonly struct that represents void in generic contexts. You do not need it for normal command/query dispatch - the framework handles void commands through `ICommand` and `ICommandHandler<TCommand>`. `Unit` is available if you need a void-equivalent type in your own generic code.
-
-```csharp
-// Unit.Value — the singleton instance
-// Unit.ValueTask — a pre-completed ValueTask<Unit>
-// Unit.Task — a pre-completed Task<Unit>
-```
+Each named mediator has its own handler registrations, middleware pipeline, and runtime. The default mediator (registered with `AddMediator()` without a name) is resolved normally without keyed services.
 
 # Putting it together
 

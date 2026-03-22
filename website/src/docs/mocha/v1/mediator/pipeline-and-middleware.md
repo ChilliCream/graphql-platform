@@ -135,7 +135,7 @@ The `IMediatorContext` available at runtime provides everything you need during 
 | `Message` | `object` | The message instance being dispatched |
 | `MessageType` | `Type` | Runtime type of the message |
 | `ResponseType` | `Type` | Expected response type (`Unit` for void commands and notifications) |
-| `Result` | `object?` | The handler's return value - set by the terminal delegate, readable by middleware after calling `next` |
+| `Result` | `object?` | The handler's return value, readable by middleware after calling `next` |
 | `Services` | `IServiceProvider` | Scoped service provider for the current request |
 | `CancellationToken` | `CancellationToken` | Cancellation token for the operation |
 | `Features` | `IFeatureCollection` | Per-request feature collection for sharing state between middleware |
@@ -233,7 +233,9 @@ public static class TransactionMiddleware
             {
                 // Skip notifications and queries at compile time
                 if (factoryCtx.IsNotification() || factoryCtx.IsQuery())
+                {
                     return next; // not included in this pipeline
+                }
 
                 return async ctx =>
                 {
@@ -288,7 +290,9 @@ public static class PlaceOrderValidationMiddleware
             {
                 // Only compile into the PlaceOrderCommand pipeline
                 if (!factoryCtx.IsMessageAssignableTo<PlaceOrderCommand>())
+                {
                     return next;
+                }
 
                 return ctx =>
                 {
@@ -306,7 +310,9 @@ Use `IsResponseAssignableTo` to filter by response type:
 ```csharp
 // Only audit pipelines that return OrderResult
 if (!factoryCtx.IsResponseAssignableTo<OrderResult>())
+{
     return next;
+}
 ```
 
 ## When to use compile-time vs. runtime checks
