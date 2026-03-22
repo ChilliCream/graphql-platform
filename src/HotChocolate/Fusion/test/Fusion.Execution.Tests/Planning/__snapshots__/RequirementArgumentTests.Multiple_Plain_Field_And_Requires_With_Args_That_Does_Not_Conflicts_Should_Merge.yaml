@@ -45,7 +45,6 @@ nodes:
           id
     dependencies:
       - id: 3
-      - id: 4
   - id: 3
     type: OperationBatch
     schema: b
@@ -61,7 +60,7 @@ nodes:
     targets:
       - $.test
       - $.test
-    batchingGroupId: 1
+    batchingGroupId: 3
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -81,7 +80,7 @@ nodes:
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 1
+    batchingGroupId: 3
     requirements:
       - name: __fusion_4_id
         selectionMap: >-

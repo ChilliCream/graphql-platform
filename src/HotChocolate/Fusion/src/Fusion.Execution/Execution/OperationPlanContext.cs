@@ -27,11 +27,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly ImmutableArray<VariableValues>[] _variableValueSets;
     private readonly Uri?[] _transportUris;
     private readonly string?[] _transportContentTypes;
+    private readonly List<IOperationPlanNode>?[] _skippedDefinitions;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly FetchResultStorePool _resultStorePool;
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
-    private readonly SourceSchemaRequestDispatcher _sourceSchemaDispatcher;
     private readonly INodeIdParser _nodeIdParser;
     private readonly bool _collectTelemetry;
     private ISourceSchemaClientScope _clientScope;
@@ -79,7 +79,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
 
         _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
-        _sourceSchemaDispatcher = new SourceSchemaRequestDispatcher(this);
 
         var maxNodeId = 0;
 
@@ -98,6 +97,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
         _transportUris = new Uri?[nodeSlotCount];
         _transportContentTypes = new string?[nodeSlotCount];
+        _skippedDefinitions = new List<IOperationPlanNode>?[nodeSlotCount];
     }
 
     public OperationPlan OperationPlan { get; }
@@ -109,10 +109,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public RequestContext RequestContext { get; }
 
     public ISourceSchemaClientScope ClientScope => _clientScope;
-
-    public ISourceSchemaScheduler SourceSchemaScheduler => _sourceSchemaDispatcher;
-
-    public ISourceSchemaDispatcher SourceSchemaDispatcher => _sourceSchemaDispatcher;
 
     internal ExecutionState ExecutionState => _executionState;
 
@@ -152,6 +148,26 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     {
         var nodeCompletionSet = _nodesToComplete[node.Id];
         return nodeCompletionSet?.GetSnapshot() ?? [];
+    }
+
+    internal void TrackSkippedDefinition(ExecutionNode node, IOperationPlanNode skippedDefinition)
+    {
+        var nodeId = node.Id;
+        var list = _skippedDefinitions[nodeId];
+
+        if (list is null)
+        {
+            list = [];
+            _skippedDefinitions[nodeId] = list;
+        }
+
+        list.Add(skippedDefinition);
+    }
+
+    internal ImmutableArray<IOperationPlanNode> GetSkippedDefinitions(ExecutionNode node)
+    {
+        var list = _skippedDefinitions[node.Id];
+        return list is null or { Count: 0 } ? [] : [.. list];
     }
 
     internal void SetDynamicSchemaName(ExecutionNode node, string schemaName)
@@ -520,7 +536,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         {
             _disposed = true;
             DisposeNodeState();
-            _sourceSchemaDispatcher.Abort();
             _resultStorePool.Return(_resultStore);
             await _clientScope.DisposeAsync();
         }
@@ -529,6 +544,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private void ResetNodeState()
     {
         Array.Clear(_schemaNames);
+        Array.Clear(_skippedDefinitions);
 
         if (_collectTelemetry)
         {

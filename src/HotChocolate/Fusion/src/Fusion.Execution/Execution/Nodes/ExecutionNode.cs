@@ -5,12 +5,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public abstract class ExecutionNode : IEquatable<ExecutionNode>
+public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNode>
 {
     private bool _isSealed;
-    private ExecutionNode[] _dependents = [];
-    private ExecutionNode[] _dependencies = [];
-    private ExecutionNode[] _optionalDependencies = [];
+    private IOperationPlanNode[] _dependents = [];
+    private IOperationPlanNode[] _dependencies = [];
+    private IOperationPlanNode[] _optionalDependencies = [];
     private int _dependentCount;
     private int _dependencyCount;
     private int _optionalDependencyCount;
@@ -41,18 +41,18 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
     /// Gets the execution nodes that depend on this node to be completed
     /// before they can be executed.
     /// </summary>
-    public ReadOnlySpan<ExecutionNode> Dependents => _dependents;
+    public ReadOnlySpan<IOperationPlanNode> Dependents => _dependents;
 
     /// <summary>
     /// Gets the execution nodes that this operation depends on (required).
     /// </summary>
-    public ReadOnlySpan<ExecutionNode> Dependencies => _dependencies;
+    public ReadOnlySpan<IOperationPlanNode> Dependencies => _dependencies;
 
     /// <summary>
     /// Gets the execution nodes that this operation optionally depends on.
     /// When an optional dependency is skipped or failed this node still gets executed.
     /// </summary>
-    public ReadOnlySpan<ExecutionNode> OptionalDependencies => _optionalDependencies;
+    public ReadOnlySpan<IOperationPlanNode> OptionalDependencies => _optionalDependencies;
 
     public async Task ExecuteAsync(
         OperationPlanContext context,
@@ -93,6 +93,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
             Stopwatch.GetElapsedTime(start),
             error,
             context.GetDependentsToExecute(this),
+            context.GetSkippedDefinitions(this),
             context.GetVariableValueSets(this),
             context.GetTransportDetails(this));
 
@@ -116,7 +117,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         context.EnqueueForExecution(this, dependent);
     }
 
-    internal void AddDependency(ExecutionNode node)
+    internal void AddDependency(IOperationPlanNode node)
     {
         ExpectMutable();
 
@@ -129,7 +130,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
 
         if (_dependencies.Length == 0)
         {
-            _dependencies = new ExecutionNode[4];
+            _dependencies = new IOperationPlanNode[4];
         }
 
         if (_dependencyCount == _dependencies.Length)
@@ -140,7 +141,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         _dependencies[_dependencyCount++] = node;
     }
 
-    internal void AddDependent(ExecutionNode node)
+    internal void AddDependent(IOperationPlanNode node)
     {
         ExpectMutable();
 
@@ -153,7 +154,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
 
         if (_dependents.Length == 0)
         {
-            _dependents = new ExecutionNode[4];
+            _dependents = new IOperationPlanNode[4];
         }
 
         if (_dependentCount == _dependents.Length)
@@ -164,7 +165,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         _dependents[_dependentCount++] = node;
     }
 
-    internal void AddOptionalDependency(ExecutionNode node)
+    internal void AddOptionalDependency(IOperationPlanNode node)
     {
         ExpectMutable();
 
@@ -177,7 +178,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
 
         if (_optionalDependencies.Length == 0)
         {
-            _optionalDependencies = new ExecutionNode[4];
+            _optionalDependencies = new IOperationPlanNode[4];
         }
 
         if (_optionalDependencyCount == _optionalDependencies.Length)
@@ -206,6 +207,10 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         {
             Array.Resize(ref _optionalDependencies, _optionalDependencyCount);
         }
+
+        Array.Sort(_dependencies, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_dependents, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_optionalDependencies, static (a, b) => a.Id.CompareTo(b.Id));
 
         OnSealingNode();
 
@@ -254,8 +259,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         {
             if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
             {
-                throw new InvalidOperationException(
-                    $"Expected to have a boolean value for variable '${condition.VariableName}'");
+                throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
             }
 
             if (booleanValueNode.Value != condition.PassingValue)

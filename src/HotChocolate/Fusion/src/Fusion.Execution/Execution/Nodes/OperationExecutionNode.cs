@@ -18,7 +18,6 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
-    private readonly int? _batchingGroupId;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
@@ -33,12 +32,10 @@ public sealed class OperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
-        int? batchingGroupId,
         bool requiresFileUpload)
     {
         Id = id;
         _operation = operation;
-        _batchingGroupId = batchingGroupId;
         _schemaName = schemaName;
         _target = target;
         _source = source;
@@ -62,11 +59,6 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// Gets the operation definition that this execution node represents.
     /// </summary>
     public OperationSourceText Operation => _operation;
-
-    /// <summary>
-    /// Gets the deterministic batching group identifier assigned at planning time.
-    /// </summary>
-    public int? BatchingGroupId => _batchingGroupId;
 
     /// <summary>
     /// Gets the result selection set fulfilled by this operation.
@@ -119,14 +111,12 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
-
         context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
         {
             Node = this,
             SchemaName = schemaName,
-            BatchingGroupId = _batchingGroupId,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables,
@@ -142,9 +132,8 @@ public sealed class OperationExecutionNode : ExecutionNode
         try
         {
             // we execute the GraphQL request against a source schema
-            var response = await context.SourceSchemaScheduler
-                .ExecuteAsync(request, cancellationToken)
-                .ConfigureAwait(false);
+            var client = context.GetClient(schemaName, _operation.Type);
+            var response = await client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false);
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
@@ -157,7 +146,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             var initialBufferLength = Math.Max(totalPathCount, 2);
 
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
             {
                 // If there is only one response, we skip the buffer rental.
                 if (index == 0)
@@ -215,7 +204,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 singleResult.Dispose();
             }
 
-            AddErrors(context, exception, variables, _resultSelectionSet);
+            context.AddErrors( exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -257,7 +246,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            AddErrors(context, exception, variables, _resultSelectionSet);
+            context.AddErrors( exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
         finally
@@ -317,56 +306,9 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception ex)
         {
-            AddErrors(context, ex, variables, _resultSelectionSet);
+            context.AddErrors( ex, variables, _resultSelectionSet);
             context.DiagnosticEvents.SourceSchemaTransportError(context, this, schemaName, ex);
             return SubscriptionResult.Failed(subscriptionId, ex);
-        }
-    }
-
-    private static void AddErrors(
-        OperationPlanContext context,
-        Exception exception,
-        ImmutableArray<VariableValues> variables,
-        ResultSelectionSet resultSelectionSet)
-    {
-        var error = ErrorBuilder.FromException(exception).Build();
-
-        if (variables.Length == 0)
-        {
-            context.AddErrors(error, resultSelectionSet, Path.Root);
-        }
-        else
-        {
-            var pathBufferLength = 0;
-
-            for (var i = 0; i < variables.Length; i++)
-            {
-                pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
-            }
-
-            var pathBuffer = ArrayPool<CompactPath>.Shared.Rent(pathBufferLength);
-
-            try
-            {
-                var pathBufferIndex = 0;
-
-                for (var i = 0; i < variables.Length; i++)
-                {
-                    pathBuffer[pathBufferIndex++] = variables[i].Path;
-
-                    foreach (var additionalPath in variables[i].AdditionalPaths)
-                    {
-                        pathBuffer[pathBufferIndex++] = additionalPath;
-                    }
-                }
-
-                context.AddErrors(error, resultSelectionSet, pathBuffer.AsSpan(0, pathBufferLength));
-            }
-            finally
-            {
-                pathBuffer.AsSpan(0, pathBufferLength).Clear();
-                ArrayPool<CompactPath>.Shared.Return(pathBuffer);
-            }
         }
     }
 

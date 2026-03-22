@@ -152,5 +152,29 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_BatchResponseCountMismatch", resourceCulture);
             }
         }
+
+        internal static string OperationPlan_NodeNotFound {
+            get {
+                return ResourceManager.GetString("OperationPlan_NodeNotFound", resourceCulture);
+            }
+        }
+
+        internal static string OperationBatchExecutionNode_MissingBatchResult {
+            get {
+                return ResourceManager.GetString("OperationBatchExecutionNode_MissingBatchResult", resourceCulture);
+            }
+        }
+
+        internal static string ExecutionNode_MissingBooleanVariable {
+            get {
+                return ResourceManager.GetString("ExecutionNode_MissingBooleanVariable", resourceCulture);
+            }
+        }
+
+        internal static string JsonOperationPlanParser_SingleOperationRequired {
+            get {
+                return ResourceManager.GetString("JsonOperationPlanParser_SingleOperationRequired", resourceCulture);
+            }
+        }
     }
 }

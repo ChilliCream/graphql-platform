@@ -248,8 +248,8 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedPlan = parser.Parse(legacyPlanSource);
 
         // assert
-        Assert.All(
-            parsedPlan.AllNodes.OfType<OperationExecutionNode>(),
-            node => Assert.Null(node.BatchingGroupId));
+        // BatchingGroupId no longer exists on OperationExecutionNode;
+        // the legacy plan without batchingGroupId should still parse successfully.
+        Assert.NotEmpty(parsedPlan.AllNodes.OfType<OperationExecutionNode>());
     }
 }

@@ -145,118 +145,13 @@ nodes:
       }
     source: $.user
     target: $.users
-    batchingGroupId: 4
+    batchingGroupId: 3
     requirements:
       - name: __fusion_1_id
         selectionMap: >-
           id
     dependencies:
       - id: 2
-  - id: 4
-    type: OperationBatch
-    schema: c
-    operation: |
-      query TestQuery_123456789101112_4(
-        $__fusion_2_upc: ID!
-      ) {
-        product(upc: $__fusion_2_upc) {
-          name
-          price
-          weight
-        }
-      }
-    source: $.product
-    targets:
-      - $.users.reviews.product
-      - $.users.reviews.product.reviews.author.reviews.product
-    batchingGroupId: 3
-    requirements:
-      - name: __fusion_2_upc
-        selectionMap: >-
-          upc
-    dependencies:
-      - id: 3
-  - id: 5
-    type: Operation
-    schema: b
-    operation: |
-      query TestQuery_123456789101112_5(
-        $__fusion_3_upc: ID!
-          $__fusion_4_price: Long!
-          $__fusion_4_weight: Long!
-      ) {
-        productByUpc(upc: $__fusion_3_upc) {
-          inStock
-          shippingEstimate(weight: $__fusion_4_weight, price: $__fusion_4_price)
-        }
-      }
-    source: $.productByUpc
-    target: $.users.reviews.product
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_3_upc
-        selectionMap: >-
-          upc
-      - name: __fusion_4_price
-        selectionMap: >-
-          price
-      - name: __fusion_4_weight
-        selectionMap: >-
-          weight
-    dependencies:
-      - id: 3
-      - id: 4
-  - id: 6
-    type: Operation
-    schema: a
-    operation: |
-      query TestQuery_123456789101112_6(
-        $__fusion_5_id: ID!
-      ) {
-        user(id: $__fusion_5_id) {
-          username
-          name
-        }
-      }
-    source: $.user
-    target: $.users.reviews.product.reviews.author
-    batchingGroupId: 1
-    requirements:
-      - name: __fusion_5_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 3
-  - id: 8
-    type: Operation
-    schema: b
-    operation: |
-      query TestQuery_123456789101112_8(
-        $__fusion_7_upc: ID!
-          $__fusion_8_price: Long!
-          $__fusion_8_weight: Long!
-      ) {
-        productByUpc(upc: $__fusion_7_upc) {
-          inStock
-          shippingEstimate(weight: $__fusion_8_weight, price: $__fusion_8_price)
-        }
-      }
-    source: $.productByUpc
-    target: $.users.reviews.product.reviews.author.reviews.product
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_7_upc
-        selectionMap: >-
-          upc
-      - name: __fusion_8_price
-        selectionMap: >-
-          price
-      - name: __fusion_8_weight
-        selectionMap: >-
-          weight
-    dependencies:
-      - id: 3
-      - id: 4
   - id: 9
     type: Operation
     schema: d
@@ -283,13 +178,191 @@ nodes:
       }
     source: $.product
     target: $.topProducts
-    batchingGroupId: 4
+    batchingGroupId: 3
     requirements:
       - name: __fusion_9_upc
         selectionMap: >-
           upc
     dependencies:
       - id: 1
+  - id: 4
+    type: OperationBatch
+    schema: c
+    operation: |
+      query TestQuery_123456789101112_4(
+        $__fusion_2_upc: ID!
+      ) {
+        product(upc: $__fusion_2_upc) {
+          name
+          price
+          weight
+        }
+      }
+    source: $.product
+    targets:
+      - $.users.reviews.product
+      - $.users.reviews.product.reviews.author.reviews.product
+    batchingGroupId: 4
+    requirements:
+      - name: __fusion_2_upc
+        selectionMap: >-
+          upc
+    dependencies:
+      - id: 3
+  - id: 12
+    type: Operation
+    schema: c
+    operation: |
+      query TestQuery_123456789101112_12(
+        $__fusion_13_upc: ID!
+      ) {
+        product(upc: $__fusion_13_upc) {
+          name
+          price
+          weight
+        }
+      }
+    source: $.product
+    target: $.topProducts.reviews.author.reviews.product
+    batchingGroupId: 4
+    requirements:
+      - name: __fusion_13_upc
+        selectionMap: >-
+          upc
+    dependencies:
+      - id: 9
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query TestQuery_123456789101112_5(
+        $__fusion_3_upc: ID!
+          $__fusion_4_price: Long!
+          $__fusion_4_weight: Long!
+      ) {
+        productByUpc(upc: $__fusion_3_upc) {
+          inStock
+          shippingEstimate(weight: $__fusion_4_weight, price: $__fusion_4_price)
+        }
+      }
+    source: $.productByUpc
+    target: $.users.reviews.product
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_3_upc
+        selectionMap: >-
+          upc
+      - name: __fusion_4_price
+        selectionMap: >-
+          price
+      - name: __fusion_4_weight
+        selectionMap: >-
+          weight
+    dependencies:
+      - id: 3
+      - id: 4
+  - id: 8
+    type: Operation
+    schema: b
+    operation: |
+      query TestQuery_123456789101112_8(
+        $__fusion_7_upc: ID!
+          $__fusion_8_price: Long!
+          $__fusion_8_weight: Long!
+      ) {
+        productByUpc(upc: $__fusion_7_upc) {
+          inStock
+          shippingEstimate(weight: $__fusion_8_weight, price: $__fusion_8_price)
+        }
+      }
+    source: $.productByUpc
+    target: $.users.reviews.product.reviews.author.reviews.product
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_7_upc
+        selectionMap: >-
+          upc
+      - name: __fusion_8_price
+        selectionMap: >-
+          price
+      - name: __fusion_8_weight
+        selectionMap: >-
+          weight
+    dependencies:
+      - id: 3
+      - id: 4
+  - id: 13
+    type: Operation
+    schema: b
+    operation: |
+      query TestQuery_123456789101112_13(
+        $__fusion_14_upc: ID!
+          $__fusion_15_price: Long!
+          $__fusion_15_weight: Long!
+      ) {
+        productByUpc(upc: $__fusion_14_upc) {
+          inStock
+          shippingEstimate(weight: $__fusion_15_weight, price: $__fusion_15_price)
+        }
+      }
+    source: $.productByUpc
+    target: $.topProducts.reviews.author.reviews.product
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_14_upc
+        selectionMap: >-
+          upc
+      - name: __fusion_15_price
+        selectionMap: >-
+          price
+      - name: __fusion_15_weight
+        selectionMap: >-
+          weight
+    dependencies:
+      - id: 9
+      - id: 12
+  - id: 6
+    type: Operation
+    schema: a
+    operation: |
+      query TestQuery_123456789101112_6(
+        $__fusion_5_id: ID!
+      ) {
+        user(id: $__fusion_5_id) {
+          username
+          name
+        }
+      }
+    source: $.user
+    target: $.users.reviews.product.reviews.author
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+  - id: 11
+    type: Operation
+    schema: a
+    operation: |
+      query TestQuery_123456789101112_11(
+        $__fusion_12_id: ID!
+      ) {
+        user(id: $__fusion_12_id) {
+          username
+          name
+        }
+      }
+    source: $.user
+    target: $.topProducts.reviews.author
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_12_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 9
   - id: 10
     type: Operation
     schema: b
@@ -318,76 +391,3 @@ nodes:
           weight
     dependencies:
       - id: 1
-  - id: 11
-    type: Operation
-    schema: a
-    operation: |
-      query TestQuery_123456789101112_11(
-        $__fusion_12_id: ID!
-      ) {
-        user(id: $__fusion_12_id) {
-          username
-          name
-        }
-      }
-    source: $.user
-    target: $.topProducts.reviews.author
-    batchingGroupId: 1
-    requirements:
-      - name: __fusion_12_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 9
-  - id: 12
-    type: Operation
-    schema: c
-    operation: |
-      query TestQuery_123456789101112_12(
-        $__fusion_13_upc: ID!
-      ) {
-        product(upc: $__fusion_13_upc) {
-          name
-          price
-          weight
-        }
-      }
-    source: $.product
-    target: $.topProducts.reviews.author.reviews.product
-    batchingGroupId: 3
-    requirements:
-      - name: __fusion_13_upc
-        selectionMap: >-
-          upc
-    dependencies:
-      - id: 9
-  - id: 13
-    type: Operation
-    schema: b
-    operation: |
-      query TestQuery_123456789101112_13(
-        $__fusion_14_upc: ID!
-          $__fusion_15_price: Long!
-          $__fusion_15_weight: Long!
-      ) {
-        productByUpc(upc: $__fusion_14_upc) {
-          inStock
-          shippingEstimate(weight: $__fusion_15_weight, price: $__fusion_15_price)
-        }
-      }
-    source: $.productByUpc
-    target: $.topProducts.reviews.author.reviews.product
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_14_upc
-        selectionMap: >-
-          upc
-      - name: __fusion_15_price
-        selectionMap: >-
-          price
-      - name: __fusion_15_weight
-        selectionMap: >-
-          weight
-    dependencies:
-      - id: 9
-      - id: 12

@@ -14,7 +14,6 @@ public sealed record OperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
     private readonly ExecutionNode?[] _nodesById = [];
-    private readonly ImmutableArray<BatchingGroupRegistration> _batchingGroups;
 
     private OperationPlan(
         string id,
@@ -31,7 +30,6 @@ public sealed record OperationPlan
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
         _nodesById = CreateNodeLookup(allNodes);
-        _batchingGroups = CreateBatchingGroups(allNodes);
     }
 
     /// <summary>
@@ -76,13 +74,6 @@ public sealed record OperationPlan
     public int ExpandedNodes { get; }
 
     /// <summary>
-    /// The batching groups derived from the execution nodes in this plan. Each group contains
-    /// the IDs of nodes that belong to the same batch and should be executed together.
-    /// </summary>
-    internal ImmutableArray<BatchingGroupRegistration> BatchingGroups
-        => _batchingGroups;
-
-    /// <summary>
     /// Retrieves an execution node by its unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the execution node is unique within this plan.</param>
@@ -96,7 +87,35 @@ public sealed record OperationPlan
             return node;
         }
 
-        throw new KeyNotFoundException();
+        throw ThrowHelper.NodeNotFound(id);
+    }
+
+    /// <summary>
+    /// <para>
+    /// Returns the <see cref="ExecutionNode"/> that is responsible for executing
+    /// the given plan node.
+    /// </para>
+    /// <para>
+    /// If the plan node is already an execution node it is returned directly.
+    /// If it is a child operation plan node (such as an <see cref="OperationDefinition"/>
+    /// inside a batch) this method returns the parent execution node that is
+    /// responsible for its execution.
+    /// </para>
+    /// </summary>
+    public ExecutionNode GetExecutionNode(IOperationPlanNode planNode)
+    {
+        if (planNode is ExecutionNode executionNode)
+        {
+            return executionNode;
+        }
+
+        if ((uint)planNode.Id < (uint)_nodesById.Length
+            && _nodesById[planNode.Id] is { } node)
+        {
+            return node;
+        }
+
+        throw ThrowHelper.NodeNotFound(planNode.Id);
     }
 
     /// <summary>
@@ -170,51 +189,6 @@ public sealed record OperationPlan
         return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
 
-    private static ImmutableArray<BatchingGroupRegistration> CreateBatchingGroups(
-        ImmutableArray<ExecutionNode> allNodes)
-    {
-        Dictionary<int, List<int>>? groups = null;
-
-        foreach (var executionNode in allNodes)
-        {
-            var groupId = executionNode switch
-            {
-                OperationExecutionNode n => n.BatchingGroupId,
-                OperationBatchExecutionNode n => n.BatchingGroupId,
-                _ => null
-            };
-
-            if (groupId is null)
-            {
-                continue;
-            }
-
-            groups ??= [];
-
-            if (!groups.TryGetValue(groupId.Value, out var nodeIds))
-            {
-                nodeIds = [];
-                groups.Add(groupId.Value, nodeIds);
-            }
-
-            nodeIds.Add(executionNode.Id);
-        }
-
-        if (groups is null)
-        {
-            return [];
-        }
-
-        var registrations = ImmutableArray.CreateBuilder<BatchingGroupRegistration>(groups.Count);
-
-        foreach (var (groupId, nodeIds) in groups)
-        {
-            registrations.Add(new BatchingGroupRegistration(groupId, [.. nodeIds]));
-        }
-
-        return registrations.MoveToImmutable();
-    }
-
     private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
     {
         if (allNodes.IsDefaultOrEmpty)
@@ -227,6 +201,14 @@ public sealed record OperationPlan
         foreach (var node in allNodes)
         {
             maxId = Math.Max(maxId, node.Id);
+
+            if (node is OperationBatchExecutionNode batchNode)
+            {
+                foreach (var op in batchNode.Operations)
+                {
+                    maxId = Math.Max(maxId, op.Id);
+                }
+            }
         }
 
         var nodesById = new ExecutionNode?[maxId + 1];
@@ -234,12 +216,18 @@ public sealed record OperationPlan
         foreach (var node in allNodes)
         {
             nodesById[node.Id] = node;
+
+            // Map each operation definition ID to the containing batch node,
+            // so GetNodeById can resolve definition IDs to execution nodes.
+            if (node is OperationBatchExecutionNode batchNode)
+            {
+                foreach (var op in batchNode.Operations)
+                {
+                    nodesById[op.Id] = batchNode;
+                }
+            }
         }
 
         return nodesById;
     }
-
-    internal readonly record struct BatchingGroupRegistration(
-        int GroupId,
-        int[] NodeIds);
 }

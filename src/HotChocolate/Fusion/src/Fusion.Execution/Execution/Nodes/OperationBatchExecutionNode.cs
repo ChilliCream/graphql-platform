@@ -1,7 +1,5 @@
-using System.Buffers;
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -16,7 +14,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     {
         Id = id;
         _operations = operations;
-        SchemaName = operations[0].SchemaName;
+        SchemaName = operations[0].SchemaName!;
     }
 
     public override int Id { get; }
@@ -25,42 +23,36 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
     public override ReadOnlySpan<ExecutionNodeCondition> Conditions => [];
 
-    public override string? SchemaName { get; }
+    public override string SchemaName { get; }
 
     internal ReadOnlySpan<OperationDefinition> Operations => _operations;
 
     protected override IDisposable? CreateScope(OperationPlanContext context)
-    {
-        var schemaName = SchemaName ?? context.GetDynamicSchemaName(this);
-        return context.DiagnosticEvents.ExecuteOperationBatchNode(context, this, schemaName);
-    }
+        => context.DiagnosticEvents.ExecuteOperationBatchNode(context, this, SchemaName);
 
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var schemaName = SchemaName ?? context.GetDynamicSchemaName(this);
+        var schemaName = SchemaName;
 
-        // First we will be merging all operations into a single batch requests.
+        // Build the list of requests that will be sent as a single batch to the
+        // downstream source schema. Each operation definition becomes one request
+        // in the batch, and we track which operation sits at which index so we can
+        // match results back to operations when the responses stream in.
         var requestBuilder = ImmutableArray.CreateBuilder<SourceSchemaClientRequest>(_operations.Length);
         var operationByIndex = new List<OperationDefinition>(_operations.Length);
         var variablesByIndex = new List<ImmutableArray<VariableValues>>(_operations.Length);
 
-        foreach (var operation in _operations)
+        if (_operations.Length == 1)
         {
-            if (IsSkipped(context, operation))
-            {
-                continue;
-            }
-
-            // If any of this operation's dependencies were skipped or failed,
-            // skip this operation within the batch but let the batch continue
-            // for other operations whose dependencies succeeded.
-            if (HasSkippedDependencies(context, operation))
-            {
-                continue;
-            }
+            // When the batch holds only one operation, the planner promotes all of
+            // that operation's dependencies onto the batch node itself. So if we
+            // reach this point, every dependency has already succeeded. This means
+            // we can skip the per-operation condition and dependency checks entirely,
+            // which avoids unnecessary work for the common single-operation case.
+            var operation = _operations[0];
 
             var variables = operation switch
             {
@@ -78,12 +70,9 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                     $"Unknown operation definition type: {operation.GetType().Name}")
             };
 
-            // if the operation has requirements or forwarded variables but we could not
-            // resolve any variable values from the result store, there is nothing to fetch
-            // so we just skip this operation.
             if (variables.Length == 0 && (operation.Requirements.Length > 0 || operation.ForwardedVariables.Length > 0))
             {
-                continue;
+                return ExecutionStatus.Skipped;
             }
 
             context.TrackVariableValueSets(this, variables);
@@ -92,7 +81,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             {
                 Node = this,
                 SchemaName = schemaName,
-                BatchingGroupId = operation.BatchingGroupId,
                 OperationType = operation.Operation.Type,
                 OperationSourceText = operation.Operation.SourceText,
                 Variables = variables,
@@ -102,9 +90,71 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             operationByIndex.Add(operation);
             variablesByIndex.Add(variables);
         }
+        else
+        {
+            foreach (var operation in _operations)
+            {
+                if (IsSkipped(context, operation))
+                {
+                    context.TrackSkippedDefinition(this, operation);
+                    continue;
+                }
 
-        // all operations were either skipped or had no variables to resolve,
-        // so there is nothing to fetch.
+                // If any of this operation's dependencies were skipped or failed,
+                // we skip this operation within the batch. The remaining operations
+                // whose dependencies succeeded can still proceed normally.
+                if (HasSkippedDependencies(context, operation))
+                {
+                    context.TrackSkippedDefinition(this, operation);
+                    continue;
+                }
+
+                var variables = operation switch
+                {
+                    SingleOperationDefinition single
+                        => context.CreateVariableValueSets(
+                            single.Target,
+                            single.ForwardedVariables,
+                            single.Requirements),
+                    BatchOperationDefinition batch
+                        => context.CreateVariableValueSets(
+                            batch.Targets,
+                            batch.ForwardedVariables,
+                            batch.Requirements),
+                    _ => throw new InvalidOperationException(
+                        $"Unknown operation definition type: {operation.GetType().Name}")
+                };
+
+                // The operation expects input (requirements or forwarded variables), but
+                // the result store produced no matching variable values. Without input
+                // there is nothing meaningful to fetch, so we skip this operation.
+                if (variables.Length == 0
+                    && (operation.Requirements.Length > 0
+                        || operation.ForwardedVariables.Length > 0))
+                {
+                    context.TrackSkippedDefinition(this, operation);
+                    continue;
+                }
+
+                context.TrackVariableValueSets(this, variables);
+
+                requestBuilder.Add(new SourceSchemaClientRequest
+                {
+                    Node = this,
+                    SchemaName = schemaName,
+                    OperationType = operation.Operation.Type,
+                    OperationSourceText = operation.Operation.SourceText,
+                    Variables = variables,
+                    RequiresFileUpload = operation.RequiresFileUpload
+                });
+
+                operationByIndex.Add(operation);
+                variablesByIndex.Add(variables);
+            }
+        }
+
+        // Every operation in the batch was either skipped or had no variable
+        // values to resolve. There is nothing to send to the downstream service.
         if (requestBuilder.Count == 0)
         {
             return ExecutionStatus.Skipped;
@@ -112,7 +162,9 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         var requests = requestBuilder.ToImmutable();
 
-        // next we will get a client for the source schema and execute the batch request and update the result store.
+        // Obtain a transport client for the source schema and stream the batch
+        // response. As each individual result arrives, we merge it into the
+        // result store so downstream nodes can consume the data.
         var client = context.GetClient(schemaName, requests[0].OperationType);
         var receivedResults = new bool[requests.Length];
         var overallStatus = ExecutionStatus.Success;
@@ -143,7 +195,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 catch (Exception exception)
                 {
                     diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-                    AddErrors(context, exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
+                    context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
                     overallStatus = ExecutionStatus.Failed;
                     continue;
                 }
@@ -162,26 +214,40 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         {
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
 
-            // Transport error: add errors for all operations.
+            // The transport itself failed, so every operation in the batch is affected.
+            // We attach the error to each operation's result selection set.
             for (var i = 0; i < operationByIndex.Count; i++)
             {
-                AddErrors(context, exception, variablesByIndex[i], operationByIndex[i].ResultSelectionSet);
+                context.AddErrors(exception, variablesByIndex[i], operationByIndex[i].ResultSelectionSet);
             }
 
             return ExecutionStatus.Failed;
         }
 
-        // Phase 3 — Handle missing results: any request index that never got results.
+        // Verify that the downstream service returned a result for every
+        // operation in the batch. A missing result means the service did
+        // not implement the batch protocol correctly. We surface this as
+        // an error so the issue is easy to diagnose.
+        var missingCount = 0;
+
         for (var i = 0; i < receivedResults.Length; i++)
         {
             if (!receivedResults[i])
             {
-                var missingOp = operationByIndex[i];
-                var missingException = new InvalidOperationException(
-                    $"The batch response does not contain any result for operation '{missingOp.Id}'.");
-                AddErrors(context, missingException, variablesByIndex[i], missingOp.ResultSelectionSet);
-                overallStatus = ExecutionStatus.Failed;
+                missingCount++;
+                var operation = operationByIndex[i];
+                context.AddErrors(
+                    ThrowHelper.MissingBatchResult(operation.Id),
+                    variablesByIndex[i],
+                    operation.ResultSelectionSet);
             }
+        }
+
+        if (missingCount > 0)
+        {
+            overallStatus = missingCount == receivedResults.Length
+                ? ExecutionStatus.Failed
+                : ExecutionStatus.PartialSuccess;
         }
 
         return overallStatus;
@@ -226,6 +292,14 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         return true;
     }
 
+    protected override void OnSealingNode()
+    {
+        foreach (var operation in _operations)
+        {
+            operation.Seal();
+        }
+    }
+
     private static bool IsSkipped(OperationPlanContext context, OperationDefinition operation)
     {
         if (operation.Conditions.Length == 0)
@@ -237,8 +311,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         {
             if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
             {
-                throw new InvalidOperationException(
-                    $"Expected to have a boolean value for variable '${condition.VariableName}'");
+                throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
             }
 
             if (booleanValueNode.Value != condition.PassingValue)
@@ -261,52 +334,5 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         }
 
         return false;
-    }
-
-    private static void AddErrors(
-        OperationPlanContext context,
-        Exception exception,
-        ImmutableArray<VariableValues> variables,
-        ResultSelectionSet resultSelectionSet)
-    {
-        var error = ErrorBuilder.FromException(exception).Build();
-
-        if (variables.Length == 0)
-        {
-            context.AddErrors(error, resultSelectionSet, Path.Root);
-        }
-        else
-        {
-            var pathBufferLength = 0;
-
-            for (var i = 0; i < variables.Length; i++)
-            {
-                pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
-            }
-
-            var pathBuffer = ArrayPool<CompactPath>.Shared.Rent(pathBufferLength);
-
-            try
-            {
-                var pathBufferIndex = 0;
-
-                for (var i = 0; i < variables.Length; i++)
-                {
-                    pathBuffer[pathBufferIndex++] = variables[i].Path;
-
-                    foreach (var additionalPath in variables[i].AdditionalPaths)
-                    {
-                        pathBuffer[pathBufferIndex++] = additionalPath;
-                    }
-                }
-
-                context.AddErrors(error, resultSelectionSet, pathBuffer.AsSpan(0, pathBufferLength));
-            }
-            finally
-            {
-                pathBuffer.AsSpan(0, pathBufferLength).Clear();
-                ArrayPool<CompactPath>.Shared.Return(pathBuffer);
-            }
-        }
     }
 }
