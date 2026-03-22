@@ -347,6 +347,7 @@
     <Project Path="Mocha/src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="Mocha/src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
+    <Project Path="Mocha/src/Mocha.Utilities/Mocha.Utilities.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
     <Project Path="Mocha/src/Mocha/Mocha.csproj" />
   </Folder>

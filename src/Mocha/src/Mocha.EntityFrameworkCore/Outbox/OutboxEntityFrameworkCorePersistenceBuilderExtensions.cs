@@ -8,7 +8,7 @@ namespace Mocha.EntityFrameworkCore;
 /// Provides extension methods on <see cref="IEntityFrameworkCoreBuilder"/> for registering
 /// core outbox interceptors that signal the outbox processor after save and transaction commit.
 /// </summary>
-public static class OutboxEntityFrameworkCorePersistanceBuilderExtensions
+public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
 {
     /// <summary>
     /// Registers the core outbox infrastructure, including EF Core interceptors that signal the

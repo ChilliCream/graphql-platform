@@ -109,10 +109,10 @@ public class InMemoryTopologyConventionTests
         var route = runtime.Router.GetInboundByConsumer(consumer).First();
         var queueName = route.Endpoint!.Name;
 
-        // assert -- a queue must exist for the handler's receive endpoint
+        // assert - a queue must exist for the handler's receive endpoint
         Assert.Contains(topology.Queues, q => q.Name == queueName);
 
-        // assert -- a binding exists connecting a topic to the queue
+        // assert - a binding exists connecting a topic to the queue
         Assert.Contains(topology.Bindings.OfType<InMemoryQueueBinding>(), b => b.Destination.Name == queueName);
     }
 
@@ -134,10 +134,10 @@ public class InMemoryTopologyConventionTests
 
         const string expectedQueueName = "process-payment";
 
-        // assert -- queue exists
+        // assert - queue exists
         Assert.Contains(topology.Queues, q => q.Name == expectedQueueName);
 
-        // assert -- receive endpoint exists
+        // assert - receive endpoint exists
         Assert.Contains(transport.ReceiveEndpoints, e => e.Name == expectedQueueName);
     }
 
@@ -149,13 +149,13 @@ public class InMemoryTopologyConventionTests
 
         const string expectedQueueName = "get-order-status";
 
-        // assert -- queue for the request type exists
+        // assert - queue for the request type exists
         Assert.Contains(topology.Queues, q => q.Name == expectedQueueName);
 
-        // assert -- a reply receive endpoint is created (needed for request-response)
+        // assert - a reply receive endpoint is created (needed for request-response)
         Assert.Contains(transport.ReceiveEndpoints, e => e.Kind == ReceiveEndpointKind.Reply);
 
-        // assert -- a reply dispatch endpoint is created
+        // assert - a reply dispatch endpoint is created
         Assert.Contains(transport.DispatchEndpoints, e => e.Kind == DispatchEndpointKind.Reply);
     }
 
@@ -175,18 +175,18 @@ public class InMemoryTopologyConventionTests
         var queue1Name = runtime.Router.GetInboundByConsumer(consumer1).First().Endpoint!.Name;
         var queue2Name = runtime.Router.GetInboundByConsumer(consumer2).First().Endpoint!.Name;
 
-        // assert -- the two handler queues are distinct
+        // assertthe two handler queues are distinct
         Assert.NotEqual(queue1Name, queue2Name);
 
-        // assert -- both queues exist in topology
+        // assertboth queues exist in topology
         Assert.Contains(topology.Queues, q => q.Name == queue1Name);
         Assert.Contains(topology.Queues, q => q.Name == queue2Name);
 
-        // assert -- both queues have bindings from a topic
+        // assertboth queues have bindings from a topic
         Assert.Contains(topology.Bindings.OfType<InMemoryQueueBinding>(), b => b.Destination.Name == queue1Name);
         Assert.Contains(topology.Bindings.OfType<InMemoryQueueBinding>(), b => b.Destination.Name == queue2Name);
 
-        // assert -- they share a common publish topic for OrderCreated
+        // assertthey share a common publish topic for OrderCreated
         var publishTopicName = topology
             .Topics.Select(t => t.Name)
             .FirstOrDefault(n => n.Contains('.') && n.EndsWith("order-created"));
@@ -210,12 +210,12 @@ public class InMemoryTopologyConventionTests
         var eventQueueName = runtime.Router.GetInboundByConsumer(eventConsumer).First().Endpoint!.Name;
         var requestQueueName = runtime.Router.GetInboundByConsumer(requestConsumer).First().Endpoint!.Name;
 
-        // assert -- both queues exist and are different
+        // assertboth queues exist and are different
         Assert.NotEqual(eventQueueName, requestQueueName);
         Assert.Contains(topology.Queues, q => q.Name == eventQueueName);
         Assert.Contains(topology.Queues, q => q.Name == requestQueueName);
 
-        // assert -- each has its own receive endpoint
+        // asserteach has its own receive endpoint
         Assert.Contains(transport.ReceiveEndpoints, e => e.Name == eventQueueName);
         Assert.Contains(transport.ReceiveEndpoints, e => e.Name == requestQueueName);
     }

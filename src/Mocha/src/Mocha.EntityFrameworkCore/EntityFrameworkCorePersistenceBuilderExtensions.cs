@@ -6,7 +6,7 @@ namespace Mocha.EntityFrameworkCore;
 /// Provides extension methods on <see cref="IEntityFrameworkCoreBuilder"/> for registering
 /// additional services into the DbContext internal service provider.
 /// </summary>
-public static class EntityFrameworkCorePersistanceBuilderExtensions
+public static class EntityFrameworkCorePersistenceBuilderExtensions
 {
     /// <summary>
     /// Registers a callback that configures services within the DbContext internal service provider,

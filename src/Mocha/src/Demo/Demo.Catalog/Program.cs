@@ -1,6 +1,7 @@
+using Demo.Catalog.Commands;
 using Demo.Catalog.Data;
-using Demo.Catalog.Entities;
 using Demo.Catalog.Handlers;
+using Demo.Catalog.Queries;
 using Demo.Catalog.Sagas;
 using Demo.Contracts.Commands;
 using Demo.Contracts.Events;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
 using Mocha.Hosting;
+using Mocha.Mediator;
 using Mocha.Outbox;
 using Mocha.Sagas;
 using Mocha.Transport.RabbitMQ;
@@ -22,6 +24,11 @@ builder.AddNpgsqlDbContext<CatalogDbContext>("catalog-db");
 
 // RabbitMQ
 builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
+
+// Mocha.Mediator
+builder.Services.AddMediator()
+    .AddCatalog()
+    .UseEntityFrameworkTransactions<CatalogDbContext>();
 
 // MessageBus
 builder
@@ -60,246 +67,80 @@ using (var scope = app.Services.CreateScope())
 app.MapGet("/", () => "Catalog Service");
 
 // Products
-app.MapGet("/api/products", async (CatalogDbContext db) => await db.Products.Include(p => p.Category).ToListAsync());
+app.MapGet("/api/products", async (ISender sender) =>
+    await sender.QueryAsync(new GetProductsQuery()));
 
-app.MapGet(
-    "/api/products/{id:guid}",
-    async (Guid id, CatalogDbContext db) =>
-        await db.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id) is { } product
-            ? Results.Ok(product)
-            : Results.NotFound());
+app.MapGet("/api/products/{id:guid}", async (Guid id, ISender sender) =>
+    await sender.QueryAsync(new GetProductByIdQuery(id)) is { } product
+        ? Results.Ok(product)
+        : Results.NotFound());
 
 // Categories
-app.MapGet("/api/categories", async (CatalogDbContext db) => await db.Categories.ToListAsync());
+app.MapGet("/api/categories", async (ISender sender) =>
+    await sender.QueryAsync(new GetCategoriesQuery()));
 
 // Orders - placing an order triggers OrderPlacedEvent
-app.MapPost(
-    "/api/orders",
-    async (PlaceOrderRequest request, CatalogDbContext db, IMessageBus messageBus) =>
+app.MapPost("/api/orders", async (PlaceOrderRequest request, ISender sender) =>
+{
+    var result = await sender.SendAsync(
+        new PlaceOrderCommand(request.ProductId, request.Quantity, request.CustomerId, request.ShippingAddress));
+
+    return result.Success
+        ? Results.Created($"/api/orders/{result.Order!.Id}", result.Order)
+        : Results.BadRequest(result.Error);
+});
+
+// Bulk order dispatch
+app.MapPost("/api/orders/bulk", async (BulkOrderRequest request, ISender sender) =>
+{
+    var result = await sender.SendAsync(new PlaceBulkOrderCommand(request.Count));
+    return Results.Ok(new { dispatched = result.Dispatched, elapsedMs = result.ElapsedMs });
+});
+
+app.MapGet("/api/orders", async (ISender sender) =>
+    await sender.QueryAsync(new GetOrdersQuery()));
+
+app.MapGet("/api/orders/{id:guid}", async (Guid id, ISender sender) =>
+    await sender.QueryAsync(new GetOrderByIdQuery(id)) is { } order
+        ? Results.Ok(order)
+        : Results.NotFound());
+
+// Quick Refund Saga
+app.MapPost("/api/refunds/quick", async (QuickRefundRequest request, ISender sender) =>
+{
+    var result = await sender.SendAsync(
+        new RequestQuickRefundCommand(request.OrderId, request.Amount, request.Reason));
+
+    if (!result.Success)
+        return result.Error == "Order not found" ? Results.NotFound(result.Error) : Results.Problem(result.Error);
+
+    return Results.Ok(result.Response);
+});
+
+// Return Processing
+app.MapPost("/api/returns/initiate", async (InitiateReturnRequestDto request, ISender sender) =>
+{
+    var result = await sender.SendAsync(
+        new InitiateReturnCommand(request.OrderId, request.ShipmentId, request.Reason));
+
+    if (!result.Success)
     {
-        var executionStrategy = db.Database.CreateExecutionStrategy();
+        if (result.Error!.Contains("not found"))
+            return Results.NotFound(result.Error);
+        if (result.Error.Contains("cannot be returned"))
+            return Results.BadRequest(result.Error);
+        return Results.Problem(result.Error);
+    }
 
-        return await executionStrategy.ExecuteAsync(async () =>
-        {
-            await using var transaction = await db.Database.BeginTransactionAsync();
-
-            var product = await db.Products.FindAsync(request.ProductId);
-            if (product is null)
-            {
-                return Results.NotFound("Product not found");
-            }
-
-            if (product.StockQuantity < request.Quantity)
-            {
-                return Results.BadRequest("Insufficient stock");
-            }
-
-            var order = new OrderRecord
-            {
-                Id = Guid.NewGuid(),
-                ProductId = product.Id,
-                Quantity = request.Quantity,
-                CustomerId = request.CustomerId,
-                ShippingAddress = request.ShippingAddress,
-                TotalAmount = product.Price * request.Quantity,
-                Status = OrderStatus.Pending,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
-            };
-
-            db.Orders.Add(order);
-            await db.SaveChangesAsync();
-
-            // Publish OrderPlacedEvent
-            await messageBus.PublishAsync(
-                new OrderPlacedEvent
-                {
-                    OrderId = order.Id,
-                    ProductId = product.Id,
-                    ProductName = product.Name,
-                    Quantity = order.Quantity,
-                    UnitPrice = product.Price,
-                    TotalAmount = order.TotalAmount,
-                    CustomerId = order.CustomerId,
-                    ShippingAddress = order.ShippingAddress,
-                    CreatedAt = order.CreatedAt
-                },
-                CancellationToken.None);
-
-            await transaction.CommitAsync();
-
-            return Results.Created($"/api/orders/{order.Id}", order);
-        });
-    });
-
-// Bulk order dispatch — fires thousands of BulkOrderEvents for batch processing demo
-app.MapPost(
-    "/api/orders/bulk",
-    async (BulkOrderRequest request, IMessageBus messageBus, ILogger<Program> logger) =>
+    return Results.Ok(new
     {
-        var count = request.Count is > 0 ? request.Count : 2000;
-
-        var products = new[]
-        {
-            ("Wireless Headphones", 299.99m),
-            ("Mechanical Keyboard", 149.99m),
-            ("Clean Code", 39.99m)
-        };
-
-        logger.LogInformation("Dispatching {Count} BulkOrderEvents", count);
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-
-        for (var i = 0; i < count; i++)
-        {
-            var (name, price) = products[i % products.Length];
-            var qty = (i % 5) + 1;
-
-            await messageBus.PublishAsync(
-                new BulkOrderEvent
-                {
-                    OrderId = Guid.NewGuid(),
-                    ProductName = name,
-                    Quantity = qty,
-                    UnitPrice = price,
-                    TotalAmount = price * qty,
-                    CustomerId = $"bulk-customer-{i:D5}",
-                    CreatedAt = DateTimeOffset.UtcNow
-                },
-                CancellationToken.None);
-        }
-
-        sw.Stop();
-        logger.LogInformation("Dispatched {Count} BulkOrderEvents in {Elapsed}ms", count, sw.ElapsedMilliseconds);
-
-        return Results.Ok(new { dispatched = count, elapsedMs = sw.ElapsedMilliseconds });
+        orderId = request.OrderId,
+        returnId = result.ReturnId,
+        returnTrackingNumber = result.ReturnTrackingNumber,
+        returnLabelUrl = result.ReturnLabelUrl,
+        message = "Return label created. Ship the package and we'll process the refund when it arrives."
     });
-
-app.MapGet("/api/orders", async (CatalogDbContext db) => await db.Orders.Include(o => o.Product).ToListAsync());
-
-app.MapGet(
-    "/api/orders/{id:guid}",
-    async (Guid id, CatalogDbContext db) =>
-        await db.Orders.Include(o => o.Product).FirstOrDefaultAsync(o => o.Id == id) is { } order
-            ? Results.Ok(order)
-            : Results.NotFound());
-
-// ============================================
-// Saga Endpoints
-// ============================================
-
-// Quick Refund Saga - for digital goods or goodwill refunds
-app.MapPost(
-    "/api/refunds/quick",
-    async (QuickRefundRequest request, CatalogDbContext db, IMessageBus messageBus, ILogger<Program> logger) =>
-    {
-        // Verify order exists
-        var order = await db.Orders.FindAsync(request.OrderId);
-        if (order is null)
-        {
-            return Results.NotFound("Order not found");
-        }
-
-        logger.LogInformation("Initiating quick refund saga for order {OrderId}", request.OrderId);
-
-        try
-        {
-            var response = await messageBus.RequestAsync(
-                new RequestQuickRefundRequest
-                {
-                    OrderId = request.OrderId,
-                    Amount = request.Amount ?? order.TotalAmount,
-                    CustomerId = order.CustomerId,
-                    Reason = request.Reason
-                },
-                CancellationToken.None);
-
-            if (response.Success)
-            {
-                // Update order status
-                order.Status = OrderStatus.Cancelled;
-                order.UpdatedAt = DateTimeOffset.UtcNow;
-                await db.SaveChangesAsync();
-            }
-
-            return Results.Ok(response);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Quick refund saga failed for order {OrderId}", request.OrderId);
-            return Results.Problem("Refund processing failed: " + ex.Message);
-        }
-    });
-
-// Return Processing - creates return label, saga handles the rest async when package arrives
-app.MapPost(
-    "/api/returns/initiate",
-    async (InitiateReturnRequestDto request, CatalogDbContext db, IMessageBus messageBus, ILogger<Program> logger) =>
-    {
-        // Verify order exists
-        var order = await db.Orders.Include(o => o.Product).FirstOrDefaultAsync(o => o.Id == request.OrderId);
-        if (order is null)
-        {
-            return Results.NotFound("Order not found");
-        }
-
-        if (order.Status != OrderStatus.Delivered && order.Status != OrderStatus.Shipping)
-        {
-            return Results.BadRequest($"Order cannot be returned in status: {order.Status}");
-        }
-
-        logger.LogInformation("Creating return label for order {OrderId}", request.OrderId);
-
-        try
-        {
-            // Step 1: Create return label synchronously via Shipping service
-            var labelResponse = await messageBus.RequestAsync(
-                new CreateReturnLabelCommand
-                {
-                    OrderId = request.OrderId,
-                    OriginalShipmentId = request.ShipmentId,
-                    CustomerAddress = order.ShippingAddress,
-                    CustomerId = order.CustomerId,
-                    // Include order details for saga when package arrives
-                    ProductId = order.ProductId,
-                    Quantity = order.Quantity,
-                    Amount = order.TotalAmount,
-                    Reason = request.Reason
-                },
-                CancellationToken.None);
-
-            if (!labelResponse.Success)
-            {
-                return Results.Problem($"Failed to create return label: {labelResponse.FailureReason}");
-            }
-
-            // Update order status to indicate return in progress
-            order.Status = OrderStatus.ReturnInitiated;
-            order.UpdatedAt = DateTimeOffset.UtcNow;
-            await db.SaveChangesAsync();
-
-            logger.LogInformation(
-                "Return label created for order {OrderId}: {ReturnId}, tracking: {Tracking}",
-                request.OrderId,
-                labelResponse.ReturnId,
-                labelResponse.ReturnTrackingNumber);
-
-            // Return immediately - saga will continue when package arrives (ReturnPackageReceivedEvent)
-            return Results.Ok(
-                new
-                {
-                    orderId = request.OrderId,
-                    returnId = labelResponse.ReturnId,
-                    returnTrackingNumber = labelResponse.ReturnTrackingNumber,
-                    returnLabelUrl = labelResponse.ReturnLabelUrl,
-                    message = "Return label created. Ship the package and we'll process the refund when it arrives."
-                });
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to create return label for order {OrderId}", request.OrderId);
-            return Results.Problem("Failed to create return label: " + ex.Message);
-        }
-    });
+});
 
 app.MapMessageBusDeveloperTopology();
 

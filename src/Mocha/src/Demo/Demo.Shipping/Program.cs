@@ -1,10 +1,12 @@
 using Demo.Contracts.Events;
+using Demo.Shipping.Commands;
 using Demo.Shipping.Data;
-using Demo.Shipping.Entities;
 using Demo.Shipping.Handlers;
+using Demo.Shipping.Queries;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
+using Mocha.Mediator;
 using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
 
@@ -17,6 +19,11 @@ builder.AddNpgsqlDbContext<ShippingDbContext>("shipping-db");
 
 // RabbitMQ
 builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
+
+// Mocha.Mediator
+builder.Services.AddMediator()
+    .AddShipping()
+    .UseEntityFrameworkTransactions<ShippingDbContext>();
 
 // MessageBus
 builder
@@ -44,120 +51,63 @@ using (var scope = app.Services.CreateScope())
 app.MapGet("/", () => "Shipping Service");
 
 // Shipments
-app.MapGet("/api/shipments", async (ShippingDbContext db) => await db.Shipments.Include(s => s.Items).ToListAsync());
+app.MapGet("/api/shipments", async (ISender sender) =>
+    await sender.QueryAsync(new GetShipmentsQuery()));
 
-app.MapGet(
-    "/api/shipments/{id:guid}",
-    async (Guid id, ShippingDbContext db) =>
-        await db.Shipments.Include(s => s.Items).FirstOrDefaultAsync(s => s.Id == id) is { } shipment
-            ? Results.Ok(shipment)
-            : Results.NotFound());
+app.MapGet("/api/shipments/{id:guid}", async (Guid id, ISender sender) =>
+    await sender.QueryAsync(new GetShipmentByIdQuery(id)) is { } shipment
+        ? Results.Ok(shipment)
+        : Results.NotFound());
 
-app.MapGet(
-    "/api/shipments/order/{orderId:guid}",
-    async (Guid orderId, ShippingDbContext db) =>
-        await db.Shipments.Include(s => s.Items).FirstOrDefaultAsync(s => s.OrderId == orderId) is { } shipment
-            ? Results.Ok(shipment)
-            : Results.NotFound());
+app.MapGet("/api/shipments/order/{orderId:guid}", async (Guid orderId, ISender sender) =>
+    await sender.QueryAsync(new GetShipmentByOrderIdQuery(orderId)) is { } shipment
+        ? Results.Ok(shipment)
+        : Results.NotFound());
 
-// Ship a shipment - triggers ShipmentShippedEvent
-app.MapPost(
-    "/api/shipments/{id:guid}/ship",
-    async (Guid id, ShipShipmentRequest request, ShippingDbContext db, IMessageBus messageBus) =>
+// Ship a shipment
+app.MapPost("/api/shipments/{id:guid}/ship", async (Guid id, ShipShipmentRequest request, ISender sender) =>
+{
+    var result = await sender.SendAsync(
+        new ShipShipmentCommand(id, request.Carrier, request.EstimatedDays));
+
+    if (!result.Success)
     {
-        var shipment = await db.Shipments.FirstOrDefaultAsync(s => s.Id == id);
-        if (shipment is null)
-        {
-            return Results.NotFound("Shipment not found");
-        }
+        return result.Error == "Shipment not found"
+            ? Results.NotFound(result.Error)
+            : Results.BadRequest(result.Error);
+    }
 
-        if (shipment.Status == ShipmentStatus.Shipped)
-        {
-            return Results.BadRequest("Shipment already shipped");
-        }
-
-        shipment.Status = ShipmentStatus.Shipped;
-        shipment.Carrier = request.Carrier;
-        shipment.ShippedAt = DateTimeOffset.UtcNow;
-        shipment.EstimatedDelivery = DateTimeOffset.UtcNow.AddDays(request.EstimatedDays);
-        await db.SaveChangesAsync();
-
-        // Publish ShipmentShippedEvent
-        await messageBus.PublishAsync(
-            new ShipmentShippedEvent
-            {
-                ShipmentId = shipment.Id,
-                OrderId = shipment.OrderId,
-                TrackingNumber = shipment.TrackingNumber!,
-                Carrier = shipment.Carrier,
-                ShippedAt = shipment.ShippedAt.Value,
-                EstimatedDelivery = shipment.EstimatedDelivery.Value
-            },
-            CancellationToken.None);
-
-        return Results.Ok(shipment);
-    });
+    return Results.Ok(result.Shipment);
+});
 
 // Return Shipments
-app.MapGet("/api/returns", async (ShippingDbContext db) => await db.ReturnShipments.ToListAsync());
+app.MapGet("/api/returns", async (ISender sender) =>
+    await sender.QueryAsync(new GetReturnShipmentsQuery()));
 
-app.MapGet(
-    "/api/returns/{id:guid}",
-    async (Guid id, ShippingDbContext db) =>
-        await db.ReturnShipments.FirstOrDefaultAsync(r => r.Id == id) is { } returnShipment
-            ? Results.Ok(returnShipment)
-            : Results.NotFound());
+app.MapGet("/api/returns/{id:guid}", async (Guid id, ISender sender) =>
+    await sender.QueryAsync(new GetReturnShipmentByIdQuery(id)) is { } returnShipment
+        ? Results.Ok(returnShipment)
+        : Results.NotFound());
 
-app.MapGet(
-    "/api/returns/order/{orderId:guid}",
-    async (Guid orderId, ShippingDbContext db) =>
-        await db.ReturnShipments.FirstOrDefaultAsync(r => r.OrderId == orderId) is { } returnShipment
-            ? Results.Ok(returnShipment)
-            : Results.NotFound());
+app.MapGet("/api/returns/order/{orderId:guid}", async (Guid orderId, ISender sender) =>
+    await sender.QueryAsync(new GetReturnShipmentByOrderIdQuery(orderId)) is { } returnShipment
+        ? Results.Ok(returnShipment)
+        : Results.NotFound());
 
-// Simulate return package received - triggers ReturnPackageReceivedEvent for saga
-app.MapPost(
-    "/api/returns/{id:guid}/receive",
-    async (Guid id, ShippingDbContext db, IMessageBus messageBus, ILogger<Program> logger) =>
+// Receive return package
+app.MapPost("/api/returns/{id:guid}/receive", async (Guid id, ISender sender) =>
+{
+    var result = await sender.SendAsync(new ReceiveReturnPackageCommand(id));
+
+    if (!result.Success)
     {
-        var returnShipment = await db.ReturnShipments.FirstOrDefaultAsync(r => r.Id == id);
-        if (returnShipment is null)
-        {
-            return Results.NotFound("Return shipment not found");
-        }
+        return result.Error == "Return shipment not found"
+            ? Results.NotFound(result.Error)
+            : Results.BadRequest(result.Error);
+    }
 
-        if (returnShipment.Status == ReturnShipmentStatus.Received)
-        {
-            return Results.BadRequest("Return package already received");
-        }
-
-        returnShipment.Status = ReturnShipmentStatus.Received;
-        returnShipment.ReceivedAt = DateTimeOffset.UtcNow;
-        await db.SaveChangesAsync();
-
-        logger.LogInformation(
-            "Return package {ReturnId} received, publishing ReturnPackageReceivedEvent",
-            returnShipment.Id);
-
-        // Publish ReturnPackageReceivedEvent to start saga for inspection/refund
-        await messageBus.PublishAsync(
-            new ReturnPackageReceivedEvent
-            {
-                ReturnId = returnShipment.Id,
-                OrderId = returnShipment.OrderId,
-                TrackingNumber = returnShipment.TrackingNumber!,
-                ReceivedAt = returnShipment.ReceivedAt.Value,
-                // Include order details for saga processing
-                ProductId = returnShipment.ProductId,
-                Quantity = returnShipment.Quantity,
-                Amount = returnShipment.Amount,
-                CustomerId = returnShipment.CustomerId,
-                Reason = returnShipment.Reason
-            },
-            CancellationToken.None);
-
-        return Results.Ok(returnShipment);
-    });
+    return Results.Ok(result.ReturnShipment);
+});
 
 app.Run();
 
