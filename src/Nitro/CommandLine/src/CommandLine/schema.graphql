@@ -287,7 +287,7 @@ type Api implements Node {
   clients("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientsConnection
   createdAt: DateTime!
   createdBy: UserInfo!
-  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentConnection @authorize(policy: "DocumentsRead")
+  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentConnection
   httpConnection: ApiHttpConnection
   id: ID!
   kind: ApiKind
@@ -2015,54 +2015,54 @@ type Mutation {
   cancelFusionConfigurationComposition(input: CancelFusionConfigurationCompositionInput!): CancelFusionConfigurationCompositionPayload!
   commitFusionConfigurationPublish(input: CommitFusionConfigurationPublishInput!): CommitFusionConfigurationPublishPayload!
   createAccount: CreateAccountPayload!
-  createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload! @authorize
-  createApiKeyForApi(input: CreateApiKeyForApiInput!): CreateApiKeyForApiPayload! @authorize
-  createClient(input: CreateClientInput!): CreateClientPayload! @authorize
-  createMcpFeatureCollection(input: CreateMcpFeatureCollectionInput!): CreateMcpFeatureCollectionPayload! @authorize
-  createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload! @authorize
-  createOpenApiCollection(input: CreateOpenApiCollectionInput!): CreateOpenApiCollectionPayload! @authorize
-  createPersonalAccessToken(input: CreatePersonalAccessTokenInput!): CreatePersonalAccessTokenPayload! @authorize
-  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload! @authorize
-  deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload! @authorize
-  deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload! @authorize
-  deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload! @authorize
-  deleteMcpFeatureCollectionById(input: DeleteMcpFeatureCollectionByIdInput!): DeleteMcpFeatureCollectionByIdPayload! @authorize
-  deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload! @authorize
-  deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload! @authorize
-  ensureTunnelSession: EnsureTunnelSessionPayload! @authorize
-  forceDeleteStageById(input: ForceDeleteStageByIdInput!): ForceDeleteStageByIdPayload! @authorize
-  pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload! @authorize
-  pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload! @authorize
-  pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload! @authorize
-  pollSchemaVersionValidationRequest(input: PollSchemaVersionValidationRequestInput!): PollSchemaVersionValidationRequestPayload! @authorize
-  publishClient(input: PublishClientInput!): PublishClientPayload! @authorize
-  publishMcpFeatureCollection(input: PublishMcpFeatureCollectionInput!): PublishMcpFeatureCollectionPayload! @authorize
-  publishOpenApiCollection(input: PublishOpenApiCollectionInput!): PublishOpenApiCollectionPayload! @authorize
-  publishSchema(input: PublishSchemaInput!): PublishSchemaPayload! @authorize
-  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload! @authorize(policy: "DocumentsWrite")
-  pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload! @authorize(policy: "DocumentsWrite")
-  removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload! @authorize
-  renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload! @authorize
-  revokePersonalAccessToken(input: RevokePersonalAccessTokenInput!): RevokePersonalAccessTokenPayload! @authorize
-  setActiveWorkspace(input: SetActiveWorkspaceInput!): SetActiveWorkspacePayload! @authorize(policy: "WorkspaceManage")
+  createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload!
+  createApiKeyForApi(input: CreateApiKeyForApiInput!): CreateApiKeyForApiPayload!
+  createClient(input: CreateClientInput!): CreateClientPayload!
+  createMcpFeatureCollection(input: CreateMcpFeatureCollectionInput!): CreateMcpFeatureCollectionPayload!
+  createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
+  createOpenApiCollection(input: CreateOpenApiCollectionInput!): CreateOpenApiCollectionPayload!
+  createPersonalAccessToken(input: CreatePersonalAccessTokenInput!): CreatePersonalAccessTokenPayload!
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload!
+  deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
+  deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload!
+  deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
+  deleteMcpFeatureCollectionById(input: DeleteMcpFeatureCollectionByIdInput!): DeleteMcpFeatureCollectionByIdPayload!
+  deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload!
+  deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload!
+  ensureTunnelSession: EnsureTunnelSessionPayload!
+  forceDeleteStageById(input: ForceDeleteStageByIdInput!): ForceDeleteStageByIdPayload!
+  pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload!
+  pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload!
+  pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload!
+  pollSchemaVersionValidationRequest(input: PollSchemaVersionValidationRequestInput!): PollSchemaVersionValidationRequestPayload!
+  publishClient(input: PublishClientInput!): PublishClientPayload!
+  publishMcpFeatureCollection(input: PublishMcpFeatureCollectionInput!): PublishMcpFeatureCollectionPayload!
+  publishOpenApiCollection(input: PublishOpenApiCollectionInput!): PublishOpenApiCollectionPayload!
+  publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
+  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload!
+  pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload!
+  removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
+  renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
+  revokePersonalAccessToken(input: RevokePersonalAccessTokenInput!): RevokePersonalAccessTokenPayload!
+  setActiveWorkspace(input: SetActiveWorkspaceInput!): SetActiveWorkspacePayload!
   startFusionConfigurationComposition(input: StartFusionConfigurationCompositionInput!): StartFusionConfigurationCompositionPayload!
-  unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload! @authorize
-  updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload! @authorize
-  updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload! @authorize
-  updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload! @authorize
-  updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload! @authorize
+  unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload!
+  updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
+  updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload!
+  updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
+  updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
-  updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload! @authorize
-  uploadClient(input: UploadClientInput!): UploadClientPayload! @authorize
-  uploadFusionSubgraph(input: UploadFusionSubgraphInput!): UploadFusionSubgraphPayload! @authorize
-  uploadMcpFeatureCollection(input: UploadMcpFeatureCollectionInput!): UploadMcpFeatureCollectionPayload! @authorize
-  uploadOpenApiCollection(input: UploadOpenApiCollectionInput!): UploadOpenApiCollectionPayload! @authorize
-  uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload! @authorize
-  validateClient(input: ValidateClientInput!): ValidateClientPayload! @authorize
+  updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload!
+  uploadClient(input: UploadClientInput!): UploadClientPayload!
+  uploadFusionSubgraph(input: UploadFusionSubgraphInput!): UploadFusionSubgraphPayload!
+  uploadMcpFeatureCollection(input: UploadMcpFeatureCollectionInput!): UploadMcpFeatureCollectionPayload!
+  uploadOpenApiCollection(input: UploadOpenApiCollectionInput!): UploadOpenApiCollectionPayload!
+  uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
+  validateClient(input: ValidateClientInput!): ValidateClientPayload!
   validateFusionConfigurationComposition(input: ValidateFusionConfigurationCompositionInput!): ValidateFusionConfigurationCompositionPayload!
-  validateMcpFeatureCollection(input: ValidateMcpFeatureCollectionInput!): ValidateMcpFeatureCollectionPayload! @authorize
-  validateOpenApiCollection(input: ValidateOpenApiCollectionInput!): ValidateOpenApiCollectionPayload! @authorize
-  validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload! @authorize
+  validateMcpFeatureCollection(input: ValidateMcpFeatureCollectionInput!): ValidateMcpFeatureCollectionPayload!
+  validateOpenApiCollection(input: ValidateOpenApiCollectionInput!): ValidateOpenApiCollectionPayload!
+  validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload!
 }
 
 type OAuth2AuthenticationFlowOptions {
@@ -3480,7 +3480,7 @@ type StageOperationMetrics {
   latencyDistribution(from: DateTime! to: DateTime!): OperationLatencyDistributionGraph
   requestDocument: RequestDocument
   samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OperationTraceSample!]!
-  throughput(from: DateTime! operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use") to: DateTime!): OperationThroughputGraph
+  throughput(from: DateTime! operationKinds: [OperationKind!] @deprecated
 }
 
 type StageOperationMetricsSummary {
@@ -3622,7 +3622,7 @@ type Subscription {
   onMcpFeatureCollectionVersionValidationUpdate(requestId: ID!): McpFeatureCollectionVersionValidationResult!
   onOpenApiCollectionVersionPublishingUpdate(requestId: ID!): OpenApiCollectionVersionPublishResult!
   onOpenApiCollectionVersionValidationUpdate(requestId: ID!): OpenApiCollectionVersionValidationResult!
-  onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged! @deprecated(reason: "Use `onStageChanged` instead.")
+  onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged! @deprecated
   onSchemaVersionPublishingUpdate(requestId: ID!): SchemaVersionPublishResult!
   onSchemaVersionValidationUpdate(requestId: ID!): SchemaVersionValidationResult!
   onStageChanged(apiId: ID! kind: [StageChangeKind!] stageName: String!): StageChangedEvent!
@@ -3838,13 +3838,13 @@ type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublis
 type Workspace implements Node {
   apiDocuments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentsConnection
   apiKeys("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeysConnection
-  apis("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApisConnection @authorize(policy: "DocumentsRead")
+  apis("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApisConnection
   changed(version: Version!): Boolean!
-  changes("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ChangesConnection @authorize(policy: "DocumentsRead")
-  documentChanges("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentChangesConnection @authorize(policy: "DocumentsRead")
-  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentsConnection @authorize(policy: "DocumentsRead")
+  changes("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ChangesConnection
+  documentChanges("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentChangesConnection
+  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentsConnection
   documentsChanged(version: Version): Boolean!
-  environments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): EnvironmentsConnection @authorize(policy: "DocumentsRead")
+  environments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): EnvironmentsConnection
   id: ID!
   members: [WorkspaceMember!]!
   name: String!
@@ -4952,8 +4952,8 @@ enum WorkspaceUserRole {
   MEMBER
 }
 
-"The authorize directive."
-directive @authorize("Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!]) on OBJECT
+"Thedirective."
+directive
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("Deferred when true." if: Boolean "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
