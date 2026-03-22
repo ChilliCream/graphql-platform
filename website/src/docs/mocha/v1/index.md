@@ -23,7 +23,7 @@ Mocha gives you two dispatch mechanisms. The **message bus** sends messages acro
 Mocha is a messaging framework for .NET with two complementary dispatch systems:
 
 - **Message bus** - sends messages across service boundaries through transports like RabbitMQ. Supports pub/sub events, request/reply, saga orchestration, inbox/outbox reliability, and pluggable transports. Follows the patterns described in [Enterprise Integration Patterns](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Introduction.html).
-- **Mediator** - dispatches commands, queries, and notifications within a single process. A Roslyn source generator produces a concrete mediator class at compile time with monomorphized dispatch and pre-compiled pipeline delegates. No reflection, no runtime code generation.
+- **Mediator** - dispatches commands, queries, and notifications within a single process. A Roslyn source generator produces a concrete mediator class at compile time with specialized dispatch and pre-compiled pipeline delegates. No reflection, no runtime code generation.
 
 Both integrate directly into ASP.NET Core's dependency injection and are designed for [event-driven architectures](https://learn.microsoft.com/en-us/azure/architecture/guide/architecture-styles/event-driven). Use the message bus when messages cross process boundaries. Use the mediator when you want in-process CQRS with pipeline behaviors for cross-cutting concerns like validation, logging, and transactions. Most real-world services use both: the mediator handles internal command/query dispatch, and the message bus handles inter-service events.
 

@@ -48,7 +48,7 @@ That is a middleware. It wraps every command, query, and notification with timin
 
 # How the pipeline works
 
-The mediator compiles a middleware pipeline for each registered message type at application startup. Each middleware wraps the next one, forming a [chain of responsibility](https://refactoring.guru/design-patterns/chain-of-responsibility) that terminates at the handler. If you have used [middleware in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/), the mental model is the samethis is the [Pipes and Filters](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PipesAndFilters.html) pattern applied to in-process message dispatch.
+The mediator compiles a middleware pipeline for each registered message type at application startup. Each middleware wraps the next one, forming a [chain of responsibility](https://refactoring.guru/design-patterns/chain-of-responsibility) that terminates at the handler. If you have used [middleware in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/), the mental model is the same - this is the [Pipes and Filters](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PipesAndFilters.html) pattern applied to in-process message dispatch.
 
 ```text
 SendAsync(PlaceOrderCommand)
