@@ -10,8 +10,10 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
     private bool _isSealed;
     private ExecutionNode[] _dependents = [];
     private ExecutionNode[] _dependencies = [];
+    private ExecutionNode[] _optionalDependencies = [];
     private int _dependentCount;
     private int _dependencyCount;
+    private int _optionalDependencyCount;
 
     /// <summary>
     /// The unique id of this execution node.
@@ -42,9 +44,15 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
     public ReadOnlySpan<ExecutionNode> Dependents => _dependents;
 
     /// <summary>
-    /// Gets the execution nodes that this operation depends on.
+    /// Gets the execution nodes that this operation depends on (required).
     /// </summary>
     public ReadOnlySpan<ExecutionNode> Dependencies => _dependencies;
+
+    /// <summary>
+    /// Gets the execution nodes that this operation optionally depends on.
+    /// When an optional dependency is skipped or failed this node still gets executed.
+    /// </summary>
+    public ReadOnlySpan<ExecutionNode> OptionalDependencies => _optionalDependencies;
 
     public async Task ExecuteAsync(
         OperationPlanContext context,
@@ -156,6 +164,30 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         _dependents[_dependentCount++] = node;
     }
 
+    internal void AddOptionalDependency(ExecutionNode node)
+    {
+        ExpectMutable();
+
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (node.Equals(this))
+        {
+            throw new InvalidOperationException("An operation cannot depend on itself.");
+        }
+
+        if (_optionalDependencies.Length == 0)
+        {
+            _optionalDependencies = new ExecutionNode[4];
+        }
+
+        if (_optionalDependencyCount == _optionalDependencies.Length)
+        {
+            Array.Resize(ref _optionalDependencies, _optionalDependencyCount * 2);
+        }
+
+        _optionalDependencies[_optionalDependencyCount++] = node;
+    }
+
     protected internal void Seal()
     {
         ExpectMutable();
@@ -168,6 +200,11 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         if (_dependents.Length > _dependentCount)
         {
             Array.Resize(ref _dependents, _dependentCount);
+        }
+
+        if (_optionalDependencies.Length > _optionalDependencyCount)
+        {
+            Array.Resize(ref _optionalDependencies, _optionalDependencyCount);
         }
 
         OnSealingNode();
@@ -203,8 +240,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
     public override int GetHashCode()
         => Id;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool IsSkipped(OperationPlanContext context)
+    protected virtual bool IsSkipped(OperationPlanContext context)
     {
         if (Conditions.IsEmpty)
         {

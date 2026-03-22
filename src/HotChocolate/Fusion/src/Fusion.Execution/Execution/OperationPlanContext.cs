@@ -116,6 +116,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal ExecutionState ExecutionState => _executionState;
 
+    internal bool IsNodeSkipped(int nodeId)
+        => _executionState.IsNodeSkipped(nodeId);
+
     public ulong IncludeFlags { get; }
 
     public bool CollectTelemetry => _collectTelemetry;
@@ -321,11 +324,26 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return builder.ToPath();
     }
 
+    internal void AddPartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ResultSelectionSet resultSelectionSet,
+        bool containsErrors)
+    {
+        var canExecutionContinue =
+            _resultStore.AddPartialResult(sourcePath, result, resultSelectionSet, containsErrors);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
+
     internal void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ResultSelectionSet resultSelectionSet,
-        bool containsErrors = true)
+        bool containsErrors)
     {
         var canExecutionContinue =
             _resultStore.AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors);

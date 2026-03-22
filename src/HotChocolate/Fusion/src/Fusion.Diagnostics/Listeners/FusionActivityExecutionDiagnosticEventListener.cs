@@ -10,7 +10,8 @@ namespace HotChocolate.Fusion.Diagnostics.Listeners;
 
 internal sealed class FusionActivityExecutionDiagnosticEventListener(
     FusionActivityEnricher enricher,
-    InstrumentationOptions options) : FusionExecutionDiagnosticEventListener
+    InstrumentationOptions options)
+    : FusionExecutionDiagnosticEventListener
 {
     public override IDisposable ExecuteRequest(RequestContext context)
     {

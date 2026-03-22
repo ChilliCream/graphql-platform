@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -136,6 +135,83 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 cancellationToken);
 
         return builder.MoveToImmutable();
+    }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        if (requests.Length == 0)
+        {
+            yield break;
+        }
+
+        if (ContainsSubscriptionRequest(requests))
+        {
+            throw new InvalidOperationException(
+                FusionExecutionResources.SourceSchemaHttpClient_SubscriptionBatchNotSupported);
+        }
+
+        var httpRequest = CreateHttpBatchRequest(requests);
+        ConfigureBatchCallbacks(httpRequest, context, requests);
+
+        var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await foreach (var result in httpResponse.ReadAsResultStreamAsync()
+                .WithCancellation(cancellationToken))
+            {
+                var requestIndex = result.Root.GetProperty(RequestIndex).GetInt32();
+
+                if ((uint)requestIndex >= (uint)requests.Length)
+                {
+                    result.Dispose();
+                    throw new InvalidOperationException(
+                        string.Format(
+                            FusionExecutionResources.SourceSchemaHttpClient_InvalidRequestIndex,
+                            requestIndex));
+                }
+
+                var request = requests[requestIndex];
+                var variableIndex = ResolveVariableIndex(request, result);
+
+                if (!TryGetResultPath(request, variableIndex, out var path, out var additionalPaths))
+                {
+                    result.Dispose();
+                    throw new InvalidOperationException(
+                        string.Format(
+                            FusionExecutionResources.SourceSchemaHttpClient_InvalidVariableIndex,
+                            variableIndex,
+                            request.Node.Id));
+                }
+
+                var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
+                    ? new SourceSchemaResult(path, result)
+                    : new SourceSchemaResult(path, result, additionalPaths: additionalPaths);
+
+                var onSourceSchemaResult = _configuration.OnSourceSchemaResult;
+                onSourceSchemaResult?.Invoke(context, request.Node, sourceSchemaResult);
+
+                if (onSourceSchemaResult is not null && !additionalPaths.IsDefaultOrEmpty)
+                {
+                    foreach (var additionalPath in additionalPaths)
+                    {
+                        onSourceSchemaResult(context, request.Node, sourceSchemaResult.WithPath(additionalPath));
+                    }
+                }
+
+                yield return new BatchStreamResult(requestIndex, sourceSchemaResult);
+            }
+        }
+        finally
+        {
+            httpResponse.Dispose();
+        }
     }
 
     /// <summary>

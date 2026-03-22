@@ -361,6 +361,16 @@ public sealed class SourceSchemaRequestDispatcherTests : FusionTestBase
                 builder.MoveToImmutable());
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators
+        public async IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
+            OperationPlanContext context,
+            ImmutableArray<SourceSchemaClientRequest> requests,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            yield break;
+        }
+#pragma warning restore CS1998
+
         public ValueTask DisposeAsync()
             => ValueTask.CompletedTask;
     }
@@ -378,6 +388,12 @@ public sealed class SourceSchemaRequestDispatcherTests : FusionTestBase
             => throw new InvalidOperationException("resolver-failed");
 
         public ValueTask<ImmutableArray<SourceSchemaClientResponse>> ExecuteBatchAsync(
+            OperationPlanContext context,
+            ImmutableArray<SourceSchemaClientRequest> requests,
+            CancellationToken cancellationToken)
+            => throw new InvalidOperationException("resolver-failed");
+
+        public IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
             OperationPlanContext context,
             ImmutableArray<SourceSchemaClientRequest> requests,
             CancellationToken cancellationToken)

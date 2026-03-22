@@ -492,7 +492,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             if (hasResult)
             {
                 _resultBuffer[0] = _resultEnumerator.Current;
-                _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet);
+                _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet, containsErrors: true);
 
                 Current = new EventMessageResult(
                     _node.Id,
