@@ -44,8 +44,8 @@ These terms appear throughout the documentation. They are defined once here and 
 | **Transport** | The infrastructure layer connecting Mocha to a message broker, such as RabbitMQ or an in-process channel.                                                                                                                               |
 | **Pipeline**  | The chain of middleware that processes a message from the transport through to the handler.                                                                                                                                             |
 | **Saga**      | A long-running stateful workflow that coordinates multiple messages and transitions across services.                                                                                                                                    |
-| **Mediator**  | An in-process dispatcher that routes commands, queries, and notifications to their handlers without a transport layer. Source-generated at compile time.                                                                                 |
-| **Command**   | A mediator message representing an action. Implements `ICommand` (void) or `ICommand<TResponse>` (with response). Dispatched via `SendAsync`.                                                                                          |
+| **Mediator**  | An in-process dispatcher that routes commands, queries, and notifications to their handlers without a transport layer. Source-generated at compile time.                                                                                |
+| **Command**   | A mediator message representing an action. Implements `ICommand` (void) or `ICommand<TResponse>` (with response). Dispatched via `SendAsync`.                                                                                           |
 | **Query**     | A mediator message representing a read operation. Implements `IQuery<TResponse>`. Dispatched via `QueryAsync`.                                                                                                                          |
 
 # Architecture
@@ -160,7 +160,7 @@ Mocha persists saga state, manages transitions, and supports compensation when s
 
 ## In-process mediator
 
-For commands and queries that stay within a single service, the mediator provides CQRS dispatch with pipeline behaviors - without a transport layer. Define your messages with marker interfaces, implement handlers, and the source generator wires everything at compile time:
+For commands and queries that stay within a single service, the mediator provides CQRS dispatch with middleware - without a transport layer. Define your messages with marker interfaces, implement handlers, and the source generator wires everything at compile time:
 
 ```csharp
 // Define a command and its handler
@@ -183,14 +183,14 @@ public class PlaceOrderCommandHandler(AppDbContext db)
 // Register and use
 builder.Services
     .AddMediator()
-    .AddHandlers()
+    .AddCatalog()
     .UseEntityFrameworkTransactions<AppDbContext>();
 
 app.MapPost("/orders", async (ISender sender) =>
     await sender.SendAsync(new PlaceOrderCommand(productId, 2)));
 ```
 
-The mediator supports commands (with and without responses), queries, notifications, pipeline behaviors, pre/post processors, and EF Core transaction wrapping (commands only by default, configurable via delegate). `AddHandlers()` is source-generated - it discovers all handlers in your assembly automatically. See [Mediator](/docs/mocha/v1/mediator) for the full guide.
+The mediator supports commands (with and without responses), queries, notifications, middleware, and EF Core transaction wrapping (commands only by default, configurable via delegate). The source generator produces a typed registration method per assembly (e.g. `AddCatalog()`) that wires up all handlers and pre-compiled dispatch pipelines automatically. See [Mediator](/docs/mocha/v1/mediator) for the full guide.
 
 # Learning paths
 

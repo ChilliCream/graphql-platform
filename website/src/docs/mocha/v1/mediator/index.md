@@ -33,12 +33,12 @@ If you have used [MediatR](https://github.com/jbogard/MediatR), the concepts are
 
 Mocha has two dispatch mechanisms. Use the right one for the situation:
 
-| Use the **mediator** when... | Use the **message bus** when... |
-| --- | --- |
-| Dispatch stays in-process | Messages cross process or service boundaries |
-| You want [CQRS](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs) separation of commands and queries | You want pub/sub events across services |
-| You need a request/response pipeline with middleware | You need transport-level features (retries, outbox) |
-| Handlers live in the same assembly or solution | Handlers live in different services |
+| Use the **mediator** when...                                                                                           | Use the **message bus** when...                     |
+| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Dispatch stays in-process                                                                                              | Messages cross process or service boundaries        |
+| You want [CQRS](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs) separation of commands and queries | You want pub/sub events across services             |
+| You need a request/response pipeline with middleware                                                                   | You need transport-level features (retries, outbox) |
+| Handlers live in the same assembly or solution                                                                         | Handlers live in different services                 |
 
 The mediator and the message bus complement each other. A common pattern is to use the mediator for in-process CQRS dispatch within a service, and the message bus for inter-service event-driven communication.
 
@@ -85,12 +85,12 @@ public record OrderPlacedNotification(
 
 ## Message type reference
 
-| Interface | Purpose | Dispatch method | Return type |
-| --- | --- | --- | --- |
-| `ICommand` | Action, no response | `SendAsync` | `ValueTask` |
-| `ICommand<TResponse>` | Action with response | `SendAsync` | `ValueTask<TResponse>` |
-| `IQuery<TResponse>` | Read operation | `QueryAsync` | `ValueTask<TResponse>` |
-| `INotification` | Multi-handler event | `PublishAsync` | `ValueTask` |
+| Interface             | Purpose              | Dispatch method | Return type            |
+| --------------------- | -------------------- | --------------- | ---------------------- |
+| `ICommand`            | Action, no response  | `SendAsync`     | `ValueTask`            |
+| `ICommand<TResponse>` | Action with response | `SendAsync`     | `ValueTask<TResponse>` |
+| `IQuery<TResponse>`   | Read operation       | `QueryAsync`    | `ValueTask<TResponse>` |
+| `INotification`       | Multi-handler event  | `PublishAsync`  | `ValueTask`            |
 
 # Handlers
 
@@ -180,12 +180,12 @@ public sealed class UpdateAnalyticsDashboard(IAnalytics analytics)
 
 ## Handler interface reference
 
-| Interface | Message type | Response |
-| --- | --- | --- |
-| `ICommandHandler<TCommand>` | `ICommand` | void |
+| Interface                              | Message type          | Response    |
+| -------------------------------------- | --------------------- | ----------- |
+| `ICommandHandler<TCommand>`            | `ICommand`            | void        |
 | `ICommandHandler<TCommand, TResponse>` | `ICommand<TResponse>` | `TResponse` |
-| `IQueryHandler<TQuery, TResponse>` | `IQuery<TResponse>` | `TResponse` |
-| `INotificationHandler<TNotification>` | `INotification` | void |
+| `IQueryHandler<TQuery, TResponse>`     | `IQuery<TResponse>`   | `TResponse` |
+| `INotificationHandler<TNotification>`  | `INotification`       | void        |
 
 # Dispatching messages
 

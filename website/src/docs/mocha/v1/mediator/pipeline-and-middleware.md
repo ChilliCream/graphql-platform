@@ -81,10 +81,10 @@ A middleware is a static class with a `Create()` method that returns a `Mediator
 
 The factory delegate receives two arguments:
 
-| Argument | Available at | Purpose |
-| --- | --- | --- |
+| Argument                           | Available at           | Purpose                                                                             |
+| ---------------------------------- | ---------------------- | ----------------------------------------------------------------------------------- |
 | `MediatorMiddlewareFactoryContext` | Startup (compile time) | Resolve singleton services, inspect message/response types, opt out of the pipeline |
-| `MediatorDelegate next` | Startup (compile time) | The next middleware or handler in the chain |
+| `MediatorDelegate next`            | Startup (compile time) | The next middleware or handler in the chain                                         |
 
 The factory returns a `MediatorDelegate` - the runtime function that receives `IMediatorContext` for each dispatch.
 
@@ -130,16 +130,16 @@ builder.Services
 
 The `IMediatorContext` available at runtime provides everything you need during dispatch:
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `Message` | `object` | The message instance being dispatched |
-| `MessageType` | `Type` | Runtime type of the message |
-| `ResponseType` | `Type` | Expected response type (`Unit` for void commands and notifications) |
-| `Result` | `object?` | The handler's return value, readable by middleware after calling `next` |
-| `Services` | `IServiceProvider` | Scoped service provider for the current request |
-| `CancellationToken` | `CancellationToken` | Cancellation token for the operation |
-| `Features` | `IFeatureCollection` | Per-request feature collection for sharing state between middleware |
-| `Runtime` | `IMediatorRuntime` | The mediator runtime that owns this context |
+| Property            | Type                 | Description                                                             |
+| ------------------- | -------------------- | ----------------------------------------------------------------------- |
+| `Message`           | `object`             | The message instance being dispatched                                   |
+| `MessageType`       | `Type`               | Runtime type of the message                                             |
+| `ResponseType`      | `Type`               | Expected response type (`Unit` for void commands and notifications)     |
+| `Result`            | `object?`            | The handler's return value, readable by middleware after calling `next` |
+| `Services`          | `IServiceProvider`   | Scoped service provider for the current request                         |
+| `CancellationToken` | `CancellationToken`  | Cancellation token for the operation                                    |
+| `Features`          | `IFeatureCollection` | Per-request feature collection for sharing state between middleware     |
+| `Runtime`           | `IMediatorRuntime`   | The mediator runtime that owns this context                             |
 
 ## Short-circuiting
 
@@ -263,21 +263,21 @@ public static class TransactionMiddleware
 
 ## Message kind checks
 
-| Method | Returns true when |
-| --- | --- |
-| `IsCommand()` | Void command (`ICommand`) |
+| Method                    | Returns true when                             |
+| ------------------------- | --------------------------------------------- |
+| `IsCommand()`             | Void command (`ICommand`)                     |
 | `IsCommandWithResponse()` | Command with response (`ICommand<TResponse>`) |
-| `IsQuery()` | Query (`IQuery<TResponse>`) |
-| `IsNotification()` | Notification (`INotification`) |
+| `IsQuery()`               | Query (`IQuery<TResponse>`)                   |
+| `IsNotification()`        | Notification (`INotification`)                |
 
 ## Type assignability checks
 
-| Method | Returns true when |
-| --- | --- |
-| `IsMessageAssignableTo<T>()` | Message type is assignable to `T` |
-| `IsMessageAssignableTo(Type)` | Message type is assignable to the given type |
-| `IsResponseAssignableTo<T>()` | Response type is assignable to `T` (false for void commands and notifications) |
-| `IsResponseAssignableTo(Type)` | Response type is assignable to the given type |
+| Method                         | Returns true when                                                              |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| `IsMessageAssignableTo<T>()`   | Message type is assignable to `T`                                              |
+| `IsMessageAssignableTo(Type)`  | Message type is assignable to the given type                                   |
+| `IsResponseAssignableTo<T>()`  | Response type is assignable to `T` (false for void commands and notifications) |
+| `IsResponseAssignableTo(Type)` | Response type is assignable to the given type                                  |
 
 Use `IsMessageAssignableTo` to scope a middleware to a specific message or base type:
 
@@ -334,11 +334,11 @@ Both approaches combine well - filter out entire message kinds at compile time, 
 
 Register middleware with `Use`, `Prepend`, or `Append` to control where it sits in the pipeline.
 
-| Method | Behavior |
-| --- | --- |
-| `Use(config)` | Appends to the end of the middleware list |
-| `Prepend(config)` | Inserts at the beginning |
-| `Prepend("Logging", config)` | Inserts before the middleware with key `"Logging"` |
+| Method                              | Behavior                                                  |
+| ----------------------------------- | --------------------------------------------------------- |
+| `Use(config)`                       | Appends to the end of the middleware list                 |
+| `Prepend(config)`                   | Inserts at the beginning                                  |
+| `Prepend("Logging", config)`        | Inserts before the middleware with key `"Logging"`        |
 | `Append("Instrumentation", config)` | Inserts after the middleware with key `"Instrumentation"` |
 
 If the referenced key is not found, `Prepend(key, ...)` falls back to inserting at the beginning and `Append(key, ...)` falls back to appending at the end.
@@ -360,10 +360,10 @@ The `Key` property on `MediatorMiddlewareConfiguration` is optional. Middleware 
 
 ## Built-in middleware keys
 
-| Key | Middleware | Added by |
-| --- | --- | --- |
-| `"Instrumentation"` | `MediatorDiagnosticMiddleware` | Always present (added by `MediatorBuilder` constructor) |
-| `"EntityFrameworkTransaction"` | `EntityFrameworkTransactionMiddleware` | `UseEntityFrameworkTransactions<TContext>()` |
+| Key                            | Middleware                             | Added by                                                |
+| ------------------------------ | -------------------------------------- | ------------------------------------------------------- |
+| `"Instrumentation"`            | `MediatorDiagnosticMiddleware`         | Always present (added by `MediatorBuilder` constructor) |
+| `"EntityFrameworkTransaction"` | `EntityFrameworkTransactionMiddleware` | `UseEntityFrameworkTransactions<TContext>()`            |
 
 # Pipeline execution order
 
@@ -389,10 +389,10 @@ The `Instrumentation` middleware is always present as the first entry because `M
 
 When a notification has multiple handlers, the **notification strategy** controls how they are invoked. Mocha ships two strategies:
 
-| Strategy | Behavior | Default |
-| --- | --- | --- |
-| `ForeachAwaitPublisher` | Invokes handlers one at a time, sequentially | Yes |
-| `TaskWhenAllPublisher` | Invokes all handlers concurrently with `Task.WhenAll` | No |
+| Strategy                | Behavior                                              | Default |
+| ----------------------- | ----------------------------------------------------- | ------- |
+| `ForeachAwaitPublisher` | Invokes handlers one at a time, sequentially          | Yes     |
+| `TaskWhenAllPublisher`  | Invokes all handlers concurrently with `Task.WhenAll` | No      |
 
 The default `ForeachAwaitPublisher` guarantees ordering - handlers execute in registration order. If a handler throws, subsequent handlers do not execute.
 

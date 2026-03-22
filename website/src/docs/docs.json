@@ -2899,7 +2899,10 @@
             "title": "Mediator",
             "items": [
               { "path": "index", "title": "Overview" },
-              { "path": "pipeline-and-middleware", "title": "Pipeline & Middleware" }
+              {
+                "path": "pipeline-and-middleware",
+                "title": "Pipeline & Middleware"
+              }
             ]
           }
         ]
