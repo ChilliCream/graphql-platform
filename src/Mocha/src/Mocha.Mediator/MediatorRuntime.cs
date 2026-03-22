@@ -67,14 +67,15 @@ public sealed class MediatorRuntime : IMediatorRuntime
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReturnContext(MediatorContext context)
     {
-        context.Reset();
-
         if (s_cached is null)
         {
+            // Reset here since the thread-static path bypasses the pool policy.
+            context.Reset();
             s_cached = context;
         }
         else
         {
+            // The pool policy's Return calls Reset(), so no need to reset here.
             _contextPool.Return(context);
         }
     }

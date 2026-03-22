@@ -59,12 +59,8 @@ public sealed class MediatorContext : IMediatorContext
         Services = serviceProvider;
         Message = message;
         MessageType = messageType;
+        ResponseType = responseType ?? typeof(void);
         CancellationToken = cancellationToken;
-        if (responseType is not null)
-        {
-            ResponseType = responseType;
-        }
-
         _features.Initialize(runtime.Features);
     }
 
