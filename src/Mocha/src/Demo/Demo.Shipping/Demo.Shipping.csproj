@@ -7,6 +7,8 @@
     <ProjectReference Include="..\Demo.ServiceDefaults\Demo.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Demo.Contracts\Demo.Contracts.csproj" />
     <ProjectReference Include="..\..\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\Mocha.Mediator\Mocha.Mediator.csproj" />
+    <ProjectReference Include="..\..\Mocha.Analyzers\Mocha.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Mocha.EntityFrameworkCore.Postgres\Mocha.EntityFrameworkCore.Postgres.csproj" />
     <ProjectReference Include="..\..\Mocha.Transport.RabbitMQ\Mocha.Transport.RabbitMQ.csproj" />
   </ItemGroup>

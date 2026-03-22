@@ -92,12 +92,13 @@ public static class MessageBusHostBuilderExtensions
     }
 
     /// <summary>
-    /// Configures additional services for the message bus through the host builder.
+    /// Registers additional services into the internal service collection used by the message bus.
+    /// This is the message bus equivalent of Hot Chocolate's <c>ConfigureSchemaServices</c>.
     /// </summary>
     /// <param name="builder">The host builder.</param>
     /// <param name="configure">The action to configure services.</param>
     /// <returns>The builder for method chaining.</returns>
-    public static IMessageBusHostBuilder ConfigureServices(
+    public static IMessageBusHostBuilder ConfigureBusServices(
         this IMessageBusHostBuilder builder,
         Action<IServiceCollection> configure)
     {
@@ -106,12 +107,13 @@ public static class MessageBusHostBuilderExtensions
     }
 
     /// <summary>
-    /// Configures additional services for the message bus through the host builder, with access to the existing service provider.
+    /// Registers additional services into the internal service collection used by the message bus,
+    /// with access to the application-level service provider for conditional registration.
     /// </summary>
     /// <param name="builder">The host builder.</param>
     /// <param name="configure">The action to configure services with access to the service provider.</param>
     /// <returns>The builder for method chaining.</returns>
-    public static IMessageBusHostBuilder ConfigureServices(
+    public static IMessageBusHostBuilder ConfigureBusServices(
         this IMessageBusHostBuilder builder,
         Action<IServiceProvider, IServiceCollection> configure)
     {

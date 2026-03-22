@@ -21,7 +21,7 @@ public static class OutboxServiceCollectionExtensions
     /// <see cref="IMessageOutbox"/> backed by direct Npgsql inserts.
     /// </summary>
     /// <remarks>
-    /// This method also calls <see cref="OutboxEntityFrameworkCorePersistanceBuilderExtensions.UseOutboxCore"/>
+    /// This method also calls <see cref="OutboxEntityFrameworkCorePersistenceBuilderExtensions.UseOutboxCore"/>
     /// to register the EF Core interceptors that signal the processor on save and commit.
     /// </remarks>
     /// <param name="builder">The Entity Framework Core builder to configure.</param>

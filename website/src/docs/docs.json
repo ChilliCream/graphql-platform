@@ -2893,6 +2893,17 @@
           {
             "path": "hosting",
             "title": "Hosting"
+          },
+          {
+            "path": "mediator",
+            "title": "Mediator",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              {
+                "path": "pipeline-and-middleware",
+                "title": "Pipeline & Middleware"
+              }
+            ]
           }
         ]
       }

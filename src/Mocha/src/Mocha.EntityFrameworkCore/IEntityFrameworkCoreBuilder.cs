@@ -2,11 +2,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.EntityFrameworkCore;
 
-// TODO this interface is probably too generic (naming)
 /// <summary>
-/// Defines the contract for configuring Entity Framework Core persistence features
+/// Defines the contract for configuring Entity Framework Core messaging persistence features
 /// (outbox, sagas, resilience) for a specific DbContext within the message bus host.
 /// </summary>
+/// <remarks>
+/// This builder is scoped to messaging persistence concerns and is not a general-purpose
+/// EF Core configuration interface. It is obtained via
+/// <c>AddEntityFramework&lt;TContext&gt;()</c> on the message bus host builder.
+/// </remarks>
 public interface IEntityFrameworkCoreBuilder
 {
     /// <summary>
