@@ -177,6 +177,78 @@ When you register a request handler with `AddRequestHandler<T>()` for send (fire
 
 Send messages go to a dedicated queue. Only one handler processes each message - this is the point-to-point guarantee.
 
+# Configure transport-level defaults
+
+You can set defaults that apply to all auto-provisioned queues and exchanges. This is useful when you want consistent settings across all resources without configuring each one individually.
+
+Use `ConfigureDefaults` to set queue and exchange defaults:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRabbitMQ(transport =>
+    {
+        transport.ConfigureDefaults(defaults =>
+        {
+            // All queues will be quorum with a delivery limit of 5
+            defaults.Queue.QueueType = RabbitMQQueueType.Quorum;
+            defaults.Queue.Arguments["x-delivery-limit"] = 5;
+
+            // All exchanges will use topic routing
+            defaults.Exchange.Type = RabbitMQExchangeType.Topic;
+        });
+    });
+```
+
+For example, to enable [quorum queues](https://www.rabbitmq.com/docs/quorum-queues) with a specific initial group size:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRabbitMQ(transport =>
+    {
+        transport.ConfigureDefaults(defaults =>
+        {
+            defaults.Queue.QueueType = RabbitMQQueueType.Quorum;
+            defaults.Queue.Arguments["x-quorum-initial-group-size"] = 3;
+        });
+    });
+```
+
+Or to use [stream queues](https://www.rabbitmq.com/docs/streams) for append-only log semantics:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRabbitMQ(transport =>
+    {
+        transport.ConfigureDefaults(defaults =>
+        {
+            defaults.Queue.QueueType = RabbitMQQueueType.Stream;
+        });
+    });
+```
+
+Available queue defaults:
+
+| Property     | Type                         | Description                                                       |
+| ------------ | ---------------------------- | ----------------------------------------------------------------- |
+| `QueueType`  | `string`                     | Queue type: `RabbitMQQueueType.Classic`, `.Quorum`, or `.Stream`  |
+| `Durable`    | `bool?`                      | Whether queues survive broker restarts (default: `true`)          |
+| `AutoDelete` | `bool?`                      | Whether queues are auto-deleted when unused (default: `false`)    |
+| `Arguments`  | `Dictionary<string, object>` | Additional arguments (e.g., `x-delivery-limit`, `x-max-priority`) |
+
+Available exchange defaults:
+
+| Property     | Type                         | Description                                                                      |
+| ------------ | ---------------------------- | -------------------------------------------------------------------------------- |
+| `Type`       | `string`                     | Exchange type: `RabbitMQExchangeType.Fanout`, `.Direct`, `.Topic`, or `.Headers` |
+| `Durable`    | `bool?`                      | Whether exchanges survive broker restarts (default: `true`)                      |
+| `AutoDelete` | `bool?`                      | Whether exchanges are auto-deleted when unused (default: `false`)                |
+| `Arguments`  | `Dictionary<string, object>` | Additional arguments (e.g., `alternate-exchange`)                                |
+
+Defaults never override explicitly configured values. If you declare a queue with a specific queue type, that setting takes precedence over the transport default. You can call `ConfigureDefaults` multiple times - each call accumulates settings on the same defaults object.
+
 # Declare custom topology
 
 Mocha auto-provisions topology by default. To declare additional exchanges, queues, or bindings:
@@ -205,6 +277,116 @@ builder.Services
 ```
 
 All explicitly declared topology is provisioned when the transport starts, before receive endpoints begin consuming.
+
+# Control auto-provisioning
+
+By default, the transport auto-provisions all topology resources (exchanges, queues, bindings) on the broker at startup. In production environments where infrastructure is managed externally - for example by Terraform, Ansible, or the [RabbitMQ Messaging Topology Operator](https://www.rabbitmq.com/kubernetes/operator/install-topology-operator) on Kubernetes - you can disable auto-provisioning so the transport expects resources to already exist.
+
+## Disable globally
+
+Turn off auto-provisioning for the entire transport:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.AutoProvision(false);
+    });
+```
+
+With auto-provisioning disabled, the transport will not create any exchanges, queues, or bindings. All resources must already exist on the broker before the transport starts.
+
+## Override per resource
+
+Individual resources can override the transport-level setting. This is useful when most topology is managed externally but a few resources need to be created dynamically:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRabbitMQ(transport =>
+    {
+        // Disable globally
+        transport.AutoProvision(false);
+
+        // This exchange already exists on the broker - skip provisioning
+        transport.DeclareExchange("order-events");
+
+        // This queue should be created by the transport
+        transport.DeclareQueue("billing-orders")
+            .AutoProvision(true);
+
+        // This binding should also be created
+        transport.DeclareBinding("order-events", "billing-orders")
+            .AutoProvision(true);
+    });
+```
+
+The effective auto-provision value for each resource follows a cascading pattern:
+
+| Resource setting | Transport setting | Result          |
+| ---------------- | ----------------- | --------------- |
+| `true`           | any               | Provisioned     |
+| `false`          | any               | Not provisioned |
+| not set          | `true` (default)  | Provisioned     |
+| not set          | `false`           | Not provisioned |
+
+When a resource does not specify `AutoProvision`, it inherits the transport-level default. When the transport does not specify `AutoProvision`, it defaults to `true`.
+
+## Common patterns
+
+**Fully managed infrastructure:** Disable auto-provisioning globally and declare all resources without `AutoProvision`. The transport will use existing broker resources without attempting to create them.
+
+```csharp
+transport.AutoProvision(false);
+transport.DeclareExchange("order-events");
+transport.DeclareQueue("billing-orders");
+transport.DeclareBinding("order-events", "billing-orders");
+```
+
+**Selective provisioning:** Disable globally but enable for specific resources that are owned by this service.
+
+```csharp
+transport.AutoProvision(false);
+transport.DeclareExchange("shared-events");              // managed externally
+transport.DeclareQueue("my-service-queue")
+    .AutoProvision(true);                                // owned by this service
+transport.DeclareBinding("shared-events", "my-service-queue")
+    .AutoProvision(true);                                // owned by this service
+```
+
+**Kubernetes with the Messaging Topology Operator:** When the [RabbitMQ Messaging Topology Operator](https://www.rabbitmq.com/kubernetes/operator/install-topology-operator) manages your exchanges, queues, and bindings as Kubernetes custom resources, disable auto-provisioning entirely. The operator declares topology through CRDs, and the transport simply uses the existing resources:
+
+```yaml
+# Kubernetes CRD - managed by the Messaging Topology Operator
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: billing-orders
+spec:
+  name: billing-orders
+  durable: true
+  rabbitmqClusterReference:
+    name: my-cluster
+```
+
+```csharp
+// Application code - topology already exists on the broker
+transport.AutoProvision(false);
+transport.DeclareExchange("order-events");
+transport.DeclareQueue("billing-orders");
+transport.DeclareBinding("order-events", "billing-orders");
+```
+
+**Opt-out individual resources:** Keep auto-provisioning enabled but skip specific resources that are managed elsewhere.
+
+```csharp
+transport.DeclareExchange("platform-events")
+    .AutoProvision(false);                               // managed by platform team
+transport.DeclareQueue("my-queue");                      // auto-provisioned (default)
+transport.DeclareBinding("platform-events", "my-queue"); // auto-provisioned (default)
+```
 
 # Prefetch and concurrency
 
@@ -250,8 +432,8 @@ All auto-provisioned resources are durable by default and survive broker restart
 
 - [Transports Overview](/docs/mocha/v1/transports) - Understand the transport abstraction and lifecycle.
 - [Handlers and Consumers](/docs/mocha/v1/handlers-and-consumers) - Learn about handler types and consumer configuration.
-- [Reliability](/docs/mocha/v1/reliability) - Configure dead-letter routing, outbox, and fault handling.
+- [Reliability](/docs/mocha/v1/reliability) - Configure dead-letter routing, outbox, inbox, and fault handling.
 
 > **Runnable example:** [RabbitMQ](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Transports/RabbitMQ)
 >
-> **Full demo:** All three Demo services use RabbitMQ in production mode with .NET Aspire. See [Demo.AppHost](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.AppHost) for the Aspire orchestration and [Demo.Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog) for a complete service using `.AddRabbitMQ()` with outbox, sagas, and multiple handler types.
+> **Full demo:** All three Demo services use RabbitMQ in production mode with .NET Aspire. See [Demo.AppHost](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.AppHost) for the Aspire orchestration and [Demo.Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog) for a complete service using `.AddRabbitMQ()` with outbox, inbox, sagas, and multiple handler types.

@@ -27,7 +27,7 @@ public class OutboxIntegrationTests
         // act
         await bus.PublishAsync(new OutboxTestEvent { Payload = "capture-me" }, CancellationToken.None);
 
-        // assert — message captured by outbox, not delivered to transport
+        // assert - message captured by outbox, not delivered to transport
         await WaitUntilAsync(() => outbox.Envelopes.Count >= 1, s_timeout);
         Assert.Single(outbox.Envelopes);
     }
@@ -51,7 +51,7 @@ public class OutboxIntegrationTests
         await bus.PublishAsync(new OutboxTestEvent { Payload = "second" }, CancellationToken.None);
         await bus.PublishAsync(new OutboxTestEvent { Payload = "third" }, CancellationToken.None);
 
-        // assert — all three captured
+        // assert - all three captured
         await WaitUntilAsync(() => outbox.Envelopes.Count >= 3, s_timeout);
         Assert.Equal(3, outbox.Envelopes.Count);
     }
@@ -77,7 +77,7 @@ public class OutboxIntegrationTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish with SkipOutbox header set via PublishOptions
+        // act - publish with SkipOutbox header set via PublishOptions
         // The SkipOutbox is set via dispatch middleware feature, which we configure
         // by prepending a middleware that sets it before the outbox middleware runs
         await bus.PublishAsync(
@@ -88,7 +88,7 @@ public class OutboxIntegrationTests
         // Also publish a normal one that should go to outbox
         await bus.PublishAsync(new OutboxTestEvent { Payload = "capture-me" }, CancellationToken.None);
 
-        // assert — only one message captured (the one without skip), the skipped one
+        // assert - only one message captured (the one without skip), the skipped one
         // was delivered to handler
         Assert.True(await recorder.WaitAsync(s_timeout), "Skipped message should have been delivered to handler");
         await WaitUntilAsync(() => outbox.Envelopes.Count >= 1, s_timeout);
@@ -121,7 +121,7 @@ public class OutboxIntegrationTests
         // act
         await bus.PublishAsync(new OutboxTestEvent { Payload = "signal-test" }, CancellationToken.None);
 
-        // assert — signal was set after persist
+        // assert - signal was set after persist
         await WaitUntilAsync(() => signal.SignalCount > 0, s_timeout);
         Assert.True(signal.SignalCount >= 1, "Signal should have been set at least once");
     }
@@ -147,7 +147,7 @@ public class OutboxIntegrationTests
         services.AddSingleton<IMessageOutbox>(outbox);
 
         var builder = services.AddMessageBus();
-        builder.AddOutboxCore();
+        builder.UseOutboxCore();
 
         // Add a middleware before outbox that checks for the skip header
         builder.ConfigureMessageBus(h =>

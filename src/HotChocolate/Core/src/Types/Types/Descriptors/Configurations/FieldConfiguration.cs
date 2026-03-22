@@ -117,6 +117,8 @@ public abstract class FieldConfiguration
 
     public void SetSourceGeneratorFlags() => Flags |= CoreFieldFlags.SourceGenerator;
 
+    public void SetBatchResolverFlags() => Flags |= CoreFieldFlags.BatchResolver;
+
     public void SetConnectionFlags() => Flags |= CoreFieldFlags.Connection;
 
     public void SetConnectionEdgesFieldFlags() => Flags |= CoreFieldFlags.ConnectionEdgesField;

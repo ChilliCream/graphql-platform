@@ -34,15 +34,18 @@ public static class SymbolExtensions
 
     public static MethodDescription GetDescription(this IMethodSymbol method, Compilation? compilation)
     {
-        var methodDescription = ResolveDescriptionCore(method, compilation, ExtractSummaryDescriptionFunc());
+        var (methodDescription, isFromAttribute) = ResolveDescriptionCore(method, compilation, ExtractSummaryDescriptionFunc());
 
         // Process parameter descriptions
         var parameters = method.Parameters;
-        var paramDescriptions = ImmutableArray.CreateBuilder<string?>(parameters.Length);
+        var paramDescriptions = ImmutableArray.CreateBuilder<(string?, bool)>(parameters.Length);
 
         foreach (var param in parameters)
         {
-            var paramDescription = compilation?.GetDescription(param)?.Description ?? GetDescriptionFromAttribute(param);
+            var paramDesc = compilation?.GetDescription(param);
+            var paramDescription = paramDesc?.Description ?? GetDescriptionFromAttribute(param);
+            var paramIsFromAttribute = paramDesc?.IsDescriptionFromAttribute
+                ?? (paramDescription != null && GetDescriptionFromAttribute(param) != null);
             var commentXml = method.GetDocumentationCommentXml();
 
             if (paramDescription == null && !string.IsNullOrEmpty(commentXml))
@@ -53,6 +56,7 @@ public static class SymbolExtensions
                     var paramDoc = ExtractParameterDescriptionFunc(param)(doc);
 
                     paramDescription = GeneratorUtils.NormalizeXmlDocumentation(paramDoc);
+                    paramIsFromAttribute = false;
                 }
                 catch
                 {
@@ -61,10 +65,10 @@ public static class SymbolExtensions
                 }
             }
 
-            paramDescriptions.Add(paramDescription);
+            paramDescriptions.Add((paramDescription, paramIsFromAttribute));
         }
 
-        return new MethodDescription(methodDescription, paramDescriptions.ToImmutable());
+        return new MethodDescription(methodDescription, paramDescriptions.ToImmutable(), isFromAttribute);
     }
 
     public static PropertyDescription? GetDescription(this IPropertySymbol property)
@@ -72,8 +76,8 @@ public static class SymbolExtensions
 
     public static PropertyDescription? GetDescription(this IPropertySymbol property, Compilation? compilation)
     {
-        var result = ResolveDescriptionCore(property, compilation, ExtractSummaryDescriptionFunc());
-        return result is null ? null : new PropertyDescription(result);
+        var (result, isFromAttribute) = ResolveDescriptionCore(property, compilation, ExtractSummaryDescriptionFunc());
+        return result is null ? null : new PropertyDescription(result, isFromAttribute);
     }
 
     public static ParameterDescription? GetDescription(this IParameterSymbol parameter)
@@ -81,17 +85,17 @@ public static class SymbolExtensions
 
     public static ParameterDescription? GetDescription(this IParameterSymbol parameter, Compilation? compilation)
     {
-        var result = ResolveDescriptionCore(parameter, compilation, ExtractParameterDescriptionFunc(parameter));
-        return result is null ? null : new ParameterDescription(result);
+        var (result, isFromAttribute) = ResolveDescriptionCore(parameter, compilation, ExtractParameterDescriptionFunc(parameter));
+        return result is null ? null : new ParameterDescription(result, isFromAttribute);
     }
 
     public static string? GetDescription(this INamedTypeSymbol type)
         => type.GetDescription(null);
 
     public static string? GetDescription(this INamedTypeSymbol type, Compilation? compilation)
-        => ResolveDescriptionCore(type, compilation, ExtractSummaryDescriptionFunc());
+        => ResolveDescriptionCore(type, compilation, ExtractSummaryDescriptionFunc()).Description;
 
-    private static string? ResolveDescriptionCore(
+    private static (string? Description, bool IsFromAttribute) ResolveDescriptionCore(
         ISymbol symbol,
         Compilation? compilation,
         Func<XDocument, string?> xmlExtractor)
@@ -100,33 +104,33 @@ public static class SymbolExtensions
         var description = GetDescriptionFromAttribute(symbol);
         if (description != null)
         {
-            return description;
+            return (description, true);
         }
 
         // 2. Inheritance-aware resolution when compilation is available
         if (compilation != null)
         {
-            return GetDocumentationWithInheritance(symbol, compilation, xmlExtractor);
+            return (GetDocumentationWithInheritance(symbol, compilation, xmlExtractor), false);
         }
 
         // 3. Fallback to simple XML extraction without inheritdoc support
         var xml = symbol.GetDocumentationCommentXml();
         if (string.IsNullOrEmpty(xml))
         {
-            return null;
+            return (null, false);
         }
 
         try
         {
             var doc = XDocument.Parse(xml);
             var extracted = xmlExtractor(doc);
-            return GeneratorUtils.NormalizeXmlDocumentation(extracted);
+            return (GeneratorUtils.NormalizeXmlDocumentation(extracted), false);
         }
         catch
         {
             // XML documentation parsing is best-effort only.
             // Malformed XML is ignored and we fall back to no description.
-            return null;
+            return (null, false);
         }
     }
 
@@ -681,6 +685,13 @@ public static class SymbolExtensions
     public static string PrintNullRefQualifier(this ITypeSymbol typeSymbol)
         => typeSymbol.IsNullableRefType() ? "?" : string.Empty;
 
+    public static string ToAssemblyQualified(this ITypeSymbol typeSymbol)
+    {
+        var assemblyName = typeSymbol.ContainingAssembly?.Name ?? "UnknownAssembly";
+        var typeFullName = typeSymbol.ToDisplayString();
+        return $"{assemblyName}::{typeFullName}";
+    }
+
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)
         => typeSymbol.ToDisplayString(FullyQualifiedFormat);
 
@@ -773,110 +784,26 @@ public static class SymbolExtensions
         => parameter.Type is INamedTypeSymbol namedTypeSymbol
             && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments);
 
+    public static bool IsSelection(this IParameterSymbol parameter)
+        => parameter.Type.ToDisplayString() == WellKnownTypes.ISelection;
+
     public static bool IsGlobalState(
         this IParameterSymbol parameter,
+        Compilation compilation,
         [NotNullWhen(true)] out string? key)
-    {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
-        {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.GlobalStateAttribute"))
-            {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => parameter.TryGetStateKey("HotChocolate.GlobalStateAttribute", compilation, out key);
 
     public static bool IsScopedState(
         this IParameterSymbol parameter,
+        Compilation compilation,
         [NotNullWhen(true)] out string? key)
-    {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
-        {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.ScopedStateAttribute"))
-            {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => parameter.TryGetStateKey("HotChocolate.ScopedStateAttribute", compilation, out key);
 
     public static bool IsLocalState(
         this IParameterSymbol parameter,
+        Compilation compilation,
         [NotNullWhen(true)] out string? key)
-    {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
-        {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.LocalStateAttribute"))
-            {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => parameter.TryGetStateKey("HotChocolate.LocalStateAttribute", compilation, out key);
 
     public static bool IsEventMessage(
         this IParameterSymbol parameter)
@@ -922,6 +849,178 @@ public static class SymbolExtensions
                 key = null;
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKey(
+        this IParameterSymbol parameter,
+        string stateAttributeType,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (!IsOrInheritsFrom(attributeData.AttributeClass, stateAttributeType))
+            {
+                continue;
+            }
+
+            if (TryGetStateKeyFromAttributeUsage(attributeData, out key)
+                || TryGetStateKeyFromAttributeDeclaration(attributeData, compilation, out key))
+            {
+                return true;
+            }
+
+            key = parameter.Name;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromAttributeUsage(
+        AttributeData attributeData,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (attributeData.ConstructorArguments.Length == 1
+            && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+            && attributeData.ConstructorArguments[0].Value is string keyValue)
+        {
+            key = keyValue;
+            return true;
+        }
+
+        foreach (var namedArg in attributeData.NamedArguments)
+        {
+            if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
+            {
+                key = namedKeyValue;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromAttributeDeclaration(
+        AttributeData attributeData,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        var constructor = attributeData.AttributeConstructor;
+        if (constructor is not null
+            && TryGetStateKeyFromConstructorDeclaration(constructor, compilation, out key))
+        {
+            return true;
+        }
+
+        var attributeType = attributeData.AttributeClass;
+        if (attributeType is null)
+        {
+            return false;
+        }
+
+        foreach (var syntaxReference in attributeType.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is TypeDeclarationSyntax declaration
+                && TryGetStateKeyFromPrimaryConstructorBaseCall(declaration, compilation, out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromConstructorDeclaration(
+        IMethodSymbol constructor,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var syntaxReference in constructor.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is ConstructorDeclarationSyntax declaration
+                && declaration.Initializer is
+                {
+                    RawKind: (int)SyntaxKind.BaseConstructorInitializer,
+                    ArgumentList: { } argumentList
+                }
+                && TryGetConstantStringFromArgumentList(
+                    argumentList,
+                    declaration.SyntaxTree,
+                    compilation,
+                    out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromPrimaryConstructorBaseCall(
+        TypeDeclarationSyntax declaration,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (declaration.BaseList is null)
+        {
+            return false;
+        }
+
+        foreach (var baseType in declaration.BaseList.Types)
+        {
+            var argumentList = baseType.ChildNodes().OfType<ArgumentListSyntax>().FirstOrDefault();
+            if (argumentList is null)
+            {
+                continue;
+            }
+
+            if (TryGetConstantStringFromArgumentList(
+                argumentList,
+                declaration.SyntaxTree,
+                compilation,
+                out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetConstantStringFromArgumentList(
+        ArgumentListSyntax argumentList,
+        SyntaxTree syntaxTree,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (argumentList.Arguments.Count != 1)
+        {
+            return false;
+        }
+
+        var model = compilation.GetSemanticModel(syntaxTree);
+        var constantValue = model.GetConstantValue(argumentList.Arguments[0].Expression);
+
+        if (constantValue is { HasValue: true, Value: string keyValue })
+        {
+            key = keyValue;
+            return true;
         }
 
         return false;

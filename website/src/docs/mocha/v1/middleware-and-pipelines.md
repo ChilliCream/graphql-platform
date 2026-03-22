@@ -64,6 +64,8 @@ PublishAsync / SendAsync / RequestAsync
 ┌─────────────────────────┐
 │   Consumer Pipeline      │
 │  Instrumentation         │
+│  Transaction (optional)  │
+│  Inbox (optional)        │
 │  → Your Handler          │
 └─────────────────────────┘
 ```
@@ -308,11 +310,12 @@ Middleware can also be registered at transport or endpoint scope. Bus-level midd
 
 The built-in middleware in the receive pipeline implements the reliability and observability features described on their own pages:
 
+- The `Inbox` middleware deduplicates incoming messages based on `MessageId`, described in [Reliability](/docs/mocha/v1/reliability#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `PrependConsume` and `AppendConsume` with the `"Inbox"` key to position your middleware relative to it.
 - The `CircuitBreaker` and `DeadLetter` middleware implement the circuit breaker and dead-letter behaviors described in [Reliability](/docs/mocha/v1/reliability). Use `PrependReceive` and `AppendReceive` with their keys to position your middleware relative to them.
 - The `ReceiveInstrumentation` middleware generates the OpenTelemetry spans and metrics described in [Observability](/docs/mocha/v1/observability). Place logging or correlation middleware after `ReceiveInstrumentation` so telemetry context is available.
 
 # Next steps
 
-The pipeline handles failures automatically. Learn how circuit breaking, dead-letter routing, and the transactional outbox work in [Reliability](/docs/mocha/v1/reliability).
+The pipeline handles failures automatically. Learn how circuit breaking, dead-letter routing, the transactional outbox, and the idempotent inbox work in [Reliability](/docs/mocha/v1/reliability).
 
 > **Runnable examples:** [CustomMiddleware](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Middleware/CustomMiddleware), [UnitOfWork](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Middleware/UnitOfWork)

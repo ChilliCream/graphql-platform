@@ -109,7 +109,8 @@ public abstract class ExecutionTask : IExecutionTask
     /// The cancellation token.
     /// </param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    protected virtual ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
+    protected virtual ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
 
     /// <summary>
     /// Completes the task as faulted.

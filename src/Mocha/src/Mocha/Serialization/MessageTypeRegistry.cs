@@ -10,7 +10,11 @@ public sealed class MessageTypeRegistry(IMessageSerializerRegistry serializerReg
 {
     public IMessageSerializerRegistry Serializers => serializerRegistry;
 
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
     private readonly HashSet<MessageType> _messageTypes = [];
     private readonly Dictionary<Type, MessageType> _messageTypesByType = [];
     private readonly Dictionary<string, MessageType> _messageTypesByIdentity = [];

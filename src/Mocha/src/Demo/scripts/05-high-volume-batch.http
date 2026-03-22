@@ -35,7 +35,7 @@ GET {{billingUrl}}/api/revenue-summaries/latest
 ###
 
 ### ============================================
-### Step 3 (optional): Try a larger burst — 5000 events → ~10 batches
+### Step 3 (optional): Try a larger burst - 5000 events → ~10 batches
 ### ============================================
 
 ### Fire 5000 BulkOrderEvents

@@ -94,21 +94,26 @@ public static class CompilationExtensions
             switch (symbol)
             {
                 case IPropertySymbol property:
-                    return new PropertyDescription(property.GetDescriptionFromAttribute());
+                    return new PropertyDescription(
+                        property.GetDescriptionFromAttribute(),
+                        IsDescriptionFromAttribute: true);
 
                 case IMethodSymbol method:
-                    var paramDescs = ImmutableArray.CreateBuilder<string?>(method.Parameters.Length);
+                    var paramDescs = ImmutableArray.CreateBuilder<(string?, bool)>(method.Parameters.Length);
                     foreach (var p in method.Parameters)
                     {
-                        paramDescs.Add(p.GetDescriptionFromAttribute());
+                        paramDescs.Add((p.GetDescriptionFromAttribute(), true));
                     }
 
                     return new MethodDescription(
                         method.GetDescriptionFromAttribute(),
-                        paramDescs.ToImmutable());
+                        paramDescs.ToImmutable(),
+                        isDescriptionFromAttribute: true);
 
                 case IParameterSymbol parameter:
-                    return new ParameterDescription(parameter.GetDescriptionFromAttribute());
+                    return new ParameterDescription(
+                        parameter.GetDescriptionFromAttribute(),
+                        IsDescriptionFromAttribute: true);
 
                 default:
                     return null;
@@ -366,21 +371,21 @@ public static class CompilationExtensions
             return ResolverParameterKind.HttpResponse;
         }
 
-        if (parameter.IsGlobalState(out key))
+        if (parameter.IsGlobalState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetGlobalState
                 : ResolverParameterKind.GetGlobalState;
         }
 
-        if (parameter.IsScopedState(out key))
+        if (parameter.IsScopedState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetScopedState
                 : ResolverParameterKind.GetScopedState;
         }
 
-        if (parameter.IsLocalState(out key))
+        if (parameter.IsLocalState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetLocalState
@@ -410,6 +415,11 @@ public static class CompilationExtensions
         if (compilation.IsConnectionFlagsType(parameter.Type))
         {
             return ResolverParameterKind.ConnectionFlags;
+        }
+
+        if (parameter.IsSelection())
+        {
+            return ResolverParameterKind.Selection;
         }
 
         return ResolverParameterKind.Unknown;

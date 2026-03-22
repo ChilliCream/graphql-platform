@@ -143,9 +143,9 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
-        p.AddPostgresOutbox();
-        p.AddPostgresInbox();
+        p.UsePostgresOutbox();
         p.UseTransaction();
+        p.UsePostgresInbox();
     })
     .AddRabbitMQ();
 ```

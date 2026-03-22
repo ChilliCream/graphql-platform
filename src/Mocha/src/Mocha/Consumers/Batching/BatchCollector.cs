@@ -8,7 +8,11 @@ internal sealed class BatchCollector<TEvent> : IAsyncDisposable
     private readonly Func<MessageBatch<TEvent>, ValueTask> _onBatchReady;
     private readonly int _maxBatchSize;
 
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly DelayedAction _delay;
     private List<BufferedEntry<TEvent>> _buffer = [];
     private bool _disposed;

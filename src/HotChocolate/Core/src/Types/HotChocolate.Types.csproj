@@ -41,6 +41,7 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Errors" />
     <InternalsVisibleTo Include="HotChocolate.Types.Filters.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.Types.NodaTime" />
     <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.Queries" />
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting.Tests" />
@@ -61,14 +62,14 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Primitives\GreenDonut.Data.Primitives.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
-    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Fusion\src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Json\src\Json\HotChocolate.Text.Json.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
     <ProjectReference Include="..\Execution.Pipeline\HotChocolate.Execution.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
-    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
+    <ProjectReference Include="..\..\..\Fusion\src\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Base36\HotChocolate.Utilities.Base36.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
@@ -81,19 +82,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonHelpers.cs">
+    <Compile Include="..\..\..\Fusion\src\Fusion.Execution\Text\Json\JsonHelpers.cs">
       <Link>Text\Json\JsonHelpers.cs</Link>
     </Compile>
 
-    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonReaderHelper.cs">
+    <Compile Include="..\..\..\Fusion\src\Fusion.Execution\Text\Json\JsonReaderHelper.cs">
       <Link>Text\Json\JsonReaderHelper.cs</Link>
     </Compile>
 
-    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\MetaDbEventSource.cs">
+    <Compile Include="..\..\..\Fusion\src\Fusion.Execution\Text\Json\MetaDbEventSource.cs">
       <Link>Text\Json\MetaDbEventSource.cs</Link>
     </Compile>
 
-    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\ThrowHelper.cs">
+    <Compile Include="..\..\..\Fusion\src\Fusion.Execution\Text\Json\ThrowHelper.cs">
       <Link>Text\Json\ThrowHelper.cs</Link>
     </Compile>
 

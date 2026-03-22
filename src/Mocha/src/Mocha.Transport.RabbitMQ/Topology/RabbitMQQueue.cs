@@ -27,8 +27,9 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
 
     /// <summary>
     /// Gets a value indicating whether this queue is automatically provisioned during topology setup.
+    /// When <c>null</c>, the transport-level default is used.
     /// </summary>
-    public bool AutoProvision { get; private set; }
+    public bool? AutoProvision { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether this queue survives broker restarts.
@@ -58,7 +59,7 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
         Exclusive = configuration.Exclusive ?? false;
         AutoDelete = configuration.AutoDelete ?? false;
         Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
-        AutoProvision = configuration.AutoProvision ?? true;
+        AutoProvision = configuration.AutoProvision;
     }
 
     protected override void OnComplete(RabbitMQQueueConfiguration configuration)

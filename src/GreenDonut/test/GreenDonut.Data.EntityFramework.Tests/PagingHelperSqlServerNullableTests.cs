@@ -27,7 +27,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = arguments with { After = page1.CreateCursor(page1.Last!) };
+        arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
@@ -59,7 +59,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenByDescending(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = arguments with { After = page1.CreateCursor(page1.Last!) };
+        arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
@@ -91,7 +91,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = arguments with { After = page1.CreateCursor(page1.Last!) };
+        arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
@@ -123,7 +123,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenByDescending(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = arguments with { After = page1.CreateCursor(page1.Last!) };
+        arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
@@ -155,7 +155,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = arguments with { After = page1.CreateCursor(page1.Last!) };
+        arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
@@ -187,7 +187,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenByDescending(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = arguments with { After = page1.CreateCursor(page1.Last!) };
+        arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
@@ -219,7 +219,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = arguments with { After = page1.CreateCursor(page1.Last!) };
+        arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
@@ -251,7 +251,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenByDescending(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = arguments with { After = page1.CreateCursor(page1.Last!) };
+        arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)

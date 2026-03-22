@@ -12,8 +12,14 @@ namespace HotChocolate.Types;
 /// The `LatitudeType` scalar represents a valid decimal degrees latitude number.
 /// <a href="https://en.wikipedia.org/wiki/Latitude">Read More</a>
 /// </summary>
-public class LatitudeType : ScalarType<double, StringValueNode>
+public partial class LatitudeType : ScalarType<double, StringValueNode>
 {
+    private const string SexagesimalRegex =
+        @"^([0-9]{1,3})°\s*([0-9]{1,3}(?:\.(?:[0-9]{1,}))?)['′]\s*(([0-9]{1,3}"
+        + @"(\.([0-9]{1,}))?)[""″]\s*)?([NEOSW]?)\z";
+
+    internal static Regex ValidationPattern { get; } = ValidationPatternRegex();
+
     /// <summary>
     /// Initializes a new instance of <see cref="LatitudeType"/>
     /// </summary>
@@ -82,18 +88,14 @@ public class LatitudeType : ScalarType<double, StringValueNode>
         throw ThrowHelper.LatitudeType_InvalidFormat(this);
     }
 
+    [GeneratedRegex(SexagesimalRegex, RegexOptions.IgnoreCase)]
+    private static partial Regex ValidationPatternRegex();
+
     private static class Latitude
     {
         private const double Min = -90.0;
         private const double Max = 90.0;
         private const int MaxPrecision = 8;
-
-        private const string SexagesimalRegex =
-            @"^([0-9]{1,3})°\s*([0-9]{1,3}(?:\.(?:[0-9]{1,}))?)['′]\s*(([0-9]{1,3}"
-            + @"(\.([0-9]{1,}))?)[""″]\s*)?([NEOSW]?)\z";
-
-        private static readonly Regex s_validationPattern =
-            new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public static bool IsValid(double value) => value is > Min and < Max;
 
@@ -101,7 +103,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
             string serialized,
             [NotNullWhen(true)] out double? value)
         {
-            var coords = s_validationPattern.Matches(serialized);
+            var coords = ValidationPattern.Matches(serialized);
             if (coords.Count > 0)
             {
                 var minute = double.TryParse(coords[0].Groups[2].Value, out var min)

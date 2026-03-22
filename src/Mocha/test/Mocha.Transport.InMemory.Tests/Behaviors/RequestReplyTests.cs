@@ -47,7 +47,7 @@ public class RequestReplyTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act & assert — null response triggers an internal exception caught by the fault
+        // act & assert - null response triggers an internal exception caught by the fault
         // middleware, which sends NotAcknowledgedEvent back as RemoteErrorException
         using var cts = new CancellationTokenSource(s_timeout);
         await Assert.ThrowsAsync<RemoteErrorException>(async () =>

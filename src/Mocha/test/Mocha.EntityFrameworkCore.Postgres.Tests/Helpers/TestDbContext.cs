@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Sagas.EfCore;
 
@@ -8,6 +9,7 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options) : DbC
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.AddPostgresInbox();
         modelBuilder.AddPostgresOutbox();
         modelBuilder.AddPostgresSagas();
     }

@@ -23,7 +23,9 @@ internal static class FusionPublishHelpers
         string tag,
         string? subgraphId,
         string? subgraphName,
+        SourceSchemaVersion[]? sourceSchemaVersions,
         bool waitForApproval,
+        SourceMetadataInput? source,
         StatusContext? statusContext,
         IAnsiConsole console,
         IApiClient client,
@@ -36,7 +38,17 @@ internal static class FusionPublishHelpers
             StageName = stageName,
             SubgraphName = subgraphName,
             SubgraphApiId = subgraphId,
-            WaitForApproval = waitForApproval
+            WaitForApproval = waitForApproval,
+            Source = source,
+            Subgraphs = sourceSchemaVersions is { Length: > 0 }
+                ? sourceSchemaVersions
+                    .Select(x => new FusionSubgraphVersionInput
+                    {
+                        Name = x.Name,
+                        Tag = x.Version
+                    })
+                    .ToArray()
+                : null
         };
 
         var result = await client.BeginFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
@@ -61,11 +73,7 @@ internal static class FusionPublishHelpers
 
         void OnNext(IOperationResult<IOnFusionConfigurationPublishingTaskChangedResult> x)
         {
-            if (x.Errors is { Count: > 0 } errors)
-            {
-                console.PrintErrorsAndExit(errors);
-                throw Exit("Something went wrong while monitoring the publish task.");
-            }
+            console.EnsureNoErrors(x);
 
             switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)
             {
@@ -240,11 +248,7 @@ internal static class FusionPublishHelpers
         await foreach (var x in subscription.ToAsyncEnumerable()
             .WithCancellation(cancellationToken))
         {
-            if (x.Errors is { Count: > 0 } errors)
-            {
-                console.PrintErrorsAndExit(errors);
-                throw Exit("No request ID returned");
-            }
+            console.EnsureNoErrors(x);
 
             switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)
             {
@@ -397,7 +401,7 @@ internal static class FusionPublishHelpers
         var escapedStageName = Uri.EscapeDataString(stageName);
 
         var requestUri = $"/api/v1/apis/{escapedApiId}/fusion/configurations/latest/download"
-            + $"?stageName={escapedStageName}";
+            + $"?stage={escapedStageName}";
 
         if (!isFgp)
         {
@@ -420,6 +424,8 @@ internal static class FusionPublishHelpers
 
         return new HttpRequestMessage(HttpMethod.Get, requestUri);
     }
+
+    internal sealed record SourceSchemaVersion(string Name, string Version);
 
     private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
     {

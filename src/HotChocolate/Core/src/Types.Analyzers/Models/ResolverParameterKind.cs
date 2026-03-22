@@ -23,5 +23,6 @@ public enum ResolverParameterKind
     Argument,
     QueryContext,
     PagingArguments,
-    ConnectionFlags
+    ConnectionFlags,
+    Selection
 }

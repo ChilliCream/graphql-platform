@@ -160,12 +160,10 @@ public class CircuitBreakerMiddlewareTests
             await bus.PublishAsync(new TestEvent { Data = $"fail-{i}" }, CancellationToken.None);
         }
 
-        await Task.Delay(1000, default);
-
-        // With concurrent consumers, more messages may reach the handler before
-        // the circuit breaker opens. At least MinimumThroughput (2) must be invoked.
+        // Wait for at least MinimumThroughput (2) handler invocations instead of
+        // relying on a fixed delay which is flaky on slow CI runners.
         Assert.True(
-            counter.Count >= 2,
+            await counter.WaitForCountAsync(2, s_timeout),
             $"Expected at least 2 invocations (MinimumThroughput), but got {counter.Count}");
     }
 
@@ -256,9 +254,27 @@ public class CircuitBreakerMiddlewareTests
     public sealed class InvocationCounter
     {
         private int _count;
+        private readonly SemaphoreSlim _semaphore = new(0);
         public int Count => _count;
 
-        public void Increment() => Interlocked.Increment(ref _count);
+        public void Increment()
+        {
+            Interlocked.Increment(ref _count);
+            _semaphore.Release();
+        }
+
+        public async Task<bool> WaitForCountAsync(int targetCount, TimeSpan timeout)
+        {
+            for (var i = 0; i < targetCount; i++)
+            {
+                if (!await _semaphore.WaitAsync(timeout))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
     /// <summary>

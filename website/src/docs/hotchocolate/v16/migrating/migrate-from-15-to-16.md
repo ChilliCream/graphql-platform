@@ -251,6 +251,76 @@ Most of the properties you'd want to modify are now immutable data structures th
 
 `OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
 
+## Page and cursor API changes
+
+### `Page<T>` is now abstract
+
+`Page<T>` can no longer be instantiated directly. Use the static factory methods instead:
+
+- Use `Page<T>.Empty` when you just need to return an empty page.
+- Use `Page<T>.Create(...)` when you need to construct a page yourself.
+
+```diff
+-return new Page<Product>(
+-    items,
+-    hasNextPage: hasNext,
+-    hasPreviousPage: false,
+-    createCursor: product => CreateCursor(product),
+-    totalCount: totalCount);
++return Page<Product>.Create(
++    items,
++    hasNextPage: hasNext,
++    hasPreviousPage: false,
++    createCursor: product => CreateCursor(product),
++    totalCount: totalCount);
+```
+
+### `CreateCursor` now takes an index instead of an item
+
+`Page<T>.CreateCursor` previously accepted a `T` item. It now accepts a zero-based `int` index into the page's `Items` array. This enables cursor generation from the underlying source element when a `valueSelector` projection is used.
+
+```diff
+-string cursor = page.CreateCursor(page.First);
++string cursor = page.CreateCursor(page.FirstIndex!.Value);
+```
+
+Use the new convenience extension methods `CreateStartCursor()` and `CreateEndCursor()` when you only need boundary cursors:
+
+```diff
+-var startCursor = page.First is not null ? page.CreateCursor(page.First) : null;
+-var endCursor = page.Last is not null ? page.CreateCursor(page.Last) : null;
++var startCursor = page.CreateStartCursor();
++var endCursor = page.CreateEndCursor();
+```
+
+Two new properties, `FirstIndex` and `LastIndex`, return the zero-based indices of the first and last items (or `null` for an empty page).
+
+### `Edge<T>` constructor changes
+
+A new constructor overload accepts the item, its zero-based index, and a `Func<int, string>` cursor resolver:
+
+```diff
+-new Edge<T>(item, cursor: page.CreateCursor)
++new Edge<T>(item, index, cursor: page.CreateCursor)
+```
+
+The existing `Edge<T>(T node, Func<T, string> resolveCursor)` constructor is still available for cases where the cursor is resolved from the item itself.
+
+### `ToConnectionAsync` with custom edge factory
+
+The `ToConnectionAsync` overloads that accept a custom edge factory now pass the zero-based item index instead of the item's cursor:
+
+```diff
+-.ToConnectionAsync((source, page) =>
+-    new MyEdge(source, edge => page.CreateCursor(edge.Node)));
++.ToConnectionAsync((source, page, index) =>
++    new MyEdge(source, page.CreateCursor(index)));
+```
+
+### `ToBatchPageAsync` with `valueSelector`
+
+`ToBatchPageAsync<TKey, TValue, TElement>` now supports a `valueSelector` parameter (`Func<TElement, TValue>`) that projects each source element before the page is returned, while preserving the original elements for correct cursor generation. Passing `null` for `valueSelector` is only valid when `TElement` and `TValue` are the same type; a mismatched combination throws `ArgumentNullException` at runtime.
+
 ## OperationResult changes
 
 We've removed the `IOperationResult` abstraction. If you've previously pattern-matched on this, you can simply replace it with `OperationResult`. To assert that an `IExecutionResult` is an `OperationResult` in tests, use `result.ExpectOperationResult();`.
@@ -386,22 +456,97 @@ So, if you were referencing HotChocolate.Execution or HotChocolate.Fetching dire
 
 ## Simpler Scalar Type
 
-TODO
+In v16, creating custom scalar types is more straightforward. The `ScalarType<TRuntimeType>` base class now uses a streamlined API. Instead of overriding both `Serialize`/`Deserialize` and `ParseLiteral`/`ParseValue`/`ParseResult`, you override a smaller set of methods:
+
+- `OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue)` -- writes the serialized value directly to the result element
+- `OnValueToLiteral(TRuntimeType runtimeValue)` -- converts a runtime value to an AST literal node
+- `OnLiteralToValue(IValueNode valueLiteral)` -- converts an AST literal node to a runtime value
+
+The old `Serialize`, `Deserialize`, `ParseLiteral`, `ParseValue`, and `ParseResult` methods still exist on the base `ScalarType` class for backward compatibility, but the new methods on `ScalarType<TRuntimeType>` are the recommended approach.
+
+```diff
+-public class MyScalar : ScalarType
++public class MyScalar : ScalarType<MyRuntimeType>
+ {
+-    public MyScalar() : base("MyScalar") { }
+-
+-    public override Type RuntimeType => typeof(MyRuntimeType);
+-
+-    public override bool IsInstanceOfType(IValueNode valueSyntax) => ...;
+-    public override object? ParseLiteral(IValueNode valueSyntax) => ...;
+-    public override IValueNode ParseValue(object? runtimeValue) => ...;
+-    public override IValueNode ParseResult(object? resultValue) => ...;
+-    public override bool TrySerialize(object? runtimeValue, out object? resultValue) => ...;
+-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue) => ...;
++    public MyScalar() : base("MyScalar") { }
++
++    protected override MyRuntimeType OnLiteralToValue(IValueNode valueLiteral) => ...;
++
++    protected override IValueNode OnValueToLiteral(MyRuntimeType runtimeValue) => ...;
++
++    protected override void OnCoerceOutputValue(
++        MyRuntimeType runtimeValue, ResultElement resultValue) => ...;
+ }
+```
 
 ## Removed Scalars
 
-TODO
+The following scalar types have been removed in v16. If your schema uses any of them, you need to either remove the usage or re-implement them as custom scalars.
 
-NegativeFloat
-NonNegativeFloat
-NegativeInt
-NonPositiveInt
-NonEmptyString
-NonNegativeInt
+| Removed Scalar     | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| `NegativeFloat`    | Represented a float value less than 0                |
+| `NonNegativeFloat` | Represented a float value greater than or equal to 0 |
+| `NegativeInt`      | Represented an int value less than 0                 |
+| `NonPositiveInt`   | Represented an int value less than or equal to 0     |
+| `NonEmptyString`   | Represented a non-empty string value                 |
+| `NonNegativeInt`   | Represented an int value greater than or equal to 0  |
+
+If you need equivalent validation behavior, create a custom scalar that extends `ScalarType<TRuntimeType>` and validates the value in `OnLiteralToValue` and `OnCoerceOutputValue`.
 
 ## OperationRequestBuilder
 
-TODO
+The `OperationRequestBuilder` has been updated in v16. The most notable changes:
+
+**`AddVariableValues` renamed to `SetVariableValues`**
+
+```diff
+var request = OperationRequestBuilder.New()
+    .SetDocument("{ hero { name } }")
+-   .AddVariableValues(new Dictionary<string, object?> { ["id"] = 1 })
++   .SetVariableValues(new Dictionary<string, object?> { ["id"] = 1 })
+    .Build();
+```
+
+**Variable values are now JSON-based**
+
+`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`. When you pass a dictionary of CLR objects, values are serialized to JSON internally. You can also pass variables directly as a JSON string:
+
+```csharp
+var request = OperationRequestBuilder.New()
+    .SetDocument("query ($id: ID!) { node(id: $id) { id } }")
+    .SetVariableValues("""{ "id": "42" }""")
+    .Build();
+```
+
+**Global state methods**
+
+The context data methods have been renamed:
+
+```diff
+-builder.AddProperty("key", value);
++builder.SetGlobalState("key", value);
+```
+
+Additional methods include `AddGlobalState`, `TryAddGlobalState`, and `RemoveGlobalState`.
+
+**`From` factory method**
+
+Use `OperationRequestBuilder.From(request)` to create a builder pre-populated from an existing request, instead of manually copying properties.
+
+**Features collection**
+
+The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
 
 ## Any and Json scalars merged
 
@@ -436,6 +581,61 @@ builder.Services
     .AddGraphQLServer()
     .AddTypeConverter<TimeZoneInfo, JsonElement>(
         value => JsonSerializer.SerializeToElement(value.Id));
+```
+
+### Any input fields now deserialize complex types as `JsonElement`
+
+Previously, complex input values for `Any`-typed input variables were deserialized as `IDictionary<string, object?>`. They are now deserialized as `JsonElement`, aligning input behavior with arbitrary output types.
+
+```csharp
+public string Foo([GraphQLType<AnyType>]object? input) => input?.GetType().Name;
+```
+
+```graphql
+query {
+  foo(input: { key: "value" })
+  # Now returns: "JsonElement"
+  # Previously (v15): "Dictionary`2"
+}
+```
+
+### Runtime objects passed as variables to OperationRequestBuilder are now serialized as JSON
+
+Passing CLR objects via `OperationRequestBuilder.SetVariableValues(Dictionary<string, object?>)` now serializes the values as JSON.
+
+You may prefer providing variables directly as JSON:
+
+```csharp
+var requestBuilder = new OperationRequestBuilder();
+requestBuilder.SetVariableValues("""{ "id": 42 }""");
+```
+
+Note that this can lead to errors if the emitted JSON for a type is not valid for the corresponding GraphQL scalar, f. e. du to format restrictions.
+For example, a `DateTime` value can no longer be used to fill a `Date` scalar since the JSON format does not match the expected yyyy-MM-dd format.
+
+You can also bypass this by annotating your types with custom JsonConverters.
+
+If you need to pass an Upload scalar value, you can do the following:
+
+```csharp
+var requestBuilder = new OperationRequestBuilder();
+requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
+requestBuilder.Features.Set<IFileLookup>(fileLookup);
+
+public class FileLookup : IFileLookup
+{
+    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
+    {
+        if (name == "yourKey")
+        {
+            file = new StreamFile("Foo.txt", () => new MemoryStream());
+            return true;
+        }
+
+        file = null;
+        return false;
+    }
+}
 ```
 
 ## `Byte` and `SignedByte` types renamed
@@ -615,6 +815,202 @@ builder.Services
         new HttpResponseFormatterOptions { /* ... */ },
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
+
+## `OperationRequestBuilder.AddVariableValues` renamed to `SetVariableValues`
+
+`OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
+
+## `TimeSpan` scalar renamed to `Duration`
+
+The `TimeSpan` scalar has been renamed to `Duration` to better reflect the underlying specification (ISO 8601), and move away from .NET-oriented naming.
+
+For backwards compatibility, you can rename the type as follows:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddType(new DurationType("TimeSpan"));
+```
+
+## NodaTime scalars now implement the GraphQL scalar specifications
+
+The `HotChocolate.Types.NodaTime` package was rewritten in v16 to align its scalar behavior with the specifications published on [scalars.graphql.org](https://scalars.graphql.org/).
+This is a breaking change if you relied on the old NodaTime scalar set or on the looser parsing behavior of the previous implementation.
+
+### Only five NodaTime scalars remain built in
+
+The package now only ships these spec-based scalar implementations:
+
+- `DateTimeType`
+- `DurationType`
+- `LocalDateType`
+- `LocalDateTimeType`
+- `LocalTimeType`
+
+These scalars expose `@specifiedBy` URLs and follow the corresponding scalar specifications for parsing and serialization.
+
+### Legacy NodaTime scalars were removed
+
+The following scalar types are no longer included in `HotChocolate.Types.NodaTime`:
+
+- `DateTimeZoneType`
+- `InstantType`
+- `IsoDayOfWeekType`
+- `OffsetDateType`
+- `OffsetTimeType`
+- `OffsetType`
+- `PeriodType`
+- `ZonedDateTimeType`
+
+If your schema used any of these scalars in v15, your project will no longer compile after upgrading until you remove them or provide your own replacement implementations.
+
+If you still need one of the removed scalars, add it back manually in your application as a custom scalar.
+
+### Use `AddNodaTime()` to register the new scalars
+
+v16 adds a dedicated `AddNodaTime()` extension method that registers all five built-in NodaTime scalars and the related CLR bindings and converters:
+
+```diff
+builder.Services
+    .AddGraphQLServer()
+-   .AddType<DateTimeType>()
+-   .AddType<DurationType>()
+-   .AddType<LocalDateType>()
+-   .AddType<LocalDateTimeType>()
+-   .AddType<LocalTimeType>();
++   .AddNodaTime();
+```
+
+`AddNodaTime()` also configures these runtime type mappings:
+
+- `DateTimeOffset` to `DateTimeType`
+- `DateTime` to `LocalDateTimeType`
+- `DateOnly` to `LocalDateType`
+- `TimeOnly` to `LocalTimeType`
+
+If you prefer, you can still register the remaining scalar types individually instead of using `AddNodaTime()`.
+
+## AddInstrumentation
+
+### `InstrumentationOptions` changes
+
+- `RenameRootActivity` was removed.
+- `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
+- `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+
+## OpenTelemetry span and status changes
+
+The OpenTelemetry spans and attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec).
+
+If you have dashboards or alerts that filter on the old attribute names or values, update them accordingly.
+
+Besides changes to the attributes, the most notable change is that the name of the root GraphQL span has been changed to just include the operation type (`query`, `mutation` or `subscription`), and no longer the operation name, to keep the cardinality low. The operation name can still be retrieved from the `graphql.operation.name` span attribute.
+
+### Removed attributes
+
+| Attribute                     |
+| ----------------------------- |
+| `graphql.operation.id`        |
+| `graphql.selection.type`      |
+| `graphql.selection.hierarchy` |
+
+### Renamed attributes
+
+| Old Attribute                           | New Attribute                         |
+| --------------------------------------- | ------------------------------------- |
+| `graphql.operation.kind`                | `graphql.operation.type`              |
+| `graphql.selection.field.declaringType` | `graphql.selection.field.parent_type` |
+| `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`       |
+| `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`       |
+| `graphql.fusion.node.schema`            | `graphql.source.name`                 |
+| `graphql.fusion.node.type`              | `graphql.operation.step.kind`         |
+| `graphql.error.location.line/column`    | `graphql.error.locations`             |
+
+### Changed attribute values
+
+| Attribute                | Old Value                             | New Value                                           |
+| ------------------------ | ------------------------------------- | --------------------------------------------------- |
+| `graphql.operation.type` | `Query` / `Mutation` / `Subscription` | `query` / `mutation` / `subscription`               |
+| `graphql.http.kind`      | `operation-batch`                     | `operation_batch`                                   |
+| `graphql.document.hash`  | `<hash>`                              | `<hash-algorithm>:<hash>` , e.g. `md5:<hash>`       |
+| `graphql.document.id`    | -                                     | Value is only set if document is a trusted document |
+
+### Custom enricher changes
+
+If you've implemented a custom `ActivityEnricher`, you no longer need to pass the `ObjectPool<StringBuilder>` down to the base class:
+
+```diff
+public class CustomActivityEnricher(
+-  ObjectPool<StringBuilder> stringBuilderPool,
+  InstrumentationOptions options
+-) : ActivityEnricher(stringBuilderPool, options);
++) : ActivityEnricher(options);
+```
+
+There have also been some changes to the methods you can override in your enricher:
+
+| v15                                                                       | v16                                                                                                                                                        |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EnrichParserErrors(HttpContext, IError, Activity)`                       | Replaced by `EnrichParserErrors(HttpContext, IReadOnlyList<IError>, Activity)`.                                                                            |
+| `EnrichRequestError(RequestContext, Activity, Exception)`                 | Replaced by `EnrichRequestError(RequestContext, Exception, Activity)`.                                                                                     |
+| `EnrichRequestError(RequestContext, Activity, IError)`                    | Replaced by `EnrichRequestError(RequestContext, IError, Activity)`.                                                                                        |
+| `EnrichValidationError(RequestContext, Activity, IError)`                 | Replaced by `EnrichValidationErrors(RequestContext, IReadOnlyList<IError>, Activity)`.                                                                     |
+| `EnrichAnalyzeOperationComplexity(RequestContext, Activity)`              | Replaced by `EnrichAnalyzeOperationCost(RequestContext, Activity)`.                                                                                        |
+| `EnrichDataLoaderBatch<TKey>(IDataLoader, IReadOnlyList<TKey>, Activity)` | Replaced by `EnrichExecuteBatch<TKey>(IDataLoader, IReadOnlyList<TKey>, Activity)`.                                                                        |
+| `EnrichResolverError(RequestContext, IError, Activity)`                   | Removed. Use `EnrichRequestError(...)` for request-level errors and `EnrichResolverError(IMiddlewareContext, IError, Activity)` for field resolver errors. |
+| `EnrichRequestVariables(...)`                                             | Removed.                                                                                                                                                   |
+| `EnrichBatchVariables(...)`                                               | Removed.                                                                                                                                                   |
+| `EnrichRequestExtensions(...)`                                            | Removed.                                                                                                                                                   |
+| `EnrichBatchExtensions(...)`                                              | Removed.                                                                                                                                                   |
+| `CreateOperationDisplayName(...)`                                         | Removed.                                                                                                                                                   |
+| `CreateRootActivityName(...)`                                             | Removed.                                                                                                                                                   |
+| `EnrichError(...)`                                                        | Removed.                                                                                                                                                   |
+
+> Note: Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic-convention attributes are now applied by the instrumentation itself, and custom enrichers are only intended for adding extra information.
+
+## Diagnostic Listeners
+
+We removed the following methods from the `IExecutionDiagnosticEventListener` since they no longer apply:
+
+- `ExecuteStream`
+- `ExecuteDeferredTask`
+- `DispatchBatch`
+- `SubscriptionTransportError`
+- `SubscriptionEventResult`
+
+Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
+
+<!--
+TODO: This should probably go on in the Fusion specific guide.
+
+### Fusion diagnostic listener API redesign
+
+Fusion diagnostics were redesigned in v16.
+
+- v15 interface: `HotChocolate.Fusion.Execution.Diagnostic.IFusionDiagnosticEvents` / `IFusionDiagnosticEventListener`
+- v16 interface: `HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents` / `IFusionExecutionDiagnosticEventListener`
+
+This is not a signature-only change. The old high-level hooks were removed:
+
+- `ExecuteFederatedQuery(IRequestContext)`
+- `QueryPlanExecutionError(Exception)`
+- `ResolveError(Exception)`
+- `ResolveByKeyBatchError(Exception)`
+- `SubgraphRequestError(string, Exception)`
+
+The new API is execution-stage specific and provides request/plan/node/subscription hooks, for example:
+
+- `PlanOperation(...)`, `PlanOperationError(...)`
+- `ExecuteOperationNode(...)`, `ExecuteOperationBatchNode(...)`, `ExecuteSubscriptionNode(...)`, `ExecuteNodeFieldNode(...)`, `ExecuteIntrospectionNode(...)`
+- `ExecutionNodeError(...)`, `SourceSchemaTransportError(...)`, `SourceSchemaStoreError(...)`
+- `OnSubscriptionEvent(...)`, `SubscriptionEventError(...)`
+
+There is no 1:1 mapping for all old methods. In most cases:
+
+- `SubgraphRequestError(...)` maps to `SourceSchemaTransportError(...)`
+- `ResolveError(...)` / `ResolveByKeyBatchError(...)` map to `ExecutionNodeError(...)` and source-schema error hooks depending on error kind
+
+Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
 
 # Deprecations
 

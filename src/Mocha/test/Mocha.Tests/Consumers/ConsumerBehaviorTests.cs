@@ -52,7 +52,7 @@ public sealed class ConsumerBehaviorTests
         // arrange & act
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
 
-        // assert — 1 handler + Reply = 2
+        // assert - 1 handler + Reply = 2
         Assert.Equal(2, runtime.Consumers.Count);
     }
 
@@ -67,7 +67,7 @@ public sealed class ConsumerBehaviorTests
             b.AddRequestHandler<ProcessPaymentHandler>();
         });
 
-        // assert — 3 handlers + Reply = 4
+        // assert - 3 handlers + Reply = 4
         Assert.Equal(4, runtime.Consumers.Count);
     }
 
@@ -112,11 +112,11 @@ public sealed class ConsumerBehaviorTests
     [Fact]
     public void Initialize_Should_ThrowInvalidOperationException_When_CalledTwice()
     {
-        // arrange — get an already-initialized consumer from the runtime
+        // arrange - get an already-initialized consumer from the runtime
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
         var consumer = runtime.Consumers.First(c => c.Name == nameof(OrderCreatedHandler));
 
-        // act & assert — calling Initialize again should throw before touching the context
+        // act & assert - calling Initialize again should throw before touching the context
         var ex = Assert.Throws<InvalidOperationException>(() => consumer.Initialize(null!));
         Assert.Equal("Handler already initialized", ex.Message);
     }

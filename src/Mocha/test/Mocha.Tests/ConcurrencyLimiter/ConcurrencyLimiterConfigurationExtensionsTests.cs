@@ -19,7 +19,7 @@ public class ConcurrencyLimiterConfigurationExtensionsTests
             builder.AddEventHandler<NormalEventHandler>();
         });
 
-        // assert — configuration was accepted and runtime started successfully
+        // assert - configuration was accepted and runtime started successfully
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         Assert.True(runtime.IsStarted);
     }
@@ -35,7 +35,7 @@ public class ConcurrencyLimiterConfigurationExtensionsTests
             builder.AddEventHandler<NormalEventHandler>();
         });
 
-        // assert — multiple limiter configurations accepted; runtime started
+        // assert - multiple limiter configurations accepted; runtime started
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         Assert.True(runtime.IsStarted);
     }

@@ -83,12 +83,20 @@ public sealed class ParentAttributeAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
+            // For batch resolvers, the [Parent] parameter is a list type (e.g. List<Brand>).
+            // Unwrap the element type before validating.
+            var typeToCheck = parameterType;
+            if (IsBatchResolverMethod(methodDeclaration, semanticModel))
+            {
+                typeToCheck = UnwrapListElementType(parameterType) ?? parameterType;
+            }
+
             // Check if the parameter type is compatible with the ObjectType generic argument
             // Valid if:
             // 1. parameterType == objectTypeGenericArg
             // 2. objectTypeGenericArg inherits from parameterType
             // 3. objectTypeGenericArg implements parameterType (if it's an interface)
-            if (!IsValidParentType(objectTypeGenericArg, parameterType))
+            if (!IsValidParentType(objectTypeGenericArg, typeToCheck))
             {
                 var diagnostic = Diagnostic.Create(
                     Errors.ParentAttributeTypeMismatch,
@@ -130,6 +138,49 @@ public sealed class ParentAttributeAnalyzer : DiagnosticAnalyzer
                 {
                     return namedAttributeType.TypeArguments[0];
                 }
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsBatchResolverMethod(
+        MethodDeclarationSyntax methodDeclaration,
+        SemanticModel semanticModel)
+    {
+        if (semanticModel.GetDeclaredSymbol(methodDeclaration) is not IMethodSymbol methodSymbol)
+        {
+            return false;
+        }
+
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass is { Name: "BatchResolverAttribute" } attributeClass
+                && attributeClass.ContainingNamespace?.ToDisplayString() == "HotChocolate.Types")
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static ITypeSymbol? UnwrapListElementType(ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType;
+        }
+
+        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            var fullName = namedType.ConstructedFrom.ToDisplayString();
+            if (fullName is "System.Collections.Generic.List<T>"
+                or "System.Collections.Generic.IList<T>"
+                or "System.Collections.Generic.IReadOnlyList<T>"
+                or "System.Collections.Immutable.ImmutableArray<T>")
+            {
+                return namedType.TypeArguments[0];
             }
         }
 

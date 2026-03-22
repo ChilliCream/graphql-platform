@@ -7,6 +7,7 @@ import { BlockQuote } from "@/components/mdx/block-quote";
 import { CodeBlock } from "@/components/mdx/code-block";
 import {
   Code,
+  ExampleCode,
   ExampleTabs,
   Implementation,
   Schema,
@@ -26,6 +27,7 @@ const mdxComponents = {
   blockquote: BlockQuote,
   ExampleTabs,
   Code,
+  ExampleCode,
   Implementation,
   Schema,
   PackageInstallation,
@@ -47,6 +49,7 @@ const mdxComponents = {
   // tag names per the HTML spec, so <Video> becomes <video>, etc.
   video: Video,
   exampletabs: ExampleTabs,
+  examplecode: ExampleCode,
   implementation: Implementation,
   schema: Schema,
   packageinstallation: PackageInstallation,

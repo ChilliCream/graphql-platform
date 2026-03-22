@@ -6,7 +6,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Represents a RabbitMQ exchange entity with its configuration.
 /// </summary>
-public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfiguration>
+public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfiguration>, IRabbitMQResource
 {
     private ImmutableArray<RabbitMQBinding> _bindings = [];
 
@@ -22,8 +22,9 @@ public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfigur
 
     /// <summary>
     /// Gets a value indicating whether this exchange is automatically provisioned during topology setup.
+    /// When <c>null</c>, the transport-level default is used.
     /// </summary>
-    public bool AutoProvision { get; private set; }
+    public bool? AutoProvision { get; private set; }
 
     /// <summary>
     /// Gets the exchange type (e.g., "direct", "fanout", "topic", "headers").
@@ -58,7 +59,7 @@ public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfigur
         Type = configuration.Type ?? "fanout";
         AutoDelete = configuration.AutoDelete ?? false;
         Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
-        AutoProvision = configuration.AutoProvision ?? true;
+        AutoProvision = configuration.AutoProvision;
     }
 
     protected override void OnComplete(RabbitMQExchangeConfiguration configuration)

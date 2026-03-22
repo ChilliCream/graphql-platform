@@ -61,17 +61,18 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             Span<Range> ranges = stackalloc Range[3];
             var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 
-            int kindIndex,
-                nameIndex;
+            int kindIndex;
+            int nameIndex;
+
             if (segmentCount == 3)
             {
-                // vhost/kind/name — vhost adds an extra leading segment
+                // vhost/kind/name - vhost adds an extra leading segment
                 kindIndex = 1;
                 nameIndex = 2;
             }
             else if (segmentCount == 2)
             {
-                // kind/name — default vhost "/" disappears with RemoveEmptyEntries
+                // kind/name - default vhost "/" disappears with RemoveEmptyEntries
                 kindIndex = 0;
                 nameIndex = 1;
             }
@@ -145,12 +146,14 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             return;
         }
 
-        if (Queue is not null)
+        var autoProvision = ((RabbitMQMessagingTopology)transport.Topology).AutoProvision;
+
+        if (Queue is not null && (Queue.AutoProvision ?? autoProvision))
         {
             await Queue.ProvisionAsync(channel, cancellationToken);
         }
 
-        if (Exchange is not null)
+        if (Exchange is not null && (Exchange.AutoProvision ?? autoProvision))
         {
             await Exchange.ProvisionAsync(channel, cancellationToken);
         }

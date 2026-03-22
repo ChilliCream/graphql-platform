@@ -91,6 +91,18 @@ public sealed class ContinuousTask : IAsyncDisposable
 #endif
         }
 
+        // Wait for the background loop to finish before disposing the CTS.
+        // This prevents ObjectDisposedException if RunContinuously is still
+        // accessing _completion.Token when we dispose it.
+        try
+        {
+            await _task.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during shutdown.
+        }
+
         _completion.Dispose();
 
         _disposed = true;

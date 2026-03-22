@@ -72,7 +72,7 @@ public sealed class ConsumerInstrumentationMiddlewareTests
             // expected
         }
 
-        // assert — scope should be disposed even when exception occurs (using statement)
+        // assert - scope should be disposed even when exception occurs (using statement)
         Assert.True(scope.WasDisposed, "Scope should be disposed even when exception occurs");
     }
 

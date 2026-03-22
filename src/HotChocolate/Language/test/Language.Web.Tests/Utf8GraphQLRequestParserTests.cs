@@ -458,7 +458,7 @@ public class Utf8GraphQLRequestParserTests
         Assert.True(request.Extensions!.RootElement.TryGetProperty("persistedQuery", out _));
         Assert.Null(request.Document);
         Assert.Equal("hashOfQuery", request.DocumentHash?.Value);
-        Assert.Equal("sha256Hash", request.DocumentHash?.AlgorithmName);
+        Assert.Equal("sha256", request.DocumentHash?.AlgorithmName);
     }
 
     [Fact]

@@ -38,12 +38,12 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     /// <summary>
     /// Gets or sets whether the transport should automatically provision infrastructure for this endpoint.
     /// </summary>
-    public bool? AutoProvision { get; set; } = false;
+    public bool? AutoProvision { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum number of messages that can be processed concurrently on this endpoint.
     /// </summary>
-    public int MaxConcurrency { get; set; } = Environment.ProcessorCount;
+    public int? MaxConcurrency { get; set; }
 
     /// <summary>
     /// Gets or sets the receive-scoped middleware configurations executed during message reception.
@@ -54,4 +54,12 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     /// Gets or sets the list of pipeline modifiers that can reorder or replace receive middleware at build time.
     /// </summary>
     public List<Action<List<ReceiveMiddlewareConfiguration>>> ReceivePipelineModifiers { get; set; } = [];
+
+    public static class Defaults
+    {
+        /// <summary>
+        /// The default maximum concurrency for receive endpoints, set to twice the number of available processors.
+        /// </summary>
+        public static readonly int MaxConcurrency = Environment.ProcessorCount * 2;
+    }
 }

@@ -61,26 +61,22 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
         {
             _context = context;
 
-            var traceId = context.Headers.Get(MessageHeaders.TraceId);
-            var traceState = context.Headers.Get(MessageHeaders.TraceState);
-            var spanId = context.Headers.Get(MessageHeaders.SpanId);
+            var traceparent = context.Headers.Get(MessageHeaders.Traceparent);
 
             Activity? activity = null;
 
-            if (!string.IsNullOrEmpty(traceId) && !string.IsNullOrEmpty(spanId))
+            if (!string.IsNullOrEmpty(traceparent))
             {
-                var parentContext = new ActivityContext(
-                    ActivityTraceId.CreateFromString(traceId),
-                    ActivitySpanId.CreateFromString(spanId),
-                    ActivityTraceFlags.Recorded,
-                    traceState);
+                var traceState = context.Headers.Get(MessageHeaders.Tracestate);
+                if (ActivityContext.TryParse(traceparent, traceState, out var parentContext))
+                {
+                    activity = OpenTelemetry.Source.CreateActivity(
+                        $"receive {context.Endpoint.Address}",
+                        ActivityKind.Client,
+                        parentContext);
 
-                activity = OpenTelemetry.Source.CreateActivity(
-                    $"receive {context.Endpoint.Address}",
-                    ActivityKind.Client,
-                    parentContext);
-
-                activity?.Start();
+                    activity?.Start();
+                }
             }
 
             activity ??= OpenTelemetry.Source.StartActivity($"receive {context.Endpoint.Address}", ActivityKind.Client);

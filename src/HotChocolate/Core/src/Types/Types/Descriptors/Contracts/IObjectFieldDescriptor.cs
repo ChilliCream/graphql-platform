@@ -232,6 +232,37 @@ public interface IObjectFieldDescriptor
     IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod);
 
     /// <summary>
+    /// Adds a resolver based on a delegate to the field.
+    /// A resolver is a method that resolves the value for a
+    /// field. The resolver can access parent object, arguments, services and more through the
+    /// <see cref="IResolverContext"/>.
+    /// </summary>
+    /// <param name="delegate">The resolver of the field</param>
+    /// <example>
+    /// Given the following resolvers class
+    /// <code>
+    /// <![CDATA[
+    /// private static class Resolvers
+    /// {
+    ///    public static ValueTask<string> GetFoo(
+    ///        [Service] IFooService service,
+    ///        CancellationToken cancellationToken) =>
+    ///        service.GetFooAsync(cancellationToken);
+    /// }
+    /// ]]>
+    /// </code>
+    /// The GetFoo method can be mapped like:
+    /// <code>
+    /// <![CDATA[
+    /// descriptor
+    ///     .Field(x => x.Foo)
+    ///     .ResolveWith(Resolvers.GetFoo);
+    /// ]]>
+    /// </code>
+    /// </example>
+    IObjectFieldDescriptor ResolveWith(Delegate @delegate);
+
+    /// <summary>
     /// Adds a subscription resolver to to the field
     /// </summary>
     /// <param name="subscribeResolver">The subscription resolver</param>
@@ -259,6 +290,41 @@ public interface IObjectFieldDescriptor
     /// </example>
     /// <returns>The descriptor</returns>
     IObjectFieldDescriptor Use(FieldMiddleware middleware);
+
+    /// <summary>
+    /// Adds a batch resolver to the field. A batch resolver receives multiple
+    /// parent contexts and resolves them in a single invocation.
+    /// </summary>
+    /// <param name="batchResolver">The batch resolver delegate.</param>
+    IObjectFieldDescriptor ResolveBatch(BatchResolverDelegate batchResolver);
+
+    /// <summary>
+    /// Adds a batch resolver based on a method to the field.
+    /// The method must be annotated with <see cref="BatchResolverAttribute"/>
+    /// and must return a list type.
+    /// </summary>
+    /// <typeparam name="TResolver">The type that contains the batch resolver method.</typeparam>
+    /// <param name="propertyOrMethod">
+    /// An expression selecting the batch resolver method,
+    /// e.g. <c>t => t.GetGreeting(default!, default!)</c>.
+    /// </param>
+    IObjectFieldDescriptor ResolveBatchWith<TResolver>(
+        Expression<Func<TResolver, object?>> propertyOrMethod);
+
+    /// <summary>
+    /// Adds a batch resolver based on a method to the field.
+    /// The method must be annotated with <see cref="BatchResolverAttribute"/>
+    /// and must return a list type.
+    /// </summary>
+    /// <param name="propertyOrMethod">The batch resolver member.</param>
+    IObjectFieldDescriptor ResolveBatchWith(MemberInfo propertyOrMethod);
+
+    /// <summary>
+    /// Registers a batch middleware on the field. The middleware wraps the
+    /// batch resolver pipeline and is executed before the batch resolver itself.
+    /// </summary>
+    /// <param name="middleware">The batch middleware.</param>
+    IObjectFieldDescriptor UseBatch(BatchFieldMiddleware middleware);
 
     /// <summary>
     /// Registers a directive on the field

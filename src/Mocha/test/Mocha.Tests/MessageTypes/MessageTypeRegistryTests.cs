@@ -149,7 +149,7 @@ public class MessageTypeRegistryTests
             b.AddRequestHandler<ProcessPaymentHandler>();
         });
 
-        // assert — count includes concrete types plus hierarchy types (IEventRequest, etc.)
+        // assert - count includes concrete types plus hierarchy types (IEventRequest, etc.)
         Assert.True(runtime.Messages.MessageTypes.Count >= 3);
     }
 

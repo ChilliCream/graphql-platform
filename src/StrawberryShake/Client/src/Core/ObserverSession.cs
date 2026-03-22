@@ -2,7 +2,11 @@ namespace StrawberryShake;
 
 internal class ObserverSession : IDisposable
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private IDisposable? _storeSession;
     private bool _disposed;
 

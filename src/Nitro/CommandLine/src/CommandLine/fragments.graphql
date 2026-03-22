@@ -742,24 +742,36 @@ fragment OpenApiCollectionVersionPublishFailed on OpenApiCollectionVersionPublis
 
 fragment OpenApiCollectionValidationError on OpenApiCollectionValidationError {
   collections {
-    openApiCollection {
-      id
-      name
-    }
-    entities {
-      errors {
-        ...OpenApiCollectionValidationDocumentError
-        ...OpenApiCollectionValidationEntityValidationError
-      }
-      ... on OpenApiCollectionValidationEndpoint {
-        httpMethod
-        route
-      }
-      ... on OpenApiCollectionValidationModel {
-        name
-      }
-    }
+    ...OpenApiCollectionValidationCollection
   }
+}
+
+fragment OpenApiCollectionValidationCollection on OpenApiCollectionValidationCollection {
+  openApiCollection {
+    id
+    name
+  }
+  entities {
+    ...OpenApiCollectionValidationEntity
+  }
+}
+
+fragment OpenApiCollectionValidationEntity on OpenApiCollectionValidationEntity {
+  errors {
+    ...OpenApiCollectionValidationDocumentError
+    ...OpenApiCollectionValidationEntityValidationError
+  }
+  ...OpenApiCollectionValidationEndpoint
+  ...OpenApiCollectionValidationModel
+}
+
+fragment OpenApiCollectionValidationEndpoint on OpenApiCollectionValidationEndpoint {
+  httpMethod
+  route
+}
+
+fragment OpenApiCollectionValidationModel on OpenApiCollectionValidationModel {
+  name
 }
 
 fragment OpenApiCollectionValidationDocumentError on OpenApiCollectionValidationDocumentError {
@@ -826,23 +838,35 @@ fragment McpFeatureCollectionVersionPublishFailed on McpFeatureCollectionVersion
 
 fragment McpFeatureCollectionValidationError on McpFeatureCollectionValidationError {
   collections {
-    mcpFeatureCollection {
-      id
-      name
-    }
-    entities {
-      errors {
-        ...McpFeatureCollectionValidationDocumentError
-        ...McpFeatureCollectionValidationEntityValidationError
-      }
-      ... on McpFeatureCollectionValidationPrompt {
-        name
-      }
-      ... on McpFeatureCollectionValidationTool {
-        name
-      }
-    }
+    ...McpFeatureCollectionValidationCollection
   }
+}
+
+fragment McpFeatureCollectionValidationCollection on McpFeatureCollectionValidationCollection {
+  mcpFeatureCollection {
+    id
+    name
+  }
+  entities {
+    ...McpFeatureCollectionValidationEntity
+  }
+}
+
+fragment McpFeatureCollectionValidationEntity on McpFeatureCollectionValidationEntity {
+  errors {
+    ...McpFeatureCollectionValidationDocumentError
+    ...McpFeatureCollectionValidationEntityValidationError
+  }
+  ...McpFeatureCollectionValidationPrompt
+  ...McpFeatureCollectionValidationTool
+}
+
+fragment McpFeatureCollectionValidationPrompt on McpFeatureCollectionValidationPrompt {
+  name
+}
+
+fragment McpFeatureCollectionValidationTool on McpFeatureCollectionValidationTool {
+  name
 }
 
 fragment McpFeatureCollectionValidationDocumentError on McpFeatureCollectionValidationDocumentError {

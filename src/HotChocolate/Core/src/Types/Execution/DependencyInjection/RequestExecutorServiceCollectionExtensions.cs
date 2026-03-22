@@ -53,6 +53,7 @@ public static class RequestExecutorServiceCollectionExtensions
         // pools
         services
             .TryAddResolverTaskPool()
+            .TryAddBatchResolverTaskPool()
             .TryAddOperationContextPool()
             .TryAddSingleton<ObjectPool<DocumentValidatorContext>>(new DocumentValidatorContextPool());
 

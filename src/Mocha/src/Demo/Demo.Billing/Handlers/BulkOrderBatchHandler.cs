@@ -41,7 +41,7 @@ public class BulkOrderBatchHandler(BillingDbContext db, ILogger<BulkOrderBatchHa
         await db.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
-            "Bulk revenue summary created: {SummaryId} — {OrderCount} orders, ${TotalRevenue:F2} total, mode={Mode}",
+            "Bulk revenue summary created: {SummaryId} - {OrderCount} orders, ${TotalRevenue:F2} total, mode={Mode}",
             summary.Id,
             summary.OrderCount,
             summary.TotalRevenue,

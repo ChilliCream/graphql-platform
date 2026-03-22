@@ -328,6 +328,8 @@ public class DateTimeTypeTests
     [InlineData(5, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,5})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
     [InlineData(6, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
     [InlineData(7, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(8, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,8})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(9, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
     public void Pattern_Should_Match_InputPrecision(byte precision, string expectedPattern)
     {
         // arrange & act
@@ -354,8 +356,8 @@ public class DateTimeTypeTests
             },
             {
                 DateTimeOptions.DefaultInputPrecision,
-                "2023-12-24T15:30:00.1234567+01:00",
-                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.FromHours(1)).AddTicks(7)
+                "2023-12-24T15:30:00.123456789+01:00", // Rounded to ".1234568".
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.FromHours(1)).AddTicks(8)
             }
         };
     }
@@ -376,13 +378,17 @@ public class DateTimeTypeTests
             // ReSharper disable once GrammarMistakeInComment
             // Invalid date (February 30th).
             { DateTimeOptions.DefaultInputPrecision, "2023-02-30T15:30:00Z" },
-            // More than 7 fractional second digits.
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.12345678Z" },
+            // More than 9 fractional second digits.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.1234567890Z" },
             // Invalid offset (exceeds maximum).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00+25:00" },
             // Invalid offset format.
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00 UTC" },
             // Additional cases.
+            // More than 8 fractional second digits with precision set to 8.
+            { 8, "2023-12-24T15:30:00.123456789Z" },
+            // More than 7 fractional second digits with precision set to 7.
+            { 7, "2023-12-24T15:30:00.12345678Z" },
             // More than 6 fractional second digits with precision set to 6.
             { 6, "2023-12-24T15:30:00.1234567Z" },
             // More than 5 fractional second digits with precision set to 5.
