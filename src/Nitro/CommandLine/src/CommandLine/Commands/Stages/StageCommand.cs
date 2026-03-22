@@ -17,6 +17,7 @@ internal sealed class StageCommand : Command
         this.AddNitroCloudDefaultOptions();
 
         AddCommand(new EditStagesCommand());
+        AddCommand(new DeleteStageCommand());
         AddCommand(new ListStagesCommand());
     }
 }

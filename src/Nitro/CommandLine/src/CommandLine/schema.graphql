@@ -280,35 +280,34 @@ interface WorkspaceChangeLog {
 }
 
 type AfterStageCondition {
-  afterStage: Stage
+  afterStage: Stage @cost(weight: "10")
 }
 
 type Api implements Node {
-  clients("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientsConnection
+  clients("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   createdAt: DateTime!
   createdBy: UserInfo!
-  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentConnection
+  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   httpConnection: ApiHttpConnection
   id: ID!
   kind: ApiKind
-  mcpFeatureCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiMcpFeatureCollectionsConnection
-  mockSchemas("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): MockSchemasConnection
+  mcpFeatureCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiMcpFeatureCollectionsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  mockSchemas("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): MockSchemasConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   modifiedAt: DateTime!
   modifiedBy: UserInfo!
   name: String!
-  openApiCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiOpenApiCollectionsConnection
-  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection
+  openApiCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiOpenApiCollectionsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   path: [String!]!
-  referenceName: String!
-  schemaVersions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): SchemaVersionsConnection
+  schemaVersions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): SchemaVersionsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   settings: ApiSettings!
-  stages: [Stage!]!
+  stages: [Stage!]! @cost(weight: "10")
   version: Version!
-  workspace: Workspace
+  workspace: Workspace @cost(weight: "10")
 }
 
 type ApiChanged implements ApiChangeLog & WorkspaceChangeLog {
-  api(onlyIfLatest: Boolean): Api
+  api(onlyIfLatest: Boolean): Api @cost(weight: "10")
   apiId: ID!
   changedAt: DateTime!
   changedBy: UserInfo!
@@ -320,7 +319,7 @@ type ApiChanged implements ApiChangeLog & WorkspaceChangeLog {
 }
 
 type ApiCreated implements ApiChangeLog & WorkspaceChangeLog {
-  api(onlyIfLatest: Boolean): Api
+  api(onlyIfLatest: Boolean): Api @cost(weight: "10")
   apiId: ID!
   changedAt: DateTime!
   changedBy: UserInfo!
@@ -332,7 +331,7 @@ type ApiCreated implements ApiChangeLog & WorkspaceChangeLog {
 }
 
 type ApiDeleted implements ApiChangeLog & WorkspaceChangeLog {
-  api(onlyIfLatest: Boolean): Api
+  api(onlyIfLatest: Boolean): Api @cost(weight: "10")
   apiId: ID!
   changedAt: DateTime!
   changedBy: UserInfo!
@@ -349,7 +348,7 @@ type ApiDeletionFailedError implements Error {
 }
 
 type ApiDocument implements Node {
-  api: Api
+  api: Api @cost(weight: "10")
   body: String!
   createdAt: DateTime!
   createdBy: UserInfo!
@@ -363,7 +362,7 @@ type ApiDocument implements Node {
 }
 
 type ApiDocumentChanged implements ApiDocumentChangeLog & WorkspaceChangeLog {
-  apiDocument(onlyIfLatest: Boolean): ApiDocument
+  apiDocument(onlyIfLatest: Boolean): ApiDocument @cost(weight: "10")
   apiId: ID!
   changedAt: DateTime!
   changedBy: UserInfo!
@@ -386,7 +385,7 @@ type ApiDocumentConnection {
 }
 
 type ApiDocumentCreated implements ApiDocumentChangeLog & WorkspaceChangeLog {
-  apiDocument(onlyIfLatest: Boolean): ApiDocument
+  apiDocument(onlyIfLatest: Boolean): ApiDocument @cost(weight: "10")
   apiId: ID!
   changedAt: DateTime!
   changedBy: UserInfo!
@@ -399,7 +398,7 @@ type ApiDocumentCreated implements ApiDocumentChangeLog & WorkspaceChangeLog {
 }
 
 type ApiDocumentDeleted implements ApiDocumentChangeLog & WorkspaceChangeLog {
-  apiDocument(onlyIfLatest: Boolean): ApiDocument
+  apiDocument(onlyIfLatest: Boolean): ApiDocument @cost(weight: "10")
   apiId: ID!
   changedAt: DateTime!
   changedBy: UserInfo!
@@ -467,9 +466,9 @@ type ApiKey implements Node {
   createdBy: UserInfo!
   id: ID!
   name: String!
-  roleAssignments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeyRoleAssignmentsConnection
+  roleAssignments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeyRoleAssignmentsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   scopes: [ApiKeyScope!]!
-  workspace: Workspace
+  workspace: Workspace @cost(weight: "10")
 }
 
 type ApiKeyNotFoundError implements Error {
@@ -497,7 +496,7 @@ type ApiKeyRoleAssignmentsEdge {
 
 type ApiKeyScope {
   kind: String!
-  reference: ApiKeyReference
+  reference: ApiKeyReference @cost(weight: "10")
   referenceId: String!
 }
 
@@ -566,7 +565,7 @@ type ApiOpenApiCollectionsEdge {
 }
 
 type ApiPermissionScope implements PermissionScope {
-  api: Api
+  api: Api @cost(weight: "10")
   id: ID!
   type: String!
 }
@@ -629,15 +628,15 @@ type AuthorizationEventLog {
   eventId: UUID!
   eventType: AuthorizationEventType!
   isConditional: Boolean!
-  organization: Organization
+  organization: Organization @cost(weight: "10")
   permission: String!
-  principal: AuthorizationEventLogPrincipal
-  realm: AuthorizationEventLogRealm
-  resource: AuthorizationEventLogResource
-  subject: AuthorizationEventLogSubject
+  principal: AuthorizationEventLogPrincipal @cost(weight: "10")
+  realm: AuthorizationEventLogRealm @cost(weight: "10")
+  resource: AuthorizationEventLogResource @cost(weight: "10")
+  subject: AuthorizationEventLogSubject @cost(weight: "10")
   timestamp: DateTime!
   traceId: String!
-  workspace: Workspace
+  workspace: Workspace @cost(weight: "10")
 }
 
 type BasicAuthenticationFlowOptions {
@@ -694,13 +693,13 @@ type ChangesEdge {
 }
 
 type Client implements Node {
-  api: Api
+  api: Api @cost(weight: "10")
   createdAt: DateTime!
   createdBy: UserInfo!
   id: ID!
   name: String!
-  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection
-  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientVersionConnection
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientVersionConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type ClientChangeLog implements StageChangeLog & Node {
@@ -717,7 +716,7 @@ type ClientDeletedStageChangeEvent implements StageChangedEvent {
 
 type ClientDeployment implements Node & Deployment {
   approval: DeploymentApproval
-  client: Client
+  client: Client @cost(weight: "10")
   createdAt: DateTime!
   errors: [ClientDeploymentError!]!
   id: ID!
@@ -729,9 +728,9 @@ type ClientDeployment implements Node & Deployment {
 
 type ClientInsight {
   averageLatency: Float
-  client: Client
+  client: Client @cost(weight: "10")
   errorRate: Float
-  id: ID!
+  id: ID! @cost(weight: "10")
   impact: Float
   name: String
   opm: Float
@@ -764,10 +763,10 @@ type ClientNotFoundError implements Error {
 }
 
 type ClientVersion implements Node {
-  client: Client
+  client: Client @cost(weight: "10")
   createdAt: DateTime!
   id: ID!
-  persistedQueries("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): PersistedQueriesConnection
+  persistedQueries("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): PersistedQueriesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   publishedTo: [PublishedClientVersion!]!
   tag: String!
   tags: [String!]! @deprecated(reason: "Use `tag` instead.")
@@ -803,12 +802,12 @@ type ClientVersionPublishFailed implements ClientVersionPublishResult {
 }
 
 type ClientVersionPublishSuccess implements ClientVersionPublishResult {
-  clientVersion: ClientVersion
+  clientVersion: ClientVersion @cost(weight: "10")
   state: ProcessingState!
 }
 
 type ClientVersionPublishedStageChangeEvent implements StageChangedEvent {
-  clientVersion: ClientVersion
+  clientVersion: ClientVersion @cost(weight: "10")
   kind: StageChangeKind!
 }
 
@@ -818,7 +817,7 @@ type ClientVersionRequestNotFoundError implements Error {
 }
 
 type ClientVersionUnpublishedStageChangeEvent implements StageChangedEvent {
-  clientVersion: ClientVersion
+  clientVersion: ClientVersion @cost(weight: "10")
   kind: StageChangeKind!
 }
 
@@ -859,7 +858,7 @@ type ConcurrentOperationError implements Error & SchemaVersionPublishError & Cli
 }
 
 type CoordinateClientUsage {
-  client: Client
+  client: Client @cost(weight: "10")
   metrics: CoordinateClientUsageMetrics!
   name: String
   totalOperations: Long!
@@ -869,7 +868,7 @@ type CoordinateClientUsage {
 
 type CoordinateClientUsageMetrics implements Node {
   id: ID!
-  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): CoordinateClientUsageOperationInsightsConnection
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): CoordinateClientUsageOperationInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type CoordinateClientUsageOperationInsight {
@@ -916,16 +915,16 @@ type CoordinateRequestGraphData {
 
 type CoordinateUsage {
   clientCount: Long!
-  errorRate: Float
-  firstSeen: DateTime
-  lastSeen: DateTime
-  meanDuration: Float
+  errorRate: Float @cost(weight: "10")
+  firstSeen: DateTime @cost(weight: "10")
+  lastSeen: DateTime @cost(weight: "10")
+  meanDuration: Float @cost(weight: "10")
   operationCount: Long!
-  opm: Float
+  opm: Float @cost(weight: "10")
   totalReference: Long! @deprecated(reason: "Use totalReferences instead")
   totalReferences: Long!
-  totalRequests: Long
-  totalUsages: Long
+  totalRequests: Long @cost(weight: "10")
+  totalUsages: Long @cost(weight: "10")
 }
 
 type CoordinateUsageGraph {
@@ -1052,7 +1051,7 @@ type DeploymentCannotBeCancelledError implements Error {
 }
 
 type DeploymentCreatedEvent {
-  deployment: Deployment!
+  deployment: Deployment! @cost(weight: "10")
 }
 
 type DeploymentCreatedLog implements DeploymentLog {
@@ -1109,7 +1108,7 @@ type DeploymentSuccessLog implements DeploymentLog {
 }
 
 type DeploymentUpdatedEvent {
-  deployment: Deployment!
+  deployment: Deployment! @cost(weight: "10")
 }
 
 type DeploymentWaitingForApprovalLog implements DeploymentLog {
@@ -1172,7 +1171,7 @@ type DocumentChangeValidationFailed implements Error {
 type DocumentChanged implements DocumentChangeLog & WorkspaceChangeLog {
   changedAt: DateTime!
   changedBy: UserInfo!
-  document(onlyIfLatest: Boolean): WorkspaceDocument
+  document(onlyIfLatest: Boolean): WorkspaceDocument @cost(weight: "10")
   documentId: ID!
   id: ID!
   name: String!
@@ -1207,7 +1206,7 @@ type DocumentChangesEdge {
 type DocumentCreated implements DocumentChangeLog & WorkspaceChangeLog {
   changedAt: DateTime!
   changedBy: UserInfo!
-  document(onlyIfLatest: Boolean): WorkspaceDocument
+  document(onlyIfLatest: Boolean): WorkspaceDocument @cost(weight: "10")
   documentId: ID!
   id: ID!
   name: String!
@@ -1219,7 +1218,7 @@ type DocumentCreated implements DocumentChangeLog & WorkspaceChangeLog {
 type DocumentDeleted implements DocumentChangeLog & WorkspaceChangeLog {
   changedAt: DateTime!
   changedBy: UserInfo!
-  document(onlyIfLatest: Boolean): WorkspaceDocument
+  document(onlyIfLatest: Boolean): WorkspaceDocument @cost(weight: "10")
   documentId: ID!
   id: ID!
   name: String!
@@ -1301,13 +1300,13 @@ type Environment implements Node {
   name: String!
   variables: [EnvironmentVariable!]!
   version: Version!
-  workspace: Workspace
+  workspace: Workspace @cost(weight: "10")
 }
 
 type EnvironmentChanged implements EnvironmentChangeLog & WorkspaceChangeLog {
   changedAt: DateTime!
   changedBy: UserInfo!
-  environment(onlyIfLatest: Boolean): Environment
+  environment(onlyIfLatest: Boolean): Environment @cost(weight: "10")
   environmentId: ID!
   id: ID!
   name: String!
@@ -1318,7 +1317,7 @@ type EnvironmentChanged implements EnvironmentChangeLog & WorkspaceChangeLog {
 type EnvironmentCreated implements EnvironmentChangeLog & WorkspaceChangeLog {
   changedAt: DateTime!
   changedBy: UserInfo!
-  environment(onlyIfLatest: Boolean): Environment
+  environment(onlyIfLatest: Boolean): Environment @cost(weight: "10")
   environmentId: ID!
   id: ID!
   name: String!
@@ -1329,7 +1328,7 @@ type EnvironmentCreated implements EnvironmentChangeLog & WorkspaceChangeLog {
 type EnvironmentDeleted implements EnvironmentChangeLog & WorkspaceChangeLog {
   changedAt: DateTime!
   changedBy: UserInfo!
-  environment(onlyIfLatest: Boolean): Environment
+  environment(onlyIfLatest: Boolean): Environment @cost(weight: "10")
   environmentId: ID!
   id: ID!
   name: String!
@@ -1364,7 +1363,7 @@ type EnvironmentsEdge {
 
 type ErrorInsight {
   epm: Float!
-  id: ID!
+  id: ID! @cost(weight: "10")
   lastSeen: Float!
   message: String!
   totalCount: Long!
@@ -1397,11 +1396,11 @@ type FieldAddedChange implements SchemaChange {
 }
 
 type FieldCoordinateMetrics implements CoordinateMetrics {
-  clientUsage(clientId: ID from: DateTime! to: DateTime!): CoordinateClientUsage
-  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]!
-  duration(from: DateTime! resolution: Int! = 300 to: DateTime!): FieldDurationGraph
-  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph
-  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph
+  clientUsage(clientId: ID from: DateTime! to: DateTime!): CoordinateClientUsage @cost(weight: "10")
+  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]! @cost(weight: "10")
+  duration(from: DateTime! resolution: Int! = 300 to: DateTime!): FieldDurationGraph @cost(weight: "10")
+  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph @cost(weight: "10")
+  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph @cost(weight: "10")
 }
 
 type FieldDurationGraph {
@@ -1425,8 +1424,13 @@ type FieldRemovedChange implements SchemaChange {
   typeName: String!
 }
 
+type ForceDeleteStageByIdPayload {
+  api: Api
+  errors: [ForceDeleteStageByIdError!]
+}
+
 type FusionConfiguration {
-  downloadUrl: String!
+  downloadUrl: String! @cost(weight: "10")
   format: FusionConfigurationFormat!
   id: ID!
   publishedAt: DateTime!
@@ -1450,18 +1454,18 @@ type FusionConfigurationDeployment implements Node & Deployment {
   schemaChanges: FusionConfigurationDeploymentSchemaChanges
   source: SourceMetadata
   status: DeploymentStatus!
-  subgraph: Subgraph @deprecated(reason: "Use `subgraphs` instead.")
-  subgraphs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): DeploymentSubgraphsConnection
+  subgraph: Subgraph @cost(weight: "10") @deprecated(reason: "Use `subgraphs` instead.")
+  subgraphs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): DeploymentSubgraphsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   tag: String!
 }
 
 type FusionConfigurationDeploymentSchemaChanges {
-  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
   statistic: SchemaChangeLogStatistic!
 }
 
 type FusionConfigurationPublishedStageChangeEvent implements StageChangedEvent {
-  fusionConfiguration: FusionConfiguration
+  fusionConfiguration: FusionConfiguration @cost(weight: "10")
   kind: StageChangeKind!
 }
 
@@ -1490,14 +1494,14 @@ type FusionConfigurationValidationSuccess implements FusionConfigurationPublishi
 }
 
 type FusionSubgraph implements Subgraph {
-  api: Api
+  api: Api @cost(weight: "10")
   id: ID!
   name: String!
 }
 
 type FusionSubgraphVersion {
   createdAt: DateTime!
-  fusionSubgraph: FusionSubgraph!
+  fusionSubgraph: FusionSubgraph! @cost(weight: "10")
   id: ID!
   tag: String!
 }
@@ -1515,18 +1519,18 @@ type GraphQLDirectiveArgumentDefinition implements Node & GraphQLTypeSystemMembe
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLDirectiveDefinition implements Node & GraphQLTypeSystemMember {
-  arguments: GraphQLDirectiveDefinitionArgumentsConnection!
+  arguments: GraphQLDirectiveDefinitionArgumentsConnection! @cost(weight: "10")
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLDirectiveDefinitionArgumentsConnection {
@@ -1540,8 +1544,8 @@ type GraphQLEnumTypeDefinition implements Node & GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
-  values: GraphQLEnumTypeDefinitionValuesConnection!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
+  values: GraphQLEnumTypeDefinitionValuesConnection! @cost(weight: "10")
 }
 
 type GraphQLEnumTypeDefinitionValuesConnection {
@@ -1554,7 +1558,7 @@ type GraphQLEnumValueDefinition implements Node & GraphQLTypeSystemMember {
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLInputObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition {
@@ -1563,18 +1567,18 @@ type GraphQLInputObjectFieldDefinition implements Node & GraphQLTypeSystemMember
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLInputObjectTypeDefinition implements Node & GraphQLTypeSystemMember {
   coordinate: String!
-  fields: GraphQLInputObjectTypeDefinitionFieldsConnection!
+  fields: GraphQLInputObjectTypeDefinitionFieldsConnection! @cost(weight: "10")
   id: ID!
   isDeprecated: Boolean!
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLInputObjectTypeDefinitionFieldsConnection {
@@ -1589,7 +1593,7 @@ type GraphQLInterfaceFieldArgumentDefinition implements Node & GraphQLTypeSystem
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection implements GraphQLOutputFieldDefinitionArgumentsConnection {
@@ -1597,24 +1601,24 @@ type GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection implements Graph
 }
 
 type GraphQLInterfaceFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
-  arguments: GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection!
+  arguments: GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection! @cost(weight: "10")
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLInterfaceTypeDefinition implements Node & GraphQLTypeSystemMember {
   coordinate: String!
-  fields: GraphQLInterfaceTypeDefinitionFieldsConnection!
+  fields: GraphQLInterfaceTypeDefinitionFieldsConnection! @cost(weight: "10")
   id: ID!
   isDeprecated: Boolean!
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLInterfaceTypeDefinitionFieldsConnection {
@@ -1629,7 +1633,7 @@ type GraphQLObjectFieldArgumentDefinition implements Node & GraphQLTypeSystemMem
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLObjectFieldArgumentDefinitionArgumentsConnection implements GraphQLOutputFieldDefinitionArgumentsConnection {
@@ -1637,23 +1641,23 @@ type GraphQLObjectFieldArgumentDefinitionArgumentsConnection implements GraphQLO
 }
 
 type GraphQLObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
-  arguments: GraphQLObjectFieldArgumentDefinitionArgumentsConnection!
+  arguments: GraphQLObjectFieldArgumentDefinitionArgumentsConnection! @cost(weight: "10")
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
   metrics: FieldCoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLObjectTypeDefinition implements GraphQLTypeSystemMember {
   coordinate: String!
-  fields: GraphQLObjectTypeDefinitionFieldsConnection!
+  fields: GraphQLObjectTypeDefinitionFieldsConnection! @cost(weight: "10")
   isDeprecated: Boolean!
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLObjectTypeDefinitionFieldsConnection {
@@ -1667,7 +1671,7 @@ type GraphQLScalarTypeDefinition implements Node & GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type GraphQLSchemaError {
@@ -1682,25 +1686,25 @@ type GraphQLUnionTypeDefinition implements Node & GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
 type Group implements Node {
   description: String!
-  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupGroupsConnection
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupGroupsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   id: ID!
   isDefault: Boolean!
-  members("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupMembersConnection
+  members("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupMembersConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   name: String!
-  organization: Organization
-  roleAssignments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupRoleAssignmentsConnection
+  organization: Organization @cost(weight: "10")
+  roleAssignments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupRoleAssignmentsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type GroupGroupMember implements GroupMember {
   assignedAt: DateTime!
-  group: Group
+  group: Group @cost(weight: "10")
   id: ID!
-  nestedGroup: Group
+  nestedGroup: Group @cost(weight: "10")
   type: String!
 }
 
@@ -1830,12 +1834,12 @@ type InvalidSourceMetadataInputError implements Error {
 }
 
 type McpFeatureCollection implements Node {
-  api: Api
+  api: Api @cost(weight: "10")
   createdAt: DateTime!
   createdBy: UserInfo!
   id: ID!
   name: String!
-  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): McpFeatureCollectionVersionsConnection
+  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): McpFeatureCollectionVersionsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type McpFeatureCollectionChangeLog implements StageChangeLog & Node {
@@ -1856,7 +1860,7 @@ type McpFeatureCollectionDeployment implements Node & Deployment {
   errors: [McpFeatureCollectionDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
-  mcpFeatureCollection: McpFeatureCollection
+  mcpFeatureCollection: McpFeatureCollection @cost(weight: "10")
   source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
@@ -1873,7 +1877,7 @@ type McpFeatureCollectionValidationArchiveError implements McpFeatureCollectionV
 
 type McpFeatureCollectionValidationCollection {
   entities: [McpFeatureCollectionValidationEntity!]!
-  mcpFeatureCollection: McpFeatureCollection
+  mcpFeatureCollection: McpFeatureCollection @cost(weight: "10")
 }
 
 type McpFeatureCollectionValidationDocumentError implements McpFeatureCollectionValidationEntityError {
@@ -1911,7 +1915,7 @@ type McpFeatureCollectionVersion implements Node {
   createdAt: DateTime!
   hash: String!
   id: ID!
-  mcpFeatureCollection: McpFeatureCollection
+  mcpFeatureCollection: McpFeatureCollection @cost(weight: "10")
   tag: String!
 }
 
@@ -1927,13 +1931,13 @@ type McpFeatureCollectionVersionPublishFailed implements McpFeatureCollectionVer
 }
 
 type McpFeatureCollectionVersionPublishSuccess implements McpFeatureCollectionVersionPublishResult {
-  mcpFeatureCollectionVersion: McpFeatureCollectionVersion
+  mcpFeatureCollectionVersion: McpFeatureCollectionVersion @cost(weight: "10")
   state: ProcessingState!
 }
 
 type McpFeatureCollectionVersionPublishedStageChangeEvent implements StageChangedEvent {
   kind: StageChangeKind!
-  mcpFeatureCollectionVersion: McpFeatureCollectionVersion
+  mcpFeatureCollectionVersion: McpFeatureCollectionVersion @cost(weight: "10")
 }
 
 type McpFeatureCollectionVersionValidationFailed implements McpFeatureCollectionVersionValidationResult {
@@ -2005,59 +2009,60 @@ type MockSchemasEdge {
 }
 
 type Mutation {
-  approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload!
-  beginFusionConfigurationPublish(input: BeginFusionConfigurationPublishInput!): BeginFusionConfigurationPublishPayload!
-  cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload!
-  cancelFusionConfigurationComposition(input: CancelFusionConfigurationCompositionInput!): CancelFusionConfigurationCompositionPayload!
-  commitFusionConfigurationPublish(input: CommitFusionConfigurationPublishInput!): CommitFusionConfigurationPublishPayload!
-  createAccount: CreateAccountPayload!
-  createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload!
-  createApiKeyForApi(input: CreateApiKeyForApiInput!): CreateApiKeyForApiPayload!
-  createClient(input: CreateClientInput!): CreateClientPayload!
-  createMcpFeatureCollection(input: CreateMcpFeatureCollectionInput!): CreateMcpFeatureCollectionPayload!
-  createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
-  createOpenApiCollection(input: CreateOpenApiCollectionInput!): CreateOpenApiCollectionPayload!
-  createPersonalAccessToken(input: CreatePersonalAccessTokenInput!): CreatePersonalAccessTokenPayload!
-  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload!
-  deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
-  deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload!
-  deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
-  deleteMcpFeatureCollectionById(input: DeleteMcpFeatureCollectionByIdInput!): DeleteMcpFeatureCollectionByIdPayload!
-  deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload!
-  deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload!
-  ensureTunnelSession: EnsureTunnelSessionPayload!
-  pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload!
-  pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload!
-  pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload!
-  pollSchemaVersionValidationRequest(input: PollSchemaVersionValidationRequestInput!): PollSchemaVersionValidationRequestPayload!
-  publishClient(input: PublishClientInput!): PublishClientPayload!
-  publishMcpFeatureCollection(input: PublishMcpFeatureCollectionInput!): PublishMcpFeatureCollectionPayload!
-  publishOpenApiCollection(input: PublishOpenApiCollectionInput!): PublishOpenApiCollectionPayload!
-  publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
-  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload! @deprecated(reason: "Use pushWorkspaceChanges")
-  pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload!
-  removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
-  renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
-  revokePersonalAccessToken(input: RevokePersonalAccessTokenInput!): RevokePersonalAccessTokenPayload!
-  setActiveWorkspace(input: SetActiveWorkspaceInput!): SetActiveWorkspacePayload!
-  startFusionConfigurationComposition(input: StartFusionConfigurationCompositionInput!): StartFusionConfigurationCompositionPayload!
-  unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload!
-  updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
-  updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload!
-  updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
-  updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
-  updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
-  updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload!
-  uploadClient(input: UploadClientInput!): UploadClientPayload!
-  uploadFusionSubgraph(input: UploadFusionSubgraphInput!): UploadFusionSubgraphPayload!
-  uploadMcpFeatureCollection(input: UploadMcpFeatureCollectionInput!): UploadMcpFeatureCollectionPayload!
-  uploadOpenApiCollection(input: UploadOpenApiCollectionInput!): UploadOpenApiCollectionPayload!
-  uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
-  validateClient(input: ValidateClientInput!): ValidateClientPayload!
-  validateFusionConfigurationComposition(input: ValidateFusionConfigurationCompositionInput!): ValidateFusionConfigurationCompositionPayload!
-  validateMcpFeatureCollection(input: ValidateMcpFeatureCollectionInput!): ValidateMcpFeatureCollectionPayload!
-  validateOpenApiCollection(input: ValidateOpenApiCollectionInput!): ValidateOpenApiCollectionPayload!
-  validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload!
+  approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload! @cost(weight: "10")
+  beginFusionConfigurationPublish(input: BeginFusionConfigurationPublishInput!): BeginFusionConfigurationPublishPayload! @cost(weight: "10")
+  cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload! @cost(weight: "10")
+  cancelFusionConfigurationComposition(input: CancelFusionConfigurationCompositionInput!): CancelFusionConfigurationCompositionPayload! @cost(weight: "10")
+  commitFusionConfigurationPublish(input: CommitFusionConfigurationPublishInput!): CommitFusionConfigurationPublishPayload! @cost(weight: "10")
+  createAccount: CreateAccountPayload! @cost(weight: "10")
+  createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload! @authorize @cost(weight: "10")
+  createApiKeyForApi(input: CreateApiKeyForApiInput!): CreateApiKeyForApiPayload! @authorize @cost(weight: "10")
+  createClient(input: CreateClientInput!): CreateClientPayload! @authorize @cost(weight: "10")
+  createMcpFeatureCollection(input: CreateMcpFeatureCollectionInput!): CreateMcpFeatureCollectionPayload! @authorize @cost(weight: "10")
+  createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload! @authorize @cost(weight: "10")
+  createOpenApiCollection(input: CreateOpenApiCollectionInput!): CreateOpenApiCollectionPayload! @authorize @cost(weight: "10")
+  createPersonalAccessToken(input: CreatePersonalAccessTokenInput!): CreatePersonalAccessTokenPayload! @authorize @cost(weight: "10")
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload! @authorize @cost(weight: "10")
+  deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload! @authorize @cost(weight: "10")
+  deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload! @authorize @cost(weight: "10")
+  deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload! @authorize @cost(weight: "10")
+  deleteMcpFeatureCollectionById(input: DeleteMcpFeatureCollectionByIdInput!): DeleteMcpFeatureCollectionByIdPayload! @authorize @cost(weight: "10")
+  deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload! @authorize @cost(weight: "10")
+  deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload! @authorize @cost(weight: "10")
+  ensureTunnelSession: EnsureTunnelSessionPayload! @authorize @cost(weight: "10")
+  forceDeleteStageById(input: ForceDeleteStageByIdInput!): ForceDeleteStageByIdPayload! @authorize @cost(weight: "10")
+  pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload! @authorize @cost(weight: "10")
+  pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload! @authorize @cost(weight: "10")
+  pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload! @authorize @cost(weight: "10")
+  pollSchemaVersionValidationRequest(input: PollSchemaVersionValidationRequestInput!): PollSchemaVersionValidationRequestPayload! @authorize @cost(weight: "10")
+  publishClient(input: PublishClientInput!): PublishClientPayload! @authorize @cost(weight: "10")
+  publishMcpFeatureCollection(input: PublishMcpFeatureCollectionInput!): PublishMcpFeatureCollectionPayload! @authorize @cost(weight: "10")
+  publishOpenApiCollection(input: PublishOpenApiCollectionInput!): PublishOpenApiCollectionPayload! @authorize @cost(weight: "10")
+  publishSchema(input: PublishSchemaInput!): PublishSchemaPayload! @authorize @cost(weight: "10")
+  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload! @authorize(policy: "DocumentsWrite") @cost(weight: "10") @deprecated(reason: "Use pushWorkspaceChanges")
+  pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload! @authorize(policy: "DocumentsWrite") @cost(weight: "10")
+  removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload! @authorize @cost(weight: "10")
+  renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload! @authorize @cost(weight: "10")
+  revokePersonalAccessToken(input: RevokePersonalAccessTokenInput!): RevokePersonalAccessTokenPayload! @authorize @cost(weight: "10")
+  setActiveWorkspace(input: SetActiveWorkspaceInput!): SetActiveWorkspacePayload! @authorize(policy: "WorkspaceManage") @cost(weight: "10")
+  startFusionConfigurationComposition(input: StartFusionConfigurationCompositionInput!): StartFusionConfigurationCompositionPayload! @cost(weight: "10")
+  unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload! @authorize @cost(weight: "10")
+  updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload! @authorize @cost(weight: "10")
+  updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload! @authorize @cost(weight: "10")
+  updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload! @authorize @cost(weight: "10")
+  updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload! @authorize @cost(weight: "10")
+  updateStages(input: UpdateStagesInput!): UpdateStagesPayload! @cost(weight: "10")
+  updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload! @authorize @cost(weight: "10")
+  uploadClient(input: UploadClientInput!): UploadClientPayload! @authorize @cost(weight: "10")
+  uploadFusionSubgraph(input: UploadFusionSubgraphInput!): UploadFusionSubgraphPayload! @authorize @cost(weight: "10")
+  uploadMcpFeatureCollection(input: UploadMcpFeatureCollectionInput!): UploadMcpFeatureCollectionPayload! @authorize @cost(weight: "10")
+  uploadOpenApiCollection(input: UploadOpenApiCollectionInput!): UploadOpenApiCollectionPayload! @authorize @cost(weight: "10")
+  uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload! @authorize @cost(weight: "10")
+  validateClient(input: ValidateClientInput!): ValidateClientPayload! @authorize @cost(weight: "10")
+  validateFusionConfigurationComposition(input: ValidateFusionConfigurationCompositionInput!): ValidateFusionConfigurationCompositionPayload! @cost(weight: "10")
+  validateMcpFeatureCollection(input: ValidateMcpFeatureCollectionInput!): ValidateMcpFeatureCollectionPayload! @authorize @cost(weight: "10")
+  validateOpenApiCollection(input: ValidateOpenApiCollectionInput!): ValidateOpenApiCollectionPayload! @authorize @cost(weight: "10")
+  validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload! @authorize @cost(weight: "10")
 }
 
 type OAuth2AuthenticationFlowOptions {
@@ -2090,12 +2095,12 @@ type ObjectModifiedChange implements SchemaChange {
 }
 
 type OpenApiCollection implements Node {
-  api: Api
+  api: Api @cost(weight: "10")
   createdAt: DateTime!
   createdBy: UserInfo!
   id: ID!
   name: String!
-  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OpenApiCollectionVersionsConnection
+  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OpenApiCollectionVersionsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type OpenApiCollectionChangeLog implements StageChangeLog & Node {
@@ -2116,7 +2121,7 @@ type OpenApiCollectionDeployment implements Node & Deployment {
   errors: [OpenApiCollectionDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
-  openApiCollection: OpenApiCollection
+  openApiCollection: OpenApiCollection @cost(weight: "10")
   source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
@@ -2133,7 +2138,7 @@ type OpenApiCollectionValidationArchiveError implements OpenApiCollectionVersion
 
 type OpenApiCollectionValidationCollection {
   entities: [OpenApiCollectionValidationEntity!]!
-  openApiCollection: OpenApiCollection
+  openApiCollection: OpenApiCollection @cost(weight: "10")
 }
 
 type OpenApiCollectionValidationDocumentError implements OpenApiCollectionValidationEntityError {
@@ -2172,7 +2177,7 @@ type OpenApiCollectionVersion implements Node {
   createdAt: DateTime!
   hash: String!
   id: ID!
-  openApiCollection: OpenApiCollection
+  openApiCollection: OpenApiCollection @cost(weight: "10")
   tag: String!
 }
 
@@ -2188,13 +2193,13 @@ type OpenApiCollectionVersionPublishFailed implements OpenApiCollectionVersionPu
 }
 
 type OpenApiCollectionVersionPublishSuccess implements OpenApiCollectionVersionPublishResult {
-  openApiCollectionVersion: OpenApiCollectionVersion
+  openApiCollectionVersion: OpenApiCollectionVersion @cost(weight: "10")
   state: ProcessingState!
 }
 
 type OpenApiCollectionVersionPublishedStageChangeEvent implements StageChangedEvent {
   kind: StageChangeKind!
-  openApiCollectionVersion: OpenApiCollectionVersion
+  openApiCollectionVersion: OpenApiCollectionVersion @cost(weight: "10")
 }
 
 type OpenApiCollectionVersionValidationFailed implements OpenApiCollectionVersionValidationResult {
@@ -2230,9 +2235,9 @@ type OpenTelemetryBoolAttribute implements OpenTelemetryAttribute {
 }
 
 type OpenTelemetryDbSpan implements OpenTelemetrySpan {
-  api: Api
+  api: Api @cost(weight: "10")
   clockSkew: Float
-  db: OpenTelemetryDbSpanAttributes
+  db: OpenTelemetryDbSpanAttributes @cost(weight: "10")
   duration: Float!
   epoch: Float!
   events: [OpenTelemetryTraceEvent!]!
@@ -2243,7 +2248,7 @@ type OpenTelemetryDbSpan implements OpenTelemetrySpan {
   spanId: String!
   spanKind: String!
   spanName: String!
-  stage: Stage
+  stage: Stage @cost(weight: "10")
   statusCode: String!
   statusMessage: String!
   traceId: String!
@@ -2262,7 +2267,7 @@ type OpenTelemetryDbSpanAttributes {
 }
 
 type OpenTelemetryDefaultSpan implements OpenTelemetrySpan {
-  api: Api
+  api: Api @cost(weight: "10")
   clockSkew: Float
   duration: Float!
   epoch: Float!
@@ -2274,7 +2279,7 @@ type OpenTelemetryDefaultSpan implements OpenTelemetrySpan {
   spanId: String!
   spanKind: String!
   spanName: String!
-  stage: Stage
+  stage: Stage @cost(weight: "10")
   statusCode: String!
   statusMessage: String!
   traceId: String!
@@ -2282,14 +2287,14 @@ type OpenTelemetryDefaultSpan implements OpenTelemetrySpan {
 }
 
 type OpenTelemetryError {
-  api: Api
+  api: Api @cost(weight: "10")
   epoch: Float!
   escaped: Boolean!
   message: String!
   parentSpanId: String!
   spanId: String!
   stackTrace: String!
-  stage: Stage
+  stage: Stage @cost(weight: "10")
   traceId: String!
   type: String!
 }
@@ -2300,21 +2305,21 @@ type OpenTelemetryFloatAttribute implements OpenTelemetryAttribute {
 }
 
 type OpenTelemetryGraphQLOperationSpan implements OpenTelemetrySpan {
-  api: Api
+  api: Api @cost(weight: "10")
   clockSkew: Float
-  document: OpenTelemetryGraphQLOperationSpanDocumentAttributes
+  document: OpenTelemetryGraphQLOperationSpanDocumentAttributes @cost(weight: "10")
   duration: Float!
   epoch: Float!
   events: [OpenTelemetryTraceEvent!]!
   links: [OpenTelemetryTraceLink!]!
-  operation: OpenTelemetryGraphQLOperationSpanOperationAttributes
+  operation: OpenTelemetryGraphQLOperationSpanOperationAttributes @cost(weight: "10")
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
   spanName: String!
-  stage: Stage
+  stage: Stage @cost(weight: "10")
   statusCode: String!
   statusMessage: String!
   traceId: String!
@@ -2322,7 +2327,7 @@ type OpenTelemetryGraphQLOperationSpan implements OpenTelemetrySpan {
 }
 
 type OpenTelemetryGraphQLOperationSpanDocumentAttributes {
-  body: String
+  body: String @cost(weight: "10")
   id: String
 }
 
@@ -2332,7 +2337,7 @@ type OpenTelemetryGraphQLOperationSpanOperationAttributes {
 }
 
 type OpenTelemetryGraphQLResolverSpan implements OpenTelemetrySpan {
-  api: Api
+  api: Api @cost(weight: "10")
   clockSkew: Float
   duration: Float!
   epoch: Float!
@@ -2340,12 +2345,12 @@ type OpenTelemetryGraphQLResolverSpan implements OpenTelemetrySpan {
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
-  selection: OpenTelemetryGraphQLResolverSpanSelectionAttributes
+  selection: OpenTelemetryGraphQLResolverSpanSelectionAttributes @cost(weight: "10")
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
   spanName: String!
-  stage: Stage
+  stage: Stage @cost(weight: "10")
   statusCode: String!
   statusMessage: String!
   traceId: String!
@@ -2366,12 +2371,12 @@ type OpenTelemetryGraphQLResolverSpanSelectionAttributes {
 }
 
 type OpenTelemetryHttpClientSpan implements OpenTelemetrySpan {
-  api: Api
+  api: Api @cost(weight: "10")
   clockSkew: Float
   duration: Float!
   epoch: Float!
   events: [OpenTelemetryTraceEvent!]!
-  http: OpenTelemetryHttpClientSpanAttribute
+  http: OpenTelemetryHttpClientSpanAttribute @cost(weight: "10")
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
@@ -2379,7 +2384,7 @@ type OpenTelemetryHttpClientSpan implements OpenTelemetrySpan {
   spanId: String!
   spanKind: String!
   spanName: String!
-  stage: Stage
+  stage: Stage @cost(weight: "10")
   statusCode: String!
   statusMessage: String!
   traceId: String!
@@ -2396,12 +2401,12 @@ type OpenTelemetryHttpClientSpanAttribute {
 }
 
 type OpenTelemetryHttpServerSpan implements OpenTelemetrySpan {
-  api: Api
+  api: Api @cost(weight: "10")
   clockSkew: Float
   duration: Float!
   epoch: Float!
   events: [OpenTelemetryTraceEvent!]!
-  http: OpenTelemetryHttpServerSpanAttributes
+  http: OpenTelemetryHttpServerSpanAttributes @cost(weight: "10")
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
@@ -2409,7 +2414,7 @@ type OpenTelemetryHttpServerSpan implements OpenTelemetrySpan {
   spanId: String!
   spanKind: String!
   spanName: String!
-  stage: Stage
+  stage: Stage @cost(weight: "10")
   statusCode: String!
   statusMessage: String!
   traceId: String!
@@ -2426,7 +2431,7 @@ type OpenTelemetryHttpServerSpanAttributes {
 }
 
 type OpenTelemetryLog {
-  api: Api
+  api: Api @cost(weight: "10")
   body: String!
   epoch: Float!
   logAttributes: [OpenTelemetryAttribute!]!
@@ -2434,7 +2439,7 @@ type OpenTelemetryLog {
   severityNumber: Int!
   severityText: String!
   spanId: String!
-  stage: Stage
+  stage: Stage @cost(weight: "10")
   traceId: String!
 }
 
@@ -2481,11 +2486,11 @@ type OpenTelemetryStringAttribute implements OpenTelemetryAttribute {
 }
 
 type OpenTelemetryTrace {
-  epoch: Float!
-  errors: [OpenTelemetryError!]!
-  logs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OpenTelemetryLogsConnection
-  spans: [OpenTelemetrySpan!]!
-  totalDuration: Float!
+  epoch: Float! @cost(weight: "10")
+  errors: [OpenTelemetryError!]! @cost(weight: "10")
+  logs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OpenTelemetryLogsConnection @listSize(assumedSize: 200, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
+  spans: [OpenTelemetrySpan!]! @cost(weight: "10")
+  totalDuration: Float! @cost(weight: "10")
 }
 
 type OpenTelemetryTraceEvent {
@@ -2504,14 +2509,14 @@ type OpenTelemetryTraceLink {
 type OpenTelemetryTransactionInsight {
   averageLatency: Float!
   errorRate: Float!
-  id: ID!
+  id: ID! @cost(weight: "10")
   impact: Float!
-  latency: OpenTelemetryTransactionLatencyGraph
+  latency: OpenTelemetryTransactionLatencyGraph @cost(weight: "10")
   name: String!
   opm: Float!
   spanKind: OpenTelemetrySpanKind!
   successRate: Float!
-  throughput: OpenTelemetryTransactionThroughputGraph
+  throughput: OpenTelemetryTransactionThroughputGraph @cost(weight: "10")
   totalCount: Long!
   totalCountWithErrors: Long!
 }
@@ -2608,7 +2613,7 @@ type OpenTelemetryTransactionsThroughputGraphData {
 }
 
 type Operation {
-  document: RequestDocument
+  document: RequestDocument @cost(weight: "10")
   kind: OperationKind!
   name: String
 }
@@ -2622,14 +2627,14 @@ type OperationInsight {
   documentId: String!
   errorRate: Float!
   hash: String!
-  id: ID!
+  id: ID! @cost(weight: "10")
   impact: Float!
   kind: OperationKind
-  latency: OperationLatencyGraph
+  latency: OperationLatencyGraph @cost(weight: "10")
   operationName: String!
   opm: Float!
   successRate: Float!
-  throughput: OperationThroughputGraph
+  throughput: OperationThroughputGraph @cost(weight: "10")
   totalCount: Long!
   totalCountWithErrors: Long!
 }
@@ -2757,15 +2762,15 @@ type OperationsThroughputGraphData {
 }
 
 type Organization implements Node {
-  authorizationEventLogs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int from: DateTime "Returns the last _n_ elements from the list." last: Int to: DateTime): OrganizationAuthorizationEventLogsConnection
-  billingInfo: OrganizationBillingInfo
+  authorizationEventLogs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int from: DateTime "Returns the last _n_ elements from the list." last: Int to: DateTime): OrganizationAuthorizationEventLogsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  billingInfo: OrganizationBillingInfo @cost(weight: "10")
   displayName: String!
-  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationGroupsConnection
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationGroupsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   id: ID!
-  members("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationMembersConnection
+  members("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationMembersConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   name: String!
-  plan: OrganizationPlan
-  usage(from: DateTime to: DateTime): OrganizationUsage
+  plan: OrganizationPlan @cost(weight: "10")
+  usage(from: DateTime to: DateTime): OrganizationUsage @cost(weight: "10")
 }
 
 "A connection to a list of items."
@@ -2817,17 +2822,17 @@ type OrganizationInfo {
 }
 
 type OrganizationMember implements Node {
-  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationMemberGroupsConnection
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationMemberGroupsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   id: ID!
   isDisabled: Boolean!
-  userName: String
+  userName: String @cost(weight: "10")
 }
 
 type OrganizationMemberGroupMember implements GroupMember {
   assignedAt: DateTime!
-  group: Group
+  group: Group @cost(weight: "10")
   id: ID!
-  member: OrganizationMember
+  member: OrganizationMember @cost(weight: "10")
   type: String!
 }
 
@@ -2867,7 +2872,7 @@ type OrganizationPaymentIssue {
 
 type OrganizationPermissionScope implements PermissionScope {
   id: ID!
-  organization: Organization
+  organization: Organization @cost(weight: "10")
   type: String!
 }
 
@@ -2876,8 +2881,8 @@ type OrganizationPlan {
 }
 
 type OrganizationUsage {
-  cumulativeGigabyteHours: OrganizationUsageCumulativeGigabyteHoursGraph
-  gigabyteHours: OrganizationUsageGigabyteHoursGraph
+  cumulativeGigabyteHours: OrganizationUsageCumulativeGigabyteHoursGraph @cost(weight: "10")
+  gigabyteHours: OrganizationUsageGigabyteHoursGraph @cost(weight: "10")
   period: OrganizationUsagePeriod!
 }
 
@@ -2969,7 +2974,7 @@ type PersistedQueryErrorLocation {
 }
 
 type PersistedQueryValidationError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
-  client: Client
+  client: Client @cost(weight: "10")
   clientId: ID! @deprecated(reason: "Use `client` instead.")
   hasMoreErrors: Boolean!
   message: String!
@@ -2977,7 +2982,7 @@ type PersistedQueryValidationError implements ClientVersionPublishError & Client
 }
 
 type PersistedQueryValidationFailed {
-  deployedTags: [String!]!
+  deployedTags: [String!]! @cost(weight: "10")
   errors: [PersistedQueryError!]!
   hash: String!
   message: String!
@@ -3056,7 +3061,7 @@ type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersio
 }
 
 type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
-  queuePosition: Int!
+  queuePosition: Int! @cost(weight: "10")
   state: ProcessingState!
 }
 
@@ -3095,16 +3100,16 @@ type PublishedClient {
 
 type PublishedClientVersion {
   publishedAt: DateTime!
-  stage: Stage
-  tags: [String!]! @deprecated(reason: "Use `version.tag` instead.")
-  version: ClientVersion
+  stage: Stage @cost(weight: "10")
+  tags: [String!]! @cost(weight: "10") @deprecated(reason: "Use `version.tag` instead.")
+  version: ClientVersion @cost(weight: "10")
 }
 
 type PublishedSchemaVersion {
   publishedAt: DateTime!
-  stage: Stage
-  tag: String! @deprecated(reason: "Use `version.tag` instead.")
-  version: SchemaVersion
+  stage: Stage @cost(weight: "10")
+  tag: String! @cost(weight: "10") @deprecated(reason: "Use `version.tag` instead.")
+  version: SchemaVersion @cost(weight: "10")
 }
 
 type PushDocumentChangesPayload {
@@ -3118,16 +3123,16 @@ type PushWorkspaceChangesPayload {
 }
 
 type Query {
-  apiById(id: ID!): Api
-  fusionConfigurationByApiId(id: ID! stage: String!): FusionConfiguration
+  apiById(id: ID!): Api @cost(weight: "10")
+  fusionConfigurationByApiId(id: ID! stage: String!): FusionConfiguration @cost(weight: "10")
   me: Viewer
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
+  node("ID of the object." id: ID!): Node @cost(weight: "10")
   "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  organizationById(id: ID!): Organization
-  stageById(id: ID!): Stage
-  workspaceById(workspaceId: ID!): Workspace
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10")
+  organizationById(id: ID!): Organization @cost(weight: "10")
+  stageById(id: ID!): Stage @cost(weight: "10")
+  workspaceById(workspaceId: ID!): Workspace @cost(weight: "10")
 }
 
 type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
@@ -3154,12 +3159,12 @@ type ResolverInsight {
   averageLatency: Float!
   coordinate: String!
   errorRate: Float!
-  id: ID!
+  id: ID! @cost(weight: "10")
   impact: Float!
-  latency: ResolverLatencyGraph
+  latency: ResolverLatencyGraph @cost(weight: "10")
   opm: Float!
   successRate: Float!
-  throughput: ResolverThroughputGraph
+  throughput: ResolverThroughputGraph @cost(weight: "10")
   totalCount: Long!
   totalCountWithErrors: Long!
 }
@@ -3224,8 +3229,8 @@ type RoleAssignment {
   condition: RoleAssignmentCondition
   effect: RoleEffect!
   id: ID!
-  role: Role
-  scope: PermissionScope
+  role: Role @cost(weight: "10")
+  scope: PermissionScope @cost(weight: "10")
 }
 
 type RoleAssignmentStageAuthorizationCondition {
@@ -3246,11 +3251,11 @@ type ScalarModifiedChange implements SchemaChange {
 
 type SchemaChangeLog implements StageChangeLog & Node {
   changedAt: DateTime!
-  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   id: ID!
   kind: StageChangeLogKind!
-  previousSchema: SchemaVersion
-  schema: SchemaVersion
+  previousSchema: SchemaVersion @cost(weight: "10")
+  schema: SchemaVersion @cost(weight: "10")
   statistic: SchemaChangeLogStatistic!
   tag: String!
 }
@@ -3285,10 +3290,10 @@ type SchemaChangesEdge {
 }
 
 type SchemaCoordinateMetrics implements CoordinateMetrics {
-  clientUsage(clientId: ID from: DateTime! to: DateTime!): CoordinateClientUsage
-  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]!
-  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph
-  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph
+  clientUsage(clientId: ID from: DateTime! to: DateTime!): CoordinateClientUsage @cost(weight: "10")
+  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]! @cost(weight: "10")
+  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph @cost(weight: "10")
+  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph @cost(weight: "10")
 }
 
 type SchemaDeployment implements Node & Deployment {
@@ -3304,9 +3309,9 @@ type SchemaDeployment implements Node & Deployment {
 }
 
 type SchemaDeploymentSchemaChanges {
-  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection
-  previousSchema: SchemaVersion
-  schema: SchemaVersion
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
+  previousSchema: SchemaVersion @cost(weight: "10")
+  schema: SchemaVersion @cost(weight: "10")
   statistic: SchemaChangeLogStatistic!
 }
 
@@ -3323,7 +3328,7 @@ type SchemaRegistrySettings {
 
 type SchemaVersion {
   createdAt: DateTime!
-  downloadUrl: String!
+  downloadUrl: String! @cost(weight: "1")
   id: ID!
   publishedTo: [PublishedSchemaVersion!]!
   tag: String!
@@ -3341,7 +3346,7 @@ type SchemaVersionPublishFailed implements SchemaVersionPublishResult {
 }
 
 type SchemaVersionPublishSuccess implements SchemaVersionPublishResult {
-  changeLog: SchemaChangeLog
+  changeLog: SchemaChangeLog @cost(weight: "10")
   state: ProcessingState!
 }
 
@@ -3391,23 +3396,23 @@ type SetActiveWorkspacePayload {
 }
 
 type Stage implements Node {
-  api: Api
-  changeLog("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int kind: [StageChangeLogKind!] "Returns the last _n_ elements from the list." last: Int): StageChangeLogConnection
+  api: Api @cost(weight: "10")
+  changeLog("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int kind: [StageChangeLogKind!] "Returns the last _n_ elements from the list." last: Int): StageChangeLogConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   conditions: [StageCondition!]!
-  coordinate(coordinate: String!): GraphQLTypeSystemMember
-  coordinates("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime isDeprecated: Boolean kinds: [CoordinateKind!] orderBy: [GraphQLCoordinateOrderByInput!] search: String to: DateTime): CoordinatesConnection
-  deployments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): DeploymentsConnection
+  coordinate(coordinate: String!): GraphQLTypeSystemMember @cost(weight: "10")
+  coordinates("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime isDeprecated: Boolean kinds: [CoordinateKind!] orderBy: [GraphQLCoordinateOrderByInput!] search: String to: DateTime): CoordinatesConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  deployments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): DeploymentsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   displayName: String!
-  essentials: StageEssentials
+  essentials: StageEssentials @cost(weight: "10")
   id: ID!
-  logDistribution(from: DateTime! to: DateTime!): OpenTelemetryLogsSeverityGraph
-  logs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int from: DateTime "Returns the last _n_ elements from the list." last: Int to: DateTime): OpenTelemetryLogsConnection
+  logDistribution(from: DateTime! to: DateTime!): OpenTelemetryLogsSeverityGraph @cost(weight: "10")
+  logs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int from: DateTime "Returns the last _n_ elements from the list." last: Int to: DateTime): OpenTelemetryLogsConnection @listSize(assumedSize: 200, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
   metrics: StageMetrics!
   name: String!
-  publishedClients: [PublishedClient!]!
-  publishedFusionConfiguration: FusionConfiguration
-  publishedSchema: PublishedSchemaVersion
-  traceById(seeker: String spanId: String traceId: String!): OpenTelemetryTrace
+  publishedClients: [PublishedClient!]! @cost(weight: "10")
+  publishedFusionConfiguration: FusionConfiguration @cost(weight: "10")
+  publishedSchema: PublishedSchemaVersion @cost(weight: "10")
+  traceById(seeker: String spanId: String traceId: String!): OpenTelemetryTrace @cost(weight: "10")
 }
 
 "A connection to a list of items."
@@ -3429,11 +3434,11 @@ type StageChangeLogEdge {
 }
 
 type StageClientsMetrics {
-  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [ClientInsightsOrderByInput!] to: DateTime!): ClientInsightsConnection
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [ClientInsightsOrderByInput!] to: DateTime!): ClientInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type StageErrorsMetrics {
-  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! search: String to: DateTime!): ErrorInsightsConnection
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! search: String to: DateTime!): ErrorInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type StageEssentials {
@@ -3471,36 +3476,36 @@ type StageNotFoundError implements Error {
 }
 
 type StageOperationMetrics {
-  latency(from: DateTime! to: DateTime!): OperationLatencyGraph
-  latencyDistribution(from: DateTime! to: DateTime!): OperationLatencyDistributionGraph
-  requestDocument: RequestDocument
-  samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OperationTraceSample!]!
-  throughput(from: DateTime! operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use") to: DateTime!): OperationThroughputGraph
+  latency(from: DateTime! to: DateTime!): OperationLatencyGraph @cost(weight: "10")
+  latencyDistribution(from: DateTime! to: DateTime!): OperationLatencyDistributionGraph @cost(weight: "10")
+  requestDocument: RequestDocument @cost(weight: "10")
+  samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OperationTraceSample!]! @cost(weight: "10")
+  throughput(from: DateTime! operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use") to: DateTime!): OperationThroughputGraph @cost(weight: "10")
 }
 
 type StageOperationMetricsSummary {
-  latency: StageLatencySummary
-  throughput: StageThroughputSummary
+  latency: StageLatencySummary @cost(weight: "10")
+  throughput: StageThroughputSummary @cost(weight: "10")
 }
 
 type StageOperationsMetrics {
-  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! operationKinds: [OperationKind!] orderBy: [OperationInsightsOrderByInput!] search: String to: DateTime!): OperationInsightsConnection
-  latency(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationsLatencyGraph
-  summary(from: DateTime! to: DateTime!): StageOperationMetricsSummary!
-  throughput(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationsThroughputGraph
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! operationKinds: [OperationKind!] orderBy: [OperationInsightsOrderByInput!] search: String to: DateTime!): OperationInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  latency(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationsLatencyGraph @cost(weight: "10")
+  summary(from: DateTime! to: DateTime!): StageOperationMetricsSummary! @cost(weight: "10")
+  throughput(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationsThroughputGraph @cost(weight: "10")
 }
 
 type StageResolverMetrics {
-  latency(from: DateTime! to: DateTime!): ResolverLatencyGraph
-  throughput(from: DateTime! to: DateTime!): ResolverThroughputGraph
+  latency(from: DateTime! to: DateTime!): ResolverLatencyGraph @cost(weight: "10")
+  throughput(from: DateTime! to: DateTime!): ResolverThroughputGraph @cost(weight: "10")
 }
 
 type StageResolversMetrics {
-  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [ResolverInsightsOrderByInput!] search: String to: DateTime!): ResolverInsightsConnection
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [ResolverInsightsOrderByInput!] search: String to: DateTime!): ResolverInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type StageSubgraphsMetrics {
-  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [SubgraphInsightsOrderByInput!] to: DateTime!): SubgraphInsightsConnection
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [SubgraphInsightsOrderByInput!] to: DateTime!): SubgraphInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type StageThroughputSummary {
@@ -3512,22 +3517,22 @@ type StageThroughputSummary {
 }
 
 type StageTransactionMetrics {
-  latency(from: DateTime! to: DateTime!): OpenTelemetryTransactionLatencyGraph
-  latencyDistribution(from: DateTime! to: DateTime!): OpenTelemetryTransactionLatencyDistributionGraph
-  samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OpenTelemetryTransactionTraceSample!]!
-  throughput(from: DateTime! to: DateTime!): OpenTelemetryTransactionThroughputGraph
+  latency(from: DateTime! to: DateTime!): OpenTelemetryTransactionLatencyGraph @cost(weight: "10")
+  latencyDistribution(from: DateTime! to: DateTime!): OpenTelemetryTransactionLatencyDistributionGraph @cost(weight: "10")
+  samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OpenTelemetryTransactionTraceSample!]! @cost(weight: "10")
+  throughput(from: DateTime! to: DateTime!): OpenTelemetryTransactionThroughputGraph @cost(weight: "10")
 }
 
 type StageTransactionMetricsSummary {
-  latency: StageLatencySummary
-  throughput: StageThroughputSummary
+  latency: StageLatencySummary @cost(weight: "10")
+  throughput: StageThroughputSummary @cost(weight: "10")
 }
 
 type StageTransactionsMetrics {
-  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [OpenTelemetryTransactionInsightsOrderByInput!] search: String spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionInsightsConnection
-  latency(from: DateTime! spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionsLatencyGraph
-  summary(from: DateTime! to: DateTime!): StageTransactionMetricsSummary!
-  throughput(from: DateTime! spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionsThroughputGraph
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [OpenTelemetryTransactionInsightsOrderByInput!] search: String spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  latency(from: DateTime! spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionsLatencyGraph @cost(weight: "10")
+  summary(from: DateTime! to: DateTime!): StageTransactionMetricsSummary! @cost(weight: "10")
+  throughput(from: DateTime! spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionsThroughputGraph @cost(weight: "10")
 }
 
 type StageValidationError implements Error {
@@ -3536,7 +3541,7 @@ type StageValidationError implements Error {
 
 type StagesHavePublishedDependenciesError implements Error {
   message: String!
-  stages: [Stage!]!
+  stages: [Stage!]! @cost(weight: "10")
 }
 
 type StartFusionConfigurationCompositionPayload {
@@ -3549,13 +3554,13 @@ type SubgraphInsight {
   errorRate: Float
   id: ID!
   impact: Float
-  latency: SubgraphLatencyGraph
+  latency: SubgraphLatencyGraph @cost(weight: "10")
   name: String!
   opm: Float
-  stage: Stage
-  subgraph: Subgraph
+  stage: Stage @cost(weight: "10")
+  subgraph: Subgraph @cost(weight: "10")
   successRate: Float
-  throughput: SubgraphThroughputGraph
+  throughput: SubgraphThroughputGraph @cost(weight: "10")
   totalCount: Long
   totalCountWithErrors: Long
 }
@@ -3622,7 +3627,7 @@ type Subscription {
   onSchemaVersionValidationUpdate(requestId: ID!): SchemaVersionValidationResult!
   onStageChanged(apiId: ID! kind: [StageChangeKind!] stageName: String!): StageChangedEvent!
   onStageChangeLogAdded(apiId: ID! kind: [StageChangeLogKind!] stageName: String!): StageChangeLog!
-  onStageDeploymentsChanged(stageId: ID!): DeploymentEvent!
+  onStageDeploymentsChanged(stageId: ID!): DeploymentEvent! @cost(weight: "10")
 }
 
 type ThemeSettings {
@@ -3812,34 +3817,34 @@ type ValidationInProgress implements FusionConfigurationPublishingResult & Clien
 }
 
 type Viewer {
-  activeOrganization: Organization
-  activeWorkspace: Workspace
+  activeOrganization: Organization @cost(weight: "10")
+  activeWorkspace: Workspace @cost(weight: "10")
   billingUrl: String
   manageTenantUrl: String
   organization: OrganizationInfo
-  personalAccessTokens("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): PersonalAccessTokensConnection
-  preferences: Any!
+  personalAccessTokens("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): PersonalAccessTokensConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  preferences: Any! @cost(weight: "10")
   sessionId: String!
-  settings: UserSettings!
-  user: User
-  workspaces("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): WorkspacesConnection
+  settings: UserSettings! @cost(weight: "10")
+  user: User @cost(weight: "10")
+  workspaces("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): WorkspacesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
-  deployment: Deployment
+  deployment: Deployment @cost(weight: "10")
   state: ProcessingState!
 }
 
 type Workspace implements Node {
-  apiDocuments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentsConnection
-  apiKeys("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeysConnection
-  apis("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApisConnection
-  changed(version: Version!): Boolean!
-  changes("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ChangesConnection
-  documentChanges("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentChangesConnection @deprecated(reason: "Use changes")
-  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentsConnection
-  documentsChanged(version: Version): Boolean! @deprecated(reason: "Use changed")
-  environments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): EnvironmentsConnection
+  apiDocuments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  apiKeys("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeysConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  apis("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApisConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  changed(version: Version!): Boolean! @cost(weight: "10")
+  changes("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ChangesConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  documentChanges("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentChangesConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10") @deprecated(reason: "Use changes")
+  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentsConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  documentsChanged(version: Version): Boolean! @cost(weight: "10") @deprecated(reason: "Use changed")
+  environments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): EnvironmentsConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   id: ID!
   members: [WorkspaceMember!]!
   name: String!
@@ -3866,7 +3871,7 @@ type WorkspaceDocument implements Node {
   path: [String!]!
   variables: String
   version: Version!
-  workspace: Workspace
+  workspace: Workspace @cost(weight: "10")
 }
 
 type WorkspaceDocumentAuthentication {
@@ -3903,7 +3908,7 @@ type WorkspaceDocumentHttpConnection {
 
 type WorkspaceMember {
   role: WorkspaceUserRole!
-  user: UserInfo!
+  user: UserInfo! @cost(weight: "10")
 }
 
 type WorkspaceNotFound implements Error {
@@ -3924,7 +3929,7 @@ type WorkspaceNotFoundForDocument implements Error {
 type WorkspacePermissionScope implements PermissionScope {
   id: ID!
   type: String!
-  workspace: Workspace
+  workspace: Workspace @cost(weight: "10")
 }
 
 "A connection to a list of items."
@@ -4010,6 +4015,8 @@ union EnumChange = DescriptionChanged | EnumValueAdded | EnumValueChanged | Enum
 union EnumValueChange = DeprecatedChange | DescriptionChanged
 
 union FieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
+
+union ForceDeleteStageByIdError = ApiNotFoundError | StageNotFoundError | UnauthorizedOperation
 
 union FusionConfigurationDeploymentError = PersistedQueryValidationError | McpFeatureCollectionValidationError | OpenApiCollectionValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError
 
@@ -4119,7 +4126,6 @@ input ApiCreateChangeInput {
   name: String!
   path: [String!]!
   referenceId: String!
-  referenceName: String
   workspaceId: ID!
 }
 
@@ -4198,7 +4204,6 @@ input ApiUpdateChangeInput {
   name: String!
   path: [String!]!
   referenceId: String!
-  referenceName: String
   version: Version!
   workspaceId: ID!
 }
@@ -4346,6 +4351,11 @@ input EnvironmentVariableInput {
   isSecret: Boolean!
   name: String!
   value: String!
+}
+
+input ForceDeleteStageByIdInput {
+  apiId: ID!
+  stageName: String!
 }
 
 input FusionSubgraphVersionInput {
@@ -4942,8 +4952,17 @@ enum WorkspaceUserRole {
   MEMBER
 }
 
+"The authorize directive."
+directive @authorize("Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!]) on OBJECT | FIELD_DEFINITION
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("Deferred when true." if: Boolean "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
+directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean = true "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query." slicingArgumentDefaultValue: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!]) on FIELD_DEFINITION
 
 "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
 directive @oneOf on INPUT_OBJECT
