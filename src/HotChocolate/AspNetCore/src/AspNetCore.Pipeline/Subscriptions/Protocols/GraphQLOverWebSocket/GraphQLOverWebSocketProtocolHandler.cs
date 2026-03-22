@@ -5,6 +5,7 @@ using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Text.Json;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.MessageProperties;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
@@ -17,7 +18,8 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
     ISocketSessionInterceptor interceptor,
     IWebSocketPayloadFormatter formatter,
     IDocumentCache documentCache,
-    IDocumentHashProvider documentHashProvider)
+    IDocumentHashProvider documentHashProvider,
+    ParserOptions parserOptions)
     : IGraphQLOverWebSocketProtocolHandler
 {
     public string Name => GraphQL_Transport_WS;
@@ -134,13 +136,36 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
         {
             try
             {
-                if (!TryParseSubscribeMessage(root, out var subscribeMessage))
+                if (!TryParseSubscribeMessage(root, out var subscribeId, out var requests))
                 {
                     await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
                     return;
                 }
 
-                if (!session.Operations.Enqueue(subscribeMessage.Id, subscribeMessage.Payload))
+                bool success;
+
+                if (requests.Length == 1)
+                {
+                    success = session.Operations.Enqueue(subscribeId, requests[0]);
+                }
+                else
+                {
+                    var options = session.Connection.Features.Get<GraphQLServerOptions>();
+
+                    if (options?.Batching.HasFlag(AllowedBatching.RequestBatching) == false)
+                    {
+                        throw new GraphQLRequestException(ErrorHelper.InvalidRequest());
+                    }
+
+                    if (options?.MaxBatchSize > 0 && requests.Length > options.MaxBatchSize)
+                    {
+                        throw new GraphQLRequestException(ErrorHelper.BatchSizeExceeded(options.MaxBatchSize));
+                    }
+
+                    success = session.Operations.EnqueueBatch(subscribeId, requests);
+                }
+
+                if (!success)
                 {
                     await connection.CloseSubscriptionIdNotUniqueAsync(cancellationToken);
                 }
@@ -300,37 +325,41 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
 
     private bool TryParseSubscribeMessage(
         JsonElement messageElement,
-        [NotNullWhen(true)] out SubscribeMessage? message)
+        [NotNullWhen(true)] out string? id,
+        [NotNullWhen(true)] out GraphQLRequest[]? requests)
     {
         if (!messageElement.TryGetProperty(Id, out var idProp)
             || idProp.ValueKind is not JsonValueKind.String
             || string.IsNullOrEmpty(idProp.GetString()))
         {
-            message = null;
+            id = null;
+            requests = null;
             return false;
         }
 
         if (!messageElement.TryGetProperty(Payload, out var payloadProp)
-            || payloadProp.ValueKind is not JsonValueKind.Object)
+            || payloadProp.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
         {
-            message = null;
+            id = null;
+            requests = null;
             return false;
         }
 
-        var id = idProp.GetString()!;
+        id = idProp.GetString()!;
         var requestData = JsonMarshal.GetRawUtf8Value(payloadProp);
-        var request = Parse(
+        requests = Parse(
             requestData,
-            cache: documentCache,
-            hashProvider: documentHashProvider);
+            parserOptions,
+            documentCache,
+            documentHashProvider);
 
-        if (request.Length == 0)
+        if (requests.Length == 0)
         {
-            message = null;
+            id = null;
+            requests = null;
             return false;
         }
 
-        message = new SubscribeMessage(id, request[0]);
         return true;
     }
 }
