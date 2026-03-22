@@ -49,15 +49,15 @@ internal sealed class DeleteStageCommand : Command
             throw Exit("Stage was not deleted");
         }
 
-        var input = new ForceDeleteStageByIdInput { ApiId = apiId, StageName = stageName };
-        var result = await client.ForceDeleteStageByIdCommandMutation
+        var input = new ForceDeleteStageByApiIdInput { ApiId = apiId, StageName = stageName };
+        var result = await client.ForceDeleteStageByApiIdCommandMutation
             .ExecuteAsync(input, cancellationToken);
 
         console.EnsureNoErrors(result);
         var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.ForceDeleteStageById.Errors);
+        console.PrintErrorsAndExit(data.ForceDeleteStageByApiId.Errors);
 
-        var stages = data.ForceDeleteStageById.Api?.Stages;
+        var stages = data.ForceDeleteStageByApiId.Api?.Stages;
         if (stages is null)
         {
             throw Exit("Could not delete the stage");

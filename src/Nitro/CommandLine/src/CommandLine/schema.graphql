@@ -1424,9 +1424,9 @@ type FieldRemovedChange implements SchemaChange {
   typeName: String!
 }
 
-type ForceDeleteStageByIdPayload {
+type ForceDeleteStageByApiIdPayload {
   api: Api
-  errors: [ForceDeleteStageByIdError!]
+  errors: [ForceDeleteStageByApiIdError!]
 }
 
 type FusionConfiguration {
@@ -2030,7 +2030,7 @@ type Mutation {
   deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload!
   deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload!
   ensureTunnelSession: EnsureTunnelSessionPayload!
-  forceDeleteStageById(input: ForceDeleteStageByIdInput!): ForceDeleteStageByIdPayload!
+  forceDeleteStageByApiId(input: ForceDeleteStageByApiIdInput!): ForceDeleteStageByApiIdPayload!
   pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload!
   pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload!
   pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload!
@@ -3480,7 +3480,7 @@ type StageOperationMetrics {
   latencyDistribution(from: DateTime! to: DateTime!): OperationLatencyDistributionGraph
   requestDocument: RequestDocument
   samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OperationTraceSample!]!
-  throughput(from: DateTime! operationKinds: [OperationKind!] @deprecated
+  throughput(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationThroughputGraph
 }
 
 type StageOperationMetricsSummary {
@@ -4016,7 +4016,7 @@ union EnumValueChange = DeprecatedChange | DescriptionChanged
 
 union FieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
 
-union ForceDeleteStageByIdError = ApiNotFoundError | StageNotFoundError | UnauthorizedOperation
+union ForceDeleteStageByApiIdError = ApiNotFoundError | StageNotFoundError | UnauthorizedOperation
 
 union FusionConfigurationDeploymentError = PersistedQueryValidationError | McpFeatureCollectionValidationError | OpenApiCollectionValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError
 
@@ -4353,7 +4353,7 @@ input EnvironmentVariableInput {
   value: String!
 }
 
-input ForceDeleteStageByIdInput {
+input ForceDeleteStageByApiIdInput {
   apiId: ID!
   stageName: String!
 }
@@ -4951,9 +4951,6 @@ enum WorkspaceUserRole {
   ADMINISTRATOR
   MEMBER
 }
-
-"Thedirective."
-directive
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("Deferred when true." if: Boolean "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
