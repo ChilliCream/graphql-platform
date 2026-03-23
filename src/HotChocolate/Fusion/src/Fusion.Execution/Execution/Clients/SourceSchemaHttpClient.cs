@@ -70,7 +70,6 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(request);
 
         Debug.WriteLine(request.SchemaName);
 
