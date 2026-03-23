@@ -16,6 +16,10 @@
         {
           "Key": "graphql.document.body",
           "Value": "{\n  causeFatalError\n}"
+        },
+        {
+          "Key": "graphql.errors.count",
+          "Value": 1
         }
       ],
       "event": [

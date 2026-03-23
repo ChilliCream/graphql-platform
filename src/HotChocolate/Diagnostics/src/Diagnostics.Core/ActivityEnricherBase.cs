@@ -119,4 +119,20 @@ public abstract class ActivityEnricherBase
         RequestContext context,
         Activity activity)
     { }
+
+    public virtual void EnrichDocumentNotFoundInStorage(
+        RequestContext context,
+        OperationDocumentId documentId,
+        Activity activity)
+    { }
+
+    public virtual void EnrichUntrustedDocumentRejected(
+        RequestContext context,
+        Activity activity)
+    { }
+
+    public virtual void EnrichAddedDocumentToCache(
+        RequestContext context,
+        Activity activity)
+    { }
 }

@@ -20,6 +20,10 @@
         {
           "Key": "graphql.document.body",
           "Value": "query SayHelloOperation {\n  sayHello\n}"
+        },
+        {
+          "Key": "graphql.errors.count",
+          "Value": 0
         }
       ],
       "event": [

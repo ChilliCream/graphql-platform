@@ -16,6 +16,10 @@
         {
           "Key": "graphql.document.body",
           "Value": "{\n  sayHello\n  deepB {\n    deeperB {\n      causeFatalError\n    }\n  }\n}"
+        },
+        {
+          "Key": "graphql.errors.count",
+          "Value": 2
         }
       ],
       "event": [
