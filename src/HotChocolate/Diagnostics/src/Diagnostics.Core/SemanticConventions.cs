@@ -14,16 +14,10 @@ internal static class SemanticConventions
 
             // Note: This is not part of the OTEL semantic conventions
             public const string Body = "graphql.document.body";
-
-            // Note: This is not part of the OTEL semantic conventions
-            public const string Valid = "graphql.document.valid";
         }
 
         public static class Operation
         {
-            // Note: This is not part of the OTEL semantic conventions
-            public const string Id = "graphql.operation.id";
-
             public const string Name = "graphql.operation.name";
             public const string Type = "graphql.operation.type";
 
@@ -46,7 +40,7 @@ internal static class SemanticConventions
                 public const string Id = "graphql.operation.step.id";
                 public const string Kind = "graphql.operation.step.kind";
 
-                // Note: This is not part of the OTEL semantic conventions
+                // Note: This is specific to Fusion
                 public static class KindValues
                 {
                     public const string Operation = "operation";
@@ -85,20 +79,11 @@ internal static class SemanticConventions
             public const string Name = "graphql.selection.name";
             public const string Path = "graphql.selection.path";
 
-            // Note: This is not part of the OTEL semantic conventions
-            public const string Hierarchy = "graphql.selection.hierarchy";
-
             public static class Field
             {
                 public const string Name = "graphql.selection.field.name";
                 public const string ParentType = "graphql.selection.field.parent_type";
                 public const string Coordinate = "graphql.selection.field.coordinate";
-
-                // Note: This is not part of the OTEL semantic conventions
-                public const string IsDeprecated = "graphql.selection.field.isDeprecated";
-
-                // Note: This is not part of the OTEL semantic conventions
-                public const string Type = "graphql.selection.type";
             }
         }
 
@@ -130,6 +115,12 @@ internal static class SemanticConventions
                 public const string Kind = "graphql.source.operation.kind";
                 public const string Hash = "graphql.source.operation.hash";
             }
+        }
+
+        // Note: This is not part of the OTEL semantic conventions
+        public static class Errors
+        {
+            public const string Count = "graphql.errors.count";
         }
 
         public static class Error

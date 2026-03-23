@@ -92,7 +92,7 @@ public static partial class ActivityTestHelper
         data["OperationName"] = activity.OperationName;
         data["DisplayName"] = activity.DisplayName;
         data["Status"] = activity.Status;
-        data["tags"] = activity.Tags;
+        data["tags"] = activity.TagObjects;
         data["event"] = activity.Events.Select(t => new
         {
             t.Name,
