@@ -306,7 +306,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         ImmutableArray<SourceSchemaClientRequest> requests,
         SourceResultDocument result)
     {
-        if (requests.IsDefaultOrEmpty)
+        if (requests.Length == 1)
         {
             return 0;
         }
