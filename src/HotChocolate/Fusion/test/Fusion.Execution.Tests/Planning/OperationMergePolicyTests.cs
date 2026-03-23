@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -11,13 +10,13 @@ public class OperationMergePolicyTests : FusionTestBase
     [Fact]
     public void Aggressive_Merges_Cross_Depth_Operations()
     {
-        // arrange — schema produces identical lookups to "d" at depth 1 and depth 3 (diff=2).
+        // arrange
         var schema = CreateDeepCrossDepthSchema();
 
         // act
         var plan = PlanOperation(schema, DeepCrossDepthQuery, OperationMergePolicy.Aggressive);
 
-        // assert — Aggressive merges regardless of depth difference.
+        // assert
         var batchOps = GetBatchOperationsForSchema(plan, "d");
         Assert.Contains(batchOps, op => op.Targets.Length > 1);
     }
@@ -31,8 +30,7 @@ public class OperationMergePolicyTests : FusionTestBase
         // act
         var plan = PlanOperation(schema, DeepCrossDepthQuery, OperationMergePolicy.Conservative);
 
-        // assert — Conservative only merges same-depth, so depth-1 vs depth-3
-        // lookups must not share a batch.
+        // assert
         var batchOps = GetBatchOperationsForSchema(plan, "d");
         Assert.DoesNotContain(batchOps, op => op.Targets.Length > 1);
     }
@@ -40,13 +38,13 @@ public class OperationMergePolicyTests : FusionTestBase
     [Fact]
     public void Balanced_Does_Not_Merge_Distant_Depth_Operations()
     {
-        // arrange — depth difference is 2, exceeding the Balanced threshold of 1.
+        // arrange
         var schema = CreateDeepCrossDepthSchema();
 
         // act
         var plan = PlanOperation(schema, DeepCrossDepthQuery, OperationMergePolicy.Balanced);
 
-        // assert — Balanced rejects merges when depth difference > 1.
+        // assert
         var batchOps = GetBatchOperationsForSchema(plan, "d");
         Assert.DoesNotContain(batchOps, op => op.Targets.Length > 1);
     }
@@ -54,13 +52,13 @@ public class OperationMergePolicyTests : FusionTestBase
     [Fact]
     public void Balanced_Merges_Adjacent_Depth_Operations()
     {
-        // arrange — the simple cross-depth schema has depth diff = 1.
+        // arrange
         var schema = CreateCrossDepthSchema();
 
         // act
         var plan = PlanOperation(schema, CrossDepthQuery, OperationMergePolicy.Balanced);
 
-        // assert — Balanced allows merging when depth difference <= 1.
+        // assert
         var batchOps = GetBatchOperationsForSchema(plan, "c");
         Assert.Contains(batchOps, op => op.Targets.Length > 1);
     }
@@ -89,7 +87,7 @@ public class OperationMergePolicyTests : FusionTestBase
         // act
         var plan = PlanOperation(schema, SameDepthQuery, OperationMergePolicy.Conservative);
 
-        // assert — even Conservative merges same-depth identical lookups.
+        // assert
         var batchOps = GetBatchOperationsForSchema(plan, "b");
         Assert.Single(batchOps);
         Assert.Equal(2, batchOps[0].Targets.Length);
@@ -108,6 +106,24 @@ public class OperationMergePolicyTests : FusionTestBase
         var batchOps = GetBatchOperationsForSchema(plan, "b");
         Assert.Single(batchOps);
         Assert.Equal(2, batchOps[0].Targets.Length);
+    }
+
+    [Fact]
+    public void Balanced_Produces_More_Nodes_Than_Aggressive_For_Distant_Depths()
+    {
+        // arrange
+        var schema = CreateDeepCrossDepthSchema();
+
+        // act
+        var aggressivePlan = PlanOperation(schema, DeepCrossDepthQuery, OperationMergePolicy.Aggressive);
+        var balancedPlan = PlanOperation(schema, DeepCrossDepthQuery, OperationMergePolicy.Balanced);
+
+        // assert
+        var aggressiveNodeCount = aggressivePlan.AllNodes.Length;
+        var balancedNodeCount = balancedPlan.AllNodes.Length;
+        Assert.True(
+            balancedNodeCount > aggressiveNodeCount,
+            $"Expected Balanced ({balancedNodeCount} nodes) > Aggressive ({aggressiveNodeCount} nodes)");
     }
 
     [Fact]
@@ -134,7 +150,7 @@ public class OperationMergePolicyTests : FusionTestBase
     public void Snapshot_Aggressive_K6()
     {
         var schema = CreateK6Schema();
-        var plan = PlanOperation(schema, K6Query, OperationMergePolicy.Aggressive);
+        var plan = PlanOperation(schema, s_k6Query, OperationMergePolicy.Aggressive);
         MatchSnapshot(plan);
     }
 
@@ -142,7 +158,7 @@ public class OperationMergePolicyTests : FusionTestBase
     public void Snapshot_Conservative_K6()
     {
         var schema = CreateK6Schema();
-        var plan = PlanOperation(schema, K6Query, OperationMergePolicy.Conservative);
+        var plan = PlanOperation(schema, s_k6Query, OperationMergePolicy.Conservative);
         MatchSnapshot(plan);
     }
 
@@ -150,7 +166,7 @@ public class OperationMergePolicyTests : FusionTestBase
     public void Snapshot_Balanced_K6()
     {
         var schema = CreateK6Schema();
-        var plan = PlanOperation(schema, K6Query, OperationMergePolicy.Balanced);
+        var plan = PlanOperation(schema, s_k6Query, OperationMergePolicy.Balanced);
         MatchSnapshot(plan);
     }
 
@@ -191,8 +207,6 @@ public class OperationMergePolicyTests : FusionTestBase
         return planner.CreatePlan(id, id, id, operation);
     }
 
-    // ── K6 schemas & query (used for snapshot tests) ────────────────────
-
     private static FusionSchemaDefinition CreateK6Schema()
         => ComposeSchema(
             FileResource.Open("k6-accounts.graphqls"),
@@ -200,15 +214,8 @@ public class OperationMergePolicyTests : FusionTestBase
             FileResource.Open("k6-reviews.graphqls"),
             FileResource.Open("k6-inventory.graphqls"));
 
-    private static readonly string K6Query = FileResource.Open("k6.graphql");
+    private static readonly string s_k6Query = FileResource.Open("k6.graphql");
 
-    // ── Deep cross-depth schema (depth diff=2, all 3 modes differ) ──────
-
-    /// <summary>
-    /// 4-schema chain producing identical productById lookups to "d"
-    /// at depth 1 and depth 3 (diff=2):
-    ///   a(root) → d(depth 1)  and  a → b(depth 1) → c(depth 2) → d(depth 3).
-    /// </summary>
     private static FusionSchemaDefinition CreateDeepCrossDepthSchema()
     {
         return ComposeSchema(
@@ -307,8 +314,6 @@ public class OperationMergePolicyTests : FusionTestBase
         }
         """;
 
-    // ── Adjacent cross-depth schema (depth diff=1, Balanced merges) ─────
-
     private static FusionSchemaDefinition CreateCrossDepthSchema()
     {
         return ComposeSchema(
@@ -384,8 +389,6 @@ public class OperationMergePolicyTests : FusionTestBase
           }
         }
         """;
-
-    // ── Same-depth schema (all modes merge) ─────────────────────────────
 
     private static FusionSchemaDefinition CreateSameDepthSchema()
     {
