@@ -1,6 +1,6 @@
 using NodaTime;
 
-namespace HotChocolate.Types.NodaTime.Tests;
+namespace HotChocolate.Types.NodaTime;
 
 public static class TestSchema
 {

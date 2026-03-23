@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using OpenTelemetry.Trace;
 
 namespace HotChocolate.Diagnostics;
 

@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Pagination;
 public class Edge<T> : IEdge<T>
 {
     private readonly Func<Edge<T>, string>? _resolveCursor;
+    private readonly int _index;
     private string? _cursor;
 
     /// <summary>
@@ -50,6 +51,30 @@ public class Edge<T> : IEdge<T>
 
         Node = node;
         _resolveCursor = edge => resolveCursor(edge.Node);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Edge{T}" />.
+    /// </summary>
+    /// <param name="node">
+    /// The node that the edge will wrap.
+    /// </param>
+    /// <param name="index">
+    /// The zero-based index of the <paramref name="node" /> in the current page.
+    /// </param>
+    /// <param name="resolveCursor">
+    /// A delegate that resolves the cursor for the specified <paramref name="index" />.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="resolveCursor" /> is <see langword="null" />.
+    /// </exception>
+    public Edge(T node, int index, Func<int, string> resolveCursor)
+    {
+        ArgumentNullException.ThrowIfNull(resolveCursor);
+
+        Node = node;
+        _index = index;
+        _resolveCursor = _ => resolveCursor(_index);
     }
 
     /// <summary>

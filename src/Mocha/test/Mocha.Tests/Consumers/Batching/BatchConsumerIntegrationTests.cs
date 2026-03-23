@@ -11,7 +11,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     [Fact]
     public async Task Handler_Should_ReceiveBatch_When_SingleMessageSizeTrigger()
     {
-        // arrange — MaxBatchSize=1 so each message immediately triggers a batch
+        // arrange - MaxBatchSize=1 so each message immediately triggers a batch
         var recorder = new BatchMessageRecorder();
         await using var provider = await CreateBusAsync(b =>
         {
@@ -37,7 +37,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     [Fact]
     public async Task Handler_Should_ReceiveBatch_When_TimeoutExpires()
     {
-        // arrange — high max size so only the timer triggers dispatch
+        // arrange - high max size so only the timer triggers dispatch
         var recorder = new BatchMessageRecorder();
         await using var provider = await CreateBusAsync(b =>
         {
@@ -55,7 +55,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
         // act
         await bus.PublishAsync(new TestBatchEvent { Id = "timeout-1" }, CancellationToken.None);
 
-        // assert — batch should arrive via timeout with 1 message
+        // assert - batch should arrive via timeout with 1 message
         Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked via timeout");
 
         var batch = Assert.IsAssignableFrom<IMessageBatch<TestBatchEvent>>(Assert.Single(recorder.Batches));
@@ -66,7 +66,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     [Fact]
     public async Task Handler_Should_ReceiveMultipleBatches_When_MultipleMessagesPublished()
     {
-        // arrange — MaxBatchSize=1 so each message triggers its own batch
+        // arrange - MaxBatchSize=1 so each message triggers its own batch
         var recorder = new BatchMessageRecorder();
         await using var provider = await CreateBusAsync(b =>
         {
@@ -143,7 +143,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     [Fact]
     public async Task Handler_Should_NotCrashRuntime_When_ExceptionThrown()
     {
-        // arrange — publish to a throwing handler, then verify a normal handler still works
+        // arrange - publish to a throwing handler, then verify a normal handler still works
         var throwingRecorder = new BatchMessageRecorder();
         var normalRecorder = new BatchMessageRecorder();
         await using var provider = await CreateBusAsync(b =>
@@ -157,7 +157,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish event that triggers a throw in the batch handler
+        // act - publish event that triggers a throw in the batch handler
         await bus.PublishAsync(new TestBatchEvent { Id = "fail" }, CancellationToken.None);
 
         // wait briefly for the throwing handler to process
@@ -166,7 +166,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
         // publish a different event type to the normal handler
         await bus.PublishAsync(new OtherBatchEvent { Name = "ok" }, CancellationToken.None);
 
-        // assert — the normal handler still works
+        // assert - the normal handler still works
         Assert.True(
             await normalRecorder.WaitAsync(Timeout),
             "Normal handler did not receive event after a previous handler threw");
@@ -175,7 +175,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     [Fact]
     public async Task Handler_Should_ProcessBothHandlers_When_TwoBatchHandlersForSameEvent()
     {
-        // arrange — two different batch handlers for the same event type
+        // arrange - two different batch handlers for the same event type
         var recorder1 = new BatchMessageRecorder();
         var recorder2 = new BatchMessageRecorder();
         await using var provider = await CreateBusAsync(b =>
@@ -192,7 +192,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
         // act
         await bus.PublishAsync(new TestBatchEvent { Id = "dual-1" }, CancellationToken.None);
 
-        // assert — both handlers receive the event independently
+        // assert - both handlers receive the event independently
         Assert.True(await recorder1.WaitAsync(Timeout), "First batch handler did not receive the event");
         Assert.True(await recorder2.WaitAsync(Timeout), "Second batch handler did not receive the event");
 
@@ -205,7 +205,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     [Fact]
     public async Task Handler_Should_ProcessBothHandlerTypes_When_BatchAndRegularHandlerCoexist()
     {
-        // arrange — both IBatchEventHandler<T> and IEventHandler<T> for the same event type
+        // arrange - both IBatchEventHandler<T> and IEventHandler<T> for the same event type
         var batchRecorder = new BatchMessageRecorder();
         var eventRecorder = new MessageRecorder();
         await using var provider = await CreateBusAsync(b =>
@@ -222,7 +222,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
         // act
         await bus.PublishAsync(new TestBatchEvent { Id = "both-1" }, CancellationToken.None);
 
-        // assert — both the batch handler and regular event handler receive the message
+        // assert - both the batch handler and regular event handler receive the message
         Assert.True(await batchRecorder.WaitAsync(Timeout), "Batch handler did not receive the event");
         Assert.True(await eventRecorder.WaitAsync(Timeout), "Regular event handler did not receive the event");
 
@@ -236,7 +236,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     [Fact]
     public async Task Handler_Should_ReceiveMultiMessageBatch_When_ConcurrentDelivery()
     {
-        // arrange — MaxBatchSize=5 with MaxConcurrency=5 so all 5 pipelines call Add()
+        // arrange - MaxBatchSize=5 with MaxConcurrency=5 so all 5 pipelines call Add()
         // concurrently, filling the batch by size before any handler completes
         var recorder = new BatchMessageRecorder();
         const int messageCount = 5;
@@ -258,7 +258,7 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
             await bus.PublishAsync(new TestBatchEvent { Id = $"batch-{i}" }, CancellationToken.None);
         }
 
-        // assert — single batch containing all 5 messages
+        // assert - single batch containing all 5 messages
         Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
 
         var batch = Assert.IsAssignableFrom<IMessageBatch<TestBatchEvent>>(Assert.Single(recorder.Batches));

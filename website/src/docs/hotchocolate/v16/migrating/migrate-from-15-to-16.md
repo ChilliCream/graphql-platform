@@ -251,6 +251,76 @@ Most of the properties you'd want to modify are now immutable data structures th
 
 `OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
 
+## Page and cursor API changes
+
+### `Page<T>` is now abstract
+
+`Page<T>` can no longer be instantiated directly. Use the static factory methods instead:
+
+- Use `Page<T>.Empty` when you just need to return an empty page.
+- Use `Page<T>.Create(...)` when you need to construct a page yourself.
+
+```diff
+-return new Page<Product>(
+-    items,
+-    hasNextPage: hasNext,
+-    hasPreviousPage: false,
+-    createCursor: product => CreateCursor(product),
+-    totalCount: totalCount);
++return Page<Product>.Create(
++    items,
++    hasNextPage: hasNext,
++    hasPreviousPage: false,
++    createCursor: product => CreateCursor(product),
++    totalCount: totalCount);
+```
+
+### `CreateCursor` now takes an index instead of an item
+
+`Page<T>.CreateCursor` previously accepted a `T` item. It now accepts a zero-based `int` index into the page's `Items` array. This enables cursor generation from the underlying source element when a `valueSelector` projection is used.
+
+```diff
+-string cursor = page.CreateCursor(page.First);
++string cursor = page.CreateCursor(page.FirstIndex!.Value);
+```
+
+Use the new convenience extension methods `CreateStartCursor()` and `CreateEndCursor()` when you only need boundary cursors:
+
+```diff
+-var startCursor = page.First is not null ? page.CreateCursor(page.First) : null;
+-var endCursor = page.Last is not null ? page.CreateCursor(page.Last) : null;
++var startCursor = page.CreateStartCursor();
++var endCursor = page.CreateEndCursor();
+```
+
+Two new properties, `FirstIndex` and `LastIndex`, return the zero-based indices of the first and last items (or `null` for an empty page).
+
+### `Edge<T>` constructor changes
+
+A new constructor overload accepts the item, its zero-based index, and a `Func<int, string>` cursor resolver:
+
+```diff
+-new Edge<T>(item, cursor: page.CreateCursor)
++new Edge<T>(item, index, cursor: page.CreateCursor)
+```
+
+The existing `Edge<T>(T node, Func<T, string> resolveCursor)` constructor is still available for cases where the cursor is resolved from the item itself.
+
+### `ToConnectionAsync` with custom edge factory
+
+The `ToConnectionAsync` overloads that accept a custom edge factory now pass the zero-based item index instead of the item's cursor:
+
+```diff
+-.ToConnectionAsync((source, page) =>
+-    new MyEdge(source, edge => page.CreateCursor(edge.Node)));
++.ToConnectionAsync((source, page, index) =>
++    new MyEdge(source, page.CreateCursor(index)));
+```
+
+### `ToBatchPageAsync` with `valueSelector`
+
+`ToBatchPageAsync<TKey, TValue, TElement>` now supports a `valueSelector` parameter (`Func<TElement, TValue>`) that projects each source element before the page is returned, while preserving the original elements for correct cursor generation. Passing `null` for `valueSelector` is only valid when `TElement` and `TValue` are the same type; a mismatched combination throws `ArgumentNullException` at runtime.
+
 ## OperationResult changes
 
 We've removed the `IOperationResult` abstraction. If you've previously pattern-matched on this, you can simply replace it with `OperationResult`. To assert that an `IExecutionResult` is an `OperationResult` in tests, use `result.ExpectOperationResult();`.
@@ -761,6 +831,64 @@ builder
     .AddGraphQL()
     .AddType(new DurationType("TimeSpan"));
 ```
+
+## NodaTime scalars now implement the GraphQL scalar specifications
+
+The `HotChocolate.Types.NodaTime` package was rewritten in v16 to align its scalar behavior with the specifications published on [scalars.graphql.org](https://scalars.graphql.org/).
+This is a breaking change if you relied on the old NodaTime scalar set or on the looser parsing behavior of the previous implementation.
+
+### Only five NodaTime scalars remain built in
+
+The package now only ships these spec-based scalar implementations:
+
+- `DateTimeType`
+- `DurationType`
+- `LocalDateType`
+- `LocalDateTimeType`
+- `LocalTimeType`
+
+These scalars expose `@specifiedBy` URLs and follow the corresponding scalar specifications for parsing and serialization.
+
+### Legacy NodaTime scalars were removed
+
+The following scalar types are no longer included in `HotChocolate.Types.NodaTime`:
+
+- `DateTimeZoneType`
+- `InstantType`
+- `IsoDayOfWeekType`
+- `OffsetDateType`
+- `OffsetTimeType`
+- `OffsetType`
+- `PeriodType`
+- `ZonedDateTimeType`
+
+If your schema used any of these scalars in v15, your project will no longer compile after upgrading until you remove them or provide your own replacement implementations.
+
+If you still need one of the removed scalars, add it back manually in your application as a custom scalar.
+
+### Use `AddNodaTime()` to register the new scalars
+
+v16 adds a dedicated `AddNodaTime()` extension method that registers all five built-in NodaTime scalars and the related CLR bindings and converters:
+
+```diff
+builder.Services
+    .AddGraphQLServer()
+-   .AddType<DateTimeType>()
+-   .AddType<DurationType>()
+-   .AddType<LocalDateType>()
+-   .AddType<LocalDateTimeType>()
+-   .AddType<LocalTimeType>();
++   .AddNodaTime();
+```
+
+`AddNodaTime()` also configures these runtime type mappings:
+
+- `DateTimeOffset` to `DateTimeType`
+- `DateTime` to `LocalDateTimeType`
+- `DateOnly` to `LocalDateType`
+- `TimeOnly` to `LocalTimeType`
+
+If you prefer, you can still register the remaining scalar types individually instead of using `AddNodaTime()`.
 
 ## AddInstrumentation
 

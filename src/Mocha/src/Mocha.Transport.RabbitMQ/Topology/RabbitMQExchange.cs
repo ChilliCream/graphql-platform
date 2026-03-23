@@ -6,7 +6,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Represents a RabbitMQ exchange entity with its configuration.
 /// </summary>
-public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfiguration>
+public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfiguration>, IRabbitMQResource
 {
     private ImmutableArray<RabbitMQBinding> _bindings = [];
 

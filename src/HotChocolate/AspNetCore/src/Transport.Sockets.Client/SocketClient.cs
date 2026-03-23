@@ -140,16 +140,15 @@ public sealed class SocketClient : ISocket
 
             return read > 0;
         }
-        catch
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // swallow exception, there's nothing we can reasonably do.
             return false;
         }
     }
 
     public ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed)
         {
             _cts.Cancel();
             _cts.Dispose();

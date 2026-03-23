@@ -9,12 +9,21 @@ namespace Mocha.EntityFrameworkCore;
 public class MessagingDbContextOptions
 {
     /// <summary>
-    /// Gets or sets the list of delegates that register services into the DbContext internal service provider.
+    /// Gets the list of delegates that register services into the DbContext internal service provider.
     /// </summary>
-    public List<Action<IServiceProvider, IServiceCollection>> ConfigureServices { get; set; } = [];
+    public List<Action<IServiceProvider, IServiceCollection>> ConfigureServices { get; init; } = [];
 
     /// <summary>
     /// Gets or sets the application-level service provider used to resolve dependencies during DbContext service configuration.
     /// </summary>
-    public IServiceProvider ServiceProvider { get; set; } = null!;
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when accessed before the service provider has been configured.
+    /// </exception>
+    public IServiceProvider ServiceProvider
+    {
+        get => field ??
+            throw new InvalidOperationException(
+                "ServiceProvider has not been configured. Ensure AddEntityFramework<TContext>() has been called on the message bus host builder.");
+        set;
+    }
 }

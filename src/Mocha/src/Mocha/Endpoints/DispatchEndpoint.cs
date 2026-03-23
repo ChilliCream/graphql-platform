@@ -128,7 +128,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     {
         AssertUninitialized();
 
-        Transport.Conventions.Configure(context, configuration);
+        Transport.Conventions.Configure(context, Transport, configuration);
         Configuration = configuration;
         Kind = configuration.Kind;
         Name = configuration.Name ?? throw new InvalidOperationException("Name is required");

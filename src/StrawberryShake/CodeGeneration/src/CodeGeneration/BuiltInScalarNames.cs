@@ -7,6 +7,7 @@ public static class BuiltInScalarNames
     private static readonly HashSet<string> s_typeNames =
     [
         "Guid",
+        "TimeSpan",
         "Uri",
         "Url",
         "Uuid",

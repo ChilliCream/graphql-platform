@@ -41,15 +41,15 @@ public class InboxTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish the first message; handler should process it
+        // act - publish the first message; handler should process it
         await bus.PublishAsync(new InboxEvent { Payload = "first" }, CancellationToken.None);
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the first event");
         await WaitUntilAsync(() => inbox.RecordedEnvelopes.Count >= 1, s_timeout);
 
-        // act — publish a second message with the same MessageId; handler should NOT process it
+        // act - publish a second message with the same MessageId; handler should NOT process it
         await bus.PublishAsync(new InboxEvent { Payload = "second" }, CancellationToken.None);
 
-        // assert — only the first message was handled
+        // assert - only the first message was handled
         Assert.False(
             await recorder.WaitAsync(TimeSpan.FromMilliseconds(500), expectedCount: 2),
             "Handler should not have received the duplicate message");
@@ -77,11 +77,11 @@ public class InboxTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish two distinct messages (each gets a unique auto-generated MessageId)
+        // act - publish two distinct messages (each gets a unique auto-generated MessageId)
         await bus.PublishAsync(new InboxEvent { Payload = "alpha" }, CancellationToken.None);
         await bus.PublishAsync(new InboxEvent { Payload = "beta" }, CancellationToken.None);
 
-        // assert — both messages are handled
+        // assert - both messages are handled
         Assert.True(
             await recorder.WaitAsync(s_timeout, expectedCount: 2),
             "Handler did not receive both events within timeout");
@@ -148,10 +148,10 @@ public class InboxTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — even though the MessageId is already in the inbox, SkipInbox bypasses the check
+        // act - even though the MessageId is already in the inbox, SkipInbox bypasses the check
         await bus.PublishAsync(new InboxEvent { Payload = "skip-inbox" }, CancellationToken.None);
 
-        // assert — handler received the message despite the duplicate MessageId
+        // assert - handler received the message despite the duplicate MessageId
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
 
         var handled = Assert.IsType<InboxEvent>(Assert.Single(recorder.Messages));
@@ -187,11 +187,11 @@ public class InboxTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish two messages with null MessageIds
+        // act - publish two messages with null MessageIds
         await bus.PublishAsync(new InboxEvent { Payload = "no-id-1" }, CancellationToken.None);
         await bus.PublishAsync(new InboxEvent { Payload = "no-id-2" }, CancellationToken.None);
 
-        // assert — both are processed (null MessageId means no dedup)
+        // assert - both are processed (null MessageId means no dedup)
         Assert.True(
             await recorder.WaitAsync(s_timeout, expectedCount: 2),
             "Handler did not receive both events within timeout");
@@ -233,7 +233,7 @@ public class InboxTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — first publish: FailingHandler will throw on first attempt.
+        // act - first publish: FailingHandler will throw on first attempt.
         // The consumer loop in DefaultPipeline iterates handlers sequentially;
         // when FailingHandler throws, the exception propagates and any handler
         // not yet reached in that iteration does not run for this delivery.
@@ -260,7 +260,7 @@ public class InboxTests
             succeedingCountAfterFirstDelivery is 0 or 1,
             $"SucceedingHandler should have been invoked 0 or 1 times, was {succeedingCountAfterFirstDelivery}");
 
-        // act — re-publish with same MessageId to simulate transport redelivery.
+        // act - re-publish with same MessageId to simulate transport redelivery.
         // On this delivery:
         // - SucceedingHandler: if it ran before, inbox dedup skips it; if it didn't run, it processes now
         // - FailingHandler: claim was rolled back, so inbox allows retry; second attempt succeeds
@@ -282,7 +282,7 @@ public class InboxTests
         // Give a short window to ensure no extra invocation arrives
         await Task.Delay(TimeSpan.FromMilliseconds(300));
 
-        // assert — across both deliveries:
+        // assert - across both deliveries:
         // SucceedingHandler invoked exactly once (either on first or second delivery, but not both)
         Assert.Equal(1, succeedingCounter.Count);
 

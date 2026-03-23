@@ -1,129 +1,262 @@
-using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
-using NodaTime.Text;
 
-namespace HotChocolate.Types.NodaTime.Tests;
+namespace HotChocolate.Types.NodaTime;
 
-public class DurationTypeIntegrationTests
+public sealed class DurationTypeTests
 {
     [Fact]
-    public void CoerceInputLiteral()
+    public void Ensure_Type_Name_Is_Correct()
     {
+        // arrange & act
         var type = new DurationType();
-        var inputValue = new StringValueNode("123:07:53:10.019");
-        var runtimeValue = type.CoerceInputLiteral(inputValue);
-        Assert.Equal(
-            Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19)),
-            Assert.IsType<Duration>(runtimeValue));
+
+        // assert
+        Assert.Equal("Duration", type.Name);
     }
 
     [Fact]
-    public void CoerceInputLiteral_Invalid_Value_Throws()
+    public void CoerceInputLiteral()
     {
+        // arrange
         var type = new DurationType();
-        var valueLiteral = new StringValueNode("+09:22:01:00");
-        Action error = () => type.CoerceInputLiteral(valueLiteral);
-        Assert.Throws<LeafCoercionException>(error);
+        var literal = new StringValueNode("PT5M");
+        var expectedDuration = Duration.FromMinutes(5);
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedDuration, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_MaxValue()
+    {
+        // arrange
+        var type = new DurationType();
+        var literal = new StringValueNode("P16777215DT23H59M59.999999999S");
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(Duration.MaxValue, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_MinValue()
+    {
+        // arrange
+        var type = new DurationType();
+        var literal = new StringValueNode("-P16777216D");
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(Duration.MinValue, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_Invalid_Format()
+    {
+        // arrange
+        var type = new DurationType();
+        var literal = new StringValueNode("bad");
+
+        // act
+        void Action() => type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
     public void CoerceInputValue()
     {
+        // arrange
         var type = new DurationType();
-        var inputValue = ParseInputValue("\"123:07:53:10.019\"");
+        var inputValue = ParseInputValue("\"PT5M\"");
+        var expectedDuration = Duration.FromMinutes(5);
+
+        // act
         var runtimeValue = type.CoerceInputValue(inputValue, null!);
-        Assert.Equal(
-            Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19)),
-            Assert.IsType<Duration>(runtimeValue));
+
+        // assert
+        Assert.Equal(expectedDuration, runtimeValue);
     }
 
     [Fact]
-    public void CoerceInputValue_Invalid_Value_Throws()
+    public void CoerceInputValue_Invalid_Format()
     {
+        // arrange
         var type = new DurationType();
-        var inputValue = ParseInputValue("\"+09:22:01:00\"");
-        Action error = () => type.CoerceInputValue(inputValue, null!);
-        Assert.Throws<LeafCoercionException>(error);
+        var inputValue = ParseInputValue("\"bad\"");
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
     public void CoerceOutputValue()
     {
+        // arrange
         var type = new DurationType();
+        var runtimeValue = Duration.FromMinutes(5);
+
+        // act
         var operation = CommonTestExtensions.CreateOperation();
         var resultDocument = new ResultDocument(operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
-        type.CoerceOutputValue(Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19)), resultValue);
-        Assert.Equal("123:07:53:10.019", resultValue.GetString());
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        Assert.Equal("PT5M", resultValue.GetString());
     }
 
     [Fact]
-    public void CoerceOutputValue_Invalid_Value_Throws()
+    public void CoerceOutputValue_Invalid_Format()
     {
+        // arrange
         var type = new DurationType();
+
+        // act
         var operation = CommonTestExtensions.CreateOperation();
         var resultDocument = new ResultDocument(operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
-        Action error = () => type.CoerceOutputValue("123:07:53:10.019", resultValue);
-        Assert.Throws<LeafCoercionException>(error);
+        void Action() => type.CoerceOutputValue("bad", resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
     public void ValueToLiteral()
     {
+        // arrange
         var type = new DurationType();
-        var valueLiteral = type.ValueToLiteral(Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19)));
-        Assert.Equal("\"123:07:53:10.019\"", valueLiteral.ToString());
+        var runtimeValue = Duration.FromMinutes(5);
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal("PT5M", Assert.IsType<StringValueNode>(literal).Value);
     }
 
     [Fact]
-    public void ValueToLiteral_Invalid_Value_Throws()
+    public void ValueToLiteral_MaxValue()
     {
+        // arrange
         var type = new DurationType();
-        Action error = () => type.ValueToLiteral("123:07:53:10.019");
-        Assert.Throws<LeafCoercionException>(error);
+        var runtimeValue = Duration.MaxValue;
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal(
+            "P16777215DT23H59M59.999999999S",
+            Assert.IsType<StringValueNode>(literal).Value);
     }
 
     [Fact]
-    public void PatternEmpty_ThrowSchemaException()
+    public void ValueToLiteral_MinValue()
     {
-        static object Call() => new DurationType([]);
-        Assert.Throws<SchemaException>(Call);
+        // arrange
+        var type = new DurationType();
+        var runtimeValue = Duration.MinValue;
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal(
+            "-P16777216D",
+            Assert.IsType<StringValueNode>(literal).Value);
     }
 
     [Fact]
-    public void DurationType_DescriptionKnownPatterns_MatchesSnapshot()
+    public void ParseLiteral()
     {
-        var durationType = new DurationType(
-            DurationPattern.Roundtrip,
-            DurationPattern.JsonRoundtrip);
+        // arrange
+        var type = new DurationType();
+        var literal = new StringValueNode("PT5M");
+        var expectedDuration = Duration.FromMinutes(5);
 
-        durationType.Description.MatchInlineSnapshot(
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedDuration, Assert.IsType<Duration>(runtimeValue));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new DurationType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void Ensure_TypeKind_Is_Scalar()
+    {
+        // arrange
+        var type = new DurationType();
+
+        // act
+        var kind = type.Kind;
+
+        // assert
+        Assert.Equal(TypeKind.Scalar, kind);
+    }
+
+    [Fact]
+    public async Task Integration_SingleRuntimeType()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QuerySingleRuntimeType))
+            .AddNodaTime()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result =
+            await executor.ExecuteAsync(
+                """{ duration(input: "P16777215DT23H59M59.999999999S") }""");
+
+        // assert
+        result.MatchInlineSnapshot(
             """
-            Represents a fixed (and calendar-independent) length of time.
-
-            Allowed patterns:
-            - `-D:hh:mm:ss.sssssssss`
-            - `-hh:mm:ss.sssssssss`
-
-            Examples:
-            - `-1:20:00:00.999999999`
-            - `-44:00:00.999999999`
+            {
+              "data": {
+                "duration": "P16777215DT23H59M59.999999999S"
+              }
+            }
             """);
     }
 
-    [Fact]
-    public void DurationType_DescriptionUnknownPatterns_MatchesSnapshot()
+    [QueryType]
+    private static class QuerySingleRuntimeType
     {
-        var durationType = new DurationType(
-            DurationPattern.Create("mm", CultureInfo.InvariantCulture));
-
-        durationType.Description.MatchInlineSnapshot(
-            "Represents a fixed (and calendar-independent) length of time.");
+        public static Duration GetDuration(Duration input) => input;
     }
 
     private static JsonElement ParseInputValue(string sourceText)

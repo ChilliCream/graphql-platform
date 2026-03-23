@@ -7,7 +7,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class WorkScheduler(OperationContext operationContext)
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly WorkQueue _work = new();
     private readonly WorkQueue _serial = new();
     private readonly AsyncManualResetEvent _signal = new();

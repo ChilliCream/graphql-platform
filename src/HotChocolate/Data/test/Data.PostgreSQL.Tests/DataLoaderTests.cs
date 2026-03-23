@@ -88,7 +88,7 @@ public class DataLoaderTests(PostgreSqlResource resource)
             .LoadRequiredAsync(1, cts.Token);
 
         // assert
-        Assert.Equal(5, products.Items.Length);
+        Assert.Equal(5, products.Count);
         interceptor.MatchSnapshot();
     }
 
