@@ -32,11 +32,8 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     IInMemoryReceiveEndpointDescriptor Queue(string name);
 
     /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration);
+    new IInMemoryReceiveEndpointDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

@@ -112,8 +112,7 @@ public class InboxIntegrationTests
 
                 // Add a consumer middleware before inbox that sets SkipInbox
                 b.ConfigureMessageBus(h =>
-                    h.PrependConsume(
-                        "Inbox",
+                    h.UseConsume(
                         new ConsumerMiddlewareConfiguration(
                             static (_, next) =>
                                 ctx =>
@@ -122,7 +121,8 @@ public class InboxIntegrationTests
                                     feature.SkipInbox = true;
                                     return next(ctx);
                                 },
-                            "SkipInboxCheck"))
+                            "SkipInboxCheck"),
+                        before: "Inbox")
                 );
             });
 

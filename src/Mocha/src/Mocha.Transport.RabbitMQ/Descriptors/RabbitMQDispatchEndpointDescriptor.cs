@@ -45,27 +45,12 @@ internal sealed class RabbitMQDispatchEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQDispatchEndpointDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public new IRabbitMQDispatchEndpointDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.UseDispatch(configuration);
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQDispatchEndpointDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.AppendDispatch(after, configuration);
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQDispatchEndpointDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.PrependDispatch(before, configuration);
+        base.UseDispatch(configuration, before, after);
         return this;
     }
 

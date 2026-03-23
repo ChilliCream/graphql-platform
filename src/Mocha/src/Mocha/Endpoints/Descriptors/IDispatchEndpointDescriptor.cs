@@ -22,29 +22,15 @@ public interface IDispatchEndpointDescriptor<TConfiguration> : IMessagingDescrip
     IDispatchEndpointDescriptor<TConfiguration> Publish<TMessage>();
 
     /// <summary>
-    /// Appends a dispatch middleware configuration to this endpoint's dispatch pipeline.
+    /// Adds a dispatch middleware to this endpoint's dispatch pipeline. Optionally positions it
+    /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>
     /// <param name="configuration">The dispatch middleware configuration to add.</param>
+    /// <param name="before">The name of the existing middleware to insert before.</param>
+    /// <param name="after">The name of the existing middleware to insert after.</param>
     /// <returns>The descriptor instance for method chaining.</returns>
-    IDispatchEndpointDescriptor<TConfiguration> UseDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a dispatch middleware configuration after the middleware with the specified name.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware after which to insert.</param>
-    /// <param name="configuration">The dispatch middleware configuration to insert.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IDispatchEndpointDescriptor<TConfiguration> AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a dispatch middleware configuration before the middleware with the specified name.
-    /// </summary>
-    /// <param name="before">The name of the existing middleware before which to insert.</param>
-    /// <param name="configuration">The dispatch middleware configuration to insert.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IDispatchEndpointDescriptor<TConfiguration> PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
+    IDispatchEndpointDescriptor<TConfiguration> UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

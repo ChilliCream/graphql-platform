@@ -1,22 +1,33 @@
 ---
 title: "Introduction"
-description: "Mocha is a messaging framework for .NET that provides a message bus with handler-based consumers, multiple transport support, middleware pipelines, saga orchestration, and deep observability through Nitro integration."
+description: "Mocha is a messaging framework for .NET that provides a message bus for inter-service communication, a source-generated mediator for in-process CQRS, middleware pipelines, saga orchestration, and deep observability through Nitro integration."
 ---
 
 ```csharp
+// Inter-service messaging via the message bus
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedHandler>()
     .AddRabbitMQ();
+
+// In-process CQRS via the mediator
+builder.Services
+    .AddMediator()
+    .AddHandlers();
 ```
 
-That is a complete bus configuration. Register the bus, add your handlers, pick a transport. Mocha handles routing, serialization, endpoint topology, and handler lifecycle.
+Mocha gives you two dispatch mechanisms. The **message bus** sends messages across service boundaries through a transport like RabbitMQ. The **mediator** dispatches commands, queries, and notifications within a single process using source-generated code - no reflection, no dictionary lookups. Use them independently or together.
 
 # What Mocha is
 
-Mocha is a messaging framework for .NET. It gives your services a structured way to communicate through messages - publishing events, sending requests, and coordinating request/reply flows - following the patterns described in [Enterprise Integration Patterns](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Introduction.html). It integrates directly into ASP.NET Core's dependency injection and is designed for [event-driven architectures](https://learn.microsoft.com/en-us/azure/architecture/guide/architecture-styles/event-driven) where services communicate asynchronously rather than through direct method calls.
+Mocha is a messaging framework for .NET with two complementary dispatch systems:
 
-You implement handler interfaces. Mocha wraps your handlers into consumers, compiles the middleware pipeline, binds endpoints to the transport, and starts receiving messages. The framework is handler-first: you declare what you handle, and Mocha builds the infrastructure around that declaration.
+- **Message bus** - sends messages across service boundaries through transports like RabbitMQ. Supports pub/sub events, request/reply, saga orchestration, inbox/outbox reliability, and pluggable transports. Follows the patterns described in [Enterprise Integration Patterns](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Introduction.html).
+- **Mediator** - dispatches commands, queries, and notifications within a single process. A Roslyn source generator produces a concrete mediator class at compile time with specialized dispatch and pre-compiled pipeline delegates. No reflection, no runtime code generation.
+
+Both integrate directly into ASP.NET Core's dependency injection and are designed for [event-driven architectures](https://learn.microsoft.com/en-us/azure/architecture/guide/architecture-styles/event-driven). Use the message bus when messages cross process boundaries. Use the mediator when you want in-process CQRS with pipeline behaviors for cross-cutting concerns like validation, logging, and transactions. Most real-world services use both: the mediator handles internal command/query dispatch, and the message bus handles inter-service events.
+
+The framework is handler-first in both cases. You implement handler interfaces, and Mocha builds the infrastructure around those declarations - whether that means wiring up transport endpoints and middleware pipelines for the bus, or generating a type-safe mediator class with pre-compiled dispatch for in-process handlers.
 
 # Terminology
 
@@ -33,6 +44,9 @@ These terms appear throughout the documentation. They are defined once here and 
 | **Transport** | The infrastructure layer connecting Mocha to a message broker, such as RabbitMQ or an in-process channel.                                                                                                                               |
 | **Pipeline**  | The chain of middleware that processes a message from the transport through to the handler.                                                                                                                                             |
 | **Saga**      | A long-running stateful workflow that coordinates multiple messages and transitions across services.                                                                                                                                    |
+| **Mediator**  | An in-process dispatcher that routes commands, queries, and notifications to their handlers without a transport layer. Source-generated at compile time.                                                                                |
+| **Command**   | A mediator message representing an action. Implements `ICommand` (void) or `ICommand<TResponse>` (with response). Dispatched via `SendAsync`.                                                                                           |
+| **Query**     | A mediator message representing a read operation. Implements `IQuery<TResponse>`. Dispatched via `QueryAsync`.                                                                                                                          |
 
 # Architecture
 
@@ -144,6 +158,40 @@ Sagas coordinate multi-step workflows that span multiple services and messages. 
 
 Mocha persists saga state, manages transitions, and supports compensation when steps fail. See [Sagas](/docs/mocha/v1/sagas) for a full walkthrough.
 
+## In-process mediator
+
+For commands and queries that stay within a single service, the mediator provides CQRS dispatch with middleware - without a transport layer. Define your messages with marker interfaces, implement handlers, and the source generator wires everything at compile time:
+
+```csharp
+// Define a command and its handler
+public record PlaceOrderCommand(Guid ProductId, int Quantity)
+    : ICommand<PlaceOrderResult>;
+
+public class PlaceOrderCommandHandler(AppDbContext db)
+    : ICommandHandler<PlaceOrderCommand, PlaceOrderResult>
+{
+    public async ValueTask<PlaceOrderResult> HandleAsync(
+        PlaceOrderCommand command, CancellationToken cancellationToken)
+    {
+        // business logic
+        return new PlaceOrderResult(true, Guid.NewGuid());
+    }
+}
+```
+
+```csharp
+// Register and use
+builder.Services
+    .AddMediator()
+    .AddCatalog()
+    .UseEntityFrameworkTransactions<AppDbContext>();
+
+app.MapPost("/orders", async (ISender sender) =>
+    await sender.SendAsync(new PlaceOrderCommand(productId, 2)));
+```
+
+The mediator supports commands (with and without responses), queries, notifications, middleware, and EF Core transaction wrapping (commands only by default, configurable via delegate). The source generator produces a typed registration method per assembly (e.g. `AddCatalog()`) that wires up all handlers and pre-compiled dispatch pipelines automatically. See [Mediator](/docs/mocha/v1/mediator) for the full guide.
+
 # Learning paths
 
 Choose an entry point based on how you learn best:
@@ -151,6 +199,7 @@ Choose an entry point based on how you learn best:
 - **Get something running first:** [Quick Start](/docs/mocha/v1/quick-start) -zero to a working message bus in under five minutes with the InMemory transport.
 - **Understand the concepts first:** [Messages](/docs/mocha/v1/messages) then [Messaging Patterns](/docs/mocha/v1/messaging-patterns) - learn what flows through the system and what patterns govern how it flows.
 - **Evaluating Mocha for a specific broker:** [Transports](/docs/mocha/v1/transports) - understand the transport abstraction and what is available.
+- **In-process CQRS:** [Mediator](/docs/mocha/v1/mediator) - dispatch commands, queries, and notifications within a single service using the source-generated mediator.
 
 - **See a real-world system:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo) is a complete e-commerce system with three services (Catalog, Billing, Shipping) that demonstrates event-driven communication, sagas, batch processing, the transactional outbox, and .NET Aspire orchestration.
 

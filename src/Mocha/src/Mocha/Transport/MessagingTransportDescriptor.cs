@@ -66,50 +66,30 @@ public interface IMessagingTransportDescriptor
     IMessagingTransportDescriptor IsDefaultTransport();
 
     /// <summary>
-    /// Adds a dispatch middleware to the transport-scoped outbound pipeline.
+    /// Adds a dispatch middleware to the transport-scoped outbound pipeline. Optionally positions it
+    /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>
     /// <param name="configuration">The middleware configuration to add.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a dispatch middleware into the transport-scoped outbound pipeline immediately after the middleware identified by <paramref name="after"/>.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware to insert after.</param>
-    /// <param name="configuration">The middleware configuration to insert.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor AppendDispatch(string after, DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a dispatch middleware into the transport-scoped outbound pipeline immediately before the middleware identified by <paramref name="before"/>.
-    /// </summary>
     /// <param name="before">The name of the existing middleware to insert before.</param>
-    /// <param name="configuration">The middleware configuration to insert.</param>
+    /// <param name="after">The name of the existing middleware to insert after.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor PrependDispatch(string before, DispatchMiddlewareConfiguration configuration);
+    IMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
     /// <summary>
-    /// Adds a receive middleware to the transport-scoped inbound pipeline.
+    /// Adds a receive middleware to the transport-scoped inbound pipeline. Optionally positions it
+    /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>
     /// <param name="configuration">The middleware configuration to add.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a receive middleware into the transport-scoped inbound pipeline immediately after the middleware identified by <paramref name="after"/>.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware to insert after.</param>
-    /// <param name="configuration">The middleware configuration to insert.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a receive middleware into the transport-scoped inbound pipeline immediately before the middleware identified by <paramref name="before"/>.
-    /// </summary>
     /// <param name="before">The name of the existing middleware to insert before.</param>
-    /// <param name="configuration">The middleware configuration to insert.</param>
+    /// <param name="after">The name of the existing middleware to insert after.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration);
+    IMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }
 
 /// <summary>
@@ -165,16 +145,32 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     }
 
     /// <inheritdoc />
-    public IMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public IMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        Configuration.DispatchMiddlewares.Add(configuration);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
 
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor AppendDispatch(string after, DispatchMiddlewareConfiguration configuration)
-    {
-        Configuration.DispatchPipelineModifiers.Append(configuration, after);
+        if (before is null && after is null)
+        {
+            Configuration.DispatchMiddlewares.Add(configuration);
+            return this;
+        }
+
+        if (before is not null)
+        {
+            Configuration.DispatchPipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.DispatchPipelineModifiers.Append(configuration, after);
+        }
+
         return this;
     }
 
@@ -186,30 +182,32 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     }
 
     /// <inheritdoc />
-    public IMessagingTransportDescriptor PrependDispatch(string before, DispatchMiddlewareConfiguration configuration)
+    public IMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        Configuration.DispatchPipelineModifiers.Prepend(configuration, before);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
 
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceiveMiddlewares.Add(configuration);
-        return this;
-    }
+        if (before is null && after is null)
+        {
+            Configuration.ReceiveMiddlewares.Add(configuration);
+            return this;
+        }
 
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceivePipelineModifiers.Append(configuration, after);
-        return this;
-    }
+        if (before is not null)
+        {
+            Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.ReceivePipelineModifiers.Append(configuration, after);
+        }
 
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
         return this;
     }
 

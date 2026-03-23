@@ -523,8 +523,7 @@ Set the feature from a custom consumer middleware that runs before the inbox:
 builder.Services
     .AddMessageBus(bus =>
     {
-        bus.PrependConsume(
-            "Inbox",
+        bus.UseConsume(
             new ConsumerMiddlewareConfiguration(
                 static (_, next) => ctx =>
                 {
@@ -532,7 +531,8 @@ builder.Services
                     feature.SkipInbox = true;
                     return next(ctx);
                 },
-                "SkipInboxCheck"));
+                "SkipInboxCheck"),
+            before: "Inbox");
     })
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
@@ -543,7 +543,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-`PrependConsume("Inbox", ...)` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
+`UseConsume(..., before: "Inbox")` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
 
 ## How the inbox cleanup worker works
 
