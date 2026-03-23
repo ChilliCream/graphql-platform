@@ -3,8 +3,11 @@ using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
+
+// GraphQL.Error.Count
 
 /// <summary>
 /// The activity enricher allows adding additional information to the activity spans
@@ -62,6 +65,19 @@ public class FusionActivityEnricher(InstrumentationOptions options) : ActivityEn
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId,
+        Activity activity)
+    {
+    }
+
+    public virtual void EnrichDocumentNotFoundInStorage(
+        RequestContext context,
+        OperationDocumentId documentId,
+        Activity activity)
+    {
+    }
+
+    public virtual void EnrichUntrustedDocumentRejected(
+        RequestContext context,
         Activity activity)
     {
     }

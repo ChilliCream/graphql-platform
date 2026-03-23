@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using GreenDonut;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Diagnostics;
@@ -43,6 +44,17 @@ public class ActivityEnricher(InstrumentationOptions options) : ActivityEnricher
 
     public virtual void EnrichBatchDispatchError(
         Exception exception,
+        Activity activity)
+    { }
+
+    public virtual void EnrichDocumentNotFoundInStorage(
+        RequestContext context,
+        OperationDocumentId documentId,
+        Activity activity)
+    { }
+
+    public virtual void EnrichUntrustedDocumentRejected(
+        RequestContext context,
         Activity activity)
     { }
 

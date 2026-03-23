@@ -1,0 +1,16 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "GraphQL Operation",
+      "Status": "Error",
+      "tags": [],
+      "event": [
+        {
+          "Name": "UntrustedDocumentRejected",
+          "Tags": []
+        }
+      ]
+    }
+  ]
+}

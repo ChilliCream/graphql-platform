@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
@@ -309,6 +310,24 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(RetrievedDocumentFromStorage)));
+        }
+    }
+
+    public override void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
+        {
+            span.Activity.AddEvent(new(nameof(DocumentNotFoundInStorage)));
+            enricher.EnrichDocumentNotFoundInStorage(context, documentId, span.Activity);
+        }
+    }
+
+    public override void UntrustedDocumentRejected(RequestContext context)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
+        {
+            span.Activity.AddEvent(new(nameof(UntrustedDocumentRejected)));
+            enricher.EnrichUntrustedDocumentRejected(context, span.Activity);
         }
     }
 

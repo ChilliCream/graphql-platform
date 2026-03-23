@@ -121,6 +121,67 @@ public partial class ActivityExecutionDiagnosticListenerTests
     }
 
     [Fact]
+    public async Task DocumentNotFoundInStorage_RecordsEvent()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .UsePersistedOperationPipeline()
+                .ConfigureSchemaServices(
+                    s => s.AddSingleton<IOperationDocumentStorage>(new NoopOperationDocumentStorage()))
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocumentId("a8c5e2f1d3b4a6e7c9d0f1a2b3c4d5e6")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task UntrustedDocumentRejected_RecordsEvent()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
+                .UsePersistedOperationPipeline()
+                .ConfigureSchemaServices(
+                    s => s.AddSingleton<IOperationDocumentStorage>(new NoopOperationDocumentStorage()))
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task ParsingError_InvalidGraphQLDocument_ReportsErrorStatus()
     {
         using (CaptureActivities(out var activities))
@@ -491,6 +552,20 @@ public partial class ActivityExecutionDiagnosticListenerTests
         [Subscribe]
         public string OnFailingMessage([EventMessage] string message)
             => throw new InvalidOperationException("Subscription event failed.");
+    }
+
+    private sealed class NoopOperationDocumentStorage : IOperationDocumentStorage
+    {
+        public ValueTask<IOperationDocument?> TryReadAsync(
+            OperationDocumentId documentId,
+            CancellationToken cancellationToken = default)
+            => new(default(IOperationDocument));
+
+        public ValueTask SaveAsync(
+            OperationDocumentId documentId,
+            IOperationDocument document,
+            CancellationToken cancellationToken = default)
+            => default;
     }
 
     private sealed class InMemoryOperationDocumentStorage : IOperationDocumentStorage
