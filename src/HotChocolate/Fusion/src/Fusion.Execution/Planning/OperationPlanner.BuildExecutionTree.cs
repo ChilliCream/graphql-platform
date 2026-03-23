@@ -39,30 +39,21 @@ public sealed partial class OperationPlanner
             return OperationPlan.Create(operation, nodes, nodes, searchSpace, expandedNodes);
         }
 
-        var completedSteps = new HashSet<int>();
-        var completedNodes = new Dictionary<int, ExecutionNode>();
-        var dependencyLookup = new Dictionary<int, HashSet<int>>();
-        var branchesLookup = new Dictionary<int, Dictionary<string, int>>();
-        var fallbackLookup = new Dictionary<int, int>();
+        var ctx = new ExecutionPlanBuildContext();
         var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
 
-        planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup, branchesLookup, fallbackLookup);
-        BuildExecutionNodes(
-            planSteps,
-            completedSteps,
-            completedNodes,
-            dependencyLookup,
-            _schema,
-            hasVariables);
-        MergeIntoNewBatchNodes(completedNodes, dependencyLookup, _options.EnableRequestGrouping);
-        BuildDependencyStructure(completedNodes, dependencyLookup, branchesLookup, fallbackLookup);
+        planSteps = TransformPlanSteps(planSteps, operationDefinition);
+        IndexDependencies(planSteps, ctx);
+        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables);
+        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping);
+        WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
-            .Where(t => !dependencyLookup.ContainsKey(t.Id) && completedNodes.ContainsKey(t.Id))
-            .Select(t => completedNodes[t.Id])
+            .Where(t => !ctx.DependenciesByStepId.ContainsKey(t.Id) && ctx.ExecutionNodes.ContainsKey(t.Id))
+            .Select(t => ctx.ExecutionNodes[t.Id])
             .ToImmutableArray();
 
-        var allNodes = completedNodes
+        var allNodes = ctx.ExecutionNodes
             .OrderBy(t => t.Key)
             .Select(t => t.Value)
             .ToImmutableArray();
@@ -85,12 +76,9 @@ public sealed partial class OperationPlanner
         return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
 
-    private static ImmutableList<PlanStep> PrepareSteps(
+    private static ImmutableList<PlanStep> TransformPlanSteps(
         ImmutableList<PlanStep> planSteps,
-        OperationDefinitionNode originalOperation,
-        Dictionary<int, HashSet<int>> dependencyLookup,
-        Dictionary<int, Dictionary<string, int>> branchesLookup,
-        Dictionary<int, int> fallbackLookup)
+        OperationDefinitionNode originalOperation)
     {
         var updatedPlanSteps = planSteps;
         var forwardVariableContext = new ForwardVariableRewriter.Context();
@@ -102,98 +90,48 @@ public sealed partial class OperationPlanner
 
         foreach (var step in planSteps)
         {
-            if (step is OperationPlanStep operationPlanStep)
+            if (step is not OperationPlanStep operationPlanStep)
             {
-                // The planning phase can leave behind empty child selection sets (literal `{}`)
-                // after rewriting requirement fields. We clean those up first. Only after
-                // that cleanup do we check whether the entire root selection set is empty,
-                // because removing an empty child may still leave other valid selections.
-                operationPlanStep = RemoveEmptySelectionSets(operationPlanStep);
-
-                if (!ReferenceEquals(step, operationPlanStep))
-                {
-                    updatedPlanSteps = updatedPlanSteps.Replace(step, operationPlanStep);
-                }
-
-                // During planning we keep partially built operation steps alive so that
-                // requirement fields can be inlined into them later. If those requirements
-                // never materialize, the step ends up with no useful selections. We remove
-                // it here because an empty step would produce a broken execution node.
-                if (IsEmptyOperation(operationPlanStep))
-                {
-                    updatedPlanSteps = updatedPlanSteps.Remove(operationPlanStep);
-                    continue;
-                }
-
-                // When every root-level selection (or every selection beneath a lookup
-                // field) carries a @skip or @include directive, we extract those directives
-                // and promote them to conditions on the execution node itself. This lets
-                // the executor skip the entire network call when the condition evaluates
-                // to false, rather than sending a request that returns nothing.
-                if (operationPlanStep.AreAllProvidedSelectionsConditional())
-                {
-                    var updatedOperationPlanStep = ExtractConditionsAndRewriteSelectionSet(operationPlanStep);
-
-                    updatedPlanSteps = updatedPlanSteps.Replace(operationPlanStep, updatedOperationPlanStep);
-
-                    operationPlanStep = updatedOperationPlanStep;
-                }
-
-                // At this point the operation definition on the plan step does not yet
-                // declare its variable definitions. We walk the definition to discover
-                // which variables and requirements it actually references, then attach
-                // matching variable definitions so the operation is syntactically complete.
-                updatedPlanSteps = updatedPlanSteps.Replace(
-                    operationPlanStep,
-                    AddVariableDefinitions(operationPlanStep));
-
-                // Each plan step knows which other steps depend on its results
-                // (for example, steps that need lookup data or field requirements
-                // from this step). Here we invert that relationship into a reverse
-                // lookup: for every step, we record which steps it depends on.
-                // This reverse view makes the execution-order algorithm simpler
-                // because we can quickly check whether all of a step's
-                // dependencies have been completed.
-                foreach (var dependent in operationPlanStep.Dependents)
-                {
-                    if (!dependencyLookup.TryGetValue(dependent, out var dependencies))
-                    {
-                        dependencies = [];
-                        dependencyLookup[dependent] = dependencies;
-                    }
-
-                    dependencies.Add(step.Id);
-                }
+                continue;
             }
-            else if (step is NodeFieldPlanStep nodePlanStep)
+
+            // Requirement rewriting can leave behind empty child selection sets.
+            // We remove them here so later stages do not treat them as real selections.
+            operationPlanStep = RemoveEmptySelectionSets(operationPlanStep);
+
+            if (!ReferenceEquals(step, operationPlanStep))
             {
-                foreach (var (_, dependent) in nodePlanStep.Branches)
-                {
-                    if (!dependencyLookup.TryGetValue(dependent.Id, out var dependencies))
-                    {
-                        dependencies = [];
-                        dependencyLookup[dependent.Id] = dependencies;
-                    }
-
-                    dependencies.Add(nodePlanStep.Id);
-                }
-
-                if (!dependencyLookup.TryGetValue(nodePlanStep.FallbackQuery.Id, out var fallbackDependencies))
-                {
-                    fallbackDependencies = [];
-                    dependencyLookup[nodePlanStep.FallbackQuery.Id] = fallbackDependencies;
-                }
-
-                fallbackDependencies.Add(nodePlanStep.Id);
-
-                branchesLookup.Add(nodePlanStep.Id, nodePlanStep.Branches.ToDictionary(x => x.Key, x => x.Value.Id));
-                fallbackLookup.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
+                updatedPlanSteps = updatedPlanSteps.Replace(step, operationPlanStep);
             }
+
+            // Discard steps that have no meaningful selections left.
+            if (IsEmptyOperation(operationPlanStep))
+            {
+                updatedPlanSteps = updatedPlanSteps.Remove(operationPlanStep);
+                continue;
+            }
+
+            // When every root selection carries a @skip or @include directive,
+            // we promote those directives to node-level conditions. This lets
+            // the executor skip the entire network call when the condition is
+            // not met, rather than sending a request that returns nothing.
+            if (operationPlanStep.AreAllProvidedSelectionsConditional())
+            {
+                var updated = ExtractConditionsAndRewriteSelectionSet(operationPlanStep);
+                updatedPlanSteps = updatedPlanSteps.Replace(operationPlanStep, updated);
+                operationPlanStep = updated;
+            }
+
+            // Attach variable definitions so the operation is syntactically valid
+            // when sent to the downstream service.
+            updatedPlanSteps = updatedPlanSteps.Replace(
+                operationPlanStep,
+                AddVariableDefinitions(operationPlanStep, forwardVariableContext));
         }
 
         return updatedPlanSteps;
 
-        bool IsEmptyOperation(OperationPlanStep step)
+        static bool IsEmptyOperation(OperationPlanStep step)
         {
             if (step.Definition.SelectionSet.Selections.Count == 0)
             {
@@ -213,7 +151,7 @@ public sealed partial class OperationPlanner
             ];
         }
 
-        OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
+        static OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
         {
             var updatedDefinition = RemoveEmptySelections(step.Definition);
             return ReferenceEquals(updatedDefinition, step.Definition)
@@ -221,7 +159,9 @@ public sealed partial class OperationPlanner
                 : step with { Definition = updatedDefinition };
         }
 
-        OperationPlanStep AddVariableDefinitions(OperationPlanStep step)
+        static OperationPlanStep AddVariableDefinitions(
+            OperationPlanStep step,
+            ForwardVariableRewriter.Context forwardVariableContext)
         {
             forwardVariableContext.Reset();
 
@@ -249,93 +189,85 @@ public sealed partial class OperationPlanner
         }
     }
 
+    private static void IndexDependencies(
+        ImmutableList<PlanStep> planSteps,
+        ExecutionPlanBuildContext ctx)
+    {
+        foreach (var step in planSteps)
+        {
+            if (step is OperationPlanStep operationPlanStep)
+            {
+                // Plan steps store which steps they feed into ("dependents").
+                // We invert that here so each step knows which steps it
+                // depends on, which is what the executor needs for scheduling.
+                foreach (var dependent in operationPlanStep.Dependents)
+                {
+                    if (!ctx.DependenciesByStepId.TryGetValue(dependent, out var dependencies))
+                    {
+                        dependencies = [];
+                        ctx.DependenciesByStepId[dependent] = dependencies;
+                    }
+
+                    dependencies.Add(step.Id);
+                }
+            }
+            else if (step is NodeFieldPlanStep nodePlanStep)
+            {
+                foreach (var (_, dependent) in nodePlanStep.Branches)
+                {
+                    if (!ctx.DependenciesByStepId.TryGetValue(dependent.Id, out var dependencies))
+                    {
+                        dependencies = [];
+                        ctx.DependenciesByStepId[dependent.Id] = dependencies;
+                    }
+
+                    dependencies.Add(nodePlanStep.Id);
+                }
+
+                if (!ctx.DependenciesByStepId.TryGetValue(nodePlanStep.FallbackQuery.Id, out var fallbackDependencies))
+                {
+                    fallbackDependencies = [];
+                    ctx.DependenciesByStepId[nodePlanStep.FallbackQuery.Id] = fallbackDependencies;
+                }
+
+                fallbackDependencies.Add(nodePlanStep.Id);
+
+                ctx.BranchesByNodeId.Add(
+                    nodePlanStep.Id,
+                    nodePlanStep.Branches.ToDictionary(x => x.Key, x => x.Value.Id));
+                ctx.FallbackByNodeId.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
+            }
+        }
+    }
+
     private static void BuildExecutionNodes(
         ImmutableList<PlanStep> planSteps,
-        HashSet<int> completedSteps,
-        Dictionary<int, ExecutionNode> completedNodes,
-        Dictionary<int, HashSet<int>> dependencyLookup,
+        ExecutionPlanBuildContext ctx,
         ISchemaDefinition schema,
         bool hasVariables)
     {
         var requiresUpload = schema.Types.TryGetType(UploadScalarName, out var uploadType) && uploadType.IsScalarType();
-        var readySteps = planSteps.Where(t => !dependencyLookup.ContainsKey(t.Id)).ToList();
-        List<string>? variables = null;
+        var readySteps = planSteps.Where(t => !ctx.DependenciesByStepId.ContainsKey(t.Id)).ToList();
+        var variableBuffer = hasVariables ? new List<string>() : null;
 
-        while (completedSteps.Count < planSteps.Count)
+        while (ctx.ProcessedStepIds.Count < planSteps.Count)
         {
             foreach (var step in readySteps)
             {
-                if (!completedSteps.Add(step.Id))
+                if (!ctx.ProcessedStepIds.Add(step.Id))
                 {
                     continue;
                 }
 
                 if (step is OperationPlanStep operationStep)
                 {
-                    var requirements = Array.Empty<OperationRequirement>();
-
-                    if (!operationStep.Requirements.IsEmpty)
-                    {
-                        var temp = new List<OperationRequirement>();
-
-                        foreach (var (_, requirement) in operationStep.Requirements.OrderBy(t => t.Key))
-                        {
-                            temp.Add(requirement);
-                        }
-
-                        requirements = temp.ToArray();
-                    }
-
-                    variables?.Clear();
-
-                    if (hasVariables && operationStep.Definition.VariableDefinitions.Count > 0)
-                    {
-                        variables ??= [];
-
-                        foreach (var variableDef in operationStep.Definition.VariableDefinitions)
-                        {
-                            if (requirements.Any(r => r.Key == variableDef.Variable.Name.Value))
-                            {
-                                continue;
-                            }
-
-                            variables.Add(variableDef.Variable.Name.Value);
-                        }
-                    }
-
-                    var requiresFileUpload = requiresUpload
-                        && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
-
-                    var operation = RemoveEmptyTypeNames(operationStep.Definition);
-                    var operationSource = operation.ToSourceText();
-
-                    var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
-                    selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
-                    var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
-
-                    var node = new OperationExecutionNode(
-                        operationStep.Id,
-                        operationSource,
-                        operationStep.SchemaName,
-                        operationStep.Target,
-                        operationStep.Source,
-                        requirements,
-                        variables?.Count > 0 ? variables.ToArray() : [],
-                        resultSelectionSet,
-                        operationStep.Conditions,
-                        requiresFileUpload);
-
-                    completedNodes.Add(step.Id, node);
+                    ctx.ExecutionNodes.Add(step.Id,
+                        CreateOperationExecutionNode(operationStep, schema, requiresUpload, variableBuffer));
                 }
                 else if (step is NodeFieldPlanStep nodeStep)
                 {
-                    var node = new NodeFieldExecutionNode(
-                        nodeStep.Id,
-                        nodeStep.ResponseName,
-                        nodeStep.IdValue,
-                        nodeStep.Conditions);
-
-                    completedNodes.Add(step.Id, node);
+                    ctx.ExecutionNodes.Add(step.Id,
+                        new NodeFieldExecutionNode(nodeStep.Id, nodeStep.ResponseName, nodeStep.IdValue, nodeStep.Conditions));
                 }
             }
 
@@ -343,8 +275,8 @@ public sealed partial class OperationPlanner
 
             foreach (var step in planSteps)
             {
-                if (dependencyLookup.TryGetValue(step.Id, out var stepDependencies)
-                    && completedSteps.IsSupersetOf(stepDependencies))
+                if (ctx.DependenciesByStepId.TryGetValue(step.Id, out var stepDependencies)
+                    && ctx.ProcessedStepIds.IsSupersetOf(stepDependencies))
                 {
                     readySteps.Add(step);
                 }
@@ -353,6 +285,653 @@ public sealed partial class OperationPlanner
             if (readySteps.Count == 0)
             {
                 break;
+            }
+        }
+    }
+
+    private static OperationExecutionNode CreateOperationExecutionNode(
+        OperationPlanStep operationStep,
+        ISchemaDefinition schema,
+        bool requiresUpload,
+        List<string>? variableBuffer)
+    {
+        var requirements = operationStep.Requirements.IsEmpty
+            ? Array.Empty<OperationRequirement>()
+            : operationStep.Requirements.OrderBy(t => t.Key).Select(t => t.Value).ToArray();
+
+        var forwardedVariables = Array.Empty<string>();
+
+        if (variableBuffer is not null && operationStep.Definition.VariableDefinitions.Count > 0)
+        {
+            variableBuffer.Clear();
+            var requirementKeys = new HashSet<string>(requirements.Select(r => r.Key));
+
+            foreach (var variableDef in operationStep.Definition.VariableDefinitions)
+            {
+                var name = variableDef.Variable.Name.Value;
+
+                if (!requirementKeys.Contains(name))
+                {
+                    variableBuffer.Add(name);
+                }
+            }
+
+            if (variableBuffer.Count > 0)
+            {
+                forwardedVariables = variableBuffer.ToArray();
+            }
+        }
+
+        var requiresFileUpload = requiresUpload
+            && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
+
+        var operation = RemoveEmptyTypeNames(operationStep.Definition);
+        var operationSource = operation.ToSourceText();
+
+        var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
+        selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
+        var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
+
+        return new OperationExecutionNode(
+            operationStep.Id,
+            operationSource,
+            operationStep.SchemaName,
+            operationStep.Target,
+            operationStep.Source,
+            requirements,
+            forwardedVariables,
+            resultSelectionSet,
+            operationStep.Conditions,
+            requiresFileUpload);
+    }
+
+    private static void MergeAndBatchOperations(
+        ExecutionPlanBuildContext ctx,
+        bool enableRequestGrouping)
+    {
+        var nodeFieldBoundCache = new Dictionary<int, bool>();
+        var mergeResults = MergeStructurallyIdenticalOperations(ctx, nodeFieldBoundCache);
+
+        // Capture each node's dependency identifiers now, because the batching
+        // step below will rewrite the dependency lookup as it merges nodes.
+        var originalDependencies = new Dictionary<int, int[]>(ctx.DependenciesByStepId.Count);
+
+        foreach (var (nodeId, dependencies) in ctx.DependenciesByStepId)
+        {
+            originalDependencies[nodeId] = dependencies.ToArray();
+        }
+
+        var perOperationDependencies = GroupBySchemaAndDepthIntoBatches(
+            ctx, nodeFieldBoundCache, mergeResults, originalDependencies, enableRequestGrouping);
+
+        WrapRemainingMergedOperations(ctx, mergeResults, perOperationDependencies, originalDependencies);
+        WirePerOperationDependencies(ctx, perOperationDependencies);
+    }
+
+    /// <summary>
+    /// Finds query operations that are structurally identical and merges
+    /// them into a single <see cref="BatchOperationDefinition"/>. This
+    /// reduces the number of network requests the executor has to send.
+    /// </summary>
+    private static Dictionary<int, MergeResult> MergeStructurallyIdenticalOperations(
+        ExecutionPlanBuildContext ctx,
+        Dictionary<int, bool> nodeFieldBoundCache)
+    {
+        var candidates = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
+
+        foreach (var node in ctx.ExecutionNodes.Values.OfType<OperationExecutionNode>())
+        {
+            if (node.Operation.Type != OperationType.Query)
+            {
+                continue;
+            }
+
+            if (IsNodeFieldBound(node.Id, ctx, nodeFieldBoundCache))
+            {
+                continue;
+            }
+
+            var signature = ComputeCanonicalSignature(node);
+
+            if (!candidates.TryGetValue(signature, out var list))
+            {
+                list = [];
+                candidates[signature] = list;
+            }
+
+            list.Add(node);
+        }
+
+        var mergeResults = new Dictionary<int, MergeResult>();
+
+        foreach (var (_, equivalentNodes) in candidates)
+        {
+            if (equivalentNodes.Count <= 1)
+            {
+                continue;
+            }
+
+            foreach (var group in PartitionIntoMergeableGroups(equivalentNodes, ctx.DependenciesByStepId))
+            {
+                if (group.Count <= 1)
+                {
+                    continue;
+                }
+
+                group.Sort((a, b) => a.Id.CompareTo(b.Id));
+
+                var primary = group[0];
+                var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
+                var targets = new SelectionPath[group.Count];
+
+                for (var i = 0; i < group.Count; i++)
+                {
+                    targets[i] = group[i].Target;
+                }
+
+                mergeResults[primary.Id] = new MergeResult(
+                    targets, canonicalOp, canonicalRequirements, primary);
+
+                AbsorbMergedNodes(ctx, primary.Id, group);
+            }
+        }
+
+        return mergeResults;
+    }
+
+    /// <summary>
+    /// Removes merged nodes from the execution graph and folds their
+    /// dependencies into the primary node that represents them all.
+    /// </summary>
+    private static void AbsorbMergedNodes(
+        ExecutionPlanBuildContext ctx,
+        int primaryId,
+        List<OperationExecutionNode> group)
+    {
+        var absorbedIds = new HashSet<int>(group.Count - 1);
+
+        if (!ctx.DependenciesByStepId.TryGetValue(primaryId, out var primaryDeps))
+        {
+            primaryDeps = [];
+        }
+
+        for (var i = 1; i < group.Count; i++)
+        {
+            var otherId = group[i].Id;
+            absorbedIds.Add(otherId);
+            ctx.ExecutionNodes.Remove(otherId);
+
+            if (ctx.DependenciesByStepId.TryGetValue(otherId, out var otherDependencies))
+            {
+                foreach (var dependency in otherDependencies)
+                {
+                    primaryDeps.Add(dependency);
+                }
+
+                ctx.DependenciesByStepId.Remove(otherId);
+            }
+        }
+
+        if (primaryDeps.Count > 0)
+        {
+            ctx.DependenciesByStepId[primaryId] = primaryDeps;
+        }
+        else
+        {
+            ctx.DependenciesByStepId.Remove(primaryId);
+        }
+
+        RedirectDependencyReferences(ctx.DependenciesByStepId, absorbedIds, primaryId);
+    }
+
+    /// <summary>
+    /// Groups query nodes by their target schema and dependency depth into
+    /// batch execution nodes. Nodes at the same depth targeting the same
+    /// source schema are independent of each other, so the executor can
+    /// send them together in a single batched network request.
+    /// </summary>
+    private static Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>>
+        GroupBySchemaAndDepthIntoBatches(
+            ExecutionPlanBuildContext ctx,
+            Dictionary<int, bool> nodeFieldBoundCache,
+            Dictionary<int, MergeResult> mergeResults,
+            Dictionary<int, int[]> originalDependencies,
+            bool enableRequestGrouping)
+    {
+        var consumedMergeIds = new HashSet<int>();
+        var perOperationDependencies = new Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>>();
+
+        if (!enableRequestGrouping)
+        {
+            return perOperationDependencies;
+        }
+
+        var queryNodes = ctx.ExecutionNodes.Values
+            .OfType<OperationExecutionNode>()
+            .Where(n => n.Operation.Type == OperationType.Query)
+            .Where(n => !IsNodeFieldBound(n.Id, ctx, nodeFieldBoundCache))
+            .ToList();
+
+        var depthLookup = new Dictionary<int, int>();
+        var recursionStack = new HashSet<int>();
+
+        foreach (var node in queryNodes)
+        {
+            GetDependencyDepth(node.Id, ctx.DependenciesByStepId, depthLookup, recursionStack);
+        }
+
+        var batchGroups = new Dictionary<(string schema, int depth), List<OperationExecutionNode>>();
+
+        foreach (var node in queryNodes)
+        {
+            var schemaKey = node.SchemaName ?? DynamicSchemaNameMarker;
+            var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
+            var key = (schemaKey, depth);
+
+            if (!batchGroups.TryGetValue(key, out var group))
+            {
+                group = [];
+                batchGroups[key] = group;
+            }
+
+            group.Add(node);
+        }
+
+        // Process from shallowest to deepest so that deeper groups
+        // reference the already-redirected identifiers from earlier merges.
+        foreach (var (_, groupMembers) in batchGroups.OrderBy(t => t.Key.depth))
+        {
+            if (groupMembers.Count <= 1)
+            {
+                continue;
+            }
+
+            groupMembers.Sort((a, b) => a.Id.CompareTo(b.Id));
+
+            var operations = new List<OperationDefinition>();
+
+            foreach (var member in groupMembers)
+            {
+                if (mergeResults.TryGetValue(member.Id, out var merge))
+                {
+                    consumedMergeIds.Add(member.Id);
+                    operations.Add(CreateBatchOperationDefinition(merge));
+                }
+                else
+                {
+                    operations.Add(CreateSingleOperationDefinition(member));
+                }
+            }
+
+            var lowestId = groupMembers[0].Id;
+            var batchNode = new OperationBatchExecutionNode(lowestId, operations.ToArray());
+
+            // Save each member's dependencies before replacing the individual
+            // nodes, because the replacement will remove them from the lookup.
+            var memberDependencies = new Dictionary<int, int[]>();
+
+            foreach (var member in groupMembers)
+            {
+                if (originalDependencies.TryGetValue(member.Id, out var memberDeps))
+                {
+                    memberDependencies[member.Id] = memberDeps;
+                }
+            }
+
+            ReplaceMembersWithBatchNode(ctx, groupMembers, batchNode, lowestId);
+            perOperationDependencies[batchNode] = memberDependencies;
+        }
+
+        // Remove consumed merge results so the caller knows which ones still
+        // need to be wrapped as standalone batch nodes.
+        foreach (var id in consumedMergeIds)
+        {
+            mergeResults.Remove(id);
+        }
+
+        return perOperationDependencies;
+    }
+
+    /// <summary>
+    /// Wraps merged operations that were not included in any multi-member
+    /// batch group into standalone batch execution nodes.
+    /// </summary>
+    private static void WrapRemainingMergedOperations(
+        ExecutionPlanBuildContext ctx,
+        Dictionary<int, MergeResult> remainingMerges,
+        Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>> perOperationDependencies,
+        Dictionary<int, int[]> originalDependencies)
+    {
+        foreach (var (primaryId, merge) in remainingMerges)
+        {
+            var operationDefinition = CreateBatchOperationDefinition(merge);
+            var standaloneBatchNode = new OperationBatchExecutionNode(primaryId, [operationDefinition]);
+            ctx.ExecutionNodes[primaryId] = standaloneBatchNode;
+
+            perOperationDependencies[standaloneBatchNode] =
+                new Dictionary<int, int[]>
+                {
+                    [operationDefinition.Id] = originalDependencies.TryGetValue(primaryId, out var primaryDeps)
+                        ? primaryDeps
+                        : []
+                };
+        }
+    }
+
+    /// <summary>
+    /// Connects each inner operation inside a batch node to the upstream
+    /// operation definitions it depends on. This gives the executor
+    /// fine-grained visibility into per-operation readiness.
+    /// </summary>
+    private static void WirePerOperationDependencies(
+        ExecutionPlanBuildContext ctx,
+        Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>> perOperationDependencies)
+    {
+        if (perOperationDependencies.Count == 0)
+        {
+            return;
+        }
+
+        var planNodeById = new Dictionary<int, IOperationPlanNode>();
+
+        foreach (var node in ctx.ExecutionNodes.Values)
+        {
+            planNodeById[node.Id] = node;
+
+            if (node is OperationBatchExecutionNode batch)
+            {
+                foreach (var operation in batch.Operations)
+                {
+                    planNodeById[operation.Id] = operation;
+                }
+            }
+        }
+
+        foreach (var (_, memberDependencies) in perOperationDependencies)
+        {
+            foreach (var (operationId, dependencyIds) in memberDependencies)
+            {
+                if (planNodeById.TryGetValue(operationId, out var operationNode)
+                    && operationNode is OperationDefinition operationDefinition)
+                {
+                    foreach (var dependencyId in dependencyIds)
+                    {
+                        if (planNodeById.TryGetValue(dependencyId, out var dependencyNode))
+                        {
+                            operationDefinition.AddDependency(dependencyNode);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Replaces individual member nodes in the execution graph with a single
+    /// batch node, merging all of their dependencies into the batch node.
+    /// </summary>
+    private static void ReplaceMembersWithBatchNode(
+        ExecutionPlanBuildContext ctx,
+        List<OperationExecutionNode> members,
+        OperationBatchExecutionNode batchNode,
+        int batchNodeId)
+    {
+        var batchDependencies = new HashSet<int>();
+        var memberIds = new HashSet<int>(members.Count);
+
+        foreach (var member in members)
+        {
+            memberIds.Add(member.Id);
+            ctx.ExecutionNodes.Remove(member.Id);
+
+            if (ctx.DependenciesByStepId.TryGetValue(member.Id, out var memberDependencies))
+            {
+                foreach (var dependency in memberDependencies)
+                {
+                    batchDependencies.Add(dependency);
+                }
+
+                ctx.DependenciesByStepId.Remove(member.Id);
+            }
+        }
+
+        ctx.ExecutionNodes[batchNodeId] = batchNode;
+
+        if (batchDependencies.Count > 0)
+        {
+            ctx.DependenciesByStepId[batchNodeId] = batchDependencies;
+        }
+
+        RedirectDependencyReferences(ctx.DependenciesByStepId, memberIds, batchNodeId);
+    }
+
+    private static BatchOperationDefinition CreateBatchOperationDefinition(MergeResult merge)
+    {
+        var primary = merge.Primary;
+        return new BatchOperationDefinition(
+            primary.Id,
+            merge.CanonicalOp,
+            primary.SchemaName,
+            merge.Targets,
+            primary.Source,
+            merge.CanonicalRequirements,
+            primary.ForwardedVariables.ToArray(),
+            primary.ResultSelectionSet,
+            primary.Conditions.ToArray(),
+            primary.RequiresFileUpload);
+    }
+
+    private static SingleOperationDefinition CreateSingleOperationDefinition(OperationExecutionNode member)
+    {
+        return new SingleOperationDefinition(
+            member.Id,
+            member.Operation,
+            member.SchemaName,
+            member.Target,
+            member.Source,
+            member.Requirements.ToArray(),
+            member.ForwardedVariables.ToArray(),
+            member.ResultSelectionSet,
+            member.Conditions.ToArray(),
+            member.RequiresFileUpload);
+    }
+
+    /// <summary>
+    /// Rewrites the dependency graph so that every reference to any of
+    /// <paramref name="oldIds"/> points to <paramref name="newId"/> instead.
+    /// </summary>
+    private static void RedirectDependencyReferences(
+        Dictionary<int, HashSet<int>> dependenciesByStepId,
+        HashSet<int> oldIds,
+        int newId)
+    {
+        foreach (var depSet in dependenciesByStepId.Values)
+        {
+            var hadOld = false;
+
+            foreach (var oldId in oldIds)
+            {
+                if (depSet.Remove(oldId))
+                {
+                    hadOld = true;
+                }
+            }
+
+            if (hadOld)
+            {
+                depSet.Add(newId);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Checks whether a node is transitively dependent on a
+    /// <see cref="NodeFieldExecutionNode"/>. Operations beneath a node-field
+    /// dispatch must keep their original identifiers because the dispatch
+    /// logic references them by identifier to select the correct branch.
+    /// </summary>
+    private static bool IsNodeFieldBound(
+        int nodeId,
+        ExecutionPlanBuildContext ctx,
+        Dictionary<int, bool> cache)
+    {
+        if (cache.TryGetValue(nodeId, out var cached))
+        {
+            return cached;
+        }
+
+        if (!ctx.DependenciesByStepId.TryGetValue(nodeId, out var dependencies) || dependencies.Count == 0)
+        {
+            cache[nodeId] = false;
+            return false;
+        }
+
+        foreach (var dependencyId in dependencies)
+        {
+            if (ctx.ExecutionNodes.TryGetValue(dependencyId, out var dependencyNode)
+                && dependencyNode is NodeFieldExecutionNode)
+            {
+                cache[nodeId] = true;
+                return true;
+            }
+
+            if (IsNodeFieldBound(dependencyId, ctx, cache))
+            {
+                cache[nodeId] = true;
+                return true;
+            }
+        }
+
+        cache[nodeId] = false;
+        return false;
+    }
+
+    private static void WireExecutionDependencies(ExecutionPlanBuildContext ctx)
+    {
+        WireOperationDependencies(ctx);
+        WireNodeFieldBranchesAndFallbacks(ctx);
+    }
+
+    private static void WireOperationDependencies(ExecutionPlanBuildContext ctx)
+    {
+        // Build a lookup from every operation identifier to its containing
+        // execution node. A batch node wraps several operations, so each
+        // inner operation identifier also maps back to the parent batch node.
+        var executionNodeById = new Dictionary<int, ExecutionNode>();
+
+        foreach (var node in ctx.ExecutionNodes.Values)
+        {
+            executionNodeById[node.Id] = node;
+
+            if (node is OperationBatchExecutionNode batch)
+            {
+                foreach (var operation in batch.Operations)
+                {
+                    executionNodeById[operation.Id] = batch;
+                }
+            }
+        }
+
+        foreach (var (nodeId, stepDependencies) in ctx.DependenciesByStepId)
+        {
+            if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry)
+                || entry is not (OperationExecutionNode or OperationBatchExecutionNode))
+            {
+                continue;
+            }
+
+            if (entry is OperationBatchExecutionNode batchEntry)
+            {
+                WireBatchNodeDependencies(batchEntry, stepDependencies, executionNodeById);
+                continue;
+            }
+
+            // For a standalone operation node, wire dependencies directly.
+            foreach (var dependencyId in stepDependencies)
+            {
+                if (!ctx.ExecutionNodes.TryGetValue(dependencyId, out var childEntry)
+                    || childEntry is not (OperationExecutionNode or OperationBatchExecutionNode or NodeFieldExecutionNode))
+                {
+                    continue;
+                }
+
+                childEntry.AddDependent(entry);
+                entry.AddDependency(childEntry);
+            }
+        }
+    }
+
+    private static void WireBatchNodeDependencies(
+        OperationBatchExecutionNode batchEntry,
+        HashSet<int> stepDependencies,
+        Dictionary<int, ExecutionNode> executionNodeById)
+    {
+        var seenExecutionDependencies = new HashSet<int>();
+
+        foreach (var dependencyId in stepDependencies)
+        {
+            if (dependencyId == batchEntry.Id)
+            {
+                continue;
+            }
+
+            if (!executionNodeById.TryGetValue(dependencyId, out var dependencyExecutionNode)
+                || dependencyExecutionNode.Id == batchEntry.Id)
+            {
+                continue;
+            }
+
+            if (!seenExecutionDependencies.Add(dependencyExecutionNode.Id))
+            {
+                continue;
+            }
+
+            dependencyExecutionNode.AddDependent(batchEntry);
+
+            // When a batch holds multiple operations, or a single batch
+            // operation definition with multiple targets, the dependency is
+            // optional. The executor evaluates each operation individually
+            // and only waits for the specific upstream results it needs.
+            if (batchEntry.Operations.Length > 1
+                || batchEntry.Operations[0] is BatchOperationDefinition)
+            {
+                batchEntry.AddOptionalDependency(dependencyExecutionNode);
+            }
+            else
+            {
+                batchEntry.AddDependency(dependencyExecutionNode);
+            }
+        }
+    }
+
+    private static void WireNodeFieldBranchesAndFallbacks(ExecutionPlanBuildContext ctx)
+    {
+        foreach (var (nodeId, branches) in ctx.BranchesByNodeId)
+        {
+            if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
+            {
+                continue;
+            }
+
+            foreach (var (typeName, branchNodeId) in branches)
+            {
+                if (ctx.ExecutionNodes.TryGetValue(branchNodeId, out var branchNode))
+                {
+                    node.AddBranch(typeName, branchNode);
+                }
+            }
+        }
+
+        foreach (var (nodeId, fallbackNodeId) in ctx.FallbackByNodeId)
+        {
+            if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
+            {
+                continue;
+            }
+
+            if (ctx.ExecutionNodes.TryGetValue(fallbackNodeId, out var fallbackNode))
+            {
+                node.AddFallbackQuery(fallbackNode);
             }
         }
     }
@@ -451,18 +1030,18 @@ public sealed partial class OperationPlanner
 
     private static int GetDependencyDepth(
         int stepId,
-        Dictionary<int, HashSet<int>> dependencyLookup,
-        Dictionary<int, int> dependencyDepthLookup,
+        Dictionary<int, HashSet<int>> dependenciesByStepId,
+        Dictionary<int, int> depthLookup,
         HashSet<int> recursionStack)
     {
-        if (dependencyDepthLookup.TryGetValue(stepId, out var depth))
+        if (depthLookup.TryGetValue(stepId, out var depth))
         {
             return depth;
         }
 
-        if (!dependencyLookup.TryGetValue(stepId, out var directDependencies) || directDependencies.Count == 0)
+        if (!dependenciesByStepId.TryGetValue(stepId, out var directDependencies) || directDependencies.Count == 0)
         {
-            dependencyDepthLookup[stepId] = 0;
+            depthLookup[stepId] = 0;
             return 0;
         }
 
@@ -477,598 +1056,15 @@ public sealed partial class OperationPlanner
         {
             var dependencyDepth = GetDependencyDepth(
                 dependency,
-                dependencyLookup,
-                dependencyDepthLookup,
+                dependenciesByStepId,
+                depthLookup,
                 recursionStack);
             maxDepth = Math.Max(maxDepth, dependencyDepth + 1);
         }
 
         recursionStack.Remove(stepId);
-        dependencyDepthLookup[stepId] = maxDepth;
+        depthLookup[stepId] = maxDepth;
         return maxDepth;
-    }
-
-    private static void BuildDependencyStructure(
-        Dictionary<int, ExecutionNode> completedNodes,
-        Dictionary<int, HashSet<int>> dependencyLookup,
-        Dictionary<int, Dictionary<string, int>> branchesLookup,
-        Dictionary<int, int> fallbackLookup)
-    {
-        // Build a lookup that maps every operation plan node identifier to the
-        // execution node that contains it. A batch execution node wraps several
-        // individual operations, so each of those inner operation identifiers
-        // also maps back to the parent batch node. We need this mapping to
-        // translate the per-operation dependency graph into execution-level
-        // dependencies.
-        var executionNodeById = new Dictionary<int, ExecutionNode>();
-
-        foreach (var node in completedNodes.Values)
-        {
-            executionNodeById[node.Id] = node;
-
-            if (node is OperationBatchExecutionNode batch)
-            {
-                foreach (var op in batch.Operations)
-                {
-                    executionNodeById[op.Id] = batch;
-                }
-            }
-        }
-
-        foreach (var (nodeId, stepDependencies) in dependencyLookup)
-        {
-            if (!completedNodes.TryGetValue(nodeId, out var entry)
-                || entry is not (OperationExecutionNode or OperationBatchExecutionNode))
-            {
-                continue;
-            }
-
-            // A batch node bundles multiple operations into one network call.
-            // The dependency lookup already holds the union of every inner
-            // operation's dependencies. We translate each dependency identifier
-            // to the execution node that owns it, skip duplicates, and ignore
-            // self-references (which arise when merged operations land in the
-            // same batch).
-            if (entry is OperationBatchExecutionNode batchEntry)
-            {
-                var seenExecutionDeps = new HashSet<int>();
-
-                foreach (var dependencyId in stepDependencies)
-                {
-                    if (dependencyId == batchEntry.Id)
-                    {
-                        continue;
-                    }
-
-                    if (!executionNodeById.TryGetValue(dependencyId, out var depExecNode)
-                        || depExecNode.Id == batchEntry.Id)
-                    {
-                        continue;
-                    }
-
-                    // Multiple operation identifiers can map to the same
-                    // execution node when several operations were grouped into
-                    // one batch. We only wire each execution dependency once.
-                    if (!seenExecutionDeps.Add(depExecNode.Id))
-                    {
-                        continue;
-                    }
-
-                    depExecNode.AddDependent(batchEntry);
-
-                    // When a batch holds more than one operation, each
-                    // operation may have a different dependency set. A
-                    // dependency that only matters to some operations must
-                    // not block the whole batch, so we mark it optional.
-                    // The executor checks each operation individually and
-                    // skips only those whose dependencies failed.
-                    //
-                    // The same reasoning applies to a single
-                    // BatchOperationDefinition with multiple targets created
-                    // by a cross-dependency merge. Type dispatch may skip
-                    // some targets while others succeed, so dependencies
-                    // must stay optional there too.
-                    //
-                    // Only a true single-operation, single-target batch is
-                    // unambiguous: every dependency is required.
-                    if (batchEntry.Operations.Length > 1
-                        || batchEntry.Operations[0] is BatchOperationDefinition)
-                    {
-                        batchEntry.AddOptionalDependency(depExecNode);
-                    }
-                    else
-                    {
-                        batchEntry.AddDependency(depExecNode);
-                    }
-                }
-
-                continue;
-            }
-
-            // For a regular (non-batch) operation node, the dependency lookup
-            // already contains the correct set of dependencies. Wire them up.
-            foreach (var dependencyId in stepDependencies)
-            {
-                if (!completedNodes.TryGetValue(dependencyId, out var childEntry)
-                    || childEntry is not (OperationExecutionNode or OperationBatchExecutionNode or NodeFieldExecutionNode))
-                {
-                    continue;
-                }
-
-                childEntry.AddDependent(entry);
-                entry.AddDependency(childEntry);
-            }
-        }
-
-        foreach (var (nodeId, branches) in branchesLookup)
-        {
-            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
-            {
-                continue;
-            }
-
-            foreach (var (typeName, branchNodeId) in branches)
-            {
-                if (!completedNodes.TryGetValue(branchNodeId, out var branchNode))
-                {
-                    continue;
-                }
-
-                node.AddBranch(typeName, branchNode);
-            }
-        }
-
-        foreach (var (nodeId, fallbackNodeId) in fallbackLookup)
-        {
-            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
-            {
-                continue;
-            }
-
-            if (!completedNodes.TryGetValue(fallbackNodeId, out var fallbackNode))
-            {
-                continue;
-            }
-
-            node.AddFallbackQuery(fallbackNode);
-        }
-    }
-
-    private static void MergeIntoNewBatchNodes(
-        Dictionary<int, ExecutionNode> completedNodes,
-        Dictionary<int, HashSet<int>> dependencyLookup,
-        bool enableRequestGrouping)
-    {
-        // Pass 1 -- Merge structurally identical operations.
-        // We compute a canonical signature for each query operation (covering
-        // schema name, source path, and query body). Operations that share
-        // the same signature are merged into one BatchOperationDefinition so
-        // the executor sends a single request instead of many. Dependency
-        // sets may differ between merged operations; that is fine as long as
-        // merging does not create a cycle in the dependency graph.
-        var candidates = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
-        var nodeFieldBoundCache = new Dictionary<int, bool>();
-
-        foreach (var node in completedNodes.Values.OfType<OperationExecutionNode>())
-        {
-            // Only query operations can be merged or batched. Mutations must
-            // execute in order, so they are never candidates for batching.
-            if (node.Operation.Type != OperationType.Query)
-            {
-                continue;
-            }
-
-            // Operations that sit below a node-field dispatch must keep their
-            // original identifiers. The branch and fallback wiring phase
-            // references those identifiers directly, so replacing them with
-            // a merged identifier would silently drop executable branches.
-            if (IsBoundToNodeField(node.Id))
-            {
-                continue;
-            }
-
-            var signature = ComputeCanonicalSignature(node);
-
-            if (!candidates.TryGetValue(signature, out var list))
-            {
-                list = [];
-                candidates[signature] = list;
-            }
-
-            list.Add(node);
-        }
-
-        bool IsBoundToNodeField(int nodeId)
-        {
-            if (nodeFieldBoundCache.TryGetValue(nodeId, out var cached))
-            {
-                return cached;
-            }
-
-            // The dependency graph is a DAG (enforced by GetDependencyDepth),
-            // so we don't need a recursion guard here; caching is sufficient.
-            if (!dependencyLookup.TryGetValue(nodeId, out var dependencies) || dependencies.Count == 0)
-            {
-                nodeFieldBoundCache[nodeId] = false;
-                return false;
-            }
-
-            foreach (var dependencyId in dependencies)
-            {
-                if (completedNodes.TryGetValue(dependencyId, out var depNode)
-                    && depNode is NodeFieldExecutionNode)
-                {
-                    nodeFieldBoundCache[nodeId] = true;
-                    return true;
-                }
-
-                if (IsBoundToNodeField(dependencyId))
-                {
-                    nodeFieldBoundCache[nodeId] = true;
-                    return true;
-                }
-            }
-
-            nodeFieldBoundCache[nodeId] = false;
-            return false;
-        }
-
-        // Keep track of which operations were merged in Pass 1 so that Pass 2
-        // can reuse the merged definitions when building batch nodes.
-        var mergeInfo = new Dictionary<int, MergeResult>();
-
-        foreach (var (_, equivalentNodes) in candidates)
-        {
-            if (equivalentNodes.Count <= 1)
-            {
-                continue;
-            }
-
-            // Before merging, verify that no candidate transitively depends
-            // on another. Merging such a pair would create a cycle in the
-            // dependency graph (the merged batch node would depend on itself).
-            // When conflicts exist, partition into independent subsets.
-            foreach (var group in PartitionIntoMergeableGroups(equivalentNodes, dependencyLookup))
-            {
-                if (group.Count <= 1)
-                {
-                    continue;
-                }
-
-                group.Sort((a, b) => a.Id.CompareTo(b.Id));
-
-                var primary = group[0];
-
-                var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
-                var targets = new SelectionPath[group.Count];
-
-                for (var i = 0; i < group.Count; i++)
-                {
-                    targets[i] = group[i].Target;
-                }
-
-                mergeInfo[primary.Id] = new MergeResult(
-                    targets,
-                    canonicalOp,
-                    canonicalRequirements,
-                    primary);
-
-                // Remove absorbed nodes and merge their dependency sets
-                // into the primary so the dependency graph stays consistent.
-                var absorbedIds = new HashSet<int>(group.Count - 1);
-
-                if (!dependencyLookup.TryGetValue(primary.Id, out var primaryDeps))
-                {
-                    primaryDeps = [];
-                }
-
-                for (var i = 1; i < group.Count; i++)
-                {
-                    var otherId = group[i].Id;
-                    absorbedIds.Add(otherId);
-                    completedNodes.Remove(otherId);
-
-                    if (dependencyLookup.TryGetValue(otherId, out var otherDeps))
-                    {
-                        foreach (var dep in otherDeps)
-                        {
-                            primaryDeps.Add(dep);
-                        }
-
-                        dependencyLookup.Remove(otherId);
-                    }
-                }
-
-                if (primaryDeps.Count > 0)
-                {
-                    dependencyLookup[primary.Id] = primaryDeps;
-                }
-                else
-                {
-                    dependencyLookup.Remove(primary.Id);
-                }
-
-                // Redirect remaining references to absorbed IDs
-                // so they point to the primary instead.
-                foreach (var depSet in dependencyLookup.Values)
-                {
-                    var hadAbsorbed = false;
-
-                    foreach (var absorbedId in absorbedIds)
-                    {
-                        if (depSet.Remove(absorbedId))
-                        {
-                            hadAbsorbed = true;
-                        }
-                    }
-
-                    if (hadAbsorbed)
-                    {
-                        depSet.Add(primary.Id);
-                    }
-                }
-            }
-        }
-        // Take a snapshot of each node's dependency identifiers before Pass 2
-        // rewrites the lookup. Pass 2 redirects member identifiers to batch-node
-        // identifiers, but the inner operation definitions must retain their
-        // original per-operation dependencies to preserve the plan structure.
-        var originalDependenciesByNodeId = new Dictionary<int, int[]>(dependencyLookup.Count);
-
-        foreach (var (nodeId, deps) in dependencyLookup)
-        {
-            originalDependenciesByNodeId[nodeId] = deps.ToArray();
-        }
-
-        // Pass 2 -- Group by schema and depth.
-        // Query nodes at the same dependency depth targeting the same source
-        // schema are independent of each other, so they can ride in a single
-        // batched network request.
-        var consumedMergeIds = new HashSet<int>();
-        var allPerOpDeps = new Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>>();
-
-        if (enableRequestGrouping)
-        {
-            var queryNodes = completedNodes.Values
-                .OfType<OperationExecutionNode>()
-                .Where(n => n.Operation.Type == OperationType.Query)
-                .Where(n => !IsBoundToNodeField(n.Id))
-                .ToList();
-
-            var dependencyDepthLookup = new Dictionary<int, int>();
-            var recursionStack = new HashSet<int>();
-
-            foreach (var node in queryNodes)
-            {
-                GetDependencyDepth(node.Id, dependencyLookup, dependencyDepthLookup, recursionStack);
-            }
-
-            // Group query nodes by the combination of source schema and dependency
-            // depth. Nodes sharing the same key are independent of each other and
-            // can safely execute together in a single batch request.
-            var batchGroups = new Dictionary<(string schema, int depth), List<OperationExecutionNode>>();
-
-            foreach (var node in queryNodes)
-            {
-                var schemaKey = node.SchemaName ?? DynamicSchemaNameMarker;
-                var depth = dependencyDepthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-                var key = (schemaKey, depth);
-
-                if (!batchGroups.TryGetValue(key, out var group))
-                {
-                    group = [];
-                    batchGroups[key] = group;
-                }
-
-                group.Add(node);
-            }
-
-            // Process groups from the shallowest depth to the deepest. When we
-            // replace individual nodes with a batch node we redirect dependency
-            // references, so processing shallow groups first ensures that deeper
-            // groups see already-redirected identifiers.
-            foreach (var (_, groupMembers) in batchGroups.OrderBy(t => t.Key.depth))
-            {
-                if (groupMembers.Count <= 1)
-                {
-                    // A group with only one member cannot be batched with other
-                    // nodes here. If it was merged in Pass 1, it still needs a
-                    // batch node wrapper, which is created in the loop below.
-                    continue;
-                }
-
-                groupMembers.Sort((a, b) => a.Id.CompareTo(b.Id));
-
-                var operations = new List<OperationDefinition>();
-
-                foreach (var member in groupMembers)
-                {
-                    if (mergeInfo.TryGetValue(member.Id, out var merge))
-                    {
-                        consumedMergeIds.Add(member.Id);
-                        operations.Add(new BatchOperationDefinition(
-                            merge.Primary.Id,
-                            merge.CanonicalOp,
-                            merge.Primary.SchemaName,
-                            merge.Targets,
-                            merge.Primary.Source,
-                            merge.CanonicalRequirements,
-                            merge.Primary.ForwardedVariables.ToArray(),
-                            merge.Primary.ResultSelectionSet,
-                            merge.Primary.Conditions.ToArray(),
-
-                            merge.Primary.RequiresFileUpload));
-                    }
-                    else
-                    {
-                        operations.Add(new SingleOperationDefinition(
-                            member.Id,
-                            member.Operation,
-                            member.SchemaName,
-                            member.Target,
-                            member.Source,
-                            member.Requirements.ToArray(),
-                            member.ForwardedVariables.ToArray(),
-                            member.ResultSelectionSet,
-                            member.Conditions.ToArray(),
-
-                            member.RequiresFileUpload));
-                    }
-                }
-
-                var lowestId = groupMembers[0].Id;
-                var batchNode = new OperationBatchExecutionNode(lowestId, operations.ToArray());
-
-                // Capture each member's individual dependency identifiers before we
-                // replace the member nodes with the combined batch node. We need
-                // these later to wire per-operation dependency links.
-                var perOpDeps = new Dictionary<int, int[]>();
-
-                foreach (var member in groupMembers)
-                {
-                    if (originalDependenciesByNodeId.TryGetValue(member.Id, out var memberDeps))
-                    {
-                        perOpDeps[member.Id] = memberDeps;
-                    }
-                }
-
-                // Remove every individual member node from the completed set and
-                // replace them with a single batch node. Merge all their
-                // dependencies so the batch node knows what it must wait for.
-                var batchDeps = new HashSet<int>();
-
-                foreach (var member in groupMembers)
-                {
-                    completedNodes.Remove(member.Id);
-
-                    if (dependencyLookup.TryGetValue(member.Id, out var memberDeps))
-                    {
-                        foreach (var dep in memberDeps)
-                        {
-                            batchDeps.Add(dep);
-                        }
-
-                        dependencyLookup.Remove(member.Id);
-                    }
-                }
-
-                completedNodes[lowestId] = batchNode;
-
-                if (batchDeps.Count > 0)
-                {
-                    dependencyLookup[lowestId] = batchDeps;
-                }
-
-                // Other nodes in the dependency graph may still reference the old
-                // member identifiers. Redirect those references to the batch
-                // node's identifier so the graph stays consistent.
-                var memberIds = new HashSet<int>(groupMembers.Select(m => m.Id));
-
-                foreach (var depSet in dependencyLookup.Values)
-                {
-                    var hadMember = false;
-
-                    foreach (var memberId in memberIds)
-                    {
-                        if (depSet.Remove(memberId))
-                        {
-                            hadMember = true;
-                        }
-                    }
-
-                    if (hadMember)
-                    {
-                        depSet.Add(lowestId);
-                    }
-                }
-
-                // We defer per-operation dependency wiring until every batch node
-                // has been created. Otherwise, the lookup would be incomplete and
-                // some dependencies would fail to resolve.
-                allPerOpDeps[batchNode] = perOpDeps;
-            }
-        }
-
-        // Some operations were merged in Pass 1 but not consumed by any
-        // multi-member batch group in Pass 2 (for example, when their depth
-        // group had only one entry). These still need a batch execution node
-        // wrapper so the executor can handle them uniformly.
-        foreach (var (primaryId, merge) in mergeInfo)
-        {
-            if (consumedMergeIds.Contains(primaryId))
-            {
-                continue;
-            }
-
-            var primary = merge.Primary;
-            var opDef = new BatchOperationDefinition(
-                primary.Id,
-                merge.CanonicalOp,
-                primary.SchemaName,
-                merge.Targets,
-                primary.Source,
-                merge.CanonicalRequirements,
-                primary.ForwardedVariables.ToArray(),
-                primary.ResultSelectionSet,
-                primary.Conditions.ToArray(),
-                primary.RequiresFileUpload);
-
-            var standaloneBatchNode = new OperationBatchExecutionNode(primaryId, [opDef]);
-            completedNodes[primaryId] = standaloneBatchNode;
-
-            // Wire the full set of dependencies (union of all merged
-            // operations), not just the intersection. The per-operation
-            // dependencies must reflect every upstream operation that
-            // provides data for any of the merged targets.
-            allPerOpDeps[standaloneBatchNode] =
-                new Dictionary<int, int[]>
-                {
-                    [opDef.Id] = originalDependenciesByNodeId.TryGetValue(primaryId, out var primaryDeps)
-                        ? primaryDeps
-                        : []
-                };
-        }
-
-        // All batch nodes are now in place. Build a lookup from plan-node
-        // identifier to plan node, then wire each inner operation's
-        // dependencies to the original operation definitions rather than the
-        // redirected batch-node identifiers. This gives the executor
-        // fine-grained visibility into exactly which upstream operation each
-        // inner operation depends on.
-        if (allPerOpDeps.Count > 0)
-        {
-            var planNodeById = new Dictionary<int, IOperationPlanNode>();
-
-            foreach (var node in completedNodes.Values)
-            {
-                planNodeById[node.Id] = node;
-
-                if (node is OperationBatchExecutionNode batch)
-                {
-                    foreach (var op in batch.Operations)
-                    {
-                        planNodeById[op.Id] = op;
-                    }
-                }
-            }
-
-            foreach (var (_, perOpDeps) in allPerOpDeps)
-            {
-                foreach (var (opId, depIds) in perOpDeps)
-                {
-                    if (planNodeById.TryGetValue(opId, out var opNode) && opNode is OperationDefinition opDef)
-                    {
-                        foreach (var depId in depIds)
-                        {
-                            if (planNodeById.TryGetValue(depId, out var depNode))
-                            {
-                                opDef.AddDependency(depNode);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private static string ComputeCanonicalSignature(OperationExecutionNode node)
@@ -1076,9 +1072,9 @@ public sealed partial class OperationPlanner
         var replacements = BuildPrefixReplacements(node.Requirements);
         var normalizedText = ApplyPrefixReplacements(node.Operation.SourceText, replacements);
 
-        // The first line contains the operation name, which embeds a step
-        // identifier that differs between otherwise identical operations.
-        // We skip it so the signature reflects structure only.
+        // The first line contains the operation name, which embeds a
+        // step-specific identifier. We skip it so that two operations
+        // with the same structure produce the same signature.
         var firstNewline = normalizedText.IndexOf('\n');
         var bodyText = firstNewline >= 0 ? normalizedText[(firstNewline + 1)..] : normalizedText;
 
@@ -1092,28 +1088,14 @@ public sealed partial class OperationPlanner
     private static (OperationSourceText operation, OperationRequirement[] requirements) CanonicalizeOperation(
         OperationExecutionNode node)
     {
-        // Return the primary node's operation text and requirements unchanged.
-        // The primary always has the lowest identifier, so its __fusion_{N}_
-        // variable-name prefixes already use the lowest numbers that the planner
-        // assigned. We keep these original numbers in the merged operation to
-        // preserve globally unique naming. The canonical signature method
-        // normalizes prefixes only for the purpose of comparing structure; the
-        // actual merged operation must not be normalized.
         return (node.Operation, node.Requirements.ToArray());
     }
 
     /// <summary>
-    /// Builds a list of (original, canonical) string replacement pairs for normalizing
-    /// <c>__fusion_{N}_</c> variable-name prefixes.
+    /// Builds replacement pairs that normalize step-specific
+    /// <c>__fusion_{N}_</c> variable name prefixes into a canonical
+    /// form, so structurally identical operations produce matching text.
     /// </summary>
-    /// <remarks>
-    /// The planner assigns a unique numeric prefix to each set of requirement variables,
-    /// but two structurally identical operations may receive different numbers depending
-    /// on processing order. To compare them reliably, we sort prefixes deterministically
-    /// by the alphabetically joined set of their argument names and then map each
-    /// original prefix to a canonical <c>__fusion_{index}_</c> form. This way,
-    /// structurally identical operations always produce the same normalized text.
-    /// </remarks>
     private static (string original, string canonical)[] BuildPrefixReplacements(
         ReadOnlySpan<OperationRequirement> requirements)
     {
@@ -1169,14 +1151,14 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Partitions a list of structurally identical operations into groups that can
-    /// each be safely merged. Two operations cannot be in the same group if one
-    /// transitively depends on the other, because merging them would create a cycle
-    /// (the resulting batch node would depend on itself).
+    /// Partitions structurally identical operations into groups that can
+    /// each be safely merged. Two operations cannot share a group if one
+    /// transitively depends on the other, because merging them would
+    /// create a cycle in the dependency graph.
     /// </summary>
     private static List<List<OperationExecutionNode>> PartitionIntoMergeableGroups(
         List<OperationExecutionNode> candidates,
-        Dictionary<int, HashSet<int>> dependencyLookup)
+        Dictionary<int, HashSet<int>> dependenciesByStepId)
     {
         var groups = new List<List<OperationExecutionNode>>();
         var visited = new HashSet<int>();
@@ -1193,7 +1175,7 @@ public sealed partial class OperationPlanner
                 {
                     visited.Clear();
 
-                    if (IsTransitivelyReachable(candidate.Id, existing.Id, dependencyLookup, visited))
+                    if (IsTransitivelyReachable(candidate.Id, existing.Id, dependenciesByStepId, visited))
                     {
                         canJoin = false;
                         break;
@@ -1201,7 +1183,7 @@ public sealed partial class OperationPlanner
 
                     visited.Clear();
 
-                    if (IsTransitivelyReachable(existing.Id, candidate.Id, dependencyLookup, visited))
+                    if (IsTransitivelyReachable(existing.Id, candidate.Id, dependenciesByStepId, visited))
                     {
                         canJoin = false;
                         break;
@@ -1225,29 +1207,25 @@ public sealed partial class OperationPlanner
         return groups;
     }
 
-    /// <summary>
-    /// Checks whether <paramref name="targetId"/> is reachable from
-    /// <paramref name="fromId"/> by following dependency edges.
-    /// </summary>
     private static bool IsTransitivelyReachable(
         int fromId,
         int targetId,
-        Dictionary<int, HashSet<int>> dependencyLookup,
+        Dictionary<int, HashSet<int>> dependenciesByStepId,
         HashSet<int> visited)
     {
-        if (!dependencyLookup.TryGetValue(fromId, out var deps))
+        if (!dependenciesByStepId.TryGetValue(fromId, out var dependencies))
         {
             return false;
         }
 
-        foreach (var dep in deps)
+        foreach (var dependency in dependencies)
         {
-            if (dep == targetId)
+            if (dependency == targetId)
             {
                 return true;
             }
 
-            if (visited.Add(dep) && IsTransitivelyReachable(dep, targetId, dependencyLookup, visited))
+            if (visited.Add(dependency) && IsTransitivelyReachable(dependency, targetId, dependenciesByStepId, visited))
             {
                 return true;
             }
@@ -1306,15 +1284,10 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Removes child selection sets from fields whose return type is not a value type.
+    /// Strips child selection sets from fields whose return type is not a
+    /// value type. Only value-type subtrees are relevant for the result
+    /// selection set; the rest are resolved by separate execution nodes.
     /// </summary>
-    /// <remarks>
-    /// The <see cref="ResultSelectionSet"/> only needs to track selections along
-    /// value-type paths. By stripping the children of non-value-type fields here,
-    /// we avoid building a large tree for the common case where most fields point
-    /// to complex (non-value) types. This saves memory without losing any
-    /// information the executor needs.
-    /// </remarks>
     private static SelectionSetNode PruneNonValueTypeChildren(
         SelectionSetNode selectionSet,
         ITypeDefinition parentType,
@@ -1344,9 +1317,6 @@ public sealed partial class OperationPlanner
 
                         if (fieldNamedType is FusionComplexTypeDefinition { IsValueType: true } valueType)
                         {
-                            // This field returns a value type, so its children may
-                            // still contain non-value-type descendants. Recurse to
-                            // prune those deeper levels.
                             var pruned = PruneNonValueTypeChildren(field.SelectionSet, valueType, schema);
 
                             if (!ReferenceEquals(pruned, field.SelectionSet))
@@ -1359,9 +1329,6 @@ public sealed partial class OperationPlanner
                         }
                         else
                         {
-                            // The field's return type is not a value type, so
-                            // its selection set is irrelevant for result mapping.
-                            // Strip the children to save memory.
                             selections[i] = new FieldNode(
                                 field.Name, field.Alias, field.Directives, field.Arguments, null);
                             changed = true;
@@ -1452,10 +1419,6 @@ public sealed partial class OperationPlanner
 
     private static OperationDefinitionNode RemoveEmptySelections(OperationDefinitionNode operationDefinition)
     {
-        // During requirement rewriting, some fields or inline fragments may end up with
-        // empty selection sets (literal `{}`). We strip those individual selections here.
-        // This is a local cleanup pass and intentionally does not remove the entire
-        // operation node, because other selections at the same level may still be valid.
         return SyntaxRewriter.Create(
                 rewrite: node =>
                 {
@@ -1561,15 +1524,11 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Extracts @skip and @include directives from every selection in the root
-    /// selection set (or the selection set beneath a lookup field) and promotes
-    /// them to node-level conditions on the plan step.
+    /// Extracts @skip and @include directives from every selection in the
+    /// root selection set (or beneath a lookup field) and promotes them to
+    /// node-level conditions on the plan step. This allows the executor to
+    /// evaluate the conditions once and skip the entire request if needed.
     /// </summary>
-    /// <remarks>
-    /// This is only called when every selection in the relevant set is conditional.
-    /// Moving the conditions to the execution node lets the executor skip the
-    /// entire downstream request when the condition evaluates to false.
-    /// </remarks>
     private static OperationPlanStep ExtractConditionsAndRewriteSelectionSet(OperationPlanStep step)
     {
         var context = new ConditionalSelectionSetRewriterContext();
@@ -1608,9 +1567,6 @@ public sealed partial class OperationPlanner
             newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
         }
 
-        // Combine the newly extracted conditions with any conditions that were already
-        // propagated from earlier work items. The set automatically deduplicates by
-        // value equality so we do not end up with duplicate condition checks.
         var mergedConditions = context.Conditions;
 
         foreach (var existing in step.Conditions)
@@ -1701,10 +1657,25 @@ public sealed partial class OperationPlanner
         return new SelectionSetNode(selections);
     }
 
+    private sealed class ExecutionPlanBuildContext
+    {
+        public HashSet<int> ProcessedStepIds { get; } = [];
+        public Dictionary<int, ExecutionNode> ExecutionNodes { get; } = [];
+        public Dictionary<int, HashSet<int>> DependenciesByStepId { get; } = [];
+        public Dictionary<int, Dictionary<string, int>> BranchesByNodeId { get; } = [];
+        public Dictionary<int, int> FallbackByNodeId { get; } = [];
+    }
+
     private sealed class ConditionalSelectionSetRewriterContext
     {
         public HashSet<ExecutionNodeCondition> Conditions { get; } = [];
     }
+
+    private readonly record struct MergeResult(
+        SelectionPath[] Targets,
+        OperationSourceText CanonicalOp,
+        OperationRequirement[] CanonicalRequirements,
+        OperationExecutionNode Primary);
 }
 
 file static class Extensions
@@ -1712,20 +1683,10 @@ file static class Extensions
     private static readonly Encoding s_encoding = Encoding.UTF8;
 
     /// <summary>
-    /// Determines whether every selection in the relevant selection set carries
-    /// a @skip or @include directive, making it fully conditional.
+    /// Returns <see langword="true"/> when every selection in the relevant
+    /// selection set carries a @skip or @include directive, meaning the
+    /// entire operation is conditional and can potentially be skipped.
     /// </summary>
-    /// <remarks>
-    /// The "relevant" selection set is either the root selection set or, when
-    /// the step uses a lookup field, the selection set nested beneath that
-    /// lookup field. If all selections are conditional, the caller can promote
-    /// those conditions to the execution node and potentially skip the entire
-    /// downstream request.
-    /// </remarks>
-    /// <returns>
-    /// <c>true</c> if every selection in the set has a @skip or @include
-    /// directive; <c>false</c> if any selection is unconditional.
-    /// </returns>
     public static bool AreAllProvidedSelectionsConditional(this OperationPlanStep step)
     {
         var selectionSetNode = step.Definition.SelectionSet;
@@ -1843,9 +1804,3 @@ file static class Extensions
         return new OperationSourceText(operation.Name!.Value, operation.Operation, sourceText, operationHash);
     }
 }
-
-file readonly record struct MergeResult(
-    SelectionPath[] Targets,
-    OperationSourceText CanonicalOp,
-    OperationRequirement[] CanonicalRequirements,
-    OperationExecutionNode Primary);
