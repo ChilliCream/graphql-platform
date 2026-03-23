@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// <summary>
 /// Describes a single GraphQL request to be sent to a source schema.
 /// </summary>
-public sealed class SourceSchemaClientRequest
+public readonly record struct SourceSchemaClientRequest()
 {
     /// <summary>
     /// Gets the execution node that produced this request.
