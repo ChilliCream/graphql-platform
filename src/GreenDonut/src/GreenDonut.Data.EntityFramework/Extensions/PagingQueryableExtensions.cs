@@ -668,7 +668,7 @@ public static class PagingQueryableExtensions
         int? index,
         int? requestedPageSize,
         int? totalCount,
-        ImmutableArray<T>? items = null)
+        ImmutableArray<T> items = default)
     {
         var (hasNext, hasPrevious) = CreatePageFlags(arguments, fetchCount);
 

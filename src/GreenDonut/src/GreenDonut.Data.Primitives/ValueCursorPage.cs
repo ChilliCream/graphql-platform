@@ -21,7 +21,7 @@ internal sealed class ValueCursorPage<T> : Page<T>
         bool hasPreviousPage,
         Func<T, string> createCursor,
         int? totalCount = null,
-        ImmutableArray<T>? items = null)
+        ImmutableArray<T> items = default)
         : base(entries, hasNextPage, hasPreviousPage, totalCount, items)
     {
         _createCursor = entry => createCursor(entry.Node);
@@ -38,7 +38,7 @@ internal sealed class ValueCursorPage<T> : Page<T>
         int index,
         int requestedPageSize,
         int totalCount,
-        ImmutableArray<T>? items = null)
+        ImmutableArray<T> items = default)
         : base(entries, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount, items)
     {
         _createCursor = createCursor;

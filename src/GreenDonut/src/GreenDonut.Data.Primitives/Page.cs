@@ -11,7 +11,7 @@ namespace GreenDonut.Data;
 /// </typeparam>
 public abstract class Page<T> : IReadOnlyList<T>
 {
-    private ImmutableArray<T>? _items;
+    private ImmutableArray<T> _items;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Page{T}"/> class.
@@ -29,14 +29,14 @@ public abstract class Page<T> : IReadOnlyList<T>
     /// The total count of items in the dataset.
     /// </param>
     /// <param name="items">
-    /// The items of the page. If null, items will be derived from entries on first access.
+    /// The items of the page. If default, items will be derived from entries on first access.
     /// </param>
     protected Page(
         ImmutableArray<PageEntry<T>> entries,
         bool hasNextPage,
         bool hasPreviousPage,
         int? totalCount = null,
-        ImmutableArray<T>? items = null)
+        ImmutableArray<T> items = default)
     {
         _items = items;
         Entries = entries;
@@ -67,7 +67,7 @@ public abstract class Page<T> : IReadOnlyList<T>
     /// The total count of items in the dataset.
     /// </param>
     /// <param name="items">
-    /// The items of the page. If null, items will be derived from entries on first access.
+    /// The items of the page. If default, items will be derived from entries on first access.
     /// </param>
     protected Page(
         ImmutableArray<PageEntry<T>> entries,
@@ -76,7 +76,7 @@ public abstract class Page<T> : IReadOnlyList<T>
         int index,
         int requestedPageSize,
         int totalCount,
-        ImmutableArray<T>? items = null)
+        ImmutableArray<T> items = default)
     {
         _items = items;
         Entries = entries;
@@ -95,7 +95,18 @@ public abstract class Page<T> : IReadOnlyList<T>
     /// <summary>
     /// Gets the items of this page.
     /// </summary>
-    public ImmutableArray<T> Items => _items ??= CreateItemsFromEntries(Entries);
+    public ImmutableArray<T> Items
+    {
+        get
+        {
+            if (_items.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _items, [.. this]);
+            }
+
+            return _items;
+        }
+    }
 
     /// <summary>
     /// Gets the number of items in this page.
@@ -303,23 +314,6 @@ public abstract class Page<T> : IReadOnlyList<T>
         for (var i = 0; i < items.Length; i++)
         {
             builder.Add(new PageEntry<T>(items[i], i));
-        }
-
-        return builder.MoveToImmutable();
-    }
-
-    private static ImmutableArray<T> CreateItemsFromEntries(ImmutableArray<PageEntry<T>> entries)
-    {
-        if (entries.IsEmpty)
-        {
-            return [];
-        }
-
-        var builder = ImmutableArray.CreateBuilder<T>(entries.Length);
-
-        for (var i = 0; i < entries.Length; i++)
-        {
-            builder.Add(entries[i].Item);
         }
 
         return builder.MoveToImmutable();
