@@ -43,27 +43,12 @@ internal sealed class PostgresDispatchEndpointDescriptor
     }
 
     /// <inheritdoc />>
-    public new IPostgresDispatchEndpointDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public new IPostgresDispatchEndpointDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.UseDispatch(configuration);
-        return this;
-    }
-
-    /// <inheritdoc />>
-    public new IPostgresDispatchEndpointDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.AppendDispatch(after, configuration);
-        return this;
-    }
-
-    /// <inheritdoc />>
-    public new IPostgresDispatchEndpointDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.PrependDispatch(before, configuration);
+        base.UseDispatch(configuration, before: before, after: after);
         return this;
     }
 

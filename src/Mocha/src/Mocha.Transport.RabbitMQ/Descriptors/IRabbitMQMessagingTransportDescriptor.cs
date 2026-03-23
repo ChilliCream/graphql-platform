@@ -91,26 +91,14 @@ public interface IRabbitMQMessagingTransportDescriptor
     new IRabbitMQMessagingTransportDescriptor IsDefaultTransport();
 
     /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch" />
-    new IRabbitMQMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.AppendDispatch" />
-    new IRabbitMQMessagingTransportDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.PrependDispatch" />
-    new IRabbitMQMessagingTransportDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
+    new IRabbitMQMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
     /// <inheritdoc cref="IMessagingTransportDescriptor.UseReceive" />
-    new IRabbitMQMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.AppendReceive" />
-    new IRabbitMQMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.PrependReceive" />
-    new IRabbitMQMessagingTransportDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration);
+    new IRabbitMQMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

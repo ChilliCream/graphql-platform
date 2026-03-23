@@ -60,7 +60,7 @@ public class TransportMiddlewareTests
     }
 
     [Fact]
-    public async Task AppendReceive_Should_InvokeOnAllEndpoints_When_ConfiguredAtTransportLevel()
+    public async Task UseReceive_After_Should_InvokeOnAllEndpoints_When_ConfiguredAtTransportLevel()
     {
         // arrange
         var tracker = new MiddlewareTracker();
@@ -74,8 +74,7 @@ public class TransportMiddlewareTests
             .AddConsumer<SpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.AppendReceive(
-                    "RabbitMQAcknowledgement",
+                t.UseReceive(
                     new ReceiveMiddlewareConfiguration(
                         (ctx, next) =>
                             async context =>
@@ -83,7 +82,8 @@ public class TransportMiddlewareTests
                                 tracker.Add("transport-append-receive");
                                 await next(context);
                             },
-                        "test-transport-append-receive"));
+                        "test-transport-append-receive"),
+                    after: "RabbitMQAcknowledgement");
 
                 t.DeclareExchange("ex");
                 t.DeclareQueue("q");
@@ -105,7 +105,7 @@ public class TransportMiddlewareTests
     }
 
     [Fact]
-    public async Task PrependReceive_Should_InvokeOnAllEndpoints_When_ConfiguredAtTransportLevel()
+    public async Task UseReceive_Before_Should_InvokeOnAllEndpoints_When_ConfiguredAtTransportLevel()
     {
         // arrange
         var tracker = new MiddlewareTracker();
@@ -119,8 +119,7 @@ public class TransportMiddlewareTests
             .AddConsumer<SpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.PrependReceive(
-                    "RabbitMQAcknowledgement",
+                t.UseReceive(
                     new ReceiveMiddlewareConfiguration(
                         (ctx, next) =>
                             async context =>
@@ -128,7 +127,8 @@ public class TransportMiddlewareTests
                                 tracker.Add("transport-prepend-receive");
                                 await next(context);
                             },
-                        "test-transport-prepend-receive"));
+                        "test-transport-prepend-receive"),
+                    before: "RabbitMQAcknowledgement");
 
                 t.DeclareExchange("ex");
                 t.DeclareQueue("q");
@@ -188,7 +188,7 @@ public class TransportMiddlewareTests
     }
 
     [Fact]
-    public async Task AppendDispatch_Should_InvokeOnAllEndpoints_When_ConfiguredAtTransportLevel()
+    public async Task UseDispatch_After_Should_InvokeOnAllEndpoints_When_ConfiguredAtTransportLevel()
     {
         // arrange
         var tracker = new MiddlewareTracker();
@@ -202,8 +202,7 @@ public class TransportMiddlewareTests
             .AddRequestHandler<PaymentHandler>()
             .AddRabbitMQ(t =>
             {
-                t.AppendDispatch(
-                    "Instrumentation",
+                t.UseDispatch(
                     new DispatchMiddlewareConfiguration(
                         (ctx, next) =>
                             async context =>
@@ -211,7 +210,8 @@ public class TransportMiddlewareTests
                                 tracker.Add("transport-append-dispatch");
                                 await next(context);
                             },
-                        "test-transport-append-dispatch"));
+                        "test-transport-append-dispatch"),
+                    after: "Instrumentation");
             })
             .BuildTestBusAsync();
 
@@ -227,7 +227,7 @@ public class TransportMiddlewareTests
     }
 
     [Fact]
-    public async Task PrependDispatch_Should_InvokeOnAllEndpoints_When_ConfiguredAtTransportLevel()
+    public async Task UseDispatch_Before_Should_InvokeOnAllEndpoints_When_ConfiguredAtTransportLevel()
     {
         // arrange
         var tracker = new MiddlewareTracker();
@@ -241,8 +241,7 @@ public class TransportMiddlewareTests
             .AddRequestHandler<PaymentHandler>()
             .AddRabbitMQ(t =>
             {
-                t.PrependDispatch(
-                    "Instrumentation",
+                t.UseDispatch(
                     new DispatchMiddlewareConfiguration(
                         (ctx, next) =>
                             async context =>
@@ -250,7 +249,8 @@ public class TransportMiddlewareTests
                                 tracker.Add("transport-prepend-dispatch");
                                 await next(context);
                             },
-                        "test-transport-prepend-dispatch"));
+                        "test-transport-prepend-dispatch"),
+                    before: "Instrumentation");
             })
             .BuildTestBusAsync();
 

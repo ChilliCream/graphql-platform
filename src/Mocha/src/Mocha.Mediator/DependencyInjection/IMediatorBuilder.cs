@@ -15,26 +15,13 @@ public interface IMediatorBuilder
     IMediatorBuilder ConfigureOptions(Action<MediatorOptions> configure);
 
     /// <summary>
-    /// Appends a middleware to the end of the pipeline.
+    /// Adds a middleware to the pipeline. When neither <paramref name="before"/> nor <paramref name="after"/>
+    /// is specified the middleware is appended to the end of the pipeline.
     /// </summary>
-    IMediatorBuilder Use(MediatorMiddlewareConfiguration middleware);
-
-    /// <summary>
-    /// Inserts a middleware after the middleware identified by <paramref name="after"/>.
-    /// If no middleware with that key is found, the middleware is appended to the end.
-    /// </summary>
-    IMediatorBuilder Append(string after, MediatorMiddlewareConfiguration middleware);
-
-    /// <summary>
-    /// Inserts a middleware at the beginning of the pipeline.
-    /// </summary>
-    IMediatorBuilder Prepend(MediatorMiddlewareConfiguration middleware);
-
-    /// <summary>
-    /// Inserts a middleware before the middleware identified by <paramref name="before"/>.
-    /// If no middleware with that key is found, the middleware is prepended to the beginning.
-    /// </summary>
-    IMediatorBuilder Prepend(string before, MediatorMiddlewareConfiguration middleware);
+    /// <param name="middleware">The middleware configuration.</param>
+    /// <param name="before">If specified, the middleware is inserted before the middleware with the given key.</param>
+    /// <param name="after">If specified, the middleware is inserted after the middleware with the given key.</param>
+    IMediatorBuilder Use(MediatorMiddlewareConfiguration middleware, string? before = null, string? after = null);
 
     /// <summary>
     /// Configures the mediator's feature collection.

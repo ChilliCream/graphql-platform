@@ -90,27 +90,15 @@ public interface IPostgresMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.IsDefaultTransport()"/>
     new IPostgresMessagingTransportDescriptor IsDefaultTransport();
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch(DispatchMiddlewareConfiguration)"/>
-    new IPostgresMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch(DispatchMiddlewareConfiguration, string?, string?)"/>
+    new IPostgresMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.AppendDispatch(string, DispatchMiddlewareConfiguration)"/>
-    new IPostgresMessagingTransportDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.PrependDispatch(string, DispatchMiddlewareConfiguration)"/>
-    new IPostgresMessagingTransportDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.UseReceive(ReceiveMiddlewareConfiguration)"/>
-    new IPostgresMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.AppendReceive(string, ReceiveMiddlewareConfiguration)"/>
-    new IPostgresMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.PrependReceive(string, ReceiveMiddlewareConfiguration)"/>
-    new IPostgresMessagingTransportDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration);
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseReceive(ReceiveMiddlewareConfiguration, string?, string?)"/>
+    new IPostgresMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

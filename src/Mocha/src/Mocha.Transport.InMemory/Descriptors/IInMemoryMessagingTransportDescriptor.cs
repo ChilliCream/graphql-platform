@@ -64,26 +64,14 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     new IInMemoryMessagingTransportDescriptor IsDefaultTransport();
 
     /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
+    new IInMemoryMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
     /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration);
+    new IInMemoryMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }
