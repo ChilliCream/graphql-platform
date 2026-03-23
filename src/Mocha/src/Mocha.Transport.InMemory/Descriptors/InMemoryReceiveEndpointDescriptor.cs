@@ -59,27 +59,12 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
-    public new IInMemoryReceiveEndpointDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration)
+    public new IInMemoryReceiveEndpointDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.UseReceive(configuration);
-
-        return this;
-    }
-
-    public new IInMemoryReceiveEndpointDescriptor AppendReceive(
-        string after,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.AppendReceive(after, configuration);
-
-        return this;
-    }
-
-    public new IInMemoryReceiveEndpointDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.PrependReceive(before, configuration);
+        base.UseReceive(configuration, before: before, after: after);
 
         return this;
     }

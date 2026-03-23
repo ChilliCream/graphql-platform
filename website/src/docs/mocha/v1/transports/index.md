@@ -79,8 +79,8 @@ builder.Services
         transport.UseReceive(myReceiveMiddleware);
 
         // Insert middleware relative to existing ones
-        transport.AppendReceive("ConcurrencyLimiter", myMiddleware);
-        transport.PrependDispatch("Serialization", myMiddleware);
+        transport.UseReceive(myMiddleware, after: "ConcurrencyLimiter");
+        transport.UseDispatch(myMiddleware, before: "Serialization");
     });
 ```
 

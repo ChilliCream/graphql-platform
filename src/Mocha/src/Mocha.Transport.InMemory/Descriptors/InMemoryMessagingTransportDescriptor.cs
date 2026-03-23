@@ -63,57 +63,23 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public new IInMemoryMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.UseDispatch(configuration);
+        base.UseDispatch(configuration, before: before, after: after);
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration)
+    public new IInMemoryMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.AppendDispatch(after, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.PrependDispatch(before, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration)
-    {
-        base.UseReceive(configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor AppendReceive(
-        string after,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.AppendReceive(after, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.PrependReceive(before, configuration);
+        base.UseReceive(configuration, before: before, after: after);
 
         return this;
     }

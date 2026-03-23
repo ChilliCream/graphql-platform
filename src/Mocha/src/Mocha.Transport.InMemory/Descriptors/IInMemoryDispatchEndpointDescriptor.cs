@@ -28,13 +28,8 @@ public interface IInMemoryDispatchEndpointDescriptor
     new IInMemoryDispatchEndpointDescriptor Publish<TMessage>();
 
     /// <inheritdoc />
-    new IInMemoryDispatchEndpointDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryDispatchEndpointDescriptor AppendDispatch(string after, DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryDispatchEndpointDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
+    new IInMemoryDispatchEndpointDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

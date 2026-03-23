@@ -27,13 +27,8 @@ public interface IRabbitMQDispatchEndpointDescriptor
     new IRabbitMQDispatchEndpointDescriptor Publish<TMessage>();
 
     /// <inheritdoc cref="IDispatchEndpointDescriptor{TConfiguration}.UseDispatch" />
-    new IRabbitMQDispatchEndpointDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IDispatchEndpointDescriptor{TConfiguration}.AppendDispatch" />
-    new IRabbitMQDispatchEndpointDescriptor AppendDispatch(string after, DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IDispatchEndpointDescriptor{TConfiguration}.PrependDispatch" />
-    new IRabbitMQDispatchEndpointDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
+    new IRabbitMQDispatchEndpointDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

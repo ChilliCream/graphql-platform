@@ -28,14 +28,15 @@ public class InboxTests
 
                 // Force every dispatched message to use the same MessageId
                 b.ConfigureMessageBus(h =>
-                    h.PrependDispatch(new DispatchMiddlewareConfiguration(
+                    h.UseDispatch(new DispatchMiddlewareConfiguration(
                         (_, next) =>
                             ctx =>
                             {
                                 ctx.MessageId = messageId;
                                 return next(ctx);
                             },
-                        "ForceMessageId")));
+                        "ForceMessageId"),
+                        before: "Instrumentation"));
             });
 
         using var scope = provider.CreateScope();
@@ -121,7 +122,7 @@ public class InboxTests
 
                 // Force the dispatched message to use the pre-seeded MessageId
                 b.ConfigureMessageBus(h =>
-                    h.PrependDispatch(new DispatchMiddlewareConfiguration(
+                    h.UseDispatch(new DispatchMiddlewareConfiguration(
                         (_, next) =>
                             ctx =>
                             {
@@ -132,8 +133,7 @@ public class InboxTests
 
                 // Add a consumer middleware before inbox that sets SkipInbox
                 b.ConfigureMessageBus(h =>
-                    h.PrependConsume(
-                        "Inbox",
+                    h.UseConsume(
                         new ConsumerMiddlewareConfiguration(
                             static (_, next) =>
                                 ctx =>
@@ -142,7 +142,8 @@ public class InboxTests
                                     feature.SkipInbox = true;
                                     return next(ctx);
                                 },
-                            "SkipInboxCheck")));
+                            "SkipInboxCheck"),
+                        before: "Inbox"));
             });
 
         using var scope = provider.CreateScope();
@@ -174,14 +175,15 @@ public class InboxTests
 
                 // Null out the MessageId on the dispatch side
                 b.ConfigureMessageBus(h =>
-                    h.PrependDispatch(new DispatchMiddlewareConfiguration(
+                    h.UseDispatch(new DispatchMiddlewareConfiguration(
                         (_, next) =>
                             ctx =>
                             {
                                 ctx.MessageId = null;
                                 return next(ctx);
                             },
-                        "NullifyMessageId")));
+                        "NullifyMessageId"),
+                        before: "Instrumentation"));
             });
 
         using var scope = provider.CreateScope();
@@ -220,14 +222,15 @@ public class InboxTests
 
                 // Force every dispatched message to use the same MessageId
                 b.ConfigureMessageBus(h =>
-                    h.PrependDispatch(new DispatchMiddlewareConfiguration(
+                    h.UseDispatch(new DispatchMiddlewareConfiguration(
                         (_, next) =>
                             ctx =>
                             {
                                 ctx.MessageId = messageId;
                                 return next(ctx);
                             },
-                        "ForceMessageId")));
+                        "ForceMessageId"),
+                        before: "Instrumentation"));
             });
 
         using var scope = provider.CreateScope();
@@ -347,8 +350,7 @@ public class InboxTests
         // consumer middleware factory runs against an internal service provider that does not
         // contain application-level singletons.
         builder.ConfigureMessageBus(h =>
-            h.PrependConsume(
-                "Inbox",
+            h.UseConsume(
                 new ConsumerMiddlewareConfiguration(
                     (_, next) =>
                         async ctx =>
@@ -372,7 +374,8 @@ public class InboxTests
                                 throw;
                             }
                         },
-                    "InboxTransactionRollback")));
+                    "InboxTransactionRollback"),
+                before: "Inbox"));
 
         configure(builder);
         builder.AddInMemory();
