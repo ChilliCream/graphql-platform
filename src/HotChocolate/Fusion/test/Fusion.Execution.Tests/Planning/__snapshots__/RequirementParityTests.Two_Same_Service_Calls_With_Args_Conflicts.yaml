@@ -36,7 +36,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 1
+    batchingGroupId: 2
     requirements:
       - name: __fusion_1_price
         selectionMap: >-
@@ -47,6 +47,31 @@ nodes:
     dependencies:
       - id: 3
       - id: 4
+  - id: 5
+    type: Operation
+    schema: inventory
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_5_price: Int
+          $__fusion_6_upc: String!
+      ) {
+        productByUpc(upc: $__fusion_6_upc) {
+          isExpensive(price: $__fusion_5_price)
+        }
+      }
+    source: $.productByUpc
+    target: $.products
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_5_price
+        selectionMap: >-
+          price
+      - name: __fusion_6_upc
+        selectionMap: >-
+          upc
+    dependencies:
+      - id: 3
+      - id: 6
   - id: 3
     type: Operation
     schema: products
@@ -61,7 +86,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_3_upc
         selectionMap: >-
@@ -81,38 +106,13 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_4_upc
         selectionMap: >-
           upc
     dependencies:
       - id: 1
-  - id: 5
-    type: Operation
-    schema: inventory
-    operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_price: Int
-          $__fusion_6_upc: String!
-      ) {
-        productByUpc(upc: $__fusion_6_upc) {
-          isExpensive(price: $__fusion_5_price)
-        }
-      }
-    source: $.productByUpc
-    target: $.products
-    batchingGroupId: 1
-    requirements:
-      - name: __fusion_5_price
-        selectionMap: >-
-          price
-      - name: __fusion_6_upc
-        selectionMap: >-
-          upc
-    dependencies:
-      - id: 3
-      - id: 6
   - id: 6
     type: Operation
     schema: products
@@ -126,7 +126,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_7_upc
         selectionMap: >-
@@ -146,7 +146,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_8_upc
         selectionMap: >-

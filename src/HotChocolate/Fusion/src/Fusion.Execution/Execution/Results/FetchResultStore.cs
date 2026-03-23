@@ -51,11 +51,19 @@ internal sealed partial class FetchResultStore : IDisposable
 
     public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
-    public bool AddPartialResults(
+    public bool AddPartialResult(
         SelectionPath sourcePath,
-        ReadOnlySpan<SourceSchemaResult> results,
-        ResultSelectionSet resultSelectionSet)
-        => AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors: true);
+        SourceSchemaResult result,
+        ResultSelectionSet resultSelectionSet,
+        bool containsErrors)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(sourcePath);
+
+        return containsErrors
+            ? AddSinglePartialResult(sourcePath, result, resultSelectionSet)
+            : AddSinglePartialResultNoErrors(sourcePath, result, resultSelectionSet);
+    }
 
     public bool AddPartialResults(
         SelectionPath sourcePath,

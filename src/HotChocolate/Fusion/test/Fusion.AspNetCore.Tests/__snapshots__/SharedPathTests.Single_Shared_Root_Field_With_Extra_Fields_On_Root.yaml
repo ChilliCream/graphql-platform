@@ -204,7 +204,7 @@ operationPlan:
         query Op_4a75abf3_2 {
           schema2
         }
-      batchingGroupId: 1
+      batchingGroupId: 2
     - id: 3
       type: Operation
       schema: B
@@ -214,4 +214,4 @@ operationPlan:
             schema2
           }
         }
-      batchingGroupId: 1
+      batchingGroupId: 2

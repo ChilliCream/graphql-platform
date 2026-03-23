@@ -136,7 +136,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -156,7 +155,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:

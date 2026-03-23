@@ -37,7 +37,7 @@ nodes:
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 1
+    batchingGroupId: 2
     requirements:
       - name: __fusion_1_otherField
         selectionMap: >-
@@ -48,6 +48,31 @@ nodes:
     dependencies:
       - id: 3
       - id: 4
+  - id: 5
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_5_otherField: String!
+          $__fusion_6_id: ID!
+      ) {
+        testById(id: $__fusion_6_id) {
+          fieldWithRequiresAndArgs(otherField: $__fusion_5_otherField)
+        }
+      }
+    source: $.testById
+    target: $.test
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_5_otherField
+        selectionMap: >-
+          otherField
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+      - id: 6
   - id: 3
     type: Operation
     schema: b
@@ -62,7 +87,7 @@ nodes:
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -82,38 +107,13 @@ nodes:
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_4_id
         selectionMap: >-
           id
     dependencies:
       - id: 1
-  - id: 5
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_otherField: String!
-          $__fusion_6_id: ID!
-      ) {
-        testById(id: $__fusion_6_id) {
-          fieldWithRequiresAndArgs(otherField: $__fusion_5_otherField)
-        }
-      }
-    source: $.testById
-    target: $.test
-    batchingGroupId: 1
-    requirements:
-      - name: __fusion_5_otherField
-        selectionMap: >-
-          otherField
-      - name: __fusion_6_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 3
-      - id: 6
   - id: 6
     type: Operation
     schema: b
@@ -127,7 +127,7 @@ nodes:
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
@@ -147,7 +147,7 @@ nodes:
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_8_id
         selectionMap: >-

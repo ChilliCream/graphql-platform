@@ -19,14 +19,21 @@ request:
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "The request exceeded the configured timeout of \u006000:00:30\u0060.",
-          "extensions": {
-            "code": "HC0045"
+      "data": {
+        "a": {
+          "book": {
+            "id": 1,
+            "author": null
+          }
+        },
+        "b": {
+          "book": {
+            "id": 2,
+            "title": "Book2",
+            "author": null
           }
         }
-      ]
+      }
     }
 sourceSchemas:
   - name: A
@@ -78,6 +85,29 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          document: |
+            mutation Op_192dc5f8_3 {
+              b: createBook(input: { title: "Book2" }) {
+                book {
+                  id
+                  title
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "b": {
+                    "book": {
+                      "id": 2,
+                      "title": "Book2"
+                    }
+                  }
+                }
+              }
   - name: B
     schema: |
       schema {
@@ -92,3 +122,73 @@ sourceSchemas:
       type Query {
         bookById(id: Int!): Book! @internal @lookup
       }
+operationPlan:
+  operation:
+    - document: |
+        mutation {
+          a: createBook(input: { title: "Book1" }) {
+            book {
+              id
+              id @fusion__requirement
+              author
+            }
+          }
+          b: createBook(input: { title: "Book2" }) {
+            book {
+              id
+              id @fusion__requirement
+              title
+              author
+            }
+          }
+        }
+      hash: 192dc5f8a8f00336bac2094122ae7902
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_192dc5f8_1 {
+          a: createBook(input: { title: "Book1" }) {
+            book {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: OperationBatch
+      schema: B
+      operation: |
+        query Op_192dc5f8_2(
+          $__fusion_1_id: Int!
+        ) {
+          bookById(id: $__fusion_1_id) {
+            author
+          }
+        }
+      source: $.bookById
+      targets:
+        - $.a.book
+        - $.b.book
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 3
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_192dc5f8_3 {
+          b: createBook(input: { title: "Book2" }) {
+            book {
+              id
+              title
+            }
+          }
+        }

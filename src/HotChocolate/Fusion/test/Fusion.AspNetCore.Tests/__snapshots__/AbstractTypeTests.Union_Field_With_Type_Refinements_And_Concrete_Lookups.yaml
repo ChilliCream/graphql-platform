@@ -157,7 +157,7 @@ operationPlan:
         }
       source: $.productById
       target: $.search<Product>
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -177,7 +177,7 @@ operationPlan:
         }
       source: $.userById
       target: $.search<User>
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

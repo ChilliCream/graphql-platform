@@ -63,7 +63,6 @@ nodes:
           id
     dependencies:
       - id: 3
-      - id: 4
   - id: 3
     type: OperationBatch
     schema: a
@@ -79,7 +78,7 @@ nodes:
     targets:
       - $.b.a
       - $.b.a
-    batchingGroupId: 1
+    batchingGroupId: 3
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -103,7 +102,7 @@ nodes:
       }
     source: $.aById
     target: $.b.a
-    batchingGroupId: 1
+    batchingGroupId: 3
     requirements:
       - name: __fusion_4_id
         selectionMap: >-

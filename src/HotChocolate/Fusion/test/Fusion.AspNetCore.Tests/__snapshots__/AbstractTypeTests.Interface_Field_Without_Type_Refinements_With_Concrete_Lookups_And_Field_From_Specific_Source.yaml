@@ -174,7 +174,7 @@ operationPlan:
         }
       source: $.discussionById
       target: $.votable<Discussion>
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -195,7 +195,7 @@ operationPlan:
         }
       source: $.commentById
       target: $.votable<Comment>
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

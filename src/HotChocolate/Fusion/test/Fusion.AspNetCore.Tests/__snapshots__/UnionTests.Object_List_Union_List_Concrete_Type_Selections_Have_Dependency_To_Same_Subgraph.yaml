@@ -420,7 +420,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.users.posts<Discussion>.author
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -440,7 +440,7 @@ operationPlan:
         }
       source: $.productById
       target: $.users.posts<Photo>.product
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
