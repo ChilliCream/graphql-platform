@@ -338,13 +338,13 @@ public class PostgresMessageEnvelopeParserTests
         DateTime? sentTime = null,
         int deliveryCount = 0)
     {
-        ReadOnlyMemory<byte> headersBytes = headers is not null
+        var headersBytes = headers is not null
             ? Encoding.UTF8.GetBytes(JsonSerializer.Serialize(headers))
             : ReadOnlyMemory<byte>.Empty;
 
         return new PostgresMessageItem(
             TransportMessageId: Guid.NewGuid(),
-            Body: body ?? Array.Empty<byte>(),
+            Body: body ?? [],
             Headers: headersBytes,
             QueueId: 1,
             SentTime: sentTime ?? DateTime.UtcNow,

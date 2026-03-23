@@ -1,5 +1,4 @@
 using Demo.Contracts.Events;
-using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Mediator;
 

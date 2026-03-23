@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Mocha.Transport.Postgres;
 
 /// <summary>
