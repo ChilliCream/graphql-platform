@@ -151,12 +151,6 @@ public readonly ref struct TypeDiscoveryInfo
                 IsByRefLike: false
             };
 
-        if (isComplexValueType && unresolvedType.IsGeneric)
-        {
-            var typeDefinition = unresolvedType.Definition;
-            return typeDefinition == typeof(KeyValuePair<,>);
-        }
-
         return isComplexClass || isComplexValueType;
     }
 
