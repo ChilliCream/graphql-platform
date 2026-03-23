@@ -19,10 +19,8 @@ internal sealed class OperationPlanExecutor
         // without also cancelling the entire request pipeline.
         using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        var pool = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>();
-        var context = pool.Rent();
+        await using var context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
         context.Initialize(requestContext, variables, operationPlan, executionCts);
-        await using var _ = context;
 
         context.Begin();
 
@@ -72,8 +70,7 @@ internal sealed class OperationPlanExecutor
 
         try
         {
-            var pool = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>();
-            context = pool.Rent();
+            context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
             context.Initialize(requestContext, requestContext.VariableValues[0], operationPlan, executionCts);
 
             var subscriptionResult = await subscriptionNode.SubscribeAsync(context, executionCts.Token);
@@ -105,6 +102,11 @@ internal sealed class OperationPlanExecutor
             if (cancellationRegistration is { } r)
             {
                 await r.DisposeAsync();
+            }
+
+            if (context is { } c)
+            {
+                await c.DisposeAsync();
             }
 
             throw;

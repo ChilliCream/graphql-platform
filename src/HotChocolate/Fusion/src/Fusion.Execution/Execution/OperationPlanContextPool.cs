@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
-using HotChocolate.Fusion.Execution.Nodes.Serialization;
-using HotChocolate.Types;
 using static HotChocolate.Fusion.Execution.OperationPlanContextPoolEventSource;
 
 namespace HotChocolate.Fusion.Execution;
