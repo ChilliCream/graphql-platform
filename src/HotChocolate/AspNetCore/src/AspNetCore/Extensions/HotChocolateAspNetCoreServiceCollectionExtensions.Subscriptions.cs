@@ -94,7 +94,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
                     sp.GetRequiredService<IWebSocketPayloadFormatter>(),
                     sp.GetRequiredService<IDocumentCache>(),
-                    sp.GetRequiredService<IDocumentHashProvider>())));
+                    sp.GetRequiredService<IDocumentHashProvider>(),
+                    sp.GetRequiredService<ParserOptions>())));
 
     /// <summary>
     /// Adds a custom WebSocket payload formatter to the DI.

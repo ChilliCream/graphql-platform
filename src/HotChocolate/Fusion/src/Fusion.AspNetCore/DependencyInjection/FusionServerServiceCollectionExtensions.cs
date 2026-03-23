@@ -107,5 +107,6 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
                     sp.GetRequiredService<IWebSocketPayloadFormatter>(),
                     sp.GetRequiredService<IDocumentCache>(),
-                    sp.GetRequiredService<IDocumentHashProvider>())));
+                    sp.GetRequiredService<IDocumentHashProvider>(),
+                    sp.GetRequiredService<ParserOptions>())));
 }

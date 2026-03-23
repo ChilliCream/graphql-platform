@@ -37,7 +37,7 @@ public sealed class WebSocketSubscriptionMiddleware : MiddlewareBase
         {
             try
             {
-                await WebSocketSession.AcceptAsync(context, session, options.Sockets);
+                await WebSocketSession.AcceptAsync(context, session, options);
             }
             catch (Exception ex)
             {
