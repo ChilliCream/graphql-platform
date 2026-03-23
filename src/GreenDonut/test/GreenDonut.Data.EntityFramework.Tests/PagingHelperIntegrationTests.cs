@@ -257,7 +257,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     First = page.Value.CreateStartCursor(),
                     Last = page.Value.CreateEndCursor(),
-                    Items = page.Value.ToArray()
+                    Items = page.Value.Items
                 },
                 name: page.Key.ToString());
         }
@@ -299,7 +299,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     First = page.Value.CreateStartCursor(),
                     Last = page.Value.CreateEndCursor(),
-                    Items = page.Value.ToArray()
+                    Items = page.Value.Items
                 },
                 name: page.Key.ToString());
         }
@@ -341,7 +341,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                 {
                     First = page.Value.CreateCursor(page.Value.Entries[0], 0),
                     Last = page.Value.CreateCursor(page.Value.Entries[^1], 0),
-                    Items = page.Value.ToArray()
+                    Items = page.Value.Items
                 },
                 name: page.Key.ToString());
         }

@@ -10,7 +10,7 @@ internal abstract class ExecuteRequestSpanBase(
     Activity activity,
     RequestContext context,
     InstrumentationOptionsBase options,
-    ActivityEnricherBase? enricher,
+    ActivityEnricherBase enricher,
     bool shouldDisposeActivity) : SpanBase(activity, shouldDisposeActivity)
 {
     public RequestContext Context { get; } = context;
@@ -42,6 +42,12 @@ internal abstract class ExecuteRequestSpanBase(
             Activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
         }
 
+        if (Context.Result is OperationResult result)
+        {
+            // This was previously also always set to 0, so I just kept that behavior.
+            Activity.SetTag(GraphQL.Errors.Count, result.Errors.Count);
+        }
+
         if (Context.Result is null or OperationResult { Errors: [_, ..] })
         {
             Activity.SetStatus(ActivityStatusCode.Error);
@@ -51,6 +57,6 @@ internal abstract class ExecuteRequestSpanBase(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher?.EnrichExecuteRequest(Context, Activity);
+        enricher.EnrichExecuteRequest(Context, Activity);
     }
 }
