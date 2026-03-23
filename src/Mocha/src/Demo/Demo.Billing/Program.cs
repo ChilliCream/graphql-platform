@@ -1,10 +1,12 @@
+using Demo.Billing.Commands;
 using Demo.Billing.Data;
-using Demo.Billing.Entities;
 using Demo.Billing.Handlers;
+using Demo.Billing.Queries;
 using Demo.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
+using Mocha.Mediator;
 using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
@@ -18,6 +20,11 @@ builder.AddNpgsqlDbContext<BillingDbContext>("billing-db");
 
 // RabbitMQ
 builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
+
+// Mocha.Mediator
+builder.Services.AddMediator()
+    .AddBilling()
+    .UseEntityFrameworkTransactions<BillingDbContext>();
 
 // MessageBus
 builder
@@ -63,89 +70,52 @@ using (var scope = app.Services.CreateScope())
 app.MapGet("/", () => "Billing Service");
 
 // Invoices
-app.MapGet("/api/invoices", async (BillingDbContext db) => await db.Invoices.Include(i => i.Payments).ToListAsync());
+app.MapGet("/api/invoices", async (ISender sender) =>
+    await sender.QueryAsync(new GetInvoicesQuery()));
 
-app.MapGet(
-    "/api/invoices/{id:guid}",
-    async (Guid id, BillingDbContext db) =>
-        await db.Invoices.Include(i => i.Payments).FirstOrDefaultAsync(i => i.Id == id) is { } invoice
-            ? Results.Ok(invoice)
-            : Results.NotFound());
+app.MapGet("/api/invoices/{id:guid}", async (Guid id, ISender sender) =>
+    await sender.QueryAsync(new GetInvoiceByIdQuery(id)) is { } invoice
+        ? Results.Ok(invoice)
+        : Results.NotFound());
 
-app.MapGet(
-    "/api/invoices/order/{orderId:guid}",
-    async (Guid orderId, BillingDbContext db) =>
-        await db.Invoices.Include(i => i.Payments).FirstOrDefaultAsync(i => i.OrderId == orderId) is { } invoice
-            ? Results.Ok(invoice)
-            : Results.NotFound());
+app.MapGet("/api/invoices/order/{orderId:guid}", async (Guid orderId, ISender sender) =>
+    await sender.QueryAsync(new GetInvoiceByOrderIdQuery(orderId)) is { } invoice
+        ? Results.Ok(invoice)
+        : Results.NotFound());
 
-// Payments - manually trigger payment processing
-app.MapPost(
-    "/api/payments/{invoiceId:guid}",
-    async (Guid invoiceId, ProcessPaymentRequest request, BillingDbContext db, IMessageBus messageBus) =>
+// Payments
+app.MapPost("/api/payments/{invoiceId:guid}", async (Guid invoiceId, ProcessPaymentRequest request, ISender sender) =>
+{
+    var result = await sender.SendAsync(new ProcessPaymentCommand(invoiceId, request.PaymentMethod));
+
+    if (!result.Success)
     {
-        var invoice = await db.Invoices.FirstOrDefaultAsync(i => i.Id == invoiceId);
-        if (invoice is null)
-        {
-            return Results.NotFound("Invoice not found");
-        }
+        return result.Error == "Invoice not found"
+            ? Results.NotFound(result.Error)
+            : Results.BadRequest(result.Error);
+    }
 
-        if (invoice.Status == InvoiceStatus.Paid)
-        {
-            return Results.BadRequest("Invoice already paid");
-        }
+    return Results.Ok(result.Payment);
+});
 
-        var payment = new Payment
-        {
-            Id = Guid.NewGuid(),
-            InvoiceId = invoice.Id,
-            Amount = invoice.Amount,
-            Method = request.PaymentMethod,
-            Status = PaymentStatus.Completed,
-            ProcessedAt = DateTimeOffset.UtcNow
-        };
-
-        db.Payments.Add(payment);
-        invoice.Status = InvoiceStatus.Paid;
-        invoice.UpdatedAt = DateTimeOffset.UtcNow;
-        await db.SaveChangesAsync();
-
-        // Publish PaymentCompletedEvent
-        await messageBus.PublishAsync(
-            new PaymentCompletedEvent
-            {
-                PaymentId = payment.Id,
-                InvoiceId = invoice.Id,
-                OrderId = invoice.OrderId,
-                Amount = payment.Amount,
-                PaymentMethod = payment.Method,
-                ProcessedAt = payment.ProcessedAt
-            },
-            CancellationToken.None);
-
-        return Results.Ok(payment);
-    });
-
-app.MapGet("/api/payments", async (BillingDbContext db) => await db.Payments.Include(p => p.Invoice).ToListAsync());
+app.MapGet("/api/payments", async (ISender sender) =>
+    await sender.QueryAsync(new GetPaymentsQuery()));
 
 // Refunds
-app.MapGet("/api/refunds", async (BillingDbContext db) => await db.Refunds.ToListAsync());
+app.MapGet("/api/refunds", async (ISender sender) =>
+    await sender.QueryAsync(new GetRefundsQuery()));
 
-app.MapGet(
-    "/api/refunds/order/{orderId:guid}",
-    async (Guid orderId, BillingDbContext db) => await db.Refunds.Where(r => r.OrderId == orderId).ToListAsync());
+app.MapGet("/api/refunds/order/{orderId:guid}", async (Guid orderId, ISender sender) =>
+    await sender.QueryAsync(new GetRefundsByOrderIdQuery(orderId)));
 
-// Revenue Summaries (batch analytics)
-app.MapGet(
-    "/api/revenue-summaries",
-    async (BillingDbContext db) => await db.RevenueSummaries.OrderByDescending(r => r.CreatedAt).ToListAsync());
+// Revenue Summaries
+app.MapGet("/api/revenue-summaries", async (ISender sender) =>
+    await sender.QueryAsync(new GetRevenueSummariesQuery()));
 
-app.MapGet(
-    "/api/revenue-summaries/latest",
-    async (BillingDbContext db) =>
-        await db.RevenueSummaries.OrderByDescending(r => r.CreatedAt).FirstOrDefaultAsync() is { } summary
-            ? Results.Ok(summary)
-            : Results.NotFound());
+app.MapGet("/api/revenue-summaries/latest", async (ISender sender) =>
+    await sender.QueryAsync(new GetLatestRevenueSummaryQuery()) is { } summary
+        ? Results.Ok(summary)
+        : Results.NotFound());
 
 app.Run();
 
