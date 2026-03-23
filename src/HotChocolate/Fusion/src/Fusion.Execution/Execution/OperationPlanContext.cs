@@ -14,40 +14,45 @@ using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
-    private readonly NodeCompletionSet?[] _nodesToComplete;
-    private readonly int _dependentBitsetWordCount;
-    private readonly string?[] _schemaNames;
-    private readonly ImmutableArray<VariableValues>[] _variableValueSets;
-    private readonly Uri?[] _transportUris;
-    private readonly string?[] _transportContentTypes;
-    private readonly List<IOperationPlanNode>?[] _skippedDefinitions;
+    private NodeCompletionSet?[] _nodesToComplete = [];
+    private int _dependentBitsetWordCount;
+    private string?[] _schemaNames = [];
+    private ImmutableArray<VariableValues>[]? _variableValueSets;
+    private Uri?[]? _transportUris;
+    private string?[]? _transportContentTypes;
+    private List<IOperationPlanNode>?[] _skippedDefinitions = [];
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly FetchResultStorePool _resultStorePool;
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
     private readonly INodeIdParser _nodeIdParser;
-    private readonly bool _collectTelemetry;
-    private ISourceSchemaClientScope _clientScope;
+    private readonly IErrorHandler _errorHandler;
+    private bool _collectTelemetry;
+    private ISourceSchemaClientScope _clientScope = default!;
     private string? _traceId;
     private long _start;
     private bool _disposed;
+    private int _nodeSlotCapacity;
+    internal OperationPlanContextPool? _pool;
 
-    public OperationPlanContext(
-        RequestContext requestContext,
-        OperationPlan operationPlan,
-        CancellationTokenSource cancellationTokenSource)
-        : this(requestContext, requestContext.VariableValues[0], operationPlan, cancellationTokenSource)
+    internal OperationPlanContext(
+        INodeIdParser nodeIdParser,
+        IFusionExecutionDiagnosticEvents diagnosticEvents,
+        IErrorHandler errorHandler)
     {
+        _nodeIdParser = nodeIdParser;
+        _diagnosticEvents = diagnosticEvents;
+        _errorHandler = errorHandler;
+        _resultStore = new FetchResultStore();
+        _executionState = new ExecutionState();
     }
 
-    public OperationPlanContext(
+    internal void Initialize(
         RequestContext requestContext,
         IVariableValueCollection variables,
         OperationPlan operationPlan,
@@ -57,56 +62,34 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(variables);
         ArgumentNullException.ThrowIfNull(operationPlan);
 
+        _disposed = false;
         RequestContext = requestContext;
         Variables = variables;
         OperationPlan = operationPlan;
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
-
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
-        _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
-        _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
-        var errorHandler = requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
 
-        _resultStorePool = requestContext.Schema.Services.GetRequiredService<FetchResultStorePool>();
-        _resultStore = _resultStorePool.Rent();
         _resultStore.Initialize(
             requestContext.Schema,
-            errorHandler,
+            _errorHandler,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
             IncludeFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
 
-        _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
+        _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
 
-        var maxNodeId = 0;
-
-        foreach (var executionNode in operationPlan.AllNodes)
-        {
-            if (executionNode.Id > maxNodeId)
-            {
-                maxNodeId = executionNode.Id;
-            }
-        }
-
-        var nodeSlotCount = maxNodeId + 1;
-        _dependentBitsetWordCount = (maxNodeId >> 6) + 1;
-        _nodesToComplete = new NodeCompletionSet?[nodeSlotCount];
-        _schemaNames = new string?[nodeSlotCount];
-        _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
-        _transportUris = new Uri?[nodeSlotCount];
-        _transportContentTypes = new string?[nodeSlotCount];
-        _skippedDefinitions = new List<IOperationPlanNode>?[nodeSlotCount];
+        EnsureNodeArrayCapacity(operationPlan.MaxNodeId);
     }
 
-    public OperationPlan OperationPlan { get; }
+    public OperationPlan OperationPlan { get; private set; } = default!;
 
-    public IVariableValueCollection Variables { get; }
+    public IVariableValueCollection Variables { get; private set; } = default!;
 
     public ISchemaDefinition Schema => RequestContext.Schema;
 
-    public RequestContext RequestContext { get; }
+    public RequestContext RequestContext { get; private set; } = default!;
 
     public ISourceSchemaClientScope ClientScope => _clientScope;
 
@@ -115,7 +98,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal bool IsNodeSkipped(int nodeId)
         => _executionState.IsNodeSkipped(nodeId);
 
-    public ulong IncludeFlags { get; }
+    public ulong IncludeFlags { get; private set; }
 
     public bool CollectTelemetry => _collectTelemetry;
 
@@ -197,7 +180,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return;
         }
 
-        _variableValueSets[node.Id] = variableValueSets;
+        _variableValueSets![node.Id] = variableValueSets;
     }
 
     internal ImmutableArray<VariableValues> GetVariableValueSets(ExecutionNode node)
@@ -207,7 +190,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return [];
         }
 
-        var variableValueSets = _variableValueSets[node.Id];
+        var variableValueSets = _variableValueSets![node.Id];
         return variableValueSets.IsDefault ? [] : variableValueSets;
     }
 
@@ -218,8 +201,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return;
         }
 
-        _transportUris[node.Id] = result.Uri;
-        _transportContentTypes[node.Id] = result.ContentType;
+        _transportUris![node.Id] = result.Uri;
+        _transportContentTypes![node.Id] = result.ContentType;
     }
 
     internal (Uri? Uri, string? ContentType) GetTransportDetails(ExecutionNode node)
@@ -229,7 +212,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return (null, null);
         }
 
-        return (_transportUris[node.Id], _transportContentTypes[node.Id]);
+        return (_transportUris![node.Id], _transportContentTypes![node.Id]);
     }
 
     internal void CompleteNode(ExecutionNodeResult result)
@@ -535,9 +518,81 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         if (!_disposed)
         {
             _disposed = true;
-            DisposeNodeState();
-            _resultStorePool.Return(_resultStore);
             await _clientScope.DisposeAsync();
+
+            if (_pool is not null)
+            {
+                _pool.Return(this);
+                _pool = null;
+            }
+        }
+    }
+
+    internal void Clean()
+    {
+        DisposeNodeState();
+
+        if (_nodeSlotCapacity > 0)
+        {
+            Array.Clear(_nodesToComplete, 0, _nodeSlotCapacity);
+            Array.Clear(_schemaNames, 0, _nodeSlotCapacity);
+            Array.Clear(_skippedDefinitions, 0, _nodeSlotCapacity);
+        }
+
+        if (_variableValueSets is not null)
+        {
+            Array.Clear(_variableValueSets, 0, _variableValueSets.Length);
+            Array.Clear(_transportUris!, 0, _transportUris!.Length);
+            Array.Clear(_transportContentTypes!, 0, _transportContentTypes!.Length);
+        }
+
+        _resultStore.Clean(256, 256);
+        _executionState.Clean();
+
+        RequestContext = default!;
+        Variables = default!;
+        OperationPlan = default!;
+        _clientScope = default!;
+        Traces =
+#if NET10_0_OR_GREATER
+            [];
+#else
+            ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
+#endif
+        _traceId = null;
+        _start = 0;
+    }
+
+    internal void Destroy()
+    {
+        _resultStore.Dispose();
+    }
+
+    private void EnsureNodeArrayCapacity(int maxNodeId)
+    {
+        var nodeSlotCount = maxNodeId + 1;
+        _dependentBitsetWordCount = (maxNodeId >> 6) + 1;
+
+        if (nodeSlotCount > _nodeSlotCapacity)
+        {
+            _nodesToComplete = new NodeCompletionSet?[nodeSlotCount];
+            _schemaNames = new string?[nodeSlotCount];
+            _skippedDefinitions = new List<IOperationPlanNode>?[nodeSlotCount];
+            _nodeSlotCapacity = nodeSlotCount;
+
+            if (_collectTelemetry)
+            {
+                _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
+                _transportUris = new Uri?[nodeSlotCount];
+                _transportContentTypes = new string?[nodeSlotCount];
+            }
+        }
+        else if (_collectTelemetry
+            && (_variableValueSets is null || _variableValueSets.Length < nodeSlotCount))
+        {
+            _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
+            _transportUris = new Uri?[nodeSlotCount];
+            _transportContentTypes = new string?[nodeSlotCount];
         }
     }
 
@@ -546,11 +601,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         Array.Clear(_schemaNames);
         Array.Clear(_skippedDefinitions);
 
-        if (_collectTelemetry)
+        if (_collectTelemetry && _variableValueSets is not null)
         {
             Array.Clear(_variableValueSets);
-            Array.Clear(_transportUris);
-            Array.Clear(_transportContentTypes);
+            Array.Clear(_transportUris!);
+            Array.Clear(_transportContentTypes!);
         }
 
         foreach (var nodeCompletionSet in _nodesToComplete)

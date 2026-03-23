@@ -1629,7 +1629,7 @@ AddErrors_Next:
             memory.Dispose();
         }
 
-        _pathPool.Dispose();
+        _pathPool?.Dispose();
     }
 
     private void ReturnPathSegments(ReadOnlySpan<SourceSchemaResult> results)
