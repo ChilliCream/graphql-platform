@@ -45,7 +45,7 @@ public class InboxTests
         // act - publish the first message; handler should process it
         await bus.PublishAsync(new InboxEvent { Payload = "first" }, CancellationToken.None);
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the first event");
-        await WaitUntilAsync(() => inbox.RecordedEnvelopes.Count >= 1, s_timeout);
+        await WaitUntilAsync(() => !inbox.RecordedEnvelopes.IsEmpty, s_timeout);
 
         // act - publish a second message with the same MessageId; handler should NOT process it
         await bus.PublishAsync(new InboxEvent { Payload = "second" }, CancellationToken.None);

@@ -60,7 +60,7 @@ public class InboxTests
 
         // Wait for the first message to be fully processed and recorded in the inbox
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the first event within timeout");
-        await WaitUntilAsync(() => inbox.RecordedEnvelopes.Count >= 1, s_timeout);
+        await WaitUntilAsync(() => !inbox.RecordedEnvelopes.IsEmpty, s_timeout);
 
         await messageBus.PublishAsync(new InboxEvent { Payload = "second" }, CancellationToken.None);
 

@@ -187,6 +187,8 @@ dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.RCS1129.severity = none
 # Use StringBuilder.Append(char) for single character strings.
 dotnet_diagnostic.CA1834.severity = warning
+# Prefer IsEmpty over Count when available.
+dotnet_diagnostic.CA1836.severity = warning
 # Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char.
 dotnet_diagnostic.CA1866.severity = warning
 # Simplify name.
