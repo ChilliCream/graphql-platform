@@ -46,21 +46,31 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
-    public IReceiveEndpointDescriptor<T> UseReceive(ReceiveMiddlewareConfiguration configuration)
+    public IReceiveEndpointDescriptor<T> UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        Configuration.ReceiveMiddlewares.Add(configuration);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
 
-    public IReceiveEndpointDescriptor<T> AppendReceive(string after, ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceivePipelineModifiers.Append(configuration, after);
-        return this;
-    }
+        if (before is null && after is null)
+        {
+            Configuration.ReceiveMiddlewares.Add(configuration);
+            return this;
+        }
 
-    public IReceiveEndpointDescriptor<T> PrependReceive(string before, ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
+        if (before is not null)
+        {
+            Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.ReceivePipelineModifiers.Append(configuration, after);
+        }
 
         return this;
     }

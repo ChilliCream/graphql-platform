@@ -18,7 +18,7 @@ public static class PostgresTransportDescriptorExtensions
         descriptor.AddConvention(new PostgresReceiveEndpointTopologyConvention());
         descriptor.AddConvention(new PostgresDispatchEndpointTopologyConvention());
 
-        descriptor.AppendReceive(ReceiveMiddlewares.ConcurrencyLimiter.Key, PostgresReceiveMiddlewares.Parsing);
+        descriptor.UseReceive(PostgresReceiveMiddlewares.Parsing, after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
 
         return descriptor;
     }

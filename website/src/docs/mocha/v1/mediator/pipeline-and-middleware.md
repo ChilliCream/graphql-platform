@@ -332,31 +332,30 @@ Both approaches combine well - filter out entire message kinds at compile time, 
 
 # Middleware positioning
 
-Register middleware with `Use`, `Prepend`, or `Append` to control where it sits in the pipeline.
+The `Use` method accepts optional `before` and `after` parameters to control where the middleware sits in the pipeline.
 
-| Method                              | Behavior                                                  |
-| ----------------------------------- | --------------------------------------------------------- |
-| `Use(config)`                       | Appends to the end of the middleware list                 |
-| `Prepend(config)`                   | Inserts at the beginning                                  |
-| `Prepend("Logging", config)`        | Inserts before the middleware with key `"Logging"`        |
-| `Append("Instrumentation", config)` | Inserts after the middleware with key `"Instrumentation"` |
+| Call                                        | Behavior                                                  |
+| ------------------------------------------- | --------------------------------------------------------- |
+| `Use(config)`                               | Appends to the end of the middleware list                 |
+| `Use(config, before: "Logging")`            | Inserts before the middleware with key `"Logging"`        |
+| `Use(config, after: "Instrumentation")`     | Inserts after the middleware with key `"Instrumentation"` |
 
-If the referenced key is not found, `Prepend(key, ...)` falls back to inserting at the beginning and `Append(key, ...)` falls back to appending at the end.
+Only one of `before` or `after` can be specified at the same time. If the referenced key is not found, an `InvalidOperationException` is thrown at startup.
 
 ```csharp
 builder.Services
     .AddMediator()
     .AddCatalog()
-    .Use(LoggingMiddleware.Create())                      // position 1
-    .Use(ValidationMiddleware.Create())                   // position 2
-    .Use(ExceptionHandlingMiddleware.Create())            // position 3
-    .Prepend("Logging", SecurityMiddleware.Create())      // before "Logging"
-    .Append("Logging", CorrelationIdMiddleware.Create()); // after "Logging"
+    .Use(LoggingMiddleware.Create())                                        // position 1
+    .Use(ValidationMiddleware.Create())                                     // position 2
+    .Use(ExceptionHandlingMiddleware.Create())                              // position 3
+    .Use(SecurityMiddleware.Create(), before: "Logging")                    // before "Logging"
+    .Use(CorrelationIdMiddleware.Create(), after: "Logging");               // after "Logging"
 ```
 
 Resulting order: Security -> Logging -> CorrelationId -> Validation -> ExceptionHandling -> Handler.
 
-The `Key` property on `MediatorMiddlewareConfiguration` is optional. Middleware without a key can still be registered with `Use` and `Prepend(config)`, but cannot be referenced by other middleware for relative positioning.
+The `Key` property on `MediatorMiddlewareConfiguration` is optional. Middleware without a key can still be registered with `Use(config)`, but cannot be referenced by other middleware for relative positioning.
 
 ## Built-in middleware keys
 
@@ -555,7 +554,7 @@ If your middleware factory returns `next` for that message type (via compile-tim
 
 ## Middleware runs in the wrong order
 
-Middleware executes in registration order (first registered = outermost). Use `Prepend` or `Append` with a key to control placement relative to other middleware. Check that the middleware you are referencing has a `Key` set in its `MediatorMiddlewareConfiguration`.
+Middleware executes in registration order (first registered = outermost). Use `Use(config, before: "key")` or `Use(config, after: "key")` to control placement relative to other middleware. Check that the middleware you are referencing has a `Key` set in its `MediatorMiddlewareConfiguration`.
 
 ## Entity Framework transactions do not wrap queries
 

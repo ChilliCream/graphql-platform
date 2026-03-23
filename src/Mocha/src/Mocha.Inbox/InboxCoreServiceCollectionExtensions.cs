@@ -24,7 +24,7 @@ public static class InboxCoreServiceCollectionExtensions
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IMessageBusHostBuilder UseInboxCore(this IMessageBusHostBuilder builder)
     {
-        builder.ConfigureMessageBus(x => x.AppendConsume(ConsumeInboxMiddleware.Create()));
+        builder.ConfigureMessageBus(x => x.UseConsume(ConsumeInboxMiddleware.Create()));
 
         return builder;
     }
