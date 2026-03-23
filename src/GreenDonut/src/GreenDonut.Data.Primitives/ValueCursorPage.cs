@@ -20,8 +20,9 @@ internal sealed class ValueCursorPage<T> : Page<T>
         bool hasNextPage,
         bool hasPreviousPage,
         Func<T, string> createCursor,
-        int? totalCount = null)
-        : base(entries, hasNextPage, hasPreviousPage, totalCount)
+        int? totalCount = null,
+        ImmutableArray<T>? items = null)
+        : base(entries, hasNextPage, hasPreviousPage, totalCount, items)
     {
         _createCursor = entry => createCursor(entry.Node);
     }
@@ -36,8 +37,9 @@ internal sealed class ValueCursorPage<T> : Page<T>
         Func<EdgeEntry<T>, string> createCursor,
         int index,
         int requestedPageSize,
-        int totalCount)
-        : base(entries, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount)
+        int totalCount,
+        ImmutableArray<T>? items = null)
+        : base(entries, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount, items)
     {
         _createCursor = createCursor;
     }

@@ -261,15 +261,17 @@ public static class PagingQueryableExtensions
             builder.RemoveAt(isBackward ? 0 : requestedCount);
         }
 
+        var items = builder.ToImmutable();
         var pageIndex = CreateIndex(arguments, cursor, totalCount);
         return CreateValueCursorPage(
-            Page<T>.ToEntries(builder.ToImmutable()),
+            Page<T>.ToEntries(items),
             arguments,
             keys,
             fetchCount,
             pageIndex,
             requestedCount,
-            totalCount);
+            totalCount,
+            items);
     }
 
     /// <summary>
@@ -665,7 +667,8 @@ public static class PagingQueryableExtensions
         int fetchCount,
         int? index,
         int? requestedPageSize,
-        int? totalCount)
+        int? totalCount,
+        ImmutableArray<T>? items = null)
     {
         var (hasNext, hasPrevious) = CreatePageFlags(arguments, fetchCount);
 
@@ -678,7 +681,8 @@ public static class PagingQueryableExtensions
                 entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
                 index ?? 1,
                 requestedPageSize.Value,
-                totalCount.Value);
+                totalCount.Value,
+                items);
         }
 
         return new ValueCursorPage<T>(
@@ -686,7 +690,8 @@ public static class PagingQueryableExtensions
             hasNext,
             hasPrevious,
             item => CursorFormatter.Format(item, keys),
-            totalCount);
+            totalCount,
+            items);
     }
 
     private static Page<TValue> CreateElementCursorPage<TElement, TValue>(
@@ -720,7 +725,7 @@ public static class PagingQueryableExtensions
             hasNext,
             hasPrevious,
             item => CursorFormatter.Format(item, keys),
-            totalCount);
+            totalCount: totalCount);
     }
 
     private static (bool HasNext, bool HasPrevious) CreatePageFlags(
