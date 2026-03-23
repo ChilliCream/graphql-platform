@@ -54,7 +54,14 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     /// </summary>
     public ReadOnlySpan<IOperationPlanNode> OptionalDependencies => _optionalDependencies;
 
-    public async Task ExecuteAsync(
+#pragma warning disable CA2012
+    public void BeginExecute(
+        OperationPlanContext context,
+        CancellationToken cancellationToken = default)
+        => _ = ExecuteAsync(context, cancellationToken);
+#pragma warning restore CA2012
+
+    private async ValueTask ExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
