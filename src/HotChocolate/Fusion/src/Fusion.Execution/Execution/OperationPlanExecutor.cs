@@ -76,7 +76,9 @@ internal sealed class OperationPlanExecutor
             var subscriptionResult = await subscriptionNode.SubscribeAsync(context, executionCts.Token);
             var executionState = context.ExecutionState;
 
-            cancellationRegistration = executionCts.Token.Register(() => executionState.Signal.TryResetToIdle());
+            cancellationRegistration = executionCts.Token.Register(
+                static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
+                executionState.Signal);
 
             if (subscriptionResult.Status is not ExecutionStatus.Success)
             {
@@ -120,8 +122,9 @@ internal sealed class OperationPlanExecutor
     {
         var executionState = context.ExecutionState;
 
-        await using var cancellationRegistration =
-            cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+        await using var cancellationRegistration = cancellationToken.Register(
+            static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
+            executionState.Signal);
 
         // GraphQL queries allow us to execute the plan by using full parallelism.
         // We fill the backlog with all nodes from the operation plan.
@@ -166,8 +169,9 @@ internal sealed class OperationPlanExecutor
     {
         var executionState = context.ExecutionState;
 
-        await using var cancellationRegistration =
-            cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+        await using var cancellationRegistration = cancellationToken.Register(
+            static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
+            executionState.Signal);
 
         // For mutations, we fill the backlog with all nodes from the operation plan just like for queries.
         executionState.FillBacklog(plan);
@@ -228,7 +232,8 @@ internal sealed class OperationPlanExecutor
         var stream = subscriptionResult.ReadStreamAsync()
             .WithCancellation(executionCancellationToken);
         await using var cancellationRegistration = executionCancellationToken.Register(
-            () => executionState.Signal.TryResetToIdle());
+            static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
+            executionState.Signal);
 
         await foreach (var eventArgs in stream)
         {
