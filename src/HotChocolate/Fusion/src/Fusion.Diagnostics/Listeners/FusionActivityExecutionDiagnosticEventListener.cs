@@ -3,6 +3,7 @@ using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using static HotChocolate.Fusion.Diagnostics.HotChocolateFusionActivitySource;
 
@@ -328,11 +329,30 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         }
     }
 
+    public override void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
+        {
+            span.Activity.AddEvent(new(nameof(DocumentNotFoundInStorage)));
+            enricher.EnrichDocumentNotFoundInStorage(context, documentId, span.Activity);
+        }
+    }
+
+    public override void UntrustedDocumentRejected(RequestContext context)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
+        {
+            span.Activity.AddEvent(new(nameof(UntrustedDocumentRejected)));
+            enricher.EnrichUntrustedDocumentRejected(context, span.Activity);
+        }
+    }
+
     public override void AddedDocumentToCache(RequestContext context)
     {
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(AddedDocumentToCache)));
+            enricher.EnrichAddedDocumentToCache(context, span.Activity);
         }
     }
 
@@ -341,6 +361,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(AddedOperationPlanToCache)));
+            enricher.EnrichAddedOperationPlanToCache(context, operationPlanId, span.Activity);
         }
     }
 

@@ -248,6 +248,75 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task DocumentNotFoundInStorage_RecordsEvent()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(new NoopOperationDocumentStorage()))
+                .UsePersistedOperationPipeline());
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocumentId("a8c5e2f1d3b4a6e7c9d0f1a2b3c4d5e6")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task UntrustedDocumentRejected_RecordsEvent()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(new NoopOperationDocumentStorage()))
+                .UsePersistedOperationPipeline());
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task ParsingError_InvalidGraphQLDocument_ReportsErrorStatus()
     {
         using (CaptureActivities(out var activities))
@@ -729,6 +798,20 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         [Subscribe(With = nameof(OnFailingMessageStream))]
         public string OnFailingMessage([EventMessage] string message)
             => throw new InvalidOperationException("Subscription event failed.");
+    }
+
+    private sealed class NoopOperationDocumentStorage : IOperationDocumentStorage
+    {
+        public ValueTask<IOperationDocument?> TryReadAsync(
+            OperationDocumentId documentId,
+            CancellationToken cancellationToken = default)
+            => new(default(IOperationDocument));
+
+        public ValueTask SaveAsync(
+            OperationDocumentId documentId,
+            IOperationDocument document,
+            CancellationToken cancellationToken = default)
+            => default;
     }
 
     private sealed class InMemoryOperationDocumentStorage : IOperationDocumentStorage

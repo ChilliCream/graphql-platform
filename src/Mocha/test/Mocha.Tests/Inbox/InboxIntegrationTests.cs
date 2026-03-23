@@ -31,7 +31,7 @@ public class InboxIntegrationTests
 
         // assert - handler received the message and inbox recorded it
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
-        await WaitUntilAsync(() => inbox.RecordedEnvelopes.Count >= 1, s_timeout);
+        await WaitUntilAsync(() => !inbox.RecordedEnvelopes.IsEmpty, s_timeout);
         Assert.Single(inbox.RecordedEnvelopes);
     }
 

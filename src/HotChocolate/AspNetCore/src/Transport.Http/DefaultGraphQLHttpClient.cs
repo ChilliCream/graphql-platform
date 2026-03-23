@@ -160,11 +160,11 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         else
         {
 #endif
-        message.Headers.Accept.Clear();
-        foreach (var contentType in request.Accept)
-        {
-            message.Headers.Accept.Add(contentType);
-        }
+            message.Headers.Accept.Clear();
+            foreach (var contentType in request.Accept)
+            {
+                message.Headers.Accept.Add(contentType);
+            }
 #if FUSION
         }
 #endif

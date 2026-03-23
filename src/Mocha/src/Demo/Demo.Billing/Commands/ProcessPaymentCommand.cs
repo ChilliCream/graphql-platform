@@ -20,10 +20,14 @@ public class ProcessPaymentCommandHandler(BillingDbContext db, IMessageBus messa
         var invoice = await db.Invoices.FirstOrDefaultAsync(
             i => i.Id == command.InvoiceId, cancellationToken);
         if (invoice is null)
+        {
             return new ProcessPaymentResult(false, Error: "Invoice not found");
+        }
 
         if (invoice.Status == InvoiceStatus.Paid)
+        {
             return new ProcessPaymentResult(false, Error: "Invoice already paid");
+        }
 
         var payment = new Payment
         {

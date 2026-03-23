@@ -8,7 +8,7 @@ internal sealed class ExecuteRequestSpan(
     Activity activity,
     RequestContext context,
     InstrumentationOptionsBase options,
-    ActivityEnricherBase? enricher,
+    ActivityEnricherBase enricher,
     bool shouldDisposeActivity)
     : ExecuteRequestSpanBase(activity, context, options, enricher, shouldDisposeActivity)
 {

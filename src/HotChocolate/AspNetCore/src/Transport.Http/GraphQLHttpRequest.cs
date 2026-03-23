@@ -113,7 +113,7 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(OperationBatchRequest body, Uri? requestUri = null)
     {
-        if (body.Requests is { Count: 0 })
+        if (body.Requests.IsDefaultOrEmpty)
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_RequiresOneOrMoreRequests,
@@ -133,7 +133,7 @@ public sealed class GraphQLHttpRequest
             }
         }
 
-        Body = body.Requests.Count > 1 ? body : body.Requests[0];
+        Body = body.Requests.Length > 1 ? body : body.Requests[0];
         Uri = requestUri;
     }
 

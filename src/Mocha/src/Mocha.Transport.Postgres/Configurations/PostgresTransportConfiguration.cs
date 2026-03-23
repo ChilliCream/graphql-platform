@@ -18,7 +18,7 @@ public class PostgresTransportConfiguration : MessagingTransportConfiguration
     public PostgresTransportConfiguration()
     {
         Name = DefaultName;
-        base.Schema = DefaultSchema;
+        Schema = DefaultSchema;
     }
 
     /// <summary>

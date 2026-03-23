@@ -92,6 +92,39 @@ public sealed class OperationManager : IOperationManager
     }
 
     /// <inheritdoc />
+    public bool EnqueueBatch(string sessionId, GraphQLRequest[] requests)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
+        ArgumentNullException.ThrowIfNull(requests);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        IOperationSession? session = null;
+        _lock.EnterWriteLock();
+
+        try
+        {
+            if (!_subs.ContainsKey(sessionId))
+            {
+                session = _createSession(sessionId);
+                _subs.Add(sessionId, session);
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+
+        if (session is not null)
+        {
+            session.Completed += (_, _) => Complete(sessionId);
+            session.BeginExecuteBatch(requests, _cancellationToken);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc />
     public bool Complete(string sessionId)
     {
         ArgumentException.ThrowIfNullOrEmpty(sessionId);
