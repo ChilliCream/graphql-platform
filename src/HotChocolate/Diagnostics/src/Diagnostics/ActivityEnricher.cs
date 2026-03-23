@@ -47,13 +47,7 @@ public class ActivityEnricher(InstrumentationOptions options) : ActivityEnricher
         Activity activity)
     { }
 
-    public virtual void EnrichDocumentNotFoundInStorage(
-        RequestContext context,
-        OperationDocumentId documentId,
-        Activity activity)
-    { }
-
-    public virtual void EnrichUntrustedDocumentRejected(
+    public virtual void EnrichAddedOperationToCache(
         RequestContext context,
         Activity activity)
     { }

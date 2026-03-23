@@ -10,7 +10,7 @@ internal abstract class ExecuteRequestSpanBase(
     Activity activity,
     RequestContext context,
     InstrumentationOptionsBase options,
-    ActivityEnricherBase? enricher,
+    ActivityEnricherBase enricher,
     bool shouldDisposeActivity) : SpanBase(activity, shouldDisposeActivity)
 {
     public RequestContext Context { get; } = context;
@@ -57,6 +57,6 @@ internal abstract class ExecuteRequestSpanBase(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        enricher?.EnrichExecuteRequest(Context, Activity);
+        enricher.EnrichExecuteRequest(Context, Activity);
     }
 }

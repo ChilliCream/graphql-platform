@@ -336,6 +336,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(AddedDocumentToCache)));
+            enricher.EnrichAddedDocumentToCache(context, span.Activity);
         }
     }
 
@@ -344,6 +345,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(AddedOperationToCache)));
+            enricher.EnrichAddedOperationToCache(context, span.Activity);
         }
     }
 

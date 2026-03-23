@@ -7,8 +7,6 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
 
-// GraphQL.Error.Count
-
 /// <summary>
 /// The activity enricher allows adding additional information to the activity spans
 /// created by the Fusion diagnostics system.
@@ -69,15 +67,9 @@ public class FusionActivityEnricher(InstrumentationOptions options) : ActivityEn
     {
     }
 
-    public virtual void EnrichDocumentNotFoundInStorage(
+    public virtual void EnrichAddedOperationPlanToCache(
         RequestContext context,
-        OperationDocumentId documentId,
-        Activity activity)
-    {
-    }
-
-    public virtual void EnrichUntrustedDocumentRejected(
-        RequestContext context,
+        string operationPlanId,
         Activity activity)
     {
     }
