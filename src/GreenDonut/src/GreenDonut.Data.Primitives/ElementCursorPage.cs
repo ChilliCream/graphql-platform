@@ -25,8 +25,9 @@ internal sealed class ElementCursorPage<TElement, TValue> : Page<TValue>
         bool hasNextPage,
         bool hasPreviousPage,
         Func<TElement, string> createCursor,
-        int? totalCount = null)
-        : base(entries, hasNextPage, hasPreviousPage, totalCount)
+        int? totalCount = null,
+        ImmutableArray<TValue> items = default)
+        : base(entries, hasNextPage, hasPreviousPage, totalCount, items)
     {
         EnsureEqualLength(entries, elements);
         _elements = elements;
@@ -44,8 +45,9 @@ internal sealed class ElementCursorPage<TElement, TValue> : Page<TValue>
         Func<EdgeEntry<TElement>, string> createCursor,
         int index,
         int requestedPageSize,
-        int totalCount)
-        : base(entries, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount)
+        int totalCount,
+        ImmutableArray<TValue> items = default)
+        : base(entries, hasNextPage, hasPreviousPage, index, requestedPageSize, totalCount, items)
     {
         EnsureEqualLength(entries, elements);
         _elements = elements;

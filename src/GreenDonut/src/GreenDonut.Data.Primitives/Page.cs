@@ -11,6 +11,8 @@ namespace GreenDonut.Data;
 /// </typeparam>
 public abstract class Page<T> : IReadOnlyList<T>
 {
+    private ImmutableArray<T> _items;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Page{T}"/> class.
     /// </summary>
@@ -26,12 +28,17 @@ public abstract class Page<T> : IReadOnlyList<T>
     /// <param name="totalCount">
     /// The total count of items in the dataset.
     /// </param>
+    /// <param name="items">
+    /// The items of the page. If default, items will be derived from entries on first access.
+    /// </param>
     protected Page(
         ImmutableArray<PageEntry<T>> entries,
         bool hasNextPage,
         bool hasPreviousPage,
-        int? totalCount = null)
+        int? totalCount = null,
+        ImmutableArray<T> items = default)
     {
+        _items = items;
         Entries = entries;
         HasNextPage = hasNextPage;
         HasPreviousPage = hasPreviousPage;
@@ -59,14 +66,19 @@ public abstract class Page<T> : IReadOnlyList<T>
     /// <param name="totalCount">
     /// The total count of items in the dataset.
     /// </param>
+    /// <param name="items">
+    /// The items of the page. If default, items will be derived from entries on first access.
+    /// </param>
     protected Page(
         ImmutableArray<PageEntry<T>> entries,
         bool hasNextPage,
         bool hasPreviousPage,
         int index,
         int requestedPageSize,
-        int totalCount)
+        int totalCount,
+        ImmutableArray<T> items = default)
     {
+        _items = items;
         Entries = entries;
         HasNextPage = hasNextPage;
         HasPreviousPage = hasPreviousPage;
@@ -79,6 +91,22 @@ public abstract class Page<T> : IReadOnlyList<T>
     /// Gets the entries of this page.
     /// </summary>
     public ImmutableArray<PageEntry<T>> Entries { get; }
+
+    /// <summary>
+    /// Gets the items of this page.
+    /// </summary>
+    public ImmutableArray<T> Items
+    {
+        get
+        {
+            if (_items.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _items, [.. this]);
+            }
+
+            return _items;
+        }
+    }
 
     /// <summary>
     /// Gets the number of items in this page.
@@ -209,7 +237,7 @@ public abstract class Page<T> : IReadOnlyList<T>
         bool hasPreviousPage,
         Func<T, string> createCursor,
         int? totalCount = null)
-        => new ValueCursorPage<T>(ToEntries(items), hasNextPage, hasPreviousPage, createCursor, totalCount);
+        => new ValueCursorPage<T>(ToEntries(items), hasNextPage, hasPreviousPage, createCursor, totalCount, items);
 
     /// <summary>
     /// Creates a page whose cursor can be created directly from the page item.
@@ -229,7 +257,8 @@ public abstract class Page<T> : IReadOnlyList<T>
             createCursor,
             index,
             requestedPageSize,
-            totalCount);
+            totalCount,
+            items);
 
     /// <summary>
     /// Creates a page whose cursor must be created from a different source element than the page item.
@@ -247,7 +276,8 @@ public abstract class Page<T> : IReadOnlyList<T>
             hasNextPage,
             hasPreviousPage,
             createCursor,
-            totalCount);
+            totalCount,
+            items);
 
     /// <summary>
     /// Creates a page whose cursor must be created from a different source element than the page item.
@@ -269,7 +299,8 @@ public abstract class Page<T> : IReadOnlyList<T>
             createCursor,
             index,
             requestedPageSize,
-            totalCount);
+            totalCount,
+            items);
 
     internal static ImmutableArray<PageEntry<T>> ToEntries(ImmutableArray<T> items)
     {
