@@ -1,9 +1,7 @@
-using Demo.Contracts.Events;
 using Demo.Shipping.Commands;
 using Demo.Shipping.Data;
 using Demo.Shipping.Handlers;
 using Demo.Shipping.Queries;
-using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
 using Mocha.Mediator;

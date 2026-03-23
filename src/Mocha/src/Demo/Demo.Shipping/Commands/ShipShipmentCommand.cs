@@ -21,10 +21,14 @@ public class ShipShipmentCommandHandler(ShippingDbContext db, IMessageBus messag
         var shipment = await db.Shipments.FirstOrDefaultAsync(
             s => s.Id == command.ShipmentId, cancellationToken);
         if (shipment is null)
+        {
             return new ShipShipmentResult(false, Error: "Shipment not found");
+        }
 
         if (shipment.Status == ShipmentStatus.Shipped)
+        {
             return new ShipShipmentResult(false, Error: "Shipment already shipped");
+        }
 
         shipment.Status = ShipmentStatus.Shipped;
         shipment.Carrier = command.Carrier;

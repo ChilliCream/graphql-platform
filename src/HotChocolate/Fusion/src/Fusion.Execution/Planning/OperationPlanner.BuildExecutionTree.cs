@@ -296,7 +296,7 @@ public sealed partial class OperationPlanner
         List<string>? variableBuffer)
     {
         var requirements = operationStep.Requirements.IsEmpty
-            ? Array.Empty<OperationRequirement>()
+            ? []
             : operationStep.Requirements.OrderBy(t => t.Key).Select(t => t.Value).ToArray();
 
         var forwardedVariables = Array.Empty<string>();
