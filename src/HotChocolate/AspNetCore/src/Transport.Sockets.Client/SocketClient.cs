@@ -98,12 +98,26 @@ public sealed class SocketClient : ISocket
         => _pipeline.RunAsync(_ct).FireAndForget();
 
     public ValueTask<SocketResult> ExecuteAsync(
-        OperationRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         return _protocol.ExecuteAsync(_context, request, cancellationToken);
+    }
+
+    public ValueTask<SocketResult> ExecuteBatchAsync(
+        OperationBatchRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.Requests.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException(
+                "The batch request must contain at least one operation.",
+                nameof(request));
+        }
+
+        return _protocol.ExecuteBatchAsync(_context, request, cancellationToken);
     }
 
     async Task<bool> ISocket.ReadMessageAsync(

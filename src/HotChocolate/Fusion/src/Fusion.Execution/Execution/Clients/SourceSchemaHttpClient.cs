@@ -191,7 +191,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private GraphQLHttpRequest CreateHttpBatchRequest(
         IReadOnlyList<SourceSchemaClientRequest> originalRequests)
     {
-        var batchRequests = new List<IOperationRequest>(originalRequests.Count);
+        var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>(originalRequests.Count);
         var enableFileUploads = false;
 
         for (var i = 0; i < originalRequests.Count; i++)
@@ -211,7 +211,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             }
         }
 
-        return new GraphQLHttpRequest(new OperationBatchRequest(batchRequests))
+        return new GraphQLHttpRequest(new OperationBatchRequest(batchRequests.MoveToImmutable()))
         {
             Uri = _configuration.BaseAddress,
             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
@@ -264,7 +264,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 originalRequest.Variables[i].Values);
         }
 
-        return new OperationBatchRequest(requests);
+        return new OperationBatchRequest(ImmutableArray.Create<IOperationRequest>(requests));
     }
 
     private static VariableBatchRequest CreateVariableBatchRequest(

@@ -29,7 +29,36 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
     public async ValueTask<SocketResult> ExecuteAsync(
         SocketClientContext context,
-        OperationRequest request,
+        IOperationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var id = Guid.NewGuid().ToString("N");
+        var observer = new DataMessageObserver(id);
+        var completion = new DataCompletion(context.Socket, id);
+        var subscription = context.Messages.Subscribe(observer);
+
+        await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
+
+        // if the user cancels this stream, we will send the server a complete request
+        // so that we no longer receive new result messages.
+        var cancellationRegistration = cancellationToken.Register(completion.TrySendCompleteMessage);
+
+        try
+        {
+            return new SocketResult(observer, subscription, completion, cancellationRegistration);
+        }
+        catch
+        {
+            cancellationRegistration.Dispose();
+            subscription.Dispose();
+            observer.Dispose();
+            throw;
+        }
+    }
+
+    public async ValueTask<SocketResult> ExecuteBatchAsync(
+        SocketClientContext context,
+        OperationBatchRequest request,
         CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid().ToString("N");
