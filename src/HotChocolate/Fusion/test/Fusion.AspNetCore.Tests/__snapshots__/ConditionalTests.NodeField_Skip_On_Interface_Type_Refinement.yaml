@@ -52,55 +52,26 @@ sourceSchemas:
       }
     interactions:
       - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query testQuery_eaa5be75_3(
-                  $skip: Boolean!
-                ) {
-                  node(id: "RGlzY3Vzc2lvbjox") {
-                    __typename
-                    ... on Discussion {
-                      __typename
-                      ... @skip(if: $skip) {
-                        viewerCanVote
-                      }
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "skip": true
-                }
-            - document: |
-                query testQuery_eaa5be75_4(
-                  $skip: Boolean!
-                ) {
-                  node(id: "RGlzY3Vzc2lvbjox") {
-                    __typename
-                    ... on Author {
-                      __typename
-                      ... @skip(if: $skip) {
-                        viewerCanVote
-                      }
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "skip": true
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "Discussion"
+          document: |
+            query testQuery_eaa5be75_3(
+              $skip: Boolean!
+            ) {
+              node(id: "RGlzY3Vzc2lvbjox") {
+                __typename
+                ... on Discussion {
+                  __typename
+                  ... @skip(if: $skip) {
+                    viewerCanVote
                   }
                 }
               }
+            }
+          variables: |
+            {
+              "skip": true
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -132,6 +103,7 @@ operationPlan:
       idValue: "RGlzY3Vzc2lvbjox"
       responseName: node
       branches:
+        - Author: 4
         - Discussion: 3
       fallback: 2
     - id: 2
@@ -161,7 +133,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 3
       forwardedVariables:
         - skip
       dependencies:
@@ -183,7 +154,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 3
       forwardedVariables:
         - skip
       dependencies:

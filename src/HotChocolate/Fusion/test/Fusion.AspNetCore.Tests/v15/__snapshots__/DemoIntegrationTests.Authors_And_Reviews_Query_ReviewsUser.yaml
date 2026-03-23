@@ -236,6 +236,15 @@ sourceSchemas:
               },
               {
                 "__fusion_2_id": "VXNlcjoxMg=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjo3"
+              },
+              {
+                "__fusion_2_id": "VXNlcjo4"
+              },
+              {
+                "__fusion_2_id": "VXNlcjo5"
               }
             ]
         response:
@@ -309,6 +318,24 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
+                    "name": "User: VXNlcjoxMA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
                     "name": "User: VXNlcjoxMQ=="
                   }
                 }
@@ -322,42 +349,15 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query GetUser_c03cccb0_5(
-              $__fusion_3_id: ID!
-            ) {
-              node(id: $__fusion_3_id) {
-                __typename
-                ... on User {
-                  name
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMg=="
+                  }
                 }
               }
-            }
-          variables: |
-            [
-              {
-                "__fusion_3_id": "VXNlcjo3"
-              },
-              {
-                "__fusion_3_id": "VXNlcjo4"
-              },
-              {
-                "__fusion_3_id": "VXNlcjo5"
-              },
-              {
-                "__fusion_3_id": "VXNlcjoxMA=="
-              },
-              {
-                "__fusion_3_id": "VXNlcjoxMQ=="
-              },
-              {
-                "__fusion_3_id": "VXNlcjoxMg=="
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
@@ -382,33 +382,6 @@ sourceSchemas:
                   "node": {
                     "__typename": "User",
                     "name": "User: VXNlcjo5"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMA=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMQ=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMg=="
                   }
                 }
               }
@@ -717,7 +690,7 @@ operationPlan:
       dependencies:
         - id: 2
     - id: 4
-      type: Operation
+      type: OperationBatch
       schema: A
       operation: |
         query GetUser_c03cccb0_4(
@@ -731,35 +704,15 @@ operationPlan:
           }
         }
       source: $.node<User>
-      target: $.users.reviews.author
+      targets:
+        - $.users.reviews.author
+        - $.b.author
+        - $.a.author
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
-        - id: 3
-    - id: 5
-      type: OperationBatch
-      schema: A
-      operation: |
-        query GetUser_c03cccb0_5(
-          $__fusion_3_id: ID!
-        ) {
-          node(id: $__fusion_3_id) {
-            __typename
-            ... on User {
-              name
-            }
-          }
-        }
-      source: $.node<User>
-      targets:
-        - $.b.author
-        - $.a.author
-      batchingGroupId: 5
-      requirements:
-        - name: __fusion_3_id
-          selectionMap: >-
-            id
-      dependencies:
         - id: 1
+        - id: 3

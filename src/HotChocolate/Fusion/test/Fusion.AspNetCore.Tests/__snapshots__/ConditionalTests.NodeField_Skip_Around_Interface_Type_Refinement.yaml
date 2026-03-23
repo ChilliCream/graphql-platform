@@ -61,53 +61,29 @@ sourceSchemas:
       }
     interactions:
       - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query testQuery_f0a0d960_3(
-                  $skip: Boolean!
-                ) {
-                  node(id: "RGlzY3Vzc2lvbjox") {
+          document: |
+            query testQuery_f0a0d960_3(
+              $skip: Boolean!
+            ) {
+              node(id: "RGlzY3Vzc2lvbjox") {
+                __typename
+                ... on Discussion {
+                  __typename
+                  ... @skip(if: $skip) {
                     __typename
-                    ... on Discussion {
-                      __typename
-                      ... @skip(if: $skip) {
-                        __typename
-                      }
-                      title
-                      ... @skip(if: $skip) {
-                        viewerCanVote
-                      }
-                    }
+                  }
+                  title
+                  ... @skip(if: $skip) {
+                    viewerCanVote
                   }
                 }
-              variables: |
-                {
-                  "skip": true
-                }
-            - document: |
-                query testQuery_f0a0d960_4(
-                  $skip: Boolean!
-                ) {
-                  node(id: "RGlzY3Vzc2lvbjox") {
-                    __typename
-                    ... on Author {
-                      __typename
-                      ... @skip(if: $skip) {
-                        __typename
-                      }
-                      ... @skip(if: $skip) {
-                        viewerCanVote
-                      }
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "skip": true
-                }
+              }
+            }
+          variables: |
+            {
+              "skip": true
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -115,14 +91,6 @@ sourceSchemas:
                   "node": {
                     "__typename": "Discussion",
                     "title": "Discussion: RGlzY3Vzc2lvbjox"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "Discussion"
                   }
                 }
               }
@@ -155,6 +123,7 @@ operationPlan:
       idValue: "RGlzY3Vzc2lvbjox"
       responseName: node
       branches:
+        - Author: 4
         - Discussion: 3
       fallback: 2
     - id: 2
@@ -195,7 +164,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 3
       forwardedVariables:
         - skip
       dependencies:
@@ -220,7 +188,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 3
       forwardedVariables:
         - skip
       dependencies:
