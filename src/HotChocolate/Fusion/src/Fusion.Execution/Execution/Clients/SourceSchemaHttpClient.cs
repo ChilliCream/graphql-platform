@@ -115,8 +115,57 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             await foreach (var result in httpResponse.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
             {
                 var requestIndex = ResolveRequestIndex(requests, result);
+
+                // When the subgraph returns a blanket error without a
+                // requestIndex, the error applies to every request in the
+                // batch. We yield the same result for each request so
+                // downstream error handling sees the error on every path.
+                if (requestIndex == -1)
+                {
+                    for (var i = 0; i < requests.Length; i++)
+                    {
+                        var req = requests[i];
+
+                        if (!TryGetResultPath(req, variableIndex: 0, out var p, out var ap))
+                        {
+                            continue;
+                        }
+
+                        var ssr = ap.IsDefaultOrEmpty
+                            ? new SourceSchemaResult(p, result)
+                            : new SourceSchemaResult(p, result, additionalPaths: ap);
+
+                        _configuration.OnSourceSchemaResult?.Invoke(context, req.Node, ssr);
+                        yield return new BatchStreamResult(i, ssr);
+                    }
+
+                    continue;
+                }
+
                 var request = requests[requestIndex];
                 var variableIndex = ResolveVariableIndex(request, result);
+
+                // When the response lacks a variableIndex, the error
+                // applies to every variable set in this request.
+                if (variableIndex == -1)
+                {
+                    for (var vi = 0; vi < request.Variables.Length; vi++)
+                    {
+                        if (!TryGetResultPath(request, vi, out var vp, out var vap))
+                        {
+                            continue;
+                        }
+
+                        var vssr = vap.IsDefaultOrEmpty
+                            ? new SourceSchemaResult(vp, result)
+                            : new SourceSchemaResult(vp, result, additionalPaths: vap);
+
+                        _configuration.OnSourceSchemaResult?.Invoke(context, request.Node, vssr);
+                        yield return new BatchStreamResult(requestIndex, vssr);
+                    }
+
+                    continue;
+                }
 
                 if (!TryGetResultPath(request, variableIndex, out var path, out var additionalPaths))
                 {
@@ -311,7 +360,12 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             return 0;
         }
 
-        var requestIndex = result.Root.GetProperty(RequestIndex).GetInt32();
+        if (!result.Root.TryGetProperty(RequestIndex, out var requestIndexElement))
+        {
+            return -1;
+        }
+
+        var requestIndex = requestIndexElement.GetInt32();
 
         if ((uint)requestIndex < (uint)requests.Length)
         {
@@ -332,7 +386,12 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             return 0;
         }
 
-        var variableIndex = result.Root.GetProperty(VariableIndex).GetInt32();
+        if (!result.Root.TryGetProperty(VariableIndex, out var variableIndexElement))
+        {
+            return -1;
+        }
+
+        var variableIndex = variableIndexElement.GetInt32();
 
         if ((uint)variableIndex < (uint)variableCount)
         {
