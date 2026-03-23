@@ -185,6 +185,12 @@ dotnet_diagnostic.CA1513.severity = warning
 # Do not initialize unnecessarily.
 dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.RCS1129.severity = none
+# Do not use Count()/LongCount() when Any() can be used.
+dotnet_diagnostic.CA1827.severity = warning
+# Do not use CountAsync/LongCountAsync when AnyAsync can be used.
+dotnet_diagnostic.CA1828.severity = warning
+# Use Length/Count property instead of Enumerable.Count method.
+dotnet_diagnostic.CA1829.severity = warning
 # Use StringBuilder.Append(char) for single character strings.
 dotnet_diagnostic.CA1834.severity = warning
 # Prefer IsEmpty over Count when available.
