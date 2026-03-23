@@ -211,7 +211,7 @@ operationPlan:
       targets:
         - $.item2.product
         - $.item1.product
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

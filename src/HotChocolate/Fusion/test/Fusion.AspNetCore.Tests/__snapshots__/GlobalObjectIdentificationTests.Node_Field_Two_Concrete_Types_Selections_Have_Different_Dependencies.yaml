@@ -245,13 +245,36 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Review>.product
-      batchingGroupId: 1
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
             id
       dependencies:
         - id: 3
+    - id: 6
+      type: Operation
+      schema: C
+      operation: |
+        query testQuery_c0cdf5d7_6(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Discussion>.product
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 5
     - id: 5
       type: Operation
       schema: A
@@ -273,26 +296,3 @@ operationPlan:
         - id
       dependencies:
         - id: 1
-    - id: 6
-      type: Operation
-      schema: C
-      operation: |
-        query testQuery_c0cdf5d7_6(
-          $__fusion_2_id: ID!
-        ) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
-      source: $.node<Product>
-      target: $.node<Discussion>.product
-      batchingGroupId: 1
-      requirements:
-        - name: __fusion_2_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 5

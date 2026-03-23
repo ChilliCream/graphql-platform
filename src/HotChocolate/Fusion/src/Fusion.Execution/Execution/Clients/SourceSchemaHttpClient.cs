@@ -1,8 +1,6 @@
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Properties;
@@ -88,56 +86,6 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     }
 
     /// <inheritdoc />
-    public async ValueTask<ImmutableArray<SourceSchemaClientResponse>> ExecuteBatchAsync(
-        OperationPlanContext context,
-        ImmutableArray<SourceSchemaClientRequest> requests,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        if (requests.Length == 0)
-        {
-            return [];
-        }
-
-        Debug.WriteLine(requests[0].SchemaName);
-
-        if (ContainsSubscriptionRequest(requests))
-        {
-            throw new InvalidOperationException(
-                FusionExecutionResources.SourceSchemaHttpClient_SubscriptionBatchNotSupported);
-        }
-
-        var httpRequest = CreateHttpBatchRequest(requests);
-        ConfigureBatchCallbacks(httpRequest, context, requests);
-
-        var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-
-        var uri = httpRequest.Uri ?? new Uri("http://unknown");
-        var contentType = httpResponse.RawContentType ?? "unknown";
-        var isSuccessful = httpResponse.IsSuccessStatusCode;
-
-        var nodeResponses = new NodeResponse[requests.Length];
-        var builder = ImmutableArray.CreateBuilder<SourceSchemaClientResponse>(requests.Length);
-
-        for (var i = 0; i < requests.Length; i++)
-        {
-            var nodeResponse = new NodeResponse(uri, contentType, isSuccessful);
-            nodeResponses[i] = nodeResponse;
-            builder.Add(nodeResponse);
-        }
-
-        _ = ReadBatchStreamInBackgroundAsync(
-                context,
-                requests,
-                nodeResponses,
-                httpResponse,
-                cancellationToken);
-
-        return builder.MoveToImmutable();
-    }
-
-    /// <inheritdoc />
     public async IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
@@ -163,20 +111,9 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         try
         {
-            await foreach (var result in httpResponse.ReadAsResultStreamAsync()
-                .WithCancellation(cancellationToken))
+            await foreach (var result in httpResponse.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
             {
-                var requestIndex = result.Root.GetProperty(RequestIndex).GetInt32();
-
-                if ((uint)requestIndex >= (uint)requests.Length)
-                {
-                    result.Dispose();
-                    throw new InvalidOperationException(
-                        string.Format(
-                            FusionExecutionResources.SourceSchemaHttpClient_InvalidRequestIndex,
-                            requestIndex));
-                }
-
+                var requestIndex = ResolveRequestIndex(requests, result);
                 var request = requests[requestIndex];
                 var variableIndex = ResolveVariableIndex(request, result);
 
@@ -364,78 +301,23 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             extensions: null);
     }
 
-    private async Task ReadBatchStreamInBackgroundAsync(
-        OperationPlanContext context,
+    private static int ResolveRequestIndex(
         ImmutableArray<SourceSchemaClientRequest> requests,
-        NodeResponse[] nodeResponses,
-        GraphQLHttpResponse httpResponse,
-        CancellationToken cancellationToken)
+        SourceResultDocument result)
     {
-        try
+        if (requests.IsDefaultOrEmpty)
         {
-            await foreach (var result in httpResponse.ReadAsResultStreamAsync()
-                .WithCancellation(cancellationToken))
-            {
-                var requestIndex = result.Root.GetProperty(RequestIndex).GetInt32();
-
-                if ((uint)requestIndex >= (uint)requests.Length)
-                {
-                    result.Dispose();
-                    throw new InvalidOperationException(
-                        string.Format(
-                            FusionExecutionResources.SourceSchemaHttpClient_InvalidRequestIndex,
-                            requestIndex));
-                }
-
-                var request = requests[requestIndex];
-                var nodeResponse = nodeResponses[requestIndex];
-
-                var variableIndex = ResolveVariableIndex(request, result);
-
-                if (!TryGetResultPath(request, variableIndex, out var path, out var additionalPaths))
-                {
-                    result.Dispose();
-                    throw new InvalidOperationException(
-                        string.Format(
-                            FusionExecutionResources.SourceSchemaHttpClient_InvalidVariableIndex,
-                            variableIndex,
-                            request.Node.Id));
-                }
-
-                WriteResultToChannel(context, request.Node, nodeResponse, path, additionalPaths, result);
-            }
-
-            // Stream completed successfully. Complete all channels, failing any
-            // that never received results (fail-loud).
-            for (var i = 0; i < nodeResponses.Length; i++)
-            {
-                var nodeResponse = nodeResponses[i];
-
-                if (!nodeResponse.HasReceivedResults)
-                {
-                    nodeResponse.Complete(
-                        new InvalidOperationException(
-                            string.Format(
-                                FusionExecutionResources.SourceSchemaHttpClient_NoResultForNode,
-                                requests[i].Node.Id)));
-                }
-                else
-                {
-                    nodeResponse.Complete();
-                }
-            }
+            return 0;
         }
-        catch (Exception ex)
+
+        var requestIndex = result.Root.GetProperty(RequestIndex).GetInt32();
+
+        if ((uint)requestIndex < (uint)requests.Length)
         {
-            for (var i = 0; i < nodeResponses.Length; i++)
-            {
-                nodeResponses[i].Complete(ex);
-            }
+            return requestIndex;
         }
-        finally
-        {
-            httpResponse.Dispose();
-        }
+
+        throw ThrowHelper.RequestIndexOutOfRange(requestIndex);
     }
 
     private static int ResolveVariableIndex(
@@ -456,8 +338,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             return variableIndex;
         }
 
-        throw new InvalidOperationException(
-            $"The batch response contains an out-of-range variableIndex '{variableIndex}'.");
+        throw ThrowHelper.VariableIndexOutOfRange(variableIndex);
     }
 
     private static bool TryGetResultPath(
@@ -560,41 +441,6 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 configuration.OnAfterReceive?.Invoke(context, requests[i].Node, responseMessage);
             }
         };
-    }
-
-    private void WriteResultToChannel(
-        OperationPlanContext context,
-        ExecutionNode node,
-        NodeResponse nodeResponse,
-        CompactPath path,
-        ImmutableArray<CompactPath> additionalPaths,
-        SourceResultDocument document)
-    {
-        var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
-            ? new SourceSchemaResult(path, document)
-            : new SourceSchemaResult(path, document, additionalPaths: additionalPaths);
-        var onSourceSchemaResult = _configuration.OnSourceSchemaResult;
-
-        onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
-
-        if (!nodeResponse.TryWrite(sourceSchemaResult))
-        {
-            sourceSchemaResult.Dispose();
-            return;
-        }
-
-        nodeResponse.HasReceivedResults = true;
-
-        if (onSourceSchemaResult is null || additionalPaths.IsDefaultOrEmpty)
-        {
-            return;
-        }
-
-        // Preserve callback behavior for all logical result paths without enqueueing aliases.
-        foreach (var additionalPath in additionalPaths)
-        {
-            onSourceSchemaResult(context, node, sourceSchemaResult.WithPath(additionalPath));
-        }
     }
 
     private static bool ContainsSubscriptionRequest(
@@ -787,157 +633,5 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         }
 
         public override void Dispose() => response.Dispose();
-    }
-
-    /// <summary>
-    /// A streaming response for a single execution node within a batched HTTP request.
-    /// Results are pushed into a <see cref="List{T}"/> under lock by the background stream
-    /// reader and signalled via a lightweight <see cref="AsyncAutoResetEvent"/>.
-    /// The execution node reads lazily via <see cref="ReadAsResultStreamAsync"/>.
-    /// </summary>
-    private sealed class NodeResponse(Uri uri, string contentType, bool isSuccessful) : SourceSchemaClientResponse
-    {
-#if NET9_0_OR_GREATER
-        private readonly Lock _sync = new();
-#else
-        private readonly object _sync = new();
-#endif
-        private const int InitialCapacity = 32;
-        private static readonly ArrayPool<SourceSchemaResult> s_pool = ArrayPool<SourceSchemaResult>.Shared;
-        private readonly AsyncAutoResetEvent _signal = new();
-        private SourceSchemaResult[] _results = s_pool.Rent(InitialCapacity);
-        private int _resultsCount;
-        private SourceSchemaResult[] _drain = s_pool.Rent(InitialCapacity);
-        private int _drainCount;
-        private volatile bool _completed;
-        private Exception? _error;
-        private bool _disposed;
-
-        public override Uri Uri { get; } = uri;
-
-        public override string ContentType { get; } = contentType;
-
-        public override bool IsSuccessful { get; } = isSuccessful;
-
-        /// <summary>
-        /// Gets whether at least one result has been written to this response.
-        /// Used to detect nodes that received no results from the batch stream.
-        /// </summary>
-        internal bool HasReceivedResults { get; set; }
-
-        internal bool TryWrite(SourceSchemaResult result)
-        {
-            if (_disposed)
-            {
-                return false;
-            }
-
-            lock (_sync)
-            {
-                if (_resultsCount == _results.Length)
-                {
-                    var newArray = s_pool.Rent(_results.Length * 2);
-                    _results.AsSpan(0, _resultsCount).CopyTo(newArray);
-                    s_pool.Return(_results, clearArray: true);
-                    _results = newArray;
-                }
-
-                _results[_resultsCount++] = result;
-            }
-
-            _signal.Set();
-            return true;
-        }
-
-        internal void Complete(Exception? error = null)
-        {
-            _error = error;
-            _completed = true;
-            _signal.Set();
-        }
-
-        public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var (buffer, count) = Drain();
-                for (var i = 0; i < count; i++)
-                {
-                    yield return buffer[i];
-                }
-
-                if (_completed)
-                {
-                    // Final drain, writer may have enqueued between our last
-                    // drain and the completion flag becoming visible.
-                    (buffer, count) = Drain();
-                    for (var i = 0; i < count; i++)
-                    {
-                        yield return buffer[i];
-                    }
-
-                    if (_error is not null)
-                    {
-                        ExceptionDispatchInfo.Throw(_error);
-                    }
-
-                    yield break;
-                }
-
-                await _signal;
-            }
-        }
-
-        private (SourceSchemaResult[] Buffer, int Count) Drain()
-        {
-            lock (_sync)
-            {
-                if (_resultsCount == 0)
-                {
-                    return (Array.Empty<SourceSchemaResult>(), 0);
-                }
-
-                // Clear the previous drain buffer so it's ready
-                // to become the next write target.
-                _drain.AsSpan(0, _drainCount).Clear();
-                _drainCount = 0;
-
-                // Swap the buffers so the writer can keep adding
-                // while we drain outside the lock.
-                (_results, _drain) = (_drain, _results);
-                (_resultsCount, _drainCount) = (0, _resultsCount);
-            }
-
-            return (_drain, _drainCount);
-        }
-
-        public override void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-
-            Complete();
-
-            var (buffer, count) = Drain();
-            for (var i = 0; i < count; i++)
-            {
-                buffer[i].Dispose();
-            }
-
-            lock (_sync)
-            {
-                s_pool.Return(_results, clearArray: true);
-                s_pool.Return(_drain, clearArray: true);
-                _results = [];
-                _drain = [];
-            }
-        }
     }
 }

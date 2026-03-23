@@ -123,6 +123,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string SourceSchemaHttpClient_VariableIndexOutOfRange {
+            get {
+                return ResourceManager.GetString("SourceSchemaHttpClient_VariableIndexOutOfRange", resourceCulture);
+            }
+        }
+
         internal static string SourceSchemaHttpClient_NoResultForNode {
             get {
                 return ResourceManager.GetString("SourceSchemaHttpClient_NoResultForNode", resourceCulture);

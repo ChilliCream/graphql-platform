@@ -58,24 +58,43 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_ef8b97ff_3(
-              $id: ID!
-            ) {
-              node(id: $id) {
-                __typename
-                ... on Discussion {
-                  __typename
-                  viewerCanVote
-                  viewerRating
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_ef8b97ff_3(
+                  $id: ID!
+                ) {
+                  node(id: $id) {
+                    __typename
+                    ... on Discussion {
+                      __typename
+                      viewerCanVote
+                      viewerRating
+                    }
+                  }
                 }
-              }
-            }
-          variables: |
-            {
-              "id": "RGlzY3Vzc2lvbjox"
-            }
+              variables: |
+                {
+                  "id": "RGlzY3Vzc2lvbjox"
+                }
+            - document: |
+                query testQuery_ef8b97ff_4(
+                  $id: ID!
+                ) {
+                  node(id: $id) {
+                    __typename
+                    ... on Comment {
+                      __typename
+                      viewerCanVote
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "id": "RGlzY3Vzc2lvbjox"
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -84,6 +103,14 @@ sourceSchemas:
                     "__typename": "Discussion",
                     "viewerCanVote": true,
                     "viewerRating": 123.456
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion"
                   }
                 }
               }
@@ -113,7 +140,6 @@ operationPlan:
       idValue: $id
       responseName: node
       branches:
-        - Comment: 4
         - Discussion: 3
       fallback: 2
     - id: 2
@@ -146,7 +172,7 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
+      batchingGroupId: 3
       forwardedVariables:
         - id
       dependencies:
@@ -166,7 +192,7 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
+      batchingGroupId: 3
       forwardedVariables:
         - id
       dependencies:

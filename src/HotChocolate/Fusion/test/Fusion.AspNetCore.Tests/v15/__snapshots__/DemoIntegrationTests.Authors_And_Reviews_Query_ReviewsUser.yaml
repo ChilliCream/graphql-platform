@@ -756,7 +756,7 @@ operationPlan:
       targets:
         - $.b.author
         - $.a.author
-      batchingGroupId: 1
+      batchingGroupId: 5
       requirements:
         - name: __fusion_3_id
           selectionMap: >-

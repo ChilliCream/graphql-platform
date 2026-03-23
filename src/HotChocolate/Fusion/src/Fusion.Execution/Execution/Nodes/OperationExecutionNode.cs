@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -204,7 +203,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 singleResult.Dispose();
             }
 
-            context.AddErrors( exception, variables, _resultSelectionSet);
+            context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -246,7 +245,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            context.AddErrors( exception, variables, _resultSelectionSet);
+            context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
         finally
@@ -306,7 +305,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception ex)
         {
-            context.AddErrors( ex, variables, _resultSelectionSet);
+            context.AddErrors(ex, variables, _resultSelectionSet);
             context.DiagnosticEvents.SourceSchemaTransportError(context, this, schemaName, ex);
             return SubscriptionResult.Failed(subscriptionId, ex);
         }

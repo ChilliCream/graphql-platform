@@ -180,7 +180,7 @@ operationPlan:
       targets:
         - $.post<Discussion>.product
         - $.post<Photo>.product
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

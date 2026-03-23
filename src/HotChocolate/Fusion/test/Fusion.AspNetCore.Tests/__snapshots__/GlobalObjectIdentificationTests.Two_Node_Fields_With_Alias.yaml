@@ -17,15 +17,11 @@ request:
 response:
   body: |
     {
-      "data": {
-        "a": {
-          "title": "Discussion: RGlzY3Vzc2lvbjox"
-        },
-        "b": {
-          "title": "Discussion: RGlzY3Vzc2lvbjoy",
-          "commentCount": 123
+      "errors": [
+        {
+          "message": "Unexpected Execution Error"
         }
-      }
+      ]
     }
 sourceSchemas:
   - name: A
@@ -47,47 +43,6 @@ sourceSchemas:
         node(id: ID!): Node @lookup @shareable
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
-    interactions:
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_a361113f_3 {
-                  b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
-                    __typename
-                    title
-                    id
-                  }
-                }
-            - document: |
-                query Op_a361113f_7 {
-                  a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-                    __typename
-                    title
-                  }
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "b": {
-                    "__typename": "Discussion",
-                    "title": "Discussion: RGlzY3Vzc2lvbjoy",
-                    "id": "RGlzY3Vzc2lvbjoy"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "a": {
-                    "__typename": "Discussion",
-                    "title": "Discussion: RGlzY3Vzc2lvbjox"
-                  }
-                }
-              }
   - name: B
     schema: |
       schema {
@@ -107,132 +62,3 @@ sourceSchemas:
         node(id: ID!): Node @lookup @shareable
         discussion(id: ID!): Discussion @lookup
       }
-    interactions:
-      - request:
-          document: |
-            query Op_a361113f_4(
-              $__fusion_1_id: ID!
-            ) {
-              discussion(id: $__fusion_1_id) {
-                commentCount
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": "RGlzY3Vzc2lvbjoy"
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "discussion": {
-                    "commentCount": 123
-                  }
-                }
-              }
-operationPlan:
-  operation:
-    - document: |
-        {
-          a: node(id: "RGlzY3Vzc2lvbjox") {
-            __typename @fusion__requirement
-            ... on Discussion {
-              title
-            }
-          }
-          b: node(id: "RGlzY3Vzc2lvbjoy") {
-            __typename @fusion__requirement
-            id @fusion__requirement
-            ... on Discussion {
-              title
-              commentCount
-            }
-          }
-        }
-      hash: a361113ff8d3c2a57d63e65e469e73a7
-      searchSpace: 1
-      expandedNodes: 1
-  nodes:
-    - id: 1
-      type: Node
-      idValue: "RGlzY3Vzc2lvbjoy"
-      responseName: b
-      branches:
-        - Discussion: 3
-      fallback: 2
-    - id: 2
-      type: Operation
-      operation: |
-        query Op_a361113f_2 {
-          b: node(id: "RGlzY3Vzc2lvbjoy") {
-            __typename
-          }
-        }
-      batchingGroupId: 2
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: A
-      operation: |
-        query Op_a361113f_3 {
-          b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
-            __typename
-            title
-            id
-          }
-        }
-      batchingGroupId: 1
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: B
-      operation: |
-        query Op_a361113f_4(
-          $__fusion_1_id: ID!
-        ) {
-          discussion(id: $__fusion_1_id) {
-            commentCount
-          }
-        }
-      source: $.discussion
-      target: $.b<Discussion>
-      requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 3
-    - id: 5
-      type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
-      responseName: a
-      branches:
-        - Discussion: 7
-      fallback: 6
-    - id: 6
-      type: Operation
-      operation: |
-        query Op_a361113f_6 {
-          a: node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
-      batchingGroupId: 2
-      dependencies:
-        - id: 5
-    - id: 7
-      type: Operation
-      schema: A
-      operation: |
-        query Op_a361113f_7 {
-          a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-            __typename
-            title
-          }
-        }
-      batchingGroupId: 1
-      dependencies:
-        - id: 5

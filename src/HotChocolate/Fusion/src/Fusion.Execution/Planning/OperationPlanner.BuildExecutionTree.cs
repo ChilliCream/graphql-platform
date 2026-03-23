@@ -635,12 +635,12 @@ public sealed partial class OperationPlanner
         Dictionary<int, HashSet<int>> dependencyLookup,
         bool enableRequestGrouping)
     {
-        // Pass 1: Find groups of query operations that target the same source
-        // schema and share the same set of dependencies. Within each group,
-        // operations with identical structure (same canonical signature) are
-        // merged into a single batch operation definition so the executor can
-        // send one request instead of many.
-        var candidates = new Dictionary<(string schema, string deps), List<OperationExecutionNode>>();
+        // Pass 1: Find groups of query operations with identical canonical
+        // signatures (same schema, same structure, same source path) and the
+        // same dependency set. Operations with the same key are merged into a
+        // single batch operation definition so the executor can send one request
+        // instead of many.
+        var candidates = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
 
         foreach (var node in completedNodes.Values.OfType<OperationExecutionNode>())
         {
@@ -651,16 +651,16 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            var schemaKey = node.SchemaName ?? DynamicSchemaNameMarker;
+            var signature = ComputeCanonicalSignature(node);
             var depsKey = dependencyLookup.TryGetValue(node.Id, out var depsSet)
                 ? string.Join(",", depsSet.Order())
                 : string.Empty;
-            var groupKey = (schemaKey, depsKey);
+            var candidateKey = $"{signature}|{depsKey}";
 
-            if (!candidates.TryGetValue(groupKey, out var list))
+            if (!candidates.TryGetValue(candidateKey, out var list))
             {
                 list = [];
-                candidates[groupKey] = list;
+                candidates[candidateKey] = list;
             }
 
             list.Add(node);
@@ -670,42 +670,31 @@ public sealed partial class OperationPlanner
         // can reuse the merged definitions when building batch nodes.
         var mergeInfo = new Dictionary<int, MergeResult>();
 
-        foreach (var (_, groupNodes) in candidates)
+        foreach (var (_, equivalentNodes) in candidates)
         {
-            if (groupNodes.Count <= 1)
+            if (equivalentNodes.Count <= 1)
             {
                 continue;
             }
 
-            var bySignature = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
-
-            foreach (var node in groupNodes)
+            // Before merging, verify that no candidate transitively depends
+            // on another. Merging such a pair would create a cycle in the
+            // dependency graph (the merged batch node would depend on itself).
+            // When conflicts exist, partition into independent subsets.
+            foreach (var group in PartitionIntoMergeableGroups(equivalentNodes, dependencyLookup))
             {
-                var sig = ComputeCanonicalSignature(node);
-
-                if (!bySignature.TryGetValue(sig, out var sigGroup))
-                {
-                    sigGroup = [];
-                    bySignature[sig] = sigGroup;
-                }
-
-                sigGroup.Add(node);
-            }
-
-            foreach (var (_, equivalentNodes) in bySignature)
-            {
-                if (equivalentNodes.Count <= 1)
+                if (group.Count <= 1)
                 {
                     continue;
                 }
 
-                equivalentNodes.Sort((a, b) => a.Id.CompareTo(b.Id));
+                group.Sort((a, b) => a.Id.CompareTo(b.Id));
 
-                var primary = equivalentNodes[0];
-                var otherIds = equivalentNodes.Skip(1).Select(n => n.Id).ToList();
+                var primary = group[0];
+                var otherIds = group.Skip(1).Select(n => n.Id).ToList();
 
                 var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
-                var targets = equivalentNodes.Select(n => n.Target).ToArray();
+                var targets = group.Select(n => n.Target).ToArray();
 
                 mergeInfo[primary.Id] = new MergeResult(targets, canonicalOp, canonicalRequirements, primary);
 
@@ -1117,6 +1106,94 @@ public sealed partial class OperationPlanner
         return text;
     }
 
+    /// <summary>
+    /// Partitions a list of structurally identical operations into groups that can
+    /// each be safely merged. Two operations cannot be in the same group if one
+    /// transitively depends on the other, because merging them would create a cycle
+    /// (the resulting batch node would depend on itself).
+    /// </summary>
+    private static List<List<OperationExecutionNode>> PartitionIntoMergeableGroups(
+        List<OperationExecutionNode> candidates,
+        Dictionary<int, HashSet<int>> dependencyLookup)
+    {
+        var groups = new List<List<OperationExecutionNode>>();
+        var visited = new HashSet<int>();
+
+        foreach (var candidate in candidates)
+        {
+            var placed = false;
+
+            foreach (var group in groups)
+            {
+                var canJoin = true;
+
+                foreach (var existing in group)
+                {
+                    visited.Clear();
+
+                    if (IsTransitivelyReachable(candidate.Id, existing.Id, dependencyLookup, visited))
+                    {
+                        canJoin = false;
+                        break;
+                    }
+
+                    visited.Clear();
+
+                    if (IsTransitivelyReachable(existing.Id, candidate.Id, dependencyLookup, visited))
+                    {
+                        canJoin = false;
+                        break;
+                    }
+                }
+
+                if (canJoin)
+                {
+                    group.Add(candidate);
+                    placed = true;
+                    break;
+                }
+            }
+
+            if (!placed)
+            {
+                groups.Add([candidate]);
+            }
+        }
+
+        return groups;
+    }
+
+    /// <summary>
+    /// Checks whether <paramref name="targetId"/> is reachable from
+    /// <paramref name="fromId"/> by following dependency edges.
+    /// </summary>
+    private static bool IsTransitivelyReachable(
+        int fromId,
+        int targetId,
+        Dictionary<int, HashSet<int>> dependencyLookup,
+        HashSet<int> visited)
+    {
+        if (!dependencyLookup.TryGetValue(fromId, out var deps))
+        {
+            return false;
+        }
+
+        foreach (var dep in deps)
+        {
+            if (dep == targetId)
+            {
+                return true;
+            }
+
+            if (visited.Add(dep) && IsTransitivelyReachable(dep, targetId, dependencyLookup, visited))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static SelectionSetNode GetSelectionSetNodeFromPath(
         OperationDefinitionNode operationDefinition,
         SelectionPath path)
@@ -1236,7 +1313,7 @@ public sealed partial class OperationPlanner
 
                 case InlineFragmentNode inlineFragment:
                 {
-                    ITypeDefinition? fragmentType = inlineFragment.TypeCondition is not null
+                    var fragmentType = inlineFragment.TypeCondition is not null
                         && schema.Types.TryGetType(inlineFragment.TypeCondition.Name.Value, out var resolvedType)
                             ? resolvedType
                             : parentType;

@@ -21,4 +21,14 @@ internal static class ThrowHelper
 
     public static InvalidOperationException SingleOperationRequired()
         => new(FusionExecutionResources.JsonOperationPlanParser_SingleOperationRequired);
+
+    public static InvalidOperationException RequestIndexOutOfRange(int requestIndex)
+        => new(string.Format(
+            FusionExecutionResources.SourceSchemaHttpClient_InvalidRequestIndex,
+            requestIndex));
+
+    public static InvalidOperationException VariableIndexOutOfRange(int variableIndex)
+        => new(string.Format(
+            FusionExecutionResources.SourceSchemaHttpClient_VariableIndexOutOfRange,
+            variableIndex));
 }

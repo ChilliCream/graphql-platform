@@ -263,7 +263,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.postEdges.node<Discussion>.author
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -283,7 +283,7 @@ operationPlan:
         }
       source: $.productById
       target: $.postEdges.node<Photo>.product
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

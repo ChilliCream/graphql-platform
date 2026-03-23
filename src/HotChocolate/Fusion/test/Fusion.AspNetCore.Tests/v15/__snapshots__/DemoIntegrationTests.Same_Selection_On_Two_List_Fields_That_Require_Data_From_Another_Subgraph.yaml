@@ -304,7 +304,7 @@ operationPlan:
       targets:
         - $.productsB
         - $.productsA
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

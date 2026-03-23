@@ -27,21 +27,6 @@ public interface ISourceSchemaClient : IAsyncDisposable
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Executes multiple GraphQL operations as a single batched transport request.
-    /// </summary>
-    /// <param name="context">The current operation plan execution context.</param>
-    /// <param name="requests">The requests to include in the batch.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>
-    /// A dictionary mapping each request's <see cref="SourceSchemaClientRequest.Node"/> ID
-    /// to its corresponding response.
-    /// </returns>
-    ValueTask<ImmutableArray<SourceSchemaClientResponse>> ExecuteBatchAsync(
-        OperationPlanContext context,
-        ImmutableArray<SourceSchemaClientRequest> requests,
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Executes multiple GraphQL operations as a single batched transport request and
     /// streams results back as they arrive. Each result is tagged with its request index
     /// so the caller can route it to the correct operation.
