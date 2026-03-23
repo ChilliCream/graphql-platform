@@ -25,7 +25,17 @@ response:
         "node": {
           "__typename": "Item1",
           "id": "SXRlbTE6MQ==",
-          "products": null
+          "products": [
+            {
+              "name": "Product: UHJvZHVjdDox"
+            },
+            {
+              "name": "Product: UHJvZHVjdDoy"
+            },
+            {
+              "name": "Product: UHJvZHVjdDoz"
+            }
+          ]
         }
       }
     }
@@ -64,12 +74,18 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_70eb1308_2(
+            query testQuery_70eb1308_5(
               $id: ID!
             ) {
               node(id: $id) {
                 __typename
-                id
+                ... on Item1 {
+                  __typename
+                  id
+                  products {
+                    id
+                  }
+                }
               }
             }
           variables: |
@@ -83,7 +99,18 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Item1",
-                    "id": "SXRlbTE6MQ=="
+                    "id": "SXRlbTE6MQ==",
+                    "products": [
+                      {
+                        "id": "UHJvZHVjdDox"
+                      },
+                      {
+                        "id": "UHJvZHVjdDoy"
+                      },
+                      {
+                        "id": "UHJvZHVjdDoz"
+                      }
+                    ]
                   }
                 }
               }
@@ -105,6 +132,61 @@ sourceSchemas:
       type Query {
         node(id: ID!): Node @lookup @shareable
       }
+    interactions:
+      - request:
+          document: |
+            query testQuery_70eb1308_6(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoz"
+                  }
+                }
+              }
 operationPlan:
   operation:
     - document: |
@@ -132,6 +214,7 @@ operationPlan:
       idValue: $id
       responseName: node
       branches:
+        - Item1: 5
         - Item2: 3
       fallback: 2
     - id: 2
@@ -167,30 +250,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 3
-      forwardedVariables:
-        - id
-      dependencies:
-        - id: 1
-    - id: 5
-      type: Operation
-      schema: A
-      operation: |
-        query testQuery_70eb1308_5(
-          $id: ID!
-        ) {
-          node(id: $id) {
-            __typename
-            ... on Item1 {
-              __typename
-              id
-              products {
-                id
-              }
-            }
-          }
-        }
-      batchingGroupId: 3
       forwardedVariables:
         - id
       dependencies:
@@ -211,13 +270,34 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item2>.products
-      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
             id
       dependencies:
         - id: 3
+    - id: 5
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_70eb1308_5(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on Item1 {
+              __typename
+              id
+              products {
+                id
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
     - id: 6
       type: Operation
       schema: B
@@ -234,7 +314,6 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item1>.products
-      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

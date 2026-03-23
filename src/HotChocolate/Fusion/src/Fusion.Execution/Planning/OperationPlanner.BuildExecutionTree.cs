@@ -523,58 +523,62 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            // A batch node combines multiple operations into a single network call.
-            // Its execution-level dependencies come from the union of all the
-            // individual operations it contains. For each inner operation we look
-            // up the execution node that owns the dependency, remove duplicates,
-            // and ignore self-references (an operation inside the same batch is
-            // not an external dependency).
+            // A batch node bundles multiple operations into one network call.
+            // The dependency lookup already holds the union of every inner
+            // operation's dependencies. We translate each dependency identifier
+            // to the execution node that owns it, skip duplicates, and ignore
+            // self-references (which arise when merged operations land in the
+            // same batch).
             if (entry is OperationBatchExecutionNode batchEntry)
             {
                 var seenExecutionDeps = new HashSet<int>();
 
-                foreach (var op in batchEntry.Operations)
+                foreach (var dependencyId in stepDependencies)
                 {
-                    foreach (var dep in op.Dependencies)
+                    if (dependencyId == batchEntry.Id)
                     {
-                        if (dep.Id == batchEntry.Id)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        if (!executionNodeById.TryGetValue(dep.Id, out var depExecNode)
-                            || depExecNode.Id == batchEntry.Id)
-                        {
-                            continue;
-                        }
+                    if (!executionNodeById.TryGetValue(dependencyId, out var depExecNode)
+                        || depExecNode.Id == batchEntry.Id)
+                    {
+                        continue;
+                    }
 
-                        // Two different inner operations may depend on separate
-                        // operations that both live inside the same execution node.
-                        // We deduplicate at the execution-node level so we only
-                        // register the dependency once.
-                        if (!seenExecutionDeps.Add(depExecNode.Id))
-                        {
-                            continue;
-                        }
+                    // Multiple operation identifiers can map to the same
+                    // execution node when several operations were grouped into
+                    // one batch. We only wire each execution dependency once.
+                    if (!seenExecutionDeps.Add(depExecNode.Id))
+                    {
+                        continue;
+                    }
 
-                        depExecNode.AddDependent(batchEntry);
+                    depExecNode.AddDependent(batchEntry);
 
-                        // A multi-operation batch may include operations with
-                        // different dependency sets. Some dependencies might only
-                        // matter to a subset of the operations, so we mark them
-                        // as optional. The executor then decides per-operation
-                        // whether to skip. In contrast, a single-operation batch
-                        // has no ambiguity: every dependency is required, and the
-                        // executor can skip the entire batch immediately when any
-                        // dependency fails.
-                        if (batchEntry.Operations.Length > 1)
-                        {
-                            batchEntry.AddOptionalDependency(depExecNode);
-                        }
-                        else
-                        {
-                            batchEntry.AddDependency(depExecNode);
-                        }
+                    // When a batch holds more than one operation, each
+                    // operation may have a different dependency set. A
+                    // dependency that only matters to some operations must
+                    // not block the whole batch, so we mark it optional.
+                    // The executor checks each operation individually and
+                    // skips only those whose dependencies failed.
+                    //
+                    // The same reasoning applies to a single
+                    // BatchOperationDefinition with multiple targets created
+                    // by a cross-dependency merge. Type dispatch may skip
+                    // some targets while others succeed, so dependencies
+                    // must stay optional there too.
+                    //
+                    // Only a true single-operation, single-target batch is
+                    // unambiguous: every dependency is required.
+                    if (batchEntry.Operations.Length > 1
+                        || batchEntry.Operations[0] is BatchOperationDefinition)
+                    {
+                        batchEntry.AddOptionalDependency(depExecNode);
+                    }
+                    else
+                    {
+                        batchEntry.AddDependency(depExecNode);
                     }
                 }
 
@@ -635,12 +639,15 @@ public sealed partial class OperationPlanner
         Dictionary<int, HashSet<int>> dependencyLookup,
         bool enableRequestGrouping)
     {
-        // Pass 1: Find groups of query operations with identical canonical
-        // signatures (same schema, same structure, same source path) and the
-        // same dependency set. Operations with the same key are merged into a
-        // single batch operation definition so the executor can send one request
-        // instead of many.
+        // Pass 1 -- Merge structurally identical operations.
+        // We compute a canonical signature for each query operation (covering
+        // schema name, source path, and query body). Operations that share
+        // the same signature are merged into one BatchOperationDefinition so
+        // the executor sends a single request instead of many. Dependency
+        // sets may differ between merged operations; that is fine as long as
+        // merging does not create a cycle in the dependency graph.
         var candidates = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
+        var nodeFieldBoundCache = new Dictionary<int, bool>();
 
         foreach (var node in completedNodes.Values.OfType<OperationExecutionNode>())
         {
@@ -651,19 +658,59 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            var signature = ComputeCanonicalSignature(node);
-            var depsKey = dependencyLookup.TryGetValue(node.Id, out var depsSet)
-                ? string.Join(",", depsSet.Order())
-                : string.Empty;
-            var candidateKey = $"{signature}|{depsKey}";
+            // Operations that sit below a node-field dispatch must keep their
+            // original identifiers. The branch and fallback wiring phase
+            // references those identifiers directly, so replacing them with
+            // a merged identifier would silently drop executable branches.
+            if (IsBoundToNodeField(node.Id))
+            {
+                continue;
+            }
 
-            if (!candidates.TryGetValue(candidateKey, out var list))
+            var signature = ComputeCanonicalSignature(node);
+
+            if (!candidates.TryGetValue(signature, out var list))
             {
                 list = [];
-                candidates[candidateKey] = list;
+                candidates[signature] = list;
             }
 
             list.Add(node);
+        }
+
+        bool IsBoundToNodeField(int nodeId)
+        {
+            if (nodeFieldBoundCache.TryGetValue(nodeId, out var cached))
+            {
+                return cached;
+            }
+
+            // The dependency graph is a DAG (enforced by GetDependencyDepth),
+            // so we don't need a recursion guard here; caching is sufficient.
+            if (!dependencyLookup.TryGetValue(nodeId, out var dependencies) || dependencies.Count == 0)
+            {
+                nodeFieldBoundCache[nodeId] = false;
+                return false;
+            }
+
+            foreach (var dependencyId in dependencies)
+            {
+                if (completedNodes.TryGetValue(dependencyId, out var depNode)
+                    && depNode is NodeFieldExecutionNode)
+                {
+                    nodeFieldBoundCache[nodeId] = true;
+                    return true;
+                }
+
+                if (IsBoundToNodeField(dependencyId))
+                {
+                    nodeFieldBoundCache[nodeId] = true;
+                    return true;
+                }
+            }
+
+            nodeFieldBoundCache[nodeId] = false;
+            return false;
         }
 
         // Keep track of which operations were merged in Pass 1 so that Pass 2
@@ -691,28 +738,36 @@ public sealed partial class OperationPlanner
                 group.Sort((a, b) => a.Id.CompareTo(b.Id));
 
                 var primary = group[0];
-                var otherIds = group.Skip(1).Select(n => n.Id).ToList();
 
                 var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
-                var targets = group.Select(n => n.Target).ToArray();
+                var targets = new SelectionPath[group.Count];
 
-                mergeInfo[primary.Id] = new MergeResult(targets, canonicalOp, canonicalRequirements, primary);
-
-                foreach (var otherId in otherIds)
+                for (var i = 0; i < group.Count; i++)
                 {
-                    completedNodes.Remove(otherId);
+                    targets[i] = group[i].Target;
                 }
 
-                // The merged node inherits every dependency from the nodes it
-                // absorbed. We combine all dependency sets under the primary
-                // identifier so the dependency graph stays consistent.
+                mergeInfo[primary.Id] = new MergeResult(
+                    targets,
+                    canonicalOp,
+                    canonicalRequirements,
+                    primary);
+
+                // Remove absorbed nodes and merge their dependency sets
+                // into the primary so the dependency graph stays consistent.
+                var absorbedIds = new HashSet<int>(group.Count - 1);
+
                 if (!dependencyLookup.TryGetValue(primary.Id, out var primaryDeps))
                 {
                     primaryDeps = [];
                 }
 
-                foreach (var otherId in otherIds)
+                for (var i = 1; i < group.Count; i++)
                 {
+                    var otherId = group[i].Id;
+                    absorbedIds.Add(otherId);
+                    completedNodes.Remove(otherId);
+
                     if (dependencyLookup.TryGetValue(otherId, out var otherDeps))
                     {
                         foreach (var dep in otherDeps)
@@ -733,31 +788,31 @@ public sealed partial class OperationPlanner
                     dependencyLookup.Remove(primary.Id);
                 }
 
-                var otherIdSet = new HashSet<int>(otherIds);
-
+                // Redirect remaining references to absorbed IDs
+                // so they point to the primary instead.
                 foreach (var depSet in dependencyLookup.Values)
                 {
-                    var hadOther = false;
+                    var hadAbsorbed = false;
 
-                    foreach (var otherId in otherIdSet)
+                    foreach (var absorbedId in absorbedIds)
                     {
-                        if (depSet.Remove(otherId))
+                        if (depSet.Remove(absorbedId))
                         {
-                            hadOther = true;
+                            hadAbsorbed = true;
                         }
                     }
 
-                    if (hadOther)
+                    if (hadAbsorbed)
                     {
                         depSet.Add(primary.Id);
                     }
                 }
             }
         }
-        // Snapshot each node's dependency IDs before request-grouping rewrites.
-        // Grouping redirects references from member IDs to batch-node IDs in
-        // dependencyLookup; however, operation definitions must keep their
-        // original per-operation dependency IDs to preserve plan structure.
+        // Take a snapshot of each node's dependency identifiers before Pass 2
+        // rewrites the lookup. Pass 2 redirects member identifiers to batch-node
+        // identifiers, but the inner operation definitions must retain their
+        // original per-operation dependencies to preserve the plan structure.
         var originalDependenciesByNodeId = new Dictionary<int, int[]>(dependencyLookup.Count);
 
         foreach (var (nodeId, deps) in dependencyLookup)
@@ -765,10 +820,10 @@ public sealed partial class OperationPlanner
             originalDependenciesByNodeId[nodeId] = deps.ToArray();
         }
 
-        // Pass 2: Group the remaining query nodes by source schema and
-        // dependency depth into batch execution nodes. Nodes at the same depth
-        // targeting the same schema can be sent as a single batched request
-        // because none of them depend on each other.
+        // Pass 2 -- Group by schema and depth.
+        // Query nodes at the same dependency depth targeting the same source
+        // schema are independent of each other, so they can ride in a single
+        // batched network request.
         var consumedMergeIds = new HashSet<int>();
         var allPerOpDeps = new Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>>();
 
@@ -777,6 +832,7 @@ public sealed partial class OperationPlanner
             var queryNodes = completedNodes.Values
                 .OfType<OperationExecutionNode>()
                 .Where(n => n.Operation.Type == OperationType.Query)
+                .Where(n => !IsBoundToNodeField(n.Id))
                 .ToList();
 
             var dependencyDepthLookup = new Dictionary<int, int>();
@@ -960,18 +1016,24 @@ public sealed partial class OperationPlanner
             var standaloneBatchNode = new OperationBatchExecutionNode(primaryId, [opDef]);
             completedNodes[primaryId] = standaloneBatchNode;
 
-            if (originalDependenciesByNodeId.TryGetValue(primaryId, out var depIdsForMerge))
-            {
-                allPerOpDeps[standaloneBatchNode] =
-                    new Dictionary<int, int[]> { [opDef.Id] = depIdsForMerge };
-            }
+            // Wire the full set of dependencies (union of all merged
+            // operations), not just the intersection. The per-operation
+            // dependencies must reflect every upstream operation that
+            // provides data for any of the merged targets.
+            allPerOpDeps[standaloneBatchNode] =
+                new Dictionary<int, int[]>
+                {
+                    [opDef.Id] = originalDependenciesByNodeId.TryGetValue(primaryId, out var primaryDeps)
+                        ? primaryDeps
+                        : []
+                };
         }
 
-        // Now that every batch node exists, build a complete lookup from plan
-        // node identifier to plan node. Then wire each inner operation's
-        // dependencies to the original operation definitions (or standalone
-        // execution nodes), not to the redirected batch nodes. This gives the
-        // executor fine-grained knowledge of which specific operation each
+        // All batch nodes are now in place. Build a lookup from plan-node
+        // identifier to plan node, then wire each inner operation's
+        // dependencies to the original operation definitions rather than the
+        // redirected batch-node identifiers. This gives the executor
+        // fine-grained visibility into exactly which upstream operation each
         // inner operation depends on.
         if (allPerOpDeps.Count > 0)
         {

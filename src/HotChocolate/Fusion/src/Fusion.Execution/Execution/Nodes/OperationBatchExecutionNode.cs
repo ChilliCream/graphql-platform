@@ -45,13 +45,16 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         var operationByIndex = new List<OperationDefinition>(_operations.Length);
         var variablesByIndex = new List<ImmutableArray<VariableValues>>(_operations.Length);
 
-        if (_operations.Length == 1)
+        if (_operations.Length == 1 && _operations[0] is SingleOperationDefinition)
         {
-            // When the batch holds only one operation, the planner promotes all of
-            // that operation's dependencies onto the batch node itself. So if we
-            // reach this point, every dependency has already succeeded. This means
-            // we can skip the per-operation condition and dependency checks entirely,
-            // which avoids unnecessary work for the common single-operation case.
+            // When the batch holds a single non-merged operation, the planner
+            // promotes all of its dependencies onto the batch node as required.
+            // So if we reach this point, every dependency has already succeeded.
+            // We can skip the per-operation condition and dependency checks
+            // entirely, which avoids unnecessary work for the common case.
+            // Note: BatchOperationDefinition (merged multi-target ops) uses the
+            // slow path because its deps are optional: some targets' deps may
+            // be skipped while others succeed.
             var operation = _operations[0];
 
             var variables = operation switch

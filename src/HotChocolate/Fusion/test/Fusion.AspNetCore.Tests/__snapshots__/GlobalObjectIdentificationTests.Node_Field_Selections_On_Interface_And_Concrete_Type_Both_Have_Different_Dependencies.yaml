@@ -86,51 +86,29 @@ sourceSchemas:
       }
     interactions:
       - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query testQuery_f7a0a31d_3(
-                  $id: ID!
-                ) {
-                  node(id: $id) {
-                    __typename
-                    ... on Item2 {
-                      __typename
-                      id
-                      products {
-                        id
-                      }
-                      singularProduct {
-                        id
-                      }
-                    }
+          document: |
+            query testQuery_f7a0a31d_3(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+                ... on Item2 {
+                  __typename
+                  id
+                  products {
+                    id
+                  }
+                  singularProduct {
+                    id
                   }
                 }
-              variables: |
-                {
-                  "id": "SXRlbTI6MQ=="
-                }
-            - document: |
-                query testQuery_f7a0a31d_6(
-                  $id: ID!
-                ) {
-                  node(id: $id) {
-                    __typename
-                    ... on Item1 {
-                      __typename
-                      id
-                      products {
-                        id
-                      }
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "id": "SXRlbTI6MQ=="
-                }
+              }
+            }
+          variables: |
+            {
+              "id": "SXRlbTI6MQ=="
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -152,14 +130,6 @@ sourceSchemas:
                     "singularProduct": {
                       "id": "UHJvZHVjdDo0"
                     }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "Item2"
                   }
                 }
               }
@@ -195,22 +165,10 @@ sourceSchemas:
               }
             }
           variables: |
-            [
-              {
-                "__fusion_1_id": "UHJvZHVjdDo0"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDox"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDoy"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDoz"
-              }
-            ]
+            {
+              "__fusion_1_id": "UHJvZHVjdDo0"
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -221,6 +179,33 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          document: |
+            query testQuery_f7a0a31d_5(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
             - |
               {
                 "data": {
@@ -282,6 +267,7 @@ operationPlan:
       idValue: $id
       responseName: node
       branches:
+        - Item1: 6
         - Item2: 3
       fallback: 2
     - id: 2
@@ -320,11 +306,54 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 3
       forwardedVariables:
         - id
       dependencies:
         - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_f7a0a31d_4(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item2>.singularProduct
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_f7a0a31d_5(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item2>.products
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
     - id: 6
       type: Operation
       schema: A
@@ -343,36 +372,10 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 3
       forwardedVariables:
         - id
       dependencies:
         - id: 1
-    - id: 4
-      type: OperationBatch
-      schema: B
-      operation: |
-        query testQuery_f7a0a31d_4(
-          $__fusion_1_id: ID!
-        ) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
-      source: $.node<Product>
-      targets:
-        - $.node<Item2>.singularProduct
-        - $.node<Item2>.products
-      batchingGroupId: 4
-      requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 3
     - id: 7
       type: Operation
       schema: B
@@ -389,7 +392,6 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item1>.products
-      batchingGroupId: 4
       requirements:
         - name: __fusion_3_id
           selectionMap: >-

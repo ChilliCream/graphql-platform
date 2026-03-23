@@ -158,7 +158,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query Op_192dc5f8_2(
@@ -169,7 +169,9 @@ operationPlan:
           }
         }
       source: $.bookById
-      target: $.a.book
+      targets:
+        - $.a.book
+        - $.b.book
       batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
@@ -177,25 +179,6 @@ operationPlan:
             id
       dependencies:
         - id: 1
-    - id: 4
-      type: Operation
-      schema: B
-      operation: |
-        query Op_192dc5f8_4(
-          $__fusion_2_id: Int!
-        ) {
-          bookById(id: $__fusion_2_id) {
-            author
-          }
-        }
-      source: $.bookById
-      target: $.b.book
-      batchingGroupId: 2
-      requirements:
-        - name: __fusion_2_id
-          selectionMap: >-
-            id
-      dependencies:
         - id: 3
     - id: 3
       type: Operation
