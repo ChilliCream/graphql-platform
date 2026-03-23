@@ -17,6 +17,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
+/// <summary>
+/// Provides the execution context for a single Fusion operation plan execution.
+/// </summary>
 public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
@@ -40,14 +43,29 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private int _nodeSlotCapacity;
     internal OperationPlanContextPool? _pool;
 
+    /// <summary>
+    /// Gets the operation plan being executed.
+    /// </summary>
     public OperationPlan OperationPlan { get; private set; } = default!;
 
+    /// <summary>
+    /// Gets the coerced variable values for the current request.
+    /// </summary>
     public IVariableValueCollection Variables { get; private set; } = default!;
 
+    /// <summary>
+    /// Gets the schema definition associated with this execution.
+    /// </summary>
     public ISchemaDefinition Schema => RequestContext.Schema;
 
+    /// <summary>
+    /// Gets the request context for the current request.
+    /// </summary>
     public RequestContext RequestContext { get; private set; } = default!;
 
+    /// <summary>
+    /// Gets the source schema client scope used to obtain HTTP clients for downstream subgraphs.
+    /// </summary>
     public ISourceSchemaClientScope ClientScope => _clientScope;
 
     internal ExecutionState ExecutionState => _executionState;
@@ -55,12 +73,25 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal bool IsNodeSkipped(int nodeId)
         => _executionState.IsNodeSkipped(nodeId);
 
+    /// <summary>
+    /// Gets the evaluated include flags derived from <c>@skip</c> and <c>@include</c> directives.
+    /// </summary>
     public ulong IncludeFlags { get; private set; }
 
+    /// <summary>
+    /// Gets a value indicating whether operation plan telemetry is being collected for this request.
+    /// </summary>
     public bool CollectTelemetry => _collectTelemetry;
 
+    /// <summary>
+    /// Gets the feature collection associated with the current request.
+    /// </summary>
     public IFeatureCollection Features => RequestContext.Features;
 
+    /// <summary>
+    /// Gets the execution traces collected during plan execution.
+    /// Only populated when <see cref="CollectTelemetry"/> is <c>true</c>.
+    /// </summary>
     public ImmutableDictionary<int, ExecutionNodeTrace> Traces { get; internal set; } =
 #if NET10_0_OR_GREATER
         [];
@@ -68,6 +99,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
 #endif
 
+    /// <summary>
+    /// Gets the diagnostic events handler for the Fusion execution pipeline.
+    /// </summary>
     public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
     internal void EnqueueForExecution(ExecutionNode node, ExecutionNode dependentNode)
@@ -113,6 +147,14 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal void SetDynamicSchemaName(ExecutionNode node, string schemaName)
         => _schemaNames[node.Id] = schemaName;
 
+    /// <summary>
+    /// Gets the dynamically resolved schema name for the specified execution node.
+    /// </summary>
+    /// <param name="node">The execution node whose schema name to retrieve.</param>
+    /// <returns>The schema name assigned to the node.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when no schema name has been assigned to the node.
+    /// </exception>
     public string GetDynamicSchemaName(ExecutionNode node)
     {
         var schemaName = _schemaNames[node.Id];
@@ -460,6 +502,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             : variables;
     }
 
+    /// <summary>
+    /// Gets or creates a source schema client for the specified schema and operation type.
+    /// </summary>
+    /// <param name="schemaName">The name of the downstream subgraph schema.</param>
+    /// <param name="operationType">The GraphQL operation type (query, mutation, subscription).</param>
+    /// <returns>The source schema client for communicating with the downstream subgraph.</returns>
     public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
@@ -467,6 +515,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         return ClientScope.GetClient(schemaName, operationType);
     }
 
+    /// <summary>
+    /// Tries to extract the type name from a relay-style global node identifier.
+    /// </summary>
+    /// <param name="id">The global node identifier to parse.</param>
+    /// <param name="typeName">When successful, the extracted type name.</param>
+    /// <returns><c>true</c> if the type name was successfully extracted; otherwise, <c>false</c>.</returns>
     public bool TryParseTypeNameFromId(string id, [NotNullWhen(true)] out string? typeName)
         => _nodeIdParser.TryParseTypeName(id, out typeName);
 
