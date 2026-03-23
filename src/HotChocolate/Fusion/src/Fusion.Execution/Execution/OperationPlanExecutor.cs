@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -18,7 +19,9 @@ internal sealed class OperationPlanExecutor
         // without also cancelling the entire request pipeline.
         using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        await using var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
+        await using var context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
+        context.Initialize(requestContext, variables, operationPlan, executionCts);
+
         context.Begin();
 
         switch (operationPlan.Operation.Definition.Operation)
@@ -67,7 +70,9 @@ internal sealed class OperationPlanExecutor
 
         try
         {
-            context = new OperationPlanContext(requestContext, operationPlan, executionCts);
+            context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
+            context.Initialize(requestContext, requestContext.VariableValues[0], operationPlan, executionCts);
+
             var subscriptionResult = await subscriptionNode.SubscribeAsync(context, executionCts.Token);
             var executionState = context.ExecutionState;
 
@@ -97,6 +102,11 @@ internal sealed class OperationPlanExecutor
             if (cancellationRegistration is { } r)
             {
                 await r.DisposeAsync();
+            }
+
+            if (context is { } c)
+            {
+                await c.DisposeAsync();
             }
 
             throw;
