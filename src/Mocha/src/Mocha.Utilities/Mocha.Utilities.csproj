@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.Utilities</AssemblyName>
+    <RootNamespace>Mocha</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Mocha" />
+    <InternalsVisibleTo Include="Mocha.Mediator" />
+    <InternalsVisibleTo Include="Mocha.EntityFrameworkCore" />
+    <InternalsVisibleTo Include="Mocha.EntityFrameworkCore.Postgres" />
+    <InternalsVisibleTo Include="Mocha.Transport.Postgres" />
+    <InternalsVisibleTo Include="Mocha.Tests" />
+  </ItemGroup>
+</Project>
