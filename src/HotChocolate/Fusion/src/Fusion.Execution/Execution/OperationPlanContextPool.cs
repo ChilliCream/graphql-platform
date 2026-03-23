@@ -1,16 +1,23 @@
 using System.Diagnostics;
-using static HotChocolate.Fusion.Execution.Results.FetchResultStorePoolEventSource;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Diagnostics;
+using static HotChocolate.Fusion.Execution.OperationPlanContextPoolEventSource;
 
-namespace HotChocolate.Fusion.Execution.Results;
+namespace HotChocolate.Fusion.Execution;
 
-internal sealed class FetchResultStorePool : IDisposable
+internal sealed class OperationPlanContextPool : IDisposable
 {
-    private const int MaxCollectTargetRetainLength = 256;
-    private const int MaxDictionaryRetainCapacity = 256;
-
     private readonly Bucket _bucket;
+    private readonly INodeIdParser _nodeIdParser;
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly IErrorHandler _errorHandler;
 
-    public FetchResultStorePool(int[] levels, TimeSpan trimInterval)
+    public OperationPlanContextPool(
+        INodeIdParser nodeIdParser,
+        IFusionExecutionDiagnosticEvents diagnosticEvents,
+        IErrorHandler errorHandler,
+        int[] levels,
+        TimeSpan trimInterval)
     {
         Debug.Assert(
             levels.Length > 0,
@@ -19,34 +26,38 @@ internal sealed class FetchResultStorePool : IDisposable
             trimInterval.TotalSeconds > 10,
             "Trim interval should be greater than 10 seconds to avoid excessive trimming.");
 
+        _nodeIdParser = nodeIdParser;
+        _diagnosticEvents = diagnosticEvents;
+        _errorHandler = errorHandler;
         _bucket = new Bucket(levels, trimInterval);
     }
 
-    public FetchResultStore Rent()
+    public OperationPlanContext Rent()
     {
-        var store = _bucket.Rent();
+        var context = _bucket.Rent();
 
-        if (store is null)
+        if (context is null)
         {
-            store = new FetchResultStore();
-            Log.StoreMiss();
+            context = new OperationPlanContext(_nodeIdParser, _diagnosticEvents, _errorHandler);
+            Log.ContextMiss();
         }
         else
         {
-            Log.StoreHit();
+            Log.ContextHit();
         }
 
-        return store;
+        context._pool = this;
+        return context;
     }
 
-    public void Return(FetchResultStore store)
+    public void Return(OperationPlanContext context)
     {
-        store.Clean(MaxCollectTargetRetainLength, MaxDictionaryRetainCapacity);
+        context.Clean();
 
-        if (!_bucket.Return(store))
+        if (!_bucket.Return(context))
         {
-            store.Dispose();
-            Log.StoreDropped();
+            context.Destroy();
+            Log.ContextDropped();
         }
     }
 
@@ -54,7 +65,7 @@ internal sealed class FetchResultStorePool : IDisposable
 
     private sealed class Bucket : IDisposable
     {
-        private readonly FetchResultStore?[] _stores;
+        private readonly OperationPlanContext?[] _stores;
         private readonly int[] _levels;
         private readonly Timer _trimTimer;
         private int _currentLevel;
@@ -64,18 +75,18 @@ internal sealed class FetchResultStorePool : IDisposable
 
         internal Bucket(int[] levels, TimeSpan trimInterval)
         {
-            _stores = new FetchResultStore?[levels[levels.Length - 1]];
+            _stores = new OperationPlanContext?[levels[levels.Length - 1]];
             _levels = levels;
             _currentLevel = 0;
             _lock = new SpinLock(Debugger.IsAttached);
             _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimInterval, trimInterval);
         }
 
-        internal FetchResultStore? Rent()
+        internal OperationPlanContext? Rent()
         {
             Interlocked.Increment(ref _inUse);
 
-            FetchResultStore? store = null;
+            OperationPlanContext? context = null;
             var lockTaken = false;
 
             try
@@ -89,7 +100,7 @@ internal sealed class FetchResultStorePool : IDisposable
 
                 if (_index < _levels[_currentLevel])
                 {
-                    store = _stores[_index];
+                    context = _stores[_index];
                     _stores[_index++] = null;
                 }
             }
@@ -101,10 +112,10 @@ internal sealed class FetchResultStorePool : IDisposable
                 }
             }
 
-            return store;
+            return context;
         }
 
-        internal bool Return(FetchResultStore store)
+        internal bool Return(OperationPlanContext context)
         {
             Interlocked.Decrement(ref _inUse);
 
@@ -117,7 +128,7 @@ internal sealed class FetchResultStorePool : IDisposable
 
                 if (_index > 0)
                 {
-                    _stores[--_index] = store;
+                    _stores[--_index] = context;
                     accepted = true;
                 }
             }
@@ -159,9 +170,9 @@ internal sealed class FetchResultStorePool : IDisposable
 
                 for (var i = previousLimit; i < currentLimit; i++)
                 {
-                    if (_stores[i] is { } store)
+                    if (_stores[i] is { } context)
                     {
-                        store.Dispose();
+                        context.Destroy();
                         _stores[i] = null;
                     }
                 }
@@ -189,7 +200,7 @@ internal sealed class FetchResultStorePool : IDisposable
 
             for (var i = 0; i < _stores.Length; i++)
             {
-                _stores[i]?.Dispose();
+                _stores[i]?.Destroy();
                 _stores[i] = null;
             }
         }

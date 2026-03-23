@@ -58,6 +58,21 @@ public sealed class OperationPlannerOptions
     } = true;
 
     /// <summary>
+    /// Gets or sets how aggressively structurally-identical operations are merged
+    /// to reduce downstream request count. Cycle safety is always enforced regardless
+    /// of this setting.
+    /// </summary>
+    public OperationMergePolicy MergePolicy
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = OperationMergePolicy.Aggressive;
+
+    /// <summary>
     /// Gets or sets the weight applied for each operation beyond the fan-out penalty threshold.
     /// </summary>
     public double ExcessFanoutWeight

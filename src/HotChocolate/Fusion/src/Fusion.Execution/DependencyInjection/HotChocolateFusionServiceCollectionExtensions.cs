@@ -1,10 +1,11 @@
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -78,15 +79,18 @@ public static class HotChocolateFusionServiceCollectionExtensions
 
         var builder = new DefaultFusionGatewayBuilder(services, name);
         builder.AddDocumentCache();
-        builder.AddFetchResultStorePool();
+        builder.AddOperationPlanContextPool();
         builder.UseDefaultPipeline();
         return builder;
     }
 
-    private static void AddFetchResultStorePool(this IFusionGatewayBuilder builder)
+    private static void AddOperationPlanContextPool(this IFusionGatewayBuilder builder)
         => builder.ConfigureSchemaServices(
             static (_, s) => s.TryAddSingleton(
-                new FetchResultStorePool(
+                sp => new OperationPlanContextPool(
+                    sp.GetRequiredService<INodeIdParser>(),
+                    sp.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
+                    sp.GetRequiredService<IErrorHandler>(),
                     levels: [64, 128, 256, 512, 1024, 2048, 4096],
                     trimInterval: TimeSpan.FromMinutes(2))));
 
