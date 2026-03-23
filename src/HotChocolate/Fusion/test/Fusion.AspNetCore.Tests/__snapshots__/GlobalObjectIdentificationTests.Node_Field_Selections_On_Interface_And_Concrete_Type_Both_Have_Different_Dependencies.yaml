@@ -165,22 +165,10 @@ sourceSchemas:
               }
             }
           variables: |
-            [
-              {
-                "__fusion_1_id": "UHJvZHVjdDo0"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDox"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDoy"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDoz"
-              }
-            ]
+            {
+              "__fusion_1_id": "UHJvZHVjdDo0"
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -191,6 +179,33 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          document: |
+            query testQuery_f7a0a31d_5(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
             - |
               {
                 "data": {
@@ -291,13 +306,12 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
         - id: 1
     - id: 4
-      type: OperationBatch
+      type: Operation
       schema: B
       operation: |
         query testQuery_f7a0a31d_4(
@@ -311,12 +325,31 @@ operationPlan:
           }
         }
       source: $.node<Product>
-      targets:
-        - $.node<Item2>.singularProduct
-        - $.node<Item2>.products
-      batchingGroupId: 2
+      target: $.node<Item2>.singularProduct
       requirements:
         - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_f7a0a31d_5(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item2>.products
+      requirements:
+        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
@@ -339,7 +372,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -360,7 +392,6 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item1>.products
-      batchingGroupId: 2
       requirements:
         - name: __fusion_3_id
           selectionMap: >-

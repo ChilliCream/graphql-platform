@@ -90,7 +90,7 @@ nodes:
       }
     source: $.productById
     target: $.product
-    batchingGroupId: 1
+    batchingGroupId: 5
     requirements:
       - name: __fusion_6_price
         selectionMap: >-
@@ -98,6 +98,36 @@ nodes:
       - name: __fusion_7_id
         selectionMap: >-
           id
+    dependencies:
+      - id: 1
+      - id: 6
+  - id: 8
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_8(
+        $__fusion_11_id: ID!
+          $__fusion_12_price: Float!
+          $__fusion_13_hasDiscount: Boolean!
+      ) {
+        productById(id: $__fusion_11_id) {
+          isExpensive(price: $__fusion_12_price)
+          isExpensiveWithDiscount(hasDiscount: $__fusion_13_hasDiscount)
+        }
+      }
+    source: $.productById
+    target: $.product
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_11_id
+        selectionMap: >-
+          id
+      - name: __fusion_12_price
+        selectionMap: >-
+          price
+      - name: __fusion_13_hasDiscount
+        selectionMap: >-
+          hasDiscount
     dependencies:
       - id: 1
       - id: 6
@@ -147,34 +177,4 @@ nodes:
           isExpensiveWithDiscount
     dependencies:
       - id: 1
-      - id: 8
-  - id: 8
-    type: Operation
-    schema: c
-    operation: |
-      query Op_123456789101112_8(
-        $__fusion_11_id: ID!
-          $__fusion_12_price: Float!
-          $__fusion_13_hasDiscount: Boolean!
-      ) {
-        productById(id: $__fusion_11_id) {
-          isExpensive(price: $__fusion_12_price)
-          isExpensiveWithDiscount(hasDiscount: $__fusion_13_hasDiscount)
-        }
-      }
-    source: $.productById
-    target: $.product
-    batchingGroupId: 1
-    requirements:
-      - name: __fusion_11_id
-        selectionMap: >-
-          id
-      - name: __fusion_12_price
-        selectionMap: >-
-          price
-      - name: __fusion_13_hasDiscount
-        selectionMap: >-
-          hasDiscount
-    dependencies:
-      - id: 1
-      - id: 6
+      - id: 5

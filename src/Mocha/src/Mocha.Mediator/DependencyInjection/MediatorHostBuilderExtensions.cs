@@ -9,62 +9,19 @@ namespace Mocha.Mediator;
 public static class MediatorHostBuilderExtensions
 {
     /// <summary>
-    /// Appends a middleware to the end of the pipeline.
+    /// Adds a middleware to the pipeline. When neither <paramref name="before"/> nor <paramref name="after"/>
+    /// is specified the middleware is appended to the end of the pipeline.
     /// </summary>
     public static IMediatorHostBuilder Use(
         this IMediatorHostBuilder builder,
-        MediatorMiddlewareConfiguration middleware)
+        MediatorMiddlewareConfiguration middleware,
+        string? before = null,
+        string? after = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(middleware);
 
-        builder.ConfigureMediator(b => b.Use(middleware));
-        return builder;
-    }
-
-    /// <summary>
-    /// Inserts a middleware after the middleware identified by <paramref name="after"/>.
-    /// </summary>
-    public static IMediatorHostBuilder Append(
-        this IMediatorHostBuilder builder,
-        string after,
-        MediatorMiddlewareConfiguration middleware)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(after);
-        ArgumentNullException.ThrowIfNull(middleware);
-
-        builder.ConfigureMediator(b => b.Append(after, middleware));
-        return builder;
-    }
-
-    /// <summary>
-    /// Inserts a middleware at the beginning of the pipeline.
-    /// </summary>
-    public static IMediatorHostBuilder Prepend(
-        this IMediatorHostBuilder builder,
-        MediatorMiddlewareConfiguration middleware)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(middleware);
-
-        builder.ConfigureMediator(b => b.Prepend(middleware));
-        return builder;
-    }
-
-    /// <summary>
-    /// Inserts a middleware before the middleware identified by <paramref name="before"/>.
-    /// </summary>
-    public static IMediatorHostBuilder Prepend(
-        this IMediatorHostBuilder builder,
-        string before,
-        MediatorMiddlewareConfiguration middleware)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(before);
-        ArgumentNullException.ThrowIfNull(middleware);
-
-        builder.ConfigureMediator(b => b.Prepend(before, middleware));
+        builder.ConfigureMediator(b => b.Use(middleware, before: before, after: after));
         return builder;
     }
 

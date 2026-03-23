@@ -3,7 +3,7 @@ import { check } from "k6";
 import { Rate } from "k6/metrics";
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
-const GRAPHQL_URL = 'http://localhost:5000/graphql';
+const GRAPHQL_URL = 'http://localhost:5220/graphql';
 const endpoint = __ENV.GATEWAY_ENDPOINT || GRAPHQL_URL;
 const mode = __ENV.MODE || "constant";
 const isConstant = mode === "constant";

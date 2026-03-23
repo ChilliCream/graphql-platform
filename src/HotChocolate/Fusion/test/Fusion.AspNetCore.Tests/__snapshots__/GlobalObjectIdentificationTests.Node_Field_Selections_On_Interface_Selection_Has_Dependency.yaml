@@ -250,7 +250,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -271,7 +270,6 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item2>.products
-      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -296,7 +294,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -317,7 +314,6 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item1>.products
-      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

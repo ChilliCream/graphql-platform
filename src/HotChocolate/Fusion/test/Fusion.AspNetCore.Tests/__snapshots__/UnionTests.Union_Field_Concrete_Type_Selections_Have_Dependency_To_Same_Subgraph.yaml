@@ -188,7 +188,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.post<Discussion>.author
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -208,7 +208,7 @@ operationPlan:
         }
       source: $.productById
       target: $.post<Photo>.product
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

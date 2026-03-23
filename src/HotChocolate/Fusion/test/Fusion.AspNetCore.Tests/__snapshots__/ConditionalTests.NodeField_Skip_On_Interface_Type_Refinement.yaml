@@ -133,7 +133,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - skip
       dependencies:
@@ -155,7 +154,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - skip
       dependencies:

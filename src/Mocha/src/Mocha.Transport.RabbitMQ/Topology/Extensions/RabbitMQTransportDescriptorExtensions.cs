@@ -14,8 +14,10 @@ public static class RabbitMQTransportDescriptorExtensions
         descriptor.AddConvention(new RabbitMQReceiveEndpointTopologyConvention());
         descriptor.AddConvention(new RabbitMQDispatchEndpointTopologyConvention());
 
-        descriptor.AppendReceive(ReceiveMiddlewares.ConcurrencyLimiter.Key, RabbitMQReceiveMiddlewares.Acknowledgement);
-        descriptor.AppendReceive(RabbitMQReceiveMiddlewares.Acknowledgement.Key, RabbitMQReceiveMiddlewares.Parsing);
+        descriptor
+            .UseReceive(RabbitMQReceiveMiddlewares.Acknowledgement, after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
+        descriptor
+            .UseReceive(RabbitMQReceiveMiddlewares.Parsing, after: RabbitMQReceiveMiddlewares.Acknowledgement.Key);
 
         return descriptor;
     }

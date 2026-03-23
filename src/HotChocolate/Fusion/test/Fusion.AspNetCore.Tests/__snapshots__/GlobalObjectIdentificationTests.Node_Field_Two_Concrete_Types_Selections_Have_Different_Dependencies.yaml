@@ -245,7 +245,6 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Review>.product
-      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -289,7 +288,6 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Discussion>.product
-      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

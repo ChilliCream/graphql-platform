@@ -18,6 +18,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     private readonly List<int> _trackedNodeStateSlots = [];
     private readonly List<int> _trackedDependencySlots = [];
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
+    private readonly HashSet<int> _failedOrSkippedNodes = [];
 
     private byte[] _nodeStates = [];
     private int[] _remainingDependencies = [];
@@ -27,10 +28,15 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     public readonly OrderedDictionary<int, ExecutionNodeTrace> Traces = [];
     public readonly AsyncAutoResetEvent Signal = new();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsNodeSkipped(int nodeId)
+        => _failedOrSkippedNodes.Contains(nodeId);
+
     public void FillBacklog(OperationPlan plan)
     {
         _ready.Clear();
         _backlogCount = 0;
+        _failedOrSkippedNodes.Clear();
 
         ResetNodeStates();
         ResetRemainingDependencies();
@@ -84,6 +90,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         _stack.Clear();
         _ready.Clear();
         _backlogCount = 0;
+        _failedOrSkippedNodes.Clear();
 
         ResetNodeStates();
         ResetRemainingDependencies();
@@ -106,7 +113,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     {
         Interlocked.Increment(ref _activeNodes);
 
-        if ((uint)node.Id < (uint)_remainingDependencies.Length)
+        if (node.Id < _remainingDependencies.Length)
         {
             _remainingDependencies[node.Id] = -1;
         }
@@ -133,7 +140,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     }
 
     public void CompleteNode(
-        OperationPlanContext context,
+        OperationPlan plan,
         ExecutionNode node,
         ExecutionNodeResult result)
     {
@@ -161,30 +168,54 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                 });
         }
 
+        // When a batch node executes it may skip some of its individual operations
+        // because their specific dependencies failed. We record those operation
+        // definition identifiers here so that downstream nodes that depend on a
+        // particular operation inside the batch can see that it was skipped.
+        if (!result.SkippedDefinitions.IsDefaultOrEmpty)
+        {
+            foreach (var def in result.SkippedDefinitions)
+            {
+                _failedOrSkippedNodes.Add(def.Id);
+            }
+        }
+
         if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
         {
+            // a node can explicitly choose which of its dependents should run
+            // by calling EnqueueDependentForExecution during execution.
+            // if it did, any dependent not in that list is skipped.
             if (result.DependentsToExecute.Length > 0)
             {
                 var dependentsToExecute = result.DependentsToExecute;
 
                 foreach (var dependent in node.Dependents)
                 {
-                    if (!ContainsDependent(dependentsToExecute, dependent))
+                    var executionDependent = plan.GetExecutionNode(dependent);
+
+                    if (!ContainsDependent(dependentsToExecute, executionDependent))
                     {
-                        SkipNode(context, dependent);
+                        SkipNode(plan, executionDependent);
                     }
                 }
             }
 
+            // decrement the remaining dependency count for each dependent.
+            // when a dependent's count reaches 0 all its dependencies are
+            // fulfilled and it is ready to execute.
             foreach (var dependent in node.Dependents)
             {
-                if ((uint)dependent.Id >= (uint)_remainingDependencies.Length)
+                // When the dependent is an operation definition inside a batch,
+                // there is no backlog entry to update. The batch node's own
+                // execution-level dependencies handle its scheduling. We just
+                // need to track the remaining dependency count for execution nodes.
+                var executionNode = plan.GetExecutionNode(dependent);
+                if (executionNode.Id >= _remainingDependencies.Length)
                 {
                     continue;
                 }
 
-                var remainingDependencies = _remainingDependencies[dependent.Id];
-
+                var remainingDependencies = _remainingDependencies[executionNode.Id];
                 if (remainingDependencies <= 0)
                 {
                     continue;
@@ -192,32 +223,44 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
                 if (remainingDependencies == 1)
                 {
-                    _remainingDependencies[dependent.Id] = 0;
-                    _ready.Add(dependent);
+                    _remainingDependencies[executionNode.Id] = 0;
+                    _ready.Add(executionNode);
                 }
                 else if (remainingDependencies > 1)
                 {
-                    _remainingDependencies[dependent.Id] = remainingDependencies - 1;
+                    _remainingDependencies[executionNode.Id] = remainingDependencies - 1;
                 }
             }
         }
 
         if (result.Status is ExecutionStatus.Skipped or ExecutionStatus.Failed)
         {
-            SkipNode(context, node);
+            SkipNode(plan, node);
         }
     }
 
-    public void SkipNode(OperationPlanContext context, ExecutionNode node)
+    public void SkipNode(OperationPlan plan, ExecutionNode node)
     {
         _stack.Clear();
         _stack.Push(node);
 
         while (_stack.TryPop(out var current))
         {
-            context.SourceSchemaDispatcher.SkipNode(current.Id);
+            _failedOrSkippedNodes.Add(current.Id);
 
-            if ((uint)current.Id < (uint)_remainingDependencies.Length)
+            // When a batch node is skipped without executing, every operation
+            // definition inside it is also skipped. We mark each of their
+            // identifiers so that downstream nodes that depend on a specific
+            // operation inside the batch will see it as skipped.
+            if (current is OperationBatchExecutionNode batchNode)
+            {
+                foreach (var op in batchNode.Operations)
+                {
+                    _failedOrSkippedNodes.Add(op.Id);
+                }
+            }
+
+            if (current.Id < _remainingDependencies.Length)
             {
                 _remainingDependencies[current.Id] = -1;
             }
@@ -239,18 +282,104 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
             foreach (var dependent in current.Dependents)
             {
-                if ((uint)dependent.Id >= (uint)_remainingDependencies.Length
-                    || _remainingDependencies[dependent.Id] < 0)
+                // When the dependent is an operation definition inside a batch,
+                // we mark it as skipped so that the batch node can check each
+                // operation's dependencies during execution and skip the ones
+                // whose dependencies failed.
+                if (dependent is not ExecutionNode)
+                {
+                    _failedOrSkippedNodes.Add(dependent.Id);
+                    continue;
+                }
+
+                var dependentNode = plan.GetExecutionNode(dependent);
+
+                if (dependentNode.Id >= _remainingDependencies.Length
+                    || _remainingDependencies[dependentNode.Id] < 0)
                 {
                     continue;
                 }
 
-                if (IsInBacklog(dependent.Id))
+                if (!IsInBacklog(dependentNode.Id))
                 {
-                    _stack.Push(dependent);
+                    continue;
+                }
+
+                // Fast path: no optional dependencies, use existing behavior.
+                if (dependentNode.OptionalDependencies.Length == 0)
+                {
+                    _stack.Push(dependentNode);
+                    continue;
+                }
+
+                // Check if the failed node is an optional dependency of the dependent.
+                if (IsOptionalDependency(dependentNode, current))
+                {
+                    // Optional dependency failed: decrement counter but don't cascade skip.
+                    var remaining = _remainingDependencies[dependentNode.Id];
+
+                    if (remaining == 1)
+                    {
+                        _remainingDependencies[dependentNode.Id] = 0;
+
+                        // All deps resolved. If the node has no required deps and all
+                        // optional deps failed, skip it (nothing useful to execute).
+                        if (ShouldSkipDueToAllOptionalDepsFailed(dependentNode))
+                        {
+                            _stack.Push(dependentNode);
+                        }
+                        else
+                        {
+                            _ready.Add(dependentNode);
+                        }
+                    }
+                    else if (remaining > 1)
+                    {
+                        _remainingDependencies[dependentNode.Id] = remaining - 1;
+                    }
+                }
+                else
+                {
+                    // Required dependency failed: cascade skip (existing behavior).
+                    _stack.Push(dependentNode);
                 }
             }
         }
+    }
+
+    private bool ShouldSkipDueToAllOptionalDepsFailed(ExecutionNode node)
+    {
+        // If the node has any required dependencies, it should not be skipped here.
+        // Required deps that failed would have already cascaded a skip; if we reach
+        // this point the required deps must have succeeded.
+        if (node.Dependencies.Length > 0)
+        {
+            return false;
+        }
+
+        // All dependencies are optional. Check if every one of them failed or was skipped.
+        foreach (var optDep in node.OptionalDependencies)
+        {
+            if (!_failedOrSkippedNodes.Contains(optDep.Id))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsOptionalDependency(ExecutionNode dependent, ExecutionNode dependency)
+    {
+        foreach (var optDep in dependent.OptionalDependencies)
+        {
+            if (ReferenceEquals(optDep, dependency))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public bool EnqueueNextNodes(OperationPlanContext context, CancellationToken cancellationToken)
@@ -266,7 +395,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         foreach (var node in _ready)
         {
-            if ((uint)node.Id < (uint)_remainingDependencies.Length
+            if (node.Id < _remainingDependencies.Length
                 && _remainingDependencies[node.Id] == 0)
             {
                 if (node.Id < previousId)
@@ -286,7 +415,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             {
                 var node = _ready[i];
 
-                if ((uint)node.Id < (uint)_remainingDependencies.Length
+                if (node.Id < _remainingDependencies.Length
                     && _remainingDependencies[node.Id] == 0)
                 {
                     StartNode(context, node, cancellationToken);
@@ -304,7 +433,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         {
             var node = _ready[i];
 
-            if ((uint)node.Id < (uint)_remainingDependencies.Length
+            if (node.Id < _remainingDependencies.Length
                 && _remainingDependencies[node.Id] == 0)
             {
                 _stack.Push(node);
@@ -358,7 +487,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsInBacklog(int nodeId)
-        => (uint)nodeId < (uint)_nodeStates.Length
+        => nodeId < _nodeStates.Length
             && _nodeStates[nodeId] == NodeStateBacklog;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -382,7 +511,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     {
         var nodeId = node.Id;
 
-        if ((uint)nodeId >= (uint)_nodeStates.Length)
+        if (nodeId >= _nodeStates.Length)
         {
             EnsureNodeStateCapacity(nodeId + 1);
         }
@@ -400,7 +529,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         _nodeStates[nodeId] = NodeStateBacklog;
         _backlogCount++;
 
-        var remainingDependencies = node.Dependencies.Length;
+        var remainingDependencies = node.Dependencies.Length + node.OptionalDependencies.Length;
         EnsureDependencyCapacity(nodeId + 1);
         _remainingDependencies[nodeId] = remainingDependencies;
         _trackedDependencySlots.Add(nodeId);

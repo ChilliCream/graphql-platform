@@ -38,23 +38,32 @@ public class ConsumerDescriptor : MessagingDescriptorBase<ConsumerConfiguration>
     }
 
     /// <inheritdoc />
-    public IConsumerDescriptor UseConsumer(ConsumerMiddlewareConfiguration configuration)
+    public IConsumerDescriptor UseConsumer(
+        ConsumerMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        Configuration.ConsumerMiddlewares.Add(configuration);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
 
-    /// <inheritdoc />
-    public IConsumerDescriptor AppendConsumer(string after, ConsumerMiddlewareConfiguration configuration)
-    {
-        Configuration.ConsumerPipelineModifiers.Append(configuration, after);
-        return this;
-    }
+        if (before is null && after is null)
+        {
+            Configuration.ConsumerMiddlewares.Add(configuration);
+            return this;
+        }
 
-    /// <inheritdoc />
-    public IConsumerDescriptor PrependConsumer(string before, ConsumerMiddlewareConfiguration configuration)
-    {
-        Configuration.ConsumerPipelineModifiers.Prepend(configuration, before);
+        if (before is not null)
+        {
+            Configuration.ConsumerPipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.ConsumerPipelineModifiers.Append(configuration, after);
+        }
+
         return this;
     }
 

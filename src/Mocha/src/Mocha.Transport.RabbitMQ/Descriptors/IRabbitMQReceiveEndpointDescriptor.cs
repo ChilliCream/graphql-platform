@@ -41,11 +41,8 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     IRabbitMQReceiveEndpointDescriptor MaxPrefetch(ushort maxPrefetch);
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.UseReceive" />
-    new IRabbitMQReceiveEndpointDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.AppendReceive" />
-    new IRabbitMQReceiveEndpointDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.PrependReceive" />
-    new IRabbitMQReceiveEndpointDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration);
+    new IRabbitMQReceiveEndpointDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

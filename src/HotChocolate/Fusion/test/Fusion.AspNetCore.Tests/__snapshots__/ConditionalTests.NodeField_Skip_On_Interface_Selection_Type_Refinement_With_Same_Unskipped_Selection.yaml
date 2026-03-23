@@ -211,7 +211,6 @@ operationPlan:
         }
       source: $.authorById
       target: $.node<Discussion>.author
-      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -231,7 +230,6 @@ operationPlan:
         }
       source: $.authorById
       target: $.node<Discussion>.author
-      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

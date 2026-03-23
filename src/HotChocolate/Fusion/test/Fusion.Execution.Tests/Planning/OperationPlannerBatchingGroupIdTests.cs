@@ -26,9 +26,11 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
         var plan = PlanOperation(schema, QueryWithRepeatedLookups, enableRequestGrouping: false);
 
         // assert
+        // With grouping disabled, equivalent ops still merge into batch nodes,
+        // but no multi-operation batch groups are formed.
         Assert.All(
-            plan.AllNodes.OfType<OperationExecutionNode>(),
-            node => Assert.Null(node.BatchingGroupId));
+            plan.AllNodes.OfType<OperationBatchExecutionNode>(),
+            node => Assert.Equal(1, node.Operations.Length));
     }
 
     [Fact]
@@ -43,23 +45,24 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
 
         // assert
         // The two structurally equivalent schema-b lookups are merged into one
-        // OperationBatchExecutionNode by the dedup optimization, but the BatchingGroupId
-        // is retained from the pre-merge assignment.
+        // OperationBatchExecutionNode by the dedup optimization. The batch node
+        // contains a single BatchOperationDefinition with multiple targets.
         var schemaBBatchNode = Assert.Single(
             plan1.AllNodes.OfType<OperationBatchExecutionNode>(),
             t => t.SchemaName == "b");
-        Assert.True(schemaBBatchNode.BatchingGroupId.HasValue);
-        Assert.Equal(2, schemaBBatchNode.Targets.Length);
+        var schemaBBatchOp = Assert.Single(
+            schemaBBatchNode.Operations.ToArray().OfType<BatchOperationDefinition>());
+        Assert.Equal(2, schemaBBatchOp.Targets.Length);
 
-        // BatchingGroupIds must be deterministic across plan runs.
+        // Plan IDs must be deterministic across plan runs.
         var plan1Ids = plan1.AllNodes
             .OfType<OperationBatchExecutionNode>()
-            .Select(t => t.BatchingGroupId)
+            .Select(t => t.Id)
             .OrderBy(id => id)
             .ToArray();
         var plan2Ids = plan2.AllNodes
             .OfType<OperationBatchExecutionNode>()
-            .Select(t => t.BatchingGroupId)
+            .Select(t => t.Id)
             .OrderBy(id => id)
             .ToArray();
         Assert.Equal(plan1Ids, plan2Ids);
@@ -191,11 +194,9 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
         // assert
         var mutationNode = Assert.Single(mutationPlan.AllNodes.OfType<OperationExecutionNode>());
         Assert.Equal(OperationType.Mutation, mutationNode.Operation.Type);
-        Assert.Null(mutationNode.BatchingGroupId);
 
         var subscriptionNode = Assert.Single(subscriptionPlan.AllNodes.OfType<OperationExecutionNode>());
         Assert.Equal(OperationType.Subscription, subscriptionNode.Operation.Type);
-        Assert.Null(subscriptionNode.BatchingGroupId);
     }
 
     [Fact]
@@ -251,9 +252,6 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
         var json = new JsonOperationPlanFormatter().Format(plan);
 
         // assert
-        Assert.All(
-            plan.AllNodes.OfType<OperationExecutionNode>(),
-            node => Assert.Null(node.BatchingGroupId));
         Assert.DoesNotContain("batchingGroupId:", yaml, StringComparison.Ordinal);
         Assert.DoesNotContain("\"batchingGroupId\":", json, StringComparison.Ordinal);
     }

@@ -27,14 +27,9 @@ public interface IPostgresDispatchEndpointDescriptor
     /// <inheritdoc cref="IDispatchEndpointDescriptor{T}.Publish{TMessage}"/>
     new IPostgresDispatchEndpointDescriptor Publish<TMessage>();
 
-    /// <inheritdoc cref="IDispatchEndpointDescriptor{T}.UseDispatch(DispatchMiddlewareConfiguration)"/>
-    new IPostgresDispatchEndpointDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IDispatchEndpointDescriptor{T}.AppendDispatch(string, DispatchMiddlewareConfiguration)"/>
-    new IPostgresDispatchEndpointDescriptor AppendDispatch(string after, DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IDispatchEndpointDescriptor{T}.PrependDispatch(string, DispatchMiddlewareConfiguration)"/>
-    new IPostgresDispatchEndpointDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
+    /// <inheritdoc cref="IDispatchEndpointDescriptor{T}.UseDispatch(DispatchMiddlewareConfiguration, string?, string?)"/>
+    new IPostgresDispatchEndpointDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

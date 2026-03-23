@@ -190,7 +190,6 @@ operationPlan:
             id
       dependencies:
         - id: 3
-        - id: 4
     - id: 3
       type: Operation
       schema: A
@@ -206,7 +205,7 @@ operationPlan:
         }
       source: $.productById
       target: $.productById
-      batchingGroupId: 1
+      batchingGroupId: 3
       requirements:
         - name: __fusion_3_id
           selectionMap: >-
@@ -226,7 +225,7 @@ operationPlan:
         }
       source: $.productById
       target: $.productById
-      batchingGroupId: 1
+      batchingGroupId: 3
       requirements:
         - name: __fusion_4_id
           selectionMap: >-

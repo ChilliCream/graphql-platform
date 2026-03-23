@@ -33,63 +33,37 @@ public sealed class MediatorBuilder : IMediatorBuilder
     }
 
     /// <inheritdoc />
-    public IMediatorBuilder Use(MediatorMiddlewareConfiguration middleware)
+    public IMediatorBuilder Use(MediatorMiddlewareConfiguration middleware, string? before = null, string? after = null)
     {
         ArgumentNullException.ThrowIfNull(middleware);
 
-        _middlewares.Add(middleware);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
 
-    /// <inheritdoc />
-    public IMediatorBuilder Append(string after, MediatorMiddlewareConfiguration middleware)
-    {
-        ArgumentNullException.ThrowIfNull(after);
-        ArgumentNullException.ThrowIfNull(middleware);
+        if (before is null && after is null)
+        {
+            _middlewares.Add(middleware);
+            return this;
+        }
+
+        var anchor = (before ?? after)!;
 
         _pipelineModifiers.Add(pipeline =>
         {
-            var index = pipeline.FindIndex(m => m.Key == after);
+            var index = pipeline.FindIndex(m => m.Key == anchor);
 
-            if (index >= 0)
+            if (index == -1)
             {
-                pipeline.Insert(index + 1, middleware);
+                throw new InvalidOperationException(
+                    $"The middleware with the key `{anchor}` was not found.");
             }
-            else
-            {
-                pipeline.Add(middleware);
-            }
+
+            pipeline.Insert(before is not null ? index : index + 1, middleware);
         });
-        return this;
-    }
 
-    /// <inheritdoc />
-    public IMediatorBuilder Prepend(MediatorMiddlewareConfiguration middleware)
-    {
-        ArgumentNullException.ThrowIfNull(middleware);
-
-        _pipelineModifiers.Add(pipeline => pipeline.Insert(0, middleware));
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IMediatorBuilder Prepend(string before, MediatorMiddlewareConfiguration middleware)
-    {
-        ArgumentNullException.ThrowIfNull(before);
-        ArgumentNullException.ThrowIfNull(middleware);
-
-        _pipelineModifiers.Add(pipeline =>
-        {
-            var index = pipeline.FindIndex(m => m.Key == before);
-            if (index >= 0)
-            {
-                pipeline.Insert(index, middleware);
-            }
-            else
-            {
-                pipeline.Insert(0, middleware);
-            }
-        });
         return this;
     }
 

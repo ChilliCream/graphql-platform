@@ -38,12 +38,9 @@ public interface IPostgresReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <returns>The descriptor for method chaining.</returns>
     IPostgresReceiveEndpointDescriptor MaxBatchSize(int size);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.UseReceive(ReceiveMiddlewareConfiguration)"/>
-    new IPostgresReceiveEndpointDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.AppendReceive(string, ReceiveMiddlewareConfiguration)"/>
-    new IPostgresReceiveEndpointDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.PrependReceive(string, ReceiveMiddlewareConfiguration)"/>
-    new IPostgresReceiveEndpointDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration);
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.UseReceive(ReceiveMiddlewareConfiguration, string?, string?)"/>
+    new IPostgresReceiveEndpointDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }
