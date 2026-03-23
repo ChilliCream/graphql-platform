@@ -2,7 +2,6 @@ using Demo.Billing.Commands;
 using Demo.Billing.Data;
 using Demo.Billing.Handlers;
 using Demo.Billing.Queries;
-using Demo.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;

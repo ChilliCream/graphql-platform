@@ -86,7 +86,10 @@ public sealed class PostgresMessagingTransport : MessagingTransport
 
         var builder = new UriBuilder
         {
-            Scheme = Schema, Host = configuration.Host, Port = configuration.Port, Path = "/"
+            Scheme = Schema,
+            Host = configuration.Host,
+            Port = configuration.Port,
+            Path = "/"
         };
         _topology = new PostgresMessagingTopology(
             this,
@@ -225,7 +228,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
                     "outbound",
                     new Dictionary<string, object?>
                     {
-                        ["autoDelete"] = queue.AutoDelete, ["autoProvision"] = queue.AutoProvision
+                        ["autoDelete"] = queue.AutoDelete,
+                        ["autoProvision"] = queue.AutoProvision
                     }));
         }
 
@@ -352,7 +356,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             var queueName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
             configuration = new PostgresDispatchEndpointConfiguration
             {
-                QueueName = queueName, Name = "q/" + queueName
+                QueueName = queueName,
+                Name = "q/" + queueName
             };
         }
         else if (route.Kind == OutboundRouteKind.Publish)
@@ -360,7 +365,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             var topicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
             configuration = new PostgresDispatchEndpointConfiguration
             {
-                TopicName = topicName, Name = "t/" + topicName
+                TopicName = topicName,
+                Name = "t/" + topicName
             };
         }
 
@@ -385,7 +391,9 @@ public sealed class PostgresMessagingTransport : MessagingTransport
                 var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
                 configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    Kind = DispatchEndpointKind.Reply, QueueName = instanceEndpointName, Name = "Replies"
+                    Kind = DispatchEndpointKind.Reply,
+                    QueueName = instanceEndpointName,
+                    Name = "Replies"
                 };
             }
 
@@ -398,7 +406,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
                 {
                     configuration = new PostgresDispatchEndpointConfiguration
                     {
-                        TopicName = new string(topicName), Name = "t/" + new string(topicName)
+                        TopicName = new string(topicName),
+                        Name = "t/" + new string(topicName)
                     };
                 }
 
@@ -406,7 +415,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
                 {
                     configuration = new PostgresDispatchEndpointConfiguration
                     {
-                        QueueName = new string(queueName), Name = "q/" + new string(queueName)
+                        QueueName = new string(queueName),
+                        Name = "q/" + new string(queueName)
                     };
                 }
             }
@@ -421,7 +431,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             {
                 configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    TopicName = new string(topicName), Name = "t/" + new string(topicName)
+                    TopicName = new string(topicName),
+                    Name = "t/" + new string(topicName)
                 };
             }
 
@@ -429,7 +440,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             {
                 configuration = new PostgresDispatchEndpointConfiguration
                 {
-                    QueueName = new string(queueName), Name = "q/" + new string(queueName)
+                    QueueName = new string(queueName),
+                    Name = "q/" + new string(queueName)
                 };
             }
         }

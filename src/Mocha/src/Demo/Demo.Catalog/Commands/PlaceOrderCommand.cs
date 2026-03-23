@@ -29,10 +29,14 @@ public class PlaceOrderCommandHandler(CatalogDbContext db, IMessageBus messageBu
 
             var product = await db.Products.FindAsync(command.ProductId);
             if (product is null)
+            {
                 return new PlaceOrderResult(false, Error: "Product not found");
+            }
 
             if (product.StockQuantity < command.Quantity)
+            {
                 return new PlaceOrderResult(false, Error: "Insufficient stock");
+            }
 
             var order = new OrderRecord
             {

@@ -1,7 +1,6 @@
 using Demo.Catalog.Data;
 using Demo.Catalog.Entities;
 using Demo.Contracts.Saga;
-using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Mediator;
 
@@ -28,7 +27,9 @@ public class RequestQuickRefundCommandHandler(
     {
         var order = await db.Orders.FindAsync([command.OrderId], cancellationToken);
         if (order is null)
+        {
             return new RequestQuickRefundResult(false, Error: "Order not found");
+        }
 
         logger.LogInformation("Initiating quick refund saga for order {OrderId}", command.OrderId);
 
