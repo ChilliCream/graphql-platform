@@ -122,40 +122,42 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
-                if (rootErrors is not null)
+                try
                 {
-                    _errors ??= [];
-                    _errors.AddRange(rootErrors);
-                }
-
-                var resultData = _result.Data;
-
-                for (var i = 0; i < results.Length; i++)
-                {
-                    var result = results[i];
-
-                    if (!SaveSafeResult(
-                            resultData,
-                            result.Path,
-                            result.AdditionalPaths.AsSpan(),
-                            dataElementsSpan[i],
-                            errorTriesSpan[i],
-                            resultSelectionSet))
+                    if (rootErrors is not null)
                     {
-                        return false;
+                        _errors ??= [];
+                        _errors.AddRange(rootErrors);
                     }
+
+                    var resultData = _result.Data;
+
+                    for (var i = 0; i < results.Length; i++)
+                    {
+                        var result = results[i];
+
+                        if (!SaveSafeResult(
+                                resultData,
+                                result.Path,
+                                result.AdditionalPaths.AsSpan(),
+                                dataElementsSpan[i],
+                                errorTriesSpan[i],
+                                resultSelectionSet))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+                finally
+                {
+                    ReturnPathSegments(results);
                 }
             }
-
-            return true;
         }
         finally
         {
-            lock (_lock)
-            {
-                ReturnPathSegments(results);
-            }
-
             dataElementsSpan.Clear();
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
@@ -182,34 +184,36 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
-                var resultData = _result.Data;
-
-                for (var i = 0; i < results.Length; i++)
+                try
                 {
-                    var result = results[i];
+                    var resultData = _result.Data;
 
-                    if (!SaveSafeResult(
-                            resultData,
-                            result.Path,
-                            result.AdditionalPaths.AsSpan(),
-                            dataElementsSpan[i],
-                            errorTrie: null,
-                            resultSelectionSet))
+                    for (var i = 0; i < results.Length; i++)
                     {
-                        return false;
+                        var result = results[i];
+
+                        if (!SaveSafeResult(
+                                resultData,
+                                result.Path,
+                                result.AdditionalPaths.AsSpan(),
+                                dataElementsSpan[i],
+                                errorTrie: null,
+                                resultSelectionSet))
+                        {
+                            return false;
+                        }
                     }
+
+                    return true;
+                }
+                finally
+                {
+                    ReturnPathSegments(results);
                 }
             }
-
-            return true;
         }
         finally
         {
-            lock (_lock)
-            {
-                ReturnPathSegments(results);
-            }
-
             dataElementsSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
         }
@@ -226,9 +230,9 @@ internal sealed partial class FetchResultStore : IDisposable
         var dataElement = GetDataElement(sourcePath, result.Data);
         var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
-        try
+        lock (_lock)
         {
-            lock (_lock)
+            try
             {
                 if (errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
@@ -244,10 +248,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     errorTrie,
                     resultSelectionSet);
             }
-        }
-        finally
-        {
-            lock (_lock)
+            finally
             {
                 ReturnPathSegments(result);
             }
@@ -262,9 +263,9 @@ internal sealed partial class FetchResultStore : IDisposable
         _memory.Push(result);
         var dataElement = GetDataElement(sourcePath, result.Data);
 
-        try
+        lock (_lock)
         {
-            lock (_lock)
+            try
             {
                 return SaveSafeResult(
                     _result.Data,
@@ -274,10 +275,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     errorTrie: null,
                     resultSelectionSet);
             }
-        }
-        finally
-        {
-            lock (_lock)
+            finally
             {
                 ReturnPathSegments(result);
             }
