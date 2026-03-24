@@ -207,10 +207,12 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         var operationByIndex = ArrayPool<OperationDefinition>.Shared.Rent(_operations.Length);
         var variablesByIndex = ArrayPool<ImmutableArray<VariableValues>>.Shared.Rent(_operations.Length);
         var receivedResults = ArrayPool<bool>.Shared.Rent(_operations.Length);
-        var operationCount = BuildRequests(context, schemaName, requestBuilder, operationByIndex, variablesByIndex);
+        var operationCount = 0;
 
         try
         {
+            operationCount = BuildRequests(context, schemaName, requestBuilder, operationByIndex, variablesByIndex);
+
             if (operationCount == 0)
             {
                 return ExecutionStatus.Skipped;
@@ -315,76 +317,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         }
     }
 
-    protected override bool IsSkipped(OperationPlanContext context)
-    {
-        if (_operations.Length == 1)
-        {
-            return IsSkipped(context, _operations[0]);
-        }
-
-        if (_operations.Length == 2)
-        {
-            return IsSkipped(context, _operations[0])
-                && IsSkipped(context, _operations[1]);
-        }
-
-        if (_operations.Length == 3)
-        {
-            return IsSkipped(context, _operations[0])
-                && IsSkipped(context, _operations[1])
-                && IsSkipped(context, _operations[2]);
-        }
-
-        if (_operations.Length == 4)
-        {
-            return IsSkipped(context, _operations[0])
-                && IsSkipped(context, _operations[1])
-                && IsSkipped(context, _operations[2])
-                && IsSkipped(context, _operations[3]);
-        }
-
-        foreach (var operation in _operations)
-        {
-            if (!IsSkipped(context, operation))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    protected override void OnSealingNode()
-    {
-        foreach (var operation in _operations)
-        {
-            operation.Seal();
-        }
-    }
-
-    private static bool IsSkipped(OperationPlanContext context, OperationDefinition operation)
-    {
-        if (operation.Conditions.Length == 0)
-        {
-            return false;
-        }
-
-        foreach (var condition in operation.Conditions)
-        {
-            if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
-            {
-                throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
-            }
-
-            if (booleanValueNode.Value != condition.PassingValue)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private int BuildRequests(
         OperationPlanContext context,
         string schemaName,
@@ -436,6 +368,76 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         }
 
         return operationCount;
+    }
+
+    protected override bool IsSkipped(OperationPlanContext context)
+    {
+        if (_operations.Length == 1)
+        {
+            return IsSkipped(context, _operations[0]);
+        }
+
+        if (_operations.Length == 2)
+        {
+            return IsSkipped(context, _operations[0])
+                && IsSkipped(context, _operations[1]);
+        }
+
+        if (_operations.Length == 3)
+        {
+            return IsSkipped(context, _operations[0])
+                && IsSkipped(context, _operations[1])
+                && IsSkipped(context, _operations[2]);
+        }
+
+        if (_operations.Length == 4)
+        {
+            return IsSkipped(context, _operations[0])
+                && IsSkipped(context, _operations[1])
+                && IsSkipped(context, _operations[2])
+                && IsSkipped(context, _operations[3]);
+        }
+
+        foreach (var operation in _operations)
+        {
+            if (!IsSkipped(context, operation))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsSkipped(OperationPlanContext context, OperationDefinition operation)
+    {
+        if (operation.Conditions.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var condition in operation.Conditions)
+        {
+            if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
+            {
+                throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
+            }
+
+            if (booleanValueNode.Value != condition.PassingValue)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected override void OnSealingNode()
+    {
+        foreach (var operation in _operations)
+        {
+            operation.Seal();
+        }
     }
 
     private static bool HasSkippedDependencies(OperationPlanContext context, OperationDefinition operation)
