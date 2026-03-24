@@ -299,7 +299,6 @@ type Api implements Node {
   openApiCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiOpenApiCollectionsConnection
   operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection
   path: [String!]!
-  referenceName: String!
   schemaVersions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): SchemaVersionsConnection
   settings: ApiSettings!
   stages: [Stage!]!
@@ -1425,6 +1424,11 @@ type FieldRemovedChange implements SchemaChange {
   typeName: String!
 }
 
+type ForceDeleteStageByApiIdPayload {
+  api: Api
+  errors: [ForceDeleteStageByApiIdError!]
+}
+
 type FusionConfiguration {
   downloadUrl: String!
   format: FusionConfigurationFormat!
@@ -1450,7 +1454,7 @@ type FusionConfigurationDeployment implements Node & Deployment {
   schemaChanges: FusionConfigurationDeploymentSchemaChanges
   source: SourceMetadata
   status: DeploymentStatus!
-  subgraph: Subgraph @deprecated(reason: "Use `subgraphs` instead.")
+  subgraph: Subgraph
   subgraphs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): DeploymentSubgraphsConnection
   tag: String!
 }
@@ -2026,6 +2030,7 @@ type Mutation {
   deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload!
   deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload!
   ensureTunnelSession: EnsureTunnelSessionPayload!
+  forceDeleteStageByApiId(input: ForceDeleteStageByApiIdInput!): ForceDeleteStageByApiIdPayload!
   pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload!
   pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload!
   pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload!
@@ -2034,7 +2039,7 @@ type Mutation {
   publishMcpFeatureCollection(input: PublishMcpFeatureCollectionInput!): PublishMcpFeatureCollectionPayload!
   publishOpenApiCollection(input: PublishOpenApiCollectionInput!): PublishOpenApiCollectionPayload!
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
-  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload! @deprecated(reason: "Use pushWorkspaceChanges")
+  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload!
   pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload!
   removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
   renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
@@ -3096,14 +3101,14 @@ type PublishedClient {
 type PublishedClientVersion {
   publishedAt: DateTime!
   stage: Stage
-  tags: [String!]! @deprecated(reason: "Use `version.tag` instead.")
+  tags: [String!]!
   version: ClientVersion
 }
 
 type PublishedSchemaVersion {
   publishedAt: DateTime!
   stage: Stage
-  tag: String! @deprecated(reason: "Use `version.tag` instead.")
+  tag: String!
   version: SchemaVersion
 }
 
@@ -3475,7 +3480,7 @@ type StageOperationMetrics {
   latencyDistribution(from: DateTime! to: DateTime!): OperationLatencyDistributionGraph
   requestDocument: RequestDocument
   samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OperationTraceSample!]!
-  throughput(from: DateTime! operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use") to: DateTime!): OperationThroughputGraph
+  throughput(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationThroughputGraph
 }
 
 type StageOperationMetricsSummary {
@@ -3617,7 +3622,7 @@ type Subscription {
   onMcpFeatureCollectionVersionValidationUpdate(requestId: ID!): McpFeatureCollectionVersionValidationResult!
   onOpenApiCollectionVersionPublishingUpdate(requestId: ID!): OpenApiCollectionVersionPublishResult!
   onOpenApiCollectionVersionValidationUpdate(requestId: ID!): OpenApiCollectionVersionValidationResult!
-  onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged! @deprecated(reason: "Use `onStageChanged` instead.")
+  onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged! @deprecated
   onSchemaVersionPublishingUpdate(requestId: ID!): SchemaVersionPublishResult!
   onSchemaVersionValidationUpdate(requestId: ID!): SchemaVersionValidationResult!
   onStageChanged(apiId: ID! kind: [StageChangeKind!] stageName: String!): StageChangedEvent!
@@ -3836,9 +3841,9 @@ type Workspace implements Node {
   apis("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApisConnection
   changed(version: Version!): Boolean!
   changes("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ChangesConnection
-  documentChanges("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentChangesConnection @deprecated(reason: "Use changes")
+  documentChanges("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentChangesConnection
   documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentsConnection
-  documentsChanged(version: Version): Boolean! @deprecated(reason: "Use changed")
+  documentsChanged(version: Version): Boolean!
   environments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): EnvironmentsConnection
   id: ID!
   members: [WorkspaceMember!]!
@@ -4011,6 +4016,8 @@ union EnumValueChange = DeprecatedChange | DescriptionChanged
 
 union FieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
 
+union ForceDeleteStageByApiIdError = ApiNotFoundError | StageNotFoundError | UnauthorizedOperation
+
 union FusionConfigurationDeploymentError = PersistedQueryValidationError | McpFeatureCollectionValidationError | OpenApiCollectionValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError
 
 union InputFieldChange = DeprecatedChange | DescriptionChanged | TypeChanged
@@ -4119,7 +4126,6 @@ input ApiCreateChangeInput {
   name: String!
   path: [String!]!
   referenceId: String!
-  referenceName: String
   workspaceId: ID!
 }
 
@@ -4198,7 +4204,6 @@ input ApiUpdateChangeInput {
   name: String!
   path: [String!]!
   referenceId: String!
-  referenceName: String
   version: Version!
   workspaceId: ID!
 }
@@ -4346,6 +4351,11 @@ input EnvironmentVariableInput {
   isSecret: Boolean!
   name: String!
   value: String!
+}
+
+input ForceDeleteStageByApiIdInput {
+  apiId: ID!
+  stageName: String!
 }
 
 input FusionSubgraphVersionInput {
