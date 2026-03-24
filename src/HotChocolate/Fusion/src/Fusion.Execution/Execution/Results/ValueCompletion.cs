@@ -77,13 +77,24 @@ internal sealed class ValueCompletion
                 continue;
             }
 
+            var propertyValue = property.Value;
+
+            // Fast path: when there are no errors and the source value is a
+            // scalar (string, number, bool) we can set it directly without
+            // going through the full TryCompleteValue type-dispatch chain.
+            if (errorTrie is null && propertyValue.IsScalarValue())
+            {
+                resultField.SetLeafValue(propertyValue);
+                continue;
+            }
+
             var selection = resultField.AssertSelection();
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
             var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
             if (!TryCompleteValue(
-                    property.Value,
+                    propertyValue,
                     resultField,
                     errorTrieForResponseName,
                     selection,
@@ -652,14 +663,31 @@ TryCompleteList_MoveNext:
                 continue;
             }
 
+            var propertyValue = property.Value;
+
+            // Fast path: when there are no errors and the source value is a
+            // scalar (string, number, bool) we can set it directly without
+            // going through the full TryCompleteValue type-dispatch chain.
+            if (errorTrie is null && propertyValue.IsScalarValue())
+            {
+                targetProperty.SetLeafValue(propertyValue);
+                continue;
+            }
+
             var selection = targetProperty.AssertSelection();
 
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
             var childSet = resultSelectionSet?.TryGetChild(selection.ResponseName, objectType);
-            if (!TryCompleteValue(property.Value,
-                targetProperty, errorTrieForResponseName, selection, selection.Type, depth, childSet))
+            if (!TryCompleteValue(
+                    propertyValue,
+                    targetProperty,
+                    errorTrieForResponseName,
+                    selection,
+                    selection.Type,
+                    depth,
+                    childSet))
             {
                 return false;
             }
@@ -709,4 +737,13 @@ file static class ValueCompletionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNullOrUndefined(this SourceResultElement element)
         => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+
+    /// <summary>
+    /// Returns <c>true</c> if the element is a scalar JSON value (string, number, true, or false)
+    /// that can be set directly without type dispatch or error trie lookup.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsScalarValue(this SourceResultElement element)
+        => element.ValueKind is JsonValueKind.String or JsonValueKind.Number
+            or JsonValueKind.True or JsonValueKind.False;
 }
