@@ -23,14 +23,14 @@ response:
         "a": {
           "book": {
             "id": 1,
-            "author": null
+            "author": "Abc"
           }
         },
         "b": {
           "book": {
             "id": 2,
             "title": "Book2",
-            "author": null
+            "author": "Abc"
           }
         }
       }
@@ -122,6 +122,44 @@ sourceSchemas:
       type Query {
         bookById(id: Int!): Book! @internal @lookup
       }
+    interactions:
+      - request:
+          document: |
+            query Op_192dc5f8_2(
+              $__fusion_1_id: Int!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                author
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1
+              },
+              {
+                "__fusion_1_id": 2
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "author": "Abc"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "author": "Abc"
+                  }
+                }
+              }
 operationPlan:
   operation:
     - document: |

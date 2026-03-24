@@ -891,12 +891,10 @@ public sealed partial class OperationPlanner
 
             dependencyExecutionNode.AddDependent(batchEntry);
 
-            // When a batch holds multiple operations, or a single batch
-            // operation definition with multiple targets, the dependency is
+            // When a batch holds multiple operations, the dependency is
             // optional. The executor evaluates each operation individually
             // and only waits for the specific upstream results it needs.
-            if (batchEntry.Operations.Length > 1
-                || batchEntry.Operations[0] is BatchOperationDefinition)
+            if (batchEntry.Operations.Length > 1)
             {
                 batchEntry.AddOptionalDependency(dependencyExecutionNode);
             }
