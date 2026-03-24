@@ -57,13 +57,13 @@ internal sealed class DeleteStageCommand : Command
         var data = console.EnsureData(result);
         console.PrintErrorsAndExit(data.ForceDeleteStageByApiId.Errors);
 
-        var stages = data.ForceDeleteStageByApiId.Api?.Stages;
-        if (stages is null)
+        var api = data.ForceDeleteStageByApiId.Api;
+        if (api is null)
         {
             throw Exit("Could not delete the stage");
         }
 
-        var items = stages
+        var items = api.Stages
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray();
 
