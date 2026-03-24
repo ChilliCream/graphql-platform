@@ -111,7 +111,14 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         using var arrayWriter = new PooledArrayWriter();
         using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
 
+#if FUSION
+        if (request.State is { } state)
+        {
+            request.OnMessageCreated?.Invoke(request, requestMessage, state);
+        }
+#else
         request.OnMessageCreated?.Invoke(request, requestMessage, request.State);
+#endif
 
         requestMessage.Version = _http.DefaultRequestVersion;
         requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
@@ -120,7 +127,14 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             .SendAsync(requestMessage, ResponseHeadersRead, ct)
             .ConfigureAwait(false);
 
+#if FUSION
+        if (request.State is { } receivedState)
+        {
+            request.OnMessageReceived?.Invoke(request, responseMessage, receivedState);
+        }
+#else
         request.OnMessageReceived?.Invoke(request, responseMessage, request.State);
+#endif
 
         return new GraphQLHttpResponse(responseMessage);
     }

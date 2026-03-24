@@ -233,6 +233,74 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         return value[start..(end + 1)];
     }
+
+    /// <summary>
+    /// Extracts the media type and charset from the raw Content-Type header
+    /// without allocating a <see cref="MediaTypeHeaderValue"/>.
+    /// </summary>
+    private bool TryGetRawMediaTypeAndCharSet(
+        out ReadOnlySpan<char> mediaType,
+        out string? charSet)
+    {
+        if (!_message.Content.Headers.NonValidated.TryGetValues(ContentTypeHeaderName, out var values))
+        {
+            mediaType = default;
+            charSet = null;
+            return false;
+        }
+
+        var enumerator = values.GetEnumerator();
+        if (!enumerator.MoveNext())
+        {
+            mediaType = default;
+            charSet = null;
+            return false;
+        }
+
+        var rawValue = enumerator.Current.AsSpan();
+
+        // Some handlers may emit media type and charset as separate values.
+        if (enumerator.MoveNext())
+        {
+            mediaType = NormalizeMediaType(rawValue);
+            var charsetValue = enumerator.Current.AsSpan();
+            charSet = IsUtf8(charsetValue) ? Utf8 : charsetValue.Trim().ToString();
+            return true;
+        }
+
+        // Single header value — split on ';' to separate media type from parameters.
+        var semicolonIndex = rawValue.IndexOf(';');
+        if (semicolonIndex < 0)
+        {
+            mediaType = TrimWhiteSpace(rawValue);
+            charSet = null;
+            return true;
+        }
+
+        mediaType = TrimWhiteSpace(rawValue[..semicolonIndex]);
+        var parameters = rawValue[(semicolonIndex + 1)..];
+
+        // Extract charset from parameters (e.g., " charset=utf-8").
+        var charsetIndex = parameters.IndexOf(CharsetPrefix, StringComparison.OrdinalIgnoreCase);
+        if (charsetIndex >= 0)
+        {
+            var charsetSpan = TrimWhiteSpace(parameters[(charsetIndex + CharsetPrefix.Length)..]);
+
+            // Strip quotes if present.
+            if (charsetSpan.Length > 1 && charsetSpan[0] == '"' && charsetSpan[^1] == '"')
+            {
+                charsetSpan = charsetSpan[1..^1];
+            }
+
+            charSet = charsetSpan.Equals(Utf8, StringComparison.OrdinalIgnoreCase) ? Utf8 : charsetSpan.ToString();
+        }
+        else
+        {
+            charSet = null;
+        }
+
+        return true;
+    }
 #endif
 
     /// <summary>
@@ -258,6 +326,32 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// to read the <see cref="SourceResultDocument"/> from the underlying <see cref="HttpResponseMessage"/>.
     /// </returns>
     public ValueTask<SourceResultDocument> ReadAsResultAsync(CancellationToken cancellationToken = default)
+    {
+        if (!TryGetRawMediaTypeAndCharSet(out var mediaType, out var charSet))
+        {
+            _message.EnsureSuccessStatusCode();
+            throw new InvalidOperationException("Received a successful response with an unexpected content type.");
+        }
+
+        // The server supports the newer graphql-response+json media type, and users are free
+        // to use status codes.
+        if (mediaType.Equals(ContentType.GraphQL, StringComparison.OrdinalIgnoreCase))
+        {
+            return ReadAsResultInternalAsync(charSet, cancellationToken);
+        }
+
+        // The server supports the older application/json media type, and the status code
+        // is expected to be a 2xx for a valid GraphQL response.
+        if (mediaType.Equals(ContentType.Json, StringComparison.OrdinalIgnoreCase))
+        {
+            _message.EnsureSuccessStatusCode();
+            return ReadAsResultInternalAsync(charSet, cancellationToken);
+        }
+
+        _message.EnsureSuccessStatusCode();
+
+        throw new InvalidOperationException("Received a successful response with an unexpected content type.");
+    }
 #else
     /// <summary>
     /// Reads the GraphQL response as a <see cref="OperationResult"/>.
@@ -270,7 +364,6 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// to read the <see cref="OperationResult"/> from the underlying <see cref="HttpResponseMessage"/>.
     /// </returns>
     public ValueTask<OperationResult> ReadAsResultAsync(CancellationToken cancellationToken = default)
-#endif
     {
         var contentType = _message.Content.Headers.ContentType;
 
@@ -293,6 +386,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
+#endif
 
 #if FUSION
     private async ValueTask<SourceResultDocument> ReadAsResultInternalAsync(string? charSet, CancellationToken ct)
@@ -462,6 +556,43 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// <see cref="HttpResponseMessage"/>.
     /// </returns>
     public IAsyncEnumerable<SourceResultDocument> ReadAsResultStreamAsync()
+    {
+        if (!TryGetRawMediaTypeAndCharSet(out var mediaType, out var charSet))
+        {
+            _message.EnsureSuccessStatusCode();
+            throw new InvalidOperationException("Received a successful response with an unexpected content type.");
+        }
+
+        if (mediaType.Equals(ContentType.EventStream, StringComparison.OrdinalIgnoreCase))
+        {
+            return new SseReader(_message);
+        }
+
+        if (mediaType.Equals(ContentType.GraphQLJsonLine, StringComparison.OrdinalIgnoreCase)
+            || mediaType.Equals(ContentType.JsonLine, StringComparison.OrdinalIgnoreCase))
+        {
+            return new JsonLinesReader(_message);
+        }
+
+        // The server supports the newer graphql-response+json media type, and users are free
+        // to use status codes.
+        if (mediaType.Equals(ContentType.GraphQL, StringComparison.OrdinalIgnoreCase))
+        {
+            return new GraphQLHttpSingleResultEnumerable(
+                ct => ReadAsResultInternalAsync(charSet, ct));
+        }
+
+        _message.EnsureSuccessStatusCode();
+
+        // The server supports the older application/json media type, and the status code
+        // is expected to be a 2xx for a valid GraphQL response.
+        if (mediaType.Equals(ContentType.Json, StringComparison.OrdinalIgnoreCase))
+        {
+            return new JsonResultEnumerable(_message, charSet);
+        }
+
+        throw new InvalidOperationException("Received a successful response with an unexpected content type.");
+    }
 #else
     /// <summary>
     /// Reads the GraphQL response as a <see cref="IAsyncEnumerable{T}"/> of <see cref="OperationResult"/>.
@@ -472,7 +603,6 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// <see cref="HttpResponseMessage"/>.
     /// </returns>
     public IAsyncEnumerable<OperationResult> ReadAsResultStreamAsync()
-#endif
     {
         var contentType = _message.Content.Headers.ContentType;
 
@@ -508,6 +638,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
+#endif
 
     /// <summary>
     /// Disposes the underlying <see cref="HttpResponseMessage"/>.
