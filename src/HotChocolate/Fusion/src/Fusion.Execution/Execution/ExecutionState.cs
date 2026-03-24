@@ -133,7 +133,7 @@ internal sealed class ExecutionState
         }
 
         RemoveFromBacklog(node.Id, NodeStateNone);
-        _ = node.ExecuteAsync(context, cancellationToken);
+        node.BeginExecute(context, cancellationToken);
     }
 
     public void EnqueueForCompletion(ExecutionNodeResult result)
