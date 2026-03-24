@@ -174,26 +174,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {
-                "data": {
-                  "lookups": {
-                    "author": {
-                      "name": "JRR Tolkien"
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "lookups": {
-                    "author": {
-                      "name": "JRR Tolkien"
-                    }
-                  }
-                }
-              }
   - name: c
     schema: |
       schema {

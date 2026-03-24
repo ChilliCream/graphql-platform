@@ -620,14 +620,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
                         var variable = variables[0];
-                        var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
-                        yield return sourceSchemaResult;
-
-                        foreach (var additionalPath in variable.AdditionalPaths)
-                        {
-                            yield return sourceSchemaResult.WithPath(additionalPath);
-                        }
-
+                        yield return new SourceSchemaResult(
+                            variable.Path,
+                            result,
+                            additionalPaths: variable.AdditionalPaths);
                         break;
                     }
 
@@ -648,13 +644,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 }
 
                                 var variable = variables[requestIndex];
-                                var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
-                                yield return sourceSchemaResult;
-
-                                foreach (var additionalPath in variable.AdditionalPaths)
-                                {
-                                    yield return sourceSchemaResult.WithPath(additionalPath);
-                                }
+                                yield return new SourceSchemaResult(
+                                    variable.Path, result, additionalPaths: variable.AdditionalPaths);
 
                                 requestIndex++;
                             }
@@ -683,13 +674,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 }
 
                                 var variable = variables[index];
-                                var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
-                                yield return sourceSchemaResult;
-
-                                foreach (var additionalPath in variable.AdditionalPaths)
-                                {
-                                    yield return sourceSchemaResult.WithPath(additionalPath);
-                                }
+                                yield return new SourceSchemaResult(
+                                    variable.Path, result, additionalPaths: variable.AdditionalPaths);
                             }
                         }
 
@@ -698,12 +684,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                             for (var i = 0; i < variables.Length; i++)
                             {
                                 var variable = variables[i];
-                                yield return errorResult.WithPath(variable.Path);
-
-                                foreach (var additionalPath in variable.AdditionalPaths)
-                                {
-                                    yield return errorResult.WithPath(additionalPath);
-                                }
+                                yield return errorResult.WithPath(variable.Path, variable.AdditionalPaths);
                             }
                         }
 
@@ -743,17 +724,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
                         var variable = variables[0];
-                        var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
+                        var sourceSchemaResult = new SourceSchemaResult(
+                            variable.Path, result, additionalPaths: variable.AdditionalPaths);
                         onSourceSchemaResult(context, node, sourceSchemaResult);
                         yield return sourceSchemaResult;
-
-                        foreach (var additionalPath in variable.AdditionalPaths)
-                        {
-                            var alias = sourceSchemaResult.WithPath(additionalPath);
-                            onSourceSchemaResult(context, node, alias);
-                            yield return alias;
-                        }
-
                         break;
                     }
 
@@ -775,16 +749,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 }
 
                                 var variable = variables[requestIndex];
-                                var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
+                                var sourceSchemaResult = new SourceSchemaResult(
+                                    variable.Path, result, additionalPaths: variable.AdditionalPaths);
                                 onSourceSchemaResult(context, node, sourceSchemaResult);
                                 yield return sourceSchemaResult;
-
-                                foreach (var additionalPath in variable.AdditionalPaths)
-                                {
-                                    var alias = sourceSchemaResult.WithPath(additionalPath);
-                                    onSourceSchemaResult(context, node, alias);
-                                    yield return alias;
-                                }
 
                                 requestIndex++;
                             }
@@ -812,16 +780,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 }
 
                                 var variable = variables[index];
-                                var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
+                                var sourceSchemaResult = new SourceSchemaResult(
+                                    variable.Path, result, additionalPaths: variable.AdditionalPaths);
                                 onSourceSchemaResult(context, node, sourceSchemaResult);
                                 yield return sourceSchemaResult;
-
-                                foreach (var additionalPath in variable.AdditionalPaths)
-                                {
-                                    var alias = sourceSchemaResult.WithPath(additionalPath);
-                                    onSourceSchemaResult(context, node, alias);
-                                    yield return alias;
-                                }
                             }
                         }
 
@@ -830,16 +792,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                             for (var i = 0; i < variables.Length; i++)
                             {
                                 var variable = variables[i];
-                                var error = errorResult.WithPath(variable.Path);
+                                var error = errorResult.WithPath(
+                                    variable.Path, variable.AdditionalPaths);
                                 onSourceSchemaResult(context, node, error);
                                 yield return error;
-
-                                foreach (var additionalPath in variable.AdditionalPaths)
-                                {
-                                    var alias = errorResult.WithPath(additionalPath);
-                                    onSourceSchemaResult(context, node, alias);
-                                    yield return alias;
-                                }
                             }
                         }
 
