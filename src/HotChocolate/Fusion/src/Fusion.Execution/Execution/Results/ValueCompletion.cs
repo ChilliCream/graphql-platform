@@ -53,14 +53,17 @@ internal sealed class ValueCompletion
         ErrorTrie? errorTrie,
         ResultSelectionSet resultSelectionSet)
     {
-        if (source is not { ValueKind: JsonValueKind.Object })
+        var sourceValueKind = source.ValueKind;
+
+        if (sourceValueKind is not JsonValueKind.Object)
         {
             var error = errorTrie?.FindFirstError();
-            var canExecutionContinue = BuildResultForInvalidSource(
-                source,
-                target,
-                resultSelectionSet,
-                error);
+            var canExecutionContinue =
+                BuildResultForInvalidSource(
+                    sourceValueKind,
+                    target,
+                    resultSelectionSet,
+                    error);
 
             if (!canExecutionContinue)
             {
@@ -78,11 +81,12 @@ internal sealed class ValueCompletion
             }
 
             var propertyValue = property.Value;
+            var propertyValueKind = propertyValue.ValueKind;
 
             // Fast path: when there are no errors and the source value is a
             // scalar (string, number, bool) we can set it directly without
             // going through the full TryCompleteValue type-dispatch chain.
-            if (errorTrie is null && propertyValue.IsScalarValue())
+            if (errorTrie is null && propertyValueKind.IsScalarValue())
             {
                 resultField.SetLeafValue(propertyValue);
                 continue;
@@ -95,6 +99,7 @@ internal sealed class ValueCompletion
             var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
             if (!TryCompleteValue(
                     propertyValue,
+                    propertyValueKind,
                     resultField,
                     errorTrieForResponseName,
                     selection,
@@ -239,12 +244,12 @@ internal sealed class ValueCompletion
     }
 
     private bool BuildResultForInvalidSource(
-        SourceResultElement source,
+        JsonValueKind sourceValueKind,
         CompositeResultElement target,
         ResultSelectionSet resultSelectionSet,
         IError? error)
     {
-        if (source.ValueKind is JsonValueKind.Null && IsValueType(target.Type))
+        if (sourceValueKind is JsonValueKind.Null && IsValueType(target.Type))
         {
             if (error is not null)
             {
@@ -369,6 +374,7 @@ internal sealed class ValueCompletion
     //       part of what was selected.
     private bool TryCompleteValue(
         SourceResultElement source,
+        JsonValueKind sourceValueKind,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
@@ -376,9 +382,11 @@ internal sealed class ValueCompletion
         int depth,
         ResultSelectionSet? resultSelectionSet)
     {
+        var isNullOrUndefined = sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+
         if (type.Kind is TypeKind.NonNull)
         {
-            if (source.IsNullOrUndefined())
+            if (isNullOrUndefined)
             {
                 IError error;
                 if (errorTrie?.FindFirstError() is { } errorFromPath)
@@ -404,20 +412,15 @@ internal sealed class ValueCompletion
 
                 _store.AddError(error);
 
-                if (_haltOnNullViolation)
-                {
-                    return false;
-                }
-
-                return true;
+                return !_haltOnNullViolation;
             }
 
             type = type.InnerType();
         }
 
-        if (source.IsNullOrUndefined())
+        if (isNullOrUndefined)
         {
-            if (source.ValueKind is JsonValueKind.Null && IsValueType(type))
+            if (sourceValueKind is JsonValueKind.Null && IsValueType(type))
             {
                 if (errorTrie?.FindFirstError() is { } error
                     && resultSelectionSet is not null)
@@ -510,18 +513,21 @@ internal sealed class ValueCompletion
         AssertDepthAllowed(ref depth);
 
         var elementType = type.ElementType();
-        var isNullable = elementType.IsNullableType();
-        var isLeaf = elementType.IsLeafType();
-        var isNested = elementType.IsListType();
-        var isAbstract = elementType.IsAbstractType();
+        var elementTypeKind = elementType.Kind;
+        var isNonNull = elementTypeKind is TypeKind.NonNull;
+
+        if (isNonNull)
+        {
+            elementTypeKind = Unsafe.As<IType, NonNullType>(ref elementType).NullableType.Kind;
+        }
 
         target.SetArrayValue(source.GetArrayLength());
 
         var i = 0;
-        using var enumerator = target.EnumerateArray().GetEnumerator();
+        using var targetEnumerator = target.EnumerateArray().GetEnumerator();
         foreach (var element in source.EnumerateArray())
         {
-            var success = enumerator.MoveNext();
+            var success = targetEnumerator.MoveNext();
             Debug.Assert(success, "The lists must have the same size.");
 
             ErrorTrie? errorTrieForIndex = null;
@@ -543,62 +549,65 @@ internal sealed class ValueCompletion
                 }
             }
 
-            if (element.IsNullOrUndefined())
+            var elementValueKind = element.ValueKind;
+            if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
-                if (!isNullable && _haltOnNullViolation)
+                if (isNonNull && _haltOnNullViolation)
                 {
                     return false;
                 }
 
-                enumerator.Current.SetNullValue();
+                targetEnumerator.Current.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
-            var targetElement = enumerator.Current;
+            var targetElement = targetEnumerator.Current;
             bool completed;
 
-            if (isNested)
+            switch (elementTypeKind)
             {
-                completed = TryCompleteList(
-                    element,
-                    targetElement,
-                    errorTrieForIndex,
-                    selection,
-                    elementType,
-                    depth,
-                    resultSelectionSet);
-            }
-            else if (isLeaf)
-            {
-                targetElement.SetLeafValue(element);
-                completed = true;
-            }
-            else if (isAbstract)
-            {
-                completed = TryCompleteAbstractValue(
-                    element,
-                    targetElement,
-                    errorTrieForIndex,
-                    selection,
-                    elementType,
-                    depth,
-                    resultSelectionSet);
-            }
-            else
-            {
-                completed = TryCompleteObjectValue(
-                    selection,
-                    elementType,
-                    element,
-                    errorTrieForIndex,
-                    depth,
-                    targetElement,
-                    resultSelectionSet);
+                case TypeKind.List:
+                    completed = TryCompleteList(
+                        element,
+                        targetElement,
+                        errorTrieForIndex,
+                        selection,
+                        elementType,
+                        depth,
+                        resultSelectionSet);
+                    break;
+
+                case TypeKind.Scalar or TypeKind.Enum:
+                    targetElement.SetLeafValue(element);
+                    completed = true;
+                    break;
+
+                case TypeKind.Interface or TypeKind.Union:
+                    completed = TryCompleteAbstractValue(
+                        element,
+                        targetElement,
+                        errorTrieForIndex,
+                        selection,
+                        elementType,
+                        depth,
+                        resultSelectionSet);
+                    break;
+
+                default:
+                    completed = TryCompleteObjectValue(
+                        selection,
+                        elementType,
+                        element,
+                        errorTrieForIndex,
+                        depth,
+                        targetElement,
+                        resultSelectionSet);
+                    break;
             }
 
             if (!completed)
             {
-                if (!isNullable)
+                if (isNonNull)
                 {
                     return false;
                 }
@@ -664,11 +673,12 @@ TryCompleteList_MoveNext:
             }
 
             var propertyValue = property.Value;
+            var propertyValueKind = propertyValue.ValueKind;
 
             // Fast path: when there are no errors and the source value is a
             // scalar (string, number, bool) we can set it directly without
             // going through the full TryCompleteValue type-dispatch chain.
-            if (errorTrie is null && propertyValue.IsScalarValue())
+            if (errorTrie is null && propertyValueKind.IsScalarValue())
             {
                 targetProperty.SetLeafValue(propertyValue);
                 continue;
@@ -682,6 +692,7 @@ TryCompleteList_MoveNext:
             var childSet = resultSelectionSet?.TryGetChild(selection.ResponseName, objectType);
             if (!TryCompleteValue(
                     propertyValue,
+                    propertyValueKind,
                     targetProperty,
                     errorTrieForResponseName,
                     selection,
@@ -735,15 +746,16 @@ TryCompleteList_MoveNext:
 file static class ValueCompletionExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNullOrUndefined(this SourceResultElement element)
-        => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
-
-    /// <summary>
-    /// Returns <c>true</c> if the element is a scalar JSON value (string, number, true, or false)
-    /// that can be set directly without type dispatch or error trie lookup.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsScalarValue(this SourceResultElement element)
-        => element.ValueKind is JsonValueKind.String or JsonValueKind.Number
+    public static bool IsScalarValue(this JsonValueKind valueKind)
+        => valueKind is JsonValueKind.String or JsonValueKind.Number
             or JsonValueKind.True or JsonValueKind.False;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IType ElementType(this IType type)
+        => type switch
+        {
+            ListType listType => listType.ElementType,
+            NonNullType nonNullType => nonNullType.NullableType,
+            _ => type
+        };
 }
