@@ -176,31 +176,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjk="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
                     "displayName": "Author: QXV0aG9yOjg="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjg="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
                   }
                 }
               }

@@ -136,14 +136,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
-            var totalPathCount = variables.Length;
-
-            for (var i = 0; i < variables.Length; i++)
-            {
-                totalPathCount += variables[i].AdditionalPaths.Length;
-            }
-
-            var initialBufferLength = Math.Max(totalPathCount, 2);
+            var initialBufferLength = Math.Max(variables.Length, 2);
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
             {

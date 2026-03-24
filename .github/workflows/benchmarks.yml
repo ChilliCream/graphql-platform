@@ -1,20 +1,7 @@
 name: Benchmarks
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, closed]
-    branches:
-      - main
-      - main-version-*
-    paths:
-      - 'src/HotChocolate/Fusion/**'
-      - '.github/workflows/benchmarks.yml'
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/HotChocolate/Fusion/**'
-      - '.github/workflows/benchmarks.yml'
+  workflow_dispatch: {}
 
 concurrency:
   group: benchmarks-${{ github.event.pull_request.number || github.ref }}

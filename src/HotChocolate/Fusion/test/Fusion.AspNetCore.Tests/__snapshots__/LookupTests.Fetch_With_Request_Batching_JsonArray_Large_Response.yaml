@@ -39,27 +39,7 @@ response:
             }
           }
         ]
-      },
-      "errors": [
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            0,
-            "author",
-            "name"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            1,
-            "author",
-            "name"
-          ]
-        }
-      ]
+      }
     }
 sourceSchemas:
   - name: a
@@ -205,10 +185,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {}
-            - |
-              {}
 operationPlan:
   operation:
     - document: |
