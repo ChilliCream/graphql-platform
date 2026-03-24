@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -24,7 +23,7 @@ internal sealed partial class FetchResultStore : IDisposable
 #else
     private readonly object _lock = new();
 #endif
-    private readonly ConcurrentStack<IDisposable> _memory = [];
+    private readonly List<IDisposable> _memory = [];
     private ISchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
@@ -49,7 +48,7 @@ internal sealed partial class FetchResultStore : IDisposable
 
     public IReadOnlyList<IError>? Errors => _errors;
 
-    public ConcurrentStack<IDisposable> MemoryOwners => _memory;
+    public List<IDisposable> MemoryOwners => _memory;
 
     public bool AddPartialResult(
         SelectionPath sourcePath,
@@ -104,10 +103,6 @@ internal sealed partial class FetchResultStore : IDisposable
             for (var i = 0; i < results.Length; i++)
             {
                 var result = results[i];
-
-                // we need to track the result objects as they use rented memory.
-                _memory.Push(result);
-
                 var errors = result.Errors;
 
                 if (errors?.RootErrors is { Length: > 0 } rootErrorsFromResult)
@@ -135,6 +130,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     for (var i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
+                        _memory.Add(result);
 
                         if (!SaveSafeResult(
                                 resultData,
@@ -177,9 +173,7 @@ internal sealed partial class FetchResultStore : IDisposable
         {
             for (var i = 0; i < results.Length; i++)
             {
-                var result = results[i];
-                _memory.Push(result);
-                dataElementsSpan[i] = GetDataElement(sourcePath, result.Data);
+                dataElementsSpan[i] = GetDataElement(sourcePath, results[i].Data);
             }
 
             lock (_lock)
@@ -191,6 +185,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     for (var i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
+                        _memory.Add(result);
 
                         if (!SaveSafeResult(
                                 resultData,
@@ -224,14 +219,14 @@ internal sealed partial class FetchResultStore : IDisposable
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet)
     {
-        _memory.Push(result);
-
         var errors = result.Errors;
         var dataElement = GetDataElement(sourcePath, result.Data);
         var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
         lock (_lock)
         {
+            _memory.Add(result);
+
             try
             {
                 if (errors?.RootErrors is { Length: > 0 } rootErrors)
@@ -260,11 +255,12 @@ internal sealed partial class FetchResultStore : IDisposable
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet)
     {
-        _memory.Push(result);
         var dataElement = GetDataElement(sourcePath, result.Data);
 
         lock (_lock)
         {
+            _memory.Add(result);
+
             try
             {
                 return SaveSafeResult(
@@ -759,7 +755,10 @@ AddErrors_Next:
             {
                 if (buffer is not null)
                 {
-                    _memory.Push(buffer);
+                    lock (_lock)
+                    {
+                        _memory.Add(buffer);
+                    }
                 }
 
                 return fastPathResult;
@@ -803,7 +802,10 @@ AddErrors_Next:
 
         if (buffer is not null)
         {
-            _memory.Push(buffer);
+            lock (_lock)
+            {
+                _memory.Add(buffer);
+            }
         }
 
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
@@ -1446,7 +1448,12 @@ AddErrors_Next:
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         var buffer = new PooledArrayWriter();
-        _memory.Push(buffer);
+
+        lock (_lock)
+        {
+            _memory.Add(buffer);
+        }
+
         return buffer;
     }
 
@@ -1622,10 +1629,12 @@ AddErrors_Next:
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetB, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
 
-        while (_memory.TryPop(out var memory))
+        foreach (var memory in _memory)
         {
             memory.Dispose();
         }
+
+        _memory.Clear();
 
         _pathPool?.Dispose();
     }
