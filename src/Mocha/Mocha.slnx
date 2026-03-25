@@ -16,6 +16,8 @@
     <Project Path="src/Mocha.Inbox/Mocha.Inbox.csproj" />
     <Project Path="src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="src/Mocha.Threading/Mocha.Threading.csproj" />
+    <Project Path="src/Mocha.Mediator/Mocha.Mediator.csproj" />
+    <Project Path="src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
     <Project Path="src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
     <Project Path="src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
     <Project Path="src/Mocha.Transport.Postgres/Mocha.Transport.Postgres.csproj" />

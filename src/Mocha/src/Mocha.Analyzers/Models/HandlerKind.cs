@@ -8,7 +8,7 @@ public enum HandlerKind
     /// <summary>
     /// A command handler that returns no response.
     /// </summary>
-    CommandVoid,
+    Command,
 
     /// <summary>
     /// A command handler that returns a response.

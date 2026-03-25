@@ -2,10 +2,66 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.Mediator.Tests;
 
-// ---------------------------------------------------------------------------
-// Message types (prefixed with "Dispatch" to avoid collisions with
-// MiddlewarePipelineTests types)
-// ---------------------------------------------------------------------------
+public static class DispatchTestHelper
+{
+    /// <summary>
+    /// Creates a service provider with the mediator infrastructure, registering
+    /// only the handlers and pipelines specified by the caller.
+    /// </summary>
+    public static IServiceProvider BuildProvider(Action<IMediatorHostBuilder, IServiceCollection> configure)
+    {
+        var services = new ServiceCollection();
+        var builder = MediatorServiceCollectionExtensions.AddMediator(services);
+        configure(builder, services);
+        return services.BuildServiceProvider();
+    }
+
+    /// <summary>
+    /// Creates a service provider with the standard set of test handlers and pipelines.
+    /// </summary>
+    public static IServiceProvider BuildDefaultProvider()
+    {
+        return BuildProvider((builder, services) =>
+        {
+            services.AddScoped<DispatchVoidCommandHandler>();
+            services.AddScoped<DispatchCommandHandler>();
+            services.AddScoped<DispatchQueryHandler>();
+            services.AddScoped<DispatchNotificationHandler>();
+            services.AddScoped<DispatchThrowingCommandHandler>();
+            services.AddScoped<DispatchTokenCapturingHandler>();
+            services.AddScoped<DispatchAsyncCommandHandler>();
+
+            builder.ConfigureMediator(b =>
+            {
+                b.AddHandler<DispatchVoidCommandHandler>();
+                b.AddHandler<DispatchCommandHandler>();
+                b.AddHandler<DispatchQueryHandler>();
+                b.AddHandler<DispatchNotificationHandler>();
+                b.AddHandler<DispatchThrowingCommandHandler>();
+                b.AddHandler<DispatchTokenCapturingHandler>();
+                b.AddHandler<DispatchAsyncCommandHandler>();
+            });
+        });
+    }
+
+    /// <summary>
+    /// Creates a service provider with multiple notification handlers to test fan-out dispatch.
+    /// </summary>
+    public static IServiceProvider BuildMultiNotificationProvider()
+    {
+        return BuildProvider((builder, services) =>
+        {
+            services.AddScoped<DispatchNotificationHandler>();
+            services.AddScoped<DispatchSecondNotificationHandler>();
+
+            builder.ConfigureMediator(b =>
+            {
+                b.AddHandler<DispatchNotificationHandler>();
+                b.AddHandler<DispatchSecondNotificationHandler>();
+            });
+        });
+    }
+}
 
 public sealed record DispatchVoidCommand(string Value) : ICommand;
 
@@ -17,27 +73,11 @@ public sealed record DispatchNotification(string Payload) : INotification;
 
 public sealed record DispatchResponse(string Data);
 
-// ---------------------------------------------------------------------------
-// Command that always throws
-// ---------------------------------------------------------------------------
-
 public sealed record DispatchThrowingCommand(string Value) : ICommand;
-
-// ---------------------------------------------------------------------------
-// Command that captures the CancellationToken
-// ---------------------------------------------------------------------------
 
 public sealed record DispatchTokenCapturingCommand : ICommand;
 
-// ---------------------------------------------------------------------------
-// Async (non-synchronously completing) command
-// ---------------------------------------------------------------------------
-
 public sealed record DispatchAsyncCommand(string Value) : ICommand<DispatchResponse>;
-
-// ---------------------------------------------------------------------------
-// Handlers
-// ---------------------------------------------------------------------------
 
 public sealed class DispatchVoidCommandHandler : ICommandHandler<DispatchVoidCommand>
 {
@@ -111,112 +151,5 @@ public sealed class DispatchAsyncCommandHandler : ICommandHandler<DispatchAsyncC
     {
         await Task.Yield();
         return new DispatchResponse("async-result");
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Helper to build a fully-wired IServiceProvider
-// ---------------------------------------------------------------------------
-
-public static class DispatchTestHelper
-{
-    /// <summary>
-    /// Creates a service provider with the mediator infrastructure, registering
-    /// only the handlers and pipelines specified by the caller.
-    /// </summary>
-    public static IServiceProvider BuildProvider(Action<IMediatorHostBuilder, IServiceCollection> configure)
-    {
-        var services = new ServiceCollection();
-        var builder = MediatorServiceCollectionExtensions.AddMediator(services);
-        configure(builder, services);
-        return services.BuildServiceProvider();
-    }
-
-    /// <summary>
-    /// Creates a service provider with the standard set of test handlers and pipelines.
-    /// </summary>
-    public static IServiceProvider BuildDefaultProvider()
-    {
-        return BuildProvider((builder, services) =>
-        {
-            // Void command
-            services.AddScoped<ICommandHandler<DispatchVoidCommand>, DispatchVoidCommandHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(DispatchVoidCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<DispatchVoidCommand>()
-            }));
-
-            // Command with response
-            services.AddScoped<ICommandHandler<DispatchCommand, DispatchResponse>, DispatchCommandHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(DispatchCommand),
-                ResponseType = typeof(DispatchResponse),
-                Terminal = PipelineBuilder.BuildCommandTerminal<DispatchCommand, DispatchResponse>()
-            }));
-
-            // Query
-            services.AddScoped<IQueryHandler<DispatchQuery, DispatchResponse>, DispatchQueryHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(DispatchQuery),
-                ResponseType = typeof(DispatchResponse),
-                Terminal = PipelineBuilder.BuildQueryTerminal<DispatchQuery, DispatchResponse>()
-            }));
-
-            // Notification - single handler
-            services.AddScoped<DispatchNotificationHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(DispatchNotification),
-                Terminal = PipelineBuilder.BuildNotificationTerminal<DispatchNotification>(
-                    new[] { typeof(DispatchNotificationHandler) })
-            }));
-
-            // Throwing command
-            services.AddScoped<ICommandHandler<DispatchThrowingCommand>, DispatchThrowingCommandHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(DispatchThrowingCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<DispatchThrowingCommand>()
-            }));
-
-            // Token capturing command
-            services.AddScoped<ICommandHandler<DispatchTokenCapturingCommand>, DispatchTokenCapturingHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(DispatchTokenCapturingCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<DispatchTokenCapturingCommand>()
-            }));
-
-            // Async command
-            services.AddScoped<ICommandHandler<DispatchAsyncCommand, DispatchResponse>, DispatchAsyncCommandHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(DispatchAsyncCommand),
-                ResponseType = typeof(DispatchResponse),
-                Terminal = PipelineBuilder.BuildCommandTerminal<DispatchAsyncCommand, DispatchResponse>()
-            }));
-        });
-    }
-
-    /// <summary>
-    /// Creates a service provider with multiple notification handlers to test fan-out dispatch.
-    /// </summary>
-    public static IServiceProvider BuildMultiNotificationProvider()
-    {
-        return BuildProvider((builder, services) =>
-        {
-            services.AddScoped<DispatchNotificationHandler>();
-            services.AddScoped<DispatchSecondNotificationHandler>();
-
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(DispatchNotification),
-                Terminal = PipelineBuilder.BuildNotificationTerminal<DispatchNotification>(
-                    new[] { typeof(DispatchNotificationHandler), typeof(DispatchSecondNotificationHandler) })
-            }));
-        });
     }
 }

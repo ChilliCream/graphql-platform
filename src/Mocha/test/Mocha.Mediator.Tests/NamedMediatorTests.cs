@@ -12,33 +12,18 @@ public sealed class NamedMediatorTests : IDisposable
 
         // Default (unnamed) mediator with its own pipeline
         var defaultBuilder = services.AddMediator();
-        services.AddScoped<ICommandHandler<DefaultCommand, string>, DefaultCommandHandler>();
-        defaultBuilder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-        {
-            MessageType = typeof(DefaultCommand),
-            ResponseType = typeof(string),
-            Terminal = PipelineBuilder.BuildCommandTerminal<DefaultCommand, string>()
-        }));
+        services.AddScoped<DefaultCommandHandler>();
+        defaultBuilder.ConfigureMediator(b => b.AddHandler<DefaultCommandHandler>());
 
         // Named mediator "billing" with its own pipeline
         var billingBuilder = services.AddMediator("billing");
-        services.AddScoped<ICommandHandler<BillingCommand, string>, BillingCommandHandler>();
-        billingBuilder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-        {
-            MessageType = typeof(BillingCommand),
-            ResponseType = typeof(string),
-            Terminal = PipelineBuilder.BuildCommandTerminal<BillingCommand, string>()
-        }));
+        services.AddScoped<BillingCommandHandler>();
+        billingBuilder.ConfigureMediator(b => b.AddHandler<BillingCommandHandler>());
 
         // Named mediator "shipping" with its own pipeline
         var shippingBuilder = services.AddMediator("shipping");
-        services.AddScoped<ICommandHandler<ShippingCommand, string>, ShippingCommandHandler>();
-        shippingBuilder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-        {
-            MessageType = typeof(ShippingCommand),
-            ResponseType = typeof(string),
-            Terminal = PipelineBuilder.BuildCommandTerminal<ShippingCommand, string>()
-        }));
+        services.AddScoped<ShippingCommandHandler>();
+        shippingBuilder.ConfigureMediator(b => b.AddHandler<ShippingCommandHandler>());
 
         _provider = services.BuildServiceProvider();
     }

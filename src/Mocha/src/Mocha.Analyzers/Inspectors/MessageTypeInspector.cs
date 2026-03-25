@@ -98,7 +98,7 @@ public sealed class MessageTypeInspector : ISyntaxInspector
                 return true;
             }
 
-            syntaxInfo = new MessageTypeInfo(typeName, typeNamespace, MessageKind.CommandVoid, location);
+            syntaxInfo = new MessageTypeInfo(typeName, typeNamespace, MessageKind.Command, location);
             return true;
         }
 

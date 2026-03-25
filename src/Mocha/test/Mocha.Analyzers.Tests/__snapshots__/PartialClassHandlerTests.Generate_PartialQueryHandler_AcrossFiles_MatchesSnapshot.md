@@ -14,22 +14,17 @@ namespace Microsoft.Extensions.DependencyInjection
         public static global::Mocha.Mediator.IMediatorHostBuilder AddTests(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
-            var services = builder.Services;
-            var lifetime = builder.Options.ServiceLifetime;
 
-            // Register handlers
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.IQueryHandler<global::TestApp.GetOrderQuery, string>), typeof(global::TestApp.GetOrderQueryHandler), lifetime));
-
-            // Register pipelines
-            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(builder, static b =>
-            {
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            // Register handler configurations
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.GetOrderQueryHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::TestApp.GetOrderQueryHandler),
                     MessageType = typeof(global::TestApp.GetOrderQuery),
                     ResponseType = typeof(string),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildQueryTerminal<global::TestApp.GetOrderQuery, string>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Query,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::TestApp.GetOrderQueryHandler, global::TestApp.GetOrderQuery, string>()
                 });
-            });
 
             return builder;
         }

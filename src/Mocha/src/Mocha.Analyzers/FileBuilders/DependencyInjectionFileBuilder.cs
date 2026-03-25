@@ -42,102 +42,65 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
-
-        Writer.WriteIndentedLine("var services = builder.Services;");
-        Writer.WriteIndentedLine("var lifetime = builder.Options.ServiceLifetime;");
     }
 
-    public void WriteHandlerRegistration(HandlerInfo handler)
+    /// <summary>
+    /// Writes an AddHandlerConfiguration call for a command/query handler.
+    /// </summary>
+    public void WriteHandlerConfiguration(HandlerInfo handler)
     {
-        switch (handler.Kind)
+        var (kindEnum, terminalCall) = handler.Kind switch
         {
-            case HandlerKind.CommandVoid:
-                WriteServiceDescriptor(
-                    "global::Mocha.Mediator.ICommandHandler<{0}>",
-                    handler.HandlerTypeName,
-                    handler.MessageTypeName);
-                break;
-            case HandlerKind.CommandResponse:
-                WriteServiceDescriptor(
-                    "global::Mocha.Mediator.ICommandHandler<{0}, {1}>",
-                    handler.HandlerTypeName,
-                    handler.MessageTypeName,
-                    handler.ResponseTypeName!);
-                break;
-            case HandlerKind.Query:
-                WriteServiceDescriptor(
-                    "global::Mocha.Mediator.IQueryHandler<{0}, {1}>",
-                    handler.HandlerTypeName,
-                    handler.MessageTypeName,
-                    handler.ResponseTypeName!);
-                break;
-        }
-    }
-
-    public void WriteNotificationHandlerRegistration(NotificationHandlerInfo handler)
-    {
-        // Use TryAddEnumerable to prevent duplicate handler registrations
-        // when the generated Add{Module} extension is called more than once
-        // (e.g. in tests or modular startup).
-        Writer.WriteIndentedLine(
-            "global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddEnumerable(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.INotificationHandler<{0}>), typeof({1}), lifetime));",
-            handler.NotificationTypeName,
-            handler.HandlerTypeName);
-    }
-
-    /// <summary>
-    /// Writes the opening of a ConfigureMediator lambda for deferred pipeline registrations.
-    /// </summary>
-    public void WriteBeginConfigureMediator()
-    {
-        Writer.WriteIndentedLine("global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(builder, static b =>");
-        Writer.WriteIndentedLine("{");
-        Writer.IncreaseIndent();
-    }
-
-    /// <summary>
-    /// Writes the closing of a ConfigureMediator lambda.
-    /// </summary>
-    public void WriteEndConfigureMediator()
-    {
-        Writer.DecreaseIndent();
-        Writer.WriteIndentedLine("});");
-    }
-
-    /// <summary>
-    /// Writes a pipeline registration for a handler (inside ConfigureMediator lambda, using 'b').
-    /// </summary>
-    public void WritePipelineRegistration(HandlerInfo handler)
-    {
-        var (terminalMethod, responseType) = handler.Kind switch
-        {
-            HandlerKind.CommandVoid => ($"BuildVoidCommandTerminal<{handler.MessageTypeName}>()", null),
-            HandlerKind.CommandResponse => ($"BuildCommandTerminal<{handler.MessageTypeName}, {handler.ResponseTypeName}>()", handler.ResponseTypeName),
-            HandlerKind.Query => ($"BuildQueryTerminal<{handler.MessageTypeName}, {handler.ResponseTypeName}>()", handler.ResponseTypeName),
+            HandlerKind.Command => (
+                "Command",
+                $"BuildCommandPipeline<{handler.HandlerTypeName}, {handler.MessageTypeName}>()"),
+            HandlerKind.CommandResponse => (
+                "CommandResponse",
+                $"BuildCommandResponsePipeline<{handler.HandlerTypeName}, {handler.MessageTypeName}, {handler.ResponseTypeName}>()"),
+            HandlerKind.Query => (
+                "Query",
+                $"BuildQueryPipeline<{handler.HandlerTypeName}, {handler.MessageTypeName}, {handler.ResponseTypeName}>()"),
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        WritePipelineConfiguration(handler.MessageTypeName, responseType, terminalMethod);
+        WriteAddHandlerConfiguration(
+            handler.HandlerTypeName,
+            handler.MessageTypeName,
+            handler.ResponseTypeName,
+            kindEnum,
+            $"global::Mocha.Mediator.PipelineBuilder.{terminalCall}");
     }
 
     /// <summary>
-    /// Writes a pipeline registration for a notification group (inside ConfigureMediator lambda, using 'b').
+    /// Writes an AddHandlerConfiguration call for a notification handler.
     /// </summary>
-    public void WriteNotificationPipelineRegistration(string notificationType,
-        List<NotificationHandlerInfo> groupHandlers)
+    public void WriteNotificationHandlerConfiguration(
+        string notificationType,
+        NotificationHandlerInfo handler)
     {
-        var handlerTypeArgs = string.Join(", ",
-            groupHandlers.Select(h => $"typeof({h.HandlerTypeName})"));
-
-        var terminalMethod = $"BuildNotificationTerminal<{notificationType}>(new global::System.Type[] {{ {handlerTypeArgs} }})";
-        WritePipelineConfiguration(notificationType, null, terminalMethod);
+        WriteAddHandlerConfiguration(
+            handler.HandlerTypeName,
+            notificationType,
+            responseTypeName: null,
+            "Notification",
+            $"global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<{handler.HandlerTypeName}, {notificationType}>()");
     }
 
-    private void WritePipelineConfiguration(string messageTypeName, string? responseTypeName, string terminalMethod)
+    private void WriteAddHandlerConfiguration(
+        string handlerTypeName,
+        string messageTypeName,
+        string? responseTypeName,
+        string kindEnum,
+        string terminalCall)
     {
-        Writer.WriteIndentedLine("b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration");
+        Writer.WriteIndentedLine(
+            "global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<{0}>(builder,",
+            handlerTypeName);
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("new global::Mocha.Mediator.MediatorHandlerConfiguration");
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("HandlerType = typeof({0}),", handlerTypeName);
         Writer.WriteIndentedLine("MessageType = typeof({0}),", messageTypeName);
 
         if (responseTypeName is not null)
@@ -145,9 +108,11 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
             Writer.WriteIndentedLine("ResponseType = typeof({0}),", responseTypeName);
         }
 
-        Writer.WriteIndentedLine("Terminal = global::Mocha.Mediator.PipelineBuilder.{0}", terminalMethod);
+        Writer.WriteIndentedLine("Kind = global::Mocha.Mediator.MediatorHandlerKind.{0},", kindEnum);
+        Writer.WriteIndentedLine("Delegate = {0}", terminalCall);
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("});");
+        Writer.DecreaseIndent();
     }
 
     public void WriteSectionComment(string comment)
@@ -162,17 +127,6 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
         Writer.WriteIndentedLine("return builder;");
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("}");
-    }
-
-    private void WriteServiceDescriptor(string serviceTypeFormat, string implementationType, params object[] typeArgs)
-    {
-        // Use TryAdd to prevent duplicate handler registrations
-        // when the generated Add{Module} extension is called more than once.
-        var serviceType = string.Format(serviceTypeFormat, typeArgs);
-        Writer.WriteIndentedLine(
-            "global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof({0}), typeof({1}), lifetime));",
-            serviceType,
-            implementationType);
     }
 
 #pragma warning disable CA5351 // MD5 is used for non-security hashing (file name salting)
