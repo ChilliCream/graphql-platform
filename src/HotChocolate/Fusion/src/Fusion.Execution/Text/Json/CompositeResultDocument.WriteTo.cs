@@ -37,7 +37,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             // Inline reference resolution
             if (tokenType is ElementTokenType.Reference)
             {
-                cursor = document._metaDb.GetLocationCursor(cursor);
+                cursor = Cursor.FromIndex(row.Location);
                 row = document._metaDb.Get(cursor);
                 tokenType = row.TokenType;
             }
