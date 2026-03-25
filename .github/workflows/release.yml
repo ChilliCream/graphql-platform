@@ -461,6 +461,8 @@ jobs:
       matrix:
         repo:
           - nitro-fusion-publish
+          - nitro-fusion-upload
+          - nitro-fusion-validate
 
     steps:
       - name: 🏷️ Get release version
