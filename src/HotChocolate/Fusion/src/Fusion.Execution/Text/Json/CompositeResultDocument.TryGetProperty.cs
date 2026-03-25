@@ -257,6 +257,7 @@ public sealed partial class CompositeResultDocument
         var propertyCursor = startCursor + propertyRowIndex;
         Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
         Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selectionId);
+
         return new CompositeResultElement(this, propertyCursor + 1);
     }
 
