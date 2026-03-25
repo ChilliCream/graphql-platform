@@ -505,11 +505,11 @@ jobs:
       - name: 🏷️ Create version tags
         working-directory: action-repo
         run: |
-          git tag "$VERSION"
-          git push origin "$VERSION"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
 
           if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             MAJOR=$(echo "$VERSION" | cut -d. -f1)
-            git tag -f "$MAJOR"
-            git push origin "$MAJOR" --force
+            git tag -f "v$MAJOR"
+            git push origin "v$MAJOR" --force
           fi
