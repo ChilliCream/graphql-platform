@@ -460,9 +460,22 @@ jobs:
     strategy:
       matrix:
         repo:
-          - nitro-fusion-publish
+          # - nitro-client-publish
+          # - nitro-client-upload
+          # - nitro-client-validate
+          # - nitro-fusion-publish
           - nitro-fusion-upload
-          - nitro-fusion-validate
+          # - nitro-fusion-validate
+          # - nitro-github-actions
+          # - nitro-mcp-publish
+          # - nitro-mcp-upload
+          # - nitro-mcp-validate
+          # - nitro-openapi-publish
+          # - nitro-openapi-upload
+          # - nitro-openapi-validate
+          # - nitro-schema-publish
+          # - nitro-schema-upload
+          # - nitro-schema-validate
 
     steps:
       - name: 🏷️ Get release version
