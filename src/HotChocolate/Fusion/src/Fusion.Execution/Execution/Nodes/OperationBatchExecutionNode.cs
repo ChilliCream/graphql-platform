@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Language;
 
@@ -81,10 +80,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             RequiresFileUpload = operation.RequiresFileUpload
         };
 
-        var index = 0;
-        var bufferLength = 0;
-        SourceSchemaResult[]? buffer = null;
-        SourceSchemaResult? singleResult = null;
         var hasSomeErrors = false;
 
         try
@@ -93,37 +88,31 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             var response = await client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false);
             context.TrackSourceSchemaClientResponse(this, response);
 
-            var totalPathCount = variables.Length;
-
-            for (var i = 0; i < variables.Length; i++)
-            {
-                totalPathCount += variables[i].AdditionalPaths.Length;
-            }
-
-            var initialBufferLength = Math.Max(totalPathCount, 4);
-
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (index == 0)
-                {
-                    singleResult = result;
-                    index = 1;
-                }
-                else
-                {
-                    if (buffer is null)
-                    {
-                        bufferLength = initialBufferLength;
-                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
-                        buffer[0] = singleResult!;
-                    }
-
-                    buffer[index++] = result;
-                }
-
-                if (result.Errors is not null)
+                var hasErrors = result.Errors is not null;
+                if (hasErrors)
                 {
                     hasSomeErrors = true;
+                }
+
+                try
+                {
+                    context.AddPartialResult(
+                        operation.Source,
+                        result,
+                        operation.ResultSelectionSet,
+                        hasErrors);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return ExecutionStatus.Failed;
+                }
+                catch (Exception exception)
+                {
+                    diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
+                    context.AddErrors(exception, variables, operation.ResultSelectionSet);
+                    return ExecutionStatus.Failed;
                 }
             }
         }
@@ -134,63 +123,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
-
-            if (buffer is not null && bufferLength > 0)
-            {
-                foreach (var result in buffer.AsSpan(0, index))
-                {
-                    result?.Dispose();
-                }
-
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
-            else if (singleResult is not null)
-            {
-                singleResult.Dispose();
-            }
-
             context.AddErrors(exception, variables, operation.ResultSelectionSet);
             return ExecutionStatus.Failed;
-        }
-
-        try
-        {
-            if (buffer is not null)
-            {
-                context.AddPartialResults(
-                    operation.Source,
-                    buffer.AsSpan(0, index),
-                    operation.ResultSelectionSet,
-                    hasSomeErrors);
-            }
-            else if (singleResult is not null)
-            {
-                var firstResult = singleResult;
-                context.AddPartialResults(
-                    operation.Source,
-                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
-                    operation.ResultSelectionSet,
-                    hasSomeErrors);
-            }
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ExecutionStatus.Failed;
-        }
-        catch (Exception exception)
-        {
-            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            context.AddErrors(exception, variables, operation.ResultSelectionSet);
-            return ExecutionStatus.Failed;
-        }
-        finally
-        {
-            if (buffer is not null)
-            {
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;

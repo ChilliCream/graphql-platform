@@ -120,14 +120,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjI="
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |

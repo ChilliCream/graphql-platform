@@ -157,26 +157,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {
-                "data": {
-                  "lookups": {
-                    "authorById": {
-                      "name": "JRR Tolkien"
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "lookups": {
-                    "authorById": {
-                      "name": "JRR Tolkien"
-                    }
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |

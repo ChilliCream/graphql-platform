@@ -161,22 +161,6 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjQ="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjY="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
                     "displayName": "Author: QXV0aG9yOjY="
                   }
                 }

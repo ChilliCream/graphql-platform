@@ -85,41 +85,36 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var (start, tokenType) = _metaDb.GetStartCursor(current);
+        var row = _metaDb.GetValue(ref current);
+        CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
 
-        CheckExpectedType(ElementTokenType.StartArray, tokenType);
-
-        var len = _metaDb.GetNumberOfRows(start);
-
-        if ((uint)arrayIndex >= (uint)len)
+        if ((uint)arrayIndex >= (uint)row.NumberOfRows)
         {
             throw new IndexOutOfRangeException();
         }
 
         // first element is at +1 after StartArray
-        return new CompositeResultElement(this, start.AddRows(arrayIndex + 1));
+        return new CompositeResultElement(this, current.AddRows(arrayIndex + 1));
     }
 
     internal int GetArrayLength(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        (current, var tokenType) = _metaDb.GetStartCursor(current);
+        var row = _metaDb.GetValue(ref current);
+        CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
 
-        CheckExpectedType(ElementTokenType.StartArray, tokenType);
-
-        return _metaDb.GetSizeOrLength(current);
+        return row.SizeOrLength;
     }
 
     internal int GetPropertyCount(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        (current, var tokenType) = _metaDb.GetStartCursor(current);
+        var row = _metaDb.GetValue(ref current);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
-        CheckExpectedType(ElementTokenType.StartObject, tokenType);
-
-        return _metaDb.GetSizeOrLength(current);
+        return row.SizeOrLength;
     }
 
     internal CompactPath CreateCompactPath(Cursor current)

@@ -428,10 +428,13 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         // we take over the memory owners from the result context
         // and store them on the response so that the server can
         // dispose them when it disposes of the result itself.
-        while (_resultStore.MemoryOwners.TryPop(out var disposable))
+        var memoryOwners = _resultStore.MemoryOwners;
+        foreach (var disposable in memoryOwners)
         {
             operationResult.RegisterForCleanup(disposable);
         }
+
+        memoryOwners.Clear();
 
         operationResult.Features.Set(OperationPlan);
 
