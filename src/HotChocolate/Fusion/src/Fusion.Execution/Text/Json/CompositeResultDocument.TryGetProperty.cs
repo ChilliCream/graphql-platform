@@ -241,6 +241,25 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
+    internal CompositeResultElement GetPropertyBySelectionId(
+        Cursor startCursor,
+        int selectionId)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        Debug.Assert(row.TokenType is ElementTokenType.StartObject);
+        Debug.Assert(row.OperationReferenceType is OperationReferenceType.SelectionSet);
+
+        var selectionSetId = row.OperationReferenceId;
+        var propertyIndex = selectionId - selectionSetId - 1;
+        var propertyRowIndex = (propertyIndex * 2) + 1;
+        var propertyCursor = startCursor + propertyRowIndex;
+        Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+        Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selectionId);
+        return new CompositeResultElement(this, propertyCursor + 1);
+    }
+
     internal Cursor GetStartCursor(Cursor cursor)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

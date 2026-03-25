@@ -1592,12 +1592,7 @@ AddErrors_Next:
 
             if (segment >= 0)
             {
-                var selection = _operation.GetSelectionById(segment);
-
-                if (!element.TryGetProperty(selection.ResponseName, out element))
-                {
-                    return default;
-                }
+                element = element.GetPropertyBySelectionId(segment);
             }
             else
             {

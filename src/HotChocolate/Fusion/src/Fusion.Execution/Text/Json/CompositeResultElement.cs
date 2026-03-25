@@ -426,6 +426,13 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
     }
 
+    internal CompositeResultElement GetPropertyBySelectionId(int selectionId)
+    {
+        CheckValidInstance();
+
+        return _parent.GetPropertyBySelectionId(_cursor, selectionId);
+    }
+
     /// <summary>
     /// Gets the value as a <see cref="bool"/>.
     /// </summary>

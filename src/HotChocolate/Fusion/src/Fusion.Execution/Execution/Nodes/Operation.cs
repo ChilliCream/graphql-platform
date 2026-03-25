@@ -237,9 +237,11 @@ public sealed class Operation : IOperation
         return includeFlags;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal Selection GetSelectionById(int id)
         => Unsafe.As<Selection>(Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_elementsById), id));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal SelectionSet GetSelectionSetById(int id)
         => Unsafe.As<SelectionSet>(Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_elementsById), id));
 }
