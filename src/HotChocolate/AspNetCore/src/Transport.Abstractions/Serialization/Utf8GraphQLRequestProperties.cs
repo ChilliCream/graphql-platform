@@ -1,4 +1,8 @@
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Serialization;
+#else
 namespace HotChocolate.Transport.Serialization;
+#endif
 
 /// <summary>
 /// A helper class that contains the default names of the GraphQL request properties.

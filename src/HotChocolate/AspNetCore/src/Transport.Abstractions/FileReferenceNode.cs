@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 
-namespace HotChocolate.Transport.Http;
+namespace HotChocolate.Transport;
 
 /// <summary>
 /// This file literal is used in order to allow for file references in <see cref="ObjectValueNode"/>.

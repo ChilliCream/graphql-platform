@@ -220,29 +220,31 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requirements)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        if (requiredData.Length == 0)
+        if (requirements.Length == 0)
         {
+            if (!selectionSet.IsRoot)
+            {
+                throw new InvalidOperationException(
+                    "Non-root selection paths must have requirements or forwarded variables.");
+            }
+
+
             if (forwardedVariables.Length == 0)
             {
-                if (selectionSet.IsRoot)
-                {
-                    return [];
-                }
-
-                return [new VariableValues(ToResultPath(selectionSet), new ObjectValueNode([]))];
+                return [];
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(CompactPath.Root, new ObjectValueNode(variableValues))];
+            return _resultStore.CreateVariableValueSets(variableValues);
         }
         else
         {
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requiredData);
+            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requirements);
         }
     }
 
@@ -259,7 +261,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(CompactPath.Root, new ObjectValueNode(variableValues))];
+            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
         }
         else
         {

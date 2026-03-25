@@ -1,14 +1,63 @@
+#if FUSION
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using HotChocolate.Fusion.Transport.Serialization;
+
+namespace HotChocolate.Fusion.Transport;
+#else
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket connection.
 /// </summary>
 public sealed class VariableBatchRequest : IOperationRequest, IEquatable<VariableBatchRequest>
 {
+#if FUSION
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
+    /// </summary>
+    /// <param name="query">
+    /// The query document containing the operation to execute.
+    /// </param>
+    /// <param name="id">
+    /// The ID of a previously persisted operation that should be executed.
+    /// </param>
+    /// <param name="operationName">
+    /// The name of the operation to execute.
+    /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
+    /// <param name="variables">
+    /// A list of dictionaries representing the sets of variable values to use when executing the operation.
+    /// </param>
+    /// <param name="extensions">
+    /// A dictionary containing extension values to include with the operation.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// Thrown if the query, ID, and extensions parameters are all null.
+    /// </exception>
+    public VariableBatchRequest(
+        string? query,
+        string? id,
+        string? operationName,
+        ErrorHandlingMode? onError,
+        JsonSegment variables,
+        JsonSegment extensions)
+    {
+        Query = query;
+        Id = id;
+        OperationName = operationName;
+        OnError = onError;
+        Variables = variables;
+        Extensions = extensions;
+    }
+#else
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
     /// </summary>
@@ -88,6 +137,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
         Variables = variables;
         Extensions = extensions;
     }
+#endif
 
     /// <summary>
     /// Gets the ID of a previously persisted operation that should be executed.
@@ -109,6 +159,17 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// </summary>
     public ErrorHandlingMode? OnError { get; }
 
+#if FUSION
+    /// <summary>
+    /// Gets a list of dictionaries representing the sets of variable values to use when executing the operation.
+    /// </summary>
+    public JsonSegment Variables { get; }
+
+    /// <summary>
+    /// Gets a dictionary containing extension values to include with the operation.
+    /// </summary>
+    public JsonSegment Extensions { get; }
+#else
     /// <summary>
     /// Gets a list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </summary>
@@ -130,14 +191,19 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// operation.
     /// </summary>
     public ObjectValueNode? ExtensionsNode { get; }
+#endif
 
     /// <summary>
-    /// Writes a serialized version of this request to a <see cref="Utf8JsonWriter"/>.
+    /// Writes a serialized version of this request to a JSON writer.
     /// </summary>
     /// <param name="writer">
     /// The JSON writer.
     /// </param>
+#if FUSION
+    public void WriteTo(JsonWriter writer)
+#else
     public void WriteTo(Utf8JsonWriter writer)
+#endif
     {
         ArgumentNullException.ThrowIfNull(writer);
 
@@ -162,10 +228,8 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
 
         return Id == other.Id
             && Query == other.Query
-            && Equals(Variables, other.Variables)
-            && Equals(Extensions, other.Extensions)
-            && Equals(VariablesNode, other.VariablesNode)
-            && Equals(ExtensionsNode, other.ExtensionsNode);
+            && Variables.Equals(other.Variables)
+            && Extensions.Equals(other.Extensions);
     }
 
     /// <inheritdoc/>
@@ -174,7 +238,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
 
     /// <inheritdoc/>
     public override int GetHashCode()
-        => HashCode.Combine(Id, Query, Variables, Extensions, VariablesNode, ExtensionsNode);
+        => HashCode.Combine(Id, Query, Variables, Extensions);
 
     /// <summary>
     /// Determines whether two <see cref="OperationRequest"/> objects are equal.

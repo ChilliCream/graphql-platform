@@ -1,8 +1,16 @@
+#if FUSION
+using System.Collections.Immutable;
+using HotChocolate.Text.Json;
+using HotChocolate.Fusion.Transport.Serialization;
+
+namespace HotChocolate.Fusion.Transport;
+#else
 using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Transport.Serialization;
 
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// Represents a GraphQL batch request that can be sent over a WebSocket or HTTP connection.
@@ -47,7 +55,11 @@ public readonly struct OperationBatchRequest
     /// <exception cref="ArgumentNullException">
     /// Thrown if the <paramref name="writer"/> is <see langword="null"/>.
     /// </exception>
+#if FUSION
+    public void WriteTo(JsonWriter writer)
+#else
     public void WriteTo(Utf8JsonWriter writer)
+#endif
     {
         ArgumentNullException.ThrowIfNull(writer);
 

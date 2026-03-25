@@ -1,6 +1,6 @@
 using static HotChocolate.Transport.Properties.TransportAbstractionResources;
 
-namespace HotChocolate.Transport.Http;
+namespace HotChocolate.Transport;
 
 /// <summary>
 /// A file reference can be used to upload a file with the

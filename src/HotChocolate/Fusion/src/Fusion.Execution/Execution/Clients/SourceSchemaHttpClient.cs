@@ -5,9 +5,9 @@ using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
-using HotChocolate.Transport;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -18,7 +18,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </summary>
 public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 {
-    private static readonly Uri UnknownUri = new("http://unknown");
+    private static readonly Uri s_unknownUri = new("http://unknown");
     private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
     private static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;
 
@@ -81,7 +81,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         return new Response(
             request.OperationType,
-            httpRequest.Uri ?? UnknownUri,
+            httpRequest.Uri ?? s_unknownUri,
             httpResponse,
             request.Variables,
             context,

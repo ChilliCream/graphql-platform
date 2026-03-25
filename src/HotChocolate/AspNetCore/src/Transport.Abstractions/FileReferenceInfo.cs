@@ -1,4 +1,4 @@
-namespace HotChocolate.Transport.Http;
+namespace HotChocolate.Transport;
 
 /// <summary>
 /// The file reference info contains the actual

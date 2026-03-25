@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
@@ -40,6 +39,43 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\ContentType.cs">
+      <Link>Transport\ContentType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\FileReferenceNode.cs">
+      <Link>Transport\FileReferenceNode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\IOperationRequest.cs">
+      <Link>Transport\IOperationRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\IRequestBody.cs">
+      <Link>Transport\IRequestBody.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\OperationBatchRequest.cs">
+      <Link>Transport\OperationBatchRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\OperationRequest.cs">
+      <Link>Transport\OperationRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\Properties\TransportAbstractionResources.Designer.cs">
+      <Link>Transport\TransportAbstractionResources.Designer.cs</Link>
+      <DependentUpon>TransportAbstractionResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\Serialization\JsonOptionDefaults.cs">
+      <Link>Transport\Serialization\JsonOptionDefaults.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\Serialization\Utf8GraphQLRequestProperties.cs">
+      <Link>Transport\Serialization\Utf8GraphQLRequestProperties.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\Serialization\Utf8GraphQLResultProperties.cs">
+      <Link>Transport\Serialization\Utf8GraphQLResultProperties.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\Serialization\Utf8JsonWriterHelper.cs">
+      <Link>Transport\Serialization\Utf8JsonWriterHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\VariableBatchRequest.cs">
+      <Link>Transport\VariableBatchRequest.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\DefaultGraphQLHttpClient.cs">
       <Link>Transport\Http\DefaultGraphQLHttpClient.cs</Link>
     </Compile>
@@ -178,6 +214,11 @@
       <Link>Transport\Http\HttpResources.Designer.cs</Link>
       <DependentUpon>HttpResources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="..\..\..\AspNetCore\src\Transport.Abstractions\Properties\TransportAbstractionResources.resx">
+      <Link>Transport\TransportAbstractionResources.resx</Link>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TransportAbstractionResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.resx">
       <Link>Transport\Http\HttpResources.resx</Link>
       <Generator>ResXFileCodeGenerator</Generator>
@@ -195,6 +236,10 @@
     <Compile Update="Planning\OperationPlanner.MergeSelectionSetRewriter.cs">
       <DependentUpon>OperationPlanner.cs</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Transport\Abstractions\" />
   </ItemGroup>
 
 </Project>
