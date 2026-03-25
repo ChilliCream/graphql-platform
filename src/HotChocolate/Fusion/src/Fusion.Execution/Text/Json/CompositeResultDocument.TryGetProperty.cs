@@ -13,10 +13,10 @@ public sealed partial class CompositeResultDocument
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
-        CheckExpectedType(ElementTokenType.StartObject, tokenType);
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
-        var numberOfRows = _metaDb.GetNumberOfRows(startCursor);
+        var numberOfRows = row.NumberOfRows;
 
         // Only one row means it was EndObject.
         if (numberOfRows == 1)
@@ -25,7 +25,6 @@ public sealed partial class CompositeResultDocument
             return false;
         }
 
-        var row = _metaDb.Get(startCursor);
         if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
         {
             var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
@@ -39,6 +38,9 @@ public sealed partial class CompositeResultDocument
                 value = new CompositeResultElement(this, propertyCursor + 1);
                 return true;
             }
+
+            value = default;
+            return false;
         }
 
         var maxBytes = s_utf8Encoding.GetMaxByteCount(propertyName.Length);
@@ -121,10 +123,10 @@ public sealed partial class CompositeResultDocument
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
-        CheckExpectedType(ElementTokenType.StartObject, tokenType);
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
-        var numberOfRows = _metaDb.GetNumberOfRows(startCursor);
+        var numberOfRows = row.NumberOfRows;
 
         // Only one row means it was EndObject.
         if (numberOfRows == 1)
@@ -133,7 +135,6 @@ public sealed partial class CompositeResultDocument
             return false;
         }
 
-        var row = _metaDb.Get(startCursor);
         if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
         {
             var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
@@ -147,6 +148,9 @@ public sealed partial class CompositeResultDocument
                 value = new CompositeResultElement(this, propertyCursor + 1);
                 return true;
             }
+
+            value = default;
+            return false;
         }
 
         var endCursor = startCursor + (numberOfRows - 1);
