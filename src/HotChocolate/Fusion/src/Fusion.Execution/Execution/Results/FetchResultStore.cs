@@ -515,15 +515,40 @@ AddErrors_Next:
             return false;
         }
 
-        for (var i = 0; i < additionalPaths.Length; i++)
+        switch (additionalPaths.Length)
         {
-            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
-            {
-                return false;
-            }
-        }
+            case 0:
+                return true;
 
-        return true;
+            case 1:
+                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet);
+
+            case 2:
+                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
+                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet);
+
+            case 3:
+                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
+                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet)
+                    && SaveSafeResult(resultData, additionalPaths[2], dataElement, errorTrie, resultSelectionSet);
+
+            case 4:
+                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
+                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet)
+                    && SaveSafeResult(resultData, additionalPaths[2], dataElement, errorTrie, resultSelectionSet)
+                    && SaveSafeResult(resultData, additionalPaths[3], dataElement, errorTrie, resultSelectionSet);
+
+            default:
+                for (var i = 0; i < additionalPaths.Length; i++)
+                {
+                    if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+        }
     }
 
     private bool SaveSafeResult(
