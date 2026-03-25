@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
 #if FUSION
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 #endif
@@ -188,7 +189,11 @@ public sealed class GraphQLHttpRequest
     /// <summary>
     /// Allows to specify some custom request state, that will be passed into the request hooks.
     /// </summary>
+#if FUSION
+    public RequestCallbackState? State { get; set; }
+#else
     public object? State { get; set; }
+#endif
 
     public static implicit operator GraphQLHttpRequest(OperationRequest body) => new(body);
 

@@ -134,6 +134,9 @@ public sealed class SourceSchemaResult : IDisposable
     internal SourceSchemaResult WithPath(CompactPath path)
         => new(path, _document, Final, ownsDocument: false, additionalPaths: []);
 
+    internal SourceSchemaResult WithPath(CompactPath path, ImmutableArray<CompactPath> additionalPaths)
+        => new(path, _document, Final, ownsDocument: false, additionalPaths);
+
     /// <summary>
     /// Disposes the underlying result document if this instance owns it.
     /// </summary>

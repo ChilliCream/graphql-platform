@@ -161,22 +161,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "name": "Author 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "name": "Author 2"
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |

@@ -110,12 +110,13 @@ public readonly partial struct SourceResultElement
                 }
             }
 
-            // Advance past the current VALUE to the start of the next element.
-            // GetEndIndex(current, includeEndElement: true) yields the row after the current value.
-            var afterCurrent = _target._parent.GetEndIndex(_current, includeEndElement: true);
+            // Advance past the current VALUE to the row after it.
+            // Inlined from GetEndIndex(_current, includeEndElement: true) to avoid
+            // the method call overhead, disposed check, and branch on every iteration.
+            var row = _target._parent.GetDbRow(_current);
+            var afterCurrent = row.IsSimpleValue ? _current + 1 : _current + row.NumberOfRows;
 
-            // After a value, the next row (if any) is the next PropertyName; we need the VALUE,
-            // so we skip one more row.
+            // After the value comes the next PropertyName; skip it to reach the VALUE.
             var nextValue = afterCurrent + 1;
 
             if (nextValue < _endCursor)
