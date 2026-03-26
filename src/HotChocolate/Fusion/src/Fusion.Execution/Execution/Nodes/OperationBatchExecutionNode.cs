@@ -8,6 +8,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class OperationBatchExecutionNode : ExecutionNode
 {
     private readonly OperationDefinition[] _operations;
+    private readonly bool _requiresFileUpload;
 
     internal OperationBatchExecutionNode(
         int id,
@@ -16,6 +17,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         Id = id;
         _operations = operations;
         SchemaName = operations[0].SchemaName!;
+        _requiresFileUpload = operations.Any(t => t.RequiresFileUpload);
     }
 
     public override int Id { get; }
@@ -293,7 +295,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 OperationType = operation.Operation.Type,
                 OperationSourceText = operation.Operation.SourceText,
                 Variables = variables,
-                RequiresFileUpload = operation.RequiresFileUpload
+                RequiresFileUpload = _requiresFileUpload
             });
 
             operationByIndex[operationCount] = operation;
