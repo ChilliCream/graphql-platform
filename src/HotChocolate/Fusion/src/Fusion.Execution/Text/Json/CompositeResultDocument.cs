@@ -119,31 +119,30 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompactPath CreateCompactPath(Cursor current)
     {
+        var firstRow = _metaDb.Get(current);
+
         // Stop at root via IsRoot flag.
-        if ((_metaDb.GetFlags(current) & ElementFlags.IsRoot) == ElementFlags.IsRoot)
+        if ((firstRow.Flags & ElementFlags.IsRoot) == ElementFlags.IsRoot)
         {
             return CompactPath.Root;
         }
 
         Span<Cursor> chain = stackalloc Cursor[64];
         Span<DbRow> rows = stackalloc DbRow[64];
-        var c = current;
-        var written = 0;
+        chain[0] = current;
+        rows[0] = firstRow;
+        var written = 1;
 
-        while (true)
+        var parentIndex = firstRow.ParentRow;
+        while (parentIndex > 0)
         {
-            var row = _metaDb.Get(c);
-            chain[written] = c;
+            var cursor = Cursor.FromIndex(parentIndex);
+            var row = _metaDb.Get(cursor);
+            chain[written] = cursor;
             rows[written] = row;
             written++;
 
-            var parentIndex = row.ParentRow;
-            if (parentIndex <= 0)
-            {
-                break;
-            }
-
-            c = Cursor.FromIndex(parentIndex);
+            parentIndex = row.ParentRow;
 
             if (written >= 64)
             {
@@ -157,7 +156,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         for (var i = written - 1; i >= 0; i--)
         {
-            c = chain[i];
+            var cursor = chain[i];
             var tokenType = rows[i].TokenType;
 
             if (tokenType == ElementTokenType.PropertyName)
@@ -173,8 +172,8 @@ public sealed partial class CompositeResultDocument : IDisposable
                 if (parentTokenType is ElementTokenType.StartArray)
                 {
                     // arrayIndex = abs(child) - (abs(parent) + 1)
-                    var absChild = (c.Chunk * Cursor.RowsPerChunk) + c.Row;
-                    var absParent = parentCursor.Chunk * Cursor.RowsPerChunk + parentCursor.Row;
+                    var absChild = (cursor.Chunk * Cursor.RowsPerChunk) + cursor.Row;
+                    var absParent = (parentCursor.Chunk * Cursor.RowsPerChunk) + parentCursor.Row;
                     var arrayIndex = absChild - (absParent + 1);
                     path.AppendIndex(arrayIndex);
                 }
