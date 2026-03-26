@@ -38,6 +38,8 @@ internal sealed class FusionMigrateCommand : Command
 
         var workingDirectory = Directory.GetCurrentDirectory();
 
+        console.WriteLine($"Searching for '{sourceFileName}' files in '{workingDirectory}'...");
+
         var sourceFiles = Directory.GetFiles(
             workingDirectory,
             sourceFileName,
@@ -49,12 +51,22 @@ internal sealed class FusionMigrateCommand : Command
             return ExitCodes.Error;
         }
 
+        var migratedFiles = new List<string>();
+
         foreach (var sourceFile in sourceFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var directory = Path.GetDirectoryName(sourceFile)!;
             var targetFile = Path.Combine(directory, targetFileName);
+
+            if (File.Exists(targetFile))
+            {
+                var relativePath = Path.GetRelativePath(workingDirectory, targetFile);
+                console.MarkupLineInterpolated(
+                    $"[yellow]Skipping[/] [grey]{relativePath}[/] (already exists)");
+                continue;
+            }
 
             var sourceJson = await File.ReadAllBytesAsync(sourceFile, cancellationToken);
 
@@ -78,6 +90,14 @@ internal sealed class FusionMigrateCommand : Command
             {
                 writer.WritePropertyName("name");
                 subgraphElement.WriteTo(writer);
+            }
+            else
+            {
+                writer.WriteString("name", "");
+
+                var relativePath = Path.GetRelativePath(workingDirectory, targetFile);
+                console.MarkupLineInterpolated(
+                    $"[grey]{relativePath}[/] [yellow]needs to define a 'name'.[/]");
             }
 
             // "http" -> "transports.http" with "baseAddress" -> "url"
@@ -119,6 +139,19 @@ internal sealed class FusionMigrateCommand : Command
             writer.WriteEndObject();
             await writer.FlushAsync(cancellationToken);
 
+            migratedFiles.Add(sourceFile);
+        }
+
+        if (migratedFiles.Count == 0)
+        {
+            console.MarkupLine("[yellow]No files were migrated.[/]");
+            return ExitCodes.Success;
+        }
+
+        console.Success($"Migrated {migratedFiles.Count} file(s) to {targetFileName}!");
+
+        foreach (var sourceFile in migratedFiles)
+        {
             var relativePath = Path.GetRelativePath(workingDirectory, sourceFile);
             console.MarkupLineInterpolated(
                 $"[grey]{relativePath}[/] -> [green]{targetFileName}[/]");
