@@ -126,14 +126,18 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Span<Cursor> chain = stackalloc Cursor[64];
+        Span<DbRow> rows = stackalloc DbRow[64];
         var c = current;
         var written = 0;
 
-        do
+        while (true)
         {
-            chain[written++] = c;
+            var row = _metaDb.Get(c);
+            chain[written] = c;
+            rows[written] = row;
+            written++;
 
-            var parentIndex = _metaDb.GetParent(c);
+            var parentIndex = row.ParentRow;
             if (parentIndex <= 0)
             {
                 break;
@@ -145,25 +149,24 @@ public sealed partial class CompositeResultDocument : IDisposable
             {
                 throw new InvalidOperationException("The path is to deep.");
             }
-        } while (true);
+        }
 
         Span<int> pathBuffer = stackalloc int[32];
         var path = new CompactPathBuilder(pathBuffer, _pathPool);
         var parentTokenType = ElementTokenType.StartObject;
 
-        chain = chain[..written];
-
-        for (var i = chain.Length - 1; i >= 0; i--)
+        for (var i = written - 1; i >= 0; i--)
         {
             c = chain[i];
-            var tokenType = _metaDb.GetElementTokenType(c, resolveReferences: false);
+            var tokenType = rows[i].TokenType;
 
             if (tokenType == ElementTokenType.PropertyName)
             {
-                path.AppendField(GetSelection(c)!.Id);
+                Debug.Assert(rows[i].OperationReferenceType is OperationReferenceType.Selection);
+                path.AppendField(rows[i].OperationReferenceId);
                 i--; // skip over the actual value
             }
-            else if (chain.Length - 1 > i)
+            else if (written - 1 > i)
             {
                 var parentCursor = chain[i + 1];
 
