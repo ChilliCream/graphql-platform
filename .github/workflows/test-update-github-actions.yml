@@ -30,55 +30,11 @@ jobs:
           owner: ChilliCream
           repositories: ${{ matrix.repo }}
 
-      - name: 📥 Checkout action repo
-        uses: actions/checkout@v6
-        with:
-          repository: ChilliCream/${{ matrix.repo }}
-          token: ${{ steps.app-token.outputs.token }}
-          path: action-repo
-
-      - name: 🧰 Enable Corepack
+      - name: 🚀 Trigger action repository update workflow
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          corepack enable
-          corepack prepare yarn@4.2.2 --activate
-          yarn --version
-
-      - name: 🧰 Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: action-repo/yarn.lock
-
-      - name: 📝 Update version in package.json
-        working-directory: action-repo
-        run: npm version "$VERSION" --no-git-tag-version
-
-      - name: 📦 Install dependencies & build
-        working-directory: action-repo
-        run: |
-          yarn install
-          yarn build
-
-      - name: 🧪 Simulate commit and tag locally (no push)
-        working-directory: action-repo
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-
-          if git diff --cached --quiet; then
-            echo "No changes to commit in ${{ matrix.repo }}"
-          else
-            git commit -m "Update Nitro CLI to $VERSION"
-          fi
-
-          git tag "v$VERSION" --force
-          echo "Created local test tag v$VERSION for ${{ matrix.repo }}"
-
-      - name: 📋 Show resulting status
-        working-directory: action-repo
-        run: |
-          git status --short
-          git log -1 --oneline
-          git tag --list "v$VERSION"
+          gh api --method POST \
+            "/repos/ChilliCream/${{ matrix.repo }}/dispatches" \
+            -f event_type=update-from-platform \
+            -f client_payload[version]="$VERSION"
