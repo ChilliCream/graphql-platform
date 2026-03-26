@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Options;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -13,16 +14,19 @@ internal sealed class FusionMigrateCommand : Command
             .FromAmong(Targets.SubgraphConfig);
 
         AddArgument(targetArgument);
+        AddOption(Opt<WorkingDirectoryOption>.Instance);
 
         this.SetHandler(async context =>
         {
             var target = context.ParseResult.GetValueForArgument(targetArgument);
+            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
 
             context.ExitCode = target switch
             {
                 Targets.SubgraphConfig => await MigrateSubgraphConfigAsync(
                     console,
+                    workingDirectory,
                     context.GetCancellationToken()),
                 _ => throw new ArgumentOutOfRangeException(nameof(target))
             };
@@ -31,12 +35,11 @@ internal sealed class FusionMigrateCommand : Command
 
     private static async Task<int> MigrateSubgraphConfigAsync(
         IAnsiConsole console,
+        string workingDirectory,
         CancellationToken cancellationToken)
     {
         const string sourceFileName = "subgraph-config.json";
         const string targetFileName = "schema-settings.json";
-
-        var workingDirectory = Directory.GetCurrentDirectory();
 
         console.WriteLine($"Searching for '{sourceFileName}' files in '{workingDirectory}'...");
 

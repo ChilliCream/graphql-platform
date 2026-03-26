@@ -7,7 +7,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 public sealed class FusionMigrateCommandTests : IDisposable
 {
     private readonly string _tempDir;
-    private readonly string _originalDirectory = Directory.GetCurrentDirectory();
 
     public FusionMigrateCommandTests()
     {
@@ -38,12 +37,11 @@ public sealed class FusionMigrateCommandTests : IDisposable
             }
             """);
 
-        Directory.SetCurrentDirectory(_tempDir);
         var builder = GetCommandLineBuilder();
 
         // act
         var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config"]);
+            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
 
         // assert
         Assert.Equal(0, exitCode);
@@ -87,12 +85,11 @@ public sealed class FusionMigrateCommandTests : IDisposable
             Path.Combine(_tempDir, "schema-settings.json"),
             existingContent);
 
-        Directory.SetCurrentDirectory(_tempDir);
         var builder = GetCommandLineBuilder();
 
         // act
         var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config"]);
+            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
 
         // assert
         Assert.Equal(0, exitCode);
@@ -105,12 +102,11 @@ public sealed class FusionMigrateCommandTests : IDisposable
     public async Task Migrate_SubgraphConfig_NoFilesFound_ReturnsError()
     {
         // arrange
-        Directory.SetCurrentDirectory(_tempDir);
         var builder = GetCommandLineBuilder();
 
         // act
         var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config"]);
+            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
 
         // assert
         Assert.Equal(-1, exitCode);
@@ -128,12 +124,11 @@ public sealed class FusionMigrateCommandTests : IDisposable
             }
             """);
 
-        Directory.SetCurrentDirectory(_tempDir);
         var builder = GetCommandLineBuilder();
 
         // act
         var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config"]);
+            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
 
         // assert
         Assert.Equal(0, exitCode);
@@ -179,12 +174,11 @@ public sealed class FusionMigrateCommandTests : IDisposable
             }
             """);
 
-        Directory.SetCurrentDirectory(_tempDir);
         var builder = GetCommandLineBuilder();
 
         // act
         var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config"]);
+            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
 
         // assert
         Assert.Equal(0, exitCode);
@@ -204,8 +198,6 @@ public sealed class FusionMigrateCommandTests : IDisposable
 
     public void Dispose()
     {
-        Directory.SetCurrentDirectory(_originalDirectory);
-
         try
         {
             Directory.Delete(_tempDir, recursive: true);
