@@ -910,7 +910,7 @@ AddErrors_Next:
             // Write variable JSON: {"key":rawValue}
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement.Key);
-            _jsonWriter.WriteRawValue(value.GetRawValue(includeQuotes: true));
+            WriteCompositeResultValue(value);
             _jsonWriter.WriteEndObject();
 
             // we try to create a VariableValues object,
@@ -1026,9 +1026,9 @@ AddErrors_Next:
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement1.Key);
-            _jsonWriter.WriteRawValue(value1.GetRawValue(includeQuotes: true));
+            WriteCompositeResultValue(value1);
             _jsonWriter.WritePropertyName(requirement2.Key);
-            _jsonWriter.WriteRawValue(value2.GetRawValue(includeQuotes: true));
+            WriteCompositeResultValue(value2);
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(
@@ -1167,11 +1167,11 @@ AddErrors_Next:
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement1.Key);
-            _jsonWriter.WriteRawValue(value1.GetRawValue(includeQuotes: true));
+            WriteCompositeResultValue(value1);
             _jsonWriter.WritePropertyName(requirement2.Key);
-            _jsonWriter.WriteRawValue(value2.GetRawValue(includeQuotes: true));
+            WriteCompositeResultValue(value2);
             _jsonWriter.WritePropertyName(requirement3.Key);
-            _jsonWriter.WriteRawValue(value3.GetRawValue(includeQuotes: true));
+            WriteCompositeResultValue(value3);
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
@@ -1351,6 +1351,9 @@ AddErrors_Next:
         System.Text.Encoding.UTF8.GetBytes(value.AsSpan(), buffer);
         _jsonWriter.WriteRawValue(buffer);
     }
+
+    private void WriteCompositeResultValue(CompositeResultElement value)
+        => value.WriteTo(_jsonWriter);
 
     internal VariableValues CreateVariableValueSets(
         CompactPath path,

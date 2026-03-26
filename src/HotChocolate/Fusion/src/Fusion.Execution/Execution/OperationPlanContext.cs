@@ -226,15 +226,14 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         if (requirements.Length == 0)
         {
-            if (!selectionSet.IsRoot)
-            {
-                throw new InvalidOperationException(
-                    "Non-root selection paths must have requirements or forwarded variables.");
-            }
-
             if (forwardedVariables.Length == 0)
             {
-                return [];
+                if (selectionSet.IsRoot)
+                {
+                    return [];
+                }
+
+                return [_resultStore.CreateVariableValueSets(ToResultPath(selectionSet), [])];
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
