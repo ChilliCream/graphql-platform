@@ -25,7 +25,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
-          app-id: ${{ vars.ACTIONS_APP_ID }}
+          app-id: ${{ secrets.ACTIONS_APP_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
           repositories: ${{ matrix.repo }}
