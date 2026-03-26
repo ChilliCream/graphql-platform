@@ -253,8 +253,8 @@ public sealed class MediatorBuilder : IMediatorBuilder
             var compiled = ImmutableArray.CreateBuilder<MediatorDelegate>(terminals.Count);
             for (var i = 0; i < terminals.Count; i++)
             {
-                compiled[i] = MediatorMiddlewareCompiler.Compile(
-                    factoryCtx, terminals[i], middlewareConfigs, modifiers);
+                compiled.Add(MediatorMiddlewareCompiler.Compile(
+                    factoryCtx, terminals[i], middlewareConfigs, modifiers));
             }
 
             notificationPipelines[notificationType] = compiled.ToImmutable();
