@@ -488,13 +488,18 @@ jobs:
           token: ${{ secrets.GITHUB_ACTIONS_TOKEN }}
           path: action-repo
 
+      - name: 🧰 Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@4.2.2 --activate
+          yarn --version
+
       - name: 🧰 Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
-
-      - name: 🧰 Enable corepack
-        run: corepack enable
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: action-repo/yarn.lock
 
       - name: 📝 Update version in package.json
         working-directory: action-repo
@@ -523,6 +528,6 @@ jobs:
 
           if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             MAJOR=$(echo "$VERSION" | cut -d. -f1)
-            git tag -f "v$MAJOR"
+            git tag "v$MAJOR" --force
             git push origin "v$MAJOR" --force
           fi
