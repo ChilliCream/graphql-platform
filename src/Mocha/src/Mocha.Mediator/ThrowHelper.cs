@@ -26,4 +26,9 @@ internal static class ThrowHelper
     public static Exception HandlerInterfaceNotFound(Type handlerType)
         => new InvalidOperationException(
             $"Type '{handlerType}' does not implement any known mediator handler interface.");
+
+    public static Exception MultipleHandlerInterfaces(Type handlerType)
+        => new InvalidOperationException(
+            $"Type '{handlerType}' implements multiple mediator handler interfaces. "
+            + "A handler must implement exactly one of ICommandHandler<>, IQueryHandler<,>, or INotificationHandler<>.");
 }

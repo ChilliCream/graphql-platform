@@ -4,14 +4,6 @@ namespace Mocha.Mediator.Tests;
 
 public class AddHandlerTests
 {
-    private static IServiceProvider BuildProvider(Action<IMediatorHostBuilder> configure)
-    {
-        var services = new ServiceCollection();
-        var builder = services.AddMediator();
-        configure(builder);
-        return services.BuildServiceProvider();
-    }
-
     [Fact]
     public async Task AddHandler_Should_DispatchVoidCommand()
     {
@@ -107,7 +99,7 @@ public class AddHandlerTests
         builder.AddHandler<string>();
         using var sp = services.BuildServiceProvider();
 
-        // Act & Assert -- validation is deferred to Build() time, which happens
+        // Act & Assert - validation is deferred to Build() time, which happens
         // when MediatorRuntime is first resolved (triggered by IMediator resolution).
         Assert.Throws<InvalidOperationException>(
             () => sp.GetRequiredService<IMediator>());
@@ -126,7 +118,7 @@ public class AddHandlerTests
         using var scope = sp.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-        // Act & Assert — all handler types work together
+        // Act & Assert - all handler types work together
         await mediator.SendAsync(new ManualVoidCommand("v"));
         Assert.True(ManualVoidCommandHandler.WasInvoked);
 
@@ -139,6 +131,14 @@ public class AddHandlerTests
         ManualNotificationHandler1.WasInvoked = false;
         await mediator.PublishAsync(new ManualNotification("n"));
         Assert.True(ManualNotificationHandler1.WasInvoked);
+    }
+
+    private static IServiceProvider BuildProvider(Action<IMediatorHostBuilder> configure)
+    {
+        var services = new ServiceCollection();
+        var builder = services.AddMediator();
+        configure(builder);
+        return services.BuildServiceProvider();
     }
 }
 

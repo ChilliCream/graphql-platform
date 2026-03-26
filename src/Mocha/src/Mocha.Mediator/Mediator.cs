@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
 namespace Mocha.Mediator;
@@ -168,7 +169,7 @@ public sealed class Mediator(MediatorRuntime runtime, IServiceProvider servicePr
 
     [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     private async ValueTask PublishSequentially(
-        MediatorDelegate[] pipelines,
+        ImmutableArray<MediatorDelegate> pipelines,
         object notification,
         Type messageType,
         CancellationToken cancellationToken)
@@ -190,50 +191,56 @@ public sealed class Mediator(MediatorRuntime runtime, IServiceProvider servicePr
 
     [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     private async ValueTask PublishConcurrently(
-        MediatorDelegate[] pipelines,
+        ImmutableArray<MediatorDelegate> pipelines,
         object notification,
         Type messageType,
         CancellationToken cancellationToken)
     {
         var count = pipelines.Length;
-        var contexts = new MediatorContext[count];
         var tasks = new Task[count];
 
         for (var i = 0; i < count; i++)
         {
-            var context = runtime.RentContext();
-            context.Initialize(runtime, serviceProvider, notification, messageType, cancellationToken);
-            contexts[i] = context;
-            tasks[i] = pipelines[i](context).AsTask();
+            tasks[i] = RunPipeline(pipelines[i], notification, messageType, cancellationToken);
         }
+
+        var whenAll = Task.WhenAll(tasks);
 
         try
         {
-            var whenAll = Task.WhenAll(tasks);
-
-            try
-            {
-                await whenAll.ConfigureAwait(false);
-            }
-            catch
-            {
-                // Task.WhenAll captures all exceptions, but await unwraps only the first.
-                // Re-throw the AggregateException to surface all failures.
-                if (whenAll.Exception is not null)
-                {
-                    throw whenAll.Exception;
-                }
-
-                throw;
-            }
+            await whenAll.ConfigureAwait(false);
         }
-        finally
+        catch
         {
-            for (var i = 0; i < count; i++)
+            // Task.WhenAll captures all exceptions, but await unwraps only the first.
+            // Re-throw the AggregateException to surface all failures.
+            if (whenAll.Exception is not null)
             {
-                runtime.ReturnContext(contexts[i]);
+                throw whenAll.Exception;
             }
+
+            throw;
         }
+    }
+
+    private Task RunPipeline(
+        MediatorDelegate pipeline,
+        object notification,
+        Type messageType,
+        CancellationToken cancellationToken)
+    {
+        var context = runtime.RentContext();
+        context.Initialize(runtime, serviceProvider, notification, messageType, cancellationToken);
+
+        var task = pipeline(context);
+
+        if (task.IsCompletedSuccessfully)
+        {
+            runtime.ReturnContext(context);
+            return Task.CompletedTask;
+        }
+
+        return AwaitAndReturn(task, context).AsTask();
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

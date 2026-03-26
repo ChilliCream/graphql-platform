@@ -29,7 +29,9 @@ public abstract class MediatorDescriptorBase<T>(IMediatorConfigurationContext co
         return this;
     }
 
-    public IMediatorDescriptorExtension<T> ExtendWith<TState>(Action<IMediatorDescriptorExtension<T>, TState> configure, TState state)
+    public IMediatorDescriptorExtension<T> ExtendWith<TState>(
+        Action<IMediatorDescriptorExtension<T>, TState> configure,
+        TState state)
     {
         ArgumentNullException.ThrowIfNull(configure);
 

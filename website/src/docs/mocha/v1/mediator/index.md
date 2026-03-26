@@ -466,7 +466,7 @@ The source generator did not find a handler for your message type. Verify:
 
 If dispatch succeeds but your handler code does not execute, check that:
 
-- Your middleware calls the `next` delegate -- a middleware that forgets to call `next` silently short-circuits the pipeline
+- Your middleware calls the `next` delegate - a middleware that forgets to call `next` silently short-circuits the pipeline
 - You are not accidentally registering handlers manually in addition to the source-generated method, which could result in duplicate registrations
 
 ## The source-generated method does not appear
@@ -474,7 +474,7 @@ If dispatch succeeds but your handler code does not execute, check that:
 If IntelliSense does not show `Add{ModuleName}()`:
 
 - Confirm the `Mocha.Analyzers` package is referenced with `OutputItemType="Analyzer"` in your `.csproj`
-- Rebuild the project -- source generators run during compilation
+- Rebuild the project - source generators run during compilation
 - Check the build output for analyzer warnings prefixed with `MO`
 
 ## `InvalidOperationException` when calling `AddHandler<T>()`
@@ -483,10 +483,10 @@ The type you passed does not implement any handler interface. Make sure `T` impl
 
 ## Named mediator returns wrong handlers
 
-Each named mediator resolves handlers from the same DI container. Make sure you register each module's handlers on the correct `IMediatorHostBuilder` instance -- the one returned by the `AddMediator("name")` call for that name.
+Each named mediator resolves handlers from the same DI container. Make sure you register each module's handlers on the correct `IMediatorHostBuilder` instance - the one returned by the `AddMediator("name")` call for that name.
 
 # Next steps
 
 You have a working mediator with CQRS dispatch. Here is where to go next:
 
-- **Customize the pipeline:** [Pipeline & Middleware](/docs/mocha/v1/mediator/pipeline-and-middleware) -- add validation, logging, transactions, and other cross-cutting concerns. Configure notification publish modes and OpenTelemetry instrumentation.
+- **Customize the pipeline:** [Pipeline & Middleware](/docs/mocha/v1/mediator/pipeline-and-middleware) - add validation, logging, transactions, and other cross-cutting concerns. Configure notification publish modes and OpenTelemetry instrumentation.

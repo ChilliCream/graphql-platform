@@ -43,6 +43,8 @@ public class MediatorHandlerDescriptor
 
     private void DetectHandler(Type handlerType)
     {
+        var found = false;
+
         foreach (var @interface in handlerType.GetInterfaces())
         {
             if (!@interface.IsGenericType)
@@ -54,37 +56,57 @@ public class MediatorHandlerDescriptor
 
             if (genericDef == typeof(ICommandHandler<,>))
             {
+                if (found)
+                {
+                    throw ThrowHelper.MultipleHandlerInterfaces(handlerType);
+                }
+
                 var args = @interface.GetGenericArguments();
                 Configuration.MessageType = args[0];
                 Configuration.ResponseType = args[1];
                 Configuration.Kind = MediatorHandlerKind.CommandResponse;
-                return;
+                found = true;
             }
-
-            if (genericDef == typeof(ICommandHandler<>))
+            else if (genericDef == typeof(ICommandHandler<>))
             {
+                if (found)
+                {
+                    throw ThrowHelper.MultipleHandlerInterfaces(handlerType);
+                }
+
                 Configuration.MessageType = @interface.GetGenericArguments()[0];
                 Configuration.Kind = MediatorHandlerKind.Command;
-                return;
+                found = true;
             }
-
-            if (genericDef == typeof(IQueryHandler<,>))
+            else if (genericDef == typeof(IQueryHandler<,>))
             {
+                if (found)
+                {
+                    throw ThrowHelper.MultipleHandlerInterfaces(handlerType);
+                }
+
                 var args = @interface.GetGenericArguments();
                 Configuration.MessageType = args[0];
                 Configuration.ResponseType = args[1];
                 Configuration.Kind = MediatorHandlerKind.Query;
-                return;
+                found = true;
             }
-
-            if (genericDef == typeof(INotificationHandler<>))
+            else if (genericDef == typeof(INotificationHandler<>))
             {
+                if (found)
+                {
+                    throw ThrowHelper.MultipleHandlerInterfaces(handlerType);
+                }
+
                 Configuration.MessageType = @interface.GetGenericArguments()[0];
                 Configuration.Kind = MediatorHandlerKind.Notification;
-                return;
+                found = true;
             }
         }
 
-        throw ThrowHelper.HandlerInterfaceNotFound(handlerType);
+        if (!found)
+        {
+            throw ThrowHelper.HandlerInterfaceNotFound(handlerType);
+        }
     }
 }

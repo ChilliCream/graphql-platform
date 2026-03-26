@@ -227,6 +227,8 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     public IMessagingDescriptorExtension<MessagingTransportConfiguration> ExtendWith(
         Action<IMessagingDescriptorExtension<MessagingTransportConfiguration>> configure)
     {
+        ArgumentNullException.ThrowIfNull(configure);
+
         configure(this);
 
         return this;
@@ -243,6 +245,8 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
         Action<IMessagingDescriptorExtension<MessagingTransportConfiguration>, TState> configure,
         TState state)
     {
+        ArgumentNullException.ThrowIfNull(configure);
+
         configure(this, state);
 
         return this;

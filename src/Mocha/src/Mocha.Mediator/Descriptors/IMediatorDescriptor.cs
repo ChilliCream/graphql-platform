@@ -19,7 +19,9 @@ public interface IMediatorDescriptor<out T> : IMediatorDescriptor where T : Medi
     /// <summary>
     /// Provides access to the underlying configuration. This is useful for extensions.
     /// </summary>
-    IMediatorDescriptorExtension<T> ExtendWith<TState>(Action<IMediatorDescriptorExtension<T>, TState> configure, TState state);
+    IMediatorDescriptorExtension<T> ExtendWith<TState>(
+        Action<IMediatorDescriptorExtension<T>, TState> configure,
+        TState state);
 }
 
 /// <summary>
