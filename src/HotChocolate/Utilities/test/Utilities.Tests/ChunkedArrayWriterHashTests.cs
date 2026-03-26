@@ -164,4 +164,33 @@ public class ChunkedArrayWriterHashTests
 
         Assert.True(writer.GetHashCode(0, data.Length) >= 0);
     }
+
+    /// <summary>
+    /// Verifies the SIMD-accelerated hash path produces identical results to the
+    /// scalar reference for every length from 0..512 across multiple random seeds.
+    /// Lengths 0-31 use the scalar path, 32-63 use Vector128, and 64+ use Vector256
+    /// (when hardware accelerated). This test ensures all three tiers and every
+    /// remainder length produce the same hash.
+    /// </summary>
+    [Fact]
+    public void GetHashCode_SimdMatchesScalar_AllLengthsUpTo512()
+    {
+        for (var seed = 0; seed < 5; seed++)
+        {
+            var rng = new Random(seed);
+
+            for (var length = 0; length <= 512; length++)
+            {
+                var data = new byte[length];
+                rng.NextBytes(data);
+
+                using var writer = CreateWriterWithData(data);
+
+                var expected = ScalarHash(data);
+                var actual = writer.GetHashCode(0, data.Length);
+
+                Assert.Equal(expected, actual);
+            }
+        }
+    }
 }

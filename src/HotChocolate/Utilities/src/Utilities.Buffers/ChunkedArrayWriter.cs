@@ -341,9 +341,12 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
             return ComputeHashSimd(hash, bytes);
         }
 #endif
-        foreach (var b in bytes)
+        unchecked
         {
-            hash = hash * 31 + b;
+            foreach (var b in bytes)
+            {
+                hash = (hash * 31) + b;
+            }
         }
 
         return hash;
@@ -352,99 +355,105 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
 #if NET8_0_OR_GREATER
     private static uint ComputeHashSimd(uint hash, ReadOnlySpan<byte> bytes)
     {
-        const uint pow31_1 = 31;
-        const uint pow31_2 = 31 * 31;
-        const uint pow31_3 = 31 * 31 * 31;
-        const uint pow31_4 = 31 * 31 * 31 * 31;
-        const uint pow31_5 = pow31_4 * 31;
-        const uint pow31_6 = pow31_5 * 31;
-        const uint pow31_7 = unchecked(pow31_6 * 31);
-        const uint pow31_8 = unchecked(pow31_7 * 31);
-
-        ref var src = ref MemoryMarshal.GetReference(bytes);
-        var i = 0;
-
-        if (Vector256.IsHardwareAccelerated && bytes.Length >= 64)
+        unchecked
         {
-            var acc = Vector256<uint>.Zero;
-            var mul = Vector256.Create(pow31_8);
-            var simdEnd = bytes.Length & ~7;
+            const uint pow31_1 = 31;
+            const uint pow31_2 = 31 * 31;
+            const uint pow31_3 = 31 * 31 * 31;
+            const uint pow31_4 = 31 * 31 * 31 * 31;
+            const uint pow31_5 = pow31_4 * 31;
+            const uint pow31_6 = pow31_5 * 31;
+            const uint pow31_7 = pow31_6 * 31;
+            const uint pow31_8 = pow31_7 * 31;
 
-            for (; i < simdEnd; i += 8)
+            ref var src = ref MemoryMarshal.GetReference(bytes);
+            var i = 0;
+
+            if (Vector256.IsHardwareAccelerated && bytes.Length >= 64)
             {
-                var raw = Vector128.CreateScalarUnsafe(
-                    Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref src, i))).AsByte();
-                var (loShort, _) = Vector128.Widen(raw);
-                var (lo32, hi32) = Vector128.Widen(loShort);
-                var wide = Vector256.Create(lo32, hi32);
+                var acc = Vector256<uint>.Zero;
+                var mul = Vector256.Create(pow31_8);
+                var simdEnd = bytes.Length & ~7;
 
-                acc = (acc * mul) + wide;
+                for (; i < simdEnd; i += 8)
+                {
+                    var raw = Vector128.CreateScalarUnsafe(
+                        Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref src, i))).AsByte();
+                    var (loShort, _) = Vector128.Widen(raw);
+                    var (lo32, hi32) = Vector128.Widen(loShort);
+                    var wide = Vector256.Create(lo32, hi32);
+
+                    acc = (acc * mul) + wide;
+                }
+
+                var finalPow = Vector256.Create(
+                    pow31_7, pow31_6, pow31_5, pow31_4,
+                    pow31_3, pow31_2, pow31_1, 1u);
+                acc *= finalPow;
+
+                var sum128 = acc.GetLower() + acc.GetUpper();
+                var t = sum128 + Vector128.Shuffle(sum128, Vector128.Create(2u, 3u, 0u, 1u));
+                var simdResult = (t + Vector128.Shuffle(t, Vector128.Create(1u, 0u, 3u, 2u))).ToScalar();
+
+                hash = (hash * Pow31(simdEnd)) + simdResult;
             }
 
-            var finalPow = Vector256.Create(
-                pow31_7, pow31_6, pow31_5, pow31_4,
-                pow31_3, pow31_2, pow31_1, 1u);
-            acc *= finalPow;
-
-            var sum128 = acc.GetLower() + acc.GetUpper();
-            var t = sum128 + Vector128.Shuffle(sum128, Vector128.Create(2u, 3u, 0u, 1u));
-            var simdResult = (t + Vector128.Shuffle(t, Vector128.Create(1u, 0u, 3u, 2u))).ToScalar();
-
-            hash = (hash * Pow31(simdEnd)) + simdResult;
-        }
-
-        if (Vector128.IsHardwareAccelerated && bytes.Length - i >= 4)
-        {
-            var acc = Vector128<uint>.Zero;
-            var mul = Vector128.Create(pow31_4);
-            var simdEnd = i + ((bytes.Length - i) & ~3);
-            var simdStart = i;
-
-            for (; i < simdEnd; i += 4)
+            if (Vector128.IsHardwareAccelerated && bytes.Length - i >= 4)
             {
-                var raw = Vector128.CreateScalarUnsafe(
-                    Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref src, i))).AsByte();
-                var (loShort, _) = Vector128.Widen(raw);
-                var (wide, _) = Vector128.Widen(loShort);
+                var acc = Vector128<uint>.Zero;
+                var mul = Vector128.Create(pow31_4);
+                var simdEnd = i + ((bytes.Length - i) & ~3);
+                var simdStart = i;
 
-                acc = (acc * mul) + wide;
+                for (; i < simdEnd; i += 4)
+                {
+                    var raw = Vector128.CreateScalarUnsafe(
+                        Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref src, i))).AsByte();
+                    var (loShort, _) = Vector128.Widen(raw);
+                    var (wide, _) = Vector128.Widen(loShort);
+
+                    acc = (acc * mul) + wide;
+                }
+
+                var finalPow = Vector128.Create(pow31_3, pow31_2, pow31_1, 1u);
+                acc *= finalPow;
+
+                var t = acc + Vector128.Shuffle(acc, Vector128.Create(2u, 3u, 0u, 1u));
+                var simdResult = (t + Vector128.Shuffle(t, Vector128.Create(1u, 0u, 3u, 2u))).ToScalar();
+
+                hash = (hash * Pow31(simdEnd - simdStart)) + simdResult;
             }
 
-            var finalPow = Vector128.Create(pow31_3, pow31_2, pow31_1, 1u);
-            acc *= finalPow;
+            // Scalar tail for remaining bytes.
+            for (; i < bytes.Length; i++)
+            {
+                hash = (hash * 31) + Unsafe.Add(ref src, i);
+            }
 
-            var t = acc + Vector128.Shuffle(acc, Vector128.Create(2u, 3u, 0u, 1u));
-            var simdResult = (t + Vector128.Shuffle(t, Vector128.Create(1u, 0u, 3u, 2u))).ToScalar();
-
-            hash = (hash * Pow31(simdEnd - simdStart)) + simdResult;
+            return hash;
         }
-
-        // Scalar tail for remaining bytes.
-        for (; i < bytes.Length; i++)
-        {
-            hash = (hash * 31) + Unsafe.Add(ref src, i);
-        }
-
-        return hash;
     }
 
     private static uint Pow31(int n)
     {
-        var result = 1u;
-        var b = 31u;
-
-        while (n > 0)
+        unchecked
         {
-            if ((n & 1) != 0)
+            var result = 1u;
+            var b = 31u;
+
+            while (n > 0)
             {
-                result *= b;
+                if ((n & 1) != 0)
+                {
+                    result *= b;
+                }
+
+                b *= b;
+                n >>= 1;
             }
 
-            b *= b;
-            n >>= 1;
+            return result;
         }
-
-        return result;
     }
 #endif
 
