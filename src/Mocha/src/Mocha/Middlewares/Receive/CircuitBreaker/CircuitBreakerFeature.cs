@@ -52,7 +52,7 @@ public sealed class CircuitBreakerFeature : ISealable
     {
         if (IsReadOnly)
         {
-            throw new InvalidOperationException("The feature is read-only.");
+            throw ThrowHelper.FeatureIsReadOnly();
         }
 
         configure(_options);

@@ -85,7 +85,6 @@ public class MediatorHandlerDescriptor
             }
         }
 
-        throw new InvalidOperationException(
-            $"Type '{handlerType}' does not implement any known mediator handler interface.");
+        throw ThrowHelper.HandlerInterfaceNotFound(handlerType);
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.ObjectPool;
 
@@ -11,7 +12,7 @@ namespace Mocha.Mediator;
 public sealed class MediatorRuntime : IMediatorRuntime
 {
     private readonly FrozenDictionary<Type, MediatorDelegate> _pipelines;
-    private readonly FrozenDictionary<Type, MediatorDelegate[]> _notificationPipelines;
+    private readonly FrozenDictionary<Type, ImmutableArray<MediatorDelegate>> _notificationPipelines;
     private readonly ObjectPool<MediatorContext> _contextPool;
 
     [ThreadStatic]
@@ -19,7 +20,7 @@ public sealed class MediatorRuntime : IMediatorRuntime
 
     internal MediatorRuntime(
         FrozenDictionary<Type, MediatorDelegate> pipelines,
-        FrozenDictionary<Type, MediatorDelegate[]> notificationPipelines,
+        FrozenDictionary<Type, ImmutableArray<MediatorDelegate>> notificationPipelines,
         IMediatorPools pools,
         IFeatureCollection features,
         NotificationPublishMode notificationPublishMode)
@@ -52,7 +53,7 @@ public sealed class MediatorRuntime : IMediatorRuntime
             return pipeline;
         }
 
-        return ThrowMissingPipeline(messageType);
+        throw ThrowHelper.MissingPipeline(messageType);
     }
 
     /// <summary>
@@ -94,24 +95,13 @@ public sealed class MediatorRuntime : IMediatorRuntime
     /// Gets the compiled notification pipeline delegates for the specified notification type.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MediatorDelegate[] GetNotificationPipelines(Type notificationType)
+    public ImmutableArray<MediatorDelegate> GetNotificationPipelines(Type notificationType)
     {
         if (_notificationPipelines.TryGetValue(notificationType, out var pipelines))
         {
             return pipelines;
         }
 
-        return ThrowMissingNotificationPipeline(notificationType);
+        throw ThrowHelper.MissingNotificationPipeline(notificationType);
     }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static MediatorDelegate ThrowMissingPipeline(Type messageType)
-        => throw new InvalidOperationException(
-            $"No pipeline registered for message type {messageType}");
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static MediatorDelegate[] ThrowMissingNotificationPipeline(Type notificationType)
-        => throw new InvalidOperationException(
-            $"No notification pipeline registered for message type {notificationType}. "
-            + "If this is a command or query, use SendAsync or QueryAsync instead.");
 }

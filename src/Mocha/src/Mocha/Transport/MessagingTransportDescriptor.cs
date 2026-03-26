@@ -152,8 +152,7 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     {
         if (before is not null && after is not null)
         {
-            throw new ArgumentException(
-                "Only one of 'before' or 'after' can be specified at the same time.");
+            throw ThrowHelper.BeforeAndAfterConflict();
         }
 
         if (before is null && after is null)
@@ -189,8 +188,7 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     {
         if (before is not null && after is not null)
         {
-            throw new ArgumentException(
-                "Only one of 'before' or 'after' can be specified at the same time.");
+            throw ThrowHelper.BeforeAndAfterConflict();
         }
 
         if (before is null && after is null)
@@ -229,6 +227,8 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     public IMessagingDescriptorExtension<MessagingTransportConfiguration> ExtendWith(
         Action<IMessagingDescriptorExtension<MessagingTransportConfiguration>> configure)
     {
+        configure(this);
+
         return this;
     }
 
@@ -243,15 +243,8 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
         Action<IMessagingDescriptorExtension<MessagingTransportConfiguration>, TState> configure,
         TState state)
     {
-        return this;
-    }
+        configure(this, state);
 
-    /// <summary>
-    /// Marks this descriptor as internal, preventing external consumers from using it.
-    /// </summary>
-    /// <exception cref="NotImplementedException">Always thrown; this method is not yet implemented.</exception>
-    public void Internal()
-    {
-        throw new NotImplementedException();
+        return this;
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,8 +54,7 @@ public sealed class MediatorBuilder : IMediatorBuilder
 
         if (before is not null && after is not null)
         {
-            throw new ArgumentException(
-                "Only one of 'before' or 'after' can be specified at the same time.");
+            throw ThrowHelper.BeforeAndAfterConflict();
         }
 
         if (before is null && after is null)
@@ -71,8 +71,7 @@ public sealed class MediatorBuilder : IMediatorBuilder
 
             if (index == -1)
             {
-                throw new InvalidOperationException(
-                    $"The middleware with the key `{anchor}` was not found.");
+                throw ThrowHelper.MiddlewareKeyNotFound(anchor);
             }
 
             pipeline.Insert(before is not null ? index : index + 1, middleware);
@@ -116,7 +115,11 @@ public sealed class MediatorBuilder : IMediatorBuilder
         if (existing is not null && configure is not null)
         {
             var inner = existing;
-            _handlerDescriptors[handlerType] = d => { inner(d); configure(d); };
+            _handlerDescriptors[handlerType] = d =>
+            {
+                inner(d);
+                configure(d);
+            };
         }
         else if (configure is not null)
         {
@@ -150,7 +153,11 @@ public sealed class MediatorBuilder : IMediatorBuilder
         if (existing is not null)
         {
             var inner = existing;
-            _handlerDescriptors[handlerType] = d => { inner(d); ApplyConfig(d); };
+            _handlerDescriptors[handlerType] = d =>
+            {
+                inner(d);
+                ApplyConfig(d);
+            };
         }
         else
         {
@@ -236,21 +243,21 @@ public sealed class MediatorBuilder : IMediatorBuilder
 
         // Compile notification pipelines - each handler terminal is independently
         // wrapped in middleware, producing a MediatorDelegate[] per notification type.
-        var notificationPipelines = new Dictionary<Type, MediatorDelegate[]>(notificationTerminals.Count);
+        var notificationPipelines = new Dictionary<Type, ImmutableArray<MediatorDelegate>>(notificationTerminals.Count);
 
         foreach (var (notificationType, terminals) in notificationTerminals)
         {
             factoryCtx.MessageType = notificationType;
             factoryCtx.ResponseType = null;
 
-            var compiled = new MediatorDelegate[terminals.Count];
+            var compiled = ImmutableArray.CreateBuilder<MediatorDelegate>(terminals.Count);
             for (var i = 0; i < terminals.Count; i++)
             {
                 compiled[i] = MediatorMiddlewareCompiler.Compile(
                     factoryCtx, terminals[i], middlewareConfigs, modifiers);
             }
 
-            notificationPipelines[notificationType] = compiled;
+            notificationPipelines[notificationType] = compiled.ToImmutable();
         }
 
         var pools = applicationServices.GetRequiredService<IMediatorPools>();
@@ -287,7 +294,7 @@ public sealed class MediatorBuilder : IMediatorBuilder
                     .MakeGenericMethod(config.HandlerType!, config.MessageType!)
                     .Invoke(null, null)!,
 
-            _ => throw new InvalidOperationException($"Unknown handler kind: {config.Kind}")
+            _ => throw ThrowHelper.UnknownHandlerKind(config.Kind)
         };
     }
 
