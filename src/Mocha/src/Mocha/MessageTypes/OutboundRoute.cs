@@ -58,7 +58,7 @@ public sealed class OutboundRoute
         }
         else
         {
-            throw new InvalidOperationException("Cannot initialize outbound route without a message type");
+            throw ThrowHelper.RouteRequiresMessageType();
         }
 
         Destination = configuration.Destination;
@@ -92,7 +92,7 @@ public sealed class OutboundRoute
 
         if (Endpoint is null)
         {
-            throw new InvalidOperationException("Endpoint is not connected");
+            throw ThrowHelper.RouteEndpointNotConnected();
         }
 
         context.Router.AddOrUpdate(this);
@@ -104,7 +104,7 @@ public sealed class OutboundRoute
     {
         if (IsInitialized)
         {
-            throw new InvalidOperationException("Route must not be initialized");
+            throw ThrowHelper.RouteMustNotBeInitialized();
         }
     }
 
@@ -112,7 +112,7 @@ public sealed class OutboundRoute
     {
         if (!IsInitialized)
         {
-            throw new InvalidOperationException("Route must be initialized");
+            throw ThrowHelper.RouteMustBeInitialized();
         }
     }
 
@@ -120,7 +120,7 @@ public sealed class OutboundRoute
     {
         if (IsCompleted)
         {
-            throw new InvalidOperationException("Route must not be completed");
+            throw ThrowHelper.RouteMustNotBeCompleted();
         }
     }
 

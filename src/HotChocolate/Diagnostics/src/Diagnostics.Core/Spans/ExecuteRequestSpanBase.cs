@@ -17,7 +17,7 @@ internal abstract class ExecuteRequestSpanBase(
 
     protected static Activity? StartActivity(ActivitySource source)
     {
-        return source.StartActivity("GraphQL Operation", ActivityKind.Server);
+        return source.StartActivity("GraphQL Operation");
     }
 
     protected abstract bool TryGetOperationInfo(

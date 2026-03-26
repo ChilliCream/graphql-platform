@@ -23,23 +23,13 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         var builder = services.AddMediator()
             .UseEntityFrameworkTransactions<TestDbContext>();
 
-        services.AddTransient<ICommandHandler<CreateItemCommand>, CreateItemHandler>();
-        services.AddTransient<ICommandHandler<CreateItemWithResponseCommand, int>, CreateItemWithResponseHandler>();
+        services.AddTransient<CreateItemHandler>();
+        services.AddTransient<CreateItemWithResponseHandler>();
 
-        // Register pipelines (normally done by source-generated code)
         builder.ConfigureMediator(b =>
         {
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(CreateItemCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<CreateItemCommand>()
-            });
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(CreateItemWithResponseCommand),
-                ResponseType = typeof(int),
-                Terminal = PipelineBuilder.BuildCommandTerminal<CreateItemWithResponseCommand, int>()
-            });
+            b.AddHandler<CreateItemHandler>();
+            b.AddHandler<CreateItemWithResponseHandler>();
         });
 
         _provider = services.BuildServiceProvider();
@@ -92,13 +82,9 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         var services = new ServiceCollection();
         services.AddDbContext<TestDbContext>(o => o.UseSqlite(_connection));
         var builder = services.AddMediator().UseEntityFrameworkTransactions<TestDbContext>();
-        services.AddTransient<ICommandHandler<CreateItemCommand>, FailingCreateItemHandler>();
+        services.AddTransient<FailingCreateItemHandler>();
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-        {
-            MessageType = typeof(CreateItemCommand),
-            Terminal = PipelineBuilder.BuildVoidCommandTerminal<CreateItemCommand>()
-        }));
+        builder.ConfigureMediator(b => b.AddHandler<FailingCreateItemHandler>());
 
         await using var provider = services.BuildServiceProvider();
         var runtime = provider.GetRequiredService<MediatorRuntime>();
@@ -188,14 +174,9 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         var services = new ServiceCollection();
         services.AddDbContext<TestDbContext>(o => o.UseSqlite(_connection));
         var builder = services.AddMediator().UseEntityFrameworkTransactions<TestDbContext>();
-        services.AddTransient<IQueryHandler<GetItemsQuery, List<TestItem>>, GetItemsHandler>();
+        services.AddTransient<GetItemsHandler>();
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-        {
-            MessageType = typeof(GetItemsQuery),
-            ResponseType = typeof(List<TestItem>),
-            Terminal = PipelineBuilder.BuildQueryTerminal<GetItemsQuery, List<TestItem>>()
-        }));
+        builder.ConfigureMediator(b => b.AddHandler<GetItemsHandler>());
 
         await using var provider = services.BuildServiceProvider();
 
@@ -241,14 +222,9 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
                 options.ShouldCreateTransaction = _ => true;
             });
 
-        services.AddTransient<IQueryHandler<GetItemsQuery, List<TestItem>>, GetItemsHandler>();
+        services.AddTransient<GetItemsHandler>();
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-        {
-            MessageType = typeof(GetItemsQuery),
-            ResponseType = typeof(List<TestItem>),
-            Terminal = PipelineBuilder.BuildQueryTerminal<GetItemsQuery, List<TestItem>>()
-        }));
+        builder.ConfigureMediator(b => b.AddHandler<GetItemsHandler>());
 
         await using var provider = services.BuildServiceProvider();
 

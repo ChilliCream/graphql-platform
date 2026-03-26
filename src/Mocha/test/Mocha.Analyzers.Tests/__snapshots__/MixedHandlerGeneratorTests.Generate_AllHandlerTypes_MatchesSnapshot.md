@@ -14,44 +14,50 @@ namespace Microsoft.Extensions.DependencyInjection
         public static global::Mocha.Mediator.IMediatorHostBuilder AddTests(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
-            var services = builder.Services;
-            var lifetime = builder.Options.ServiceLifetime;
 
-            // Register handlers
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::TestApp.CreateOrderCommand, int>), typeof(global::TestApp.CreateOrderHandler), lifetime));
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::TestApp.DeleteOrderCommand>), typeof(global::TestApp.DeleteOrderHandler), lifetime));
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.IQueryHandler<global::TestApp.GetUserQuery, global::TestApp.UserDto>), typeof(global::TestApp.GetUserHandler), lifetime));
-
-            // Register notification handlers
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddEnumerable(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.INotificationHandler<global::TestApp.OrderCreated>), typeof(global::TestApp.OrderCreatedEmailHandler), lifetime));
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddEnumerable(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.INotificationHandler<global::TestApp.OrderCreated>), typeof(global::TestApp.OrderCreatedStatsHandler), lifetime));
-
-            // Register pipelines
-            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(builder, static b =>
-            {
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            // Register handler configurations
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.DeleteOrderHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::TestApp.DeleteOrderHandler),
+                    MessageType = typeof(global::TestApp.DeleteOrderCommand),
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandler, global::TestApp.DeleteOrderCommand>()
+                });
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.CreateOrderHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.CreateOrderHandler),
                     MessageType = typeof(global::TestApp.CreateOrderCommand),
                     ResponseType = typeof(int),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildCommandTerminal<global::TestApp.CreateOrderCommand, int>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::TestApp.CreateOrderHandler, global::TestApp.CreateOrderCommand, int>()
                 });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.GetUserHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
-                    MessageType = typeof(global::TestApp.DeleteOrderCommand),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildVoidCommandTerminal<global::TestApp.DeleteOrderCommand>()
-                });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
-                {
+                    HandlerType = typeof(global::TestApp.GetUserHandler),
                     MessageType = typeof(global::TestApp.GetUserQuery),
                     ResponseType = typeof(global::TestApp.UserDto),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildQueryTerminal<global::TestApp.GetUserQuery, global::TestApp.UserDto>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Query,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::TestApp.GetUserHandler, global::TestApp.GetUserQuery, global::TestApp.UserDto>()
                 });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.OrderCreatedEmailHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::TestApp.OrderCreatedEmailHandler),
                     MessageType = typeof(global::TestApp.OrderCreated),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildNotificationTerminal<global::TestApp.OrderCreated>(new global::System.Type[] { typeof(global::TestApp.OrderCreatedEmailHandler), typeof(global::TestApp.OrderCreatedStatsHandler) })
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::TestApp.OrderCreatedEmailHandler, global::TestApp.OrderCreated>()
                 });
-            });
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.OrderCreatedStatsHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.OrderCreatedStatsHandler),
+                    MessageType = typeof(global::TestApp.OrderCreated),
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::TestApp.OrderCreatedStatsHandler, global::TestApp.OrderCreated>()
+                });
 
             return builder;
         }

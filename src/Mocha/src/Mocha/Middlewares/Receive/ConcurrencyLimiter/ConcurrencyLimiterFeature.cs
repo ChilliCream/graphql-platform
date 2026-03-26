@@ -37,7 +37,7 @@ public sealed class ConcurrencyLimiterFeature : ISealable
     {
         if (IsReadOnly)
         {
-            throw new InvalidOperationException("The feature is read-only.");
+            throw ThrowHelper.FeatureIsReadOnly();
         }
 
         configure(_options);

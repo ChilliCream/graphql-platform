@@ -6,7 +6,7 @@ using Mocha.Features;
 namespace Mocha.Mediator;
 
 /// <summary>
-/// Provides terminal delegate factories for each handler kind.
+/// Provides pipeline delegate factories for each handler kind.
 /// These delegates form the innermost layer of the middleware pipeline,
 /// resolving handlers from the scoped service provider and invoking them.
 /// This class is intended for use by source-generated code.
@@ -15,16 +15,15 @@ namespace Mocha.Mediator;
 public static class PipelineBuilder
 {
     /// <summary>
-    /// Builds a terminal delegate for a void command handler.
+    /// Builds a pipeline delegate for a void command handler.
     /// </summary>
-    public static MediatorDelegate BuildVoidCommandTerminal<TCommand>()
+    public static MediatorDelegate BuildCommandPipeline<THandler, TCommand>()
+        where THandler : class, ICommandHandler<TCommand>
         where TCommand : ICommand
     {
-        var serviceType = typeof(ICommandHandler<TCommand>);
-
-        return ctx =>
+        return static ctx =>
         {
-            var handler = (ICommandHandler<TCommand>)ctx.Services.GetRequiredService(serviceType);
+            var handler = ctx.Services.GetRequiredService<THandler>();
             var task = handler.HandleAsync((TCommand)ctx.Message, ctx.CancellationToken);
 
             if (task.IsCompletedSuccessfully)
@@ -44,16 +43,15 @@ public static class PipelineBuilder
     }
 
     /// <summary>
-    /// Builds a terminal delegate for a command handler that returns a response.
+    /// Builds a pipeline delegate for a command handler that returns a response.
     /// </summary>
-    public static MediatorDelegate BuildCommandTerminal<TCommand, TResponse>()
+    public static MediatorDelegate BuildCommandResponsePipeline<THandler, TCommand, TResponse>()
+        where THandler : class, ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {
-        var serviceType = typeof(ICommandHandler<TCommand, TResponse>);
-
-        return ctx =>
+        return static ctx =>
         {
-            var handler = (ICommandHandler<TCommand, TResponse>)ctx.Services.GetRequiredService(serviceType);
+            var handler = ctx.Services.GetRequiredService<THandler>();
             var task = handler.HandleAsync((TCommand)ctx.Message, ctx.CancellationToken);
 
             if (task.IsCompletedSuccessfully)
@@ -74,16 +72,15 @@ public static class PipelineBuilder
     }
 
     /// <summary>
-    /// Builds a terminal delegate for a query handler.
+    /// Builds a pipeline delegate for a query handler.
     /// </summary>
-    public static MediatorDelegate BuildQueryTerminal<TQuery, TResponse>()
+    public static MediatorDelegate BuildQueryPipeline<THandler, TQuery, TResponse>()
+        where THandler : class, IQueryHandler<TQuery, TResponse>
         where TQuery : IQuery<TResponse>
     {
-        var serviceType = typeof(IQueryHandler<TQuery, TResponse>);
-
-        return ctx =>
+        return static ctx =>
         {
-            var handler = (IQueryHandler<TQuery, TResponse>)ctx.Services.GetRequiredService(serviceType);
+            var handler = ctx.Services.GetRequiredService<THandler>();
             var task = handler.HandleAsync((TQuery)ctx.Message, ctx.CancellationToken);
 
             if (task.IsCompletedSuccessfully)
@@ -104,47 +101,16 @@ public static class PipelineBuilder
     }
 
     /// <summary>
-    /// Builds a terminal delegate for a notification with handler types known at compile time.
+    /// Builds a pipeline delegate for a single notification handler.
     /// </summary>
-    public static MediatorDelegate BuildNotificationTerminal<TNotification>(Type[] handlerTypes)
+    public static MediatorDelegate BuildNotificationPipeline<THandler, TNotification>()
+        where THandler : class, INotificationHandler<TNotification>
         where TNotification : INotification
     {
-        if (handlerTypes.Length == 1)
+        return static ctx =>
         {
-            var handlerType = handlerTypes[0];
-            return ctx =>
-            {
-                var handler = (INotificationHandler<TNotification>)ctx.Services.GetRequiredService(handlerType);
-                var task = handler.HandleAsync((TNotification)ctx.Message, ctx.CancellationToken);
-
-                if (task.IsCompletedSuccessfully)
-                {
-                    return default;
-                }
-
-                return Awaited(task);
-
-                [MethodImpl(MethodImplOptions.NoInlining)]
-                [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
-                static async ValueTask Awaited(ValueTask t)
-                {
-                    await t.ConfigureAwait(false);
-                }
-            };
-        }
-
-        return ctx =>
-        {
-            var strategy = ctx.Runtime.Features
-                .GetRequired<NotificationStrategyFeature>().Strategy;
-
-            var handlers = new INotificationHandler<TNotification>[handlerTypes.Length];
-            for (var i = 0; i < handlerTypes.Length; i++)
-            {
-                handlers[i] = (INotificationHandler<TNotification>)ctx.Services.GetRequiredService(handlerTypes[i]);
-            }
-
-            var task = strategy.PublishAsync(handlers, (TNotification)ctx.Message, ctx.CancellationToken);
+            var handler = ctx.Services.GetRequiredService<THandler>();
+            var task = handler.HandleAsync((TNotification)ctx.Message, ctx.CancellationToken);
 
             if (task.IsCompletedSuccessfully)
             {

@@ -12,4 +12,10 @@ public sealed class MediatorOptions
     /// Default is <see cref="ServiceLifetime.Scoped"/>.
     /// </summary>
     public ServiceLifetime ServiceLifetime { get; set; } = ServiceLifetime.Scoped;
+
+    /// <summary>
+    /// Gets or sets how notification handler pipelines are dispatched.
+    /// Default is <see cref="NotificationPublishMode.Sequential"/>.
+    /// </summary>
+    public NotificationPublishMode NotificationPublishMode { get; set; } = NotificationPublishMode.Sequential;
 }

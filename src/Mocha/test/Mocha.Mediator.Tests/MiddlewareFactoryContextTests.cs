@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Mediator;
 
 namespace Mocha.Mediator.Tests;
 
@@ -333,8 +332,8 @@ public sealed class MiddlewareFactoryContextTests
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>, PipelineTestCommandHandler>();
-        services.AddScoped<ICommandHandler<CtxTestVoidCommand>, CtxTestVoidCommandHandler>();
+        services.AddScoped<PipelineTestCommandHandler>();
+        services.AddScoped<CtxTestVoidCommandHandler>();
 
         // Middleware that only applies to void commands
         builder.Use(new MediatorMiddlewareConfiguration(
@@ -353,17 +352,8 @@ public sealed class MiddlewareFactoryContextTests
 
         builder.ConfigureMediator(b =>
         {
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            });
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(CtxTestVoidCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<CtxTestVoidCommand>()
-            });
+            b.AddHandler<PipelineTestCommandHandler>();
+            b.AddHandler<CtxTestVoidCommandHandler>();
         });
 
         await using var provider = services.BuildServiceProvider();
@@ -392,8 +382,8 @@ public sealed class MiddlewareFactoryContextTests
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>, PipelineTestCommandHandler>();
-        services.AddScoped<IQueryHandler<CtxTestQuery, int>, CtxTestQueryHandler>();
+        services.AddScoped<PipelineTestCommandHandler>();
+        services.AddScoped<CtxTestQueryHandler>();
 
         // Middleware that only applies when response is int
         builder.Use(new MediatorMiddlewareConfiguration(
@@ -412,18 +402,8 @@ public sealed class MiddlewareFactoryContextTests
 
         builder.ConfigureMediator(b =>
         {
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            });
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(CtxTestQuery),
-                ResponseType = typeof(int),
-                Terminal = PipelineBuilder.BuildQueryTerminal<CtxTestQuery, int>()
-            });
+            b.AddHandler<PipelineTestCommandHandler>();
+            b.AddHandler<CtxTestQueryHandler>();
         });
 
         await using var provider = services.BuildServiceProvider();
@@ -483,45 +463,26 @@ public sealed class MiddlewareFactoryContextTests
 
         if (registerCommand)
         {
-            services.AddScoped<ICommandHandler<PipelineTestCommand, string>, PipelineTestCommandHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            }));
+            services.AddScoped<PipelineTestCommandHandler>();
+            builder.ConfigureMediator(b => b.AddHandler<PipelineTestCommandHandler>());
         }
 
         if (registerVoidCommand)
         {
-            services.AddScoped<ICommandHandler<CtxTestVoidCommand>, CtxTestVoidCommandHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(CtxTestVoidCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<CtxTestVoidCommand>()
-            }));
+            services.AddScoped<CtxTestVoidCommandHandler>();
+            builder.ConfigureMediator(b => b.AddHandler<CtxTestVoidCommandHandler>());
         }
 
         if (registerQuery)
         {
-            services.AddScoped<IQueryHandler<CtxTestQuery, int>, CtxTestQueryHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(CtxTestQuery),
-                ResponseType = typeof(int),
-                Terminal = PipelineBuilder.BuildQueryTerminal<CtxTestQuery, int>()
-            }));
+            services.AddScoped<CtxTestQueryHandler>();
+            builder.ConfigureMediator(b => b.AddHandler<CtxTestQueryHandler>());
         }
 
         if (registerNotification)
         {
             services.AddScoped<CtxTestNotificationHandler>();
-            builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(CtxTestNotification),
-                Terminal = PipelineBuilder.BuildNotificationTerminal<CtxTestNotification>(
-                    [typeof(CtxTestNotificationHandler)])
-            }));
+            builder.ConfigureMediator(b => b.AddHandler<CtxTestNotificationHandler>());
         }
 
         var provider = services.BuildServiceProvider();

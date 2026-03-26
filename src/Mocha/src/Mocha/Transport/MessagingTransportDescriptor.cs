@@ -152,8 +152,7 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     {
         if (before is not null && after is not null)
         {
-            throw new ArgumentException(
-                "Only one of 'before' or 'after' can be specified at the same time.");
+            throw ThrowHelper.BeforeAndAfterConflict();
         }
 
         if (before is null && after is null)
@@ -189,8 +188,7 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     {
         if (before is not null && after is not null)
         {
-            throw new ArgumentException(
-                "Only one of 'before' or 'after' can be specified at the same time.");
+            throw ThrowHelper.BeforeAndAfterConflict();
         }
 
         if (before is null && after is null)
@@ -215,8 +213,8 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     /// Returns this descriptor as an extension point for the transport configuration, allowing additional
     /// configuration to be layered by external modules.
     /// </summary>
-    /// <returns>This descriptor cast as <see cref="IDescriptorExtension{MessagingTransportConfiguration}"/>.</returns>
-    public new IDescriptorExtension<MessagingTransportConfiguration> Extend()
+    /// <returns>This descriptor cast as <see cref="IMessagingDescriptorExtension{T}"/>.</returns>
+    public new IMessagingDescriptorExtension<MessagingTransportConfiguration> Extend()
     {
         return this;
     }
@@ -225,10 +223,14 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     /// Applies an extension configuration delegate to this transport descriptor.
     /// </summary>
     /// <param name="configure">A delegate that configures the transport through the extension interface.</param>
-    /// <returns>This descriptor cast as <see cref="IDescriptorExtension{MessagingTransportConfiguration}"/>.</returns>
-    public IDescriptorExtension<MessagingTransportConfiguration> ExtendWith(
-        Action<IDescriptorExtension<MessagingTransportConfiguration>> configure)
+    /// <returns>This descriptor cast as <see cref="IMessagingDescriptorExtension{T}"/>.</returns>
+    public IMessagingDescriptorExtension<MessagingTransportConfiguration> ExtendWith(
+        Action<IMessagingDescriptorExtension<MessagingTransportConfiguration>> configure)
     {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        configure(this);
+
         return this;
     }
 
@@ -238,20 +240,15 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     /// <typeparam name="TState">The type of the state object passed to the delegate.</typeparam>
     /// <param name="configure">A delegate that configures the transport through the extension interface using the provided state.</param>
     /// <param name="state">The state object forwarded to the delegate.</param>
-    /// <returns>This descriptor cast as <see cref="IDescriptorExtension{MessagingTransportConfiguration}"/>.</returns>
-    public IDescriptorExtension<MessagingTransportConfiguration> ExtendWith<TState>(
-        Action<IDescriptorExtension<MessagingTransportConfiguration>, TState> configure,
+    /// <returns>This descriptor cast as <see cref="IMessagingDescriptorExtension{T}"/>.</returns>
+    public IMessagingDescriptorExtension<MessagingTransportConfiguration> ExtendWith<TState>(
+        Action<IMessagingDescriptorExtension<MessagingTransportConfiguration>, TState> configure,
         TState state)
     {
-        return this;
-    }
+        ArgumentNullException.ThrowIfNull(configure);
 
-    /// <summary>
-    /// Marks this descriptor as internal, preventing external consumers from using it.
-    /// </summary>
-    /// <exception cref="NotImplementedException">Always thrown; this method is not yet implemented.</exception>
-    public void Internal()
-    {
-        throw new NotImplementedException();
+        configure(this, state);
+
+        return this;
     }
 }

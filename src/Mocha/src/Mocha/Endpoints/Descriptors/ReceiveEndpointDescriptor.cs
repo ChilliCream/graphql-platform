@@ -53,8 +53,7 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
     {
         if (before is not null && after is not null)
         {
-            throw new ArgumentException(
-                "Only one of 'before' or 'after' can be specified at the same time.");
+            throw ThrowHelper.BeforeAndAfterConflict();
         }
 
         if (before is null && after is null)

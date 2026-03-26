@@ -7,6 +7,6 @@ using BenchmarkDotNet.Toolchains.DotNetCli;
 var config = DefaultConfig.Instance
     .AddJob(Job.Default.WithToolchain(
         CsProjCoreToolchain.From(
-            new NetCoreAppSettings("net9.0", null, ".NET 9.0"))));
+            new NetCoreAppSettings("net10.0", null, ".NET 10.0"))));
 
 BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, config);
