@@ -50,8 +50,6 @@ internal sealed partial class FetchResultStore : IDisposable
         _variableDedupTable = new VariableDedupTable(_variableWriter);
     }
 
-    internal ChunkedArrayWriter VariableWriter => _variableWriter;
-
     public CompositeResultDocument Result => _result;
 
     public IReadOnlyList<IError>? Errors => _errors;

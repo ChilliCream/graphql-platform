@@ -232,7 +232,6 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                     "Non-root selection paths must have requirements or forwarded variables.");
             }
 
-
             if (forwardedVariables.Length == 0)
             {
                 return [];

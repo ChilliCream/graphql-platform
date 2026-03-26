@@ -1,5 +1,8 @@
 #if FUSION
+using System.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Transport.Serialization;
 using HotChocolate.Text.Json;
 
@@ -39,13 +42,17 @@ public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationR
     /// <param name="extensions">
     /// The pre-serialized extension values to include with the operation.
     /// </param>
+    /// <param name="fileMap">
+    /// The file map entries for multipart file uploads. Default is empty.
+    /// </param>
     public OperationRequest(
         string? query,
         string? id,
         string? operationName,
         ErrorHandlingMode? onError,
-        JsonSegment variables,
-        JsonSegment extensions)
+        VariableValues variables,
+        JsonSegment extensions,
+        ImmutableArray<FileEntry> fileMap = default)
     {
         Query = query;
         Id = id;
@@ -53,6 +60,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationR
         OnError = onError;
         Variables = variables;
         Extensions = extensions;
+        FileMap = fileMap;
     }
 #else
     /// <summary>
@@ -160,12 +168,20 @@ public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationR
     /// <summary>
     /// Gets the pre-serialized variable values to use when executing the operation.
     /// </summary>
-    public JsonSegment Variables { get; }
+    public VariableValues Variables { get; }
 
     /// <summary>
     /// Gets the pre-serialized extension values to include with the operation.
     /// </summary>
     public JsonSegment Extensions { get; }
+
+    /// <summary>
+    /// Gets the file map entries for multipart file uploads.
+    /// Each entry maps a file key in the variable JSON to the actual file stream,
+    /// enabling the transport layer to construct the multipart form per the
+    /// GraphQL multipart request specification.
+    /// </summary>
+    public ImmutableArray<FileEntry> FileMap { get; }
 #else
     /// <summary>
     /// Gets a dictionary containing the variable values to use when executing the operation.

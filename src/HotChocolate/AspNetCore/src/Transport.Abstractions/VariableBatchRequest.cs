@@ -1,6 +1,8 @@
 #if FUSION
+using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Transport.Serialization;
 
 namespace HotChocolate.Fusion.Transport;
@@ -47,7 +49,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
         string? id,
         string? operationName,
         ErrorHandlingMode? onError,
-        JsonSegment variables,
+        ImmutableArray<VariableValues> variables,
         JsonSegment extensions)
     {
         Query = query;
@@ -163,7 +165,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// <summary>
     /// Gets a list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </summary>
-    public JsonSegment Variables { get; }
+    public ImmutableArray<VariableValues> Variables { get; }
 
     /// <summary>
     /// Gets a dictionary containing extension values to include with the operation.

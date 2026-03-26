@@ -63,7 +63,7 @@ internal static class Utf8JsonWriterHelper
         if (!request.Variables.IsEmpty)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
-            request.Variables.WriteTo(writer);
+            request.Variables.Values.WriteTo(writer);
         }
 
         if (!request.Extensions.IsEmpty)
@@ -103,10 +103,15 @@ internal static class Utf8JsonWriterHelper
             writer.WriteStringValue(GetErrorHandlingModeAsString(errorHandlingMode));
         }
 
-        if (!request.Variables.IsEmpty)
+        if (!request.Variables.IsDefaultOrEmpty)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
-            request.Variables.WriteTo(writer);
+            writer.WriteStartArray();
+            foreach (var vars in request.Variables)
+            {
+                vars.Values.WriteTo(writer);
+            }
+            writer.WriteEndArray();
         }
 
         if (!request.Extensions.IsEmpty)
