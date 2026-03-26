@@ -23,7 +23,7 @@ public sealed class HandlerInspector : ISyntaxInspector
 
     private static readonly HandlerKindDescriptor[] s_handlerKinds =
     [
-        new(static s => s.ICommandHandlerVoid, HandlerKind.CommandVoid, HasResponse: false),
+        new(static s => s.ICommandHandlerVoid, HandlerKind.Command, HasResponse: false),
         new(static s => s.ICommandHandlerResponse, HandlerKind.CommandResponse, HasResponse: true),
         new(static s => s.IQueryHandler, HandlerKind.Query, HasResponse: true)
     ];

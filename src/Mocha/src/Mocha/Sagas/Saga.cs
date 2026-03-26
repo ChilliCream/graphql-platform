@@ -214,7 +214,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Thrown when the saga has not been initialized.</exception>
     public override IReadOnlyDictionary<string, SagaState> States
-        => _states ?? throw new InvalidOperationException("Saga is not initialized.");
+        => _states ?? throw ThrowHelper.SagaNotInitialized();
 
     /// <inheritdoc />
     public override Type StateType => typeof(TState);
@@ -230,7 +230,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         if (_states is null)
         {
-            throw new InvalidOperationException("Saga is not initialized.");
+            throw ThrowHelper.SagaNotInitialized();
         }
 
         var ct = context.CancellationToken;

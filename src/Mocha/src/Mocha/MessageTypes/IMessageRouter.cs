@@ -180,7 +180,7 @@ public sealed class MessageRouter : IMessageRouter
             }
             route.Complete(context);
 
-            throw new InvalidOperationException($"No transport can handle message type: {messageType}");
+            throw ThrowHelper.NoTransportForMessageType(messageType);
         }
     }
 
@@ -190,7 +190,7 @@ public sealed class MessageRouter : IMessageRouter
 
         if (!route.IsInitialized)
         {
-            throw new InvalidOperationException("Route must be initialized");
+            throw ThrowHelper.RouteMustBeInitialized();
         }
 
         lock (_lock)
@@ -240,7 +240,7 @@ public sealed class MessageRouter : IMessageRouter
         ArgumentNullException.ThrowIfNull(route);
         if (!route.IsInitialized)
         {
-            throw new InvalidOperationException("Route must be initialized");
+            throw ThrowHelper.RouteMustBeInitialized();
         }
 
         lock (_lock)

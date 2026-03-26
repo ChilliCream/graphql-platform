@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Mediator;
 
 namespace Mocha.Mediator.Tests;
 
@@ -22,12 +21,12 @@ public sealed class NotificationStrategyTests
         services.AddScoped<SequentialHandler3>(
             _ => new SequentialHandler3(log));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
+        builder.ConfigureMediator(b =>
         {
-            MessageType = typeof(StrategyTestNotification),
-            Terminal = PipelineBuilder.BuildNotificationTerminal<StrategyTestNotification>(
-                new[] { typeof(SequentialHandler1), typeof(SequentialHandler2), typeof(SequentialHandler3) })
-        }));
+            b.AddHandler<SequentialHandler1>();
+            b.AddHandler<SequentialHandler2>();
+            b.AddHandler<SequentialHandler3>();
+        });
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -58,12 +57,12 @@ public sealed class NotificationStrategyTests
         services.AddScoped<SequentialHandler3>(
             _ => new SequentialHandler3(log));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
+        builder.ConfigureMediator(b =>
         {
-            MessageType = typeof(StrategyTestNotification),
-            Terminal = PipelineBuilder.BuildNotificationTerminal<StrategyTestNotification>(
-                new[] { typeof(SequentialHandler1), typeof(StrategyThrowingHandler), typeof(SequentialHandler3) })
-        }));
+            b.AddHandler<SequentialHandler1>();
+            b.AddHandler<StrategyThrowingHandler>();
+            b.AddHandler<SequentialHandler3>();
+        });
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -85,11 +84,9 @@ public sealed class NotificationStrategyTests
         var bag = new ConcurrentBag<string>();
 
         var services = new ServiceCollection();
-
-        // Override default strategy with TaskWhenAllPublisher before AddMediator
-        services.AddSingleton<INotificationStrategy, TaskWhenAllPublisher>();
-
         var builder = services.AddMediator();
+
+        builder.ConfigureOptions(o => o.NotificationPublishMode = NotificationPublishMode.Concurrent);
 
         services.AddScoped<ConcurrentHandler1>(
             _ => new ConcurrentHandler1(bag));
@@ -98,12 +95,12 @@ public sealed class NotificationStrategyTests
         services.AddScoped<ConcurrentHandler3>(
             _ => new ConcurrentHandler3(bag));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
+        builder.ConfigureMediator(b =>
         {
-            MessageType = typeof(StrategyTestNotification),
-            Terminal = PipelineBuilder.BuildNotificationTerminal<StrategyTestNotification>(
-                new[] { typeof(ConcurrentHandler1), typeof(ConcurrentHandler2), typeof(ConcurrentHandler3) })
-        }));
+            b.AddHandler<ConcurrentHandler1>();
+            b.AddHandler<ConcurrentHandler2>();
+            b.AddHandler<ConcurrentHandler3>();
+        });
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -127,31 +124,31 @@ public sealed class NotificationStrategyTests
         var bag = new ConcurrentBag<string>();
 
         var services = new ServiceCollection();
-        services.AddSingleton<INotificationStrategy, TaskWhenAllPublisher>();
-
         var builder = services.AddMediator();
+
+        builder.ConfigureOptions(o => o.NotificationPublishMode = NotificationPublishMode.Concurrent);
 
         services.AddScoped<ConcurrentHandler1>(
             _ => new ConcurrentHandler1(bag));
         services.AddScoped<StrategyThrowingHandler>(
             _ => new StrategyThrowingHandler());
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
+        builder.ConfigureMediator(b =>
         {
-            MessageType = typeof(StrategyTestNotification),
-            Terminal = PipelineBuilder.BuildNotificationTerminal<StrategyTestNotification>(
-                new[] { typeof(ConcurrentHandler1), typeof(StrategyThrowingHandler) })
-        }));
+            b.AddHandler<ConcurrentHandler1>();
+            b.AddHandler<StrategyThrowingHandler>();
+        });
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        // Act & Assert — concurrent mode surfaces AggregateException with all failures
+        var ex = await Assert.ThrowsAsync<AggregateException>(
             () => mediator.PublishAsync(new StrategyTestNotification("throw")).AsTask());
 
-        Assert.Equal("notification handler error", ex.Message);
+        Assert.Single(ex.InnerExceptions);
+        Assert.Equal("notification handler error", ex.InnerExceptions[0].Message);
     }
 }
 
