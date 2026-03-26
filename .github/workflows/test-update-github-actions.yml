@@ -21,11 +21,20 @@ jobs:
       VERSION: 16.0.0-rc.1.15
 
     steps:
+      - name: 🔐 Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.ACTIONS_APP_ID }}
+          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
+          owner: ChilliCream
+          repositories: ${{ matrix.repo }}
+
       - name: 📥 Checkout action repo
         uses: actions/checkout@v6
         with:
           repository: ChilliCream/${{ matrix.repo }}
-          token: ${{ secrets.GITHUB_ACTIONS_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           path: action-repo
 
       - name: 🧰 Enable Corepack
