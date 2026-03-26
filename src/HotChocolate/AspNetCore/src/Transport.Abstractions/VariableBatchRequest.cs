@@ -219,6 +219,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// <returns>
     /// <see langword="true"/> if the two objects are equal; otherwise, <see langword="false"/>.
     /// </returns>
+#if FUSION
     public bool Equals(VariableBatchRequest? other)
     {
         if (other is null)
@@ -234,11 +235,35 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
-        => obj is OperationRequest other && Equals(other);
+        => obj is VariableBatchRequest other && Equals(other);
 
     /// <inheritdoc/>
     public override int GetHashCode()
         => HashCode.Combine(Id, Query, Variables, Extensions);
+#else
+    public bool Equals(VariableBatchRequest? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Id == other.Id
+            && Query == other.Query
+            && Equals(Variables, other.Variables)
+            && Equals(Extensions, other.Extensions)
+            && Equals(VariablesNode, other.VariablesNode)
+            && Equals(ExtensionsNode, other.ExtensionsNode);
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+        => obj is VariableBatchRequest other && Equals(other);
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+        => HashCode.Combine(Id, Query, Variables, Extensions, VariablesNode, ExtensionsNode);
+#endif
 
     /// <summary>
     /// Determines whether two <see cref="OperationRequest"/> objects are equal.

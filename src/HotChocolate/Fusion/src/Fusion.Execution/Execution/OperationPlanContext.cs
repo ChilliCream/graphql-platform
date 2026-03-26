@@ -239,7 +239,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(variableValues);
+            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
         }
         else
         {

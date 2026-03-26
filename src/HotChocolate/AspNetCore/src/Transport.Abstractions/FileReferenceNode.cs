@@ -1,7 +1,11 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport;
+#else
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// This file literal is used in order to allow for file references in <see cref="ObjectValueNode"/>.
@@ -61,7 +65,11 @@ public sealed class FileReferenceNode
     /// Gets a <see cref="Location"/> of this node in the parsed source text
     /// if available the parser provided this information.
     /// </summary>
+#if FUSION
+    public HotChocolate.Language.Location? Location => null;
+#else
     public Location? Location => null;
+#endif
 
     /// <summary>
     /// Gets the actual file reference.

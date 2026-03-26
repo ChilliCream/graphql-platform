@@ -7,10 +7,12 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 #if FUSION
-using HotChocolate.Transport;
-using HotChocolate.Transport.Http;
-#endif
+using HotChocolate.Fusion.Transport;
+using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Transport.Serialization;
+#else
 using HotChocolate.Transport.Serialization;
+#endif
 using static System.Net.Http.HttpCompletionOption;
 
 #if FUSION
@@ -173,14 +175,19 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         }
         else
         {
-#endif
             message.Headers.Accept.Clear();
-            foreach (var contentType in request.Accept)
-            {
-                message.Headers.Accept.Add(contentType);
-            }
-#if FUSION
+        foreach (var contentType in request.Accept)
+        {
+            message.Headers.Accept.Add(contentType);
         }
+        }
+#else
+        message.Headers.Accept.Clear();
+        foreach (var contentType in request.Accept)
+        {
+            message.Headers.Accept.Add(contentType);
+        }
+
 #endif
 
         if (method == GraphQLHttpMethod.Post)

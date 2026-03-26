@@ -42,6 +42,12 @@
     <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\ContentType.cs">
       <Link>Transport\ContentType.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\FileReference.cs">
+      <Link>Transport\FileReference.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\FileReferenceInfo.cs">
+      <Link>Transport\FileReferenceInfo.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\FileReferenceNode.cs">
       <Link>Transport\FileReferenceNode.cs</Link>
     </Compile>

@@ -18,6 +18,10 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
     public bool IsEmpty => _memory is null;
 
+    internal int Location => _location;
+
+    internal int Length => _length;
+
     public void WriteTo(JsonWriter writer)
     {
         if (IsEmpty)

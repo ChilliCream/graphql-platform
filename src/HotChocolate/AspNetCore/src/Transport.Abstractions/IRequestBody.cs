@@ -13,15 +13,21 @@ namespace HotChocolate.Transport;
 /// </summary>
 public interface IRequestBody
 {
+#if FUSION
     /// <summary>
     /// Writes a serialized version of this request to a <see cref="JsonWriter"/>.
     /// </summary>
     /// <param name="writer">
     /// The JSON writer.
     /// </param>
-#if FUSION
     void WriteTo(JsonWriter writer);
 #else
+    /// <summary>
+    /// Writes a serialized version of this request to a <see cref="Utf8JsonWriter"/>.
+    /// </summary>
+    /// <param name="writer">
+    /// The JSON writer.
+    /// </param>
     void WriteTo(Utf8JsonWriter writer);
 #endif
 }

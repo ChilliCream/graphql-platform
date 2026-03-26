@@ -1,11 +1,11 @@
 #if FUSION
+using HotChocolate.Language;
 using HotChocolate.Text.Json;
 #else
 using System.Collections;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
-using HotChocolate.Transport.Http;
 #endif
 
 #if FUSION
@@ -60,16 +60,16 @@ internal static class Utf8JsonWriterHelper
             writer.WriteStringValue(GetErrorHandlingModeAsString(errorHandlingMode));
         }
 
-        if (!request.Extensions.IsEmpty)
-        {
-            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
-            request.Extensions.WriteTo(writer);
-        }
-
         if (!request.Variables.IsEmpty)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
             request.Variables.WriteTo(writer);
+        }
+
+        if (!request.Extensions.IsEmpty)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
+            request.Extensions.WriteTo(writer);
         }
 
         writer.WriteEndObject();
@@ -103,16 +103,16 @@ internal static class Utf8JsonWriterHelper
             writer.WriteStringValue(GetErrorHandlingModeAsString(errorHandlingMode));
         }
 
-        if (!request.Extensions.IsEmpty)
-        {
-            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
-            request.Extensions.WriteTo(writer);
-        }
-
         if (!request.Variables.IsEmpty)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
             request.Variables.WriteTo(writer);
+        }
+
+        if (!request.Extensions.IsEmpty)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
+            request.Extensions.WriteTo(writer);
         }
 
         writer.WriteEndObject();

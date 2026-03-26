@@ -1,6 +1,10 @@
 using static HotChocolate.Transport.Properties.TransportAbstractionResources;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport;
+#else
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// A file reference can be used to upload a file with the
