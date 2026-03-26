@@ -88,7 +88,7 @@ public abstract class Consumer
     {
         if (context is not IConsumeContext handlerContext)
         {
-            throw new InvalidOperationException("Context is not a handler context");
+            throw ThrowHelper.InvalidHandlerContext();
         }
 
         await _pipeline(handlerContext);
@@ -123,11 +123,11 @@ public abstract class Consumer
 
         if (Configuration is null)
         {
-            throw new InvalidOperationException("Handler configuration is null");
+            throw ThrowHelper.HandlerConfigurationMissing();
         }
 
         // TODO should we assign a default name in the Action? GetType().Name?
-        Name = Configuration.Name ?? throw new InvalidOperationException("Consumer name is null");
+        Name = Configuration.Name ?? throw ThrowHelper.ConsumerNameRequired();
         Identity ??= GetType();
 
         foreach (var route in Configuration!.Routes)
@@ -189,7 +189,7 @@ public abstract class Consumer
     {
         if (_isInitialized)
         {
-            throw new InvalidOperationException("Handler already initialized");
+            throw ThrowHelper.HandlerAlreadyInitialized();
         }
     }
 

@@ -8,7 +8,7 @@ public enum MessageKind
     /// <summary>
     /// A void command (no response).
     /// </summary>
-    CommandVoid,
+    Command,
 
     /// <summary>
     /// A command that returns a response.

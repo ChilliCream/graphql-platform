@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Mediator;
 
 namespace Mocha.Mediator.Tests;
 
@@ -13,14 +12,9 @@ public sealed class MiddlewarePipelineTests : IDisposable
 
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>, PipelineTestCommandHandler>();
+        services.AddScoped<PipelineTestCommandHandler>();
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            }));
+        builder.ConfigureMediator(b => b.AddHandler<PipelineTestCommandHandler>());
 
         _provider = services.BuildServiceProvider();
     }
@@ -34,7 +28,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
 
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>, PipelineTestCommandHandler>();
+        services.AddScoped<PipelineTestCommandHandler>();
 
         builder
             .Use(new MediatorMiddlewareConfiguration(
@@ -98,12 +92,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
                 },
                 "MW3"));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            }));
+        builder.ConfigureMediator(b => b.AddHandler<PipelineTestCommandHandler>());
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -130,7 +119,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>, PipelineTestCommandHandler>();
+        services.AddScoped<PipelineTestCommandHandler>();
 
         builder.Use(new MediatorMiddlewareConfiguration(
             (factoryCtx, next) => ctx =>
@@ -142,12 +131,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
             },
             "ContextReader"));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            }));
+        builder.ConfigureMediator(b => b.AddHandler<PipelineTestCommandHandler>());
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -172,7 +156,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>, PipelineTestCommandHandler>();
+        services.AddScoped<PipelineTestCommandHandler>();
 
         builder.Use(new MediatorMiddlewareConfiguration(
             (factoryCtx, next) => ctx =>
@@ -194,12 +178,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
             },
             "ResultModifier"));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            }));
+        builder.ConfigureMediator(b => b.AddHandler<PipelineTestCommandHandler>());
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -221,7 +200,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>, PipelineThrowingHandler>();
+        services.AddScoped<PipelineThrowingHandler>();
 
         builder.Use(new MediatorMiddlewareConfiguration(
             (factoryCtx, next) => async ctx =>
@@ -238,12 +217,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
             },
             "ExceptionObserver"));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            }));
+        builder.ConfigureMediator(b => b.AddHandler<PipelineThrowingHandler>());
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -265,7 +239,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>>(
+        services.AddScoped<PipelineTrackingHandler>(
             _ => new PipelineTrackingHandler(() => handlerInvoked = true));
 
         builder.Use(new MediatorMiddlewareConfiguration(
@@ -273,12 +247,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
                 throw new ApplicationException("middleware failure"),
             "FailingMiddleware"));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            }));
+        builder.ConfigureMediator(b => b.AddHandler<PipelineTrackingHandler>());
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -301,7 +270,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<PipelineTestCommand, string>>(
+        services.AddScoped<PipelineTrackingHandler>(
             _ => new PipelineTrackingHandler(() => handlerInvoked = true));
 
         builder.Use(new MediatorMiddlewareConfiguration(
@@ -312,12 +281,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
             },
             "ShortCircuit"));
 
-        builder.ConfigureMediator(b => b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PipelineTestCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PipelineTestCommand, string>()
-            }));
+        builder.ConfigureMediator(b => b.AddHandler<PipelineTrackingHandler>());
 
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();

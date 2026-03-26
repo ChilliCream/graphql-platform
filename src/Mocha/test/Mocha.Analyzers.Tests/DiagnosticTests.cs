@@ -168,4 +168,79 @@ public class DiagnosticTests
             """
         ]).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task MO0005_CommandAndNotificationHandler_ReportsError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using Mocha.Mediator;
+
+            namespace TestApp;
+
+            public record DoSomethingCommand : ICommand;
+            public record SomethingHappened : INotification;
+
+            public class MultiHandler
+                : ICommandHandler<DoSomethingCommand>
+                , INotificationHandler<SomethingHappened>
+            {
+                public ValueTask HandleAsync(DoSomethingCommand command, CancellationToken cancellationToken)
+                    => default;
+
+                public ValueTask HandleAsync(SomethingHappened notification, CancellationToken cancellationToken)
+                    => default;
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task MO0005_CommandAndQueryHandler_ReportsError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using Mocha.Mediator;
+
+            namespace TestApp;
+
+            public record DoSomethingCommand : ICommand;
+            public record GetSomethingQuery : IQuery<string>;
+
+            public class MultiHandler
+                : ICommandHandler<DoSomethingCommand>
+                , IQueryHandler<GetSomethingQuery, string>
+            {
+                public ValueTask HandleAsync(DoSomethingCommand command, CancellationToken cancellationToken)
+                    => default;
+
+                public ValueTask<string> HandleAsync(GetSomethingQuery query, CancellationToken cancellationToken)
+                    => new("result");
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task NoWarning_SingleHandlerInterface_NoDiagnostic()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using Mocha.Mediator;
+
+            namespace TestApp;
+
+            public record SomethingHappened : INotification;
+
+            public class SomethingHappenedHandler : INotificationHandler<SomethingHappened>
+            {
+                public ValueTask HandleAsync(SomethingHappened notification, CancellationToken cancellationToken)
+                    => default;
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
 }
