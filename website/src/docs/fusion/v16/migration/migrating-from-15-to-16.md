@@ -1,5 +1,7 @@
 TODO: Preamble about you can't just bump the version because this a redesign of everything, tooling, etc.
 
+TODO: Mention that Nitro needs to be updated to latest version when self-hosting
+
 ## 1. Prepare subgraph
 
 Next we need to migrate the `subgraph-config.json` file to the new `schema-settings.json` file.
@@ -42,4 +44,4 @@ If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#x-
 
 ## X. Update subgraph to v16
 
-TODO: Link to Hot Chocolate migration guide and mention that the version: 1.0.0 should be removed. Also `AddSourceSchemaDefaults` (TODO: Check if this modifies the batching already`)
+TODO: Link to Hot Chocolate migration guide and mention that the version: 1.0.0 should be removed. Also `AddSourceSchemaDefaults` (TODO: Check if this modifies the batching already)
