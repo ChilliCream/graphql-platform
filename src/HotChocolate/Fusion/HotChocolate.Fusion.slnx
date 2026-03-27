@@ -12,6 +12,7 @@
     <Project Path="src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
     <Project Path="src/Fusion.SourceSchema.Packaging/HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
+    <Project Path="src/Fusion.Connectors.InMemory/HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <Project Path="src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
   <Folder Name="/test/">

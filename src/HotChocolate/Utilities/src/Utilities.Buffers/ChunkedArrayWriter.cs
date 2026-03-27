@@ -21,6 +21,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     private const int DefaultScratchSize = 128;
     private const int SimdThreshold = 32;
 
+    private readonly JsonMemoryKind _memoryKind;
     private byte[][] _chunks;
     private int _chunkCount;
     private int _currentChunk;
@@ -29,10 +30,11 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     private bool _advanceFromScratch;
     private bool _disposed;
 
-    public ChunkedArrayWriter()
+    public ChunkedArrayWriter(JsonMemoryKind memoryKind = JsonMemoryKind.Variables)
     {
+        _memoryKind = memoryKind;
         _chunks = ArrayPool<byte[]>.Shared.Rent(4);
-        _chunks[0] = JsonMemory.Rent(JsonMemoryKind.Variables);
+        _chunks[0] = JsonMemory.Rent(memoryKind);
         _chunkCount = 1;
         _scratch = new byte[DefaultScratchSize];
     }
@@ -578,6 +580,69 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
+    /// Transfers ownership of all data chunks to the caller and resets the writer.
+    /// Returns the chunk array, the number of used chunks, and the byte count
+    /// in the last chunk — ready to pass directly to
+    /// <c>SourceResultDocument.Parse(dataChunks, lastLength, usedChunks, pooledMemory: true)</c>.
+    /// After this call the writer is disposed and must not be used again.
+    /// </summary>
+    public (byte[][] DataChunks, int UsedChunks, int LastLength) DrainChunks()
+    {
+#if NETSTANDARD2_0
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(typeof(ChunkedArrayWriter).FullName!);
+        }
+#else
+        ObjectDisposedException.ThrowIf(_disposed, this);
+#endif
+
+        int usedChunks;
+        int lastLength;
+
+        if (_currentChunkOffset > 0)
+        {
+            usedChunks = _currentChunk + 1;
+            lastLength = _currentChunkOffset;
+        }
+        else if (_currentChunk > 0)
+        {
+            // Moved to a new chunk but nothing written to it — return unused chunk.
+            usedChunks = _currentChunk;
+            lastLength = BufferSize;
+            JsonMemory.Return(_memoryKind, _chunks[_currentChunk]);
+            _chunks[_currentChunk] = null!;
+        }
+        else
+        {
+            // Nothing written at all.
+            usedChunks = 0;
+            lastLength = 0;
+        }
+
+        // Return any pre-allocated chunks beyond the used range.
+        for (var i = usedChunks; i < _chunkCount; i++)
+        {
+            if (_chunks[i] is not null)
+            {
+                JsonMemory.Return(_memoryKind, _chunks[i]);
+                _chunks[i] = null!;
+            }
+        }
+
+        var chunks = _chunks;
+
+        // Reset state — writer is now effectively disposed.
+        _chunks = [];
+        _chunkCount = 0;
+        _currentChunk = 0;
+        _currentChunkOffset = 0;
+        _disposed = true;
+
+        return (chunks, usedChunks, lastLength);
+    }
+
+    /// <summary>
     /// Returns excess chunks beyond the first one.
     /// Call this when the owning store is returned to a pool.
     /// </summary>
@@ -585,7 +650,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     {
         for (var i = 1; i < _chunkCount; i++)
         {
-            JsonMemory.Return(JsonMemoryKind.Variables, _chunks[i]);
+            JsonMemory.Return(_memoryKind, _chunks[i]);
             _chunks[i] = null!;
         }
 
@@ -604,7 +669,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         {
             for (var i = 0; i < _chunkCount; i++)
             {
-                JsonMemory.Return(JsonMemoryKind.Variables, _chunks[i]);
+                JsonMemory.Return(_memoryKind, _chunks[i]);
                 _chunks[i] = null!;
             }
 
@@ -631,7 +696,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
 
         if (_currentChunk >= _chunkCount)
         {
-            _chunks[_currentChunk] = JsonMemory.Rent(JsonMemoryKind.Variables);
+            _chunks[_currentChunk] = JsonMemory.Rent(_memoryKind);
             _chunkCount = _currentChunk + 1;
         }
     }

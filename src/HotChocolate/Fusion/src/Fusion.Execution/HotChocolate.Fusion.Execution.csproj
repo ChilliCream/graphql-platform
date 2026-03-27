@@ -13,6 +13,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
   </ItemGroup>
 
   <ItemGroup>

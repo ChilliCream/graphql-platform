@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Connectors.InMemory</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <LangVersion>preview</LangVersion>
+    <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
+  </ItemGroup>
+
+</Project>
