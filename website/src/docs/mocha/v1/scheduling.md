@@ -18,7 +18,7 @@ The call returns immediately. The message is persisted and delivered when the sc
 
 # Schedule a message
 
-Mocha provides convenience extension methods on `IMessageBus` for scheduling. There are two approaches: schedule with an absolute `DateTimeOffset`, or schedule with a relative `TimeSpan` delay.
+Mocha provides convenience extension methods on `IMessageBus` for scheduling with an absolute `DateTimeOffset`.
 
 ## Schedule with an absolute time
 

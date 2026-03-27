@@ -185,7 +185,7 @@ public class DispatchSchedulingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_NotPersist_When_EnvelopeIsNull()
+    public async Task InvokeAsync_Should_ForwardToNext_When_EnvelopeIsNull()
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
@@ -213,8 +213,8 @@ public class DispatchSchedulingMiddlewareTests
         // act
         await middleware.InvokeAsync(context, next);
 
-        // assert - store should be empty, next should NOT be called
-        Assert.False(nextCalled);
+        // assert - store should be empty, next should be called as fallback
+        Assert.True(nextCalled);
         Assert.Empty(store.Entries);
     }
 

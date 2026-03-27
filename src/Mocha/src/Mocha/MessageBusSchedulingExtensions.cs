@@ -12,7 +12,7 @@ public static class MessageBusSchedulingExtensions
     /// <param name="message">The message instance to send.</param>
     /// <param name="scheduledTime">The absolute time at which the message should be delivered.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
-    /// <returns>A task that completes when the message has been handed off to the transport.</returns>
+    /// <returns>A task that completes when the message has been handed off to the dispatch pipeline.</returns>
     public static ValueTask ScheduleSendAsync(
         this IMessageBus bus,
         object message,
@@ -28,7 +28,7 @@ public static class MessageBusSchedulingExtensions
     /// <param name="message">The message instance to publish.</param>
     /// <param name="scheduledTime">The absolute time at which the message should be delivered.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
-    /// <returns>A task that completes when the message has been handed off to the transport.</returns>
+    /// <returns>A task that completes when the message has been handed off to the dispatch pipeline.</returns>
     public static ValueTask SchedulePublishAsync<T>(
         this IMessageBus bus,
         T message,

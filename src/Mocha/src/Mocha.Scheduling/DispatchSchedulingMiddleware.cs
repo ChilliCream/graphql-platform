@@ -39,11 +39,14 @@ public sealed class DispatchSchedulingMiddleware
             return;
         }
 
-        var store = context.Services.GetRequiredService<IScheduledMessageStore>();
-        if (context.Envelope is not null)
+        if (context.Envelope is null)
         {
-            await store.PersistAsync(context.Envelope, scheduledTime, context.CancellationToken);
+            await next(context);
+            return;
         }
+
+        var store = context.Services.GetRequiredService<IScheduledMessageStore>();
+        await store.PersistAsync(context.Envelope, scheduledTime, context.CancellationToken);
     }
 
     /// <summary>
