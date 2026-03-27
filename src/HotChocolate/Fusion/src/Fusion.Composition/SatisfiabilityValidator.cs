@@ -112,6 +112,12 @@ internal sealed class SatisfiabilityValidator
         var optionCount = 0;
         var fieldType = field.Type.AsTypeDefinition();
 
+        // Mark as cached before recursing to prevent re-entry during recursion.
+        // Without this, cross-schema cycles bypass CycleDetectionPath (because the
+        // schema name changes on each hop, making every path item look unique) and
+        // cause combinatorial explosion of recursive calls.
+        context.FieldAccessCache.Add(cacheKey);
+
         foreach (var schemaName in schemaNames)
         {
             // If the field is marked as partial, it must be provided by the current schema for it
@@ -205,8 +211,6 @@ internal sealed class SatisfiabilityValidator
                 break;
             }
         }
-
-        context.FieldAccessCache.Add(cacheKey);
 
         // Log an error if there are no options for accessing the field, and there is no cycle
         // (which would imply an option for accessing the same field repeatedly).
