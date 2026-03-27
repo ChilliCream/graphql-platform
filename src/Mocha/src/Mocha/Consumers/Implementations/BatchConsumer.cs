@@ -14,7 +14,6 @@ namespace Mocha;
 /// without any modifications to the middleware chain.
 /// </remarks>
 internal sealed class BatchConsumer<THandler, TEvent>(
-    BatchOptions options,
     Action<IConsumerDescriptor>? configure = null) : Consumer where THandler : IBatchEventHandler<TEvent>
 {
     private BatchCollector<TEvent> _collector = null!;
@@ -36,6 +35,9 @@ internal sealed class BatchConsumer<THandler, TEvent>(
     {
         base.OnAfterInitialize(context);
         SetIdentity(typeof(THandler));
+
+        var options = Configuration!.Features.Get<BatchOptions>() ?? new BatchOptions();
+        options.Validate();
 
         _applicationServices = context.Services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         _logger = context.Services.GetRequiredService<ILogger<BatchConsumer<THandler, TEvent>>>();

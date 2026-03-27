@@ -16,20 +16,36 @@ namespace Microsoft.Extensions.DependencyInjection
         {
 
             // --- Batch Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddBatchHandler<
-                global::TestApp.BulkOrderHandler>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.BulkOrderHandler>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.BulkOrderHandler),
+                    Factory = global::Mocha.ConsumerFactory.Batch<global::TestApp.BulkOrderHandler, global::TestApp.BulkOrderEvent>()
+                });
 
             // --- Consumers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddConsumer<
-                global::TestApp.AuditLogConsumer>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.AuditLogConsumer>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.AuditLogConsumer),
+                    Factory = global::Mocha.ConsumerFactory.Consume<global::TestApp.AuditLogConsumer, global::TestApp.AuditLogMessage>()
+                });
 
             // --- Request Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddRequestHandler<
-                global::TestApp.GetOrderStatusHandler>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.GetOrderStatusHandler>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.GetOrderStatusHandler),
+                    Factory = global::Mocha.ConsumerFactory.Request<global::TestApp.GetOrderStatusHandler, global::TestApp.GetOrderStatusRequest, string>()
+                });
 
             // --- Event Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddEventHandler<
-                global::TestApp.OrderPlacedHandler>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.OrderPlacedHandler>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.OrderPlacedHandler),
+                    Factory = global::Mocha.ConsumerFactory.Subscribe<global::TestApp.OrderPlacedHandler, global::TestApp.OrderPlacedEvent>()
+                });
 
             // --- Sagas ---
             global::Mocha.MessageBusHostBuilderExtensions.AddSaga<

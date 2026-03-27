@@ -16,8 +16,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
 
             // --- Request Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddRequestHandler<
-                global::TestApp.ProcessOrderHandler>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.ProcessOrderHandler>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.ProcessOrderHandler),
+                    Factory = global::Mocha.ConsumerFactory.Send<global::TestApp.ProcessOrderHandler, global::TestApp.ProcessOrderRequest>()
+                });
 
             return builder;
         }

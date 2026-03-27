@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Mocha.Analyzers.Utils;
 
 namespace Mocha.Analyzers.FileBuilders;
@@ -22,7 +20,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     {
         _extensionsClassName = moduleName + "MessageBusBuilderExtensions";
         _methodName = "Add" + moduleName;
-        HintName = _extensionsClassName + "." + ComputeSalt(assemblyName);
+        HintName = _extensionsClassName + "." + HashHelper.ComputeSalt(assemblyName);
     }
 
     /// <summary>
@@ -61,20 +59,32 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     /// <param name="handler">The messaging handler info to register.</param>
     public void WriteHandlerRegistration(MessagingHandlerInfo handler)
     {
-        var methodName = handler.Kind switch
+        var factoryCall = handler.Kind switch
         {
-            MessagingHandlerKind.Batch => "AddBatchHandler",
-            MessagingHandlerKind.Consumer => "AddConsumer",
-            MessagingHandlerKind.RequestResponse => "AddRequestHandler",
-            MessagingHandlerKind.Send => "AddRequestHandler",
-            MessagingHandlerKind.Event => "AddEventHandler",
+            MessagingHandlerKind.Event =>
+                $"Subscribe<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
+            MessagingHandlerKind.Send =>
+                $"Send<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
+            MessagingHandlerKind.RequestResponse =>
+                $"Request<{handler.HandlerTypeName}, {handler.MessageTypeName}, {handler.ResponseTypeName}>()",
+            MessagingHandlerKind.Consumer =>
+                $"Consume<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
+            MessagingHandlerKind.Batch =>
+                $"Batch<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
             _ => throw new ArgumentOutOfRangeException()
         };
 
         Writer.WriteIndentedLine(
-            "global::Mocha.MessageBusHostBuilderExtensions.{0}<", methodName);
+            "global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<{0}>(builder,",
+            handler.HandlerTypeName);
         Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("{0}>(builder);", handler.HandlerTypeName);
+        Writer.WriteIndentedLine("new global::Mocha.MessagingHandlerConfiguration");
+        Writer.WriteIndentedLine("{");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("HandlerType = typeof({0}),", handler.HandlerTypeName);
+        Writer.WriteIndentedLine("Factory = global::Mocha.ConsumerFactory.{0}", factoryCall);
+        Writer.DecreaseIndent();
+        Writer.WriteIndentedLine("});");
         Writer.DecreaseIndent();
     }
 
@@ -110,23 +120,5 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
         Writer.WriteIndentedLine("return builder;");
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("}");
-    }
-
-#pragma warning disable CA5351 // MD5 is used for non-security hashing (file name salting)
-    private static readonly MD5 s_md5 = MD5.Create();
-#pragma warning restore CA5351
-
-    private static string ComputeSalt(string assemblyName)
-    {
-        byte[] hashBytes;
-
-        lock (s_md5)
-        {
-            hashBytes = s_md5.ComputeHash(Encoding.UTF8.GetBytes(assemblyName));
-        }
-
-        var base64 = Convert.ToBase64String(hashBytes, Base64FormattingOptions.None);
-
-        return base64.Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 }

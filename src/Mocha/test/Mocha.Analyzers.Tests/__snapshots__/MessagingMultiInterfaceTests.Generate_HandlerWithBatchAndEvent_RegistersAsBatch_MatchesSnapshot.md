@@ -16,8 +16,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
 
             // --- Batch Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddBatchHandler<
-                global::TestApp.OrderBatchAndEventHandler>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.OrderBatchAndEventHandler>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.OrderBatchAndEventHandler),
+                    Factory = global::Mocha.ConsumerFactory.Batch<global::TestApp.OrderBatchAndEventHandler, global::TestApp.OrderEvent>()
+                });
 
             return builder;
         }

@@ -16,8 +16,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
 
             // --- Consumers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddConsumer<
-                global::TestApp.AuditLogConsumer>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.AuditLogConsumer>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.AuditLogConsumer),
+                    Factory = global::Mocha.ConsumerFactory.Consume<global::TestApp.AuditLogConsumer, global::TestApp.AuditLogMessage>()
+                });
 
             return builder;
         }

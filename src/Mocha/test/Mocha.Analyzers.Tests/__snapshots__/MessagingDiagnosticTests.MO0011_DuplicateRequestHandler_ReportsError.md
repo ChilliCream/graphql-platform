@@ -18,10 +18,18 @@ namespace Microsoft.Extensions.DependencyInjection
         {
 
             // --- Request Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddRequestHandler<
-                global::TestApp.GetOrderHandlerA>(builder);
-            global::Mocha.MessageBusHostBuilderExtensions.AddRequestHandler<
-                global::TestApp.GetOrderHandlerB>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.GetOrderHandlerA>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.GetOrderHandlerA),
+                    Factory = global::Mocha.ConsumerFactory.Request<global::TestApp.GetOrderHandlerA, global::TestApp.GetOrderRequest, string>()
+                });
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.GetOrderHandlerB>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.GetOrderHandlerB),
+                    Factory = global::Mocha.ConsumerFactory.Request<global::TestApp.GetOrderHandlerB, global::TestApp.GetOrderRequest, string>()
+                });
 
             return builder;
         }

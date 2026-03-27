@@ -1,8 +1,6 @@
 using Demo.Catalog.Commands;
 using Demo.Catalog.Data;
-using Demo.Catalog.Handlers;
 using Demo.Catalog.Queries;
-using Demo.Catalog.Sagas;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
@@ -32,17 +30,7 @@ builder.Services.AddMediator()
 builder
     .Services.AddMessageBus()
     .AddInstrumentation()
-    // Event handlers
-    .AddEventHandler<PaymentCompletedEventHandler>()
-    .AddEventHandler<ShipmentCreatedEventHandler>()
-    // Request handlers
-    .AddRequestHandler<GetProductRequestHandler>()
-    .AddRequestHandler<ReserveInventoryCommandHandler>()
-    .AddRequestHandler<InspectReturnCommandHandler>()
-    .AddRequestHandler<RestockInventoryCommandHandler>()
-    // Sagas
-    .AddSaga<QuickRefundSaga>()
-    .AddSaga<ReturnProcessingSaga>()
+    .AddCatalog()
     .AddEntityFramework<CatalogDbContext>(p =>
     {
         p.AddPostgresSagas();

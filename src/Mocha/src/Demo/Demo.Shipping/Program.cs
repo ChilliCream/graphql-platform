@@ -1,6 +1,5 @@
 using Demo.Shipping.Commands;
 using Demo.Shipping.Data;
-using Demo.Shipping.Handlers;
 using Demo.Shipping.Queries;
 using Mocha;
 using Mocha.EntityFrameworkCore;
@@ -28,11 +27,7 @@ builder.Services.AddMediator()
 builder
     .Services.AddMessageBus()
     .AddInstrumentation()
-    // Event handlers
-    .AddEventHandler<PaymentCompletedEventHandler>()
-    // Request handlers
-    .AddRequestHandler<GetShipmentStatusRequestHandler>()
-    .AddRequestHandler<CreateReturnLabelCommandHandler>()
+    .AddShipping()
     .AddEntityFramework<ShippingDbContext>(p =>
     {
         p.UsePostgresOutbox();

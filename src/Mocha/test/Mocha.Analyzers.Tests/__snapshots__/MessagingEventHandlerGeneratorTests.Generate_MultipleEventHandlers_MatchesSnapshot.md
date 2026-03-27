@@ -16,10 +16,18 @@ namespace Microsoft.Extensions.DependencyInjection
         {
 
             // --- Event Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddEventHandler<
-                global::TestApp.OrderPlacedAuditHandler>(builder);
-            global::Mocha.MessageBusHostBuilderExtensions.AddEventHandler<
-                global::TestApp.OrderPlacedHandler>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.OrderPlacedAuditHandler>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.OrderPlacedAuditHandler),
+                    Factory = global::Mocha.ConsumerFactory.Subscribe<global::TestApp.OrderPlacedAuditHandler, global::TestApp.OrderPlacedEvent>()
+                });
+            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.OrderPlacedHandler>(builder,
+                new global::Mocha.MessagingHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.OrderPlacedHandler),
+                    Factory = global::Mocha.ConsumerFactory.Subscribe<global::TestApp.OrderPlacedHandler, global::TestApp.OrderPlacedEvent>()
+                });
 
             return builder;
         }

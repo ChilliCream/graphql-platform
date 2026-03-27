@@ -5,7 +5,7 @@ description: "Learn how to implement message handlers in Mocha - event handlers,
 
 # Handlers and consumers
 
-You implement a handler interface, register it with the bus builder, and Mocha routes matching messages to it. This page covers every handler type, when to use each one, and the patterns that apply to all of them: DI scoping, exception behavior, and publishing from within a handler.
+You implement a handler interface, and the source generator discovers it at compile time. Mocha routes matching messages to your handler automatically. This page covers every handler type, when to use each one, and the patterns that apply to all of them: DI scoping, exception behavior, and publishing from within a handler.
 
 ## When to use which handler
 
@@ -80,14 +80,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddMessageBus()
-    .AddEventHandler<OrderPlacedHandler>()
+    .AddMyApp() // source-generated — registers OrderPlacedHandler automatically
     .AddInMemory(); // or .AddRabbitMQ()
 
 var app = builder.Build();
 app.Run();
 ```
 
-`.AddEventHandler<T>()` registers the handler as a scoped service and tells the bus which message type to route to it.
+`.AddMyApp()` is a source-generated extension method that discovers all handlers in the assembly and registers them. The source generator found `OrderPlacedHandler`, saw that it implements `IEventHandler<OrderPlaced>`, and emitted a registration call for it. For details on how the source generator works and how to customize the module name, see [Handler Registration](/docs/mocha/v1/handler-registration).
 
 ## Verify the handler runs
 
@@ -179,7 +179,7 @@ The return value is sent back to the caller automatically. The return value must
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddRequestHandler<GetProductRequestHandler>()
+    .AddMyApp() // source-generated — registers GetProductRequestHandler automatically
     .AddRabbitMQ();
 ```
 
@@ -260,7 +260,7 @@ public class ReserveInventoryCommandHandler(
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddRequestHandler<ReserveInventoryCommandHandler>()
+    .AddMyApp() // source-generated — registers ReserveInventoryCommandHandler automatically
     .AddRabbitMQ();
 ```
 
@@ -342,6 +342,7 @@ To access envelope metadata for a specific message in the batch, call `batch.Get
 ```csharp
 builder.Services
     .AddMessageBus()
+    .AddMyApp() // source-generated - registers OrderPlacedBatchHandler automatically
     .AddBatchHandler<OrderPlacedBatchHandler>(opts =>
     {
         opts.MaxBatchSize = 50;
@@ -350,7 +351,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-The configuration parameter is optional. Without it, Mocha uses the defaults: 100 messages per batch, 1-second timeout.
+The source generator registers the batch handler, but you can chain `.AddBatchHandler<T>(opts => ...)` after `AddMyApp()` to override batch configuration options. Without explicit configuration, Mocha uses the defaults: 100 messages per batch, 1-second timeout.
 
 ## Publish events as normal
 
@@ -425,7 +426,7 @@ Register with `.AddConsumer<T>()`:
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddConsumer<OrderAuditConsumer>()
+    .AddMyApp() // source-generated - registers OrderAuditConsumer automatically
     .AddRabbitMQ();
 ```
 
@@ -507,12 +508,13 @@ Messages published from within a handler automatically inherit the `Conversation
 
 # Further reading
 
+- [Handler Registration](/docs/mocha/v1/handler-registration) - How the source generator discovers handlers and how to customize registration.
 - [Event-Driven Consumer](https://www.enterpriseintegrationpatterns.com/patterns/messaging/EventDrivenConsumer.html) - The EIP pattern that defines push-based message consumption, which is what Mocha's handlers implement.
 - [Competing Consumers](https://www.enterpriseintegrationpatterns.com/patterns/messaging/CompetingConsumers.html) - When multiple instances of your service run, they compete for messages on the same queue. This is the concurrency model for Mocha handlers under load.
 
 # Next steps
 
-Your handlers are registered. Learn how Mocha routes messages to them in [Routing and Endpoints](/docs/mocha/v1/routing-and-endpoints).
+Your handlers are registered. Learn how the source generator discovers and registers them in [Handler Registration](/docs/mocha/v1/handler-registration), or how Mocha routes messages to them in [Routing and Endpoints](/docs/mocha/v1/routing-and-endpoints).
 
 > **Runnable examples:** [BatchHandler](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/BatchHandler), [LowLevelConsumer](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/LowLevelConsumer), [CustomConsumer](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/CustomConsumer)
 >
