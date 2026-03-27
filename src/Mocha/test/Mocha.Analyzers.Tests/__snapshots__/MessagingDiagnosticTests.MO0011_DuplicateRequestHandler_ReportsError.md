@@ -47,7 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "Duplicate handler for request type",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": ": (0,0)-(0,0)",
+    "Location": ": (6,13)-(6,29)",
     "MessageFormat": "Request type '{0}' has multiple handlers: {1}",
     "Message": "Request type 'global::TestApp.GetOrderRequest' has multiple handlers: global::TestApp.GetOrderHandlerA, global::TestApp.GetOrderHandlerB",
     "Category": "Messaging",

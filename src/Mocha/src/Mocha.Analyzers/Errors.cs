@@ -87,21 +87,6 @@ public static class Errors
     // --- MessageBus diagnostics ---
 
     /// <summary>
-    /// Gets the descriptor for MO0010: a request type has no registered handler.
-    /// </summary>
-    /// <remarks>
-    /// Reported as a warning when an event request type is declared but no corresponding
-    /// handler implementation is found in the compilation.
-    /// </remarks>
-    public static readonly DiagnosticDescriptor MissingRequestHandler = new(
-        id: "MO0010",
-        title: "Missing handler for request type",
-        messageFormat: "Request type '{0}' has no registered handler",
-        category: "Messaging",
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
-
-    /// <summary>
     /// Gets the descriptor for MO0011: a request type has more than one handler.
     /// </summary>
     /// <remarks>

@@ -214,11 +214,12 @@ public sealed class MessagingGenerator : IIncrementalGenerator
                 // MO0011: Duplicate request handler
                 var handlerNames = string.Join(", ", kvp.Value.Select(h => h.HandlerTypeName).OrderBy(n => n));
                 var firstHandler = kvp.Value[0];
+                var diagnosticLocation = ReconstructLocation(firstHandler.Location);
 
                 context.ReportDiagnostic(
                     Diagnostic.Create(
                         Errors.DuplicateRequestHandler,
-                        Location.None,
+                        diagnosticLocation,
                         firstHandler.MessageTypeName,
                         handlerNames));
             }
@@ -227,7 +228,6 @@ public sealed class MessagingGenerator : IIncrementalGenerator
 
     private static readonly Dictionary<string, DiagnosticDescriptor> s_descriptorLookup = new()
     {
-        [Errors.MissingRequestHandler.Id] = Errors.MissingRequestHandler,
         [Errors.DuplicateRequestHandler.Id] = Errors.DuplicateRequestHandler,
         [Errors.OpenGenericMessagingHandler.Id] = Errors.OpenGenericMessagingHandler,
         [Errors.AbstractMessagingHandler.Id] = Errors.AbstractMessagingHandler,

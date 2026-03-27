@@ -93,6 +93,7 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
             var handlerNamespace = namedTypeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
             var messageTypeName = implemented.TypeArguments[descriptor.MessageTypeArgIndex]
                 .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var locationInfo = typeDeclaration.Identifier.GetLocation().ToLocationInfo();
 
             syntaxInfo = new MessagingHandlerInfo(
                 handlerFullName,
@@ -101,7 +102,8 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
                 descriptor.HasResponse
                     ? implemented.TypeArguments[1].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                     : null,
-                descriptor.Kind);
+                descriptor.Kind,
+                locationInfo);
             return true;
         }
 
