@@ -64,8 +64,11 @@ internal sealed class MessageBusSchedulerSignal(TimeProvider timeProvider)
     /// <inheritdoc />
     public void Dispose()
     {
-        _delayCts?.Cancel();
-        _delayCts?.Dispose();
-        _delayCts = null;
+        lock (_lock)
+        {
+            _delayCts?.Cancel();
+            _delayCts?.Dispose();
+            _delayCts = null;
+        }
     }
 }

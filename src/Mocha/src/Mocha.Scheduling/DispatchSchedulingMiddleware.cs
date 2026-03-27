@@ -52,7 +52,8 @@ public sealed class DispatchSchedulingMiddleware
     /// </summary>
     /// <remarks>
     /// If the transport declares <see cref="SchedulingTransportFeature"/> with
-    /// <see cref="SchedulingTransportFeature.SupportsSchedulingNatively"/> set to true
+    /// <see cref="SchedulingTransportFeature.SupportsSchedulingNatively"/> set to <c>true</c>,
+    /// the middleware is not installed and the next delegate is returned directly.
     /// </remarks>
     /// <returns>
     /// A <see cref="DispatchMiddlewareConfiguration"/> named "Scheduling" for pipeline registration.

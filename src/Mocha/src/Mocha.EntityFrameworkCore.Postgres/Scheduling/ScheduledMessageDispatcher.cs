@@ -76,11 +76,6 @@ public sealed class ScheduledMessageDispatcher
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var activity = OpenTelemetry.Source.StartActivity(
-                "Process Scheduled Message",
-                ActivityKind.Consumer,
-                new ActivityContext());
-
             try
             {
                 var result = await ProcessMessageAsync(connection, cancellationToken);
@@ -88,8 +83,6 @@ public sealed class ScheduledMessageDispatcher
                 if (!result)
                 {
                     var nextWakeTime = await GetNextWakeTimeAsync(connection, cancellationToken);
-
-                    activity?.Dispose();
 
                     if (nextWakeTime is not null)
                     {
@@ -102,10 +95,6 @@ public sealed class ScheduledMessageDispatcher
                         await _signal.WaitUntilAsync(DateTimeOffset.MaxValue, cancellationToken);
                     }
                 }
-                else
-                {
-                    activity?.Dispose();
-                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -114,7 +103,6 @@ public sealed class ScheduledMessageDispatcher
             catch (Exception ex)
             {
                 _logger.UnexpectedErrorWhileProcessingScheduledMessage(ex);
-                activity?.Dispose();
 
                 // Back off briefly to avoid a tight failure loop.
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
@@ -354,8 +342,7 @@ public sealed class ScheduledMessageDispatcher
             new
             {
                 message = exception.Message,
-                exceptionType = exception.GetType().FullName,
-                stackTrace = exception.StackTrace
+                exceptionType = exception.GetType().FullName
             });
 
         await using var command = connection.CreateCommand();

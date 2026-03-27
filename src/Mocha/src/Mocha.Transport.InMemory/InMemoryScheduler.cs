@@ -126,7 +126,7 @@ internal sealed class InMemoryScheduler : IAsyncDisposable
                 }
                 catch (OperationCanceledException) when (!shutdownToken.IsCancellationRequested)
                 {
-                    // Woken by Schedule() — loop again
+                    // Woken by Schedule() - loop again
                 }
                 finally
                 {

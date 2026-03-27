@@ -49,10 +49,9 @@ internal sealed class ScheduledMessageQueries
                 """,
 
             NextWakeTime = $"""
-                SELECT MIN("{t.ScheduledTime}") AS "NextWakeTime"
+                SELECT MIN("{t.ScheduledTime}" + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")) AS "NextWakeTime"
                 FROM {t.QualifiedTableName}
-                WHERE "{t.TimesSent}" < "{t.MaxAttempts}"
-                  AND "{t.ScheduledTime}" <= NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}");
+                WHERE "{t.TimesSent}" < "{t.MaxAttempts}";
                 """,
 
             ProcessMessage = $"""
@@ -60,7 +59,8 @@ internal sealed class ScheduledMessageQueries
                 SET "{t.TimesSent}" = "{t.TimesSent}" + 1
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < "{t.MaxAttempts}" AND "{t.ScheduledTime}" <= NOW()
+                    WHERE "{t.TimesSent}" < "{t.MaxAttempts}"
+                      AND "{t.ScheduledTime}" + INTERVAL '1 second' * POWER(2, "{t.TimesSent}") <= NOW()
                     ORDER BY "{t.ScheduledTime}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1

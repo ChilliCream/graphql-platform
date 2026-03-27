@@ -69,6 +69,10 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
             // Execute the INSERT command
             await using var command = connection.CreateCommand();
             command.CommandText = _insertSql;
+            if (transaction is not null)
+            {
+                command.Transaction = transaction;
+            }
             command.Parameters.AddWithValue("@id", NewVersion());
             command.Parameters.Add(
                 new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
