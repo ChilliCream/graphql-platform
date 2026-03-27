@@ -19,7 +19,7 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(20_000);
-        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        await using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var ct = cts.Token;
 
         var serviceCollection = new ServiceCollection();

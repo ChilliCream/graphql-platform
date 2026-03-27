@@ -15,7 +15,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        await using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var serviceCollection = new ServiceCollection();
 
         serviceCollection
@@ -45,7 +45,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        await using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var serviceCollection = new ServiceCollection();
 
         serviceCollection
@@ -72,7 +72,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        await using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var serviceCollection = new ServiceCollection();
 
         serviceCollection
@@ -102,7 +102,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        await using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var serviceCollection = new ServiceCollection();
 
         serviceCollection
@@ -129,7 +129,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(
+        await using var host = TestServerHelper.CreateServer(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();
@@ -172,7 +172,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(
+        await using var host = TestServerHelper.CreateServer(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();

@@ -24,7 +24,7 @@ public class IntegrationTests : ServerTestBase
             .Create(
                 async (snapshot, ct) =>
                 {
-                    using var host = TestServerHelper.CreateServer(
+                    await using var host = TestServerHelper.CreateServer(
                         x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                         out var port);
 
@@ -60,7 +60,7 @@ public class IntegrationTests : ServerTestBase
             .Create(
                 async (snapshot, ct) =>
                 {
-                    using var host = TestServerHelper.CreateServer(
+                    await using var host = TestServerHelper.CreateServer(
                         x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                         out var port);
 
@@ -96,7 +96,7 @@ public class IntegrationTests : ServerTestBase
             .Create(
                 async (snapshot, ct) =>
                 {
-                    using var host = TestServerHelper.CreateServer(
+                    await using var host = TestServerHelper.CreateServer(
                         x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                         out var port);
 
@@ -134,7 +134,7 @@ public class IntegrationTests : ServerTestBase
                 {
                     var payload = new Dictionary<string, object> { ["Key"] = "Value" };
                     var sessionInterceptor = new StubSessionInterceptor();
-                    using var host = TestServerHelper.CreateServer(
+                    await using var host = TestServerHelper.CreateServer(
                         builder => builder
                             .AddTypeExtension<StringSubscriptionExtensions>()
                             .AddSocketSessionInterceptor<ISocketSessionInterceptor>(
@@ -180,7 +180,7 @@ public class IntegrationTests : ServerTestBase
                 async (snapshot, ct) =>
                 {
                     // arrange
-                    using var host = TestServerHelper
+                    await using var host = TestServerHelper
                         .CreateServer(
                             x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                             out var port);

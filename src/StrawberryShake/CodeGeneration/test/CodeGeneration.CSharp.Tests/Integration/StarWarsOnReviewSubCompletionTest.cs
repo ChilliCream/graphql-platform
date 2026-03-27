@@ -18,7 +18,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
     public async Task Watch_StarWarsOnReviewSubCompletion_Test()
     {
         // arrange
-        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        await using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
 
         var serviceCollection = new ServiceCollection();
@@ -73,7 +73,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
     public async Task Watch_StarWarsOnReviewSubCompletionPassively_Test()
     {
         // arrange
-        using var host = TestServerHelper.CreateServer(
+        await using var host = TestServerHelper.CreateServer(
             _ => { },
             out var port);
         var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();

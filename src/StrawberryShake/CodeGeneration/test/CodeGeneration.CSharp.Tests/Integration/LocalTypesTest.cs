@@ -17,7 +17,7 @@ public class LocalTypesTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(
+        await using var host = TestServerHelper.CreateServer(
             builder => builder.AddTypeExtension(typeof(QueryType)),
             out var port);
         var serviceCollection = new ServiceCollection();
