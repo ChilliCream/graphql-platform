@@ -30,6 +30,22 @@ public static class HotChocolateFusionServiceCollectionExtensions
         return CreateBuilder(services, name);
     }
 
+    /// <summary>
+    /// Builds a <see cref="ServiceProvider"/> from the <paramref name="services"/> and
+    /// resolves the Fusion gateway executor.
+    /// </summary>
+    /// <param name="services">The service collection containing the gateway configuration.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The gateway request executor.</returns>
+    public static async ValueTask<IRequestExecutor> BuildGatewayAsync(
+        this IServiceCollection services,
+        CancellationToken cancellationToken = default)
+        => await services
+            .BuildServiceProvider()
+            .GetRequiredService<FusionRequestExecutorManager>()
+            .GetExecutorAsync(cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
     private static void AddCore(
         IServiceCollection services)
     {
