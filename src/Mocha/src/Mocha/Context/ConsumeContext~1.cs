@@ -15,7 +15,7 @@ internal sealed class ConsumeContext<TMessage> : IConsumeContext<TMessage>, IDis
 
     public TMessage Message
         => field ??=
-            Inner.GetMessage<TMessage>() ?? throw new InvalidOperationException("Could not deserialize message");
+            Inner.GetMessage<TMessage>() ?? throw ThrowHelper.CouldNotDeserializeMessage();
 
     public IFeatureCollection Features => Inner.Features;
 

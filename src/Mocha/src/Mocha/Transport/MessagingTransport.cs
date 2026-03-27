@@ -61,7 +61,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if accessed before the transport is initialized.</exception>
     public IFeatureCollection Features
-        => _features ?? throw new InvalidOperationException("Features are not initialized");
+        => _features ?? throw ThrowHelper.FeaturesNotInitialized();
 
     /// <summary>
     /// The messaging topology that describes the transport's addressing structure (exchanges, queues, topics).
@@ -181,7 +181,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         AssertInitialized();
         if (IsStarted)
         {
-            throw new InvalidOperationException("Transport is already started");
+            throw ThrowHelper.TransportAlreadyStarted();
         }
 
         await OnBeforeStartAsync(context, cancellationToken);
@@ -204,7 +204,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     {
         if (!IsStarted)
         {
-            throw new InvalidOperationException("Transport is not started");
+            throw ThrowHelper.TransportNotStarted();
         }
 
         await OnBeforeStopAsync(cancellationToken);
@@ -253,7 +253,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     {
         if (CreateEndpointConfiguration(context, route) is not { } configuration)
         {
-            throw new InvalidOperationException("Failed to create endpoint configuration");
+            throw ThrowHelper.EndpointConfigurationFailed();
         }
 
         var endpoint =
@@ -276,7 +276,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     {
         if (CreateEndpointConfiguration(context, route) is not { } configuration)
         {
-            throw new InvalidOperationException("Failed to create endpoint configuration");
+            throw ThrowHelper.EndpointConfigurationFailed();
         }
 
         var endpoint =

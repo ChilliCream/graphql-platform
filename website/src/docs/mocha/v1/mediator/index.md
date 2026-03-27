@@ -243,12 +243,12 @@ builder.Services
     .AddCatalog(); // source-generated from assembly name "Demo.Catalog"
 ```
 
-`AddMediator()` registers the core mediator infrastructure: the `Mediator` class, context pooling, and the default notification strategy. The source-generated `Add{ModuleName}()` method registers:
+`AddMediator()` registers the core mediator infrastructure and the default notification publish mode. The source-generated `Add{ModuleName}()` method registers:
 
 - All command, query, and notification handlers found in your assembly
-- Pipeline configurations with pre-compiled terminal delegates for each message type
+- Pre-compiled terminal delegates for each message type (no reflection at runtime)
 
-You do not register handlers manually. The source generator discovers them by scanning for classes that implement handler interfaces.
+You do not register handlers manually unless you need to. The source generator discovers them by scanning for classes that implement handler interfaces.
 
 ## Module naming
 
@@ -263,6 +263,29 @@ To set an explicit module name, add the attribute to any file in your project:
 using Mocha.Mediator;
 
 [assembly: MediatorModule("Billing")]
+```
+
+## Manual handler registration with AddHandler
+
+When you need to register handlers outside the source generator's reach - from a plugin assembly, a dynamically loaded module, or in integration tests - use `AddHandler<T>()`:
+
+```csharp
+builder.Services
+    .AddMediator()
+    .AddHandler<PlaceOrderCommandHandler>()
+    .AddHandler<GetProductsQueryHandler>()
+    .AddHandler<OrderShippedEmailHandler>();
+```
+
+`AddHandler<T>()` inspects the type for handler interfaces (`ICommandHandler`, `IQueryHandler`, `INotificationHandler`), builds the pipeline configuration, and registers the handler in DI. It throws `InvalidOperationException` if `T` does not implement a handler interface.
+
+You can mix source-generated and manual registration:
+
+```csharp
+builder.Services
+    .AddMediator()
+    .AddCatalog()                              // source-generated handlers
+    .AddHandler<ExternalPaymentHandler>();      // additional handler from another assembly
 ```
 
 ## Configure service lifetime
@@ -281,9 +304,16 @@ builder.Services
 
 Call `ConfigureOptions` before `Add{ModuleName}()` so the source-generated method reads the updated lifetime.
 
+## Configuration options reference
+
+| Option                    | Type                      | Default      | Description                                   |
+| ------------------------- | ------------------------- | ------------ | --------------------------------------------- |
+| `ServiceLifetime`         | `ServiceLifetime`         | `Scoped`     | Default DI lifetime for handler registrations |
+| `NotificationPublishMode` | `NotificationPublishMode` | `Sequential` | How notification handlers are dispatched      |
+
 # Named mediators
 
-To run multiple independent mediator instances (each with its own handlers and middleware), use named mediators. Named mediators use .NET's keyed dependency injection.
+To run multiple independent mediator instances (each with its own handlers and middleware), use named mediators. Named mediators use .NET's [keyed dependency injection](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection#keyed-services).
 
 ```csharp
 // Register a named mediator
@@ -447,6 +477,10 @@ If IntelliSense does not show `Add{ModuleName}()`:
 - Rebuild the project - source generators run during compilation
 - Check the build output for analyzer warnings prefixed with `MO`
 
+## `InvalidOperationException` when calling `AddHandler<T>()`
+
+The type you passed does not implement any handler interface. Make sure `T` implements one of: `ICommandHandler<TCommand>`, `ICommandHandler<TCommand, TResponse>`, `IQueryHandler<TQuery, TResponse>`, or `INotificationHandler<TNotification>`.
+
 ## Named mediator returns wrong handlers
 
 Each named mediator resolves handlers from the same DI container. Make sure you register each module's handlers on the correct `IMediatorHostBuilder` instance - the one returned by the `AddMediator("name")` call for that name.
@@ -455,4 +489,4 @@ Each named mediator resolves handlers from the same DI container. Make sure you 
 
 You have a working mediator with CQRS dispatch. Here is where to go next:
 
-- **Customize the pipeline:** [Pipeline & Middleware](/docs/mocha/v1/mediator/pipeline-and-middleware) - add validation, logging, transactions, and other cross-cutting concerns using `MediatorMiddleware` and `MediatorMiddlewareConfiguration`.
+- **Customize the pipeline:** [Pipeline & Middleware](/docs/mocha/v1/mediator/pipeline-and-middleware) - add validation, logging, transactions, and other cross-cutting concerns. Configure notification publish modes and OpenTelemetry instrumentation.

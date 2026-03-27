@@ -67,4 +67,20 @@ public static class Errors
         category: "Mediator",
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true);
+
+    /// <summary>
+    /// Gets the descriptor for MO0005: a handler type implements multiple mediator handler interfaces.
+    /// </summary>
+    /// <remarks>
+    /// Reported as an error when a concrete class implements more than one of
+    /// <c>ICommandHandler</c>, <c>IQueryHandler</c>, or <c>INotificationHandler</c>.
+    /// A handler must implement exactly one mediator handler interface.
+    /// </remarks>
+    public static readonly DiagnosticDescriptor MultipleHandlerInterfaces = new(
+        id: "MO0005",
+        title: "Handler implements multiple mediator handler interfaces",
+        messageFormat: "Handler '{0}' must implement exactly one mediator handler interface",
+        category: "Mediator",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

@@ -120,15 +120,14 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         }
         else
         {
-            throw new InvalidOperationException(
-                "Handler type must be either an event handler, a request handler, or both.");
+            throw ThrowHelper.InvalidHandlerType();
         }
 
         var consumer = Activator.CreateInstance(consumerType, configure) as Consumer;
 
         if (consumer is null)
         {
-            throw new InvalidOperationException($"Failed to create consumer for type {consumerType}");
+            throw ThrowHelper.FailedToCreateConsumer(consumerType);
         }
 
         _consumers.Add(consumer);

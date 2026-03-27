@@ -29,7 +29,7 @@ public static class MiddlewareConfigurationExtensions
             var index = pipeline.FindIndex(m => m.Key == after);
             if (index == -1)
             {
-                throw new InvalidOperationException($"Middleware with key {after} not found");
+                throw ThrowHelper.MiddlewareKeyNotFound(after);
             }
 
             pipeline.Insert(index + 1, configuration);
@@ -58,7 +58,7 @@ public static class MiddlewareConfigurationExtensions
             var index = pipeline.FindIndex(m => m.Key == before);
             if (index == -1)
             {
-                throw new InvalidOperationException($"Middleware with key {before} not found");
+                throw ThrowHelper.MiddlewareKeyNotFound(before);
             }
 
             pipeline.Insert(index, configuration);
@@ -114,7 +114,7 @@ public static class MiddlewareConfigurationExtensions
                 var index = pipeline.FindIndex(m => m.Key == after);
                 if (index == -1)
                 {
-                    throw new InvalidOperationException($"Middleware with key {after} not found");
+                    throw ThrowHelper.MiddlewareKeyNotFound(after);
                 }
 
                 pipeline.Insert(index + 1, configuration);
@@ -139,7 +139,7 @@ public static class MiddlewareConfigurationExtensions
                 var index = pipeline.FindIndex(m => m.Key == before);
                 if (index == -1)
                 {
-                    throw new InvalidOperationException($"Middleware with key {before} not found");
+                    throw ThrowHelper.MiddlewareKeyNotFound(before);
                 }
 
                 pipeline.Insert(index, configuration);
@@ -198,7 +198,7 @@ public static class MiddlewareConfigurationExtensions
                 var index = pipeline.FindIndex(m => m.Key == after);
                 if (index == -1)
                 {
-                    throw new InvalidOperationException($"Middleware with key {after} not found");
+                    throw ThrowHelper.MiddlewareKeyNotFound(after);
                 }
 
                 pipeline.Insert(index + 1, configuration);
@@ -223,7 +223,7 @@ public static class MiddlewareConfigurationExtensions
                 var index = pipeline.FindIndex(m => m.Key == before);
                 if (index == -1)
                 {
-                    throw new InvalidOperationException($"Middleware with key {before} not found");
+                    throw ThrowHelper.MiddlewareKeyNotFound(before);
                 }
 
                 pipeline.Insert(index, configuration);

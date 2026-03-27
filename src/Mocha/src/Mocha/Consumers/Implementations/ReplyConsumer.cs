@@ -39,7 +39,7 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
 
             if (message is null)
             {
-                throw new InvalidOperationException("Response body is not set. Could not be parsed.");
+                throw ThrowHelper.ResponseBodyNotSet();
             }
 
             if (message is NotAcknowledgedEvent failure)
@@ -56,7 +56,7 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
             else if (!responseManager.CompletePromise(context.CorrelationId, message))
             {
                 // A late/unknown reply indicates there is no active waiter for this correlation id.
-                throw new InvalidOperationException("Promise with correlation ID not found.");
+                throw ThrowHelper.PromiseNotFound();
             }
         }
         catch (Exception ex)

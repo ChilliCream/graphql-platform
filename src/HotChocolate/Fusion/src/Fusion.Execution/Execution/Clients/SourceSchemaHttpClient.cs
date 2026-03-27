@@ -5,9 +5,12 @@ using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Transport;
+using HotChocolate.Types;
+using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -18,7 +21,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </summary>
 public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 {
-    private static readonly Uri UnknownUri = new("http://unknown");
+    private static readonly Uri s_unknownUri = new("http://unknown");
     private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
     private static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;
 
@@ -74,19 +77,30 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         Debug.WriteLine(request.SchemaName);
 
-        var httpRequest = CreateHttpRequest(request);
-        ConfigureCallbacks(httpRequest, context, request.Node);
+        ChunkedArrayWriter? buffer = null;
 
-        var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var httpRequest = CreateHttpRequest(context, request, ref buffer);
+            ConfigureCallbacks(httpRequest, context, request.Node);
 
-        return new Response(
-            request.OperationType,
-            httpRequest.Uri ?? UnknownUri,
-            httpResponse,
-            request.Variables,
-            context,
-            request.Node,
-            _configuration);
+            var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+
+            return new Response(
+                context,
+                _configuration,
+                request.Node,
+                request.OperationType,
+                httpRequest.Uri ?? s_unknownUri,
+                request.Variables,
+                httpResponse,
+                buffer);
+        }
+        catch
+        {
+            buffer?.Dispose();
+            throw;
+        }
     }
 
     /// <inheritdoc />
@@ -104,13 +118,31 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 FusionExecutionResources.SourceSchemaHttpClient_SubscriptionBatchNotSupported);
         }
 
-        var httpRequest = CreateHttpBatchRequest(requests);
-        ConfigureCallbacks(httpRequest, context, requests[0].Node);
+        var requiresFileUpload = requests[0].RequiresFileUpload;
+        ChunkedArrayWriter? buffer = null;
 
-        return _configuration.OnSourceSchemaResult is null
-            ? ExecuteBatchStreamCoreAsync(requests, httpRequest, cancellationToken)
-            : ExecuteBatchStreamWithCallbackAsync(
-                context, requests, httpRequest, _configuration.OnSourceSchemaResult, cancellationToken);
+        try
+        {
+            var httpRequest = CreateHttpBatchRequest(context, requests, requiresFileUpload, ref buffer);
+            ConfigureCallbacks(httpRequest, context, requests[0].Node);
+
+            return _configuration.OnSourceSchemaResult is null
+                ? ExecuteBatchStreamCoreAsync(
+                    requests,
+                    httpRequest,
+                    cancellationToken)
+                : ExecuteBatchStreamWithCallbackAsync(
+                    context,
+                    requests,
+                    httpRequest,
+                    _configuration.OnSourceSchemaResult,
+                    cancellationToken);
+        }
+        catch
+        {
+            buffer?.Dispose();
+            throw;
+        }
     }
 
     private async IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamCoreAsync(
@@ -291,7 +323,9 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     /// based on the number of variable sets and the configured batching mode.
     /// </summary>
     private GraphQLHttpRequest CreateHttpRequest(
-        SourceSchemaClientRequest originalRequest)
+        OperationPlanContext context,
+        SourceSchemaClientRequest originalRequest,
+        ref ChunkedArrayWriter? buffer)
     {
         var defaultAcceptHeader = originalRequest.OperationType is OperationType.Subscription
             ? _configuration.SubscriptionAcceptHeaderValue
@@ -301,15 +335,14 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         switch (originalRequest.Variables.Length)
         {
             case 0:
-                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText))
+                return new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader
                 };
 
             case 1:
-                var variableValues = originalRequest.Variables[0].Values;
-                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
+                return new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader,
@@ -317,9 +350,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             default:
-                if (_configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
+                if (originalRequest.RequiresFileUpload
+                    || _configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
                 {
-                    return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
+                    return new GraphQLHttpRequest(CreateOperationBatchRequest(context, originalRequest, ref buffer))
                     {
                         Uri = _configuration.BaseAddress,
                         AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
@@ -330,109 +364,225 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
                 {
                     Uri = _configuration.BaseAddress,
-                    AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-                    EnableFileUploads = originalRequest.RequiresFileUpload
+                    AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
                 };
         }
     }
 
     private GraphQLHttpRequest CreateHttpBatchRequest(
-        IReadOnlyList<SourceSchemaClientRequest> originalRequests)
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> originalRequests,
+        bool requiresFileUpload,
+        ref ChunkedArrayWriter? buffer)
     {
-        var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>(originalRequests.Count);
-        var enableFileUploads = false;
-
-        for (var i = 0; i < originalRequests.Count; i++)
+        if (requiresFileUpload)
         {
-            var sourceRequest = originalRequests[i];
-            enableFileUploads |= sourceRequest.RequiresFileUpload;
+            var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>();
+            var fileEntries = ImmutableArray.CreateBuilder<FileEntry>();
+            var fileLookup = context.RequestContext.Features.GetRequired<IFileLookup>();
+            buffer ??= new ChunkedArrayWriter();
+            var i = 0;
 
-            var body = CreateRequestBody(sourceRequest);
-            if (body is IOperationRequest operationRequest)
+            foreach (var sourceRequest in originalRequests)
             {
-                batchRequests.Add(operationRequest);
+                switch (sourceRequest.Variables.Length)
+                {
+                    case 0:
+                        batchRequests.Add(
+                            CreateBatchUploadRequest(
+                                sourceRequest,
+                                VariableValues.Empty,
+                                buffer,
+                                fileLookup,
+                                fileEntries));
+                        i++;
+                        break;
+
+                    case 1:
+                        batchRequests.Add(
+                            CreateBatchUploadRequest(
+                                sourceRequest,
+                                sourceRequest.Variables[0],
+                                buffer,
+                                fileLookup,
+                                fileEntries,
+                                $"{i}.variables"));
+                        i++;
+                        break;
+
+                    default:
+                        for (var j = 0; j < sourceRequest.Variables.Length; j++)
+                        {
+                            batchRequests.Add(
+                                CreateBatchUploadRequest(
+                                    sourceRequest,
+                                    sourceRequest.Variables[j],
+                                    buffer,
+                                    fileLookup,
+                                    fileEntries,
+                                    $"{i}.variables"));
+                            i++;
+                        }
+                        break;
+                }
             }
-            else
+
+            return new GraphQLHttpRequest(
+                new OperationBatchRequest(batchRequests.MoveToImmutable(), fileEntries.ToImmutable()))
             {
-                throw new InvalidOperationException(
-                    $"The request body type '{body.GetType().Name}' cannot be included in an operation batch.");
-            }
+                Uri = _configuration.BaseAddress,
+                AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
+                EnableFileUploads = true
+            };
         }
-
-        return new GraphQLHttpRequest(new OperationBatchRequest(batchRequests.MoveToImmutable()))
+        else
         {
-            Uri = _configuration.BaseAddress,
-            AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-            EnableFileUploads = enableFileUploads
-        };
+            var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>(originalRequests.Length);
+
+            foreach (var sourceRequest in originalRequests)
+            {
+                var body = CreateRequestBody(context, sourceRequest, ref buffer);
+                if (body is IOperationRequest operationRequest)
+                {
+                    batchRequests.Add(operationRequest);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"The request body type '{body.GetType().Name}' cannot be included in an operation batch.");
+                }
+            }
+
+            return new GraphQLHttpRequest(new OperationBatchRequest(batchRequests.MoveToImmutable()))
+            {
+                Uri = _configuration.BaseAddress,
+                AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
+            };
+        }
     }
 
     private static IRequestBody CreateRequestBody(
-        SourceSchemaClientRequest originalRequest)
+        OperationPlanContext context,
+        SourceSchemaClientRequest originalRequest,
+        ref ChunkedArrayWriter? writer)
     {
-        var operationSourceText = originalRequest.OperationSourceText;
-
-        switch (originalRequest.Variables.Length)
+        return originalRequest.Variables.Length switch
         {
-            case 0:
-                return CreateSingleRequest(operationSourceText);
-
-            case 1:
-                var variableValues = originalRequest.Variables[0].Values;
-                return CreateSingleRequest(operationSourceText, variableValues);
-
-            default:
-                return CreateVariableBatchRequest(operationSourceText, originalRequest);
-        }
+            0 or 1 => CreateSingleRequest(context, originalRequest, ref writer),
+            _ => CreateVariableBatchRequest(originalRequest.OperationSourceText, originalRequest)
+        };
     }
 
     private static OperationRequest CreateSingleRequest(
-        string operationSourceText,
-        ObjectValueNode? variables = null)
+        OperationPlanContext context,
+        SourceSchemaClientRequest originalRequest,
+        ref ChunkedArrayWriter? writer)
     {
+        var variables = originalRequest.Variables.IsDefaultOrEmpty
+            ? VariableValues.Empty
+            : originalRequest.Variables[0];
+
+        if (originalRequest.RequiresFileUpload)
+        {
+            writer ??= new ChunkedArrayWriter();
+            var fileLookup = context.RequestContext.Features.GetRequired<IFileLookup>();
+            var (cleanedJson, fileMap) = FileEntryBuilder.Build(writer, variables.Values, fileLookup);
+
+            return new OperationRequest(
+                originalRequest.OperationSourceText,
+                id: null,
+                operationName: null,
+                onError: null,
+                variables: variables with { Values = cleanedJson },
+                extensions: JsonSegment.Empty,
+                fileMap: fileMap);
+        }
+
         return new OperationRequest(
-            operationSourceText,
+            originalRequest.OperationSourceText,
             id: null,
             operationName: null,
             onError: null,
             variables: variables,
-            extensions: null);
+            extensions: JsonSegment.Empty);
+    }
+
+    private static OperationRequest CreateBatchUploadRequest(
+        SourceSchemaClientRequest originalRequest,
+        VariableValues variables,
+        ChunkedArrayWriter writer,
+        IFileLookup fileLookup,
+        ImmutableArray<FileEntry>.Builder fileEntries,
+        string pathPrefix = "variables")
+    {
+        var cleanedJson = FileEntryBuilder.Build(writer, variables.Values, fileLookup, fileEntries, pathPrefix);
+
+        return new OperationRequest(
+            originalRequest.OperationSourceText,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: variables with { Values = cleanedJson },
+            extensions: JsonSegment.Empty);
     }
 
     private static OperationBatchRequest CreateOperationBatchRequest(
-        string operationSourceText,
-        SourceSchemaClientRequest originalRequest)
+        OperationPlanContext context,
+        SourceSchemaClientRequest originalRequest,
+        ref ChunkedArrayWriter? writer)
     {
-        var requests = new OperationRequest[originalRequest.Variables.Length];
-
-        for (var i = 0; i < requests.Length; i++)
+        if (originalRequest.RequiresFileUpload)
         {
-            requests[i] = CreateSingleRequest(
-                operationSourceText,
-                originalRequest.Variables[i].Values);
-        }
+            writer ??= new ChunkedArrayWriter();
+            var fileLookup = context.RequestContext.Features.GetRequired<IFileLookup>();
+            var fileEntries = ImmutableArray.CreateBuilder<FileEntry>();
+            var requests = new OperationRequest[originalRequest.Variables.Length];
 
-        return new OperationBatchRequest(ImmutableArray.Create<IOperationRequest>(requests));
+            for (var i = 0; i < requests.Length; i++)
+            {
+                requests[i] = CreateBatchUploadRequest(
+                    originalRequest,
+                    originalRequest.Variables[i],
+                    writer,
+                    fileLookup,
+                    fileEntries,
+                    $"{i}.variables");
+            }
+
+            return new OperationBatchRequest(
+                ImmutableArray.Create<IOperationRequest>(requests),
+                fileEntries.ToImmutable());
+        }
+        else
+        {
+            var requests = new OperationRequest[originalRequest.Variables.Length];
+
+            for (var i = 0; i < requests.Length; i++)
+            {
+                requests[i] = new OperationRequest(
+                    originalRequest.OperationSourceText,
+                    id: null,
+                    operationName: null,
+                    onError: null,
+                    variables: originalRequest.Variables[i],
+                    extensions: JsonSegment.Empty);
+            }
+
+            return new OperationBatchRequest(ImmutableArray.Create<IOperationRequest>(requests));
+        }
     }
 
     private static VariableBatchRequest CreateVariableBatchRequest(
         string operationSourceText,
         SourceSchemaClientRequest originalRequest)
     {
-        var variables = new ObjectValueNode[originalRequest.Variables.Length];
-
-        for (var i = 0; i < originalRequest.Variables.Length; i++)
-        {
-            variables[i] = originalRequest.Variables[i].Values;
-        }
-
         return new VariableBatchRequest(
             operationSourceText,
             id: null,
             operationName: null,
             onError: null,
-            variables: variables,
-            extensions: null);
+            variables: originalRequest.Variables,
+            extensions: JsonSegment.Empty);
     }
 
     private static int ResolveRequestIndex(
@@ -574,13 +724,14 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     /// requests where the response stream is read lazily on enumeration.
     /// </summary>
     private sealed class Response(
+        OperationPlanContext context,
+        SourceSchemaHttpClientConfiguration configuration,
+        ExecutionNode node,
         OperationType operation,
         Uri uri,
-        GraphQLHttpResponse response,
         ImmutableArray<VariableValues> variables,
-        OperationPlanContext context,
-        ExecutionNode node,
-        SourceSchemaHttpClientConfiguration configuration)
+        GraphQLHttpResponse response,
+        ChunkedArrayWriter? buffer)
         : SourceSchemaClientResponse
     {
         public override Uri Uri => uri;
@@ -805,6 +956,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             }
         }
 
-        public override void Dispose() => response.Dispose();
+        public override void Dispose()
+        {
+            response.Dispose();
+            buffer?.Dispose();
+        }
     }
 }

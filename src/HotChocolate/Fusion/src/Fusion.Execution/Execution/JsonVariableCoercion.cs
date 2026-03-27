@@ -6,7 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Transport.Http;
+using HotChocolate.Fusion.Transport;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
@@ -346,9 +346,9 @@ internal ref struct JsonVariableCoercion
         {
             if (element.ValueKind is JsonValueKind.String
                 && element.GetString() is { Length: > 0 } fileKey
-                && _context.Features.GetRequired<IFileLookup>().TryGetFile(fileKey, out var file))
+                && _context.Features.GetRequired<IFileLookup>().TryGetFile(fileKey, out _))
             {
-                value = new FileReferenceNode(file.OpenReadStream, file.Name, file.ContentType);
+                value = new StringValueNode($"$.file({fileKey})");
                 error = null;
                 return true;
             }

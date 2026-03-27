@@ -26,7 +26,7 @@ public static class MessageFeatureContextExtensions
 
         if (context.Envelope is null)
         {
-            throw new InvalidOperationException("Envelope is required for deserialization");
+            throw ThrowHelper.EnvelopeRequired();
         }
 
         var serializer = context.GetSerializer();
@@ -56,7 +56,7 @@ public static class MessageFeatureContextExtensions
 
         if (context.Envelope is null)
         {
-            throw new InvalidOperationException("Envelope is required for deserialization");
+            throw ThrowHelper.EnvelopeRequired();
         }
 
         var serializer = context.GetSerializer();
@@ -71,20 +71,19 @@ public static class MessageFeatureContextExtensions
     {
         if (context.MessageType is null)
         {
-            throw new InvalidOperationException("Message type is required for deserialization");
+            throw ThrowHelper.MessageTypeRequired();
         }
 
         if (context.ContentType is null)
         {
-            throw new InvalidOperationException("Content type is required for deserialization");
+            throw ThrowHelper.ContentTypeRequired();
         }
 
         var serializer = context.MessageType.GetSerializer(context.ContentType);
 
         if (serializer is null)
         {
-            throw new InvalidOperationException(
-                $"No serializer was found for message type {context.MessageType.Identity} and content type {context.ContentType}");
+            throw ThrowHelper.SerializerNotFound(context.MessageType.Identity, context.ContentType.Value);
         }
 
         return serializer;

@@ -632,5 +632,15 @@ internal sealed class SelectionExpressionBuilder
     private static bool ShouldReuseExistingInstance(Type type)
         => type.GetConstructor(Type.EmptyTypes) is not null
             && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
-                .Any(t => t.GetParameters().Length > 0);
+                .Any(t =>
+                    t.GetParameters().Length > 0
+                    && !IsRecordCopyConstructor(t, type));
+
+    private static bool IsRecordCopyConstructor(ConstructorInfo constructor, Type declaringType)
+    {
+        var parameters = constructor.GetParameters();
+
+        return parameters.Length == 1
+            && parameters[0].ParameterType == declaringType;
+    }
 }
