@@ -2899,4 +2899,148 @@ public sealed class SatisfiabilityValidatorTests
             }
         };
     }
+
+    [Fact]
+    public void CrossSchemaCycle_DoesNotCauseExcessiveRecursion()
+    {
+        // arrange
+        // This test creates a cross-schema cycle where the schema name changes on each hop:
+        // A:Product.category → B:Category.product → C:Product.category → ...
+        // The CycleDetectionPath is keyed on (field, type, schemaName), so each hop looks unique.
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    category: Category
+                }
+
+                type Category {
+                    id: ID! @shareable
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    categoryById(id: ID!): Category @lookup
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID!
+                    product: Product
+                }
+
+                type Product {
+                    id: ID! @shareable
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    category: Category
+                }
+
+                type Category {
+                    id: ID! @shareable
+                }
+                """,
+                """
+                # Schema D
+                type Query {
+                    categoryById(id: ID!): Category @lookup
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID!
+                    product: Product
+                }
+
+                type Product {
+                    id: ID! @shareable
+                }
+                """,
+                """
+                # Schema E
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    category: Category
+                }
+
+                type Category {
+                    id: ID! @shareable
+                }
+                """,
+                """
+                # Schema F
+                type Query {
+                    categoryById(id: ID!): Category @lookup
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID!
+                    product: Product
+                }
+
+                type Product {
+                    id: ID! @shareable
+                }
+                """,
+                """
+                # Schema G
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    category: Category
+                }
+
+                type Category {
+                    id: ID! @shareable
+                }
+                """,
+                """
+                # Schema H
+                type Query {
+                    categoryById(id: ID!): Category @lookup
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID!
+                    product: Product
+                }
+
+                type Product {
+                    id: ID! @shareable
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
 }
