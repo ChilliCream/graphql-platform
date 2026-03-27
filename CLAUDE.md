@@ -61,6 +61,14 @@ dotnet test src/HotChocolate/Fusion
 
 ## Performance
 
+### C# / .NET
+
 This is framework code — performance matters. Aim for zero allocations on hot paths.
 
 - Use `ChunkedArrayWriter` or `PooledArrayWriter` when you need an `IBufferWriter<byte>` for in-memory byte writing.
+
+## Tools
+
+### C# / .NET
+
+If you need to search for packages on nuget.org use the `dotnet` cli, eg `dotnet package search HotChocolate`.
