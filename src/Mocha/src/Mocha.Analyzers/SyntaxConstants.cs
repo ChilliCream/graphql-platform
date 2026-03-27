@@ -50,4 +50,51 @@ public static class SyntaxConstants
     /// Gets the metadata name for the <c>MediatorModuleAttribute</c> class.
     /// </summary>
     public const string MediatorModuleAttribute = "Mocha.Mediator.MediatorModuleAttribute";
+
+    // --- MessageBus types ---
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IEventHandler&lt;TEvent&gt;</c> interface.
+    /// </summary>
+    public const string IEventHandler = "Mocha.IEventHandler`1";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IEventRequestHandler&lt;TRequest&gt;</c> interface (void return).
+    /// </summary>
+    public const string IEventRequestHandlerVoid = "Mocha.IEventRequestHandler`1";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IEventRequestHandler&lt;TRequest, TResponse&gt;</c> interface.
+    /// </summary>
+    public const string IEventRequestHandlerResponse = "Mocha.IEventRequestHandler`2";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IConsumer&lt;TMessage&gt;</c> interface.
+    /// </summary>
+    public const string IConsumer = "Mocha.IConsumer`1";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IBatchEventHandler&lt;TEvent&gt;</c> interface.
+    /// </summary>
+    public const string IBatchEventHandler = "Mocha.IBatchEventHandler`1";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>Saga&lt;TState&gt;</c> abstract class.
+    /// </summary>
+    public const string Saga = "Mocha.Sagas.Saga`1";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IEventRequest</c> marker interface (void return).
+    /// </summary>
+    public const string IEventRequest = "Mocha.IEventRequest";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IEventRequest&lt;TResponse&gt;</c> interface.
+    /// </summary>
+    public const string IEventRequestOfT = "Mocha.IEventRequest`1";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>MessagingModuleAttribute</c> class.
+    /// </summary>
+    public const string MessagingModuleAttribute = "Mocha.MessagingModuleAttribute";
 }

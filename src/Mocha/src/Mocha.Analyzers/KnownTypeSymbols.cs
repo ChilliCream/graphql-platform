@@ -23,6 +23,14 @@ public sealed class KnownTypeSymbols
     private Resolved<INamedTypeSymbol?>? _commandVoid;
     private Resolved<INamedTypeSymbol?>? _commandOfT;
     private Resolved<INamedTypeSymbol?>? _queryOfT;
+    private Resolved<INamedTypeSymbol?>? _eventHandler;
+    private Resolved<INamedTypeSymbol?>? _eventRequestHandlerVoid;
+    private Resolved<INamedTypeSymbol?>? _eventRequestHandlerResponse;
+    private Resolved<INamedTypeSymbol?>? _consumer;
+    private Resolved<INamedTypeSymbol?>? _batchEventHandler;
+    private Resolved<INamedTypeSymbol?>? _saga;
+    private Resolved<INamedTypeSymbol?>? _eventRequest;
+    private Resolved<INamedTypeSymbol?>? _eventRequestOfT;
 
     private KnownTypeSymbols(Compilation compilation)
     {
@@ -77,6 +85,54 @@ public sealed class KnownTypeSymbols
     /// </summary>
     public INamedTypeSymbol? IQueryOfT
         => Resolve(SyntaxConstants.IQueryOfT, ref _queryOfT);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IEventHandler&lt;TEvent&gt;</c> interface.
+    /// </summary>
+    public INamedTypeSymbol? IEventHandler
+        => Resolve(SyntaxConstants.IEventHandler, ref _eventHandler);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IEventRequestHandler&lt;TRequest&gt;</c> interface (void return).
+    /// </summary>
+    public INamedTypeSymbol? IEventRequestHandlerVoid
+        => Resolve(SyntaxConstants.IEventRequestHandlerVoid, ref _eventRequestHandlerVoid);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IEventRequestHandler&lt;TRequest, TResponse&gt;</c> interface.
+    /// </summary>
+    public INamedTypeSymbol? IEventRequestHandlerResponse
+        => Resolve(SyntaxConstants.IEventRequestHandlerResponse, ref _eventRequestHandlerResponse);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IConsumer&lt;TMessage&gt;</c> interface.
+    /// </summary>
+    public INamedTypeSymbol? IConsumer
+        => Resolve(SyntaxConstants.IConsumer, ref _consumer);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IBatchEventHandler&lt;TEvent&gt;</c> interface.
+    /// </summary>
+    public INamedTypeSymbol? IBatchEventHandler
+        => Resolve(SyntaxConstants.IBatchEventHandler, ref _batchEventHandler);
+
+    /// <summary>
+    /// Gets the symbol for the <c>Saga&lt;TState&gt;</c> abstract class.
+    /// </summary>
+    public INamedTypeSymbol? Saga
+        => Resolve(SyntaxConstants.Saga, ref _saga);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IEventRequest</c> marker interface (void return).
+    /// </summary>
+    public INamedTypeSymbol? IEventRequest
+        => Resolve(SyntaxConstants.IEventRequest, ref _eventRequest);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IEventRequest&lt;TResponse&gt;</c> interface.
+    /// </summary>
+    public INamedTypeSymbol? IEventRequestOfT
+        => Resolve(SyntaxConstants.IEventRequestOfT, ref _eventRequestOfT);
 
     private INamedTypeSymbol? Resolve(string metadataName, ref Resolved<INamedTypeSymbol?>? field)
     {

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mocha.Mediator\Mocha.Mediator.csproj" />
+    <ProjectReference Include="..\..\src\Mocha\Mocha.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Analyzers\Mocha.Analyzers.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
