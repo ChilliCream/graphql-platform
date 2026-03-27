@@ -263,7 +263,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         Assert.Fail("Timed out waiting for times_sent to reach 2");
     }
 
-    private static void AddFailingDispatchMiddleware(IMessageBusBuilder builder)
+    private static void AddFailingDispatchMiddleware(IMessageBusHostBuilder builder)
     {
         builder.ConfigureMessageBus(h =>
             h.UseDispatch(new DispatchMiddlewareConfiguration(
@@ -338,7 +338,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
 
     private async Task<TestEnvironment> CreateBusWithSchedulingAsync(
         MessageRecorder recorder,
-        Action<IMessageBusBuilder>? configure = null)
+        Action<IMessageBusHostBuilder>? configure = null)
     {
         var connectionString = await fixture.CreateDatabaseAsync();
 

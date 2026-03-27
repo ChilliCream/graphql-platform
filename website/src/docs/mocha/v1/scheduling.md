@@ -114,7 +114,7 @@ builder.Services
 - A **dispatch middleware** that intercepts outgoing messages with a `ScheduledTime` and persists them to the store instead of sending them to the transport.
 - An **`IScheduledMessageStore`** implementation that writes scheduled message rows using direct Npgsql inserts within the current EF Core transaction.
 - A **background worker** that continuously polls for due messages and dispatches them through the bus.
-- **EF Core interceptors** that signal the scheduler when `SaveChanges` or a transaction commit occurs, enabling low-latency wakeup.
+- **EF Core interceptors** that signal the scheduler when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
 
 **4. Create the database migration.**
 
@@ -257,7 +257,7 @@ Check that the background worker is running. Look for `Scheduler sleeping until 
 Messages scheduled for a time in the past are dispatched immediately. Verify that your `ScheduledTime` is in the future.
 
 **"Could not deserialize message body" errors in logs.**
-The dispatcher could not parse the stored envelope. This can happen if the message type was renamed or removed after the message was scheduled. The dispatcher drops undeserializable messages and logs at `Critical` level.
+The dispatcher could not parse the stored envelope. This can happen if the message type was renamed or removed after the message was scheduled. The dispatcher drops messages it cannot deserialize and logs at `Critical` level.
 
 **Scheduled messages fail repeatedly.**
 The dispatcher records each failure in the `last_error` column and retries with exponential backoff. After 10 attempts, the message is no longer eligible for dispatch. Query the `scheduled_messages` table and inspect the `last_error` column for diagnostics:

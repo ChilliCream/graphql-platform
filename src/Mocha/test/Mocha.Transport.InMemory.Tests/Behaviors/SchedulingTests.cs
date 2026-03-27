@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
