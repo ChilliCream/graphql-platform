@@ -21,6 +21,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
 {
     private static readonly ISyntaxInspector[] s_allInspectors =
     [
+        new MultipleHandlerInterfaceInspector(),
         new HandlerInspector(),
         new NotificationHandlerInspector(),
         new MessageTypeInspector(),
@@ -244,7 +245,8 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         [Errors.MissingHandler.Id] = Errors.MissingHandler,
         [Errors.DuplicateHandler.Id] = Errors.DuplicateHandler,
         [Errors.AbstractHandler.Id] = Errors.AbstractHandler,
-        [Errors.OpenGenericMessageType.Id] = Errors.OpenGenericMessageType
+        [Errors.OpenGenericMessageType.Id] = Errors.OpenGenericMessageType,
+        [Errors.MultipleHandlerInterfaces.Id] = Errors.MultipleHandlerInterfaces
     };
 
     private static Diagnostic ReconstructDiagnostic(DiagnosticInfo info)

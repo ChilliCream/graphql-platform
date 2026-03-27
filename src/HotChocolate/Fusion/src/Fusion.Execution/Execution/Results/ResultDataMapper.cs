@@ -1,346 +1,243 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
-using HotChocolate.Buffers;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
-using HotChocolate.Language;
 using HotChocolate.Types;
+using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
 internal static class ResultDataMapper
 {
-    private const int CachedNumericStringMax = 4096;
-    private static readonly StringValueNode[] s_cachedNumericStrings = CreateCachedNumericStrings();
-    private static readonly IntValueNode[] s_cachedNumericIntValues = CreateCachedNumericIntValues();
-
-    public static IValueNode? Map(
+    /// <summary>
+    /// Maps a value selection from the composite result and writes it directly as JSON.
+    /// Returns <c>true</c> if the value was written successfully, <c>false</c> if the
+    /// value could not be resolved (undefined/null for required paths).
+    /// </summary>
+    public static bool TryMap(
         CompositeResultElement result,
         IValueSelectionNode valueSelection,
         ISchemaDefinition schema,
-        ref PooledArrayWriter? writer)
-    {
-        var context = new Context(schema, result, ref writer);
-        return Visit(valueSelection, context);
-    }
+        JsonWriter writer)
+        => Visit(valueSelection, result, schema, writer);
 
-    private static IValueNode? Visit(IValueSelectionNode node, Context context)
+    private static bool Visit(
+        IValueSelectionNode node,
+        CompositeResultElement result,
+        ISchemaDefinition schema,
+        JsonWriter writer)
     {
         switch (node)
         {
             case ChoiceValueSelectionNode choice:
-                return Visit(choice, context);
+                return VisitChoice(choice, result, schema, writer);
 
             case PathNode path:
-                return Visit(path, context);
+                return VisitPath(path, result, schema, writer);
 
             case ObjectValueSelectionNode objectValue:
-                return Visit(objectValue, context);
+                return VisitObject(objectValue, result, schema, writer);
 
-            case PathObjectValueSelectionNode objectValue:
-                return Visit(objectValue, context);
+            case PathObjectValueSelectionNode pathObject:
+                return VisitPathObject(pathObject, result, schema, writer);
 
-            case PathListValueSelectionNode listValue:
-                return Visit(listValue, context);
+            case PathListValueSelectionNode pathList:
+                return VisitPathList(pathList, result, schema, writer);
 
             default:
                 throw new NotSupportedException("Unknown value selection node type.");
         }
     }
 
-    private static IValueNode? Visit(ChoiceValueSelectionNode node, Context context)
+    private static bool VisitChoice(
+        ChoiceValueSelectionNode node,
+        CompositeResultElement result,
+        ISchemaDefinition schema,
+        JsonWriter writer)
     {
         foreach (var branch in node.Branches)
         {
-            var value = Visit(branch, context);
-
-            if (value is null)
+            if (Visit(branch, result, schema, writer))
             {
-                continue;
+                return true;
             }
-
-            return value;
         }
 
-        return null;
+        return false;
     }
 
-    private static IValueNode? Visit(PathNode node, Context context)
+    private static bool VisitPath(
+        PathNode node,
+        CompositeResultElement result,
+        ISchemaDefinition schema,
+        JsonWriter writer)
     {
-        var result = ResolvePath(context.Schema, context.Result, node);
-        var resultValueKind = result.ValueKind;
+        var resolved = ResolvePath(schema, result, node);
+        var valueKind = resolved.ValueKind;
 
-        if (resultValueKind is JsonValueKind.Undefined)
-        {
-            return null;
-        }
-
-        if (resultValueKind is JsonValueKind.Null)
-        {
-            return NullValueNode.Default;
-        }
-
-        // Note: to capture data from the introspection
-        // system we would need to also cover raw field results.
-        if (result.Selection is { IsLeaf: true })
-        {
-            return MapLeafValue(result, ref context.Writer);
-        }
-
-        throw new InvalidSelectionMapPathException(node);
-    }
-
-    internal static IValueNode MapLeafValue(
-        CompositeResultElement value,
-        ref PooledArrayWriter? writer)
-    {
-        if (value.ValueKind is JsonValueKind.Array)
-        {
-            var items = new List<IValueNode>(value.GetArrayLength());
-            var parser = default(JsonValueParser);
-            var parserInitialized = false;
-
-            foreach (var item in value.EnumerateArray())
-            {
-                items.Add(ParseLeafValue(item, ref writer, ref parser, ref parserInitialized));
-            }
-
-            return new ListValueNode(items);
-        }
-
-        var scalarParser = default(JsonValueParser);
-        var scalarParserInitialized = false;
-        return ParseLeafValue(value, ref writer, ref scalarParser, ref scalarParserInitialized);
-    }
-
-    private static IValueNode ParseLeafValue(
-        CompositeResultElement value,
-        ref PooledArrayWriter? writer,
-        ref JsonValueParser parser,
-        ref bool parserInitialized)
-    {
-        switch (value.ValueKind)
-        {
-            case JsonValueKind.Null:
-                return NullValueNode.Default;
-
-            case JsonValueKind.True:
-                return BooleanValueNode.True;
-
-            case JsonValueKind.False:
-                return BooleanValueNode.False;
-
-            case JsonValueKind.String:
-                return GetStringValueNode(value.AssertString());
-
-            case JsonValueKind.Number:
-                if (value.TryGetInt64(out var intValue))
-                {
-                    if ((ulong)intValue <= CachedNumericStringMax)
-                    {
-                        return s_cachedNumericIntValues[(int)intValue];
-                    }
-
-                    return new IntValueNode(intValue);
-                }
-
-                goto default;
-
-            default:
-                writer ??= new PooledArrayWriter();
-                if (!parserInitialized)
-                {
-                    parser = new JsonValueParser(buffer: writer);
-                    parserInitialized = true;
-                }
-
-                return parser.Parse(value.GetRawValue(includeQuotes: true));
-        }
-    }
-
-    internal static StringValueNode GetStringValueNode(string value)
-    {
-        if (TryGetCachedNumericString(value, out var cached))
-        {
-            return cached;
-        }
-
-        return new StringValueNode(value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryGetCachedNumericString(
-        string value,
-        [NotNullWhen(true)] out StringValueNode? cached)
-    {
-        cached = null;
-
-        var length = value.Length;
-
-        if ((uint)(length - 1) > 3)
+        if (valueKind is JsonValueKind.Undefined)
         {
             return false;
         }
 
-        var c0 = value[0];
-
-        if ((uint)(c0 - '0') > 9)
+        if (valueKind is JsonValueKind.Null)
         {
-            return false;
+            writer.WriteNullValue();
+            return true;
         }
 
-        if (length > 1 && c0 == '0')
+        if (valueKind is JsonValueKind.Array)
         {
-            return false;
+            WriteLeafArray(resolved, writer);
+            return true;
         }
 
-        var parsed = c0 - '0';
-
-        for (var i = 1; i < length; i++)
-        {
-            var c = value[i];
-
-            if ((uint)(c - '0') > 9)
-            {
-                return false;
-            }
-
-            parsed = (parsed * 10) + (c - '0');
-        }
-
-        if ((uint)parsed > CachedNumericStringMax)
-        {
-            return false;
-        }
-
-        cached = s_cachedNumericStrings[parsed];
+        writer.WriteRawValue(resolved.GetRawValue(includeQuotes: true));
         return true;
     }
 
-    private static StringValueNode[] CreateCachedNumericStrings()
+    private static void WriteLeafArray(
+        CompositeResultElement array,
+        JsonWriter writer)
     {
-        var values = new StringValueNode[CachedNumericStringMax + 1];
+        writer.WriteStartArray();
 
-        for (var i = 0; i < values.Length; i++)
+        foreach (var item in array.EnumerateArray())
         {
-            values[i] = new StringValueNode(i.ToString());
+            var itemKind = item.ValueKind;
+
+            if (itemKind is JsonValueKind.Null)
+            {
+                writer.WriteNullValue();
+            }
+            else if (itemKind is JsonValueKind.Array)
+            {
+                WriteLeafArray(item, writer);
+            }
+            else
+            {
+                writer.WriteRawValue(item.GetRawValue(includeQuotes: true));
+            }
         }
 
-        return values;
+        writer.WriteEndArray();
     }
 
-    private static IntValueNode[] CreateCachedNumericIntValues()
+    private static bool VisitObject(
+        ObjectValueSelectionNode node,
+        CompositeResultElement result,
+        ISchemaDefinition schema,
+        JsonWriter writer)
     {
-        var values = new IntValueNode[CachedNumericStringMax + 1];
-
-        for (var i = 0; i < values.Length; i++)
-        {
-            values[i] = new IntValueNode(i);
-        }
-
-        return values;
-    }
-
-    private static IValueNode? Visit(ObjectValueSelectionNode node, Context context)
-    {
-        var result = context.Result;
-        var resultValueKind = result.ValueKind;
-
-        if (resultValueKind is not JsonValueKind.Object)
+        if (result.ValueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        var fields = new List<ObjectFieldNode>(node.Fields.Length);
+        writer.WriteStartObject();
 
         foreach (var field in node.Fields)
         {
-            var value = field.ValueSelection is null
-                ? Visit(new PathNode(new PathSegmentNode(field.Name)), context)
-                : Visit(field.ValueSelection, context);
+            writer.WritePropertyName(field.Name.Value);
 
-            if (value is null)
+            bool written;
+
+            if (field.ValueSelection is null)
             {
-                return null;
+                var pathNode = new PathNode(new PathSegmentNode(field.Name));
+                written = VisitPath(pathNode, result, schema, writer);
+            }
+            else
+            {
+                written = Visit(field.ValueSelection, result, schema, writer);
             }
 
-            fields.Add(new ObjectFieldNode(field.Name.Value, value));
+            if (!written)
+            {
+                return false;
+            }
         }
 
-        return new ObjectValueNode(fields);
+        writer.WriteEndObject();
+        return true;
     }
 
-    private static IValueNode? Visit(PathObjectValueSelectionNode node, Context context)
+    private static bool VisitPathObject(
+        PathObjectValueSelectionNode node,
+        CompositeResultElement result,
+        ISchemaDefinition schema,
+        JsonWriter writer)
     {
-        var result = ResolvePath(context.Schema, context.Result, node.Path);
-        var resultValueKind = result.ValueKind;
+        var resolved = ResolvePath(schema, result, node.Path);
+        var valueKind = resolved.ValueKind;
 
-        if (resultValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
         {
-            return null;
+            return false;
         }
 
-        if (resultValueKind is not JsonValueKind.Object)
+        if (valueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        return Visit(node.ObjectValueSelection, context.WithResult(result));
+        return VisitObject(node.ObjectValueSelection, resolved, schema, writer);
     }
 
-    private static IValueNode? Visit(ListValueSelectionNode node, Context context)
+    private static bool VisitPathList(
+        PathListValueSelectionNode node,
+        CompositeResultElement result,
+        ISchemaDefinition schema,
+        JsonWriter writer)
     {
-        var result = context.Result;
-        var resultValueKind = result.ValueKind;
+        var resolved = ResolvePath(schema, result, node.Path);
+        var valueKind = resolved.ValueKind;
 
-        if (resultValueKind is not JsonValueKind.Array)
+        switch (valueKind)
         {
-            return null;
+            case JsonValueKind.Undefined:
+                return false;
+
+            case JsonValueKind.Null:
+                writer.WriteNullValue();
+                return true;
+
+            case JsonValueKind.Array:
+                return VisitList(node.ListValueSelection, resolved, schema, writer);
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool VisitList(
+        ListValueSelectionNode node,
+        CompositeResultElement result,
+        ISchemaDefinition schema,
+        JsonWriter writer)
+    {
+        if (result.ValueKind is not JsonValueKind.Array)
+        {
+            return false;
         }
 
-        var items = new List<IValueNode>(result.GetArrayLength());
+        writer.WriteStartArray();
 
         foreach (var item in result.EnumerateArray())
         {
             if (item.ValueKind is JsonValueKind.Null)
             {
-                items.Add(NullValueNode.Default);
+                writer.WriteNullValue();
                 continue;
             }
 
-            var value = Visit(node.ElementSelection, context.WithResult(item));
-
-            if (value is null)
+            if (!Visit(node.ElementSelection, item, schema, writer))
             {
-                return null;
+                return false;
             }
-
-            items.Add(value);
         }
 
-        return new ListValueNode(items);
-    }
-
-    private static IValueNode? Visit(PathListValueSelectionNode node, Context context)
-    {
-        var result = ResolvePath(context.Schema, context.Result, node.Path);
-        var resultValueKind = result.ValueKind;
-
-        switch (resultValueKind)
-        {
-            case JsonValueKind.Undefined:
-                return null;
-
-            case JsonValueKind.Null:
-                return NullValueNode.Default;
-
-            case JsonValueKind.Array:
-                return Visit(node.ListValueSelection, context.WithResult(result));
-
-            default:
-                return null;
-        }
+        writer.WriteEndArray();
+        return true;
     }
 
     private static CompositeResultElement ResolvePath(
@@ -375,6 +272,7 @@ internal static class ResultDataMapper
             }
 
             var fieldResultValueKind = fieldResult.ValueKind;
+
             if (fieldResultValueKind is JsonValueKind.Null)
             {
                 return fieldResult;
@@ -417,26 +315,5 @@ internal static class ResultDataMapper
         }
 
         return currentResult;
-    }
-
-    private readonly ref struct Context
-    {
-        private readonly ref PooledArrayWriter? _writer;
-
-        public Context(ISchemaDefinition schema, CompositeResultElement result, ref PooledArrayWriter? writer)
-        {
-            Schema = schema;
-            Result = result;
-            _writer = ref writer;
-        }
-
-        public ISchemaDefinition Schema { get; }
-
-        public CompositeResultElement Result { get; }
-
-        public ref PooledArrayWriter? Writer => ref _writer;
-
-        public Context WithResult(CompositeResultElement result)
-            => new(Schema, result, ref _writer);
     }
 }

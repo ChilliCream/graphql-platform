@@ -51,7 +51,7 @@ internal sealed class RequestConsumer<THandler, TRequest, TResponse> : Consumer
         // Request contracts require a response message; null would break caller expectations.
         if (response is null)
         {
-            throw new InvalidOperationException("Response is null.");
+            throw ThrowHelper.ResponseIsNull();
         }
 
         // Copy request metadata (correlation/saga-related headers) onto the reply path.

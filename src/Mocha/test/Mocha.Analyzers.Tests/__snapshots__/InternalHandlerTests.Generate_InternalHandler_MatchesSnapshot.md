@@ -14,21 +14,16 @@ namespace Microsoft.Extensions.DependencyInjection
         public static global::Mocha.Mediator.IMediatorHostBuilder AddTest(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
-            var services = builder.Services;
-            var lifetime = builder.Options.ServiceLifetime;
 
-            // Register handlers
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::TestApp.DeleteOrderCommand>), typeof(global::TestApp.DeleteOrderHandler), lifetime));
-
-            // Register pipelines
-            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(builder, static b =>
-            {
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            // Register handler configurations
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.DeleteOrderHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::TestApp.DeleteOrderHandler),
                     MessageType = typeof(global::TestApp.DeleteOrderCommand),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildVoidCommandTerminal<global::TestApp.DeleteOrderCommand>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandler, global::TestApp.DeleteOrderCommand>()
                 });
-            });
 
             return builder;
         }

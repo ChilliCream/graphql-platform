@@ -14,28 +14,25 @@ namespace Microsoft.Extensions.DependencyInjection
         public static global::Mocha.Mediator.IMediatorHostBuilder AddTests(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
-            var services = builder.Services;
-            var lifetime = builder.Options.ServiceLifetime;
 
-            // Register handlers
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::TestApp.CreateOrderCommand, int>), typeof(global::TestApp.CreateOrderHandler), lifetime));
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::TestApp.DeleteOrderCommand>), typeof(global::TestApp.DeleteOrderHandler), lifetime));
-
-            // Register pipelines
-            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(builder, static b =>
-            {
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            // Register handler configurations
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.DeleteOrderHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::TestApp.DeleteOrderHandler),
+                    MessageType = typeof(global::TestApp.DeleteOrderCommand),
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandler, global::TestApp.DeleteOrderCommand>()
+                });
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.CreateOrderHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
+                {
+                    HandlerType = typeof(global::TestApp.CreateOrderHandler),
                     MessageType = typeof(global::TestApp.CreateOrderCommand),
                     ResponseType = typeof(int),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildCommandTerminal<global::TestApp.CreateOrderCommand, int>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::TestApp.CreateOrderHandler, global::TestApp.CreateOrderCommand, int>()
                 });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
-                {
-                    MessageType = typeof(global::TestApp.DeleteOrderCommand),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildVoidCommandTerminal<global::TestApp.DeleteOrderCommand>()
-                });
-            });
 
             return builder;
         }

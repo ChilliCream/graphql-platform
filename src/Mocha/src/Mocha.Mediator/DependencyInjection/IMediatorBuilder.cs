@@ -41,9 +41,16 @@ public interface IMediatorBuilder
     IMediatorBuilder ConfigureServices(Action<IServiceProvider, IServiceCollection> configure);
 
     /// <summary>
-    /// Registers a pipeline configuration for the specified message type.
+    /// Registers a handler via descriptor-based configuration.
+    /// </summary>
+    /// <typeparam name="THandler">The handler implementation type.</typeparam>
+    /// <param name="configure">An optional action to configure the handler descriptor.</param>
+    void AddHandler<THandler>(Action<IMediatorHandlerDescriptor>? configure = null) where THandler : class;
+
+    /// <summary>
+    /// Registers a handler with a pre-built configuration.
     /// This method is intended for use by source-generated code.
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    void RegisterPipeline(MediatorPipelineConfiguration configuration);
+    void AddHandlerConfiguration(MediatorHandlerConfiguration configuration);
 }

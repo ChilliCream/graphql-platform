@@ -1,6 +1,6 @@
 ---
 title: "Pipeline & Middleware"
-description: "Add cross-cutting concerns to the Mocha Mediator dispatch pipeline. Write middleware for logging, validation, transactions, and exception handling. Use compile-time filtering to eliminate middleware from pipelines where it does not apply. Configure notification strategies, Entity Framework Core transactions, and OpenTelemetry instrumentation."
+description: "Add cross-cutting concerns to the Mocha Mediator dispatch pipeline. Write middleware for logging, validation, transactions, and exception handling. Configure notification publish modes and OpenTelemetry instrumentation."
 ---
 
 ```csharp
@@ -73,7 +73,19 @@ public delegate MediatorDelegate MediatorMiddleware(
     MediatorDelegate next);
 ```
 
-At startup, the mediator iterates every registered middleware in reverse order. Each factory receives the `next` delegate and returns a new delegate that wraps it. The result is a single compiled `MediatorDelegate` per message type, stored in a frozen dictionary. At runtime, dispatch is a dictionary lookup followed by a single delegate invocation - no reflection, no generic resolution.
+At startup, the mediator iterates every registered middleware in reverse order. Each factory receives the `next` delegate and returns a new delegate that wraps it. The result is a single compiled `MediatorDelegate` per message type. At runtime, dispatch is a direct delegate invocation - no reflection, no generic resolution.
+
+```mermaid
+graph LR
+    A[SendAsync] --> B[Middleware 1]
+    B --> C[Middleware 2]
+    C --> D[Middleware N]
+    D --> E[Handler]
+    E -.-> D
+    D -.-> C
+    C -.-> B
+    B -.-> A
+```
 
 # Write a middleware
 
@@ -130,16 +142,16 @@ builder.Services
 
 The `IMediatorContext` available at runtime provides everything you need during dispatch:
 
-| Property            | Type                 | Description                                                             |
-| ------------------- | -------------------- | ----------------------------------------------------------------------- |
-| `Message`           | `object`             | The message instance being dispatched                                   |
-| `MessageType`       | `Type`               | Runtime type of the message                                             |
-| `ResponseType`      | `Type`               | Expected response type (`Unit` for void commands and notifications)     |
-| `Result`            | `object?`            | The handler's return value, readable by middleware after calling `next` |
-| `Services`          | `IServiceProvider`   | Scoped service provider for the current request                         |
-| `CancellationToken` | `CancellationToken`  | Cancellation token for the operation                                    |
-| `Features`          | `IFeatureCollection` | Per-request feature collection for sharing state between middleware     |
-| `Runtime`           | `IMediatorRuntime`   | The mediator runtime that owns this context                             |
+| Property            | Type                 | Description                                                                 |
+| ------------------- | -------------------- | --------------------------------------------------------------------------- |
+| `Message`           | `object`             | The message instance being dispatched                                       |
+| `MessageType`       | `Type`               | Runtime type of the message                                                 |
+| `ResponseType`      | `Type`               | Expected response type (`typeof(void)` for void commands and notifications) |
+| `Result`            | `object?`            | The handler's return value, readable by middleware after calling `next`     |
+| `Services`          | `IServiceProvider`   | Scoped service provider for the current request                             |
+| `CancellationToken` | `CancellationToken`  | Cancellation token for the operation                                        |
+| `Features`          | `IFeatureCollection` | Per-request feature collection for sharing state between middleware         |
+| `Runtime`           | `IMediatorRuntime`   | The mediator runtime that owns this context                                 |
 
 ## Short-circuiting
 
@@ -334,11 +346,11 @@ Both approaches combine well - filter out entire message kinds at compile time, 
 
 The `Use` method accepts optional `before` and `after` parameters to control where the middleware sits in the pipeline.
 
-| Call                                        | Behavior                                                  |
-| ------------------------------------------- | --------------------------------------------------------- |
-| `Use(config)`                               | Appends to the end of the middleware list                 |
-| `Use(config, before: "Logging")`            | Inserts before the middleware with key `"Logging"`        |
-| `Use(config, after: "Instrumentation")`     | Inserts after the middleware with key `"Instrumentation"` |
+| Call                                    | Behavior                                                  |
+| --------------------------------------- | --------------------------------------------------------- |
+| `Use(config)`                           | Appends to the end of the middleware list                 |
+| `Use(config, before: "Logging")`        | Inserts before the middleware with key `"Logging"`        |
+| `Use(config, after: "Instrumentation")` | Inserts after the middleware with key `"Instrumentation"` |
 
 Only one of `before` or `after` can be specified at the same time. If the referenced key is not found, an `InvalidOperationException` is thrown at startup.
 
@@ -361,7 +373,7 @@ The `Key` property on `MediatorMiddlewareConfiguration` is optional. Middleware 
 
 | Key                            | Middleware                             | Added by                                                |
 | ------------------------------ | -------------------------------------- | ------------------------------------------------------- |
-| `"Instrumentation"`            | `MediatorDiagnosticMiddleware`         | Always present (added by `MediatorBuilder` constructor) |
+| `"Instrumentation"`            | `MediatorDiagnosticMiddleware`         | Always present (added automatically by `AddMediator()`) |
 | `"EntityFrameworkTransaction"` | `EntityFrameworkTransactionMiddleware` | `UseEntityFrameworkTransactions<TContext>()`            |
 
 # Pipeline execution order
@@ -382,55 +394,57 @@ Instrumentation         <- outermost (runs first)
 Instrumentation returns <- runs last on the way out
 ```
 
-The `Instrumentation` middleware is always present as the first entry because `MediatorBuilder` adds it in its constructor. Your middleware registered via `Use()` follows in the order you call it.
+The `Instrumentation` middleware is always present as the first entry because `AddMediator()` adds it automatically. Your middleware registered via `Use()` follows in the order you call it.
 
-# Notification strategies
+# Notification publish modes
 
-When a notification has multiple handlers, the **notification strategy** controls how they are invoked. Mocha ships two strategies:
-
-| Strategy                | Behavior                                              | Default |
-| ----------------------- | ----------------------------------------------------- | ------- |
-| `ForeachAwaitPublisher` | Invokes handlers one at a time, sequentially          | Yes     |
-| `TaskWhenAllPublisher`  | Invokes all handlers concurrently with `Task.WhenAll` | No      |
-
-The default `ForeachAwaitPublisher` guarantees ordering - handlers execute in registration order. If a handler throws, subsequent handlers do not execute.
-
-To switch to concurrent execution:
+When a notification has multiple handlers, the **notification publish mode** controls how they are invoked. Configure it via `MediatorOptions`:
 
 ```csharp
-builder.Services.AddSingleton<INotificationStrategy, TaskWhenAllPublisher>();
+builder.Services
+    .AddMediator()
+    .ConfigureOptions(o => o.NotificationPublishMode = NotificationPublishMode.Sequential)
+    .AddCatalog();
 ```
 
-With `TaskWhenAllPublisher`, all handlers run concurrently. If any handler throws, the aggregate exception propagates after all handlers complete.
+| Mode         | Behavior                                                       | Default |
+| ------------ | -------------------------------------------------------------- | ------- |
+| `Sequential` | Invokes handler pipelines one at a time, in registration order | Yes     |
+| `Concurrent` | Invokes all handler pipelines concurrently with `Task.WhenAll` | No      |
 
-## Custom notification strategies
+## Sequential mode (default)
 
-Implement `INotificationStrategy` to control dispatch behavior:
+Handlers execute one after another. If a handler throws, subsequent handlers do not execute and the exception propagates to the caller.
+
+This is the right choice when handlers have ordering dependencies or when you want fail-fast behavior.
+
+## Concurrent mode
+
+All handlers execute in parallel. If any handler throws, the remaining handlers still run to completion and all exceptions are collected into an `AggregateException`.
 
 ```csharp
-public class FireAndForgetPublisher : INotificationStrategy
-{
-    public ValueTask PublishAsync<TNotification>(
-        IReadOnlyList<INotificationHandler<TNotification>> handlers,
-        TNotification notification,
-        CancellationToken cancellationToken)
-        where TNotification : INotification
-    {
-        for (var i = 0; i < handlers.Count; i++)
-        {
-            _ = handlers[i].HandleAsync(notification, cancellationToken);
-        }
-
-        return ValueTask.CompletedTask;
-    }
-}
+builder.Services
+    .AddMediator()
+    .ConfigureOptions(o => o.NotificationPublishMode = NotificationPublishMode.Concurrent)
+    .AddCatalog();
 ```
 
-Register it as a singleton:
+> **Warning:** In concurrent mode, all handler pipelines share the same scoped `IServiceProvider`. Scoped services such as `DbContext` are not thread-safe and must not be used concurrently across handlers. If your notification handlers need scoped services, use `Sequential` mode or create a new scope inside each handler.
 
-```csharp
-builder.Services.AddSingleton<INotificationStrategy, FireAndForgetPublisher>();
+## Per-handler middleware pipelines
+
+Each notification handler gets its own independently compiled middleware pipeline. When middleware is registered on the mediator, it wraps each notification handler individually - not the notification dispatch as a whole.
+
+```text
+PublishAsync(OrderPlacedNotification)
+  ├── Pipeline for SendOrderConfirmationEmail:
+  │     Instrumentation -> Logging -> SendOrderConfirmationEmail
+  │
+  └── Pipeline for UpdateAnalyticsDashboard:
+        Instrumentation -> Logging -> UpdateAnalyticsDashboard
 ```
+
+This means middleware like logging or exception handling runs independently around each handler. If middleware around one handler modifies `ctx.Result` or catches an exception, it does not affect the other handler's pipeline.
 
 # Entity Framework Core transactions
 
@@ -507,7 +521,7 @@ builder.Services.AddOpenTelemetry()
 To add your own instrumentation alongside or instead of the built-in listener, extend `MediatorDiagnosticEventListener`:
 
 ```csharp
-public class SlowMessageListener : MediatorDiagnosticEventListener
+public sealed class SlowMessageListener : MediatorDiagnosticEventListener
 {
     public override IDisposable Execute(
         Type messageType, Type responseType, object message)
@@ -568,11 +582,19 @@ The `MediatorDiagnosticMiddleware` is always present, but it uses a no-op listen
 
 Services resolved from `factoryCtx.Services` in the middleware factory are resolved once at startup from the mediator's internal service provider. Use this for singletons like `ILoggerFactory`. To resolve scoped services (like `DbContext`), use `ctx.Services` inside the runtime delegate instead.
 
+## Notification handler throws but other handlers do not run
+
+In `Sequential` mode (the default), the first handler exception stops execution of subsequent handlers. If you need all handlers to run regardless of failures, switch to `Concurrent` mode. In `Concurrent` mode, all handlers run to completion and exceptions are aggregated into an `AggregateException`.
+
+## Scoped service exceptions in concurrent notifications
+
+When using `NotificationPublishMode.Concurrent`, all handler pipelines execute in parallel but share the same scoped `IServiceProvider`. Scoped services like `DbContext` are not thread-safe. You will see race conditions or `ObjectDisposedException` if multiple handlers access the same scoped service concurrently. Switch to `Sequential` mode or create a new `IServiceScope` inside handlers that need their own scoped services.
+
 > **Full demo:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo) uses `UseEntityFrameworkTransactions` and `AddInstrumentation` alongside the mediator and message bus in a complete e-commerce system.
 
 # Next steps
 
-- **Mediator overview:** [Overview](/docs/mocha/v1/mediator)messages, handlers, dispatching, and registration.
-- **Message bus middleware:** [Middleware & Pipelines](/docs/mocha/v1/middleware-and-pipelines)the message bus has its own three-layer pipeline (dispatch, receive, consume) using the same middleware model.
-- **Cross service boundaries:** [Messaging Patterns](/docs/mocha/v1/messaging-patterns) -when your commands need to reach another service, switch to the message bus.
-- **Coordinate workflows:** [Sagas](/docs/mocha/v1/sagas)orchestrate multi-step processes across services.
+- **Mediator overview:** [Overview](/docs/mocha/v1/mediator) - messages, handlers, dispatching, and registration.
+- **Message bus middleware:** [Middleware & Pipelines](/docs/mocha/v1/middleware-and-pipelines) - the message bus has its own three-layer pipeline (dispatch, receive, consume) using the same middleware model.
+- **Cross service boundaries:** [Messaging Patterns](/docs/mocha/v1/messaging-patterns) - when your commands need to reach another service, switch to the message bus.
+- **Coordinate workflows:** [Sagas](/docs/mocha/v1/sagas) - orchestrate multi-step processes across services.

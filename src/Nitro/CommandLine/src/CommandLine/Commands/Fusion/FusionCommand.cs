@@ -16,6 +16,7 @@ internal sealed class FusionCommand : Command
 
         AddCommand(new FusionComposeCommand());
         AddCommand(new FusionDownloadCommand());
+        AddCommand(new FusionMigrateCommand());
         AddCommand(new FusionPublishCommand());
         AddCommand(new FusionRunCommand());
         AddCommand(new FusionSettingsCommand());

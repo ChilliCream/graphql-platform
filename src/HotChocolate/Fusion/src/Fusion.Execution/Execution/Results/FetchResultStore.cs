@@ -13,6 +13,7 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
@@ -24,6 +25,9 @@ internal sealed partial class FetchResultStore : IDisposable
     private readonly object _lock = new();
 #endif
     private readonly List<IDisposable> _memory = [];
+    private readonly ChunkedArrayWriter _variableWriter = new();
+    private readonly JsonWriter _jsonWriter;
+    private readonly VariableDedupTable _variableDedupTable;
     private ISchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
@@ -34,15 +38,17 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private PathSegmentLocalPool _pathPool = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
-    private Dictionary<string, int> _seenStrings = new(StringComparer.Ordinal);
-    private Dictionary<IValueNode, int> _seenValueNodes = new(SingleValueNodeComparer.Instance);
-    private Dictionary<TwoValueNodeTuple, int> _seenTwoValueTuples = new(TwoValueNodeTupleComparer.Instance);
-    private Dictionary<ThreeValueNodeTuple, int> _seenThreeValueTuples = new(ThreeValueNodeTupleComparer.Instance);
     private CompositeResultDocument _result = default!;
     private ValueCompletion _valueCompletion = default!;
     private List<IError>? _errors;
     private Dictionary<Path, IError>? _pocketedErrors;
     private bool _disposed;
+
+    internal FetchResultStore()
+    {
+        _jsonWriter = new JsonWriter(_variableWriter, new JsonWriterOptions { Indented = false });
+        _variableDedupTable = new VariableDedupTable(_variableWriter);
+    }
 
     public CompositeResultDocument Result => _result;
 
@@ -750,6 +756,7 @@ AddErrors_Next:
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
+        _variableDedupTable.Initialize(elements.Length);
         PooledArrayWriter? buffer = null;
 
         if (requestVariables.Count == 0)
@@ -758,21 +765,18 @@ AddErrors_Next:
             {
                 1 => BuildVariableValueSetsSingleRequirement(
                     elements,
-                    requiredData[0],
-                    ref buffer),
+                    requiredData[0]),
 
                 2 => BuildVariableValueSetsTwoRequirements(
                     elements,
                     requiredData[0],
-                    requiredData[1],
-                    ref buffer),
+                    requiredData[1]),
 
                 3 => BuildVariableValueSetsThreeRequirements(
                     elements,
                     requiredData[0],
                     requiredData[1],
-                    requiredData[2],
-                    ref buffer),
+                    requiredData[2]),
                 _ => default
             };
 
@@ -791,38 +795,56 @@ AddErrors_Next:
         }
 
         VariableValues[]? variableValueSets = null;
-        Dictionary<ObjectValueNode, int>? seen = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
         foreach (var result in elements)
         {
-            var variables = MapRequirements(result, requestVariables, requiredData, ref buffer);
+            variableValueSets ??= new VariableValues[elements.Length];
 
-            if (variables is null)
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+
+            // Write forwarded variables.
+            for (var i = 0; i < requestVariables.Count; i++)
+            {
+                var field = requestVariables[i];
+                _jsonWriter.WritePropertyName(field.Name.Value);
+                WriteValueNode(field.Value);
+            }
+
+            // Write requirement fields.
+            var failed = false;
+
+            foreach (var requirement in requiredData)
+            {
+                _jsonWriter.WritePropertyName(requirement.Key);
+
+                if (!ResultDataMapper.TryMap(result, requirement.Map, _schema, _jsonWriter))
+                {
+                    failed = true;
+                    break;
+                }
+            }
+
+            if (failed)
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(
+                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+
+            if (entry is null)
             {
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Length];
-
-            if (nextIndex > 0)
-            {
-                seen ??= new Dictionary<ObjectValueNode, int>(elements.Length, VariableValueComparer.Instance)
-                {
-                    [variableValueSets[0].Values] = 0
-                };
-
-                if (seen.TryGetValue(variables, out var existingIndex))
-                {
-                    additionalPaths.Add(existingIndex, result.CompactPath);
-                    continue;
-                }
-
-                seen[variables] = nextIndex;
-            }
-
-            variableValueSets[nextIndex++] = new VariableValues(result.CompactPath, variables);
+            variableValueSets[nextIndex++] = entry.Value;
         }
 
         if (buffer is not null)
@@ -833,31 +855,26 @@ AddErrors_Next:
             }
         }
 
+        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
         ReadOnlySpan<CompositeResultElement> elements,
-        OperationRequirement requirement,
-        ref PooledArrayWriter? buffer)
+        OperationRequirement requirement)
     {
         if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
         {
-            return BuildVariableValueSetsSingleRequirementFastPath(
-                elements,
-                requirement,
-                fieldName,
-                ref buffer);
+            return BuildVariableValueSetsSingleRequirementFastPath(elements, requirement, fieldName);
         }
 
-        return BuildVariableValueSetsSingleRequirementSlowPath(elements, requirement, ref buffer);
+        return BuildVariableValueSetsSingleRequirementSlowPath(elements, requirement);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement,
-        string fieldName,
-        ref PooledArrayWriter? buffer)
+        string fieldName)
     {
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
@@ -886,105 +903,76 @@ AddErrors_Next:
             }
 
             variableValueSets ??= new VariableValues[elements.Length];
-            IValueNode mappedValue;
 
-            if (valueKind is JsonValueKind.String)
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+
+            // Write variable JSON: {"key":rawValue}
+            _jsonWriter.WriteStartObject();
+            _jsonWriter.WritePropertyName(requirement.Key);
+            WriteCompositeResultValue(value);
+            _jsonWriter.WriteEndObject();
+
+            // we try to create a VariableValues object,
+            // if that fails the variables already were created and we move on.
+            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+
+            if (entry is null)
             {
-                var stringValue = value.AssertString();
-
-                if (_seenStrings.TryGetValue(stringValue, out var existingIndex))
-                {
-                    additionalPaths.Add(existingIndex, result.CompactPath);
-                    continue;
-                }
-
-                mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                _seenStrings[stringValue] = nextIndex;
-            }
-            else
-            {
-                mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
-
-                if (_seenValueNodes.TryGetValue(mappedValue, out var existingIndex))
-                {
-                    additionalPaths.Add(existingIndex, result.CompactPath);
-                    continue;
-                }
-
-                _seenValueNodes[mappedValue] = nextIndex;
+                continue;
             }
 
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.CompactPath,
-                new ObjectValueNode([
-                    new ObjectFieldNode(
-                        requirement.Key,
-                        mappedValue)
-                ]));
+            variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _seenStrings.Clear();
-        _seenValueNodes.Clear();
+        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
         ReadOnlySpan<CompositeResultElement> elements,
-        OperationRequirement requirement,
-        ref PooledArrayWriter? buffer)
+        OperationRequirement requirement)
     {
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var seeded = false;
 
         foreach (var result in elements)
         {
-            var value = ResultDataMapper.Map(result, requirement.Map, _schema, ref buffer);
-
-            if (value is null)
-            {
-                continue;
-            }
-
-            if (value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
             variableValueSets ??= new VariableValues[elements.Length];
 
-            if (nextIndex > 0)
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+            _jsonWriter.WritePropertyName(requirement.Key);
+
+            if (!ResultDataMapper.TryMap(result, requirement.Map, _schema, _jsonWriter))
             {
-                if (!seeded)
-                {
-                    _seenValueNodes[variableValueSets[0].Values.Fields[0].Value] = 0;
-                    seeded = true;
-                }
-
-                if (_seenValueNodes.TryGetValue(value, out var existingIndex))
-                {
-                    additionalPaths.Add(existingIndex, result.CompactPath);
-                    continue;
-                }
-
-                _seenValueNodes[value] = nextIndex;
+                _variableWriter.ResetTo(startPosition);
+                continue;
             }
 
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.CompactPath,
-                new ObjectValueNode([new ObjectFieldNode(requirement.Key, value)]));
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(
+                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+
+            if (entry is null)
+            {
+                continue;
+            }
+
+            variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _seenValueNodes.Clear();
+        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
-        OperationRequirement requirement2,
-        ref PooledArrayWriter? buffer)
+        OperationRequirement requirement2)
     {
         if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2))
@@ -994,15 +982,13 @@ AddErrors_Next:
                 requirement1,
                 fieldName1,
                 requirement2,
-                fieldName2,
-                ref buffer);
+                fieldName2);
         }
 
         return BuildVariableValueSetsTwoRequirementsSlowPath(
             elements,
             requirement1,
-            requirement2,
-            ref buffer);
+            requirement2);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
@@ -1010,130 +996,102 @@ AddErrors_Next:
         OperationRequirement requirement1,
         string fieldName1,
         OperationRequirement requirement2,
-        string fieldName2,
-        ref PooledArrayWriter? buffer)
+        string fieldName2)
     {
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var seeded = false;
 
         foreach (var result in elements)
         {
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
-                || value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+                || (value1.ValueKind is JsonValueKind.Null
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
 
             if (!result.TryGetProperty(fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
-                || value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+                || (value2.ValueKind is JsonValueKind.Null
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
 
-            var mappedValue1 = MapRequirementLeafValue(value1, ref buffer);
-            var mappedValue2 = MapRequirementLeafValue(value2, ref buffer);
             variableValueSets ??= new VariableValues[elements.Length];
-            var key = new TwoValueNodeTuple(mappedValue1, mappedValue2);
 
-            if (nextIndex > 0)
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+            _jsonWriter.WritePropertyName(requirement1.Key);
+            WriteCompositeResultValue(value1);
+            _jsonWriter.WritePropertyName(requirement2.Key);
+            WriteCompositeResultValue(value2);
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(
+                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+
+            if (entry is null)
             {
-                if (!seeded)
-                {
-                    _seenTwoValueTuples[new TwoValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value)] = 0;
-                    seeded = true;
-                }
-
-                if (_seenTwoValueTuples.TryGetValue(key, out var existingIndex))
-                {
-                    additionalPaths.Add(existingIndex, result.CompactPath);
-                    continue;
-                }
-
-                _seenTwoValueTuples[key] = nextIndex;
+                continue;
             }
 
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.CompactPath,
-                new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, mappedValue1),
-                    new ObjectFieldNode(requirement2.Key, mappedValue2)
-                ]));
+            variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _seenTwoValueTuples.Clear();
+        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPath(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
-        OperationRequirement requirement2,
-        ref PooledArrayWriter? buffer)
+        OperationRequirement requirement2)
     {
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var seeded = false;
 
         foreach (var result in elements)
         {
-            var value1 = ResultDataMapper.Map(result, requirement1.Map, _schema, ref buffer);
-
-            if (value1 is null
-                || value1.Kind == SyntaxKind.NullValue
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            var value2 = ResultDataMapper.Map(result, requirement2.Map, _schema, ref buffer);
-
-            if (value2 is null
-                || value2.Kind == SyntaxKind.NullValue
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
             variableValueSets ??= new VariableValues[elements.Length];
-            var key = new TwoValueNodeTuple(value1, value2);
 
-            if (nextIndex > 0)
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+
+            _jsonWriter.WritePropertyName(requirement1.Key);
+
+            if (!ResultDataMapper.TryMap(result, requirement1.Map, _schema, _jsonWriter))
             {
-                if (!seeded)
-                {
-                    _seenTwoValueTuples[new TwoValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value)] = 0;
-                    seeded = true;
-                }
-
-                if (_seenTwoValueTuples.TryGetValue(key, out var existingIndex))
-                {
-                    additionalPaths.Add(existingIndex, result.CompactPath);
-                    continue;
-                }
-
-                _seenTwoValueTuples[key] = nextIndex;
+                _variableWriter.ResetTo(startPosition);
+                continue;
             }
 
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.CompactPath,
-                new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, value1),
-                    new ObjectFieldNode(requirement2.Key, value2)
-                ]));
+            _jsonWriter.WritePropertyName(requirement2.Key);
+
+            if (!ResultDataMapper.TryMap(result, requirement2.Map, _schema, _jsonWriter))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+
+            if (entry is null)
+            {
+                continue;
+            }
+
+            variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _seenTwoValueTuples.Clear();
+        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1141,8 +1099,7 @@ AddErrors_Next:
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
-        OperationRequirement requirement3,
-        ref PooledArrayWriter? buffer)
+        OperationRequirement requirement3)
     {
         if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
@@ -1155,16 +1112,14 @@ AddErrors_Next:
                 requirement2,
                 fieldName2,
                 requirement3,
-                fieldName3,
-                ref buffer);
+                fieldName3);
         }
 
         return BuildVariableValueSetsThreeRequirementsSlowPath(
             elements,
             requirement1,
             requirement2,
-            requirement3,
-            ref buffer);
+            requirement3);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
@@ -1174,76 +1129,62 @@ AddErrors_Next:
         OperationRequirement requirement2,
         string fieldName2,
         OperationRequirement requirement3,
-        string fieldName3,
-        ref PooledArrayWriter? buffer)
+        string fieldName3)
     {
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var seeded = false;
 
         foreach (var result in elements)
         {
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
-                || value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+                || (value1.ValueKind is JsonValueKind.Null
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
 
             if (!result.TryGetProperty(fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
-                || value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+                || (value2.ValueKind is JsonValueKind.Null
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
 
             if (!result.TryGetProperty(fieldName3, out var value3)
                 || value3.ValueKind is JsonValueKind.Undefined
-                || value3.ValueKind is JsonValueKind.Null
-                    && requirement3.Type.Kind == SyntaxKind.NonNullType)
+                || (value3.ValueKind is JsonValueKind.Null
+                    && requirement3.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
 
-            var mappedValue1 = MapRequirementLeafValue(value1, ref buffer);
-            var mappedValue2 = MapRequirementLeafValue(value2, ref buffer);
-            var mappedValue3 = MapRequirementLeafValue(value3, ref buffer);
             variableValueSets ??= new VariableValues[elements.Length];
-            var key = new ThreeValueNodeTuple(mappedValue1, mappedValue2, mappedValue3);
 
-            if (nextIndex > 0)
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+            _jsonWriter.WritePropertyName(requirement1.Key);
+            WriteCompositeResultValue(value1);
+            _jsonWriter.WritePropertyName(requirement2.Key);
+            WriteCompositeResultValue(value2);
+            _jsonWriter.WritePropertyName(requirement3.Key);
+            WriteCompositeResultValue(value3);
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+
+            if (entry is null)
             {
-                if (!seeded)
-                {
-                    _seenThreeValueTuples[new ThreeValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value,
-                        variableValueSets[0].Values.Fields[2].Value)] = 0;
-                    seeded = true;
-                }
-
-                if (_seenThreeValueTuples.TryGetValue(key, out var existingIndex))
-                {
-                    additionalPaths.Add(existingIndex, result.CompactPath);
-                    continue;
-                }
-
-                _seenThreeValueTuples[key] = nextIndex;
+                continue;
             }
 
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.CompactPath,
-                new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, mappedValue1),
-                    new ObjectFieldNode(requirement2.Key, mappedValue2),
-                    new ObjectFieldNode(requirement3.Key, mappedValue3)
-                ]));
+            variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _seenThreeValueTuples.Clear();
+        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
@@ -1251,128 +1192,58 @@ AddErrors_Next:
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
-        OperationRequirement requirement3,
-        ref PooledArrayWriter? buffer)
+        OperationRequirement requirement3)
     {
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var seeded = false;
 
         foreach (var result in elements)
         {
-            var value1 = ResultDataMapper.Map(result, requirement1.Map, _schema, ref buffer);
-
-            if (value1 is null
-                || (value1.Kind == SyntaxKind.NullValue
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
-            {
-                continue;
-            }
-
-            var value2 = ResultDataMapper.Map(result, requirement2.Map, _schema, ref buffer);
-
-            if (value2 is null
-                || (value2.Kind == SyntaxKind.NullValue
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
-            {
-                continue;
-            }
-
-            var value3 = ResultDataMapper.Map(result, requirement3.Map, _schema, ref buffer);
-
-            if (value3 is null
-                || (value3.Kind == SyntaxKind.NullValue
-                    && requirement3.Type.Kind == SyntaxKind.NonNullType))
-            {
-                continue;
-            }
-
             variableValueSets ??= new VariableValues[elements.Length];
-            var key = new ThreeValueNodeTuple(value1, value2, value3);
 
-            if (nextIndex > 0)
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+
+            _jsonWriter.WritePropertyName(requirement1.Key);
+
+            if (!ResultDataMapper.TryMap(result, requirement1.Map, _schema, _jsonWriter))
             {
-                if (!seeded)
-                {
-                    _seenThreeValueTuples[new ThreeValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value,
-                        variableValueSets[0].Values.Fields[2].Value)] = 0;
-                    seeded = true;
-                }
-
-                if (_seenThreeValueTuples.TryGetValue(key, out var existingIndex))
-                {
-                    additionalPaths.Add(existingIndex, result.CompactPath);
-                    continue;
-                }
-
-                _seenThreeValueTuples[key] = nextIndex;
+                _variableWriter.ResetTo(startPosition);
+                continue;
             }
 
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.CompactPath,
-                new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, value1),
-                    new ObjectFieldNode(requirement2.Key, value2),
-                    new ObjectFieldNode(requirement3.Key, value3)
-                ]));
+            _jsonWriter.WritePropertyName(requirement2.Key);
+
+            if (!ResultDataMapper.TryMap(result, requirement2.Map, _schema, _jsonWriter))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WritePropertyName(requirement3.Key);
+
+            if (!ResultDataMapper.TryMap(result, requirement3.Map, _schema, _jsonWriter))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+
+            if (entry is null)
+            {
+                continue;
+            }
+
+            variableValueSets[nextIndex++] = entry.Value;
         }
 
-        _seenThreeValueTuples.Clear();
+        _variableDedupTable.Clear();
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
-    }
-
-    private ObjectValueNode? MapRequirements(
-        CompositeResultElement result,
-        IReadOnlyList<ObjectFieldNode> forwardedVariables,
-        ReadOnlySpan<OperationRequirement> requirements,
-        ref PooledArrayWriter? buffer)
-    {
-        var fieldCount = forwardedVariables.Count + requirements.Length;
-
-        if (fieldCount == 0)
-        {
-            return new ObjectValueNode([]);
-        }
-
-        var fields = new ObjectFieldNode[fieldCount];
-        var index = 0;
-
-        for (var i = 0; i < forwardedVariables.Count; i++)
-        {
-            fields[index++] = forwardedVariables[i];
-        }
-
-        foreach (var requirement in requirements)
-        {
-            var field = MapRequirement(result, requirement.Key, requirement.Map, ref buffer);
-
-            if (field is null)
-            {
-                return null;
-            }
-
-            if (field.Value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
-            {
-                return null;
-            }
-
-            fields[index++] = field;
-        }
-
-        return new ObjectValueNode(fields);
-    }
-
-    private ObjectFieldNode? MapRequirement(
-        CompositeResultElement result,
-        string key,
-        IValueSelectionNode path,
-        ref PooledArrayWriter? buffer)
-    {
-        var value = ResultDataMapper.Map(result, path, _schema, ref buffer);
-        return value is null ? null : new ObjectFieldNode(key, value);
     }
 
     private static bool TryGetSimpleRequirementFieldName(
@@ -1397,13 +1268,112 @@ AddErrors_Next:
         return false;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static IValueNode MapRequirementLeafValue(
-        CompositeResultElement value,
-        ref PooledArrayWriter? buffer)
-        => value.ValueKind is JsonValueKind.String
-            ? ResultDataMapper.GetStringValueNode(value.AssertString())
-            : ResultDataMapper.MapLeafValue(value, ref buffer);
+    private VariableValues? TryCreateVariableValues(
+        CompactPath path,
+        int startPosition,
+        ref AdditionalPathAccumulator additionalPaths,
+        int nextIndex)
+    {
+        var length = _variableWriter.Position - startPosition;
+        var hash = _variableWriter.GetHashCode(startPosition, length);
+
+        // we we already track the sae variables we will track them as additional paths
+        // on the existing index.
+        //
+        // this allows us to fetch once and then insert the data at different locations.
+        if (_variableDedupTable.TryGet(hash, startPosition, length, out var existingIndex))
+        {
+            additionalPaths.Add(existingIndex, path);
+            _variableWriter.ResetTo(startPosition);
+            return null;
+        }
+
+        _variableDedupTable.Add(hash, nextIndex, startPosition, length);
+        return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+    }
+
+    private void WriteValueNode(IValueNode value)
+    {
+        switch (value)
+        {
+            case NullValueNode:
+                _jsonWriter.WriteNullValue();
+                break;
+
+            case StringValueNode sv:
+                _jsonWriter.WriteStringValue(sv.Value);
+                break;
+
+            case IntValueNode iv:
+                WriteRawAscii(iv.Value);
+                break;
+
+            case FloatValueNode fv:
+                WriteRawAscii(fv.Value);
+                break;
+
+            case BooleanValueNode bv:
+                _jsonWriter.WriteBooleanValue(bv.Value);
+                break;
+
+            case EnumValueNode ev:
+                _jsonWriter.WriteStringValue(ev.Value);
+                break;
+
+            case ObjectValueNode ov:
+                _jsonWriter.WriteStartObject();
+                foreach (var field in ov.Fields)
+                {
+                    _jsonWriter.WritePropertyName(field.Name.Value);
+                    WriteValueNode(field.Value);
+                }
+                _jsonWriter.WriteEndObject();
+                break;
+
+            case ListValueNode lv:
+                _jsonWriter.WriteStartArray();
+                foreach (var item in lv.Items)
+                {
+                    WriteValueNode(item);
+                }
+                _jsonWriter.WriteEndArray();
+                break;
+
+            default:
+                _jsonWriter.WriteNullValue();
+                break;
+        }
+    }
+
+    private void WriteRawAscii(string value)
+    {
+        Span<byte> buffer = stackalloc byte[value.Length];
+        System.Text.Encoding.UTF8.GetBytes(value.AsSpan(), buffer);
+        _jsonWriter.WriteRawValue(buffer);
+    }
+
+    private void WriteCompositeResultValue(CompositeResultElement value)
+        => value.WriteTo(_jsonWriter);
+
+    internal VariableValues CreateVariableValueSets(
+        CompactPath path,
+        IReadOnlyList<ObjectFieldNode> fields)
+    {
+        _jsonWriter.Reset(_variableWriter);
+        var startPosition = _variableWriter.Position;
+        _jsonWriter.WriteStartObject();
+
+        for (var i = 0; i < fields.Count; i++)
+        {
+            var field = fields[i];
+            _jsonWriter.WritePropertyName(field.Name.Value);
+            WriteValueNode(field.Value);
+        }
+
+        _jsonWriter.WriteEndObject();
+        var length = _variableWriter.Position - startPosition;
+        return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+    }
 
     private static void AppendUnrolledLists(
         CompositeResultElement list,
@@ -1656,6 +1626,7 @@ AddErrors_Next:
 
         _memory.Clear();
 
+        _variableWriter.Dispose();
         _pathPool?.Dispose();
     }
 
@@ -1695,17 +1666,6 @@ AddErrors_Next:
         }
     }
 
-    private sealed class SingleValueNodeComparer : IEqualityComparer<IValueNode>
-    {
-        public static SingleValueNodeComparer Instance { get; } = new();
-
-        public bool Equals(IValueNode? x, IValueNode? y)
-            => SyntaxComparer.BySyntax.Equals(x, y);
-
-        public int GetHashCode(IValueNode obj)
-            => SyntaxComparer.BySyntax.GetHashCode(obj);
-    }
-
     private static ImmutableArray<VariableValues> FinalizeVariableValueSets(
         VariableValues[]? variableValueSets,
         ref AdditionalPathAccumulator additionalPaths,
@@ -1728,40 +1688,136 @@ AddErrors_Next:
         return ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets);
     }
 
-    private readonly record struct TwoValueNodeTuple(IValueNode Value1, IValueNode Value2);
-
-    private readonly record struct ThreeValueNodeTuple(
-        IValueNode Value1,
-        IValueNode Value2,
-        IValueNode Value3);
-
-    private sealed class TwoValueNodeTupleComparer : IEqualityComparer<TwoValueNodeTuple>
+    private sealed class VariableDedupTable(ChunkedArrayWriter writer) : IDisposable
     {
-        public static TwoValueNodeTupleComparer Instance { get; } = new();
+        private const int DefaultBucketSize = 4;
+        private const int DefaultBucketCount = 16;
 
-        public bool Equals(TwoValueNodeTuple x, TwoValueNodeTuple y)
-            => SyntaxComparer.BySyntax.Equals(x.Value1, y.Value1)
-                && SyntaxComparer.BySyntax.Equals(x.Value2, y.Value2);
+        private readonly ChunkedArrayWriter _writer = writer;
+        private Entry[] _table = ArrayPool<Entry>.Shared.Rent(DefaultBucketCount * DefaultBucketSize);
+        private int _bucketCount = DefaultBucketCount;
+        private readonly int _bucketSize = DefaultBucketSize;
 
-        public int GetHashCode(TwoValueNodeTuple obj)
-            => HashCode.Combine(
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value1),
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value2));
-    }
+        public void Initialize(int capacity)
+        {
+            _bucketCount = NextPowerOfTwo(Math.Max(capacity, DefaultBucketCount));
+            var totalSize = _bucketCount * _bucketSize;
 
-    private sealed class ThreeValueNodeTupleComparer : IEqualityComparer<ThreeValueNodeTuple>
-    {
-        public static ThreeValueNodeTupleComparer Instance { get; } = new();
+            if (_table.Length < totalSize)
+            {
+                ArrayPool<Entry>.Shared.Return(_table);
+                _table = ArrayPool<Entry>.Shared.Rent(totalSize);
+            }
 
-        public bool Equals(ThreeValueNodeTuple x, ThreeValueNodeTuple y)
-            => SyntaxComparer.BySyntax.Equals(x.Value1, y.Value1)
-                && SyntaxComparer.BySyntax.Equals(x.Value2, y.Value2)
-                && SyntaxComparer.BySyntax.Equals(x.Value3, y.Value3);
+            _table.AsSpan(0, totalSize).Clear();
+        }
 
-        public int GetHashCode(ThreeValueNodeTuple obj)
-            => HashCode.Combine(
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value1),
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value2),
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value3));
+        public bool TryGet(
+            int hash,
+            int location,
+            int length,
+            out int existingIndex)
+        {
+            var bucket = hash & 0x7FFFFFFF & (_bucketCount - 1);
+            var start = bucket * _bucketSize;
+            var end = start + _bucketSize;
+
+            for (var s = start; s < end; s++)
+            {
+                ref var entry = ref _table[s];
+
+                if (entry.Index == 0)
+                {
+                    existingIndex = -1;
+                    return false;
+                }
+
+                if (entry.Hash == hash
+                    && entry.Length == length
+                    && _writer.SequenceEqual(entry.Location, location, length))
+                {
+                    existingIndex = entry.Index - 1;
+                    return true;
+                }
+            }
+
+            existingIndex = -1;
+            return false;
+        }
+
+        public void Add(int hash, int index, int location, int length)
+        {
+            var bucket = hash & 0x7FFFFFFF & (_bucketCount - 1);
+            var start = bucket * _bucketSize;
+            var end = start + _bucketSize;
+
+            for (var s = start; s < end; s++)
+            {
+                ref var entry = ref _table[s];
+
+                if (entry.Index == 0)
+                {
+                    entry.Hash = hash;
+                    entry.Index = index + 1;
+                    entry.Location = location;
+                    entry.Length = length;
+                    return;
+                }
+            }
+
+            Grow();
+            Add(hash, index, location, length);
+        }
+
+        public void Clear()
+            => _table.AsSpan(0, _bucketCount * _bucketSize).Clear();
+
+        public void Dispose()
+        {
+            ArrayPool<Entry>.Shared.Return(_table);
+            _table = [];
+        }
+
+        private void Grow()
+        {
+            var oldTable = _table;
+            var oldTotal = _bucketCount * _bucketSize;
+
+            _bucketCount *= 2;
+            var newTotal = _bucketCount * _bucketSize;
+            _table = ArrayPool<Entry>.Shared.Rent(newTotal);
+            _table.AsSpan(0, newTotal).Clear();
+
+            for (var i = 0; i < oldTotal; i++)
+            {
+                var entry = oldTable[i];
+
+                if (entry.Index != 0)
+                {
+                    Add(entry.Hash, entry.Index - 1, entry.Location, entry.Length);
+                }
+            }
+
+            ArrayPool<Entry>.Shared.Return(oldTable);
+        }
+
+        private static int NextPowerOfTwo(int n)
+        {
+            n--;
+            n |= n >> 1;
+            n |= n >> 2;
+            n |= n >> 4;
+            n |= n >> 8;
+            n |= n >> 16;
+            return n + 1;
+        }
+
+        private struct Entry
+        {
+            public int Hash;
+            public int Index;    // 1-based (0 = empty)
+            public int Location;
+            public int Length;
+        }
     }
 }

@@ -18,11 +18,11 @@ public abstract partial class MessagingTransport
 
         if (Configuration is null)
         {
-            throw new InvalidOperationException("Could not create configuration for transport");
+            throw ThrowHelper.TransportConfigurationMissing();
         }
 
-        Name = Configuration.Name ?? throw new InvalidOperationException("Transport name is required");
-        Schema = Configuration.Schema ?? throw new InvalidOperationException("Transport schema is required");
+        Name = Configuration.Name ?? throw ThrowHelper.TransportNameRequired();
+        Schema = Configuration.Schema ?? throw ThrowHelper.TransportSchemaRequired();
         Naming = context.Naming;
         Conventions = new ConventionRegistry(context.Conventions.Concat(Configuration.Conventions));
         Options = Configuration.Options;
@@ -148,7 +148,7 @@ public abstract partial class MessagingTransport
 
             if (replyConsumer is null)
             {
-                throw new InvalidOperationException("Reply consumer not found");
+                throw ThrowHelper.ReplyConsumerNotFound();
             }
 
             var route = new InboundRoute();
@@ -159,7 +159,7 @@ public abstract partial class MessagingTransport
             var endpointConfiguration = CreateEndpointConfiguration(context, route);
             if (endpointConfiguration is null)
             {
-                throw new InvalidOperationException("Failed to create endpoint configuration");
+                throw ThrowHelper.EndpointConfigurationFailed();
             }
 
             var endpoint = AddEndpoint(context, endpointConfiguration);

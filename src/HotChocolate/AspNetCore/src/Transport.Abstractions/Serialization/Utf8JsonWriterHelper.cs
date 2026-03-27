@@ -1,16 +1,128 @@
+#if FUSION
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
+#else
 using System.Collections;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
-using HotChocolate.Transport.Http;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Serialization;
+#else
 namespace HotChocolate.Transport.Serialization;
+#endif
 
 /// <summary>
-/// Helper methods for writing <see cref="OperationRequest"/> to a <see cref="Utf8JsonWriter"/>.
+/// Helper methods for writing <see cref="OperationRequest"/> to a JSON writer.
 /// </summary>
 internal static class Utf8JsonWriterHelper
 {
+#if FUSION
+    public static void WriteOperationRequest(JsonWriter writer, OperationBatchRequest batchRequest)
+    {
+        writer.WriteStartArray();
+
+        foreach (var request in batchRequest.Requests)
+        {
+            request.WriteTo(writer);
+        }
+
+        writer.WriteEndArray();
+    }
+
+    public static void WriteOperationRequest(JsonWriter writer, OperationRequest request)
+    {
+        writer.WriteStartObject();
+
+        if (!string.IsNullOrWhiteSpace(request.Id))
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.IdProp);
+            writer.WriteStringValue(request.Id);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.QueryProp);
+            writer.WriteStringValue(request.Query);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.OperationName))
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.OperationNameProp);
+            writer.WriteStringValue(request.OperationName);
+        }
+
+        if (request.OnError is { } errorHandlingMode)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.OnErrorProp);
+            writer.WriteStringValue(GetErrorHandlingModeAsString(errorHandlingMode));
+        }
+
+        if (!request.Variables.IsEmpty)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
+            request.Variables.Values.WriteTo(writer);
+        }
+
+        if (!request.Extensions.IsEmpty)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
+            request.Extensions.WriteTo(writer);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    public static void WriteVariableBatchRequest(JsonWriter writer, VariableBatchRequest request)
+    {
+        writer.WriteStartObject();
+
+        if (!string.IsNullOrWhiteSpace(request.Id))
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.IdProp);
+            writer.WriteStringValue(request.Id);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.QueryProp);
+            writer.WriteStringValue(request.Query);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.OperationName))
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.OperationNameProp);
+            writer.WriteStringValue(request.OperationName);
+        }
+
+        if (request.OnError is { } errorHandlingMode)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.OnErrorProp);
+            writer.WriteStringValue(GetErrorHandlingModeAsString(errorHandlingMode));
+        }
+
+        if (!request.Variables.IsDefaultOrEmpty)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
+            writer.WriteStartArray();
+            foreach (var vars in request.Variables)
+            {
+                vars.Values.WriteTo(writer);
+            }
+            writer.WriteEndArray();
+        }
+
+        if (!request.Extensions.IsEmpty)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
+            request.Extensions.WriteTo(writer);
+        }
+
+        writer.WriteEndObject();
+    }
+#else
     public static void WriteOperationRequest(Utf8JsonWriter writer, OperationBatchRequest batchRequest)
     {
         writer.WriteStartArray();
@@ -25,6 +137,10 @@ internal static class Utf8JsonWriterHelper
 
                 case VariableBatchRequest variableBatchRequest:
                     WriteVariableBatchRequest(writer, variableBatchRequest);
+                    break;
+
+                case IRequestBody requestBody:
+                    requestBody.WriteTo(writer);
                     break;
 
                 default:
@@ -359,17 +475,6 @@ internal static class Utf8JsonWriterHelper
         return fileInfos;
     }
 
-    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
-    {
-        return mode switch
-        {
-            ErrorHandlingMode.Propagate => "PROPAGATE",
-            ErrorHandlingMode.Null => "NULL",
-            ErrorHandlingMode.Halt => "HALT",
-            _ => throw new ArgumentOutOfRangeException(nameof(mode))
-        };
-    }
-
     private static void CollectFiles(IRequestBody requestBody, ref Dictionary<FileReference, FilePath[]>? files)
     {
         switch (requestBody)
@@ -614,5 +719,17 @@ internal static class Utf8JsonWriterHelper
         : FilePath(parent)
     {
         public int Index { get; } = index;
+    }
+#endif
+
+    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
+    {
+        return mode switch
+        {
+            ErrorHandlingMode.Propagate => "PROPAGATE",
+            ErrorHandlingMode.Null => "NULL",
+            ErrorHandlingMode.Halt => "HALT",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
     }
 }
