@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Mocha.Features;
+using Mocha.Scheduling;
 using Mocha.Transport.Postgres.Tasks;
 using static System.StringSplitOptions;
 
@@ -108,6 +110,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             _topology.AddSubscription(subscription);
         }
+
+        Features.GetOrSet<SchedulingTransportFeature>().SupportsSchedulingNatively = true;
     }
 
     /// <summary>

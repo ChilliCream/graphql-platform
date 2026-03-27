@@ -13,7 +13,7 @@ dotnet add package Mocha.Hosting
 
 # Health checks
 
-Mocha integrates with the [ASP.NET Core health checks](https://learn.microsoft.com/aspnet/core/host-and-monitor/health-checks) system. The health check sends a `HealthRequest` message through the bus and waits for a `HealthResponse`. This verifies the full pipeline — serialization, transport, routing, and handler execution — not just that the broker is reachable.
+Mocha integrates with the [ASP.NET Core health checks](https://learn.microsoft.com/aspnet/core/host-and-monitor/health-checks) system. The health check sends a `HealthRequest` message through the bus and waits for a `HealthResponse`. This verifies the full pipeline - serialization, transport, routing, and handler execution - not just that the broker is reachable.
 
 ## Register the health check handler
 
@@ -82,7 +82,7 @@ app.MapHealthChecks("/health/live", new()
 
 `MapMessageBusDeveloperTopology()` maps an HTTP GET endpoint that returns the runtime bus topology as JSON. This includes all registered handlers, consumers, receive endpoints, dispatch endpoints, and route bindings.
 
-> **Warning:** This endpoint exposes internal details about your messaging infrastructure. Use it only during development — similar to `UseDeveloperExceptionPage`.
+> **Warning:** This endpoint exposes internal details about your messaging infrastructure. Use it only during development - similar to `UseDeveloperExceptionPage`.
 
 ```csharp
 using Mocha.Hosting;
@@ -113,6 +113,6 @@ The response is a JSON document describing the full bus topology: the host, regi
 
 # Next steps
 
-- [Observability](/docs/mocha/v1/observability) — Add OpenTelemetry tracing and metrics to the bus.
-- [Reliability](/docs/mocha/v1/reliability) — Configure outbox, inbox, and circuit breakers.
-- [Transports](/docs/mocha/v1/transports) — Configure RabbitMQ, InMemory, and multi-transport setups.
+- [Observability](/docs/mocha/v1/observability) - Add OpenTelemetry tracing and metrics to the bus.
+- [Reliability](/docs/mocha/v1/reliability) - Configure outbox, inbox, and circuit breakers.
+- [Transports](/docs/mocha/v1/transports) - Configure RabbitMQ, InMemory, and multi-transport setups.

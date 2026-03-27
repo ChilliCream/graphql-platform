@@ -16,11 +16,11 @@ That registers the mediator infrastructure, discovers your handlers at compile t
 The mediator sits between your application code and your handlers. Instead of injecting handler interfaces directly, you inject `IMediator` (or `ISender` / `IPublisher`) and dispatch messages through it. The mediator routes each message to the correct handler based on its type.
 
 ```csharp
-// Without mediator — tight coupling
+// Without mediator - tight coupling
 app.MapPost("/orders", async (PlaceOrderCommandHandler handler) =>
     await handler.HandleAsync(new PlaceOrderCommand(...)));
 
-// With mediator — decoupled dispatch
+// With mediator - decoupled dispatch
 app.MapPost("/orders", async (ISender sender) =>
     await sender.SendAsync(new PlaceOrderCommand(...)));
 ```
@@ -332,7 +332,7 @@ builder.Services
 
 var app = builder.Build();
 
-// Command — place an order
+// Command - place an order
 app.MapPost("/orders", async (PlaceOrderRequest request, ISender sender) =>
 {
     var result = await sender.SendAsync(
@@ -342,11 +342,11 @@ app.MapPost("/orders", async (PlaceOrderRequest request, ISender sender) =>
         : Results.BadRequest(result.Error);
 });
 
-// Query — list products
+// Query - list products
 app.MapGet("/products", async (ISender sender) =>
     await sender.QueryAsync(new GetProductsQuery()));
 
-// Notification — broadcast that an order shipped
+// Notification - broadcast that an order shipped
 app.MapPost("/orders/{id}/ship", async (Guid id, IPublisher publisher) =>
 {
     await publisher.PublishAsync(new OrderShippedNotification(id));
@@ -406,7 +406,7 @@ public sealed class OrderShippedEmailHandler(ILogger<OrderShippedEmailHandler> l
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Order {OrderId} shipped — email sent", notification.OrderId);
+            "Order {OrderId} shipped - email sent", notification.OrderId);
         return ValueTask.CompletedTask;
     }
 }

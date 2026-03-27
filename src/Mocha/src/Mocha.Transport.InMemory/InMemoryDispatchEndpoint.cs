@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
@@ -26,6 +27,8 @@ public sealed class InMemoryDispatchEndpoint(InMemoryMessagingTransport transpor
     public InMemoryTopic? Topic { get; private set; }
 
     private InMemoryMessagingTopology _topology = null!;
+    private TimeProvider _timeProvider = TimeProvider.System;
+    private InMemoryScheduler? _scheduler;
 
     protected override void OnInitialize(
         IMessagingConfigurationContext context,
@@ -102,6 +105,16 @@ public sealed class InMemoryDispatchEndpoint(InMemoryMessagingTransport transpor
             throw new InvalidOperationException("Resource not found");
         }
 
+        if (envelope.ScheduledTime is { } scheduledTime)
+        {
+            var delay = scheduledTime - _timeProvider.GetUtcNow();
+            if (delay > TimeSpan.Zero && _scheduler is not null)
+            {
+                _scheduler.Schedule(envelope, resource, scheduledTime);
+                return;
+            }
+        }
+
         await resource.SendAsync(envelope, cancellationToken);
     }
 
@@ -110,6 +123,8 @@ public sealed class InMemoryDispatchEndpoint(InMemoryMessagingTransport transpor
         InMemoryDispatchEndpointConfiguration configuration)
     {
         _topology = (InMemoryMessagingTopology)Transport.Topology;
+        _timeProvider = context.Services.GetService<TimeProvider>() ?? TimeProvider.System;
+        _scheduler = ((InMemoryMessagingTransport)Transport).Scheduler;
 
         if (configuration.TopicName is not null)
         {

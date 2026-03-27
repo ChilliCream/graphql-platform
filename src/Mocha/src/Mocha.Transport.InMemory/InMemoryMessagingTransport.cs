@@ -1,4 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Mocha.Features;
+using Mocha.Scheduling;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.InMemory;
@@ -29,6 +33,8 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
 
     private InMemoryMessagingTopology _topology = null!;
 
+    internal InMemoryScheduler? Scheduler { get; private set; }
+
     /// <inheritdoc />
     public override MessagingTopology Topology => _topology;
 
@@ -54,6 +60,12 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         };
         _topology = new InMemoryMessagingTopology(this, builder.Uri);
 
+        Features.GetOrSet<SchedulingTransportFeature>().SupportsSchedulingNatively = true;
+
+        var timeProvider = context.Services.GetService<TimeProvider>() ?? TimeProvider.System;
+        var loggerFactory = context.Services.GetRequiredService<ILoggerFactory>();
+        Scheduler = new InMemoryScheduler(timeProvider, loggerFactory.CreateLogger<InMemoryScheduler>());
+
         var config = (InMemoryTransportConfiguration)Configuration;
 
         foreach (var topic in config.Topics)
@@ -69,6 +81,33 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         foreach (var binding in config.Bindings)
         {
             _topology.AddBinding(binding);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override ValueTask OnBeforeStartAsync(
+        IMessagingConfigurationContext context,
+        CancellationToken cancellationToken)
+    {
+        Scheduler?.Start();
+        return ValueTask.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    protected override async ValueTask OnBeforeStopAsync(CancellationToken cancellationToken)
+    {
+        if (Scheduler is not null)
+        {
+            await Scheduler.DisposeAsync();
+        }
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask DisposeAsync()
+    {
+        if (Scheduler is not null)
+        {
+            await Scheduler.DisposeAsync();
         }
     }
 

@@ -91,6 +91,7 @@ public static class DispatchContextExtensions
             Host = context.Host,
             SentAt = context.SentAt,
             DeliverBy = context.DeliverBy,
+            ScheduledTime = context.ScheduledTime,
             DeliveryCount = 0,
             Headers = context.Headers,
             Body = context.Body.WrittenMemory

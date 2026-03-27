@@ -64,10 +64,10 @@ SendAsync(PlaceOrderCommand)
 The pipeline is built from two delegate types:
 
 ```csharp
-// The terminal pipeline delegate — each step in the chain has this shape
+// The terminal pipeline delegate - each step in the chain has this shape
 public delegate ValueTask MediatorDelegate(IMediatorContext context);
 
-// The factory that creates a middleware — runs once per message type at startup
+// The factory that creates a middleware - runs once per message type at startup
 public delegate MediatorDelegate MediatorMiddleware(
     MediatorMiddlewareFactoryContext context,
     MediatorDelegate next);
@@ -334,11 +334,11 @@ Both approaches combine well - filter out entire message kinds at compile time, 
 
 The `Use` method accepts optional `before` and `after` parameters to control where the middleware sits in the pipeline.
 
-| Call                                        | Behavior                                                  |
-| ------------------------------------------- | --------------------------------------------------------- |
-| `Use(config)`                               | Appends to the end of the middleware list                 |
-| `Use(config, before: "Logging")`            | Inserts before the middleware with key `"Logging"`        |
-| `Use(config, after: "Instrumentation")`     | Inserts after the middleware with key `"Instrumentation"` |
+| Call                                    | Behavior                                                  |
+| --------------------------------------- | --------------------------------------------------------- |
+| `Use(config)`                           | Appends to the end of the middleware list                 |
+| `Use(config, before: "Logging")`        | Inserts before the middleware with key `"Logging"`        |
+| `Use(config, after: "Instrumentation")` | Inserts after the middleware with key `"Instrumentation"` |
 
 Only one of `before` or `after` can be specified at the same time. If the referenced key is not found, an `InvalidOperationException` is thrown at startup.
 

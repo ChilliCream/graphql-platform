@@ -158,7 +158,7 @@ public sealed class PostgresOutboxProcessor
                 if (await reader.ReadAsync(cancellationToken))
                 {
                     var id = reader.GetGuid(0);
-                    var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1);
+                    var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
                     var messageType = GetMessageType(envelope?.MessageType);
                     var isReply = envelope?.Headers?.IsReply() ?? false;
                     var endpoint = isReply
@@ -192,13 +192,23 @@ public sealed class PostgresOutboxProcessor
             }
             finally
             {
-                await transaction.CommitAsync(cancellationToken);
+                try
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
+                catch
+                {
+                    // Commit failed (e.g., connection lost). Attempt rollback.
+                    // If commit actually succeeded server-side, the message stays
+                    // with times_sent incremented - safe, just causes a retry.
+                    try { await transaction.RollbackAsync(CancellationToken.None); } catch { /* swallow */ }
+                }
             }
         }
         catch (Exception ex)
         {
+            // Log only - no RollbackAsync here (commit already handled in finally)
             _logger.UnexpectedErrorWhileProcessingOutboxEvent(ex);
-            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
@@ -270,10 +280,10 @@ public sealed class PostgresOutboxProcessor
             if (ActivityContext.TryParse(traceparent, tracestate, out var parentContext))
             {
                 activity = OpenTelemetry.Source.CreateActivity(
-                    $"outbox send {envelope.MessageId}",
+                    "outbox send",
                     ActivityKind.Client,
                     parentContext);
-
+                activity?.SetTag("messaging.message_id", envelope.MessageId);
                 activity?.Start();
             }
         }
@@ -339,7 +349,7 @@ internal static partial class Logs
 
 file static class Serializer
 {
-    public static MessageEnvelope? ReadMessageEnvelopeSafe(NpgsqlDataReader reader, int ordinal)
+    public static MessageEnvelope? ReadMessageEnvelopeSafe(NpgsqlDataReader reader, int ordinal, ILogger logger)
     {
         try
         {
@@ -348,7 +358,7 @@ file static class Serializer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error reading message envelope: {ex.Message}");
+            logger.LogError(ex, "Error reading message envelope");
             return null;
         }
     }

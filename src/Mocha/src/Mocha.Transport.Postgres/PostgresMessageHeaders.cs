@@ -66,4 +66,9 @@ internal static class PostgresMessageHeaders
     /// Header key for the deadline by which the message must be delivered and processed.
     /// </summary>
     public static ReadOnlySpan<byte> DeliverBy => "deliverBy"u8;
+
+    /// <summary>
+    /// Header key for the earliest time at which the message should be made available for consumption.
+    /// </summary>
+    public static ReadOnlySpan<byte> ScheduledTime => "scheduledTime"u8;
 }

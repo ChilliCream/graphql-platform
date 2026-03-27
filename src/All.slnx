@@ -346,6 +346,7 @@
     <Project Path="Mocha/src/Mocha.EntityFrameworkCore/Mocha.EntityFrameworkCore.csproj" />
     <Project Path="Mocha/src/Mocha.Hosting/Mocha.Hosting.csproj" />
     <Project Path="Mocha/src/Mocha.Outbox/Mocha.Outbox.csproj" />
+    <Project Path="Mocha/src/Mocha.Scheduling/Mocha.Scheduling.csproj" />
     <Project Path="Mocha/src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.Postgres/Mocha.Transport.Postgres.csproj" />

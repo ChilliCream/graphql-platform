@@ -87,6 +87,11 @@ public ref struct MessageEnvelopeWriter(Utf8JsonWriter writer)
             writer.WriteString(MessageEnvelope.Properties.DeliverBy, envelope.DeliverBy.Value);
         }
 
+        if (envelope.ScheduledTime is not null)
+        {
+            writer.WriteString(MessageEnvelope.Properties.ScheduledTime, envelope.ScheduledTime.Value);
+        }
+
         if (envelope.DeliveryCount is not null)
         {
             writer.WriteNumber(MessageEnvelope.Properties.DeliveryCount, envelope.DeliveryCount.Value);
@@ -138,6 +143,7 @@ public ref struct MessageEnvelopeReader(ReadOnlyMemory<byte> body)
     private ImmutableArray<string>? _enclosedMessageTypes;
     private DateTimeOffset? _sentAt;
     private DateTimeOffset? _deliverBy;
+    private DateTimeOffset? _scheduledTime;
     private int _attempt;
     private IHeaders? _headers;
     private ReadOnlyMemory<byte> _body;
@@ -220,6 +226,11 @@ public ref struct MessageEnvelopeReader(ReadOnlyMemory<byte> body)
                     reader.Read();
                     _deliverBy = reader.GetDateTimeOffset();
                 }
+                else if (reader.ValueTextEquals(MessageEnvelope.Properties.ScheduledTime))
+                {
+                    reader.Read();
+                    _scheduledTime = reader.GetDateTimeOffset();
+                }
                 else if (reader.ValueTextEquals(MessageEnvelope.Properties.DeliveryCount))
                 {
                     reader.Read();
@@ -276,6 +287,7 @@ public ref struct MessageEnvelopeReader(ReadOnlyMemory<byte> body)
             EnclosedMessageTypes = _enclosedMessageTypes,
             SentAt = _sentAt,
             DeliverBy = _deliverBy,
+            ScheduledTime = _scheduledTime,
             DeliveryCount = _attempt,
             Headers = _headers,
             Body = _body
