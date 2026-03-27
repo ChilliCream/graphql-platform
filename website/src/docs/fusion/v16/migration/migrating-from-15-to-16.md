@@ -45,3 +45,11 @@ If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#x-
 ## X. Update subgraph to v16
 
 TODO: Link to Hot Chocolate migration guide and mention that the version: 1.0.0 should be removed. Also `AddSourceSchemaDefaults` (TODO: Check if this modifies the batching already)
+
+TODO: Also make sure to describe how to update `nitro fusion validate` pipeline validation on a per-repo basis
+
+## Cleanup
+
+Remove `HotChocolate.Fusion.CommandLine` and `ChilliCream.Nitro.CLI` from pipelines.
+
+TODO: If people don't use our GitHub actions how can they use `ChilliCream.Nitro.CLI` and `ChilliCream.Nitro.CommandLine` side-by-side as both map to `dotnet nitro`?
