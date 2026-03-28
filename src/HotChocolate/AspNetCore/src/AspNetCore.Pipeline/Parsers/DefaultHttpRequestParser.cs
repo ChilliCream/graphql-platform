@@ -228,11 +228,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 extensions = JsonDocument.Parse(se);
             }
 
-            ErrorHandlingMode? errorHandlingMode = null;
-            if (!string.IsNullOrEmpty(onError))
-            {
-                errorHandlingMode = ParseErrorHandlingMode(onError);
-            }
+            var errorHandlingMode = ParseErrorHandlingMode(onError);
 
             return new GraphQLRequest(
                 document,
@@ -327,8 +323,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         return (documentHash, document);
     }
 
-    private static ErrorHandlingMode ParseErrorHandlingMode(string onError)
+    private static ErrorHandlingMode? ParseErrorHandlingMode(string? onError)
     {
+        if (string.IsNullOrEmpty(onError))
+        {
+            return null;
+        }
+
         if (onError.Equals("PROPAGATE", StringComparison.OrdinalIgnoreCase))
         {
             return ErrorHandlingMode.Propagate;
