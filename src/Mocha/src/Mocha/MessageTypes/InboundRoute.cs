@@ -60,10 +60,10 @@ public sealed class InboundRoute
         }
         else if (configuration.Kind != InboundRouteKind.Reply)
         {
-            throw new InvalidOperationException("Route requires a message type");
+            throw ThrowHelper.RouteRequiresMessageType();
         }
 
-        Consumer = configuration.Consumer ?? throw new InvalidOperationException("Route requires a consumer");
+        Consumer = configuration.Consumer ?? throw ThrowHelper.RouteRequiresConsumer();
         Kind = configuration.Kind;
 
         if (configuration.ResponseRuntimeType is not null)
@@ -99,7 +99,7 @@ public sealed class InboundRoute
 
         if (Endpoint is null)
         {
-            throw new InvalidOperationException("Endpoint is not connected");
+            throw ThrowHelper.RouteEndpointNotConnected();
         }
 
         MarkCompleted();
@@ -109,7 +109,7 @@ public sealed class InboundRoute
     {
         if (IsInitialized)
         {
-            throw new InvalidOperationException("Route must not be initialized");
+            throw ThrowHelper.RouteMustNotBeInitialized();
         }
     }
 
@@ -117,7 +117,7 @@ public sealed class InboundRoute
     {
         if (!IsInitialized)
         {
-            throw new InvalidOperationException("Rout must be initialized");
+            throw ThrowHelper.RouteMustBeInitialized();
         }
     }
 
@@ -125,7 +125,7 @@ public sealed class InboundRoute
     {
         if (IsCompleted)
         {
-            throw new InvalidOperationException("Route must not be completed");
+            throw ThrowHelper.RouteMustNotBeCompleted();
         }
     }
 

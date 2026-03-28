@@ -109,7 +109,7 @@ public sealed class EndpointRouter : IEndpointRouter
                 }
             }
 
-            throw new InvalidOperationException($"No transport can handle address: {address}");
+            throw ThrowHelper.NoTransportForAddress(address.ToString());
         }
     }
 
@@ -134,7 +134,7 @@ public sealed class EndpointRouter : IEndpointRouter
         {
             if (!_endpoints.TryGetValue(endpoint, out var addresses))
             {
-                throw new InvalidOperationException("Endpoint must be registered before adding addresses");
+                throw ThrowHelper.EndpointMustBeRegistered();
             }
 
             if (addresses.Contains(address))

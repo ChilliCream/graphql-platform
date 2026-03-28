@@ -4,8 +4,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Language;
-using HotChocolate.Transport.Http;
+using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -42,35 +41,43 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     /// <param name="trace">Optional trace information to include in the output.</param>
     public void Format(IBufferWriter<byte> writer, OperationPlan plan, OperationPlanTrace? trace = null)
     {
-        using var jsonWriter = new Utf8JsonWriter(writer, _writerOptions);
+        var jsonWriter = new JsonWriter(writer, _writerOptions);
         jsonWriter.WriteStartObject();
 
-        jsonWriter.WriteString("id", plan.Id);
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteStringValue(plan.Id);
 
         jsonWriter.WritePropertyName("operation");
         WriteOperation(jsonWriter, plan.Operation);
 
-        jsonWriter.WriteNumber("searchSpace", plan.SearchSpace);
-        jsonWriter.WriteNumber("expandedNodes", plan.ExpandedNodes);
+        jsonWriter.WritePropertyName("searchSpace");
+        jsonWriter.WriteNumberValue(plan.SearchSpace);
+
+        jsonWriter.WritePropertyName("expandedNodes");
+        jsonWriter.WriteNumberValue(plan.ExpandedNodes);
 
         if (trace is not null)
         {
             if (!string.IsNullOrEmpty(trace.AppId))
             {
-                jsonWriter.WriteString("appId", trace.AppId);
+                jsonWriter.WritePropertyName("appId");
+                jsonWriter.WriteStringValue(trace.AppId);
             }
 
             if (!string.IsNullOrEmpty(trace.EnvironmentName))
             {
-                jsonWriter.WriteString("environment", trace.EnvironmentName);
+                jsonWriter.WritePropertyName("environment");
+                jsonWriter.WriteStringValue(trace.EnvironmentName);
             }
 
             if (!string.IsNullOrEmpty(trace.TraceId))
             {
-                jsonWriter.WriteString("traceId", trace.TraceId);
+                jsonWriter.WritePropertyName("traceId");
+                jsonWriter.WriteStringValue(trace.TraceId);
             }
 
-            jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
+            jsonWriter.WritePropertyName("duration");
+            jsonWriter.WriteNumberValue(trace.Duration.TotalMilliseconds);
         }
 
         jsonWriter.WritePropertyName("nodes");
@@ -81,7 +88,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     internal void Format(IBufferWriter<byte> writer, Operation operation, ImmutableArray<ExecutionNode> allNodes)
     {
-        using var jsonWriter = new Utf8JsonWriter(writer, _writerOptions);
+        var jsonWriter = new JsonWriter(writer, _writerOptions);
         jsonWriter.WriteStartObject();
 
         jsonWriter.WritePropertyName("operation");
@@ -94,28 +101,37 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     }
 
     private static void WriteOperation(
-        Utf8JsonWriter jsonWriter,
+        JsonWriter jsonWriter,
         Operation operation)
     {
         jsonWriter.WriteStartObject();
 
         if (!string.IsNullOrEmpty(operation.Name))
         {
-            jsonWriter.WriteString("name", operation.Name);
+            jsonWriter.WritePropertyName("name");
+            jsonWriter.WriteStringValue(operation.Name);
         }
 
-        jsonWriter.WriteString("kind", operation.Definition.Operation.ToString());
-        jsonWriter.WriteString("document", operation.Definition.ToString(indented: true));
+        jsonWriter.WritePropertyName("kind");
+        jsonWriter.WriteStringValue(operation.Definition.Operation.ToString());
 
-        jsonWriter.WriteString("id", operation.Id);
-        jsonWriter.WriteString("hash", operation.Hash);
-        jsonWriter.WriteString("shortHash", operation.Hash[..8]);
+        jsonWriter.WritePropertyName("document");
+        jsonWriter.WriteStringValue(operation.Definition.ToString(indented: true));
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteStringValue(operation.Id);
+
+        jsonWriter.WritePropertyName("hash");
+        jsonWriter.WriteStringValue(operation.Hash);
+
+        jsonWriter.WritePropertyName("shortHash");
+        jsonWriter.WriteStringValue(operation.Hash[..8]);
 
         jsonWriter.WriteEndObject();
     }
 
     private static void WriteNodes(
-        Utf8JsonWriter jsonWriter,
+        JsonWriter jsonWriter,
         Operation operation,
         ImmutableArray<ExecutionNode> allNodes,
         OperationPlanTrace? trace)
@@ -151,38 +167,58 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     }
 
     private static void WriteOperationNode(
-        Utf8JsonWriter jsonWriter,
+        JsonWriter jsonWriter,
         Operation operation,
         OperationExecutionNode node,
         ExecutionNodeTrace? trace)
     {
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteNumber("id", node.Id);
-        jsonWriter.WriteString("type", node.Type.ToString());
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(node.Id);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(node.Type.ToString());
 
         if (!string.IsNullOrEmpty(node.SchemaName))
         {
-            jsonWriter.WriteString("schema", node.SchemaName);
+            jsonWriter.WritePropertyName("schema");
+            jsonWriter.WriteStringValue(node.SchemaName);
         }
 
-        jsonWriter.WriteStartObject("operation");
-        jsonWriter.WriteString("name", node.Operation.Name);
-        jsonWriter.WriteString("kind", node.Operation.Type.ToString());
-        jsonWriter.WriteString("document", node.Operation.SourceText);
-        jsonWriter.WriteString("hash", node.Operation.Hash);
-        jsonWriter.WriteString("shortHash", node.Operation.Hash[..8]);
+        jsonWriter.WritePropertyName("operation");
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("name");
+        jsonWriter.WriteStringValue(node.Operation.Name);
+
+        jsonWriter.WritePropertyName("kind");
+        jsonWriter.WriteStringValue(node.Operation.Type.ToString());
+
+        jsonWriter.WritePropertyName("document");
+        jsonWriter.WriteStringValue(node.Operation.SourceText);
+
+        jsonWriter.WritePropertyName("hash");
+        jsonWriter.WriteStringValue(node.Operation.Hash);
+
+        jsonWriter.WritePropertyName("shortHash");
+        jsonWriter.WriteStringValue(node.Operation.Hash[..8]);
+
         jsonWriter.WriteEndObject();
 
-        jsonWriter.WriteString("resultSelectionSet", node.ResultSelectionSet.ToString(indented: false));
+        jsonWriter.WritePropertyName("resultSelectionSet");
+        jsonWriter.WriteStringValue(node.ResultSelectionSet.ToString(indented: false));
 
         if (!node.Source.IsRoot)
         {
-            jsonWriter.WriteString("source", node.Source.ToString());
+            jsonWriter.WritePropertyName("source");
+            jsonWriter.WriteStringValue(node.Source.ToString());
         }
 
         if (!node.Target.IsRoot)
         {
-            jsonWriter.WriteString("target", node.Target.ToString());
+            jsonWriter.WritePropertyName("target");
+            jsonWriter.WriteStringValue(node.Target.ToString());
         }
 
         if (node.Requirements.Length > 0)
@@ -193,10 +229,19 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             foreach (var requirement in node.Requirements)
             {
                 jsonWriter.WriteStartObject();
-                jsonWriter.WriteString("name", requirement.Key);
-                jsonWriter.WriteString("type", requirement.Type.ToString());
-                jsonWriter.WriteString("path", requirement.Path.ToString());
-                jsonWriter.WriteString("selectionMap", requirement.Map.ToString());
+
+                jsonWriter.WritePropertyName("name");
+                jsonWriter.WriteStringValue(requirement.Key);
+
+                jsonWriter.WritePropertyName("type");
+                jsonWriter.WriteStringValue(requirement.Type.ToString());
+
+                jsonWriter.WritePropertyName("path");
+                jsonWriter.WriteStringValue(requirement.Path.ToString());
+
+                jsonWriter.WritePropertyName("selectionMap");
+                jsonWriter.WriteStringValue(requirement.Map.ToString());
+
                 jsonWriter.WriteEndObject();
             }
 
@@ -207,7 +252,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         if (node.ForwardedVariables.Length > 0)
         {
-            jsonWriter.WriteStartArray("forwardedVariables");
+            jsonWriter.WritePropertyName("forwardedVariables");
+            jsonWriter.WriteStartArray();
 
             foreach (var variableName in node.ForwardedVariables)
             {
@@ -219,7 +265,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         if (node.RequiresFileUpload)
         {
-            jsonWriter.WriteBoolean("requiresFileUpload", true);
+            jsonWriter.WritePropertyName("requiresFileUpload");
+            jsonWriter.WriteBooleanValue(true);
         }
 
         if (node.Dependencies.Length > 0)
@@ -241,7 +288,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     }
 
     private static void WriteBatchExecutionNode(
-        Utf8JsonWriter jsonWriter,
+        JsonWriter jsonWriter,
         Operation operation,
         OperationBatchExecutionNode batchNode,
         ExecutionNodeTrace? trace)
@@ -264,42 +311,63 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     }
 
     private static void WriteOperationDefinitionAsNode(
-        Utf8JsonWriter jsonWriter,
+        JsonWriter jsonWriter,
         Operation operation,
         OperationBatchExecutionNode batchNode,
         SingleOperationDefinition operationDef,
         ExecutionNodeTrace? trace)
     {
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteNumber("id", operationDef.Id);
-        jsonWriter.WriteString("type", nameof(ExecutionNodeType.Operation));
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(operationDef.Id);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(nameof(ExecutionNodeType.Operation));
 
         if (!string.IsNullOrEmpty(operationDef.SchemaName))
         {
-            jsonWriter.WriteString("schema", operationDef.SchemaName);
+            jsonWriter.WritePropertyName("schema");
+            jsonWriter.WriteStringValue(operationDef.SchemaName);
         }
 
-        jsonWriter.WriteStartObject("operation");
-        jsonWriter.WriteString("name", operationDef.Operation.Name);
-        jsonWriter.WriteString("kind", operationDef.Operation.Type.ToString());
-        jsonWriter.WriteString("document", operationDef.Operation.SourceText);
-        jsonWriter.WriteString("hash", operationDef.Operation.Hash);
-        jsonWriter.WriteString("shortHash", operationDef.Operation.Hash[..8]);
+        jsonWriter.WritePropertyName("operation");
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("name");
+        jsonWriter.WriteStringValue(operationDef.Operation.Name);
+
+        jsonWriter.WritePropertyName("kind");
+        jsonWriter.WriteStringValue(operationDef.Operation.Type.ToString());
+
+        jsonWriter.WritePropertyName("document");
+        jsonWriter.WriteStringValue(operationDef.Operation.SourceText);
+
+        jsonWriter.WritePropertyName("hash");
+        jsonWriter.WriteStringValue(operationDef.Operation.Hash);
+
+        jsonWriter.WritePropertyName("shortHash");
+        jsonWriter.WriteStringValue(operationDef.Operation.Hash[..8]);
+
         jsonWriter.WriteEndObject();
 
-        jsonWriter.WriteString("resultSelectionSet", operationDef.ResultSelectionSet.ToString(indented: false));
+        jsonWriter.WritePropertyName("resultSelectionSet");
+        jsonWriter.WriteStringValue(operationDef.ResultSelectionSet.ToString(indented: false));
 
         if (!operationDef.Source.IsRoot)
         {
-            jsonWriter.WriteString("source", operationDef.Source.ToString());
+            jsonWriter.WritePropertyName("source");
+            jsonWriter.WriteStringValue(operationDef.Source.ToString());
         }
 
         if (!operationDef.Target.IsRoot)
         {
-            jsonWriter.WriteString("target", operationDef.Target.ToString());
+            jsonWriter.WritePropertyName("target");
+            jsonWriter.WriteStringValue(operationDef.Target.ToString());
         }
 
-        jsonWriter.WriteNumber("batchingGroupId", batchNode.Id);
+        jsonWriter.WritePropertyName("batchingGroupId");
+        jsonWriter.WriteNumberValue(batchNode.Id);
 
         if (operationDef.Requirements.Length > 0)
         {
@@ -309,10 +377,19 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             foreach (var requirement in operationDef.Requirements)
             {
                 jsonWriter.WriteStartObject();
-                jsonWriter.WriteString("name", requirement.Key);
-                jsonWriter.WriteString("type", requirement.Type.ToString());
-                jsonWriter.WriteString("path", requirement.Path.ToString());
-                jsonWriter.WriteString("selectionMap", requirement.Map.ToString());
+
+                jsonWriter.WritePropertyName("name");
+                jsonWriter.WriteStringValue(requirement.Key);
+
+                jsonWriter.WritePropertyName("type");
+                jsonWriter.WriteStringValue(requirement.Type.ToString());
+
+                jsonWriter.WritePropertyName("path");
+                jsonWriter.WriteStringValue(requirement.Path.ToString());
+
+                jsonWriter.WritePropertyName("selectionMap");
+                jsonWriter.WriteStringValue(requirement.Map.ToString());
+
                 jsonWriter.WriteEndObject();
             }
 
@@ -323,7 +400,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         if (operationDef.ForwardedVariables.Length > 0)
         {
-            jsonWriter.WriteStartArray("forwardedVariables");
+            jsonWriter.WritePropertyName("forwardedVariables");
+            jsonWriter.WriteStartArray();
 
             foreach (var variableName in operationDef.ForwardedVariables)
             {
@@ -335,7 +413,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         if (operationDef.RequiresFileUpload)
         {
-            jsonWriter.WriteBoolean("requiresFileUpload", true);
+            jsonWriter.WritePropertyName("requiresFileUpload");
+            jsonWriter.WriteBooleanValue(true);
         }
 
         if (operationDef.Dependencies.Length > 0)
@@ -357,37 +436,57 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     }
 
     private static void WriteBatchOperationDefinitionAsNode(
-        Utf8JsonWriter jsonWriter,
+        JsonWriter jsonWriter,
         Operation operation,
         OperationBatchExecutionNode batchNode,
         BatchOperationDefinition operationDef,
         ExecutionNodeTrace? trace)
     {
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteNumber("id", operationDef.Id);
-        jsonWriter.WriteString("type", ExecutionNodeType.OperationBatch.ToString());
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(operationDef.Id);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(ExecutionNodeType.OperationBatch.ToString());
 
         if (!string.IsNullOrEmpty(operationDef.SchemaName))
         {
-            jsonWriter.WriteString("schema", operationDef.SchemaName);
+            jsonWriter.WritePropertyName("schema");
+            jsonWriter.WriteStringValue(operationDef.SchemaName);
         }
 
-        jsonWriter.WriteStartObject("operation");
-        jsonWriter.WriteString("name", operationDef.Operation.Name);
-        jsonWriter.WriteString("kind", operationDef.Operation.Type.ToString());
-        jsonWriter.WriteString("document", operationDef.Operation.SourceText);
-        jsonWriter.WriteString("hash", operationDef.Operation.Hash);
-        jsonWriter.WriteString("shortHash", operationDef.Operation.Hash[..8]);
+        jsonWriter.WritePropertyName("operation");
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("name");
+        jsonWriter.WriteStringValue(operationDef.Operation.Name);
+
+        jsonWriter.WritePropertyName("kind");
+        jsonWriter.WriteStringValue(operationDef.Operation.Type.ToString());
+
+        jsonWriter.WritePropertyName("document");
+        jsonWriter.WriteStringValue(operationDef.Operation.SourceText);
+
+        jsonWriter.WritePropertyName("hash");
+        jsonWriter.WriteStringValue(operationDef.Operation.Hash);
+
+        jsonWriter.WritePropertyName("shortHash");
+        jsonWriter.WriteStringValue(operationDef.Operation.Hash[..8]);
+
         jsonWriter.WriteEndObject();
 
-        jsonWriter.WriteString("resultSelectionSet", operationDef.ResultSelectionSet.ToString(indented: false));
+        jsonWriter.WritePropertyName("resultSelectionSet");
+        jsonWriter.WriteStringValue(operationDef.ResultSelectionSet.ToString(indented: false));
 
         if (!operationDef.Source.IsRoot)
         {
-            jsonWriter.WriteString("source", operationDef.Source.ToString());
+            jsonWriter.WritePropertyName("source");
+            jsonWriter.WriteStringValue(operationDef.Source.ToString());
         }
 
-        jsonWriter.WriteStartArray("targets");
+        jsonWriter.WritePropertyName("targets");
+        jsonWriter.WriteStartArray();
 
         foreach (var target in operationDef.Targets)
         {
@@ -396,7 +495,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         jsonWriter.WriteEndArray();
 
-        jsonWriter.WriteNumber("batchingGroupId", batchNode.Id);
+        jsonWriter.WritePropertyName("batchingGroupId");
+        jsonWriter.WriteNumberValue(batchNode.Id);
 
         if (operationDef.Requirements.Length > 0)
         {
@@ -406,10 +506,19 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             foreach (var requirement in operationDef.Requirements)
             {
                 jsonWriter.WriteStartObject();
-                jsonWriter.WriteString("name", requirement.Key);
-                jsonWriter.WriteString("type", requirement.Type.ToString());
-                jsonWriter.WriteString("path", requirement.Path.ToString());
-                jsonWriter.WriteString("selectionMap", requirement.Map.ToString());
+
+                jsonWriter.WritePropertyName("name");
+                jsonWriter.WriteStringValue(requirement.Key);
+
+                jsonWriter.WritePropertyName("type");
+                jsonWriter.WriteStringValue(requirement.Type.ToString());
+
+                jsonWriter.WritePropertyName("path");
+                jsonWriter.WriteStringValue(requirement.Path.ToString());
+
+                jsonWriter.WritePropertyName("selectionMap");
+                jsonWriter.WriteStringValue(requirement.Map.ToString());
+
                 jsonWriter.WriteEndObject();
             }
 
@@ -420,7 +529,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         if (operationDef.ForwardedVariables.Length > 0)
         {
-            jsonWriter.WriteStartArray("forwardedVariables");
+            jsonWriter.WritePropertyName("forwardedVariables");
+            jsonWriter.WriteStartArray();
 
             foreach (var variableName in operationDef.ForwardedVariables)
             {
@@ -432,7 +542,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         if (operationDef.RequiresFileUpload)
         {
-            jsonWriter.WriteBoolean("requiresFileUpload", true);
+            jsonWriter.WritePropertyName("requiresFileUpload");
+            jsonWriter.WriteBooleanValue(true);
         }
 
         if (operationDef.Dependencies.Length > 0)
@@ -453,7 +564,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndObject();
     }
 
-    private static void WriteConditions(Utf8JsonWriter jsonWriter, ReadOnlySpan<ExecutionNodeCondition> conditions)
+    private static void WriteConditions(JsonWriter jsonWriter, ReadOnlySpan<ExecutionNodeCondition> conditions)
     {
         if (conditions.Length > 0)
         {
@@ -463,8 +574,13 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             foreach (var condition in conditions)
             {
                 jsonWriter.WriteStartObject();
-                jsonWriter.WriteString("variable", "$" + condition.VariableName);
-                jsonWriter.WriteBoolean("passingValue", condition.PassingValue);
+
+                jsonWriter.WritePropertyName("variable");
+                jsonWriter.WriteStringValue("$" + condition.VariableName);
+
+                jsonWriter.WritePropertyName("passingValue");
+                jsonWriter.WriteBooleanValue(condition.PassingValue);
+
                 jsonWriter.WriteEndObject();
             }
 
@@ -473,23 +589,35 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     }
 
     private static void WriteIntrospectionNode(
-        Utf8JsonWriter jsonWriter,
+        JsonWriter jsonWriter,
         Operation operation,
         IntrospectionExecutionNode node,
         ExecutionNodeTrace? trace)
     {
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteNumber("id", node.Id);
-        jsonWriter.WriteString("type", node.Type.ToString());
 
-        jsonWriter.WriteStartArray("selections");
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(node.Id);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(node.Type.ToString());
+
+        jsonWriter.WritePropertyName("selections");
+        jsonWriter.WriteStartArray();
 
         foreach (var selection in node.Selections)
         {
             jsonWriter.WriteStartObject();
-            jsonWriter.WriteNumber("id", selection.Id);
-            jsonWriter.WriteString("responseName", selection.ResponseName);
-            jsonWriter.WriteString("fieldName", selection.Field.Name);
+
+            jsonWriter.WritePropertyName("id");
+            jsonWriter.WriteNumberValue(selection.Id);
+
+            jsonWriter.WritePropertyName("responseName");
+            jsonWriter.WriteStringValue(selection.ResponseName);
+
+            jsonWriter.WritePropertyName("fieldName");
+            jsonWriter.WriteStringValue(selection.Field.Name);
+
             jsonWriter.WriteEndObject();
         }
 
@@ -503,28 +631,38 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     }
 
     private static void WriteNodeFieldNode(
-        Utf8JsonWriter jsonWriter,
+        JsonWriter jsonWriter,
         Operation operation,
         NodeFieldExecutionNode node,
         ExecutionNodeTrace? trace)
     {
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteNumber("id", node.Id);
-        jsonWriter.WriteString("type", node.Type.ToString());
 
-        jsonWriter.WriteString("idValue", node.IdValue.ToString());
-        jsonWriter.WriteString("responseName", node.ResponseName);
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(node.Id);
 
-        jsonWriter.WriteStartObject("branches");
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(node.Type.ToString());
+
+        jsonWriter.WritePropertyName("idValue");
+        jsonWriter.WriteStringValue(node.IdValue.ToString());
+
+        jsonWriter.WritePropertyName("responseName");
+        jsonWriter.WriteStringValue(node.ResponseName);
+
+        jsonWriter.WritePropertyName("branches");
+        jsonWriter.WriteStartObject();
 
         foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
         {
-            jsonWriter.WriteNumber(branch.Key, branch.Value.Id);
+            jsonWriter.WritePropertyName(branch.Key);
+            jsonWriter.WriteNumberValue(branch.Value.Id);
         }
 
         jsonWriter.WriteEndObject();
 
-        jsonWriter.WriteNumber("fallback", node.FallbackQuery.Id);
+        jsonWriter.WritePropertyName("fallback");
+        jsonWriter.WriteNumberValue(node.FallbackQuery.Id);
 
         TryWriteConditions(jsonWriter, node);
 
@@ -533,26 +671,31 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndObject();
     }
 
-    private static void TryWriteNodeTrace(Utf8JsonWriter jsonWriter, Operation operation, ExecutionNodeTrace? trace)
+    private static void TryWriteNodeTrace(JsonWriter jsonWriter, Operation operation, ExecutionNodeTrace? trace)
     {
         if (trace is not null)
         {
             if (!string.IsNullOrEmpty(trace.SpanId))
             {
-                jsonWriter.WriteString("spanId", trace.SpanId);
+                jsonWriter.WritePropertyName("spanId");
+                jsonWriter.WriteStringValue(trace.SpanId);
             }
 
-            jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
-            jsonWriter.WriteString("status", trace.Status.ToString());
+            jsonWriter.WritePropertyName("duration");
+            jsonWriter.WriteNumberValue(trace.Duration.TotalMilliseconds);
+
+            jsonWriter.WritePropertyName("status");
+            jsonWriter.WriteStringValue(trace.Status.ToString());
 
             if (trace.VariableSets.Length > 0)
             {
-                jsonWriter.WriteStartObject("variableSets");
+                jsonWriter.WritePropertyName("variableSets");
+                jsonWriter.WriteStartObject();
 
                 foreach (var variableSet in trace.VariableSets)
                 {
                     jsonWriter.WritePropertyName(variableSet.Path.ToPath(operation).Print());
-                    WriteObjectValueNode(jsonWriter, variableSet.Values);
+                    variableSet.Values.WriteTo(jsonWriter);
                 }
 
                 jsonWriter.WriteEndObject();
@@ -560,15 +703,21 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
             if (trace.Transport is not null)
             {
-                jsonWriter.WriteStartObject("transport");
-                jsonWriter.WriteString("uri", trace.Transport.Uri.ToString());
-                jsonWriter.WriteString("contentType", trace.Transport.ContentType);
+                jsonWriter.WritePropertyName("transport");
+                jsonWriter.WriteStartObject();
+
+                jsonWriter.WritePropertyName("uri");
+                jsonWriter.WriteStringValue(trace.Transport.Uri.ToString());
+
+                jsonWriter.WritePropertyName("contentType");
+                jsonWriter.WriteStringValue(trace.Transport.ContentType);
+
                 jsonWriter.WriteEndObject();
             }
         }
     }
 
-    private static void TryWriteConditions(Utf8JsonWriter jsonWriter, ExecutionNode node)
+    private static void TryWriteConditions(JsonWriter jsonWriter, ExecutionNode node)
     {
         if (node.Conditions.Length > 0)
         {
@@ -578,78 +727,17 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             foreach (var condition in node.Conditions)
             {
                 jsonWriter.WriteStartObject();
-                jsonWriter.WriteString("variable", "$" + condition.VariableName);
-                jsonWriter.WriteBoolean("passingValue", condition.PassingValue);
+
+                jsonWriter.WritePropertyName("variable");
+                jsonWriter.WriteStringValue("$" + condition.VariableName);
+
+                jsonWriter.WritePropertyName("passingValue");
+                jsonWriter.WriteBooleanValue(condition.PassingValue);
+
                 jsonWriter.WriteEndObject();
             }
 
             jsonWriter.WriteEndArray();
-        }
-    }
-
-    private static void WriteObjectValueNode(Utf8JsonWriter jsonWriter, ObjectValueNode node)
-    {
-        jsonWriter.WriteStartObject();
-
-        foreach (var field in node.Fields)
-        {
-            if (field.Value is FileReferenceNode)
-            {
-                continue;
-            }
-
-            jsonWriter.WritePropertyName(field.Name.Value);
-            WriteValueNode(jsonWriter, field.Value);
-        }
-
-        jsonWriter.WriteEndObject();
-    }
-
-    private static void WriteValueNode(Utf8JsonWriter jsonWriter, IValueNode value)
-    {
-        switch (value)
-        {
-            case EnumValueNode enumValue:
-                jsonWriter.WriteStringValue(enumValue.Value);
-                break;
-
-            case FloatValueNode floatValue:
-                jsonWriter.WriteRawValue(floatValue.AsSpan());
-                break;
-
-            case IntValueNode intValue:
-                jsonWriter.WriteRawValue(intValue.AsSpan());
-                break;
-
-            case BooleanValueNode booleanValue:
-                jsonWriter.WriteBooleanValue(booleanValue.Value);
-                break;
-
-            case ListValueNode listValue:
-                jsonWriter.WriteStartArray();
-
-                foreach (var item in listValue.Items)
-                {
-                    WriteValueNode(jsonWriter, item);
-                }
-
-                jsonWriter.WriteEndArray();
-                break;
-
-            case NullValueNode:
-                jsonWriter.WriteNullValue();
-                break;
-
-            case ObjectValueNode objectValue:
-                WriteObjectValueNode(jsonWriter, objectValue);
-                break;
-
-            case StringValueNode stringValue:
-                jsonWriter.WriteStringValue(stringValue.AsSpan());
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(value));
         }
     }
 }

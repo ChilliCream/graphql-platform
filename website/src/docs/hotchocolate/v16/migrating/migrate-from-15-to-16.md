@@ -204,7 +204,7 @@ public class CustomRequestMiddleware
 }
 ```
 
-## `Schema.DefaultName` moved to `ISchemaDefinition.DefaultName`
+## Schema.DefaultName moved to ISchemaDefinition.DefaultName
 
 The `Schema.DefaultName` constant is no longer available in v16.
 Use `ISchemaDefinition.DefaultName` instead:
@@ -216,7 +216,7 @@ Use `ISchemaDefinition.DefaultName` instead:
 
 If you previously used a string literal for the default schema name, replace it with `ISchemaDefinition.DefaultName` (current value: `_Default`).
 
-## Resolver `Selection` API changes
+## Resolver Selection API changes
 
 In v16, `context.Selection` is a compiled execution selection. The old `context.Selection.SelectionSet` is no longer available.
 
@@ -253,7 +253,7 @@ Most of the properties you'd want to modify are now immutable data structures th
 
 ## Page and cursor API changes
 
-### `Page<T>` is now abstract
+### Page\<T> is now abstract
 
 `Page<T>` can no longer be instantiated directly. Use the static factory methods instead:
 
@@ -275,7 +275,7 @@ Most of the properties you'd want to modify are now immutable data structures th
 +    totalCount: totalCount);
 ```
 
-### `CreateCursor` now takes an index instead of an item
+### CreateCursor now takes an index instead of an item
 
 `Page<T>.CreateCursor` previously accepted a `T` item. It now accepts a zero-based `int` index into the page's `Items` array. This enables cursor generation from the underlying source element when a `valueSelector` projection is used.
 
@@ -295,7 +295,7 @@ Use the new convenience extension methods `CreateStartCursor()` and `CreateEndCu
 
 Two new properties, `FirstIndex` and `LastIndex`, return the zero-based indices of the first and last items (or `null` for an empty page).
 
-### `Edge<T>` constructor changes
+### Edge\<T> constructor changes
 
 A new constructor overload accepts the item, its zero-based index, and a `Func<int, string>` cursor resolver:
 
@@ -306,7 +306,7 @@ A new constructor overload accepts the item, its zero-based index, and a `Func<i
 
 The existing `Edge<T>(T node, Func<T, string> resolveCursor)` constructor is still available for cases where the cursor is resolved from the item itself.
 
-### `ToConnectionAsync` with custom edge factory
+### ToConnectionAsync with custom edge factory
 
 The `ToConnectionAsync` overloads that accept a custom edge factory now pass the zero-based item index instead of the item's cursor:
 
@@ -316,10 +316,6 @@ The `ToConnectionAsync` overloads that accept a custom edge factory now pass the
 +.ToConnectionAsync((source, page, index) =>
 +    new MyEdge(source, page.CreateCursor(index)));
 ```
-
-### `ToBatchPageAsync` with `valueSelector`
-
-`ToBatchPageAsync<TKey, TValue, TElement>` now supports a `valueSelector` parameter (`Func<TElement, TValue>`) that projects each source element before the page is returned, while preserving the original elements for correct cursor generation. Passing `null` for `valueSelector` is only valid when `TElement` and `TValue` are the same type; a mismatched combination throws `ArgumentNullException` at runtime.
 
 ## OperationResult changes
 
@@ -339,7 +335,7 @@ Deprecating a field now requires the implemented field in the interface to also 
 
 Previously, the global ID input value formatter was added to ID filter fields regardless of whether or not Global Object Identification was enabled. This is now conditional.
 
-## `fieldCoordinate` renamed to `coordinate` in error extensions
+## fieldCoordinate renamed to coordinate in error extensions
 
 Some GraphQL validation errors included an extension named `fieldCoordinate` that provided a schema coordinate pointing to the field or argument that caused the error. Since schema coordinates can reference various schema elements (not just fields), we've renamed this extension to `coordinate` for clarity.
 
@@ -370,7 +366,7 @@ Some GraphQL validation errors included an extension named `fieldCoordinate` tha
 }
 ```
 
-## `FileValueNode` renamed to `UploadValueNode`
+## FileValueNode renamed to UploadValueNode
 
 The upload literal node has been renamed from `FileValueNode` to `UploadValueNode`.
 If you are referencing this type directly in custom scalar logic or tests, update your code accordingly:
@@ -391,7 +387,7 @@ If you are constructing upload value nodes manually, note that the constructor n
 +var valueNode = new UploadValueNode("0", file);
 ```
 
-## Errors from `TypeConverter`s are now accessible in the `ErrorFilter`
+## Errors from TypeConverters are now accessible in the ErrorFilter
 
 Previously, exceptions thrown by a `TypeConverter` were not forwarded to the `ErrorFilter`. Such exceptions are now properly propagated and can therefore be intercepted.
 
@@ -423,7 +419,7 @@ In addition, the default output for such errors has been standardized: earlier, 
 }
 ```
 
-## Generic `ID<Type>`-attribute now infers the actual GraphQL type name
+## Generic ID\<Type>-attribute now infers the actual GraphQL type name
 
 Previously, `[ID<Type>]` used the CLR type name (`nameof(Type)`), even when a different GraphQL type name was configured via `[GraphQLName]` or `descriptor.Name()`.
 It now uses the actual GraphQL type name if one is defined, for example:
@@ -583,7 +579,7 @@ builder.Services
         value => JsonSerializer.SerializeToElement(value.Id));
 ```
 
-### Any input fields now deserialize complex types as `JsonElement`
+### Any input fields now deserialize complex types as JsonElement
 
 Previously, complex input values for `Any`-typed input variables were deserialized as `IDictionary<string, object?>`. They are now deserialized as `JsonElement`, aligning input behavior with arbitrary output types.
 
@@ -638,18 +634,18 @@ public class FileLookup : IFileLookup
 }
 ```
 
-## `Byte` and `SignedByte` types renamed
+## Byte and SignedByte types renamed
 
 - The GraphQL type `Byte` has been renamed to `UnsignedByte` (CLR type: `byte`).
 - The GraphQL type `SignedByte` has been renamed to `Byte` (CLR type: `sbyte`).
 
 This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
 
-## Byte arrays now mapped to `Base64String`
+## Byte arrays now mapped to Base64String
 
 C# byte arrays (`byte[]`) are now mapped to the GraphQL `Base64String` type by default, as the `ByteArray` type has been deprecated.
 
-## `Uri` now mapped to `URI` scalar instead of `URL`
+## Uri now mapped to URI scalar instead of URL
 
 The CLR type `Uri` is now mapped to a new `URI` scalar, instead of the `URL` scalar.
 
@@ -765,7 +761,7 @@ Additionally, a new `MaxBatchSize` property limits the number of operations in a
 
 For more details, see [Batching](/docs/hotchocolate/v16/server/batching).
 
-## New default incremental delivery format for `@defer` and `@stream`
+## New default incremental delivery format for @defer and @stream
 
 Hot Chocolate v16 changes the default wire format for incremental delivery (`@defer` / `@stream`) from the legacy path-based format (v0.1) to the newer id-based format (v0.2). This affects all streaming transports: multipart, SSE, and JSON Lines.
 
@@ -816,11 +812,11 @@ builder.Services
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
 
-## `OperationRequestBuilder.AddVariableValues` renamed to `SetVariableValues`
+## OperationRequestBuilder.AddVariableValues renamed to SetVariableValues
 
 `OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
 
-## `TimeSpan` scalar renamed to `Duration`
+## TimeSpan scalar renamed to Duration
 
 The `TimeSpan` scalar has been renamed to `Duration` to better reflect the underlying specification (ISO 8601), and move away from .NET-oriented naming.
 
@@ -866,7 +862,7 @@ If your schema used any of these scalars in v15, your project will no longer com
 
 If you still need one of the removed scalars, add it back manually in your application as a custom scalar.
 
-### Use `AddNodaTime()` to register the new scalars
+### Use AddNodaTime() to register the new scalars
 
 v16 adds a dedicated `AddNodaTime()` extension method that registers all five built-in NodaTime scalars and the related CLR bindings and converters:
 
@@ -892,7 +888,7 @@ If you prefer, you can still register the remaining scalar types individually in
 
 ## AddInstrumentation
 
-### `InstrumentationOptions` changes
+### InstrumentationOptions changes
 
 - `RenameRootActivity` was removed.
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
@@ -1016,7 +1012,7 @@ Also note that `SubscriptionTransportError(...)` is no longer exposed separately
 
 Things that will continue to function this release, but we encourage you to move away from.
 
-## `ByteArray`
+## ByteArray
 
 The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 

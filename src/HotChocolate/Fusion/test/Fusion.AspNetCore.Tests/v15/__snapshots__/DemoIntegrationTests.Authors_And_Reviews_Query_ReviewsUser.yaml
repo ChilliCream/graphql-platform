@@ -318,34 +318,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoxMA=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
                     "name": "User: VXNlcjoxMQ=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMQ=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMg=="
                   }
                 }
               }

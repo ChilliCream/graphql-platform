@@ -11,17 +11,10 @@ public sealed class ContextPoolingTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        // Void command
-        services.AddScoped<ICommandHandler<PoolTestCommand>, PoolTestCommandHandler>();
-
-        // Command with response
-        services.AddScoped<ICommandHandler<PoolTestCommandWithResponse, string>, PoolTestCommandWithResponseHandler>();
-
-        // Nested-dispatch command: the handler dispatches another command internally
-        services.AddScoped<ICommandHandler<NestedOuterCommand>, NestedOuterCommandHandler>();
-
-        // Context-capturing command
-        services.AddScoped<ICommandHandler<ContextCaptureCommand, string>, ContextCaptureCommandHandler>();
+        services.AddScoped<PoolTestCommandHandler>();
+        services.AddScoped<PoolTestCommandWithResponseHandler>();
+        services.AddScoped<NestedOuterCommandHandler>();
+        services.AddScoped<ContextCaptureCommandHandler>();
 
         // Register middleware that captures context references for nested-dispatch test
         // and context-field verification test. Since Use() applies to all pipelines,
@@ -59,28 +52,10 @@ public sealed class ContextPoolingTests : IDisposable
 
         builder.ConfigureMediator(b =>
         {
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PoolTestCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<PoolTestCommand>()
-            });
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(PoolTestCommandWithResponse),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<PoolTestCommandWithResponse, string>()
-            });
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(NestedOuterCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<NestedOuterCommand>()
-            });
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(ContextCaptureCommand),
-                ResponseType = typeof(string),
-                Terminal = PipelineBuilder.BuildCommandTerminal<ContextCaptureCommand, string>()
-            });
+            b.AddHandler<PoolTestCommandHandler>();
+            b.AddHandler<PoolTestCommandWithResponseHandler>();
+            b.AddHandler<NestedOuterCommandHandler>();
+            b.AddHandler<ContextCaptureCommandHandler>();
         });
 
         _provider = services.BuildServiceProvider();

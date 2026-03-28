@@ -158,6 +158,8 @@ public sealed partial class SourceResultDocument
     private static void ParseJson(ref Utf8JsonReader reader, ref MetaDb metaDb, bool skipInitialRead = false)
     {
         Span<Cursor> containerStart = stackalloc Cursor[64];
+        Span<int> containerChildCount = stackalloc int[64];
+        var containerIsArrayBits = 0UL;
         var stackIndex = 0;
 
         while (skipInitialRead || reader.Read())
@@ -173,40 +175,50 @@ public sealed partial class SourceResultDocument
                 tokenLength--;
             }
 
+            // Count direct children incrementally.
+            if (stackIndex > 0)
+            {
+                if (tokenType == JsonTokenType.PropertyName)
+                {
+                    containerChildCount[stackIndex - 1]++;
+                }
+                else if ((containerIsArrayBits & (1UL << (stackIndex - 1))) != 0
+                    && tokenType is not (JsonTokenType.EndObject or JsonTokenType.EndArray))
+                {
+                    containerChildCount[stackIndex - 1]++;
+                }
+            }
+
             switch (tokenType)
             {
                 case JsonTokenType.StartObject:
-                {
-                    var startCursor = metaDb.Append(tokenType, location);
-                    containerStart[stackIndex++] = startCursor;
+                    containerStart[stackIndex] = metaDb.Append(tokenType, location);
+                    containerChildCount[stackIndex] = 0;
+                    containerIsArrayBits &= ~(1UL << stackIndex);
+                    stackIndex++;
                     break;
-                }
 
                 case JsonTokenType.EndObject:
-                {
-                    var startCursor = containerStart[--stackIndex];
-                    CloseObject(ref metaDb, startCursor, location);
+                    --stackIndex;
+                    CloseObject(ref metaDb, containerStart[stackIndex], location, containerChildCount[stackIndex]);
 
                     if (stackIndex == 0)
                     {
                         return;
                     }
                     break;
-                }
 
                 case JsonTokenType.StartArray:
-                {
-                    var startCursor = metaDb.Append(tokenType, location);
-                    containerStart[stackIndex++] = startCursor;
+                    containerStart[stackIndex] = metaDb.Append(tokenType, location);
+                    containerChildCount[stackIndex] = 0;
+                    containerIsArrayBits |= 1UL << stackIndex;
+                    stackIndex++;
                     break;
-                }
 
                 case JsonTokenType.EndArray:
-                {
-                    var startCursor = containerStart[--stackIndex];
-                    CloseArray(ref metaDb, startCursor, location);
+                    --stackIndex;
+                    CloseArray(ref metaDb, containerStart[stackIndex], location, containerChildCount[stackIndex]);
                     break;
-                }
 
                 case JsonTokenType.PropertyName:
                 case JsonTokenType.String:
@@ -241,17 +253,12 @@ public sealed partial class SourceResultDocument
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void CloseObject(ref MetaDb metaDb, Cursor startId, int location)
+    private static void CloseObject(ref MetaDb metaDb, Cursor startId, int location, int properties)
     {
-        var startRow = metaDb.Get(startId);
-
-        if (startRow.TokenType != JsonTokenType.StartObject)
-        {
-            throw new JsonException($"Expected {JsonTokenType.StartObject} but found {startRow.TokenType}.");
-        }
+        Debug.Assert(metaDb.Get(startId).TokenType == JsonTokenType.StartObject);
 
         var endId = metaDb.Append(JsonTokenType.EndObject, location);
-        var (properties, rows) = CalculateObjectPropertyCount(ref metaDb, startId, endId);
+        var rows = CursorDistance(startId, endId);
 
         metaDb.SetLength(startId, properties);
         metaDb.SetNumberOfRows(startId, rows);
@@ -260,23 +267,22 @@ public sealed partial class SourceResultDocument
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void CloseArray(ref MetaDb metaDb, Cursor startCursor, int location)
+    private static void CloseArray(ref MetaDb metaDb, Cursor startCursor, int location, int elements)
     {
-        var startRow = metaDb.Get(startCursor);
-
-        if (startRow.TokenType != JsonTokenType.StartArray)
-        {
-            throw new JsonException($"Expected {JsonTokenType.StartArray} but found {startRow.TokenType}.");
-        }
+        Debug.Assert(metaDb.Get(startCursor).TokenType == JsonTokenType.StartArray);
 
         var endId = metaDb.Append(JsonTokenType.EndArray, location);
-        var (elements, rows) = CalculateArrayCounts(ref metaDb, startCursor, endId);
+        var rows = CursorDistance(startCursor, endId);
 
         metaDb.SetLength(startCursor, elements);
         metaDb.SetNumberOfRows(startCursor, rows);
         metaDb.SetLength(endId, elements);
         metaDb.SetNumberOfRows(endId, rows);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int CursorDistance(Cursor start, Cursor end)
+        => ((end.Chunk - start.Chunk) * Cursor.RowsPerChunk) + end.Row - start.Row + 1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AppendStringToken(
@@ -304,66 +310,6 @@ public sealed partial class SourceResultDocument
             startLocation,
             tokenLength,
             ContainsScientificNotation(reader.ValueSpan));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static (int Properties, int Rows) CalculateObjectPropertyCount(
-        ref MetaDb metaDb,
-        Cursor startId,
-        Cursor endId)
-    {
-        if (startId + 1 == endId)
-        {
-            return (0, 2);
-        }
-
-        var properties = 0;
-        var rows = 2;
-        var current = startId + 1;
-
-        while (current < endId)
-        {
-            // Property name (string)
-            properties++;
-            var row = metaDb.Get(current);
-            Debug.Assert(row.TokenType is JsonTokenType.PropertyName);
-
-            current += row.NumberOfRows;
-            rows += row.NumberOfRows;
-
-            // Property value (any)
-            row = metaDb.Get(current);
-            current += row.NumberOfRows;
-            rows += row.NumberOfRows;
-        }
-
-        return (properties, rows);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static (int Elements, int Rows) CalculateArrayCounts(
-        ref MetaDb metaDb,
-        Cursor startId,
-        Cursor endId)
-    {
-        if (startId + 1 == endId)
-        {
-            return (0, 2);
-        }
-
-        var elements = 0;
-        var rows = 2;
-        var current = startId + 1;
-
-        while (current < endId)
-        {
-            elements++;
-            var row = metaDb.Get(current);
-            rows += row.NumberOfRows;
-            current += row.NumberOfRows;
-        }
-
-        return (elements, rows);
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ContainsEscapeSequences(Utf8JsonReader reader)

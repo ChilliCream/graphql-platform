@@ -2,7 +2,6 @@ using Demo.Contracts.Events;
 using Demo.Shipping.Data;
 using Demo.Shipping.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Mediator;
 
@@ -27,10 +26,14 @@ public class ReceiveReturnPackageCommandHandler(
         var returnShipment = await db.ReturnShipments.FirstOrDefaultAsync(
             r => r.Id == command.ReturnId, cancellationToken);
         if (returnShipment is null)
+        {
             return new ReceiveReturnPackageResult(false, Error: "Return shipment not found");
+        }
 
         if (returnShipment.Status == ReturnShipmentStatus.Received)
+        {
             return new ReceiveReturnPackageResult(false, Error: "Return package already received");
+        }
 
         returnShipment.Status = ReturnShipmentStatus.Received;
         returnShipment.ReceivedAt = DateTimeOffset.UtcNow;

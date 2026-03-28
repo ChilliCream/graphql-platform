@@ -254,22 +254,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "name": "JRR Tolkien"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "name": "JRR Tolkien"
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |

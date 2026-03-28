@@ -3,6 +3,7 @@ using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
 
@@ -62,6 +63,13 @@ public class FusionActivityEnricher(InstrumentationOptions options) : ActivityEn
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId,
+        Activity activity)
+    {
+    }
+
+    public virtual void EnrichAddedOperationPlanToCache(
+        RequestContext context,
+        string operationPlanId,
         Activity activity)
     {
     }

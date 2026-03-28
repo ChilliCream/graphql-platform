@@ -2,7 +2,6 @@ using Demo.Catalog.Data;
 using Demo.Catalog.Entities;
 using Demo.Contracts.Commands;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Mediator;
 
@@ -32,10 +31,14 @@ public class InitiateReturnCommandHandler(
         var order = await db.Orders.Include(o => o.Product)
             .FirstOrDefaultAsync(o => o.Id == command.OrderId, cancellationToken);
         if (order is null)
+        {
             return new InitiateReturnResult(false, Error: "Order not found");
+        }
 
         if (order.Status != OrderStatus.Delivered && order.Status != OrderStatus.Shipping)
+        {
             return new InitiateReturnResult(false, Error: $"Order cannot be returned in status: {order.Status}");
+        }
 
         logger.LogInformation("Creating return label for order {OrderId}", command.OrderId);
 
@@ -56,7 +59,9 @@ public class InitiateReturnCommandHandler(
                 cancellationToken);
 
             if (!labelResponse.Success)
+            {
                 return new InitiateReturnResult(false, Error: $"Failed to create return label: {labelResponse.FailureReason}");
+            }
 
             order.Status = OrderStatus.ReturnInitiated;
             order.UpdatedAt = DateTimeOffset.UtcNow;

@@ -14,22 +14,17 @@ namespace Microsoft.Extensions.DependencyInjection
         public static global::Mocha.Mediator.IMediatorHostBuilder AddTests(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
-            var services = builder.Services;
-            var lifetime = builder.Options.ServiceLifetime;
 
-            // Register handlers
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(services, new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.IQueryHandler<global::TestApp.GetUserQuery, global::TestApp.UserDto>), typeof(global::TestApp.GetUserHandler), lifetime));
-
-            // Register pipelines
-            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(builder, static b =>
-            {
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            // Register handler configurations
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.GetUserHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::TestApp.GetUserHandler),
                     MessageType = typeof(global::TestApp.GetUserQuery),
                     ResponseType = typeof(global::TestApp.UserDto),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildQueryTerminal<global::TestApp.GetUserQuery, global::TestApp.UserDto>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Query,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::TestApp.GetUserHandler, global::TestApp.GetUserQuery, global::TestApp.UserDto>()
                 });
-            });
 
             return builder;
         }

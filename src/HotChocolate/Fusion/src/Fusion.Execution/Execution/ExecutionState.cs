@@ -7,7 +7,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSource cts)
+internal sealed class ExecutionState
 {
     private const byte NodeStateNone = 0;
     private const byte NodeStateBacklog = 1;
@@ -20,6 +20,8 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
     private readonly HashSet<int> _failedOrSkippedNodes = [];
 
+    private bool _collectTelemetry;
+    private CancellationTokenSource _cts = default!;
     private byte[] _nodeStates = [];
     private int[] _remainingDependencies = [];
     private int _backlogCount;
@@ -27,6 +29,18 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     public readonly OrderedDictionary<int, ExecutionNodeTrace> Traces = [];
     public readonly AsyncAutoResetEvent Signal = new();
+
+    public void Initialize(bool collectTelemetry, CancellationTokenSource cts)
+    {
+        _collectTelemetry = collectTelemetry;
+        _cts = cts;
+    }
+
+    public void Clean()
+    {
+        Reset();
+        _cts = default!;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsNodeSkipped(int nodeId)
@@ -119,7 +133,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         }
 
         RemoveFromBacklog(node.Id, NodeStateNone);
-        _ = node.ExecuteAsync(context, cancellationToken);
+        node.BeginExecute(context, cancellationToken);
     }
 
     public void EnqueueForCompletion(ExecutionNodeResult result)
@@ -133,9 +147,9 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     public void CancelProcessing()
     {
-        if (!cts.IsCancellationRequested)
+        if (!_cts.IsCancellationRequested)
         {
-            cts.Cancel();
+            _cts.Cancel();
         }
     }
 
@@ -146,7 +160,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     {
         Interlocked.Decrement(ref _activeNodes);
 
-        if (collectTelemetry)
+        if (_collectTelemetry)
         {
             Traces.TryAdd(
                 result.Id,
@@ -266,7 +280,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             }
 
             if (RemoveFromBacklog(current.Id, NodeStateSkipped)
-                && collectTelemetry
+                && _collectTelemetry
                 && !Traces.ContainsKey(current.Id))
             {
                 Traces.Add(

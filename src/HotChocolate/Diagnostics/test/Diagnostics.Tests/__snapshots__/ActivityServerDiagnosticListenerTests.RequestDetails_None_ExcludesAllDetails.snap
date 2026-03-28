@@ -39,6 +39,10 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:9335388c19fd2e230b6294a596d13a93"
+            },
+            {
+              "Key": "graphql.errors.count",
+              "Value": 0
             }
           ],
           "event": [

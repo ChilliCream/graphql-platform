@@ -12,26 +12,17 @@ public sealed class InstrumentationTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<ICommandHandler<InstrumentedCommand>, InstrumentedCommandHandler>();
-        services.AddScoped<ICommandHandler<InstrumentedThrowingCommand>, InstrumentedThrowingCommandHandler>();
+        services.AddScoped<InstrumentedCommandHandler>();
+        services.AddScoped<InstrumentedThrowingCommandHandler>();
 
-        var listener = _listener;
         builder.ConfigureMediator(b =>
         {
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(InstrumentedCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<InstrumentedCommand>()
-            });
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(InstrumentedThrowingCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<InstrumentedThrowingCommand>()
-            });
+            b.AddHandler<InstrumentedCommandHandler>();
+            b.AddHandler<InstrumentedThrowingCommandHandler>();
         });
 
         // Register test listener via the builder's internal services.
-        builder.AddDiagnosticEventListener(listener);
+        builder.AddDiagnosticEventListener(_listener);
 
         _provider = services.BuildServiceProvider();
     }
@@ -83,16 +74,9 @@ public sealed class InstrumentationTests : IDisposable
 
         var services = new ServiceCollection();
         var builder = services.AddMediator();
-        services.AddScoped<ICommandHandler<InstrumentedCommand>, InstrumentedCommandHandler>();
+        services.AddScoped<InstrumentedCommandHandler>();
 
-        builder.ConfigureMediator(b =>
-        {
-            b.RegisterPipeline(new MediatorPipelineConfiguration
-            {
-                MessageType = typeof(InstrumentedCommand),
-                Terminal = PipelineBuilder.BuildVoidCommandTerminal<InstrumentedCommand>()
-            });
-        });
+        builder.ConfigureMediator(b => b.AddHandler<InstrumentedCommandHandler>());
 
         builder.AddDiagnosticEventListener(first);
         builder.AddDiagnosticEventListener(second);

@@ -45,7 +45,7 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables);
-        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping);
+        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
@@ -296,7 +296,7 @@ public sealed partial class OperationPlanner
         List<string>? variableBuffer)
     {
         var requirements = operationStep.Requirements.IsEmpty
-            ? Array.Empty<OperationRequirement>()
+            ? []
             : operationStep.Requirements.OrderBy(t => t.Key).Select(t => t.Value).ToArray();
 
         var forwardedVariables = Array.Empty<string>();
@@ -347,10 +347,11 @@ public sealed partial class OperationPlanner
 
     private static void MergeAndBatchOperations(
         ExecutionPlanBuildContext ctx,
-        bool enableRequestGrouping)
+        bool enableRequestGrouping,
+        OperationMergePolicy mergePolicy)
     {
         var nodeFieldBoundCache = new Dictionary<int, bool>();
-        var mergeResults = MergeStructurallyIdenticalOperations(ctx, nodeFieldBoundCache);
+        var mergeResults = MergeStructurallyIdenticalOperations(ctx, nodeFieldBoundCache, mergePolicy);
 
         // Capture each node's dependency identifiers now, because the batching
         // step below will rewrite the dependency lookup as it merges nodes.
@@ -375,7 +376,8 @@ public sealed partial class OperationPlanner
     /// </summary>
     private static Dictionary<int, MergeResult> MergeStructurallyIdenticalOperations(
         ExecutionPlanBuildContext ctx,
-        Dictionary<int, bool> nodeFieldBoundCache)
+        Dictionary<int, bool> nodeFieldBoundCache,
+        OperationMergePolicy mergePolicy)
     {
         var candidates = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
 
@@ -411,7 +413,8 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            foreach (var group in PartitionIntoMergeableGroups(equivalentNodes, ctx.DependenciesByStepId))
+            foreach (var group in PartitionIntoMergeableGroups(
+                equivalentNodes, ctx.DependenciesByStepId, mergePolicy))
             {
                 if (group.Count <= 1)
                 {
@@ -888,12 +891,10 @@ public sealed partial class OperationPlanner
 
             dependencyExecutionNode.AddDependent(batchEntry);
 
-            // When a batch holds multiple operations, or a single batch
-            // operation definition with multiple targets, the dependency is
+            // When a batch holds multiple operations, the dependency is
             // optional. The executor evaluates each operation individually
             // and only waits for the specific upstream results it needs.
-            if (batchEntry.Operations.Length > 1
-                || batchEntry.Operations[0] is BatchOperationDefinition)
+            if (batchEntry.Operations.Length > 1)
             {
                 batchEntry.AddOptionalDependency(dependencyExecutionNode);
             }
@@ -1154,12 +1155,30 @@ public sealed partial class OperationPlanner
     /// Partitions structurally identical operations into groups that can
     /// each be safely merged. Two operations cannot share a group if one
     /// transitively depends on the other, because merging them would
-    /// create a cycle in the dependency graph.
+    /// create a cycle in the dependency graph. The <paramref name="mergePolicy"/>
+    /// further restricts which candidates may share a group based on their
+    /// dependency depth.
     /// </summary>
     private static List<List<OperationExecutionNode>> PartitionIntoMergeableGroups(
         List<OperationExecutionNode> candidates,
-        Dictionary<int, HashSet<int>> dependenciesByStepId)
+        Dictionary<int, HashSet<int>> dependenciesByStepId,
+        OperationMergePolicy mergePolicy)
     {
+        // Pre-compute dependency depths when the policy needs them.
+        Dictionary<int, int>? depthLookup = null;
+
+        if (mergePolicy is OperationMergePolicy.Conservative
+            or OperationMergePolicy.Balanced)
+        {
+            depthLookup = [];
+            var recursionStack = new HashSet<int>();
+
+            foreach (var candidate in candidates)
+            {
+                GetDependencyDepth(candidate.Id, dependenciesByStepId, depthLookup, recursionStack);
+            }
+        }
+
         var groups = new List<List<OperationExecutionNode>>();
         var visited = new HashSet<int>();
 
@@ -1171,22 +1190,46 @@ public sealed partial class OperationPlanner
             {
                 var canJoin = true;
 
-                foreach (var existing in group)
+                // Policy-specific depth checks (applied before the more
+                // expensive transitive-reachability walk).
+                if (depthLookup is not null)
                 {
-                    visited.Clear();
+                    var candidateDepth = depthLookup[candidate.Id];
+                    var referenceDepth = depthLookup[group[0].Id];
 
-                    if (IsTransitivelyReachable(candidate.Id, existing.Id, dependenciesByStepId, visited))
+                    switch (mergePolicy)
                     {
-                        canJoin = false;
-                        break;
+                        case OperationMergePolicy.Conservative
+                            when candidateDepth != referenceDepth:
+                            canJoin = false;
+                            break;
+
+                        case OperationMergePolicy.Balanced
+                            when Math.Abs(candidateDepth - referenceDepth) > 1:
+                            canJoin = false;
+                            break;
                     }
+                }
 
-                    visited.Clear();
-
-                    if (IsTransitivelyReachable(existing.Id, candidate.Id, dependenciesByStepId, visited))
+                if (canJoin)
+                {
+                    foreach (var existing in group)
                     {
-                        canJoin = false;
-                        break;
+                        visited.Clear();
+
+                        if (IsTransitivelyReachable(candidate.Id, existing.Id, dependenciesByStepId, visited))
+                        {
+                            canJoin = false;
+                            break;
+                        }
+
+                        visited.Clear();
+
+                        if (IsTransitivelyReachable(existing.Id, candidate.Id, dependenciesByStepId, visited))
+                        {
+                            canJoin = false;
+                            break;
+                        }
                     }
                 }
 

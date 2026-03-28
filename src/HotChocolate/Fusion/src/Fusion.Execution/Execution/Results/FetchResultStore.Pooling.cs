@@ -80,6 +80,9 @@ internal sealed partial class FetchResultStore
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
+        // reset variable writer (returns excess chunks, keeps the first)
+        _variableWriter.Clean();
+
         // clear collect target arrays to unroot CompositeResultDocument references;
         // if they grew too large during a burst, swap them for smaller ones.
         TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
@@ -88,10 +91,7 @@ internal sealed partial class FetchResultStore
 
         // clear dictionaries/hashsets; drop oversized ones.
         TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
-        TrimOrClear(ref _seenStrings, maxDictionaryRetainCapacity, StringComparer.Ordinal);
-        TrimOrClear(ref _seenValueNodes, maxDictionaryRetainCapacity, SingleValueNodeComparer.Instance);
-        TrimOrClear(ref _seenTwoValueTuples, maxDictionaryRetainCapacity, TwoValueNodeTupleComparer.Instance);
-        TrimOrClear(ref _seenThreeValueTuples, maxDictionaryRetainCapacity, ThreeValueNodeTupleComparer.Instance);
+        _variableDedupTable.Clear();
 
         // null out per-request references
         _result = default!;
@@ -129,15 +129,17 @@ internal sealed partial class FetchResultStore
         }
     }
 
-    private static void TrimOrClear<TKey>(
-        ref Dictionary<TKey, int> dict,
+    private static void TrimOrClear<TKey, TValue>(
+        ref Dictionary<TKey, TValue> dict,
         int maxRetainCapacity,
-        IEqualityComparer<TKey> comparer)
+        IEqualityComparer<TKey>? comparer = null)
         where TKey : notnull
     {
         if (dict.Count > maxRetainCapacity)
         {
-            dict = new Dictionary<TKey, int>(comparer);
+            dict = comparer is null
+                ? new Dictionary<TKey, TValue>()
+                : new Dictionary<TKey, TValue>(comparer);
         }
         else
         {

@@ -342,16 +342,20 @@
   <Folder Name="/Mocha/" />
   <Folder Name="/Mocha/src/">
     <Project Path="Mocha/src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
+    <Project Path="Mocha/src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
     <Project Path="Mocha/src/Mocha.EntityFrameworkCore.Postgres/Mocha.EntityFrameworkCore.Postgres.csproj" />
     <Project Path="Mocha/src/Mocha.EntityFrameworkCore/Mocha.EntityFrameworkCore.csproj" />
     <Project Path="Mocha/src/Mocha.Hosting/Mocha.Hosting.csproj" />
+    <Project Path="Mocha/src/Mocha.Inbox/Mocha.Inbox.csproj" />
+    <Project Path="Mocha/src/Mocha.Mediator.Abstractions/Mocha.Mediator.Abstractions.csproj" />
+    <Project Path="Mocha/src/Mocha.Mediator/Mocha.Mediator.csproj" />
     <Project Path="Mocha/src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="Mocha/src/Mocha.Scheduling/Mocha.Scheduling.csproj" />
     <Project Path="Mocha/src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.Postgres/Mocha.Transport.Postgres.csproj" />
-    <Project Path="Mocha/src/Mocha.Utilities/Mocha.Utilities.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
+    <Project Path="Mocha/src/Mocha.Utilities/Mocha.Utilities.csproj" />
     <Project Path="Mocha/src/Mocha/Mocha.csproj" />
   </Folder>
   <Folder Name="/Mocha/src/Demo/">
@@ -364,15 +368,18 @@
   </Folder>
   <Folder Name="/Mocha/test/">
     <Project Path="Mocha/test/Demo.Catalog.Tests/Demo.Catalog.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Analyzers.Tests/Mocha.Analyzers.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.EntityFrameworkCore.Postgres.Tests/Mocha.EntityFrameworkCore.Postgres.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.EntityFrameworkCore.Tests/Mocha.EntityFrameworkCore.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Hosting.Tests/Mocha.Hosting.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Mediator.Tests/Mocha.Mediator.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Sagas.TestHelpers/Mocha.Sagas.TestHelpers.csproj" />
     <Project Path="Mocha/test/Mocha.Sagas.Tests/Mocha.Sagas.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.TestHelpers/Mocha.TestHelpers.csproj" />
     <Project Path="Mocha/test/Mocha.Tests/Mocha.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.InMemory.Tests/Mocha.Transport.InMemory.Tests.csproj" />
-    <Project Path="Mocha/test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.Postgres.Tests/Mocha.Transport.Postgres.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
   </Folder>
   <Folder Name="/Nitro/" />
   <Folder Name="/Nitro/CommandLine/" />

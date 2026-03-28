@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using static StrawberryShake.Properties.Resources;
 using static StrawberryShake.Transport.Http.ResponseEnumerable;

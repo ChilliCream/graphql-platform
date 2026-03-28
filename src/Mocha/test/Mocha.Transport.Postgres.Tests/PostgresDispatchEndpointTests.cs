@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests;

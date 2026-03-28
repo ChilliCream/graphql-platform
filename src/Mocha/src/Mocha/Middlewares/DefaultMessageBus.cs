@@ -206,14 +206,13 @@ public sealed class DefaultMessageBus(
         var transport = runtime.GetTransport(options.ReplyAddress);
         if (transport is null)
         {
-            throw new InvalidOperationException($"Transport not found for address {options.ReplyAddress}");
+            throw ThrowHelper.TransportNotFoundForAddress(options.ReplyAddress.ToString());
         }
 
         var replyEndpoint = transport.ReplyDispatchEndpoint;
         if (replyEndpoint is null)
         {
-            throw new InvalidOperationException(
-                $"Reply dispatch endpoint not found for address {options.ReplyAddress}");
+            throw ThrowHelper.ReplyDispatchEndpointNotFound(options.ReplyAddress.ToString());
         }
 
         // var operationName = "reply";
@@ -292,7 +291,7 @@ public sealed class DefaultMessageBus(
             return response;
         }
 
-        throw new InvalidOperationException("Unexpected response type.");
+        throw ThrowHelper.UnexpectedResponseType();
     }
 
     private void PropagateCorrelationIds(DispatchContext context)

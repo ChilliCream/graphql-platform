@@ -224,6 +224,8 @@ app.Run();
 
 `.AddSaga<T>()` registers the saga with the bus. The saga's consumer is created automatically and listens for the message types defined in the state machine transitions.
 
+> **Tip:** Sagas are discovered automatically by the source generator. If you use `Add{ModuleName}()` from [Handler Registration](/docs/mocha/v1/handler-registration), you do not need to register sagas manually - the source generator calls `AddSaga<T>()` for every concrete `Saga<TState>` subclass it finds.
+
 ## Trigger the saga
 
 From the sender side, use `RequestAsync` to start the saga and await the final response:

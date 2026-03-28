@@ -20,6 +20,6 @@ public static class RootServiceProviderAccessorExtensions
     public static IServiceProvider GetApplicationServices(this IServiceProvider sp)
     {
         return sp.GetService<IRootServiceProviderAccessor>()?.ServiceProvider
-            ?? throw new InvalidOperationException("No root services found");
+            ?? throw ThrowHelper.NoRootServicesFound();
     }
 }

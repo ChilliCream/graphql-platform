@@ -1,9 +1,6 @@
-using Demo.Contracts.Events;
 using Demo.Shipping.Commands;
 using Demo.Shipping.Data;
-using Demo.Shipping.Handlers;
 using Demo.Shipping.Queries;
-using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
 using Mocha.Mediator;
@@ -16,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Database
-builder.AddNpgsqlDbContext<ShippingDbContext>("shipping-db");
+builder.AddNpgsqlDbContext<ShippingDbContext>("shipping-db", x => x.DisableTracing = true);
 
 // RabbitMQ
 builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
@@ -24,17 +21,14 @@ builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
 // Mocha.Mediator
 builder.Services.AddMediator()
     .AddShipping()
+    .AddInstrumentation()
     .UseEntityFrameworkTransactions<ShippingDbContext>();
 
 // MessageBus
 builder
     .Services.AddMessageBus()
     .AddInstrumentation()
-    // Event handlers
-    .AddEventHandler<PaymentCompletedEventHandler>()
-    // Request handlers
-    .AddRequestHandler<GetShipmentStatusRequestHandler>()
-    .AddRequestHandler<CreateReturnLabelCommandHandler>()
+    .AddShipping()
     .AddEntityFramework<ShippingDbContext>(p =>
     {
         p.UsePostgresOutbox();

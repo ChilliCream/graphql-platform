@@ -30,6 +30,7 @@ public sealed record OperationPlan
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
         _nodesById = CreateNodeLookup(allNodes);
+        MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
     }
 
     /// <summary>
@@ -72,6 +73,11 @@ public sealed record OperationPlan
     /// Gets the number of nodes expanded (dequeued) during the A* search.
     /// </summary>
     public int ExpandedNodes { get; }
+
+    /// <summary>
+    /// Gets the maximum node identifier across all nodes in this plan.
+    /// </summary>
+    public int MaxNodeId { get; }
 
     /// <summary>
     /// Retrieves an execution node by its unique identifier.
