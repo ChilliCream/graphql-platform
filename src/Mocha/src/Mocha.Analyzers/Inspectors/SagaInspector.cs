@@ -15,7 +15,7 @@ namespace Mocha.Analyzers.Inspectors;
 public sealed class SagaInspector : ISyntaxInspector
 {
     /// <inheritdoc />
-    public ImmutableArray<ISyntaxFilter> Filters { get; } = [ClassWithSagaBaseClassFilter.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [ClassWithMochaBaseListFilter.Instance];
 
     /// <inheritdoc />
     public IImmutableSet<SyntaxKind> SupportedKinds { get; } =
