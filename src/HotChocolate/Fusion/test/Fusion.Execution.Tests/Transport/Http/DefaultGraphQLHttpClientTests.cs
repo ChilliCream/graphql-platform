@@ -1,6 +1,8 @@
+using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Transport;
+using HotChocolate.Buffers;
+using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Transport.Http;
 
@@ -15,7 +17,7 @@ public class DefaultGraphQLHttpClientTests
         await using var app = context.Item2;
         using var client = new DefaultGraphQLHttpClient(server.CreateClient(), disposeInnerClient: true);
 
-        var operationRequest = new OperationRequest("{ items }");
+        var operationRequest = new OperationRequest("{ items }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -44,7 +46,7 @@ public class DefaultGraphQLHttpClientTests
             "application/graphql-response+json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -72,7 +74,7 @@ public class DefaultGraphQLHttpClientTests
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -100,7 +102,7 @@ public class DefaultGraphQLHttpClientTests
             "application/graphql-response+json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -137,7 +139,7 @@ public class DefaultGraphQLHttpClientTests
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -178,7 +180,7 @@ public class DefaultGraphQLHttpClientTests
 
         var operationRequest = new OperationBatchRequest(
         [
-            new OperationRequest("{ number }")
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty)
         ]);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
@@ -225,8 +227,8 @@ public class DefaultGraphQLHttpClientTests
 
         var operationRequest = new OperationBatchRequest(
             [
-                new OperationRequest("{ number }"),
-                new OperationRequest("{ number }")
+                new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty),
+                new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty)
             ]);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
@@ -267,9 +269,11 @@ public class DefaultGraphQLHttpClientTests
 
         var operationRequest = new VariableBatchRequest(
             "{ number }",
-            variables: [
-                new Dictionary<string, object?>()
-            ]);
+            null,
+            null,
+            null,
+            ImmutableArray.Create(VariableValues.Empty),
+            JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -311,10 +315,11 @@ public class DefaultGraphQLHttpClientTests
 
         var operationRequest = new VariableBatchRequest(
             "{ number }",
-            variables: [
-              new Dictionary<string, object?>(),
-              new Dictionary<string, object?>()
-            ]);
+            null,
+            null,
+            null,
+            ImmutableArray.Create(VariableValues.Empty, VariableValues.Empty),
+            JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -358,7 +363,7 @@ public class DefaultGraphQLHttpClientTests
             "text/event-stream");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -407,7 +412,7 @@ public class DefaultGraphQLHttpClientTests
             "text/event-stream");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -452,12 +457,15 @@ public class DefaultGraphQLHttpClientTests
             + "a glossy finish that accentuates its sculptural silhouette. Balancing softness with warmth, this "
             + "palette extends Curry\u2019s legacy with a fresh, contemporary expression. It's still iconic.";
 
+        var variableValues = CreateVariableValues(
+            new Dictionary<string, object?> { ["description"] = description });
         var operationRequest = new OperationRequest(
             "mutation($description: String!) { updateDescription(description: $description) }",
-            variables: new Dictionary<string, object?>
-            {
-                ["description"] = description
-            });
+            null,
+            null,
+            null,
+            variableValues,
+            JsonSegment.Empty);
 
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
@@ -476,6 +484,17 @@ public class DefaultGraphQLHttpClientTests
             .GetString();
 
         Assert.Equal(description, serializedDescription);
+    }
+
+    private static VariableValues CreateVariableValues(Dictionary<string, object?> variables)
+    {
+        var writer = new ChunkedArrayWriter();
+        var startPosition = writer.Position;
+        using var jsonWriter = new Utf8JsonWriter(writer, new JsonWriterOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+        JsonSerializer.Serialize(jsonWriter, variables);
+        jsonWriter.Flush();
+        var length = writer.Position - startPosition;
+        return new VariableValues(default, JsonSegment.Create(writer, startPosition, length));
     }
 
     private class MockHttpMessageHandler(Stream responseStream, string contentType) : HttpMessageHandler
