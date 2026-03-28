@@ -469,8 +469,10 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             }
         }
 
-        public Task WaitUntilAsync(DateTimeOffset wakeTime, CancellationToken cancellationToken)
+        public async Task WaitUntilAsync(DateTimeOffset wakeTime, CancellationToken cancellationToken)
         {
+            Task notifyTask;
+
             lock (_lock)
             {
                 Volatile.Write(ref _currentWakeTargetTicks, wakeTime.UtcTicks);
@@ -481,7 +483,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
                 {
                     // Reset: replace with a new, unsignaled TCS
                     _tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-                    return Task.CompletedTask;
+                    return;
                 }
 
                 if (task.IsCanceled || task.IsFaulted)
@@ -499,8 +501,23 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
                         tcs);
                 }
 
-                return tcs.Task;
+                notifyTask = tcs.Task;
             }
+
+            // Wait until wake time OR until Notify() signals, whichever comes first.
+            var delay = wakeTime - DateTimeOffset.UtcNow;
+
+            if (delay <= TimeSpan.Zero)
+            {
+                return;
+            }
+
+            if (delay > TimeSpan.FromMinutes(5))
+            {
+                delay = TimeSpan.FromMinutes(5);
+            }
+
+            await Task.WhenAny(notifyTask, Task.Delay(delay, cancellationToken));
         }
     }
 
