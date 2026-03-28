@@ -17,7 +17,9 @@ internal sealed class UnpublishClientCommand : Command
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ClientIdOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, client, cancellationToken));
     }
 

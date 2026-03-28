@@ -27,7 +27,9 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
         Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 parseResult,
                 console,

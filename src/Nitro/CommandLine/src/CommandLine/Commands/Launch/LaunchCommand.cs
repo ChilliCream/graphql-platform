@@ -19,7 +19,7 @@ internal sealed class LaunchCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        SetAction((parseResult, cancellationToken)
+        this.SetActionWithExceptionHandling(console, (parseResult, cancellationToken)
             => ExecuteAsync(console));
     }
 

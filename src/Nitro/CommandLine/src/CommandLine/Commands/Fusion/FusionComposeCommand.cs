@@ -27,7 +27,9 @@ internal sealed class FusionComposeCommand : Command
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
         Options.Add(Opt<OptionalExcludeTagListOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken) =>
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
         {
             var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
             var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance)!;
@@ -267,6 +269,7 @@ internal sealed class FusionComposeCommand : Command
     {
         var schemaFileWatcher = new FileSystemWatcher(sourceSchemaDirectory);
         schemaFileWatcher.Filter = "*.*";
+
         schemaFileWatcher.NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite | NotifyFilters.FileName;
         schemaFileWatcher.Changed += (_, e) => OnSourceSchemaFileChanged(e);
         schemaFileWatcher.Created += (_, e) => OnSourceSchemaFileChanged(e);

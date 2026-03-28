@@ -26,10 +26,12 @@ internal sealed class ListClientCommand : Command
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<CursorOption>.Instance);
 
+        this.AddGlobalNitroOptions();
+
         Subcommands.Add(listClientVersionsCommand);
         Subcommands.Add(listClientPublishedVersionsCommand);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cancellationToken));
     }
 

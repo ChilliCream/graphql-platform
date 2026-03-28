@@ -21,8 +21,6 @@ internal sealed class McpCommand : Command
     {
         Description = "Manage MCP Feature Collections";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(createMcpFeatureCollectionCommand);
         Subcommands.Add(deleteMcpFeatureCollectionCommand);
         Subcommands.Add(listMcpFeatureCollectionCommand);

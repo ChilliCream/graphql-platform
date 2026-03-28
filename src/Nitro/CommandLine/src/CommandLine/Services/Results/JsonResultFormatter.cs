@@ -19,6 +19,6 @@ internal sealed class JsonResultFormatter(INitroConsole console) : IResultFormat
         var obj = objectResult.Value;
         var serializedObj = JsonSerializer.Serialize(obj, obj.GetType(), JsonSourceGenerationContext.Default);
 
-        console.WriteLine(serializedObj);
+        console.WriteDirectly(serializedObj);
     }
 }

@@ -21,7 +21,9 @@ internal sealed class DeleteApiKeyCommand : Command
         Arguments.Add(Opt<IdArgument>.Instance);
         Options.Add(Opt<ForceOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, apiKeysClient, resultHolder, cancellationToken));
     }
 
@@ -32,10 +34,9 @@ internal sealed class DeleteApiKeyCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        var keyId = parseResult.GetValue(Opt<IdArgument>.Instance)!;
+        var keyId = parseResult.GetValue(Opt<IdArgument>.Instance);
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
 
-        // TODO: Fix
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance); // is not null;
         bool choice;
         if (force)
         {

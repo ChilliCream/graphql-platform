@@ -18,8 +18,6 @@ internal sealed class EnvironmentCommand : Command
     {
         Description = "Manage environments";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(createEnvironmentCommand);
         Subcommands.Add(listEnvironmentCommand);
         Subcommands.Add(showEnvironmentCommand);

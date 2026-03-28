@@ -20,7 +20,9 @@ internal sealed class ValidateSchemaCommand : Command
         Options.Add(Opt<SchemaFileOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 console,
                 client,

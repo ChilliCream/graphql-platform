@@ -19,7 +19,9 @@ internal sealed class ListPersonalAccessTokenCommand : Command
 
         Options.Add(Opt<CursorOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
     }
 

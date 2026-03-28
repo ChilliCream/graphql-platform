@@ -25,7 +25,9 @@ internal sealed class CreateOpenApiCollectionCommand : Command
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<OpenApiCollectionNameOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 parseResult,
                 console,

@@ -18,8 +18,6 @@ internal sealed class StageCommand : Command
     {
         Description = "Manage stages";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(editStagesCommand);
         Subcommands.Add(deleteStageCommand);
         Subcommands.Add(listStagesCommand);

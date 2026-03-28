@@ -19,8 +19,6 @@ internal sealed class MockCommand : Command
         Description = "Create, Update and Delete Mocks";
         Hidden = true;
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(createMockCommand);
         Subcommands.Add(listMockCommand);
         Subcommands.Add(updateMockCommand);

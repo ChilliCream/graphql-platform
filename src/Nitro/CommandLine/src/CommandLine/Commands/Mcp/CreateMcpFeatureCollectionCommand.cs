@@ -25,7 +25,9 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<McpFeatureCollectionNameOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken));
     }
 

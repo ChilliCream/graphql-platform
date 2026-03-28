@@ -13,9 +13,12 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
         IFileSystem fileSystem) : base("start")
     {
         Description = "Start a Fusion configuration publish.";
+
         Options.Add(Opt<OptionalRequestIdOption>.Instance);
 
-        SetAction((parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, (parseResult, cancellationToken)
             => ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken));
     }
 

@@ -1,3 +1,5 @@
+
+using ChilliCream.Nitro.Client;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
@@ -24,6 +26,7 @@ public static class Program
 
         services
             .AddNitroServices()
+            .AddNitroClients()
             .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, Console.Out, Console.Error))
             .AddNitroCommands();
 
@@ -31,6 +34,6 @@ public static class Program
 
         var rootCommand = provider.GetRequiredService<NitroRootCommand>();
 
-        return await rootCommand.ExecuteAsync(args, provider, cts.Token);
+        return await rootCommand.ExecuteAsync(args, provider, null, cts.Token);
     }
 }

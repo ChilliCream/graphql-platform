@@ -12,7 +12,9 @@ internal sealed class CurrentWorkspaceCommand : Command
     {
         Description = "Shows the name of the currently selected workspace.";
 
-        SetAction((_, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, (_, cancellationToken)
             => ExecuteAsync(console, sessionService, cancellationToken));
     }
 

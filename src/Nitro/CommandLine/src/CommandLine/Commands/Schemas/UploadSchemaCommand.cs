@@ -21,7 +21,9 @@ internal sealed class UploadSchemaCommand : Command
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 console,
                 client,

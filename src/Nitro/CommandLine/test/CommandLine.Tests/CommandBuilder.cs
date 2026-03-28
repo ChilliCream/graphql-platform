@@ -1,7 +1,4 @@
-using System.CommandLine.Builder;
-using System.CommandLine.Invocation;
-using System.CommandLine.IO;
-using System.CommandLine.Parsing;
+using System.CommandLine;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client.Apis;
@@ -17,191 +14,114 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Spectre.Console;
 using Spectre.Console.Testing;
-using CliTestConsole = System.CommandLine.IO.TestConsole;
 using SpectreTestConsole = Spectre.Console.Testing.TestConsole;
 
 namespace ChilliCream.Nitro.CommandLine.Tests;
 
 internal sealed class CommandBuilder
 {
-    private readonly Dictionary<Type, object> _serviceOverrides = [];
-    private readonly Dictionary<string, string?> _defaultOptions = new(StringComparer.Ordinal);
-    private readonly SpectreTestConsole _testConsole = new();
-    private readonly CliTestConsole _cliConsole = new();
-    private bool _isInteractive = true;
+    private readonly Mock<ISessionService> _sessionServiceMock = new();
+    private readonly IServiceCollection _services = new ServiceCollection();
+    private readonly List<string> _arguments = [];
     private InteractionMode? _interactionMode;
-    private string[]? _arguments;
-    private bool _consumed;
+    private Session? _session;
 
     public CommandBuilder()
     {
-        _testConsole.Profile.Capabilities.Interactive = true;
-    }
+        _services
+            .AddNitroCommands()
+            .AddNitroServices();
 
-    public string Output => _testConsole.Output;
+        _services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
 
-    public string StdOut => _cliConsole.Out?.ToString() ?? string.Empty;
+        AddMockedNitroClients(_services);
 
-    public string StdErr => _cliConsole.Error?.ToString() ?? string.Empty;
-
-    public SpectreTestConsole Console => _testConsole;
-
-    public CommandBuilder AddService<T>(T service)
-        where T : class
-    {
-        ThrowIfConsumed();
-        _serviceOverrides[typeof(T)] = service;
-        return this;
+        _sessionServiceMock
+            .SetupGet(x => x.Session)
+            .Returns(() => _session);
     }
 
     public CommandBuilder AddInteractionMode(InteractionMode mode)
     {
-        ThrowIfConsumed();
         _interactionMode = mode;
         return this;
     }
 
     public CommandBuilder AddApiKey()
     {
-        ThrowIfConsumed();
-        AddDefaultOption("--api-key", "api-key");
+        _arguments.Add("--api-key");
+        _arguments.Add("default-api-key");
         return this;
     }
 
     public CommandBuilder AddSession()
     {
-        ThrowIfConsumed();
-        _serviceOverrides[typeof(ISessionService)] = new TestSessionService();
+        _session = CreateSession(null);
         return this;
     }
 
     public CommandBuilder AddSessionWithWorkspace(string workspaceId = "workspace-from-session")
     {
-        ThrowIfConsumed();
-        _serviceOverrides[typeof(ISessionService)] = TestSessionService.WithWorkspace(workspaceId);
+        _session = CreateSession(new Workspace(workspaceId, "Workspace from session"));
         return this;
     }
 
-    public ArgumentsBuilder Arguments => new(this);
-
-    public readonly struct ArgumentsBuilder(CommandBuilder builder)
+    public CommandBuilder AddArguments(params string[] arguments)
     {
-        public CommandBuilder Adds(params string[] arguments) => builder.SetArguments(arguments);
-    }
+        _arguments.InsertRange(0, arguments);
 
-    private CommandBuilder SetArguments(params string[] arguments)
-    {
-        ThrowIfConsumed();
-
-        if (_arguments is not null)
-        {
-            throw new InvalidOperationException("Arguments have already been configured.");
-        }
-
-        if (arguments.Length == 0)
-        {
-            throw new InvalidOperationException("At least one command argument is required.");
-        }
-
-        _arguments = arguments;
         return this;
     }
 
-    // TODO: This is legacy
-    public async Task<int> InvokeAsync(params string[] args)
+    public CommandBuilder AddService<T>(T service)
+        where T : class
     {
-        var result = await Arguments.Adds(args).ExecuteAsync();
-        return result.ExitCode;
+        _services.Replace(ServiceDescriptor.Singleton(service));
+
+        return this;
     }
 
-    public async Task<CommandExecutionResult> ExecuteAsync(
+    public async Task<CommandResult> ExecuteAsync(
         CancellationToken cancellationToken = default)
     {
-        EnsureCanRun();
-        _consumed = true;
+        var context = CreateContext();
 
-        ApplyInteractionMode();
-
-        var exitCode = await Build()
-            .InvokeAsync(ApplyDefaultOptions(_arguments!), _cliConsole)
-            .WaitAsync(cancellationToken);
-
-        return CommandExecutionResult.From(this, exitCode);
+        return await context.ExecuteAsync(cancellationToken);
     }
 
-    public Task<InteractiveCommandExecution> StartAsync(
-        CancellationToken cancellationToken = default)
+    public InteractiveCommand Start()
     {
-        EnsureCanRun();
-        _consumed = true;
+        var context = CreateContext();
 
-        ApplyInteractionMode();
-
-        var invocationTask = Build()
-            .InvokeAsync(ApplyDefaultOptions(_arguments!), _cliConsole);
-
-        return Task.FromResult(
-            InteractiveCommandExecution.Create(
-                this,
-                invocationTask,
-                supportsInteraction: IsInteractiveMode()));
-    }
-
-    private void EnsureCanRun()
-    {
-        if (_consumed)
+        if (!context.TestConsole.Profile.Capabilities.Interactive)
         {
-            throw new InvalidOperationException(
-                "This CommandBuilder instance has already been used. Create a new instance for another run.");
+            throw new InvalidOperationException();
         }
 
-        if (_arguments is null)
-        {
-            throw new InvalidOperationException("No arguments have been configured. Call Arguments.Adds(...) first.");
-        }
+        return new InteractiveCommand(context);
     }
 
-    private void ApplyInteractionMode()
+    private static Session CreateSession(Workspace? workspace)
     {
-        switch (_interactionMode)
-        {
-            case InteractionMode.Interactive:
-                _isInteractive = true;
-                break;
-
-            case InteractionMode.NonInteractive:
-                _isInteractive = false;
-                break;
-
-            case InteractionMode.JsonOutput:
-                _isInteractive = false;
-                AddDefaultOption("--output", "json");
-                break;
-        }
+        return new Session(
+            "session-1",
+            "subject-1",
+            "tenant-1",
+            "https://id.chillicream.com",
+            "api.chillicream.com",
+            "user@chillicream.com",
+            tokens: null,
+            workspace: workspace);
     }
 
-    private bool IsInteractiveMode()
-        => _interactionMode is null or InteractionMode.Interactive;
-
-    private void ThrowIfConsumed()
+    private static void AddMockedNitroClients(IServiceCollection services)
     {
-        if (_consumed)
-        {
-            throw new InvalidOperationException(
-                "This CommandBuilder instance has already been used and cannot be reconfigured.");
-        }
-    }
-
-    private Parser Build()
-    {
-        var services = new ServiceCollection()
-            .AddSingleton<INitroConsole>(new NitroConsole(_testConsole, _cliConsole.Error))
-            .AddSingleton<IFileSystem, FileSystem>()
-            .AddSingleton<ISessionService, TestSessionService>()
-            .AddSingleton<IApisClient>(DefaultApisClient)
+        services
+            .AddSingleton<IApisClient>(Mock.Of<IApisClient>())
             .AddSingleton<IApiKeysClient>(Mock.Of<IApiKeysClient>())
             .AddSingleton<IClientsClient>(Mock.Of<IClientsClient>())
             .AddSingleton<IEnvironmentsClient>(Mock.Of<IEnvironmentsClient>())
@@ -212,270 +132,105 @@ internal sealed class CommandBuilder
             .AddSingleton<IPersonalAccessTokensClient>(Mock.Of<IPersonalAccessTokensClient>())
             .AddSingleton<ISchemasClient>(Mock.Of<ISchemasClient>())
             .AddSingleton<IStagesClient>(Mock.Of<IStagesClient>())
-            .AddSingleton<IWorkspacesClient>(Mock.Of<IWorkspacesClient>())
-            .AddNitroCommands();
+            .AddSingleton<IWorkspacesClient>(Mock.Of<IWorkspacesClient>());
+    }
 
-        foreach (var (type, instance) in _serviceOverrides)
+    private CommandContext CreateContext()
+    {
+        var stdOutWriter = new StringWriter();
+        var stdErrWriter = new StringWriter();
+
+        var testConsole = new TestConsole();
+        testConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+
+        var console = new NitroConsole(testConsole, stdOutWriter, stdErrWriter);
+
+        _services.AddSingleton<INitroConsole>(console);
+
+        var services = _services.BuildServiceProvider();
+
+        var rootCommand = services.GetRequiredService<NitroRootCommand>();
+
+        var arguments = _arguments.ToList();
+
+        if (_interactionMode is InteractionMode.JsonOutput)
         {
-            services.AddSingleton(type, instance);
+            arguments.AddRange(["--output", "json"]);
+        }
+        else if (_interactionMode is InteractionMode.NonInteractive)
+        {
+            testConsole.Profile.Capabilities.Interactive = false;
+        }
+        else
+        {
+            testConsole.Profile.Capabilities.Interactive = true;
         }
 
-        var serviceProvider = services.BuildServiceProvider();
-        var builder = new CommandLineBuilder(serviceProvider.GetRequiredService<NitroRootCommand>());
-
-        builder.AddMiddleware(
-            context =>
-            {
-                var registered = new HashSet<Type>();
-
-                AddBindingService(typeof(INitroConsole));
-                AddBindingService(typeof(IFileSystem));
-                AddBindingService(typeof(ISessionService));
-                AddBindingService(typeof(IApisClient));
-                AddBindingService(typeof(IApiKeysClient));
-                AddBindingService(typeof(IClientsClient));
-                AddBindingService(typeof(IEnvironmentsClient));
-                AddBindingService(typeof(IFusionConfigurationClient));
-                AddBindingService(typeof(IMcpClient));
-                AddBindingService(typeof(IMocksClient));
-                AddBindingService(typeof(IOpenApiClient));
-                AddBindingService(typeof(IPersonalAccessTokensClient));
-                AddBindingService(typeof(ISchemasClient));
-                AddBindingService(typeof(IStagesClient));
-                AddBindingService(typeof(IWorkspacesClient));
-
-                foreach (var type in _serviceOverrides.Keys)
-                {
-                    AddBindingService(type);
-                }
-
-                void AddBindingService(Type type)
-                {
-                    if (!registered.Add(type))
-                    {
-                        return;
-                    }
-
-                    context.BindingContext.AddService(type, _ => serviceProvider.GetRequiredService(type));
-                }
-            },
-            MiddlewareOrder.Configuration);
-
-        builder
-            .UseDefaults()
-            .UseExceptionMiddleware();
-
-        builder.AddMiddleware(async (context, next) =>
-        {
-            _testConsole.Profile.Capabilities.Interactive = _isInteractive;
-
-            try
-            {
-                await next(context);
-            }
-            finally
-            {
-                // Let result formatters render JSON even after non-interactive command execution.
-                _testConsole.Profile.Capabilities.Interactive = true;
-            }
-        });
-
-        return builder.Build();
-    }
-
-    private void AddDefaultOption(string optionName, string? value = null)
-    {
-        _defaultOptions[optionName] = value;
-    }
-
-    private string[] ApplyDefaultOptions(string[] args)
-    {
-        if (_defaultOptions.Count == 0)
-        {
-            return args;
-        }
-
-        var merged = args.ToList();
-
-        foreach (var (optionName, value) in _defaultOptions)
-        {
-            if (ContainsOption(args, optionName))
-            {
-                continue;
-            }
-
-            merged.Add(optionName);
-
-            if (value is not null)
-            {
-                merged.Add(value);
-            }
-        }
-
-        return [.. merged];
-    }
-
-    private static bool ContainsOption(string[] args, string optionName)
-    {
-        foreach (var arg in args)
-        {
-            if (string.Equals(arg, optionName, StringComparison.Ordinal)
-                || arg.StartsWith(optionName + "=", StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static IApisClient CreateDefaultApisClient()
-    {
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        var apiNode = new Mock<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(MockBehavior.Strict);
-        apiNode.SetupGet(x => x.Id).Returns("api-1");
-        apiNode.SetupGet(x => x.Name).Returns("api-1");
-
-        var page = new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
-            [apiNode.Object],
-            EndCursor: null,
-            HasNextPage: false);
-
-        client.Setup(x => x.SelectApisAsync(
-                It.IsAny<string>(),
-                It.IsAny<string?>(),
-                It.IsAny<int?>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(page);
-
-        return client.Object;
-    }
-
-    private static readonly IApisClient DefaultApisClient = CreateDefaultApisClient();
-}
-
-internal sealed class InteractiveCommandExecution
-{
-    private readonly CommandBuilder _host;
-    private readonly Task<int> _invocation;
-    private readonly bool _supportsInteraction;
-    private Task<CommandExecutionResult>? _completion;
-
-    private InteractiveCommandExecution(
-        CommandBuilder host,
-        Task<int> invocation,
-        bool supportsInteraction)
-    {
-        _host = host;
-        _invocation = invocation;
-        _supportsInteraction = supportsInteraction;
-    }
-
-    public static InteractiveCommandExecution Create(
-        CommandBuilder host,
-        Task<int> invocation,
-        bool supportsInteraction)
-        => new(host, invocation, supportsInteraction);
-
-    public Task InputAsync(
-        string input,
-        CancellationToken cancellationToken = default)
-    {
-        EnsureSupportsInteraction(nameof(InputAsync));
-        _host.Console.Input.PushTextWithEnter(input);
-        return Task.CompletedTask;
-    }
-
-    public Task SelectOptionAsync(
-        string option,
-        CancellationToken cancellationToken = default)
-    {
-        EnsureSupportsInteraction(nameof(SelectOptionAsync));
-
-        if (string.Equals(option, "workspace", StringComparison.OrdinalIgnoreCase))
-        {
-            _host.Console.Input.PushKey(ConsoleKey.DownArrow);
-        }
-
-        _host.Console.Input.PushKey(ConsoleKey.Enter);
-        return Task.CompletedTask;
-    }
-
-    public Task ConfirmAsync(
-        bool value,
-        CancellationToken cancellationToken = default)
-    {
-        EnsureSupportsInteraction(nameof(ConfirmAsync));
-        _host.Console.Input.PushTextWithEnter(value ? "y" : "n");
-        return Task.CompletedTask;
-    }
-
-    public Task<CommandExecutionResult> RunToCompletionAsync(
-        CancellationToken cancellationToken = default)
-    {
-        _completion ??= RunInternalAsync(cancellationToken);
-        return _completion;
-    }
-
-    private async Task<CommandExecutionResult> RunInternalAsync(CancellationToken cancellationToken)
-    {
-        var exitCode = await _invocation
-            .WaitAsync(cancellationToken);
-
-        return CommandExecutionResult.From(_host, exitCode);
-    }
-
-    private void EnsureSupportsInteraction(string method)
-    {
-        if (_supportsInteraction)
-        {
-            return;
-        }
-
-        throw new InvalidOperationException(
-            $"Cannot call {method} when the command is not running in interactive mode.");
+        return new CommandContext(
+            stdOutWriter,
+            stdErrWriter,
+            testConsole,
+            rootCommand,
+            arguments,
+            services);
     }
 }
 
-internal sealed class CommandExecutionResult
+internal sealed record CommandContext(
+    TextWriter StdOut,
+    TextWriter StdErr,
+    TestConsole TestConsole,
+    NitroRootCommand RootCommand,
+    IReadOnlyList<string> Arguments,
+    IServiceProvider Services)
 {
-    private readonly string _stdOut;
-    private readonly string _stdErr;
-    private readonly string _output;
-
-    private CommandExecutionResult(
-        int exitCode,
-        string stdOut,
-        string stdErr,
-        string output)
+    public async Task<CommandResult> ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        ExitCode = exitCode;
-        _stdOut = stdOut;
-        _stdErr = stdErr;
-        _output = output;
-    }
-
-    public int ExitCode { get; }
-
-    public string StdOut => _stdOut.TrimEnd();
-
-    public string StdErr => _stdErr.TrimEnd();
-
-    public string Output => _output.TrimEnd();
-
-    internal static CommandExecutionResult From(CommandBuilder host, int exitCode)
-    {
-        var stdOut = host.StdOut;
-
-        if (string.IsNullOrWhiteSpace(stdOut) && exitCode == 0)
+        var invocationConfig = new InvocationConfiguration
         {
-            stdOut = host.Output;
-        }
+            Output = StdOut,
+            Error = StdErr
+        };
 
-        return new CommandExecutionResult(
+        var exitCode = await RootCommand.ExecuteAsync(Arguments, Services, invocationConfig, cancellationToken);
+
+        return new CommandResult(
             exitCode,
-            stdOut,
-            host.StdErr,
-            host.Output);
+            StdOut.ToString()?.TrimEnd() ?? string.Empty,
+            StdErr.ToString()?.TrimEnd() ?? string.Empty);
+    }
+}
+
+internal sealed record CommandResult(
+    int ExitCode,
+    string StdOut,
+    string StdErr);
+
+internal sealed class InteractiveCommand(CommandContext context)
+{
+    public void Input(string input)
+    {
+        context.TestConsole.Input.PushTextWithEnter(input);
+    }
+
+    public void SelectOption(int index)
+    {
+        for (var i = 0; i < index; i++)
+        {
+            context.TestConsole.Input.PushKey(ConsoleKey.DownArrow);
+        }
+
+        context.TestConsole.Input.PushKey(ConsoleKey.Enter);
+    }
+
+    public void Confirm(bool value)
+    {
+        context.TestConsole.Input.PushTextWithEnter(value ? "y" : "n");
+    }
+
+    public async Task<CommandResult> RunToCompletionAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await context.ExecuteAsync(cancellationToken);
     }
 }

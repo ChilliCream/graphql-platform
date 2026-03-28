@@ -26,7 +26,7 @@ internal sealed class FusionDownloadCommand : Command
         Options.Add(Opt<OptionalOutputFileOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        SetAction(async (parseResult, cancellationToken)
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken));
     }
 

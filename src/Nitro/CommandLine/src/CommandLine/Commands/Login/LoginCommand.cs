@@ -20,7 +20,9 @@ internal sealed class LoginCommand : Command
         Options.Add(Opt<IdentityCloudUrlOption>.Instance);
         Arguments.Add(Opt<IdentityCloudUrlArgument>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, workspacesClient, sessionService, cancellationToken));
     }
 

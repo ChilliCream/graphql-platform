@@ -22,7 +22,9 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
         Options.Add(Opt<OptionalDescriptionOption>.Instance);
         Options.Add(Opt<ExpiresOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
     }
 

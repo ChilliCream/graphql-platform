@@ -35,7 +35,7 @@ internal static class NitroConsoleExtensions
 
         if (!console.IsInteractive)
         {
-            throw new ExitException($"Missing required option '--{option.Name}'.");
+            throw new ExitException($"Missing required option '{option.Name}'.");
         }
 
         return await console.PromptAsync(question, defaultValue, cancellationToken);
@@ -57,7 +57,7 @@ internal static class NitroConsoleExtensions
 
         if (!console.IsInteractive)
         {
-            throw new ExitException($"Missing required option '--{option.Name}'.");
+            throw new ExitException($"Missing required option '{option.Name}'.");
         }
 
         return await console.ConfirmAsync(question, cancellationToken);

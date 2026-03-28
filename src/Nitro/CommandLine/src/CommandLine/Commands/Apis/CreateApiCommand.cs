@@ -26,7 +26,9 @@ internal sealed class CreateApiCommand : Command
         Options.Add(Opt<WorkspaceIdOption>.Instance);
         Options.Add(Opt<ApiKindOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 

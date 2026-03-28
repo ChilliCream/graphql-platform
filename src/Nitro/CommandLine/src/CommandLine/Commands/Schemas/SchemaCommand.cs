@@ -19,8 +19,6 @@ internal sealed class SchemaCommand : Command
     {
         Description = "Manage schemas";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(publishSchemaCommand);
         Subcommands.Add(validateSchemaCommand);
         Subcommands.Add(uploadSchemaCommand);

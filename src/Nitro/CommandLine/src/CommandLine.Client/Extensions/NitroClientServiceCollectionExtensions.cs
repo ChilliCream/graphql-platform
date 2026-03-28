@@ -189,27 +189,9 @@ public static class NitroClientServiceCollectionExtensions
         this IServiceCollection services,
         Action<NitroApiClientOptions>? configure)
     {
-        if (services.Any(t => t.ServiceType == typeof(ApiClientRegistrationMarker)))
-        {
-            return services;
-        }
-
-        var options = new NitroApiClientOptions();
-        configure?.Invoke(options);
-        options.EnsureValid();
-
-        services.AddSingleton(options);
-
-        if (!services.Any(t => t.ServiceType == typeof(IHttpClientFactory)))
-        {
-            services.AddHttpClient();
-        }
-
         var clientBuilder = services.AddHttpClient(
             ApiClient.ClientName,
             static (serviceProvider, client) => ConfigureApiHttpClient(serviceProvider, client));
-
-        options.ConfigureHttpClientBuilder?.Invoke(clientBuilder);
 
         services.TryAddSingleton<IApiClient>(CreateApiClient);
         services.AddSingleton<ApiClientRegistrationMarker>();

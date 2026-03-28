@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Options;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -10,7 +11,7 @@ internal static class ThrowHelper
     }
 
     public static ExitException NoDefaultWorkspace() => new(
-        $"You are not logged in. Run {"nitro login".AsCommand()} to sign in or specify the workspace ID with the --workspace-id option (if available).");
+        $"You are not logged in. Run {"nitro login".AsCommand()} to sign in or manually specify the '{WorkspaceIdOption.OptionName}' option (if available).");
 
     public static Exception NoPageInfoFound()
         => ThereWasAnIssueWithTheRequest("No page info found in the response.");

@@ -2,8 +2,9 @@ namespace ChilliCream.Nitro.CommandLine.Options;
 
 internal class DescriptionOption : Option<string>
 {
-    public DescriptionOption() : base("--description", "The description of the pat")
+    public DescriptionOption() : base("--description")
     {
+        Description = "The description of the pat";
         Required = false;
         this.DefaultFromEnvironmentValue("DESCRIPTION");
     }

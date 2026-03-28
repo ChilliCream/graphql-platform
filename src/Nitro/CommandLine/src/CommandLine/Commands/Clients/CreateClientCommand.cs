@@ -24,7 +24,9 @@ internal sealed class CreateClientCommand : Command
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<ClientNameOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cancellationToken));
     }
 

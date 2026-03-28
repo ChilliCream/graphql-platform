@@ -18,8 +18,6 @@ internal sealed class PersonalAccessTokenCommand : Command
     {
         Description = "Manage personal access tokens";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(createPersonalAccessTokenCommand);
         Subcommands.Add(revokePersonalAccessTokenCommand);
         Subcommands.Add(listPersonalAccessTokenCommand);

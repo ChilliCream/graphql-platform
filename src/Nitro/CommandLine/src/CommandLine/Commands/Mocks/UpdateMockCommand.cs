@@ -31,7 +31,9 @@ internal sealed class UpdateMockCommand : Command
         Options.Add(Opt<OptionalMockSchemaNameOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, apisClient, client, fileSystem, sessionService, resultHolder, cancellationToken));
     }
 

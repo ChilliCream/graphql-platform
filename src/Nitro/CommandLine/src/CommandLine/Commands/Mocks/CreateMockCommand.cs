@@ -28,7 +28,9 @@ internal sealed class CreateMockCommand : Command
         Options.Add(Opt<DownstreamUrlOption>.Instance);
         Options.Add(Opt<MockSchemaNameOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, apisClient, client, fileSystem, sessionService, resultHolder, cancellationToken));
     }
 

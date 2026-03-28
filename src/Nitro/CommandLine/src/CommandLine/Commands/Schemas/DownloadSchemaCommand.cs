@@ -19,7 +19,9 @@ internal sealed class DownloadSchemaCommand : Command
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<FileNameOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 console,
                 client,

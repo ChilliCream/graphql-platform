@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests;
 
+// TODO: Remove
 internal sealed class TestFileSystem : IFileSystem
 {
     private readonly Dictionary<string, byte[]> _files;

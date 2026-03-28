@@ -19,7 +19,9 @@ internal sealed class UploadClientCommand : Command
         Options.Add(Opt<ClientIdOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 console,
                 client,

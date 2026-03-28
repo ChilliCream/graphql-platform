@@ -18,6 +18,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         IResultHolder resultHolder) : base("begin")
     {
         Description = "Begin a configuration publish. This command will request a deployment slot";
+
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ApiIdOption>.Instance);
@@ -26,7 +27,9 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 parseResult,
                 console,

@@ -16,7 +16,9 @@ internal sealed class FusionMigrateCommand : Command
         Arguments.Add(Opt<FusionMigrateTargetArgument>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, fileSystem, cancellationToken));
     }
 

@@ -23,7 +23,9 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
         Arguments.Add(Opt<IdArgument>.Instance);
         Options.Add(Opt<ForceOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 parseResult,
                 console,

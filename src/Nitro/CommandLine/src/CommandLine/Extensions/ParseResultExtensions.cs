@@ -14,7 +14,7 @@ internal static class ParseResultExtensions
         this ParseResult parseResult,
         ISessionService sessionService)
     {
-        var apiKey = parseResult.GetValue(Opt<ApiKeyOption>.Instance);
+        var apiKey = parseResult.GetValue(Opt<OptionalApiKeyOption>.Instance);
 
         if (sessionService.Session is not null || apiKey is not null)
         {
@@ -23,7 +23,7 @@ internal static class ParseResultExtensions
 
         throw new ExitException(
             "This command requires an authenticated user. "
-            + $"Either specify '{ApiKeyOption.OptionName}' or run 'nitro login'.");
+            + $"Either specify '{OptionalApiKeyOption.OptionName}' or run 'nitro login'.");
     }
 
     public static string GetWorkspaceId(
@@ -77,7 +77,7 @@ internal static class ParseResultExtensions
 
         if (!console.IsInteractive)
         {
-            throw new ExitException($"Missing required option '--{option.Name}'.");
+            throw new ExitException($"Missing required option '{option.Name}'.");
         }
 
         var prompt = new TextPrompt<string>(question.AsQuestion());

@@ -14,10 +14,13 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
         IFileSystem fileSystem) : base("commit")
     {
         Description = "Commit a Fusion configuration publish.";
+
         Options.Add(Opt<OptionalRequestIdOption>.Instance);
         Options.Add(Opt<FusionArchiveFileOption>.Instance);
 
-        SetAction((parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, (parseResult, cancellationToken)
             => ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken));
     }
 

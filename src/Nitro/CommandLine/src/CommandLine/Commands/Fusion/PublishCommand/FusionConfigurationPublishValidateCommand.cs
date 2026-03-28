@@ -15,10 +15,13 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         IFileSystem fileSystem) : base("validate")
     {
         Description = "Validates a Fusion configuration against the schema and clients.";
+
         Options.Add(Opt<OptionalRequestIdOption>.Instance);
         Options.Add(Opt<FusionArchiveFileOption>.Instance);
 
-        SetAction((parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, (parseResult, cancellationToken)
             => ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken));
     }
 

@@ -2,9 +2,9 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Options;
 
-internal sealed class CloudUrlOption : Option<string>
+internal sealed class OptionalCloudUrlOption : Option<string>
 {
-    public CloudUrlOption() : base("--cloud-url")
+    public OptionalCloudUrlOption() : base("--cloud-url")
     {
         Description = "The URL of the API.";
         Required = false;

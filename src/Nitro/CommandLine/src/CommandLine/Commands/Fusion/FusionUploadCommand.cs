@@ -30,7 +30,7 @@ internal sealed class FusionUploadCommand : Command
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        SetAction(async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
         {
             var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
             var sourceSchemaFile = parseResult.GetValue(Opt<SourceSchemaFileOption>.Instance)!;

@@ -13,6 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 internal sealed class ShowWorkspaceCommand : Command
 {
     public ShowWorkspaceCommand(
+        INitroConsole console,
         IWorkspacesClient client,
         IResultHolder resultHolder) : base("show")
     {
@@ -20,8 +21,12 @@ internal sealed class ShowWorkspaceCommand : Command
 
         Arguments.Add(Opt<IdArgument>.Instance);
 
-        SetAction((parseResult, cancellationToken)
-            => ExecuteAsync(parseResult, client, resultHolder, cancellationToken));
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(
+            console,
+            (parseResult, cancellationToken)
+                => ExecuteAsync(parseResult, client, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

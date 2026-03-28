@@ -82,7 +82,7 @@ internal sealed class FusionPublishCommand : Command
             }
         });
 
-        SetAction(async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
         {
             var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
             var sourceSchemaFiles =

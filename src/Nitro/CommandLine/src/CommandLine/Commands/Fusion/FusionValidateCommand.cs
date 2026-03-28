@@ -51,7 +51,7 @@ internal sealed class FusionValidateCommand : Command
             }
         });
 
-        SetAction(async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
         {
             var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
             var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;

@@ -21,8 +21,6 @@ internal sealed class OpenApiCommand : Command
     {
         Description = "Manage OpenAPI collections";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(createOpenApiCollectionCommand);
         Subcommands.Add(deleteOpenApiCollectionCommand);
         Subcommands.Add(listOpenApiCollectionCommand);

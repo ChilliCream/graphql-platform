@@ -23,7 +23,9 @@ internal sealed class ListClientPublishedVersionsCommand : Command
 
         Options.Add(Opt<OptionalClientIdOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, clientsClient, apisClient, sessionService, resultHolder, cancellationToken));
     }
 

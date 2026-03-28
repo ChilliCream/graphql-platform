@@ -1,10 +1,11 @@
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 
-// TODO: Add tests for mutation errors being returned
 public sealed class CreateApiKeyCommandTests
 {
     [Fact]
@@ -12,7 +13,7 @@ public sealed class CreateApiKeyCommandTests
     {
         // arrange & act
         var result = await new CommandBuilder()
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--help")
@@ -25,7 +26,7 @@ public sealed class CreateApiKeyCommandTests
               Creates a new API key
 
             Usage:
-              nitro api-key create [options]
+              ReSharperTestRunner api-key create [options]
 
             Options:
               --name <name>                        The name of the API key (for later reference) [env: NITRO_API_KEY_NAME]
@@ -47,9 +48,8 @@ public sealed class CreateApiKeyCommandTests
     {
         // arrange & act
         var result = await new CommandBuilder()
-            .AddSession()
             .AddInteractionMode(mode)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--workspace-id",
@@ -75,7 +75,7 @@ public sealed class CreateApiKeyCommandTests
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create")
             .ExecuteAsync();
@@ -91,8 +91,27 @@ public sealed class CreateApiKeyCommandTests
     public async Task MissingRequiredOptions_PromptsUser_SelectsApi_ReturnsResult()
     {
         // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateApiKeyAsync(
+        //IApisClient.SelectApisAsync("workspace-from-session", null, 5, CancellationToken) invocation failed with mock behavior Strict.
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        apisClient.Setup(x => x.SelectApisAsync(
+                "workspace-from-session",
+                null,
+                5,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
+                [
+                    new SelectApiPromptQuery_WorkspaceById_Apis_Edges_Node_Api(
+                        "api-1",
+                        "Api 1",
+                        [],
+                        null,
+                        new ShowApiCommandQuery_Node_Settings_ApiSettings(
+                            new ShowApiCommandQuery_Node_Settings_SchemaRegistry_SchemaRegistrySettings(false, false)))
+                ],
+                null,
+                false));
+        var apiKeysClient = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        apiKeysClient.Setup(x => x.CreateApiKeyAsync(
                 "integration",
                 "workspace-from-session",
                 "api-1",
@@ -100,28 +119,47 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
-        var command = await new CommandBuilder()
-            .AddService(client.Object)
+        var command = new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(apiKeysClient.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create")
-            .StartAsync();
+            .Start();
 
         // act
-        await command.InputAsync("integration"); // name
-        await command.SelectOptionAsync("Api"); // Api or Workspace
-        await command.SelectOptionAsync("api-1"); // TODO: This probably needs to change
+        command.Input("integration"); // name
+        command.SelectOption(0); // Api or Workspace
+        command.SelectOption(0); // Api 1
 
         var result = await command.RunToCompletionAsync();
 
         // assert
         result.AssertSuccess(
             """
+            ? Name integration
+            ? Do you want to create the API key scoped to an API or the whole workspace?
 
+            > Api
+              Workspace                                                                 For which API do you want to create an API key?
+
+            > Api 1
+
+            [    ] Creating API key...
+                                      {
+              "secret": "secret-123",
+              "details": {
+                "id": "key-1",
+                "name": "integration",
+                "workspace": {
+                  "name": "Workspace"
+                }
+              }
+            }
             """);
-        client.VerifyAll();
+        apiKeysClient.VerifyAll();
     }
 
     [Fact]
@@ -138,25 +176,44 @@ public sealed class CreateApiKeyCommandTests
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
-        var command = await new CommandBuilder()
+        var command = new CommandBuilder()
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create")
-            .StartAsync();
+            .Start();
 
         // act
-        await command.InputAsync("integration"); // name
-        await command.SelectOptionAsync("Workspace"); // Api or Workspace
+        command.Input("integration"); // name
+        command.SelectOption(1); // Api or Workspace
 
         var result = await command.RunToCompletionAsync();
 
         // assert
         result.AssertSuccess(
             """
+            ? Name integration
+            ? Do you want to create the API key scoped to an API or the whole workspace?
 
+            > Api
+              Workspace                                                                 ? Do you want to create the API key scoped to an API or the whole workspace?
+
+              Api
+            > Workspace
+
+            [    ] Creating API key...
+                                      {
+              "secret": "secret-123",
+              "details": {
+                "id": "key-1",
+                "name": "integration",
+                "workspace": {
+                  "name": "Workspace"
+                }
+              }
+            }
             """);
         client.VerifyAll();
     }
@@ -173,7 +230,7 @@ public sealed class CreateApiKeyCommandTests
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--name",
@@ -197,10 +254,9 @@ public sealed class CreateApiKeyCommandTests
     {
         // arrange & act
         var result = await new CommandBuilder()
-            .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--name",
@@ -212,7 +268,7 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            The '--workspace-id' or '--api-id' option is required in non-interactive mode.
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
             """);
     }
 
@@ -233,7 +289,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--workspace-id",
@@ -281,7 +337,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--workspace-id",
@@ -297,6 +353,9 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+            Creating API key...
+            └── Successfully created API key!
+
             {
               "secret": "secret-123",
               "details": {
@@ -329,7 +388,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--api-id",
@@ -376,7 +435,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSession()
             .AddInteractionMode(InteractionMode.JsonOutput)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--api-id",
@@ -425,7 +484,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSession()
             .AddInteractionMode(InteractionMode.NonInteractive)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--api-id",
@@ -441,6 +500,9 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+            Creating API key...
+            └── Successfully created API key!
+
             {
               "secret": "secret-xyz",
               "details": {
@@ -473,7 +535,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--api-id",
@@ -487,6 +549,9 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+            Creating API key...
+            └── Successfully created API key!
+
             {
               "secret": "secret-xyz",
               "details": {
@@ -502,6 +567,137 @@ public sealed class CreateApiKeyCommandTests
         client.VerifyAll();
     }
 
+    [Theory]
+    [MemberData(nameof(CreateApiKeyMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+        ICreateApiKeyCommandMutation_CreateApiKey_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiKeyAsync(
+                "tenant-key",
+                "workspace-from-session",
+                "api-404",
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                ApiKeyCommandTestHelper.CreateApiKeyResultWithErrors(
+                    mutationError));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "create",
+                "--api-id",
+                "api-404",
+                "--name",
+                "tenant-key");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Creating API key...
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(CreateApiKeyMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+        ICreateApiKeyCommandMutation_CreateApiKey_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiKeyAsync(
+                "tenant-key",
+                "workspace-from-session",
+                "api-404",
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                ApiKeyCommandTestHelper.CreateApiKeyResultWithErrors(
+                    mutationError));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api-key",
+                "create",
+                "--api-id",
+                "api-404",
+                "--name",
+                "tenant-key");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating API key...
+            └── Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(CreateApiKeyMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
+        ICreateApiKeyCommandMutation_CreateApiKey_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiKeyAsync(
+                "tenant-key",
+                "workspace-from-session",
+                "api-404",
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                ApiKeyCommandTestHelper.CreateApiKeyResultWithErrors(
+                    mutationError));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "api-key",
+                "create",
+                "--api-id",
+                "api-404",
+                "--name",
+                "tenant-key");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
     [Fact]
     public async Task ClientThrowsException_ReturnsError_OutputJson()
     {
@@ -510,7 +706,7 @@ public sealed class CreateApiKeyCommandTests
         client.Setup(x => x.CreateApiKeyAsync(
                 "broken",
                 "workspace-from-session",
-                null,
+                "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientException("create failed"));
@@ -519,11 +715,13 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddSessionWithWorkspace()
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--name",
-                "broken");
+                "broken",
+                "--api-id",
+                "api-1");
 
         // act
         var result = await builder.ExecuteAsync();
@@ -531,7 +729,7 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            create failed
+            There was an unexpected error executing your request: create failed
             """);
 
         client.VerifyAll();
@@ -545,7 +743,7 @@ public sealed class CreateApiKeyCommandTests
         client.Setup(x => x.CreateApiKeyAsync(
                 "broken",
                 "workspace-from-session",
-                null,
+                "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientException("create failed"));
@@ -554,20 +752,28 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddSessionWithWorkspace()
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--name",
-                "broken");
+                "broken",
+                "--api-id",
+                "api-1");
 
         // act
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdOut.MatchInlineSnapshot(
             """
-            create failed
+            Creating API key...
+            └── Failed!
             """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -580,7 +786,7 @@ public sealed class CreateApiKeyCommandTests
         client.Setup(x => x.CreateApiKeyAsync(
                 "broken",
                 "workspace-from-session",
-                null,
+                "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientException("create failed"));
@@ -589,20 +795,28 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddSessionWithWorkspace()
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--name",
-                "broken");
+                "broken",
+                "--api-id",
+                "api-1");
 
         // act
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdOut.MatchInlineSnapshot(
             """
-            create failed
+
+            [    ] Creating API key...
             """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -615,7 +829,7 @@ public sealed class CreateApiKeyCommandTests
         client.Setup(x => x.CreateApiKeyAsync(
                 "broken",
                 "workspace-from-session",
-                null,
+                "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException("create failed"));
@@ -624,11 +838,13 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddSessionWithWorkspace()
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--name",
-                "broken");
+                "broken",
+                "--api-id",
+                "api-1");
 
         // act
         var result = await builder.ExecuteAsync();
@@ -636,7 +852,7 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            create failed
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -650,7 +866,7 @@ public sealed class CreateApiKeyCommandTests
         client.Setup(x => x.CreateApiKeyAsync(
                 "broken",
                 "workspace-from-session",
-                null,
+                "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException("create failed"));
@@ -659,20 +875,28 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddSessionWithWorkspace()
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--name",
-                "broken");
+                "broken",
+                "--api-id",
+                "api-1");
 
         // act
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdOut.MatchInlineSnapshot(
             """
-            create failed
+            Creating API key...
+            └── Failed!
             """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -685,7 +909,7 @@ public sealed class CreateApiKeyCommandTests
         client.Setup(x => x.CreateApiKeyAsync(
                 "broken",
                 "workspace-from-session",
-                null,
+                "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException("create failed"));
@@ -694,21 +918,100 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddSessionWithWorkspace()
-            .Arguments.Adds(
+            .AddArguments(
                 "api-key",
                 "create",
                 "--name",
-                "broken");
+                "broken",
+                "--api-id",
+                "api-1");
 
         // act
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdOut.MatchInlineSnapshot(
             """
-            create failed
+
+            [    ] Creating API key...
             """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
+    }
+
+    public static IEnumerable<object[]> CreateApiKeyMutationErrorCases()
+    {
+        yield return
+        [
+            new CreateApiKeyCommandMutation_CreateApiKey_Errors_ApiNotFoundError(
+                "ApiNotFoundError",
+                "The API with ID 'api-404' was not found.",
+                "api-404"),
+            """
+            The API with ID 'api-404' was not found.
+            """
+        ];
+
+        yield return
+        [
+            new CreateApiKeyCommandMutation_CreateApiKey_Errors_WorkspaceNotFound(
+                "WorkspaceNotFound",
+                "The workspace with ID 'ws-404' was not found.",
+                "ws-404"),
+            """
+            The workspace with ID 'ws-404' was not found.
+            """
+        ];
+
+        yield return
+        [
+            new CreateApiKeyCommandMutation_CreateApiKey_Errors_PersonalWorkspaceNotSupportedError(
+                "PersonalWorkspaceNotSupportedError",
+                "Personal workspaces are not supported for this operation."),
+            """
+            Personal workspaces are not supported for this operation.
+            """
+        ];
+
+        yield return
+        [
+            new CreateApiKeyCommandMutation_CreateApiKey_Errors_RoleNotFoundError(
+                "RoleNotFoundError",
+                "The role with ID 'role-404' was not found.",
+                "role-404"),
+            """
+            The role with ID 'role-404' was not found.
+            """
+        ];
+
+        yield return
+        [
+            new CreateApiKeyCommandMutation_CreateApiKey_Errors_ValidationError(
+                "ValidationError",
+                "The input is invalid.",
+                []),
+            """
+            The input is invalid.
+            """
+        ];
+
+        var unexpectedError = new Mock<ICreateApiKeyCommandMutation_CreateApiKey_Errors>();
+        unexpectedError
+            .As<IError>()
+            .SetupGet(x => x.Message)
+            .Returns("unexpected failure");
+
+        yield return
+        [
+            unexpectedError.Object,
+            """
+            Unexpected mutation error: unexpected failure
+            """
+        ];
     }
 }

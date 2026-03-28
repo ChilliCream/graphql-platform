@@ -22,7 +22,9 @@ internal sealed class CreateEnvironmentCommand : Command
         Options.Add(Opt<EnvironmentNameOption>.Instance);
         Options.Add(Opt<WorkspaceIdOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 

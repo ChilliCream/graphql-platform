@@ -20,8 +20,6 @@ internal sealed class ApiCommand : Command
     {
         Description = "Manage APIs";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(createApiCommand);
         Subcommands.Add(deleteApiCommand);
         Subcommands.Add(listApiCommand);

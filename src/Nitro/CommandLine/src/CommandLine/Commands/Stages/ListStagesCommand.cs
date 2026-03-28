@@ -23,7 +23,9 @@ internal sealed class ListStagesCommand : Command
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 parseResult,
                 console,

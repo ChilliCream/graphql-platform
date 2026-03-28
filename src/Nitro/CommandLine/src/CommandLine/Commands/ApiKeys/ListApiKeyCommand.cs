@@ -21,7 +21,9 @@ internal sealed class ListApiKeyCommand : Command
         Options.Add(Opt<CursorOption>.Instance);
         Options.Add(Opt<WorkspaceIdOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(parseResult, console, apiKeysClient, sessionService, resultHolder, cancellationToken));
     }
 

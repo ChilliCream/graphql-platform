@@ -27,7 +27,9 @@ internal sealed class FusionSettingsSetCommand : Command
 
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken) =>
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
         {
             var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
             var settingValue = parseResult.GetRequiredValue(Opt<FusionSettingsValueArgument>.Instance);

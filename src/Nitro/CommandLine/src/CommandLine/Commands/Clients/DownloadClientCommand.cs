@@ -20,7 +20,9 @@ internal sealed class DownloadClientCommand : Command
         Options.Add(Opt<FileSystemOutputOptions>.Instance);
         Options.Add(Opt<ClientFormatOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
                 console,
                 client,

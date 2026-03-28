@@ -11,7 +11,9 @@ internal sealed class LogoutCommand : Command
     {
         Description = "Log out and remove session information";
 
-        SetAction(async (parseResult, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(console, sessionService, cancellationToken));
     }
 

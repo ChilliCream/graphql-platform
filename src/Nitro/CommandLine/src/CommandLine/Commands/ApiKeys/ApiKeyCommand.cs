@@ -17,8 +17,6 @@ internal sealed class ApiKeyCommand : Command
     {
         Description = "Manage API keys";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(createApiKeyCommand);
         Subcommands.Add(deleteApiKeyCommand);
         Subcommands.Add(listApiKeyCommand);

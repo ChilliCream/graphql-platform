@@ -38,7 +38,6 @@ internal sealed class NitroRootCommand : RootCommand
         SchemaCommand schemaCommand,
         StageCommand stageCommand,
         WorkspaceCommand workspaceCommand)
-        : base("nitro")
     {
         Description = RootCommand_Description;
 

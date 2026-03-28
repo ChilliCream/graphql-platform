@@ -18,7 +18,9 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         Description =
             "Use this command to select a workspace and set it as your default workspace";
 
-        SetAction((_, cancellationToken)
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, (_, cancellationToken)
             => ExecuteAsync(true, console, client, sessionService, cancellationToken));
     }
 

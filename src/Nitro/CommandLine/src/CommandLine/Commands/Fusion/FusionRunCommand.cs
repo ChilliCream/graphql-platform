@@ -31,7 +31,9 @@ internal class FusionRunCommand : Command
         Arguments.Add(Opt<FusionRunArchiveArgument>.Instance);
         Options.Add(Opt<FusionRunPortOption>.Instance);
 
-        SetAction(async (parseResult, cancellationToken) =>
+        this.AddGlobalNitroOptions();
+
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
         {
             var archiveFilePath = parseResult.GetValue(Opt<FusionRunArchiveArgument>.Instance)!;
             var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);

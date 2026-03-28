@@ -24,8 +24,6 @@ internal sealed class ClientCommand : Command
     {
         Description = "Manage clients";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(publishClientCommand);
         Subcommands.Add(unpublishClientCommand);
         Subcommands.Add(validateClientCommand);

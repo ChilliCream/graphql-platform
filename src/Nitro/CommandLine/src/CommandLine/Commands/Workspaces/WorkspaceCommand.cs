@@ -20,8 +20,6 @@ internal sealed class WorkspaceCommand : Command
     {
         Description = "Manage workspaces";
 
-        this.AddGlobalNitroOptions();
-
         Subcommands.Add(createWorkspaceCommand);
         Subcommands.Add(currentWorkspaceCommand);
         Subcommands.Add(setDefaultWorkspaceCommand);

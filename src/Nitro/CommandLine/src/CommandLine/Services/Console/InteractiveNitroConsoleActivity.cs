@@ -1,26 +1,61 @@
 namespace ChilliCream.Nitro.CommandLine;
 
-// TODO: Guard against double dispose
 internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
 {
     private readonly TaskCompletionSource _completion =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
     private Task? _spinnerTask;
     private StatusContext? _context;
+    private bool _completed;
 
     public void Update(string message)
     {
         _context?.Status(message);
     }
 
+    public void Success(string? message = null)
+    {
+        Complete(message);
+    }
+
+    public void Fail(string? message = null)
+    {
+        Complete(message);
+    }
+
     public async ValueTask DisposeAsync()
     {
+        if (_completed)
+        {
+            return;
+        }
+
+        _completed = true;
+
         _completion.TrySetResult();
 
-        if (_spinnerTask is not null)
+        if (_spinnerTask is { } spinnerTask)
         {
-            await _spinnerTask;
+            _spinnerTask = null;
+            await spinnerTask;
         }
+
+        _context = null;
+    }
+
+    private void Complete(string? message)
+    {
+        if (_completed)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(message))
+        {
+            _context?.Status(message);
+        }
+
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 
     private Task WaitForCompletionAsync() => _completion.Task;
