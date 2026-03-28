@@ -218,10 +218,6 @@ public class DispatchSchedulingMiddlewareTests
         Assert.Empty(store.Entries);
     }
 
-    // ──────────────────────────────────────────────────────────────
-    // Factory helpers
-    // ──────────────────────────────────────────────────────────────
-
     private static ServiceProvider BuildAppProvider(bool registerStore)
     {
         var services = new ServiceCollection();
@@ -240,10 +236,6 @@ public class DispatchSchedulingMiddlewareTests
             new RootServiceProviderAccessor(appProvider));
         return busServices.BuildServiceProvider();
     }
-
-    // ──────────────────────────────────────────────────────────────
-    // Test doubles
-    // ──────────────────────────────────────────────────────────────
 
     private sealed class StubTransport : MessagingTransport
     {
