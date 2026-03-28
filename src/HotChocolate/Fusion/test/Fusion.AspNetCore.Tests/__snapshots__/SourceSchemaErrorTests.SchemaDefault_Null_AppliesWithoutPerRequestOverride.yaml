@@ -1,6 +1,5 @@
-title: Error_On_Root_Field
+title: SchemaDefault_Null_AppliesWithoutPerRequestOverride
 request:
-  onError: Halt
   document: |
     {
       productById(id: 1) {
@@ -10,6 +9,9 @@ request:
 response:
   body: |
     {
+      "data": {
+        "productById": null
+      },
       "errors": [
         {
           "message": "Could not resolve Product",

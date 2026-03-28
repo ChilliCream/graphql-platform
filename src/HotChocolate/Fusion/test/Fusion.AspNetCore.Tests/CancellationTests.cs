@@ -47,89 +47,6 @@ public class CancellationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Execution_Is_Halted_While_Http_Request_In_Node_Is_Still_Ongoing()
-    {
-        // arrange
-        using var server1 = CreateSourceSchema(
-            "A",
-            b => b
-                .AddQueryType<SourceSchema1.Query>(),
-            isTimingOut: true);
-
-        using var server2 = CreateSourceSchema(
-            "B",
-            b => b
-                .AddQueryType<SourceSchema2.Query>());
-
-        using var gateway = await CreateCompositeSchemaAsync(
-        [
-            ("A", server1),
-            ("B", server2)
-        ],
-        configureGatewayBuilder: builder =>
-            builder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
-
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        var request = new OperationRequest(
-            """
-            {
-                topProduct {
-                    id
-                }
-                reviews {
-                    id
-                }
-            }
-            """);
-
-        // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
-
-        // assert
-        await MatchSnapshotAsync(gateway, request, result);
-    }
-
-    [Fact]
-    public async Task Execution_Is_Halted_While_Subscription_Is_Still_Ongoing()
-    {
-        // arrange
-        using var server1 = CreateSourceSchema(
-            "A",
-            b => b
-                .AddQueryType<SourceSchema2.Query>()
-                .AddSubscriptionType<SourceSchema2.Subscription>());
-
-        using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("A", server1)
-            ],
-            configureGatewayBuilder: builder =>
-                builder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
-
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        var request = new OperationRequest(
-            """
-            subscription {
-                onReviewCreated {
-                    id
-                }
-            }
-            """);
-
-        // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
-
-        // assert
-        await MatchSnapshotAsync(gateway, request, result);
-    }
-
-    [Fact]
     public async Task Http_Request_To_Source_Schema_Hits_HttpClient_Timeout()
     {
         // arrange
@@ -157,41 +74,6 @@ public class CancellationTests : FusionTestBase
             """);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
-
-        // assert
-        await MatchSnapshotAsync(gateway, request, result);
-    }
-
-    [Fact]
-    public async Task Default_ErrorHandlingMode_Can_Be_Changed()
-    {
-        // arrange
-        using var server1 = CreateSourceSchema(
-            "A",
-            b => b.AddQueryType<SourceSchema2.Query>());
-
-        using var gateway = await CreateCompositeSchemaAsync(
-        [
-            ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
-
-        var request = new OperationRequest(
-            """
-            {
-                reviews {
-                    id
-                }
-            }
-            """);
-
-        // act
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
         using var result = await client.PostAsync(
             request,
             new Uri("http://localhost:5000/graphql"));
