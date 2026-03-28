@@ -267,4 +267,20 @@ public class InputGeneratorTests
                 ",
             "extend schema @key(fields: \"id\")");
     }
+
+    [Fact]
+    public void Input_Field_Renamed_Via_Extension_Has_CSharp_Property_Name_With_Original_Wire_Key()
+    {
+        AssertResult(
+            """mutation SetFoo($input: FooInput!) { setFoo(input: $input) }""",
+            """
+            type Query { noop: String }
+            type Mutation { setFoo(input: FooInput!): Boolean }
+            input FooInput { value: String }
+            """,
+            """
+            extend schema @key(fields: "id")
+            extend input FooInput { equals: String @rename(name: "EqualsValue") }
+            """);
+    }
 }
