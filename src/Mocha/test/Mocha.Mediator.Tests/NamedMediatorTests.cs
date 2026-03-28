@@ -36,7 +36,7 @@ public sealed class NamedMediatorTests : IDisposable
         var billingMediator = scope.ServiceProvider.GetRequiredKeyedService<IMediator>("billing");
 
         // Act
-        var result = await billingMediator.SendAsync<string>(new BillingCommand("invoice-123"));
+        var result = await billingMediator.SendAsync(new BillingCommand("invoice-123"));
 
         // Assert
         Assert.Equal("billed:invoice-123", result);
@@ -51,8 +51,8 @@ public sealed class NamedMediatorTests : IDisposable
         var billingMediator = scope.ServiceProvider.GetRequiredKeyedService<IMediator>("billing");
 
         // Act
-        var defaultResult = await defaultMediator.SendAsync<string>(new DefaultCommand("hello"));
-        var billingResult = await billingMediator.SendAsync<string>(new BillingCommand("pay-456"));
+        var defaultResult = await defaultMediator.SendAsync(new DefaultCommand("hello"));
+        var billingResult = await billingMediator.SendAsync(new BillingCommand("pay-456"));
 
         // Assert
         Assert.Equal("default:hello", defaultResult);
@@ -68,8 +68,8 @@ public sealed class NamedMediatorTests : IDisposable
         var shippingMediator = scope.ServiceProvider.GetRequiredKeyedService<IMediator>("shipping");
 
         // Act
-        var billingResult = await billingMediator.SendAsync<string>(new BillingCommand("b-1"));
-        var shippingResult = await shippingMediator.SendAsync<string>(new ShippingCommand("s-1"));
+        var billingResult = await billingMediator.SendAsync(new BillingCommand("b-1"));
+        var shippingResult = await shippingMediator.SendAsync(new ShippingCommand("s-1"));
 
         // Assert
         Assert.Equal("billed:b-1", billingResult);
@@ -99,7 +99,7 @@ public sealed class NamedMediatorTests : IDisposable
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(
-            () => billingMediator.SendAsync<string>(new DefaultCommand("wrong")).AsTask().GetAwaiter().GetResult());
+            () => billingMediator.SendAsync(new DefaultCommand("wrong")).AsTask().GetAwaiter().GetResult());
     }
 
     public void Dispose()

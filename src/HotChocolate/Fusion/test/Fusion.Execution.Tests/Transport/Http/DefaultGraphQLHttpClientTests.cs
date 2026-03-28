@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -272,7 +271,7 @@ public class DefaultGraphQLHttpClientTests
             null,
             null,
             null,
-            ImmutableArray.Create(VariableValues.Empty),
+            [VariableValues.Empty],
             JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
@@ -318,7 +317,7 @@ public class DefaultGraphQLHttpClientTests
             null,
             null,
             null,
-            ImmutableArray.Create(VariableValues.Empty, VariableValues.Empty),
+            [VariableValues.Empty, VariableValues.Empty],
             JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
