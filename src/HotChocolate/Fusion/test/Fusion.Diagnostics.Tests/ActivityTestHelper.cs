@@ -23,12 +23,13 @@ public static partial class ActivityTestHelper
         {
             lock (sync)
             {
-                if (a.Parent is null
-                    && string.Equals(a.OperationName, "ExecuteHttpRequest", StringComparison.Ordinal)
+                if (string.Equals(a.OperationName, "ExecuteHttpRequest", StringComparison.Ordinal)
+                    && (a.Parent is null || !lookup.ContainsKey(a.Parent))
                     && lookup.TryGetValue(rootActivity, out var parentData))
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
+                    spanLookup[a.SpanId] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
                 }
 
                 if (a.Parent is not null
