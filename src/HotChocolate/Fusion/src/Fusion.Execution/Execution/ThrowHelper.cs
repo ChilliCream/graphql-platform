@@ -31,4 +31,7 @@ internal static class ThrowHelper
         => new(string.Format(
             FusionExecutionResources.SourceSchemaHttpClient_VariableIndexOutOfRange,
             variableIndex));
+
+    public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
+        => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");
 }

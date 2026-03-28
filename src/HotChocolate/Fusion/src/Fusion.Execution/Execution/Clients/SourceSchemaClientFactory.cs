@@ -17,8 +17,15 @@ public abstract class SourceSchemaClientFactory<TConfiguration> : ISourceSchemaC
         => configuration is TConfiguration;
 
     /// <inheritdoc />
-    ISourceSchemaClient ISourceSchemaClientFactory.CreateClient(ISourceSchemaClientConfiguration configuration)
-        => CreateClient((TConfiguration)configuration);
+    public ISourceSchemaClient CreateClient(ISourceSchemaClientConfiguration configuration)
+    {
+        if (configuration is not TConfiguration casted)
+        {
+            throw ThrowHelper.InvalidClientConfiguration(typeof(TConfiguration), configuration.GetType());
+        }
+
+        return CreateClient(casted);
+    }
 
     /// <summary>
     /// Creates a new <see cref="ISourceSchemaClient"/> for the given typed configuration.
