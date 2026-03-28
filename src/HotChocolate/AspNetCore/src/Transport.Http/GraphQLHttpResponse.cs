@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.IO.Pipelines;
 using HotChocolate.Buffers;
-using HotChocolate.Transport;
 using HotChocolate.Fusion.Text.Json;
 #else
 using System.Net;

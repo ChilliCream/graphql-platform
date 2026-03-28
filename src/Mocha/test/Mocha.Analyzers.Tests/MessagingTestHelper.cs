@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Analyzers;
 
 namespace Mocha.Analyzers.Tests;
 
