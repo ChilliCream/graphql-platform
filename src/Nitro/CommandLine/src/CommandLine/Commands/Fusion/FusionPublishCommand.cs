@@ -1,19 +1,24 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.Net;
 using System.Text;
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.SourceSchema.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 #if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+[RequiresDynamicCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
 internal sealed class FusionPublishCommand : Command
 {
@@ -23,7 +28,9 @@ internal sealed class FusionPublishCommand : Command
             + Environment.NewLine
             + "To take control over the deployment orchestration use sub-commands like 'begin'."
             + Environment.NewLine
-            + "If you don't specify --archive and instead use --source-schema or --source-schema-file, a Fusion v2 composition will be performed internally."
+            + $"If you don't specify {FusionArchiveFileOption.OptionName} and instead use "
+            + $"{OptionalSourceSchemaIdentifierListOption.OptionName} or {OptionalSourceSchemaFileListOption.OptionName}, "
+            + "a Fusion v2 composition will be performed internally."
             + Environment.NewLine
             + "The orchestration sub-commands can be used for both Fusion v1 and v2.";
 
@@ -33,14 +40,12 @@ internal sealed class FusionPublishCommand : Command
         AddCommand(new FusionConfigurationPublishCancelCommand());
         AddCommand(new FusionConfigurationPublishCommitCommand());
 
-        var archiveOption = new FusionArchiveFileOption(isRequired: false);
-
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<SourceSchemaIdentifierListOption>.Instance);
-        AddOption(Opt<SourceSchemaFileListOption>.Instance);
-        AddOption(archiveOption);
+        AddOption(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
+        AddOption(Opt<OptionalSourceSchemaFileListOption>.Instance);
+        AddOption(Opt<OptionalFusionArchiveFileOption>.Instance);
         AddOption(Opt<WorkingDirectoryOption>.Instance);
         AddOption(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddNitroCloudDefaultOptions();
@@ -49,35 +54,44 @@ internal sealed class FusionPublishCommand : Command
         {
             var exclusiveOptionsCount = new[]
             {
-                result.FindResultFor(Opt<SourceSchemaFileListOption>.Instance) is not null,
-                result.FindResultFor(Opt<SourceSchemaIdentifierListOption>.Instance) is not null,
-                result.FindResultFor(archiveOption) is not null
+                result.FindResultFor(Opt<OptionalSourceSchemaFileListOption>.Instance) is not null,
+                result.FindResultFor(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) is not null,
+                result.FindResultFor(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
             }.Count(x => x);
 
             if (exclusiveOptionsCount > 1)
             {
-                result.ErrorMessage = "You can only specify one of: '--source-schema', '--source-schema-file', or '--archive'.";
+                result.ErrorMessage =
+                    $"You can only specify one of: '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
+                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.";
             }
             else if (exclusiveOptionsCount < 1)
             {
-                result.ErrorMessage = "You need to specify one of: '--source-schema', '--source-schema-file', or '--archive'.";
+                result.ErrorMessage =
+                    $"You need to specify one of: '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
+                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.";
             }
         });
 
         this.SetHandler(async context =>
         {
             var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
-            var sourceSchemaFiles = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileListOption>.Instance) ?? [];
-            var sourceSchemaIdentifiers = context.ParseResult.GetValueForOption(Opt<SourceSchemaIdentifierListOption>.Instance) ?? [];
-            var archiveFile = context.ParseResult.GetValueForOption(archiveOption);
+            var sourceSchemaFiles =
+                context.ParseResult.GetValueForOption(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+            var sourceSchemaIdentifiers =
+                context.ParseResult.GetValueForOption(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
+            var archiveFile =
+                context.ParseResult.GetValueForOption(Opt<OptionalFusionArchiveFileOption>.Instance);
             var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
+            var sourceMetadataJson =
+                context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-            var apiClient = context.BindingContext.GetRequiredService<IApiClient>();
-            var httpClientFactory = context.BindingContext.GetRequiredService<IHttpClientFactory>();
+            var fusionConfigurationClient =
+                context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
 
             context.ExitCode = await ExecuteAsync(
                 workingDirectory,
@@ -89,8 +103,8 @@ internal sealed class FusionPublishCommand : Command
                 tag,
                 sourceMetadataJson,
                 console,
-                apiClient,
-                httpClientFactory,
+                fileSystem,
+                fusionConfigurationClient,
                 context.GetCancellationToken());
         });
     }
@@ -105,15 +119,15 @@ internal sealed class FusionPublishCommand : Command
         string tag,
         string? sourceMetadataJson,
         IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory httpClientFactory,
+        IFileSystem fileSystem,
+        IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
-        var source = SourceMetadataHelper.Parse(sourceMetadataJson);
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         if (archiveFile is not null)
         {
-            if (!File.Exists(archiveFile))
+            if (!fileSystem.FileExists(archiveFile))
             {
                 throw new ExitException($"Archive file '{archiveFile}' does not exist.");
             }
@@ -125,6 +139,7 @@ internal sealed class FusionPublishCommand : Command
                 archiveFile,
                 source,
                 console,
+                fileSystem,
                 client,
                 cancellationToken);
         }
@@ -136,10 +151,8 @@ internal sealed class FusionPublishCommand : Command
         if (sourceSchemaFiles.Count == 0 && sourceSchemaVersions.Length == 0)
         {
             sourceSchemaFiles.AddRange(
-                new DirectoryInfo(workingDirectory)
-                    .GetFiles("*.graphql*", SearchOption.AllDirectories)
-                    .Where(f => FusionComposeCommand.IsSchemaFile(f.Name))
-                    .Select(i => i.FullName));
+                fileSystem.GetFiles(workingDirectory, "*.graphql*", SearchOption.AllDirectories)
+                    .Where(f => FusionComposeCommand.IsSchemaFile(Path.GetFileName(f))));
         }
         else
         {
@@ -158,6 +171,7 @@ internal sealed class FusionPublishCommand : Command
         if (sourceSchemaFiles.Count > 0)
         {
             newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
+                fileSystem,
                 sourceSchemaFiles,
                 cancellationToken);
         }
@@ -167,14 +181,16 @@ internal sealed class FusionPublishCommand : Command
 
             foreach (var sourceSchemaVersion in sourceSchemaVersions)
             {
-                console.Log($"Downloading version '{sourceSchemaVersion.Version}' of source schema '{sourceSchemaVersion.Name}'...");
+                console.Log(
+                    $"Downloading version '{sourceSchemaVersion.Version}' of source schema '{sourceSchemaVersion.Name}'...");
 
-                using var archive = await FusionPublishHelpers.DownloadSourceSchemaArchiveAsync(
+                await using var sourceSchemaArchiveStream =
+                    await client.DownloadSourceSchemaArchiveAsync(
                     apiId,
                     sourceSchemaVersion.Name,
                     sourceSchemaVersion.Version,
-                    httpClientFactory,
                     cancellationToken);
+                using var archive = FusionSourceSchemaArchive.Open(sourceSchemaArchiveStream);
 
                 var settings = await archive.TryGetSettingsAsync(cancellationToken);
 
@@ -208,8 +224,8 @@ internal sealed class FusionPublishCommand : Command
             compositionSettings: null,
             source,
             console,
+            fileSystem,
             client,
-            httpClientFactory,
             cancellationToken);
     }
 
@@ -218,80 +234,19 @@ internal sealed class FusionPublishCommand : Command
         string stageName,
         string tag,
         string archiveFilePath,
-        SourceMetadataInput? source,
+        SourceMetadata? source,
         IAnsiConsole console,
-        IApiClient client,
+        IFileSystem fileSystem,
+        IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
-        await using var archiveStream = File.Open(archiveFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        await using var archiveStream = fileSystem.OpenReadStream(archiveFilePath);
 
         string requestId = null!;
         try
         {
-            if (console.IsHumanReadable())
+            await using (var beginActivity = console.StartActivity("Requesting deployment slot..."))
             {
-                // begin
-                await console
-                    .Status()
-                    .Spinner(Spinner.Known.BouncingBar)
-                    .SpinnerStyle(Style.Parse("green bold"))
-                    .StartAsync(
-                        "Requesting deployment slot...",
-                        async context =>
-                        {
-                            requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
-                                apiId,
-                                stageName,
-                                tag,
-                                subgraphId: null,
-                                subgraphName: null,
-                                sourceSchemaVersions: null,
-                                waitForApproval: false,
-                                source,
-                                context,
-                                console,
-                                client,
-                                cancellationToken);
-                        });
-
-                // start
-                await console
-                    .Status()
-                    .Spinner(Spinner.Known.BouncingBar)
-                    .SpinnerStyle(Style.Parse("green bold"))
-                    .StartAsync(
-                        "Claiming deployment slot...",
-                        async _ =>
-                        {
-                            await FusionPublishHelpers.ClaimDeploymentSlot(
-                                requestId,
-                                console,
-                                client,
-                                cancellationToken);
-                        });
-
-                // commit
-                await console
-                    .Status()
-                    .Spinner(Spinner.Known.BouncingBar)
-                    .SpinnerStyle(Style.Parse("green bold"))
-                    .StartAsync(
-                        $"Uploading new configuration to '{stageName}'...",
-                        async context =>
-                        {
-                            await FusionPublishHelpers.UploadFusionArchiveAsync(
-                                requestId,
-                                archiveStream,
-                                context,
-                                console,
-                                client,
-                                cancellationToken);
-                        });
-            }
-            else
-            {
-                // begin
-                console.WriteLine("Requesting deployment slot...");
                 requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
                     apiId,
                     stageName,
@@ -301,25 +256,24 @@ internal sealed class FusionPublishCommand : Command
                     sourceSchemaVersions: null,
                     waitForApproval: false,
                     source,
-                    statusContext: null,
+                    beginActivity,
                     console,
                     client,
                     cancellationToken);
+            }
 
-                // start
-                console.WriteLine("Claiming deployment slot...");
-                await FusionPublishHelpers.ClaimDeploymentSlot(
-                    requestId,
-                    console,
-                    client,
-                    cancellationToken);
+            await using (var _ = console.StartActivity("Claiming deployment slot..."))
+            {
+                await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
+            }
 
-                // commit
-                console.WriteLine($"Uploading new configuration to '{stageName}'...");
+            await using (var commitActivity = console.StartActivity(
+                $"Uploading new configuration to '{stageName}'..."))
+            {
                 await FusionPublishHelpers.UploadFusionArchiveAsync(
                     requestId,
                     archiveStream,
-                    statusContext: null,
+                    commitActivity,
                     console,
                     client,
                     cancellationToken);
@@ -331,12 +285,10 @@ internal sealed class FusionPublishCommand : Command
 
             if (!string.IsNullOrEmpty(requestId))
             {
-                await FusionPublishHelpers.ReleaseDeploymentSlot(
-                    requestId,
-                    console,
-                    client,
-                    CancellationToken.None);
+                await client.ReleaseDeploymentSlotAsync(requestId, CancellationToken.None);
             }
+
+            return ExitCodes.Error;
         }
 
         return ExitCodes.Success;
@@ -347,98 +299,44 @@ internal sealed class FusionPublishCommand : Command
         string stageName,
         string tag,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
-        FusionPublishHelpers.SourceSchemaVersion[] sourceSchemaVersions,
+        SourceSchemaVersion[] sourceSchemaVersions,
         CompositionSettings? compositionSettings,
-        SourceMetadataInput? source,
+        SourceMetadata? source,
         IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory httpClientFactory,
+        IFileSystem fileSystem,
+        IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
         string requestId = null!;
         try
         {
-            if (console.IsHumanReadable())
+            // begin
+            await using (var beginActivity = console.StartActivity("Requesting deployment slot..."))
             {
-                // begin
-                await console
-                    .Status()
-                    .Spinner(Spinner.Known.BouncingBar)
-                    .SpinnerStyle(Style.Parse("green bold"))
-                    .StartAsync(
-                        "Requesting deployment slot...",
-                        async context => requestId = await RequestDeploymentSlotAsync(context));
-
-                // start
-                await console
-                    .Status()
-                    .Spinner(Spinner.Known.BouncingBar)
-                    .SpinnerStyle(Style.Parse("green bold"))
-                    .StartAsync(
-                        "Claiming deployment slot...",
-                        async _ => await ClaimDeploymentSlotAsync());
-
-                // download
-                Stream? existingArchiveStream = null;
-                await console
-                    .Status()
-                    .Spinner(Spinner.Known.BouncingBar)
-                    .SpinnerStyle(Style.Parse("green bold"))
-                    .StartAsync(
-                        $"Downloading existing configuration from '{stageName}'...",
-                        async _ => existingArchiveStream = await DownloadConfigurationAsync());
-
-                // compose
-                await using Stream archiveStream = new MemoryStream();
-
-                var success = await FusionPublishHelpers.ComposeAsync(
-                    archiveStream,
-                    existingArchiveStream,
-                    stageName,
-                    newSourceSchemas,
-                    compositionSettings,
-                    console,
-                    cancellationToken);
-
-                if (!success)
-                {
-                    // cancel
-                    await FusionPublishHelpers.ReleaseDeploymentSlot(
-                        requestId,
-                        console,
-                        client,
-                        CancellationToken.None);
-
-                    return ExitCodes.Error;
-                }
-
-                // commit
-                await console
-                    .Status()
-                    .Spinner(Spinner.Known.BouncingBar)
-                    .SpinnerStyle(Style.Parse("green bold"))
-                    .StartAsync(
-                        $"Uploading new configuration to '{stageName}'...",
-                        async context => await UploadConfigurationAsync(archiveStream, context));
+                requestId = await RequestDeploymentSlotAsync(beginActivity);
             }
-            else
+
+            // start
+            await using (var _ = console.StartActivity("Claiming deployment slot..."))
             {
-                // begin
-                console.WriteLine("Requesting deployment slot...");
-                requestId = await RequestDeploymentSlotAsync(null);
-
-                // start
-                console.WriteLine("Claiming deployment slot...");
                 await ClaimDeploymentSlotAsync();
+            }
 
-                // download
-                console.WriteLine($"Downloading existing configuration from '{stageName}'...");
-                var existingArchiveStream = await DownloadConfigurationAsync();
+            // download
+            Stream? existingArchiveStream;
+            await using (var _ = console.StartActivity(
+                $"Downloading existing configuration from '{stageName}'..."))
+            {
+                // TODO: Needs to handle old and new archive
+                existingArchiveStream = await DownloadConfigurationAsync();
+            }
 
-                // compose
-                await using Stream archiveStream = new MemoryStream();
-
-                var success = await FusionPublishHelpers.ComposeAsync(
+            // compose
+            bool success;
+            await using Stream archiveStream = new MemoryStream();
+            await using (var _ = console.StartActivity("Composing new configuration..."))
+            {
+                success = await FusionPublishHelpers.ComposeAsync(
                     archiveStream,
                     existingArchiveStream,
                     stageName,
@@ -447,21 +345,29 @@ internal sealed class FusionPublishCommand : Command
                     console,
                     cancellationToken);
 
-                if (!success)
+                if (success)
                 {
-                    // cancel
-                    await FusionPublishHelpers.ReleaseDeploymentSlot(
-                        requestId,
-                        console,
-                        client,
-                        CancellationToken.None);
-
-                    return ExitCodes.Error;
+                    console.Success("Composed new configuration.");
                 }
+                else
+                {
+                    console.ErrorLine("Failed to compose new configuration.");
+                }
+            }
 
-                // commit
-                console.WriteLine($"Uploading new configuration to '{stageName}'...");
-                await UploadConfigurationAsync(archiveStream, null);
+            if (!success)
+            {
+                // cancel
+                await client.ReleaseDeploymentSlotAsync(requestId, CancellationToken.None);
+
+                return ExitCodes.Error;
+            }
+
+            // commit
+            await using (var commitActivity = console.StartActivity(
+                $"Uploading new configuration to '{stageName}'..."))
+            {
+                await UploadConfigurationAsync(archiveStream, commitActivity);
             }
         }
         catch (Exception exception)
@@ -470,17 +376,15 @@ internal sealed class FusionPublishCommand : Command
 
             if (!string.IsNullOrEmpty(requestId))
             {
-                await FusionPublishHelpers.ReleaseDeploymentSlot(
-                    requestId,
-                    console,
-                    client,
-                    CancellationToken.None);
+                await client.ReleaseDeploymentSlotAsync(requestId, CancellationToken.None);
             }
+
+            return ExitCodes.Error;
         }
 
         return ExitCodes.Success;
 
-        Task<string> RequestDeploymentSlotAsync(StatusContext? statusContext)
+        Task<string> RequestDeploymentSlotAsync(ICommandLineActivity activity)
         {
             return FusionPublishHelpers.RequestDeploymentSlotAsync(
                 apiId,
@@ -491,7 +395,7 @@ internal sealed class FusionPublishCommand : Command
                 sourceSchemaVersions,
                 waitForApproval: false,
                 source,
-                statusContext,
+                activity,
                 console,
                 client,
                 cancellationToken);
@@ -499,23 +403,28 @@ internal sealed class FusionPublishCommand : Command
 
         async Task ClaimDeploymentSlotAsync()
         {
-            await FusionPublishHelpers.ClaimDeploymentSlot(
-                requestId,
-                console,
-                client,
-                cancellationToken);
+            await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
 
             console.Success("Claimed deployment slot.");
         }
 
         async Task<Stream?> DownloadConfigurationAsync()
         {
-            var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
-                apiId,
-                stageName,
-                isFgp: false,
-                httpClientFactory,
-                cancellationToken);
+            Stream? stream;
+            try
+            {
+                stream = await client.DownloadLatestFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    cancellationToken);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)
+            {
+                stream = await client.DownloadLatestLegacyFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    cancellationToken);
+            }
 
             if (stream is null)
             {
@@ -529,12 +438,12 @@ internal sealed class FusionPublishCommand : Command
             return stream;
         }
 
-        async Task UploadConfigurationAsync(Stream stream, StatusContext? statusContext)
+        async Task UploadConfigurationAsync(Stream stream, ICommandLineActivity activity)
         {
             var success = await FusionPublishHelpers.UploadFusionArchiveAsync(
                 requestId,
                 stream,
-                statusContext,
+                activity,
                 console,
                 client,
                 cancellationToken);
@@ -548,7 +457,7 @@ internal sealed class FusionPublishCommand : Command
         }
     }
 
-    private static FusionPublishHelpers.SourceSchemaVersion ParseSourceSchemaVersion(string input, string tag)
+    private static SourceSchemaVersion ParseSourceSchemaVersion(string input, string tag)
     {
         var atIndex = input.LastIndexOf('@');
 
@@ -567,7 +476,7 @@ internal sealed class FusionPublishCommand : Command
                 throw new ArgumentException("The source schema version after the '@' cannot be empty.", nameof(input));
             }
 
-            return new FusionPublishHelpers.SourceSchemaVersion(name, version);
+            return new SourceSchemaVersion(name, version);
         }
 
         if (string.IsNullOrWhiteSpace(input))
@@ -575,6 +484,6 @@ internal sealed class FusionPublishCommand : Command
             throw new ArgumentException("The source schema name cannot be empty.", nameof(input));
         }
 
-        return new FusionPublishHelpers.SourceSchemaVersion(input, tag);
+        return new SourceSchemaVersion(input, tag);
     }
 }

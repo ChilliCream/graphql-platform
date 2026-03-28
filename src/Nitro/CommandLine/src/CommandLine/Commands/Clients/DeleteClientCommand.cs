@@ -1,6 +1,8 @@
 using System.CommandLine.Invocation;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -25,7 +27,7 @@ internal sealed class DeleteClientCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IClientsClient>(),
             Opt<OptionalIdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -33,7 +35,7 @@ internal sealed class DeleteClientCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IClientsClient client,
         string? clientId,
         CancellationToken cancellationToken)
     {
@@ -54,7 +56,7 @@ internal sealed class DeleteClientCommand : Command
             var workspaceId = context.RequireWorkspaceId();
 
             var selectedApi = await SelectApiPrompt
-                .New(client, workspaceId)
+                .New(context.BindingContext.GetRequiredService<IApisClient>(), workspaceId)
                 .Title(apiMessage)
                 .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
 
@@ -86,26 +88,17 @@ internal sealed class DeleteClientCommand : Command
             return ExitCodes.Success;
         }
 
-        var input = new DeleteClientByIdInput { ClientId = clientId };
-        var result =
-            await client.DeleteClientByIdCommandMutation.ExecuteAsync(input, cancellationToken);
+        var deletedClient = await client.DeleteClientAsync(clientId, cancellationToken);
+        console.PrintMutationErrorsAndExit(deletedClient.Errors);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.DeleteClientById.Errors);
-
-        var createdClient = data.DeleteClientById.Client;
-        if (createdClient is null)
+        if (deletedClient.Client is not IClientDetailPrompt_Client clientModel)
         {
             throw Exit("Could not delete the client.");
         }
 
-        console.OkLine($"Client {createdClient.Name.AsHighlight()} was deleted.");
+        console.OkLine($"Client {clientModel.Name.AsHighlight()} was deleted.");
 
-        if (createdClient is IClientDetailPrompt_Client detail)
-        {
-            context.SetResult(await ClientDetailPrompt.From(detail, client).ToObject([]));
-        }
+        context.SetResult(ClientDetailPrompt.From(clientModel).ToObject());
 
         return ExitCodes.Success;
     }

@@ -11,6 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Spectre.Console.Testing" VersionOverride="0.52.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\**\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

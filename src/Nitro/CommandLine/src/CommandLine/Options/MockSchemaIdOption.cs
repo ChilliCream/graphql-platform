@@ -6,5 +6,6 @@ internal class MockSchemaIdOption : Option<string>
     {
         IsRequired = true;
         this.DefaultFromEnvironmentValue("MOCK_ID");
+        this.NonEmptyStringsOnly();
     }
 }

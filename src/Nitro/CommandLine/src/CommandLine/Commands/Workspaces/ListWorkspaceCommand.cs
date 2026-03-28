@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -20,14 +21,14 @@ internal sealed class ListWorkspaceCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IWorkspacesClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IWorkspacesClient client,
         CancellationToken ct)
     {
         if (console.IsHumanReadable())
@@ -35,33 +36,30 @@ internal sealed class ListWorkspaceCommand : Command
             return await RenderInteractiveAsync(context, console, client, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, ct);
+        return await RenderNonInteractiveAsync(context, client, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IWorkspacesClient client,
         CancellationToken ct)
     {
         var container = PaginationContainer
-            .Create(
-                client.ListWorkspaceCommandQuery.ExecuteAsync,
-                static p => p.Me?.Workspaces?.PageInfo,
-                static p => p.Me?.Workspaces?.Edges)
+            .CreateConnectionData(client.ListWorkspacesAsync)
             .PageSize(10);
 
         var workspace = await PagedTable
             .From(container)
             .Title("Workspaces")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
-            .AddColumn("IsPersonal", x => x.Node.Personal.AsIcon())
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
+            .AddColumn("IsPersonal", x => x.Personal.AsIcon())
             .RenderAsync(console, ct);
 
-        if (workspace?.Node is IWorkspaceDetailPrompt_Workspace node)
+        if (workspace is not null)
         {
-            context.SetResult(WorkspaceDetailPrompt.From(node).ToObject());
+            context.SetResult(WorkspaceDetailPrompt.From(workspace).ToObject());
         }
 
         return ExitCodes.Success;
@@ -69,24 +67,18 @@ internal sealed class ListWorkspaceCommand : Command
 
     private static async Task<int> RenderNonInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        IWorkspacesClient client,
         CancellationToken ct)
     {
         var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListWorkspaceCommandQuery
-            .ExecuteAsync(cursor, 10, ct);
+        var data = await client.ListWorkspacesAsync(cursor, 10, ct);
 
-        console.EnsureNoErrors(result);
+        var items = data.Items
+            .Select(WorkspaceDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        var endCursor = result.Data?.Me?.Workspaces?.PageInfo.EndCursor;
-
-        var items = result.Data?.Me?.Workspaces?.Edges?.Select(x =>
-                WorkspaceDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<WorkspaceDetailPrompt.WorkspaceDetailPromptResult>(items, endCursor));
+        context.SetResult(new PaginatedListResult<WorkspaceDetailPrompt.WorkspaceDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

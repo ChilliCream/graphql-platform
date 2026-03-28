@@ -2,11 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Text;
-using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using HotChocolate.Fusion.SourceSchema.Packaging;
-using StrawberryShake;
 using ArchiveMetadata = HotChocolate.Fusion.SourceSchema.Packaging.ArchiveMetadata;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -37,63 +36,44 @@ public sealed class FusionUploadCommand : Command
             var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-            var apiClient = context.BindingContext.GetRequiredService<IApiClient>();
+            var fusionConfigurationClient =
+                context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
 
             context.ExitCode = await ExecuteAsync(
                 console,
-                apiClient,
+                fusionConfigurationClient,
                 workingDirectory,
                 sourceSchemaFile,
                 tag,
                 apiId,
                 sourceMetadataJson,
+                fileSystem,
                 context.GetCancellationToken());
         });
     }
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
+        IFusionConfigurationClient fusionConfigurationClient,
         string workingDirectory,
         string sourceSchemaFilePath,
         string tag,
         string apiId,
         string? sourceMetadataJson,
+        IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(workingDirectory))
-        {
-            throw new ExitException("Expected a non-empty value for '--working-directory'.");
-        }
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        if (string.IsNullOrEmpty(apiId))
+        await using (var _ = console.StartActivity("Uploading source schema..."))
         {
-            throw new ExitException("Expected a non-empty value for '--api-id'.");
-        }
-
-        if (string.IsNullOrEmpty(tag))
-        {
-            throw new ExitException("Expected a non-empty value for '--tag'.");
-        }
-
-        console.Title("Upload source schema");
-
-        if (console.IsHumanReadable())
-        {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Uploading source schema...", UploadSourceSchemaFile);
-        }
-        else
-        {
-            await UploadSourceSchemaFile(null);
+            await UploadSourceSchemaFile();
         }
 
         return ExitCodes.Success;
 
-        async Task UploadSourceSchemaFile(StatusContext? ctx)
+        async Task UploadSourceSchemaFile()
         {
             if (!Path.IsPathRooted(sourceSchemaFilePath))
             {
@@ -101,6 +81,7 @@ public sealed class FusionUploadCommand : Command
             }
 
             var (_, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
+                fileSystem,
                 sourceSchemaFilePath,
                 cancellationToken);
 
@@ -120,21 +101,15 @@ public sealed class FusionUploadCommand : Command
 
             archiveStream.Position = 0;
 
-            var input = new UploadFusionSubgraphInput
-            {
-                Archive = new Upload(archiveStream, "source-schema.zip"),
-                ApiId = apiId,
-                Tag = tag,
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
+            var result = await fusionConfigurationClient.UploadFusionSubgraphAsync(
+                apiId,
+                tag,
+                archiveStream,
+                source,
+                cancellationToken);
+            console.PrintMutationErrorsAndExit(result.Errors);
 
-            var result = await client.UploadFusionSubgraph.ExecuteAsync(input, cancellationToken);
-
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.UploadFusionSubgraph.Errors);
-
-            if (data.UploadFusionSubgraph.FusionSubgraphVersion?.Id is null)
+            if (string.IsNullOrWhiteSpace(result.FusionSubgraphVersion?.Id))
             {
                 throw new ExitException("Upload of source schema failed!");
             }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 
@@ -10,22 +11,22 @@ internal sealed class FusionMigrateCommand : Command
     {
         Description = "Migrate Fusion configuration files";
 
-        var targetArgument = new Argument<string>("TARGET")
-            .FromAmong(Targets.SubgraphConfig);
-
-        AddArgument(targetArgument);
+        AddArgument(Opt<FusionMigrateTargetArgument>.Instance);
         AddOption(Opt<WorkingDirectoryOption>.Instance);
 
         this.SetHandler(async context =>
         {
-            var target = context.ParseResult.GetValueForArgument(targetArgument);
+            var target = context.ParseResult.GetValueForArgument(
+                Opt<FusionMigrateTargetArgument>.Instance);
             var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
 
             context.ExitCode = target switch
             {
-                Targets.SubgraphConfig => await MigrateSubgraphConfigAsync(
+                FusionMigrateTargetArgument.SubgraphConfig => await MigrateSubgraphConfigAsync(
                     console,
+                    fileSystem,
                     workingDirectory,
                     context.GetCancellationToken()),
                 _ => throw new ArgumentOutOfRangeException(nameof(target))
@@ -35,6 +36,7 @@ internal sealed class FusionMigrateCommand : Command
 
     private static async Task<int> MigrateSubgraphConfigAsync(
         IAnsiConsole console,
+        IFileSystem fileSystem,
         string workingDirectory,
         CancellationToken cancellationToken)
     {
@@ -43,10 +45,10 @@ internal sealed class FusionMigrateCommand : Command
 
         console.WriteLine($"Searching for '{sourceFileName}' files in '{workingDirectory}'...");
 
-        var sourceFiles = Directory.GetFiles(
-            workingDirectory,
-            sourceFileName,
-            SearchOption.AllDirectories);
+        var sourceFiles = fileSystem.GlobMatch(
+            [$"{workingDirectory}/**/{sourceFileName}"],
+            ["**/bin/**", "**/obj/**"])
+            .ToArray();
 
         if (sourceFiles.Length == 0)
         {
@@ -63,7 +65,7 @@ internal sealed class FusionMigrateCommand : Command
             var directory = Path.GetDirectoryName(sourceFile)!;
             var targetFile = Path.Combine(directory, targetFileName);
 
-            if (File.Exists(targetFile))
+            if (fileSystem.FileExists(targetFile))
             {
                 var relativePath = Path.GetRelativePath(workingDirectory, targetFile);
                 console.MarkupLineInterpolated(
@@ -71,75 +73,27 @@ internal sealed class FusionMigrateCommand : Command
                 continue;
             }
 
-            var sourceJson = await File.ReadAllBytesAsync(sourceFile, cancellationToken);
+            var sourceJson = await fileSystem.ReadAllBytesAsync(sourceFile, cancellationToken);
 
-            using var document = JsonDocument.Parse(sourceJson);
+            using var document = FusionMigrationHelpers.MigrateSubgraphConfig(sourceJson);
             var root = document.RootElement;
 
-            await using var stream = File.Create(targetFile);
+            if (root.TryGetProperty("name", out var nameElement)
+                && nameElement.GetString() is "")
+            {
+                var relativePath = Path.GetRelativePath(workingDirectory, targetFile);
+                console.MarkupLineInterpolated(
+                    $"[grey]{relativePath}[/] [yellow]needs to define a 'name'.[/]");
+            }
+
+            await using var stream = fileSystem.CreateFile(targetFile);
             await using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions
             {
                 Indented = true,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             });
 
-            writer.WriteStartObject();
-
-            // Enable backwards compatibility
-            writer.WriteString("version", "1.0.0");
-
-            // "subgraph" -> "name"
-            if (root.TryGetProperty("subgraph", out var subgraphElement))
-            {
-                writer.WritePropertyName("name");
-                subgraphElement.WriteTo(writer);
-            }
-            else
-            {
-                writer.WriteString("name", "");
-
-                var relativePath = Path.GetRelativePath(workingDirectory, targetFile);
-                console.MarkupLineInterpolated(
-                    $"[grey]{relativePath}[/] [yellow]needs to define a 'name'.[/]");
-            }
-
-            // "http" -> "transports.http" with "baseAddress" -> "url"
-            if (root.TryGetProperty("http", out var httpElement))
-            {
-                writer.WriteStartObject("transports");
-                writer.WriteStartObject("http");
-
-                foreach (var httpProperty in httpElement.EnumerateObject())
-                {
-                    if (httpProperty.NameEquals("baseAddress"))
-                    {
-                        writer.WritePropertyName("url");
-                        httpProperty.Value.WriteTo(writer);
-                    }
-                    else
-                    {
-                        httpProperty.WriteTo(writer);
-                    }
-                }
-
-                writer.WriteEndObject();
-                writer.WriteEndObject();
-            }
-
-            // Copy any other top-level properties except "subgraph", "http", and "websocket"
-            foreach (var property in root.EnumerateObject())
-            {
-                if (property.NameEquals("subgraph")
-                    || property.NameEquals("http")
-                    || property.NameEquals("websocket"))
-                {
-                    continue;
-                }
-
-                property.WriteTo(writer);
-            }
-
-            writer.WriteEndObject();
+            root.WriteTo(writer);
             await writer.FlushAsync(cancellationToken);
 
             migratedFiles.Add(sourceFile);
@@ -161,10 +115,5 @@ internal sealed class FusionMigrateCommand : Command
         }
 
         return ExitCodes.Success;
-    }
-
-    private static class Targets
-    {
-        public const string SubgraphConfig = "subgraph-config";
     }
 }

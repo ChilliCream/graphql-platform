@@ -1,9 +1,8 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
 using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
@@ -22,7 +21,8 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IOpenApiClient>(),
+            Bind.FromServiceProvider<IFileSystem>(),
             Opt<TagOption>.Instance,
             Opt<OpenApiCollectionFilePatternOption>.Instance,
             Opt<OpenApiCollectionIdOption>.Instance,
@@ -32,29 +32,24 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
+        IOpenApiClient client,
+        IFileSystem fileSystem,
         string tag,
         List<string> patterns,
         string openApiCollectionId,
         string? sourceMetadataJson,
         CancellationToken cancellationToken)
     {
-        if (console.IsHumanReadable())
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        await using (var _ = console.StartActivity("Uploading new OpenAPI collection version..."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Uploading new OpenAPI collection version...", UploadOpenApiCollection);
-        }
-        else
-        {
-            await UploadOpenApiCollection(null);
+            await UploadOpenApiCollection();
         }
 
         return ExitCodes.Success;
 
-        async Task UploadOpenApiCollection(StatusContext? ctx)
+        async Task UploadOpenApiCollection()
         {
             console.Log("Searching for OpenAPI documents with the following patterns:");
             foreach (var pattern in patterns)
@@ -62,7 +57,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                 console.Log($"- {pattern}");
             }
 
-            var files = GlobMatcher.Match(patterns).ToArray();
+            var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();
 
             if (files.Length < 1)
             {
@@ -71,27 +66,18 @@ internal sealed class UploadOpenApiCollectionCommand : Command
             }
 
             var archiveStream =
-                await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(files, cancellationToken);
-
-            var input = new UploadOpenApiCollectionInput
-            {
-                Collection = new Upload(archiveStream, "collection.zip"),
-                OpenApiCollectionId = openApiCollectionId,
-                Tag = tag,
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
+                await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(
+                    fileSystem,
+                    files,
+                    cancellationToken);
 
             console.Log("Uploading OpenAPI collection..");
-            var result = await client.UploadOpenApiCollectionCommandMutation.ExecuteAsync(input, cancellationToken);
-
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.UploadOpenApiCollection.Errors);
-
-            if (data.UploadOpenApiCollection.OpenApiCollectionVersion?.Id is null)
-            {
-                throw new ExitException("Upload of OpenAPI collection failed.");
-            }
+            await client.UploadOpenApiCollectionVersionAsync(
+                openApiCollectionId,
+                tag,
+                archiveStream,
+                source,
+                cancellationToken);
 
             console.Success("Successfully uploaded new OpenAPI collection version!");
         }

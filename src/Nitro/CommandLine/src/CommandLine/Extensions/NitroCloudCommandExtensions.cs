@@ -20,6 +20,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -33,10 +34,12 @@ public static class NitroCloudCommandExtensions
 {
     public static CommandLineBuilder AddNitroCloudConfiguration(this CommandLineBuilder builder)
     {
-        builder.AddService<IConfigurationService, ConfigurationService>()
+        builder.AddService<IFileSystem, FileSystem>()
+            .AddService<IConfigurationService>(sp =>
+                new ConfigurationService(sp.GetRequiredService<IFileSystem>()))
             .AddSession()
             .AddResult()
-            .AddApiClient()
+            .AddNitroCloudClients()
             .AddSessionMiddleware()
             .AddResultMiddleware();
 

@@ -1,10 +1,7 @@
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
 using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
@@ -25,7 +22,7 @@ internal sealed class PublishSchemaCommand : Command
         this.SetHandler(async context =>
         {
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-            var client = context.BindingContext.GetRequiredService<IApiClient>();
+            var client = context.BindingContext.GetRequiredService<ISchemasClient>();
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
             var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
@@ -48,7 +45,7 @@ internal sealed class PublishSchemaCommand : Command
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
+        ISchemasClient client,
         string tag,
         string stage,
         string apiId,
@@ -57,133 +54,85 @@ internal sealed class PublishSchemaCommand : Command
         string? sourceMetadataJson,
         CancellationToken ct)
     {
-        console.Title(
-            $"Publish schema with tag {tag.EscapeMarkup()} to {stage.EscapeMarkup()}");
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        var committed = false;
-
-        if (console.IsHumanReadable())
-        {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Publishing...", PublishSchema);
-        }
-        else
-        {
-            await PublishSchema(null);
-        }
-
-        return committed ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task PublishSchema(StatusContext? ctx)
+        await using (var activity = console.StartActivity("Publishing..."))
         {
             console.Log("Initialized");
 
-            var input = new PublishSchemaInput
-            {
-                ApiId = apiId,
-                Stage = stage,
-                Tag = tag,
-                WaitForApproval = waitForApproval,
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
-
             if (force)
             {
-                input = input with { Force = true };
                 console.Log("[yellow]Force push is enabled[/]");
             }
 
             console.Log("Create publish request");
 
-            var requestId = await PublishSchemaAsync(console, client, input, ct);
+            var publishRequest = await client.StartSchemaPublishAsync(
+                apiId,
+                stage,
+                tag,
+                force,
+                waitForApproval,
+                source,
+                ct);
+
+            console.PrintMutationErrorsAndExit(publishRequest.Errors);
+            if (publishRequest.Id is not { } requestId)
+            {
+                throw new ExitException("Could not create publish request!");
+            }
 
             console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.OnSchemaVersionPublishUpdated
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
+            await foreach (var update in client.SubscribeToSchemaPublishAsync(requestId, ct))
             {
-                console.EnsureNoErrors(x);
-
-                switch (x.Data?.OnSchemaVersionPublishingUpdate)
+                switch (update)
                 {
                     case IProcessingTaskIsQueued v:
-                        ctx?.Status(
+                        activity.Update(
                             $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
                         break;
 
                     case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
                         console.WriteLine("Schema publish failed");
-                        console.PrintErrorsAndExit(schemaErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
+                        console.PrintMutationErrors(schemaErrors);
+                        return ExitCodes.Error;
 
                     case ISchemaVersionPublishSuccess:
-                        committed = true;
-                        stopSignal.OnNext(Unit.Default);
-
                         console.Success("Successfully published schema!");
-                        break;
+                        return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
                         console.Success("Your request is ready for the committing.");
                         break;
 
                     case IOperationInProgress:
-                        ctx?.Status("The committing of your request is in progress.");
+                        activity.Update("The committing of your request is in progress.");
                         break;
 
-                    case IWaitForApproval e:
-                        if (e.Deployment is
-                            IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_SchemaDeployment
-                            deployment)
+                    case IWaitForApproval waitForApprovalEvent:
+                        if (waitForApprovalEvent.Deployment is
+                            IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_SchemaDeployment deployment)
                         {
-                            console.PrintErrors(deployment.Errors);
+                            console.PrintMutationErrors(deployment.Errors);
                         }
 
-                        ctx?.Status(
+                        activity.Update(
                             "The committing of your request is waiting for approval. Check Nitro to approve the request.");
                         break;
 
                     case IProcessingTaskApproved:
-                        ctx?.Status("The committing of your request is approved.");
-
+                        activity.Update("The committing of your request is approved.");
                         break;
 
                     default:
-                        ctx?.Status(
+                        activity.Update(
                             "This is an unknown response, upgrade Nitro CLI to the latest version.");
                         break;
                 }
             }
         }
-    }
 
-    private static async Task<string> PublishSchemaAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        PublishSchemaInput input,
-        CancellationToken ct)
-    {
-        var result =
-            await client.PublishSchemaVersion.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.PublishSchema.Errors);
-
-        if (data.PublishSchema.Id is not { } requestId)
-        {
-            throw new ExitException("Could not create publish request!");
-        }
-
-        return requestId;
+        return ExitCodes.Error;
     }
 }

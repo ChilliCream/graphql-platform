@@ -1,5 +1,5 @@
-using System.Text;
 using System.Text.Json;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using HotChocolate.Adapters.Mcp.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
@@ -7,6 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 internal static class McpFeatureCollectionHelpers
 {
     public static async Task<MemoryStream> BuildMcpFeatureCollectionArchive(
+        IFileSystem fileSystem,
         IEnumerable<string> promptFiles,
         IEnumerable<string> toolFiles,
         CancellationToken cancellationToken)
@@ -26,7 +27,7 @@ internal static class McpFeatureCollectionHelpers
             }
 
             var promptName = Path.GetFileNameWithoutExtension(promptFile);
-            await using var settingsStream = File.OpenRead(promptFile);
+            await using var settingsStream = fileSystem.OpenReadStream(promptFile);
             var settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
 
             await collectionArchive.AddPromptAsync(promptName, settings, cancellationToken);
@@ -40,21 +41,21 @@ internal static class McpFeatureCollectionHelpers
             }
 
             var toolName = Path.GetFileNameWithoutExtension(toolFile);
-            var documentBytes = Encoding.UTF8.GetBytes(await File.ReadAllTextAsync(toolFile, cancellationToken));
+            var documentBytes = await fileSystem.ReadAllBytesAsync(toolFile, cancellationToken);
             var settingsFile = Path.ChangeExtension(toolFile, ".json");
             var viewFile = Path.ChangeExtension(toolFile, ".html");
 
             JsonDocument? settings = null;
-            if (File.Exists(settingsFile))
+            if (fileSystem.FileExists(settingsFile))
             {
-                await using var settingsStream = File.OpenRead(settingsFile);
+                await using var settingsStream = fileSystem.OpenReadStream(settingsFile);
                 settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
             }
 
             byte[]? view = null;
-            if (File.Exists(viewFile))
+            if (fileSystem.FileExists(viewFile))
             {
-                view = await File.ReadAllBytesAsync(viewFile, cancellationToken);
+                view = await fileSystem.ReadAllBytesAsync(viewFile, cancellationToken);
             }
 
             await collectionArchive.AddToolAsync(

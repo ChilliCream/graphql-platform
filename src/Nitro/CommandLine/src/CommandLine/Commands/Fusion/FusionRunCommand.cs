@@ -5,7 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -24,40 +26,33 @@ public class FusionRunCommand : Command
             + Environment.NewLine
             + "This command only supports Fusion v2.";
 
-        var archiveArgument = new Argument<FileInfo>("ARCHIVE_FILE")
-        {
-            Description = "The path to the Fusion archive file"
-        };
-        archiveArgument.LegalFilePathsOnly();
-
-        AddArgument(archiveArgument);
-
-        var portOption = new Option<int>("--port");
-        portOption.AddAlias("-p");
-
-        AddOption(portOption);
+        AddArgument(Opt<FusionRunArchiveArgument>.Instance);
+        AddOption(Opt<FusionRunPortOption>.Instance);
 
         this.SetHandler(async context =>
         {
-            var archiveFile = context.ParseResult.GetValueForArgument(archiveArgument);
+            var archiveFilePath = context.ParseResult.GetValueForArgument(
+                Opt<FusionRunArchiveArgument>.Instance)!;
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
 
-            var port = context.ParseResult.GetValueForOption(portOption);
+            var port = context.ParseResult.GetValueForOption(Opt<FusionRunPortOption>.Instance);
 
-            await ExecuteAsync(archiveFile, console, port, context.GetCancellationToken());
+            await ExecuteAsync(archiveFilePath, console, fileSystem, port, context.GetCancellationToken());
         });
     }
 
     private static async Task ExecuteAsync(
-        FileInfo archiveFile,
+        string archiveFilePath,
         IAnsiConsole console,
+        IFileSystem fileSystem,
         int? port,
         CancellationToken cancellationToken)
     {
-        if (!archiveFile.Exists)
+        if (!fileSystem.FileExists(archiveFilePath))
         {
-            throw new ExitException($"Archive file '{archiveFile.FullName}' does not exist.");
+            throw new ExitException($"Archive file '{archiveFilePath}' does not exist.");
         }
 
         port ??= GetRandomUnusedPort();
@@ -83,7 +78,7 @@ public class FusionRunCommand : Command
 
                 services.AddRouting()
                     .AddGraphQLGatewayServer()
-                    .AddFileSystemConfiguration(archiveFile.FullName)
+                    .AddFileSystemConfiguration(archiveFilePath)
                     .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
                     .ModifyServerOptions(o => o.Tool.ServeMode = App.ServeMode.Insider);
             })

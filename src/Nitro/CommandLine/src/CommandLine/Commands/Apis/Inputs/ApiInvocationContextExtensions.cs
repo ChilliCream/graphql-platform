@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -14,7 +15,7 @@ public static class ApiInvocationContextExtensions
         string message)
     {
         var ct = context.BindingContext.GetRequiredService<CancellationToken>();
-        var client = context.BindingContext.GetRequiredService<IApiClient>();
+        var client = context.BindingContext.GetRequiredService<IApisClient>();
         var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
         var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
 

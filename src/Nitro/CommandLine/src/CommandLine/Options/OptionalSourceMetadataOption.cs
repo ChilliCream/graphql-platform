@@ -6,5 +6,6 @@ internal sealed class OptionalSourceMetadataOption : Option<string?>
     {
         Description = "JSON metadata about the environment.";
         IsRequired = false;
+        IsHidden = true;
     }
 }

@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -22,14 +23,14 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IPersonalAccessTokensClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IPersonalAccessTokensClient client,
         CancellationToken ct)
     {
         console.WriteLine();
@@ -46,37 +47,25 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
 
         var expiresAt = DateTimeOffset.UtcNow.AddDays(expires);
 
-        var input =
-            new CreatePersonalAccessTokenInput { Description = description, ExpiresAt = expiresAt };
+        var data = await client.CreatePersonalAccessTokenAsync(description, expiresAt, ct);
+        console.PrintMutationErrorsAndExit(data.Errors);
 
-        var result = await client.CreatePersonalAccessTokenCommandMutation
-            .ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-
-        var data = console.EnsureData(result);
-
-        console.PrintErrorsAndExit(data.CreatePersonalAccessToken.Errors);
-
-        var changeResult = data.CreatePersonalAccessToken.Result;
-        if (changeResult is null)
+        var result = data.Result;
+        if (result is null)
         {
             throw Exit("Could not create pat.");
         }
 
         console.OkLine(
-            $"Secret: {changeResult.Secret.AsHighlight()} {"This secret will not be available later!"
+            $"Secret: {result.Secret.AsHighlight()} {"This secret will not be available later!"
                 .AsDescription()}");
 
-        if (changeResult.Token is IPersonalAccessTokenDetailPrompt_PersonalAccessToken detail)
-        {
-            context.SetResult(
-                new CreatePersonalAccessTokenCommandResult
-                {
-                    Secret = changeResult.Secret,
-                    Details = PersonalAccessTokenDetailPrompt.From(detail).ToObject()
-                });
-        }
+        context.SetResult(
+            new CreatePersonalAccessTokenCommandResult
+            {
+                Secret = result.Secret,
+                Details = PersonalAccessTokenDetailPrompt.From(result.Token).ToObject()
+            });
 
         return ExitCodes.Success;
     }

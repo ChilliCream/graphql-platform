@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
@@ -7,7 +8,6 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -24,14 +24,14 @@ internal sealed class CreateClientCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IClientsClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IClientsClient client,
         CancellationToken cancellationToken)
     {
         console.WriteLine();
@@ -44,27 +44,17 @@ internal sealed class CreateClientCommand : Command
         var name = await context
             .OptionOrAskAsync("Name", Opt<ClientNameOption>.Instance, cancellationToken);
 
-        var input = new CreateClientInput { Name = name, ApiId = apiId };
-        var result =
-            await client.CreateClientCommandMutation.ExecuteAsync(input, cancellationToken);
+        var data = await client.CreateClientAsync(apiId, name, cancellationToken);
+        console.PrintMutationErrorsAndExit(data.Errors);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CreateClient.Errors);
-
-        var createdClient = data.CreateClient.Client;
-        if (createdClient is null)
+        if (data.Client is not IClientDetailPrompt_Client createdClient)
         {
-            throw Exit("Could not create client.");
+            throw ThrowHelper.Exit("Could not create client.");
         }
 
         console.OkLine($"Client {createdClient.Name.AsHighlight()} created.");
 
-        if (createdClient is IClientDetailPrompt_Client detail)
-        {
-            var formatted = await ClientDetailPrompt.From(detail, client).ToObject([]);
-            context.SetResult(formatted);
-        }
+        context.SetResult(ClientDetailPrompt.From(createdClient).ToObject());
 
         return ExitCodes.Success;
     }

@@ -1,8 +1,7 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
 using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -18,71 +17,59 @@ internal sealed class UploadClientCommand : Command
         AddOption(Opt<ClientIdOption>.Instance);
         AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<TagOption>.Instance,
-            Opt<OperationsFileOption>.Instance,
-            Opt<ClientIdOption>.Instance,
-            Opt<OptionalSourceMetadataOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.SetHandler(async context =>
+        {
+            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var client = context.BindingContext.GetRequiredService<IClientsClient>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
+            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
+            var operationsFilePath = context.ParseResult.GetValueForOption(Opt<OperationsFileOption>.Instance)!;
+            var clientId = context.ParseResult.GetValueForOption(Opt<ClientIdOption>.Instance)!;
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
+
+            context.ExitCode = await ExecuteAsync(
+                console,
+                client,
+                fileSystem,
+                tag,
+                operationsFilePath,
+                clientId,
+                sourceMetadataJson,
+                context.GetCancellationToken());
+        });
     }
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
+        IClientsClient client,
+        IFileSystem fileSystem,
         string tag,
-        FileInfo operationsFile,
+        string operationsFilePath,
         string clientId,
         string? sourceMetadataJson,
         CancellationToken cancellationToken)
     {
-        console.Title($"Upload operations {operationsFile.FullName.EscapeMarkup()}");
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        if (console.IsHumanReadable())
-        {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Upload operations...", UploadClient);
-        }
-        else
-        {
-            await UploadClient(null);
-        }
-
-        return ExitCodes.Success;
-
-        async Task UploadClient(StatusContext? ctx)
+        await using (var _ = console.StartActivity("Uploading operations..."))
         {
             console.Log("Initialized");
-            console.Log($"Reading file [blue]{operationsFile.FullName.EscapeMarkup()}[/]");
+            console.Log($"Reading file [blue]{operationsFilePath.EscapeMarkup()}[/]");
 
-            var stream = FileHelpers.CreateFileStream(operationsFile);
+            await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
-            var input = new UploadClientInput
-            {
-                Operations = new Upload(stream, "operations.graphql"),
-                ClientId = clientId,
-                Tag = tag,
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
+            console.Log("Uploading client...");
 
-            console.Log("Uploading Client..");
-            var result = await client.UploadClient.ExecuteAsync(input, cancellationToken);
-
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.UploadClient.Errors);
-
-            if (data.UploadClient.ClientVersion?.Id is null)
-            {
-                throw new ExitException("Upload operations failed!");
-            }
+            await client.UploadClientVersionAsync(
+                clientId,
+                tag,
+                stream,
+                source,
+                cancellationToken);
 
             console.Success("Successfully uploaded operations!");
         }
+
+        return ExitCodes.Success;
     }
 }

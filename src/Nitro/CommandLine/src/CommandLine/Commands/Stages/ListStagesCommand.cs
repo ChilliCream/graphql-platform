@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -21,14 +22,14 @@ internal sealed class ListStagesCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IStagesClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IStagesClient client,
         CancellationToken ct)
     {
         if (console.IsHumanReadable())
@@ -36,26 +37,20 @@ internal sealed class ListStagesCommand : Command
             return await RenderInteractiveAsync(context, console, client, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, ct);
+        return await RenderNonInteractiveAsync(context, client, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IStagesClient client,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to display the clients?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
-        var result = await client.ListStagesQuery.ExecuteAsync(apiId, ct);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        var stages = (data.Node as IListStagesQuery_Node_Api)?.Stages;
-        if (stages is null)
-        {
-            throw ThrowHelper.Exit("Could not load stages");
-        }
+        var stageData = await client.ListStagesAsync(apiId, ct);
+        var stages = stageData.Stages;
 
         var stage = await SelectableTable
             .From(stages)
@@ -64,14 +59,15 @@ internal sealed class ListStagesCommand : Command
             .AddColumn("Name", x => x.Name)
             .AddColumn("After",
                 x => x.Conditions
-                    .OfType<IListStagesQuery_Node_Stages_Conditions_AfterStageCondition>()
-                    .Select(x => x.AfterStage!.Name)
+                    .OfType<IAfterStageCondition>()
+                    .Select(y => y.AfterStage?.Name)
+                    .OfType<string>()
                     .Join(","))
             .RenderAsync(console, ct);
 
-        if (stage is IStageDetailPrompt_Stage node)
+        if (stage is not null)
         {
-            context.SetResult(StageDetailPrompt.From(node).ToObject());
+            context.SetResult(StageDetailPrompt.From(stage).ToObject());
         }
 
         return ExitCodes.Success;
@@ -79,8 +75,7 @@ internal sealed class ListStagesCommand : Command
 
     private static async Task<int> RenderNonInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        IStagesClient client,
         CancellationToken ct)
     {
         var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
@@ -89,13 +84,10 @@ internal sealed class ListStagesCommand : Command
             throw ThrowHelper.Exit("The API ID is required in non-interactive mode.");
         }
 
-        var result = await client.ListStagesQuery.ExecuteAsync(apiId, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        var items = (data.Node as IListStagesQuery_Node_Api)?.Stages
+        var data = await client.ListStagesAsync(apiId, ct);
+        var items = data.Stages
             .Select(x => StageDetailPrompt.From(x).ToObject())
-            .ToArray() ?? [];
+            .ToArray();
 
         context.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
 

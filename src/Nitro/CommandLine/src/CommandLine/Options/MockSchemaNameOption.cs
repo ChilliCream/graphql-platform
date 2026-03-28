@@ -7,5 +7,6 @@ internal class MockSchemaNameOption : Option<string>
         Description = "The name of the mock schema";
         IsRequired = true;
         this.DefaultFromEnvironmentValue("MOCK_SCHEMA_NAME");
+        this.NonEmptyStringsOnly();
     }
 }

@@ -7,5 +7,6 @@ internal sealed class StageNameOption : Option<string>
         Description = "The name of the stage";
         IsRequired = true;
         this.DefaultFromEnvironmentValue("STAGE");
+        this.NonEmptyStringsOnly();
     }
 }

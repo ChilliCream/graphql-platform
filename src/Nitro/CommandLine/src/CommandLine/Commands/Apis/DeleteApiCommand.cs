@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -24,7 +25,7 @@ internal sealed class DeleteApiCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IApisClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -32,18 +33,12 @@ internal sealed class DeleteApiCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApisClient client,
         string apiId,
         CancellationToken cancellationToken)
     {
-        var apiResult = await client.DeleteApiCommandQuery.ExecuteAsync(apiId, cancellationToken);
-        if (apiResult is not
-            {
-                Data.Node: IDeleteApiCommandQuery_Api
-                {
-                    Name: { } apiName
-                }
-            })
+        var apiResult = await client.GetApiForDeleteAsync(apiId, cancellationToken);
+        if (apiResult is not IDeleteApiCommandQuery_Node_Api { Name: { } apiName })
         {
             throw Exit($"API with ID {apiId.AsHighlight()} was not found");
         }
@@ -57,24 +52,18 @@ internal sealed class DeleteApiCommand : Command
             throw Exit("API was not deleted");
         }
 
-        var result = await client.DeleteApiCommandMutation
-            .ExecuteAsync(apiId, cancellationToken);
+        var data = await client.DeleteApiAsync(apiId, cancellationToken);
+        console.PrintMutationErrorsAndExit(data.Errors);
 
-        console.EnsureNoErrors(result);
-
-        var data = console.EnsureData(result);
-
-        console.PrintErrorsAndExit(data.DeleteApiById.Errors);
-
-        if (data.DeleteApiById.Api is not IApiDetailPrompt_Api changeResult)
+        if (data.Api is not IApiDetailPrompt_Api api)
         {
             throw Exit("Could not delete API");
         }
 
         console.OkLine(
-            $"API {changeResult.Name.AsHighlight()} [dim](ID: {changeResult.Id})[/] was deleted");
+            $"API {api.Name.AsHighlight()} [dim](ID: {api.Id})[/] was deleted");
 
-        context.SetResult(ApiDetailPrompt.From(changeResult).ToObject());
+        context.SetResult(ApiDetailPrompt.From(api).ToObject());
 
         return ExitCodes.Success;
     }

@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -14,12 +15,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Stages;
 
 internal sealed class EditStagesCommand : Command
 {
-    private static readonly StageUpdateInput s_defaultStage = new()
-    {
-        Name = "default",
-        DisplayName = "Default",
-        Conditions = Array.Empty<StageConditionUpdateInput>()
-    };
+    private static readonly StageUpdateModel s_defaultStage = new(
+        Name: "default",
+        DisplayName: "Default",
+        AfterStages: []);
 
     public EditStagesCommand()
         : base("edit")
@@ -33,7 +32,7 @@ internal sealed class EditStagesCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IStagesClient>(),
             Bind.FromServiceProvider<CancellationToken>()
         );
     }
@@ -41,7 +40,7 @@ internal sealed class EditStagesCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IStagesClient client,
         CancellationToken cancellationToken)
     {
         console.WriteOperationTitle();
@@ -56,7 +55,7 @@ internal sealed class EditStagesCommand : Command
 
         if (stageConfiguration is not null)
         {
-            StageUpdateInput[]? input = null;
+            StageUpdateModel[]? input = null;
             try
             {
                 input = JsonSerializer
@@ -64,12 +63,12 @@ internal sealed class EditStagesCommand : Command
                         stageConfiguration,
                         NitroCLIJsonContext.Default.StageConfigurationParameterArray
                     )
-                    ?.Select(x => x.ToStageUpdateInput())
+                    ?.Select(x => x.ToStageUpdateModel())
                     .ToArray();
             }
             catch
             {
-                //  do nothing
+                // do nothing
             }
 
             if (input is null)
@@ -93,11 +92,11 @@ internal sealed class EditStagesCommand : Command
     private static async Task<int> EditStagesInteractivlyAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IStagesClient client,
         string apiId,
         CancellationToken cancellationToken)
     {
-        var updatedStages = await client.FetchStagesAsync(console, apiId, cancellationToken);
+        var updatedStages = await client.FetchStagesAsync(apiId, cancellationToken);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -153,51 +152,37 @@ internal sealed class EditStagesCommand : Command
 
 file static class ClientExtensions
 {
-    public static async Task<IReadOnlyList<StageUpdateInput>> FetchStagesAsync(
-        this IApiClient client,
-        IAnsiConsole console,
+    public static async Task<IReadOnlyList<StageUpdateModel>> FetchStagesAsync(
+        this IStagesClient client,
         string apiId,
         CancellationToken cancellationToken)
     {
-        var result = await client.ListStagesQuery.ExecuteAsync(apiId, cancellationToken);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        var stages = (data.Node as IListStagesQuery_Node_Api)?.Stages;
-        if (stages is null)
-        {
-            throw Exit("Could not load stages");
-        }
+        var stages = await client.ListStagesAsync(apiId, cancellationToken);
 
-        return stages
-            .Select(x => new StageUpdateInput
-            {
-                Name = x.Name,
-                DisplayName = x.DisplayName,
-                Conditions = x
-                    .Conditions.OfType<IAfterStageCondition>()
-                    .Select(y => new StageConditionUpdateInput { AfterStage = y.AfterStage!.Name })
-                    .ToArray()
-            })
+        return stages.Stages
+            .Select(x => new StageUpdateModel(
+                x.Name,
+                x.DisplayName,
+                x.Conditions
+                    .OfType<IAfterStageCondition>()
+                    .Select(y => y.AfterStage?.Name)
+                    .OfType<string>()
+                    .ToArray()))
             .ToList();
     }
 
     public static async Task UpdateStagesAsync(
-        this IApiClient client,
+        this IStagesClient client,
         InvocationContext context,
         IAnsiConsole console,
         string apiId,
-        IReadOnlyList<StageUpdateInput> updatedStages,
+        IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
     {
-        var updateInput = new UpdateStagesInput { ApiId = apiId, UpdatedStages = updatedStages };
+        var stages = await client.UpdateStagesAsync(apiId, updatedStages, cancellationToken);
+        console.PrintMutationErrorsAndExit(stages.Errors);
 
-        var updateResult = await client.UpdateStages.ExecuteAsync(updateInput, cancellationToken);
-
-        console.EnsureNoErrors(updateResult);
-        var data = console.EnsureData(updateResult);
-        console.PrintErrorsAndExit(data.UpdateStages.Errors);
-
-        var items = data.UpdateStages.Api?.Stages
+        var items = stages.Api?.Stages
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray() ?? [];
 
@@ -212,7 +197,7 @@ file static class Extensions
     public static async Task<ActionResult?> ShowStages(
         this IAnsiConsole console,
         string apiId,
-        IReadOnlyList<StageUpdateInput> updatedStages,
+        IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
     {
         if (updatedStages.Count == 0)
@@ -227,7 +212,7 @@ file static class Extensions
             .Title($"Edit the stages of API {apiId}")
             .AddColumn("Name", x => x.Name)
             .AddColumn("DisplayName", x => x.DisplayName)
-            .AddColumn("After", x => x.Conditions!.Select(y => y.AfterStage).Join(","))
+            .AddColumn("After", x => x.AfterStages.Join(","))
             .AddKeyAction(ConsoleKey.Enter, (_, _) => new InputAction.None())
             .AddItemKeyAction('e', (d, index) => result = new ActionResult.Edit(d.Items[index]))
             .AddItemKeyAction('d', (d, index) => result = new ActionResult.Delete(d.Items[index]))
@@ -241,10 +226,10 @@ file static class Extensions
         return result;
     }
 
-    public static async Task<StageUpdateInput> EditStage(
+    public static async Task<StageUpdateModel> EditStage(
         this IAnsiConsole console,
-        IEnumerable<StageUpdateInput> updatedStages,
-        StageUpdateInput selectedStage,
+        IEnumerable<StageUpdateModel> updatedStages,
+        StageUpdateModel selectedStage,
         CancellationToken cancellationToken)
     {
         var name = await console.AskAsync("Name", selectedStage.Name, cancellationToken);
@@ -265,33 +250,27 @@ file static class Extensions
                 .Title($"Select the stages before {selectedStage.Name}".AsQuestion())
                 .NotRequired();
 
-            foreach (var condition in selectedStage.Conditions!)
+            foreach (var condition in selectedStage.AfterStages)
             {
-                prompt.Select(condition.AfterStage);
+                prompt.Select(condition);
             }
 
             selectedStages = await prompt.ShowAsync(console, cancellationToken);
         }
         else
         {
-            selectedStages = Array.Empty<string>();
+            selectedStages = [];
         }
 
-        var conditionInputs = selectedStages
-            .Select(x => new StageConditionUpdateInput { AfterStage = x })
-            .ToArray();
-
-        return new StageUpdateInput
-        {
-            Name = name,
-            DisplayName = displayName,
-            Conditions = conditionInputs
-        };
+        return new StageUpdateModel(
+            Name: name,
+            DisplayName: displayName,
+            AfterStages: selectedStages);
     }
 
     public static async Task<bool> ConfirmStageUpdate(
         this IAnsiConsole console,
-        IReadOnlyList<StageUpdateInput> updatedStages,
+        IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
     {
         console.MarkupLine("Do you want to save the following changes?".AsQuestion());
@@ -302,7 +281,7 @@ file static class Extensions
             resultTable.AddRow(
                 stage.Name,
                 stage.DisplayName,
-                stage.Conditions!.Select(x => x.AfterStage).Join(",")
+                stage.AfterStages.Join(",")
             );
         }
 
@@ -320,43 +299,34 @@ file static class StringExtensions
     public static string Join(this IEnumerable<string> source, string separator) =>
         string.Join(separator, source);
 
-    public static StageUpdateInput ToStageUpdateInput(this StageConfigurationParameter stage) =>
-        new()
-        {
-            Name = stage.Name,
-            DisplayName = stage.DisplayName,
-            Conditions = stage
-                .Conditions.Select(x => new StageConditionUpdateInput { AfterStage = x.AfterStage })
-                .ToArray()
-        };
+    public static StageUpdateModel ToStageUpdateModel(this StageConfigurationParameter stage) =>
+        new(
+            Name: stage.Name,
+            DisplayName: stage.DisplayName,
+            AfterStages: stage.Conditions.Select(x => x.AfterStage).ToArray());
 }
 
-file static class StageUpdateInputListExtensions
+file static class StageUpdateModelListExtensions
 {
-    public static IReadOnlyList<StageUpdateInput> Remove(
-        this IReadOnlyList<StageUpdateInput> stages,
-        StageUpdateInput toRemove)
+    public static IReadOnlyList<StageUpdateModel> Remove(
+        this IReadOnlyList<StageUpdateModel> stages,
+        StageUpdateModel toRemove)
     {
         return stages
             .Where(x => x != toRemove)
-            .Select(x =>
-                x with
-                {
-                    Conditions = x.Conditions!.Where(y => y.AfterStage != toRemove.Name).ToArray(),
-                }
-            )
+            .Select(x => x with { AfterStages = x.AfterStages.Where(y => y != toRemove.Name).ToArray() })
             .ToArray();
     }
 
-    public static IReadOnlyList<StageUpdateInput> Replace(
-        this IReadOnlyList<StageUpdateInput> stages,
-        StageUpdateInput toReplace,
-        StageUpdateInput replacement
+    public static IReadOnlyList<StageUpdateModel> Replace(
+        this IReadOnlyList<StageUpdateModel> stages,
+        StageUpdateModel toReplace,
+        StageUpdateModel replacement
     ) => stages.Select(x => x == toReplace ? replacement : x).ToArray();
 
-    public static IReadOnlyList<StageUpdateInput> Add(
-        this IReadOnlyList<StageUpdateInput> stages,
-        StageUpdateInput add
+    public static IReadOnlyList<StageUpdateModel> Add(
+        this IReadOnlyList<StageUpdateModel> stages,
+        StageUpdateModel add
     ) => stages.Append(add).ToArray();
 }
 
@@ -412,9 +382,9 @@ file record ActionResult
 {
     public record Add : ActionResult;
 
-    public record Edit(StageUpdateInput Stage) : ActionResult;
+    public record Edit(StageUpdateModel Stage) : ActionResult;
 
-    public record Delete(StageUpdateInput Stage) : ActionResult;
+    public record Delete(StageUpdateModel Stage) : ActionResult;
 
     public record Save : ActionResult;
 }

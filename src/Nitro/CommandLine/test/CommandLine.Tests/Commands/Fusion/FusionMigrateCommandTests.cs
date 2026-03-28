@@ -1,53 +1,53 @@
-using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Parsing;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionMigrateCommandTests : IDisposable
+public sealed class FusionMigrateCommandTests
 {
-    private readonly string _tempDir;
-
-    public FusionMigrateCommandTests()
-    {
-        _tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(_tempDir);
-    }
-
     [Fact]
     public async Task Migrate_SubgraphConfig()
     {
         // arrange
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
-            """
-            {
-              "subgraph": "Order",
-              "http": {
-                "clientName": "order-client",
-                "baseAddress": "http://localhost:59093/graphql",
-                "timeout": 30
-              },
-              "websocket": { "baseAddress": "ws://localhost:59093/graphql" },
-              "extensions": {
-                "nitro": {
-                  "apiId": "blah"
-                }
-              }
-            }
-            """);
+        var workingDirectory = GetExistingWorkingDirectory();
+        var subgraphConfigPath = Path.Combine(workingDirectory, "subgraph", "subgraph-config.json");
+        var outputPath = Path.Combine(workingDirectory, "subgraph", "schema-settings.json");
 
-        var builder = GetCommandLineBuilder();
+        var files = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [subgraphConfigPath] =
+                """
+                {
+                  "subgraph": "Order",
+                  "http": {
+                    "clientName": "order-client",
+                    "baseAddress": "http://localhost:59093/graphql",
+                    "timeout": 30
+                  },
+                  "websocket": { "baseAddress": "ws://localhost:59093/graphql" },
+                  "extensions": {
+                    "nitro": {
+                      "apiId": "blah"
+                    }
+                  }
+                }
+                """
+        };
+
+        var fileSystem = CreateFileSystem(files, [subgraphConfigPath]);
+        var host = CreateHost(fileSystem);
 
         // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
+        var exitCode = await host.InvokeAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            workingDirectory);
 
         // assert
         Assert.Equal(0, exitCode);
-
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
-        json.MatchInlineSnapshot(
+        ReadText(fileSystem, outputPath).ReplaceLineEndings("\n").MatchInlineSnapshot(
             """
             {
               "version": "1.0.0",
@@ -72,68 +72,102 @@ public sealed class FusionMigrateCommandTests : IDisposable
     public async Task Migrate_SubgraphConfig_SkipsIfTargetExists()
     {
         // arrange
+        var workingDirectory = GetExistingWorkingDirectory();
+        var subgraphConfigPath = Path.Combine(workingDirectory, "subgraph", "subgraph-config.json");
+        var outputPath = Path.Combine(workingDirectory, "subgraph", "schema-settings.json");
         const string existingContent = """{ "existing": true }""";
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
-            """
-            {
-              "subgraph": "Order",
-              "http": { "baseAddress": "http://localhost:5001/graphql" }
-            }
-            """);
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "schema-settings.json"),
-            existingContent);
 
-        var builder = GetCommandLineBuilder();
+        var files = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [subgraphConfigPath] =
+                """
+                {
+                  "subgraph": "Order",
+                  "http": { "baseAddress": "http://localhost:5001/graphql" }
+                }
+                """,
+            [outputPath] = existingContent
+        };
+
+        var fileSystem = CreateFileSystem(files, [subgraphConfigPath]);
+        var host = CreateHost(fileSystem);
 
         // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
+        var exitCode = await host.InvokeAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            workingDirectory);
 
         // assert
         Assert.Equal(0, exitCode);
-
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
-        Assert.Equal(existingContent, json);
+        Assert.Equal(existingContent, ReadText(fileSystem, outputPath));
     }
 
     [Fact]
     public async Task Migrate_SubgraphConfig_NoFilesFound_ReturnsError()
     {
         // arrange
-        var builder = GetCommandLineBuilder();
+        var workingDirectory = GetExistingWorkingDirectory();
+        var fileSystem = CreateFileSystem(
+            files: new Dictionary<string, string>(StringComparer.Ordinal),
+            sourceFiles: []);
+        var host = CreateHost(fileSystem);
 
         // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
+        var exitCode = await host.InvokeAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            workingDirectory);
 
         // assert
         Assert.Equal(-1, exitCode);
+        Assert.Equal(
+            $"Searching for 'subgraph-config.json' files in '{workingDirectory}'...\n✕ No subgraph-config.json files found.\n",
+            host.Output.ReplaceLineEndings("\n"));
     }
 
     [Fact]
     public async Task Migrate_SubgraphConfig_MissingSubgraph()
     {
         // arrange
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
-            """
-            {
-              "http": { "baseAddress": "http://localhost:5001/graphql" }
-            }
-            """);
+        var workingDirectory = GetExistingWorkingDirectory();
+        var subgraphConfigPath = Path.Combine(workingDirectory, "subgraph", "subgraph-config.json");
+        var outputPath = Path.Combine(workingDirectory, "subgraph", "schema-settings.json");
 
-        var builder = GetCommandLineBuilder();
+        var files = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [subgraphConfigPath] =
+                """
+                {
+                  "http": { "baseAddress": "http://localhost:5001/graphql" }
+                }
+                """
+        };
+
+        var fileSystem = CreateFileSystem(files, [subgraphConfigPath]);
+        var host = CreateHost(fileSystem);
 
         // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
+        var exitCode = await host.InvokeAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            workingDirectory);
 
         // assert
         Assert.Equal(0, exitCode);
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
-        json.MatchInlineSnapshot(
+        Assert.Equal(
+            $"Searching for 'subgraph-config.json' files in '{workingDirectory}'...\n"
+            + "subgraph/schema-settings.json needs to define a 'name'.\n"
+            + "Migrated 1 file(s) to schema-settings.json!\n"
+            + "subgraph/subgraph-config.json -> schema-settings.json\n",
+            host.Output.ReplaceLineEndings("\n"));
+        ReadText(fileSystem, outputPath).ReplaceLineEndings("\n").MatchInlineSnapshot(
             """
             {
               "version": "1.0.0",
@@ -151,60 +185,65 @@ public sealed class FusionMigrateCommandTests : IDisposable
     public async Task Migrate_SubgraphConfig_MultipleFiles()
     {
         // arrange
-        var subDir1 = Path.Combine(_tempDir, "subgraph1");
-        var subDir2 = Path.Combine(_tempDir, "subgraph2");
-        Directory.CreateDirectory(subDir1);
-        Directory.CreateDirectory(subDir2);
+        var workingDirectory = GetExistingWorkingDirectory();
+        var subgraph1Path = Path.Combine(workingDirectory, "subgraph1", "subgraph-config.json");
+        var subgraph2Path = Path.Combine(workingDirectory, "subgraph2", "subgraph-config.json");
+        var outputPath1 = Path.Combine(workingDirectory, "subgraph1", "schema-settings.json");
+        var outputPath2 = Path.Combine(workingDirectory, "subgraph2", "schema-settings.json");
 
-        await File.WriteAllTextAsync(
-            Path.Combine(subDir1, "subgraph-config.json"),
-            """
-            {
-              "subgraph": "Order",
-              "http": { "baseAddress": "http://localhost:5001/graphql" }
-            }
-            """);
+        var files = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [subgraph1Path] =
+                """
+                {
+                  "subgraph": "Order",
+                  "http": { "baseAddress": "http://localhost:5001/graphql" }
+                }
+                """,
+            [subgraph2Path] =
+                """
+                {
+                  "subgraph": "Product",
+                  "http": { "baseAddress": "http://localhost:5002/graphql" }
+                }
+                """
+        };
 
-        await File.WriteAllTextAsync(
-            Path.Combine(subDir2, "subgraph-config.json"),
-            """
-            {
-              "subgraph": "Product",
-              "http": { "baseAddress": "http://localhost:5002/graphql" }
-            }
-            """);
-
-        var builder = GetCommandLineBuilder();
+        var fileSystem = CreateFileSystem(files, [subgraph1Path, subgraph2Path]);
+        var host = CreateHost(fileSystem);
 
         // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
+        var exitCode = await host.InvokeAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            workingDirectory);
 
         // assert
         Assert.Equal(0, exitCode);
-        Assert.True(File.Exists(Path.Combine(subDir1, "schema-settings.json")));
-        Assert.True(File.Exists(Path.Combine(subDir2, "schema-settings.json")));
+        Assert.True(fileSystem.FileExists(outputPath1));
+        Assert.True(fileSystem.FileExists(outputPath2));
     }
 
-    private static CommandLineBuilder GetCommandLineBuilder()
+    private static CommandTestHost CreateHost(TestFileSystem fileSystem)
+        => new CommandTestHost()
+            .AddService<IFileSystem>(fileSystem)
+            .AddService<ISessionService>(TestSessionService.WithWorkspace());
+
+    private static string GetExistingWorkingDirectory()
+        => Directory.Exists("/tmp")
+            ? "/tmp"
+            : Path.GetTempPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+    private static TestFileSystem CreateFileSystem(
+        Dictionary<string, string> files,
+        string[] sourceFiles)
     {
-        var rootCommand = new Command("nitro");
-        rootCommand.AddNitroCloudCommands();
-        return new CommandLineBuilder(rootCommand)
-            .UseExtendedConsole()
-            .UseExceptionMiddleware()
-            .UseDefaults();
+        var _ = sourceFiles;
+        return new TestFileSystem(files.Select(x => new KeyValuePair<string, string>(x.Key, x.Value)).ToArray());
     }
 
-    public void Dispose()
-    {
-        try
-        {
-            Directory.Delete(_tempDir, recursive: true);
-        }
-        catch
-        {
-            // ignore
-        }
-    }
+    private static string ReadText(TestFileSystem fileSystem, string path)
+        => fileSystem.ReadAllTextAsync(path, CancellationToken.None).GetAwaiter().GetResult();
 }

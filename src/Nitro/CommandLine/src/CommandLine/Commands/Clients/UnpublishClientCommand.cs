@@ -1,5 +1,5 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -21,14 +21,14 @@ internal sealed class UnpublishClientCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IClientsClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IClientsClient client,
         CancellationToken cancellationToken)
     {
         var tags = context.ParseResult.GetValueForOption(Opt<TagsOption>.Instance)?.ToArray()!;
@@ -39,52 +39,27 @@ internal sealed class UnpublishClientCommand : Command
             ? $"Unpublish clients with tags {string.Join(", ", tags).EscapeMarkup()} from {stage.EscapeMarkup()}"
             : $"Unpublish client with tag {tags[0].EscapeMarkup()} from {stage.EscapeMarkup()}";
 
-        console.Title(title);
-
-        if (console.IsHumanReadable())
-        {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Unpublishing...", UnpublishClient);
-        }
-        else
-        {
-            await UnpublishClient(null);
-        }
-
-        return ExitCodes.Success;
-
-        async Task UnpublishClient(StatusContext? ctx)
+        await using (var activity = console.StartActivity("Unpublishing..."))
         {
             foreach (var tag in tags)
             {
-                ctx?.Status($"Unpublishing {tag.EscapeMarkup()}...");
+                activity.Update($"Unpublishing {tag.EscapeMarkup()}...");
 
-                var input =
-                    new UnpublishClientInput { ClientId = clientId, Stage = stage, Tag = tag };
+                var result = await client.UnpublishClientVersionAsync(
+                    clientId,
+                    stage,
+                    tag,
+                    cancellationToken);
 
-                var result =
-                    await client.UnpublishClient.ExecuteAsync(input, cancellationToken);
+                console.PrintMutationErrorsAndExit(result.Errors);
 
-                console.EnsureNoErrors(result);
-                var data = console.EnsureData(result);
-                console.PrintErrorsAndExit(data.UnpublishClient.Errors);
-
-                if (data.UnpublishClient.ClientVersion is not
-                    {
-                        Client: var requestedClient
-                    })
-                {
-                    throw new ExitException("Could not unpublish client!");
-                }
-
-                var clientName = requestedClient?.Name ?? NotFound;
+                var clientName = result.ClientVersion?.Client?.Name ?? NotFound;
 
                 console.Success(
                     $"Unpublished [bold]{clientName.EscapeMarkup()}:{tag.EscapeMarkup()}[/] from {stage.EscapeMarkup()} ");
             }
         }
+
+        return ExitCodes.Success;
     }
 }

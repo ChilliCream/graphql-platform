@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
+using ChilliCream.Nitro.CommandLine.Commands.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
@@ -30,6 +31,8 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(PaginatedListResult<ApiDetailPrompt.ApiDetailPromptResult>))]
 [JsonSerializable(typeof(PaginatedListResult<ApiKeyDetailPrompt.ApiKeyDetailPromptResult>))]
 [JsonSerializable(typeof(PaginatedListResult<ClientDetailPrompt.ClientDetailPromptResult>))]
+[JsonSerializable(typeof(PaginatedListResult<ListClientVersionsCommand.ClientVersionResult>))]
+[JsonSerializable(typeof(PaginatedListResult<ListClientPublishedVersionsCommand.ClientPublishedVersionResult>))]
 [JsonSerializable(typeof(PaginatedListResult<EnvironmentDetailPrompt.EnvironmentDetailPromptResult>))]
 [JsonSerializable(typeof(PaginatedListResult<MockSchemaDetailPrompt.MockSchemaDetailPromptResult>))]
 [JsonSerializable(typeof(PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>))]

@@ -1,5 +1,5 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -23,14 +23,14 @@ internal sealed class ListOpenApiCollectionCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IOpenApiClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IOpenApiClient client,
         CancellationToken ct)
     {
         if (console.IsHumanReadable())
@@ -38,35 +38,33 @@ internal sealed class ListOpenApiCollectionCommand : Command
             return await RenderInteractiveAsync(context, console, client, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, ct);
+        return await RenderNonInteractiveAsync(context, client, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IOpenApiClient client,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to list the OpenAPI collections?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         var container = PaginationContainer
-            .Create((after, first, ct) =>
-                    client.ListOpenApiCollectionCommandQuery.ExecuteAsync(apiId, after, first, ct),
-                static p => (p.Node as IListOpenApiCollectionCommandQuery_Node_Api)?.OpenApiCollections?.PageInfo,
-                static p => (p.Node as IListOpenApiCollectionCommandQuery_Node_Api)?.OpenApiCollections?.Edges)
+            .CreateConnectionData((after, first, token) =>
+                client.ListOpenApiCollectionsAsync(apiId, after, first, token))
             .PageSize(10);
 
         var api = await PagedTable
             .From(container)
             .Title("OpenAPI collections of API")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
             .RenderAsync(console, ct);
 
-        if (api?.Node is IOpenApiCollectionDetailPrompt_OpenApiCollection node)
+        if (api is not null)
         {
-            context.SetResult(OpenApiCollectionDetailPrompt.From(node).ToObject([]));
+            context.SetResult(OpenApiCollectionDetailPrompt.From(api).ToObject());
         }
 
         return ExitCodes.Success;
@@ -74,8 +72,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
 
     private static async Task<int> RenderNonInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        IOpenApiClient client,
         CancellationToken ct)
     {
         var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
@@ -85,20 +82,16 @@ internal sealed class ListOpenApiCollectionCommand : Command
         }
 
         var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListOpenApiCollectionCommandQuery
-            .ExecuteAsync(apiId, cursor, 10, ct);
+        var data = await client.ListOpenApiCollectionsAsync(apiId, cursor, 10, ct);
+        var items = data.Items
+            .Select(OpenApiCollectionDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        console.EnsureNoErrors(result);
-
-        var endCursor = (result.Data?.Node as IListOpenApiCollectionCommandQuery_Node_Api)?.OpenApiCollections?.PageInfo
-            .EndCursor;
-
-        var items = (result.Data?.Node as IListOpenApiCollectionCommandQuery_Node_Api)?.OpenApiCollections?.Edges?.Select(x =>
-                OpenApiCollectionDetailPrompt.From(x.Node).ToObject([]))
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<OpenApiCollectionDetailPrompt.OpenApiCollectionDetailPromptResult>(items, endCursor));
+        context.SetResult(
+            new PaginatedListResult<OpenApiCollectionDetailPrompt.OpenApiCollectionDetailPromptResult>(
+                items,
+                data.EndCursor));
 
         return ExitCodes.Success;
     }

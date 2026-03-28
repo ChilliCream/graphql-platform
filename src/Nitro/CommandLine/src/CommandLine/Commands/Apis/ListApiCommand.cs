@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -22,14 +23,14 @@ internal sealed class ListApiCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IApisClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApisClient client,
         CancellationToken ct)
     {
         var workspaceId = context.RequireWorkspaceId();
@@ -39,34 +40,33 @@ internal sealed class ListApiCommand : Command
             return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, workspaceId, ct);
+        return await RenderNonInteractiveAsync(context, client, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApisClient client,
         string workspaceId,
         CancellationToken ct)
     {
+        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
         var container = PaginationContainer
-            .Create((after, first, _) =>
-                    client.ListApiCommandQuery.ExecuteAsync(workspaceId, after, first, ct),
-                static p => p.WorkspaceById?.Apis?.PageInfo,
-                static p => p.WorkspaceById?.Apis?.Edges)
+            .CreateConnectionData((after, first, token)
+                => client.ListApisAsync(workspaceId, after ?? cursor, first, token))
             .PageSize(10);
 
         var api = await PagedTable
             .From(container)
             .Title("APIs")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
-            .AddColumn("Path", x => string.Join("/", x.Node.Path))
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
+            .AddColumn("Path", x => string.Join("/", x.Path))
             .RenderAsync(console, ct);
 
-        if (api?.Node is IApiDetailPrompt_Api node)
+        if (api is not null)
         {
-            context.SetResult(ApiDetailPrompt.From(node).ToObject());
+            context.SetResult(ApiDetailPrompt.From(api).ToObject());
         }
 
         return ExitCodes.Success;
@@ -74,25 +74,19 @@ internal sealed class ListApiCommand : Command
 
     private static async Task<int> RenderNonInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        IApisClient client,
         string workspaceId,
         CancellationToken ct)
     {
         var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListApiCommandQuery
-            .ExecuteAsync(workspaceId, cursor, 10, ct);
+        var data = await client.ListApisAsync(workspaceId, cursor, 10, ct);
 
-        console.EnsureNoErrors(result);
+        var items = data.Items
+            .Select(ApiDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        var endCursor = result.Data?.WorkspaceById?.Apis?.PageInfo.EndCursor;
-
-        var items = result.Data?.WorkspaceById?.Apis?.Edges?.Select(x =>
-                ApiDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<ApiDetailPrompt.ApiDetailPromptResult>(items, endCursor));
+        context.SetResult(new PaginatedListResult<ApiDetailPrompt.ApiDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

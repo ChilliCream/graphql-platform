@@ -1,5 +1,6 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
+using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -76,6 +77,15 @@ public static class CommandLineBuilderExtensions
             if (!string.IsNullOrEmpty(message))
             {
                 context.BindingContext.GetRequiredService<IAnsiConsole>().MarkupLine(message);
+            }
+        }
+        catch (NitroClientException exception)
+        {
+            context.ExitCode = ExitCodes.Error;
+
+            if (!string.IsNullOrEmpty(exception.Message))
+            {
+                context.BindingContext.GetRequiredService<IAnsiConsole>().MarkupLine(exception.Message);
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)

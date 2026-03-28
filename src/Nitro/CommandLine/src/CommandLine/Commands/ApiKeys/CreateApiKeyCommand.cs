@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -26,14 +27,14 @@ internal sealed class CreateApiKeyCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IApiKeysClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApiKeysClient client,
         CancellationToken cancellationToken)
     {
         console.WriteLine();
@@ -67,63 +68,37 @@ internal sealed class CreateApiKeyCommand : Command
             }
         }
 
-        // we use the signed in workspace by default if no workspace id is provided
         workspaceId ??= context.RequireWorkspaceId();
 
         var name = await context
             .OptionOrAskAsync("Name", Opt<ApiKeyNameOption>.Instance, cancellationToken);
 
-        RoleAssigmentConditionInput? condition = null;
-
         var stageConditionName = context.ParseResult
             .GetValueForOption(Opt<OptionalApiKeyStageConditionOption>.Instance);
 
-        if (stageConditionName is not null)
-        {
-            condition = new RoleAssigmentConditionInput
-            {
-                StageAuthorizationCondition = new RoleAssignmentStageAuthorizationConditionInput
-                {
-                    Name = stageConditionName
-                }
-            };
-        }
+        var data = await client.CreateApiKeyAsync(
+            name,
+            workspaceId,
+            apiId,
+            stageConditionName,
+            cancellationToken);
 
-        var input = new CreateApiKeyInput
-        {
-            Name = name,
-            PermissionScope = apiId is not null
-                ? new ApiKeyPermissionScopeInput { ApiId = apiId }
-                : new ApiKeyPermissionScopeInput { WorkspaceId = workspaceId },
-            WorkspaceId = workspaceId,
-            RoleAssigmentCondition = condition
-        };
-        var result = await client.CreateApiKeyCommandMutation
-            .ExecuteAsync(input, cancellationToken);
+        console.PrintMutationErrorsAndExit(data.Errors);
 
-        console.EnsureNoErrors(result);
-
-        var data = console.EnsureData(result);
-
-        console.PrintErrorsAndExit(data.CreateApiKey.Errors);
-
-        var changeResult = data.CreateApiKey.Result;
-        if (changeResult is null)
+        var result = data.Result;
+        if (result is null)
         {
             throw Exit("Could not create API key.");
         }
 
         console.OkLine(
-            $"Secret: {changeResult.Secret.AsHighlight()} {"This secret will not be available later!".AsDescription()}");
+            $"Secret: {result.Secret.AsHighlight()} {"This secret will not be available later!".AsDescription()}");
 
-        if (changeResult.Key is IApiKeyDetailPrompt_ApiKey detail)
+        context.SetResult(new CreateApiKeyResult
         {
-            context.SetResult(new CreateApiKeyResult
-            {
-                Secret = changeResult.Secret,
-                Details = ApiKeyDetailPrompt.From(detail).ToObject()
-            });
-        }
+            Secret = result.Secret,
+            Details = ApiKeyDetailPrompt.From(result.Key).ToObject()
+        });
 
         return ExitCodes.Success;
     }

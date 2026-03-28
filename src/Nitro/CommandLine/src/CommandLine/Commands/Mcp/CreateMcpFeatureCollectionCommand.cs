@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
@@ -24,14 +25,14 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IMcpClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IMcpClient client,
         CancellationToken cancellationToken)
     {
         console.WriteLine();
@@ -44,26 +45,19 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         var name = await context
             .OptionOrAskAsync("Name", Opt<McpFeatureCollectionNameOption>.Instance, cancellationToken);
 
-        var input = new CreateMcpFeatureCollectionInput { Name = name, ApiId = apiId };
-        var result =
-            await client.CreateMcpFeatureCollectionCommandMutation.ExecuteAsync(input, cancellationToken);
+        var createdMcpFeatureCollection = await client.CreateMcpFeatureCollectionAsync(
+            apiId,
+            name,
+            cancellationToken);
+        console.PrintMutationErrorsAndExit(createdMcpFeatureCollection.Errors);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CreateMcpFeatureCollection.Errors);
-
-        var createdMcpFeatureCollection = data.CreateMcpFeatureCollection.McpFeatureCollection;
-        if (createdMcpFeatureCollection is null)
+        if (createdMcpFeatureCollection.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
         {
             throw Exit("Could not create MCP Feature Collection.");
         }
 
-        console.OkLine($"MCP Feature Collection {createdMcpFeatureCollection.Name.AsHighlight()} created.");
-
-        if (createdMcpFeatureCollection is IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
-        {
-            context.SetResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject([]));
-        }
+        console.OkLine($"MCP Feature Collection {detail.Name.AsHighlight()} created.");
+        context.SetResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject());
 
         return ExitCodes.Success;
     }

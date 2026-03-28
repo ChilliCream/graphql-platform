@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -27,14 +28,14 @@ internal sealed class CreateApiCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IApisClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApisClient client,
         CancellationToken ct)
     {
         var workspaceId = context.RequireWorkspaceId();
@@ -55,14 +56,10 @@ internal sealed class CreateApiCommand : Command
 
         var kind = context.GetApiKind();
 
-        var result = await client.CreateApiCommandMutation
-            .ExecuteAsync(workspaceId, path, name, kind, ct);
+        var payload = await client.CreateApiAsync(workspaceId, path, name, kind, ct);
+        console.PrintMutationErrorsAndExit(payload.Errors);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.PushWorkspaceChanges.Errors);
-
-        var changeResult = data.PushWorkspaceChanges.Changes?.SingleOrDefault();
+        var changeResult = payload.Changes?.SingleOrDefault();
         if (changeResult is null)
         {
             throw Exit("Could not create API.");
@@ -92,7 +89,8 @@ internal sealed class CreateApiCommand : Command
 
 file static class Extensions
 {
-    public static ApiKind? GetApiKind(this InvocationContext context)
+    public static ApiKind? GetApiKind(
+        this InvocationContext context)
     {
         var kind = context.ParseResult.GetValueForOption(Opt<ApiKindOption>.Instance);
 

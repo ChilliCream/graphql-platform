@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -16,63 +16,57 @@ internal sealed class DownloadSchemaCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<FileNameOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<IHttpClientFactory>(),
-            Opt<ApiIdOption>.Instance,
-            Opt<StageNameOption>.Instance,
-            Opt<FileNameOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.SetHandler(async context =>
+        {
+            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var client = context.BindingContext.GetRequiredService<ISchemasClient>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
+            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
+            var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
+            var schemaFilePath = context.ParseResult.GetValueForOption(Opt<FileNameOption>.Instance)!;
+
+            context.ExitCode = await ExecuteAsync(
+                console,
+                client,
+                fileSystem,
+                apiId,
+                stageName,
+                schemaFilePath,
+                context.GetCancellationToken());
+        });
     }
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory clientFactory,
+        ISchemasClient client,
+        IFileSystem fileSystem,
         string apiId,
         string stageName,
-        FileInfo schemaFile,
+        string schemaFilePath,
         CancellationToken cancellationToken)
     {
-        console.Title("Download schema");
-
-        if (console.IsHumanReadable())
+        await using (var _ = console.StartActivity("Fetching Schema..."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Fetching Schema...", UploadSchema);
-        }
-        else
-        {
-            await UploadSchema(null);
-        }
-
-        return ExitCodes.Success;
-
-        async Task UploadSchema(StatusContext? ctx)
-        {
-            using var httpClient = clientFactory.CreateClient(ApiClient.ClientName);
-
-            var encodedApiId = Uri.EscapeDataString(apiId);
-            var encodedStageName = Uri.EscapeDataString(stageName);
-
-            using var response = await httpClient.GetAsync(
-                $"/api/v1/apis/{encodedApiId}/schemas/latest/download?stage={encodedStageName}",
+            await using var schemaStream = await client.DownloadLatestSchemaAsync(
+                apiId,
+                stageName,
                 cancellationToken);
 
-            if (!response.IsSuccessStatusCode)
+            if (schemaStream is null)
             {
                 throw new ExitException($"Could not find a published schema on stage {stageName}");
             }
 
-            await using var fileStream = schemaFile.OpenWrite();
-            await response.Content.CopyToAsync(fileStream, cancellationToken);
+            if (fileSystem.FileExists(schemaFilePath))
+            {
+                fileSystem.DeleteFile(schemaFilePath);
+            }
 
-            console.Success($"Downloaded schema to {schemaFile.FullName}");
+            await using var fileStream = fileSystem.CreateFile(schemaFilePath);
+            await schemaStream.CopyToAsync(fileStream, cancellationToken);
+            console.Success($"Downloaded schema to {schemaFilePath}");
         }
+
+        return ExitCodes.Success;
     }
 }

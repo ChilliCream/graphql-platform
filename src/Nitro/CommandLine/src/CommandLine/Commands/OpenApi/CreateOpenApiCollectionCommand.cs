@@ -1,5 +1,5 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
@@ -24,14 +24,14 @@ internal sealed class CreateOpenApiCollectionCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IOpenApiClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IOpenApiClient client,
         CancellationToken cancellationToken)
     {
         console.WriteLine();
@@ -44,26 +44,20 @@ internal sealed class CreateOpenApiCollectionCommand : Command
         var name = await context
             .OptionOrAskAsync("Name", Opt<OpenApiCollectionNameOption>.Instance, cancellationToken);
 
-        var input = new CreateOpenApiCollectionInput { Name = name, ApiId = apiId };
-        var result =
-            await client.CreateOpenApiCollectionCommandMutation.ExecuteAsync(input, cancellationToken);
+        var result = await client.CreateOpenApiCollectionAsync(
+            apiId,
+            name,
+            cancellationToken);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CreateOpenApiCollection.Errors);
+        console.PrintMutationErrorsAndExit(result.Errors);
 
-        var createdOpenApiCollection = data.CreateOpenApiCollection.OpenApiCollection;
-        if (createdOpenApiCollection is null)
+        if (result.OpenApiCollection is not {} openApiCollection)
         {
             throw Exit("Could not create OpenAPI collection.");
         }
 
-        console.OkLine($"OpenAPI collection {createdOpenApiCollection.Name.AsHighlight()} created.");
-
-        if (createdOpenApiCollection is IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
-        {
-            context.SetResult(OpenApiCollectionDetailPrompt.From(detail).ToObject([]));
-        }
+        console.OkLine($"OpenAPI collection {openApiCollection.Name.AsHighlight()} created.");
+        context.SetResult(OpenApiCollectionDetailPrompt.From(openApiCollection).ToObject());
 
         return ExitCodes.Success;
     }

@@ -2,16 +2,14 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.IO.Compression;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
+using System.Net;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using HotChocolate.Fusion.Packaging;
-using StrawberryShake;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -25,42 +23,55 @@ internal sealed class FusionValidateCommand : Command
     {
         Description = "Validates the composed GraphQL schema of a Fusion configuration against a stage.";
 
-        var archiveOption = new FusionArchiveFileOption(isRequired: false);
-
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
-        AddOption(archiveOption);
-        AddOption(Opt<SourceSchemaFileListOption>.Instance);
+        AddOption(Opt<OptionalFusionArchiveFileOption>.Instance);
+        AddOption(Opt<OptionalSourceSchemaFileListOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
         AddValidator(result =>
         {
             var exclusiveOptionsCount = new[]
             {
-                result.FindResultFor(Opt<SourceSchemaFileListOption>.Instance) is not null,
-                result.FindResultFor(archiveOption) is not null
+                result.FindResultFor(Opt<OptionalSourceSchemaFileListOption>.Instance) is not null,
+                result.FindResultFor(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
             }.Count(x => x);
 
             if (exclusiveOptionsCount > 1)
             {
-                result.ErrorMessage = "You can only specify one of: '--source-schema-file' or '--archive'.";
+                result.ErrorMessage =
+                    $"You can only specify one of: '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.";
             }
             else if (exclusiveOptionsCount < 1)
             {
-                result.ErrorMessage = "You need to specify one of: '--source-schema-file' or '--archive'.";
+                result.ErrorMessage =
+                    $"You need to specify one of: '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.";
             }
         });
 
-        this.SetHandler(
-            ExecuteAsync,
-            Opt<StageNameOption>.Instance,
-            Opt<ApiIdOption>.Instance,
-            archiveOption,
-            Opt<SourceSchemaFileListOption>.Instance,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<IHttpClientFactory>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.SetHandler(async context =>
+        {
+            var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
+            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
+            var archiveFile = context.ParseResult.GetValueForOption(Opt<OptionalFusionArchiveFileOption>.Instance);
+            var sourceSchemaFiles =
+                context.ParseResult.GetValueForOption(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+
+            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var fusionConfigurationClient =
+                context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
+
+            context.ExitCode = await ExecuteAsync(
+                stageName,
+                apiId,
+                archiveFile,
+                sourceSchemaFiles,
+                console,
+                fusionConfigurationClient,
+                fileSystem,
+                context.GetCancellationToken());
+        });
     }
 
     private static async Task<int> ExecuteAsync(
@@ -69,57 +80,51 @@ internal sealed class FusionValidateCommand : Command
         string? archiveFile,
         List<string> sourceSchemaFiles,
         IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory httpClientFactory,
+        IFusionConfigurationClient fusionConfigurationClient,
+        IFileSystem fileSystem,
         CancellationToken ct)
     {
-        console.Title($"Validate against {stageName.EscapeMarkup()}");
-
         var isValid = false;
 
-        if (console.IsHumanReadable())
-        {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Validating...", async ctx =>
-                {
-                    if (archiveFile is not null)
-                    {
-                        await ValidateWithArchive(ctx);
-                    }
-                    else
-                    {
-                        await ValidateWithSourceSchemaFiles(ctx);
-                    }
-                });
-        }
-        else
+        await using (var activity = console.StartActivity("Validating..."))
         {
             if (archiveFile is not null)
             {
-                await ValidateWithArchive(null);
+                await ValidateWithArchive(activity);
             }
             else
             {
-                await ValidateWithSourceSchemaFiles(null);
+                await ValidateWithSourceSchemaFiles(activity);
             }
         }
 
         return isValid ? ExitCodes.Success : ExitCodes.Error;
 
-        async Task ValidateWithSourceSchemaFiles(StatusContext? ctx)
+        async Task ValidateWithSourceSchemaFiles(ICommandLineActivity activity)
         {
-            var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(sourceSchemaFiles, ct);
+            var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
+                fileSystem,
+                sourceSchemaFiles,
+                ct);
 
             var archiveStream = new MemoryStream();
-            var existingArchiveStream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
-                apiId,
-                stageName,
-                isFgp: false,
-                httpClientFactory,
-                ct);
+            // TODO: Needs to handle old and new archive
+            Stream? existingArchiveStream;
+            try
+            {
+                existingArchiveStream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    ct);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)
+            {
+                existingArchiveStream = await fusionConfigurationClient
+                    .DownloadLatestLegacyFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    ct);
+            }
 
             var result = await FusionPublishHelpers.ComposeAsync(
                 archiveStream,
@@ -139,14 +144,14 @@ internal sealed class FusionValidateCommand : Command
             using var archive = FusionArchive.Open(archiveStream);
             await using var schemaStream = await LoadSchemaFile(archive, ct);
 
-            await ValidateSchemaAsync(ctx, schemaStream);
+            await ValidateSchemaAsync(activity, schemaStream);
         }
 
-        async Task ValidateWithArchive(StatusContext? ctx)
+        async Task ValidateWithArchive(ICommandLineActivity activity)
         {
             console.Log($"Reading file [blue]{archiveFile.EscapeMarkup()}[/]");
 
-            await using var stream = FileHelpers.CreateFileStream(new FileInfo(archiveFile));
+            await using var stream = fileSystem.OpenReadStream(archiveFile);
 
             Stream schemaStream;
             IDisposable disposableArchive;
@@ -170,7 +175,7 @@ internal sealed class FusionValidateCommand : Command
 
             try
             {
-                await ValidateSchemaAsync(ctx, schemaStream);
+                await ValidateSchemaAsync(activity, schemaStream);
             }
             finally
             {
@@ -179,53 +184,44 @@ internal sealed class FusionValidateCommand : Command
             }
         }
 
-        async Task ValidateSchemaAsync(StatusContext? ctx, Stream schemaStream)
+        async Task ValidateSchemaAsync(ICommandLineActivity activity, Stream schemaStream)
         {
-            var input = new ValidateSchemaInput
-            {
-                ApiId = apiId,
-                Stage = stageName,
-                Schema = new Upload(schemaStream, "schema.graphql")
-            };
-
             console.Log("Create validation request");
 
-            var requestId = await ValidateAsync(console, client, input, ct);
+            var requestId = await ValidateAsync(
+                console,
+                fusionConfigurationClient,
+                apiId,
+                stageName,
+                schemaStream,
+                ct);
 
             console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.OnSchemaVersionValidationUpdated
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
+            await foreach (var @event in fusionConfigurationClient
+                .SubscribeToSchemaVersionValidationUpdatedAsync(requestId, ct))
             {
-                console.EnsureNoErrors(x);
-
-                switch (x.Data?.OnSchemaVersionValidationUpdate)
+                switch (@event)
                 {
-                    case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
+                    case ISchemaVersionValidationFailed v:
                         console.WriteLine("The schema is invalid:");
-                        console.PrintErrorsAndExit(schemaErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
+                        console.PrintMutationErrors(v.Errors);
+
+                        isValid = false;
+                        return;
 
                     case ISchemaVersionValidationSuccess:
                         isValid = true;
-                        stopSignal.OnNext(Unit.Default);
-
                         console.Success("Schema validation succeeded.");
-                        break;
+                        return;
 
                     case IOperationInProgress:
                     case IValidationInProgress:
-                        ctx?.Status("The validation is in progress.");
+                        activity.Update("The validation is in progress.");
                         break;
 
                     default:
-                        ctx?.Status(
+                        activity.Update(
                             "This is an unknown response, upgrade Nitro CLI to the latest version.");
                         break;
                 }
@@ -235,22 +231,25 @@ internal sealed class FusionValidateCommand : Command
 
     private static async Task<string> ValidateAsync(
         IAnsiConsole console,
-        IApiClient client,
-        ValidateSchemaInput input,
+        IFusionConfigurationClient fusionConfigurationClient,
+        string apiId,
+        string stageName,
+        Stream schema,
         CancellationToken ct)
     {
-        var result = await client.ValidateSchemaVersion.ExecuteAsync(input, ct);
+        var result = await fusionConfigurationClient.ValidateSchemaVersionAsync(
+            apiId,
+            stageName,
+            schema,
+            ct);
+        console.PrintMutationErrorsAndExit(result.Errors);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.ValidateSchema.Errors);
-
-        if (data.ValidateSchema.Id is null)
+        if (string.IsNullOrWhiteSpace(result.Id))
         {
             throw new ExitException("Could not create validation request!");
         }
 
-        return data.ValidateSchema.Id;
+        return result.Id;
     }
 
     private static async Task<Stream> LoadSchemaFile(FusionArchive archive, CancellationToken ct)

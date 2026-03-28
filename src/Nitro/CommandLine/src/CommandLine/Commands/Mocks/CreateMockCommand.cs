@@ -1,13 +1,12 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using StrawberryShake;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
@@ -28,18 +27,16 @@ public sealed class CreateMockCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<IHttpClientFactory>(),
+            Bind.FromServiceProvider<IMocksClient>(),
+            Bind.FromServiceProvider<IFileSystem>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
-        IHttpClientFactory clientFactory,
+        IMocksClient client,
+        IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
         var extensionFile =
@@ -54,52 +51,38 @@ public sealed class CreateMockCommand : Command
         const string apiMessage = "For which API do you want to create a mock schema?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
-        if (console.IsHumanReadable())
+        await using (var _ = console.StartActivity("Create and initialize new mock..."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Create and initialize new mock...", CreateNewMock);
-        }
-        else
-        {
-            await CreateNewMock(null);
+            await CreateNewMock();
         }
 
         return ExitCodes.Success;
 
-        async Task CreateNewMock(StatusContext? ctx)
+        async Task CreateNewMock()
         {
             console.Log("Creating mock...");
 
-            var extensionFileStream = FileHelpers.CreateFileStream(extensionFile);
-            var schemaFileStream = FileHelpers.CreateFileStream(baseSchemaFile);
+            await using var extensionFileStream = fileSystem.OpenReadStream(extensionFile);
+            await using var schemaFileStream = fileSystem.OpenReadStream(baseSchemaFile);
 
             console.Log("Uploading Schema..");
-            var result = await client.CreateMockSchema.ExecuteAsync(
+            var createdMock = await client.CreateMockSchemaAsync(
                 apiId,
-                new Upload(schemaFileStream, "schema.graphql"),
+                schemaFileStream,
                 downstreamUrl,
-                new Upload(extensionFileStream, "extension.graphql"),
+                extensionFileStream,
                 mockSchemaName,
                 cancellationToken);
+            console.PrintMutationErrorsAndExit(createdMock.Errors);
 
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.CreateMockSchema.Errors);
-
-            if (data.CreateMockSchema.MockSchema?.Id is null)
+            if (createdMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
-                throw new ExitException("Creating mock schema failed.");
+                throw new ExitException("Could not create mock schema.");
             }
 
             console.Success("Successfully uploaded schema!");
 
-            context.SetResult(
-                MockSchemaDetailPrompt
-                    .From(data.CreateMockSchema.MockSchema)
-                    .ToObject());
+            context.SetResult(MockSchemaDetailPrompt.From(mockSchema).ToObject());
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -24,7 +25,7 @@ internal sealed class DeleteApiKeyCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IApiKeysClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -32,7 +33,7 @@ internal sealed class DeleteApiKeyCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApiKeysClient client,
         string keyId,
         CancellationToken cancellationToken)
     {
@@ -45,25 +46,18 @@ internal sealed class DeleteApiKeyCommand : Command
             throw Exit("API key was not deleted");
         }
 
-        var result = await client.DeleteApiKeyCommandMutation
-            .ExecuteAsync(new DeleteApiKeyInput { ApiKeyId = keyId }, cancellationToken);
+        var data = await client.DeleteApiKeyAsync(keyId, cancellationToken);
+        console.PrintMutationErrorsAndExit(data.Errors);
 
-        console.EnsureNoErrors(result);
-
-        var data = console.EnsureData(result);
-
-        console.PrintErrorsAndExit(data.DeleteApiKey.Errors);
-
-        var changeResult = data.DeleteApiKey.ApiKey;
-        if (changeResult is null)
+        if (data.ApiKey is not { } key)
         {
             throw Exit("Could not delete API key");
         }
 
         console.OkLine(
-            $"API key {changeResult.Name.AsHighlight()} [dim](ID: {changeResult.Id})[/] was deleted");
+            $"API key {key.Name.AsHighlight()} [dim](ID: {key.Id})[/] was deleted");
 
-        context.SetResult(ApiKeyDetailPrompt.From(changeResult).ToObject());
+        context.SetResult(ApiKeyDetailPrompt.From(key).ToObject());
 
         return ExitCodes.Success;
     }

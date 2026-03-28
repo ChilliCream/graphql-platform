@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -22,7 +23,7 @@ internal sealed class ShowWorkspaceCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IWorkspacesClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -30,15 +31,13 @@ internal sealed class ShowWorkspaceCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IWorkspacesClient client,
         string id,
         CancellationToken cancellationToken)
     {
-        var result = await client.ShowWorkspaceCommandQuery.ExecuteAsync(id, cancellationToken);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
+        var data = await client.ShowWorkspaceAsync(id, cancellationToken);
 
-        if (data.Node is IWorkspaceDetailPrompt_Workspace node)
+        if (data is IShowWorkspaceCommandQuery_Node_Workspace node)
         {
             context.SetResult(WorkspaceDetailPrompt.From(node).ToObject());
         }

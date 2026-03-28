@@ -1,5 +1,5 @@
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -22,8 +22,8 @@ internal sealed class DownloadClientCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<IHttpClientFactory>(),
+            Bind.FromServiceProvider<IClientsClient>(),
+            Bind.FromServiceProvider<IFileSystem>(),
             Opt<ApiIdOption>.Instance,
             Opt<StageNameOption>.Instance,
             Opt<FileSystemOutputOptions>.Instance,
@@ -33,79 +33,63 @@ internal sealed class DownloadClientCommand : Command
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory clientFactory,
+        IClientsClient client,
+        IFileSystem fileSystem,
         string apiId,
         string stageName,
-        FileSystemInfo output,
+        string output,
         string format,
         CancellationToken ct)
     {
-        console.Title("Download persisted queries");
-
-        if (console.IsHumanReadable())
+        await using (var _ = console.StartActivity("Fetching queries..."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Fetching Queries...", UploadClient);
-        }
-        else
-        {
-            await UploadClient(null);
-        }
+            var stream = await client.DownloadPersistedQueriesAsync(apiId, stageName, ct);
 
-        return ExitCodes.Success;
-
-        async Task UploadClient(StatusContext? ctx)
-        {
-            using var httpClient = clientFactory.CreateClient(ApiClient.ClientName);
-
-            var encodedApiId = Uri.EscapeDataString(apiId);
-            var encodedStageName = Uri.EscapeDataString(stageName);
-
-            using var response = await httpClient.GetAsync(
-                $"/api/v1/apis/{encodedApiId}/persistedQueries?stage={encodedStageName}",
-                ct);
-
-            if (!response.IsSuccessStatusCode)
+            if (stream is null)
             {
                 throw new ExitException($"Could not find a published client on stage {stageName}");
             }
 
-            await using var stream = await response.Content.ReadAsStreamAsync(ct);
-            var queries = JsonSerializer
-                .DeserializeAsyncEnumerable(stream, NitroCLIJsonContext.Default.PersistedQueryStreamResult, ct);
-
-            switch (format)
+            await using (stream)
             {
-                case ClientFormat.Folder:
-                    await WriteToFolder(console, output, queries);
-                    break;
+                var queries = JsonSerializer.DeserializeAsyncEnumerable(
+                    stream,
+                    NitroCLIJsonContext.Default.PersistedQueryStreamResult,
+                    ct);
 
-                case ClientFormat.Relay:
-                    await WriteToRelayJson(output, queries);
-                    break;
+                switch (format)
+                {
+                    case ClientFormat.Folder:
+                        await WriteToFolder(console, fileSystem, output, queries);
+                        break;
 
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(format), format, null);
+                    case ClientFormat.Relay:
+                        await WriteToRelayJson(fileSystem, output, queries);
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(format), format, null);
+                }
             }
         }
+
+        return ExitCodes.Success;
     }
 
     private static async Task WriteToRelayJson(
-        FileSystemInfo output,
+        IFileSystem fileSystem,
+        string outputPath,
         IAsyncEnumerable<PersistedQueryStreamResult?> queries)
     {
-        if (File.Exists(output.FullName))
+        if (fileSystem.FileExists(outputPath))
         {
-            File.Delete(output.FullName);
+            fileSystem.DeleteFile(outputPath);
         }
 
-        await using var fileStream = File.OpenWrite(output.FullName);
+        await using var fileStream = fileSystem.CreateFile(outputPath);
         await using var utf8Writer = new Utf8JsonWriter(fileStream, new JsonWriterOptions { Indented = true });
         utf8Writer.WriteStartObject();
+
         await foreach (var query in queries)
         {
             if (query is null)
@@ -124,12 +108,13 @@ internal sealed class DownloadClientCommand : Command
 
     private static async Task WriteToFolder(
         IAnsiConsole console,
-        FileSystemInfo output,
+        IFileSystem fileSystem,
+        string outputPath,
         IAsyncEnumerable<PersistedQueryStreamResult?> queries)
     {
-        if (!output.Exists)
+        if (!fileSystem.DirectoryExists(outputPath))
         {
-            Directory.CreateDirectory(output.FullName);
+            fileSystem.CreateDirectory(outputPath);
         }
 
         await foreach (var query in queries)
@@ -141,20 +126,19 @@ internal sealed class DownloadClientCommand : Command
 
             foreach (var documentId in query.DocumentIds)
             {
-                var path = Path.Combine(output.FullName, $"{documentId}.graphql");
-                var fileInfo = new FileInfo(path);
-                if (fileInfo.Exists)
+                var path = Path.Combine(outputPath, $"{documentId}.graphql");
+                if (fileSystem.FileExists(path))
                 {
-                    fileInfo.Delete();
+                    fileSystem.DeleteFile(path);
                 }
 
-                await using var fileStream = fileInfo.OpenWrite();
+                await using var fileStream = fileSystem.CreateFile(path);
                 await using var writer = new StreamWriter(fileStream);
                 await writer.WriteAsync(query.Content);
             }
         }
 
-        console.Success($"Downloaded client to {output.FullName}");
+        console.Success($"Downloaded client to {outputPath}");
     }
 }
 

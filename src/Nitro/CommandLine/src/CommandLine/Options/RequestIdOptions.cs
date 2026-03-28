@@ -7,5 +7,6 @@ internal sealed class RequestIdOption : Option<string>
         Description = "The ID of a request";
         IsRequired = true;
         this.DefaultFromEnvironmentValue("REQUEST_ID");
+        this.NonEmptyStringsOnly();
     }
 }

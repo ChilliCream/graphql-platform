@@ -1,8 +1,8 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
@@ -18,27 +18,27 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IFusionConfigurationClient>(),
             Bind.FromServiceProvider<ISessionService>(),
+            Bind.FromServiceProvider<IFileSystem>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IFusionConfigurationClient fusionConfigurationClient,
         ISessionService sessionService,
+        IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
         var requestId =
             context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
-            await FusionConfigurationPublishingState.GetRequestId(cancellationToken) ??
+            await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
             throw new ExitException(
                 "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
-        console.Title("Cancel the composition of a Fusion configuration");
-
-        await FusionPublishHelpers.ReleaseDeploymentSlot(requestId, console, client, cancellationToken);
+        await fusionConfigurationClient.ReleaseDeploymentSlotAsync(requestId, cancellationToken);
 
         console.MarkupLine("Cancelled the composition of Fusion configuration.");
 

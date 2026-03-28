@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Options;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -24,7 +25,7 @@ internal sealed class CreateWorkspaceCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IWorkspacesClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -32,7 +33,7 @@ internal sealed class CreateWorkspaceCommand : Command
     public static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IWorkspacesClient client,
         ISessionService sessionService,
         CancellationToken ct)
     {
@@ -53,31 +54,25 @@ internal sealed class CreateWorkspaceCommand : Command
                 ct);
         }
 
-        var input = new CreateWorkspaceInput { Name = name };
-        var result =
-            await client.CreateWorkspaceCommandMutation.ExecuteAsync(input, ct);
+        var createdWorkspace = await client.CreateWorkspaceAsync(name, ct);
+        console.PrintMutationErrorsAndExit(createdWorkspace.Errors);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CreateWorkspace.Errors);
-
-        if (data.CreateWorkspace.Workspace is not { } createdWorkspace)
+        if (createdWorkspace.Workspace is not IWorkspaceDetailPrompt_Workspace workspaceDetail)
         {
             throw new ExitException("Could not create workspace.");
         }
 
-        console.OkLine($"Workspace {createdWorkspace.Name.AsHighlight()} created");
+        console.OkLine($"Workspace {workspaceDetail.Name.AsHighlight()} created");
 
-        context.SetResult(WorkspaceDetailPrompt.From(result.Data!.CreateWorkspace.Workspace!)
-            .ToObject());
+        context.SetResult(WorkspaceDetailPrompt.From(workspaceDetail).ToObject());
 
         if (asDefault)
         {
-            var workspace = new Workspace(createdWorkspace.Id, createdWorkspace.Name);
+            var workspace = new Workspace(workspaceDetail.Id, workspaceDetail.Name);
 
             await sessionService.SelectWorkspaceAsync(workspace, ct);
 
-            console.OkLine($"{createdWorkspace.Name.AsHighlight()} set as default workspace");
+            console.OkLine($"{workspaceDetail.Name.AsHighlight()} set as default workspace");
         }
 
         return ExitCodes.Success;

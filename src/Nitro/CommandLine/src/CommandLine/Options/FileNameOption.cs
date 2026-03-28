@@ -1,10 +1,11 @@
 namespace ChilliCream.Nitro.CommandLine.Options;
 
-internal sealed class FileNameOption : Option<FileInfo>
+internal sealed class FileNameOption : Option<string>
 {
     public FileNameOption() : base("--file")
     {
         Description = "The file where the schema is stored";
         IsRequired = true;
+        this.LegalFilePathsOnly();
     }
 }

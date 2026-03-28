@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -22,14 +23,14 @@ internal sealed class ListEnvironmentCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IEnvironmentsClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IEnvironmentsClient client,
         CancellationToken ct)
     {
         var workspaceId = context.RequireWorkspaceId();
@@ -39,33 +40,31 @@ internal sealed class ListEnvironmentCommand : Command
             return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, workspaceId, ct);
+        return await RenderNonInteractiveAsync(context, client, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IEnvironmentsClient client,
         string workspaceId,
         CancellationToken ct)
     {
         var container = PaginationContainer
-            .Create((after, first, ct) =>
-                    client.ListEnvironmentCommandQuery.ExecuteAsync(workspaceId, after, first, ct),
-                static p => p.WorkspaceById?.Environments?.PageInfo,
-                static p => p.WorkspaceById?.Environments?.Edges)
+            .CreateConnectionData((after, first, token)
+                => client.ListEnvironmentsAsync(workspaceId, after, first, token))
             .PageSize(10);
 
         var environment = await PagedTable
             .From(container)
             .Title("Environments")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
             .RenderAsync(console, ct);
 
-        if (environment?.Node is IEnvironmentDetailPrompt_Environment node)
+        if (environment is not null)
         {
-            context.SetResult(EnvironmentDetailPrompt.From(node).ToObject());
+            context.SetResult(EnvironmentDetailPrompt.From(environment).ToObject());
         }
 
         return ExitCodes.Success;
@@ -73,25 +72,19 @@ internal sealed class ListEnvironmentCommand : Command
 
     private static async Task<int> RenderNonInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        IEnvironmentsClient client,
         string workspaceId,
         CancellationToken ct)
     {
         var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListEnvironmentCommandQuery
-            .ExecuteAsync(workspaceId, cursor, 10, ct);
+        var data = await client.ListEnvironmentsAsync(workspaceId, cursor, 10, ct);
 
-        console.EnsureNoErrors(result);
+        var items = data.Items
+            .Select(EnvironmentDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        var endCursor = result.Data?.WorkspaceById?.Environments?.PageInfo.EndCursor;
-
-        var items = result.Data?.WorkspaceById?.Environments?.Edges?.Select(x =>
-                EnvironmentDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<EnvironmentDetailPrompt.EnvironmentDetailPromptResult>(items, endCursor));
+        context.SetResult(new PaginatedListResult<EnvironmentDetailPrompt.EnvironmentDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

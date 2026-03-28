@@ -6,13 +6,6 @@ internal class ApiIdOption : Option<string>
     {
         IsRequired = true;
         this.DefaultFromEnvironmentValue("API_ID");
-    }
-}
-
-internal sealed class OptionalApiIdOption : ApiIdOption
-{
-    public OptionalApiIdOption() : base()
-    {
-        IsRequired = false;
+        this.NonEmptyStringsOnly();
     }
 }

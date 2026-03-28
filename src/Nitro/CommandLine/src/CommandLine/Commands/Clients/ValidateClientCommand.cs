@@ -1,11 +1,8 @@
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -20,122 +17,90 @@ internal sealed class ValidateClientCommand : Command
         AddOption(Opt<OperationsFileOption>.Instance);
         AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<StageNameOption>.Instance,
-            Opt<ClientIdOption>.Instance,
-            Opt<OperationsFileOption>.Instance,
-            Opt<OptionalSourceMetadataOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.SetHandler(async context =>
+        {
+            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var client = context.BindingContext.GetRequiredService<IClientsClient>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
+            var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
+            var clientId = context.ParseResult.GetValueForOption(Opt<ClientIdOption>.Instance)!;
+            var operationsFilePath = context.ParseResult.GetValueForOption(Opt<OperationsFileOption>.Instance)!;
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
+
+            context.ExitCode = await ExecuteAsync(
+                console,
+                client,
+                fileSystem,
+                stage,
+                clientId,
+                operationsFilePath,
+                sourceMetadataJson,
+                context.GetCancellationToken());
+        });
     }
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
+        IClientsClient client,
+        IFileSystem fileSystem,
         string stage,
         string clientId,
-        FileInfo operationsFile,
+        string operationsFilePath,
         string? sourceMetadataJson,
         CancellationToken ct)
     {
-        console.Title($"Validate to {stage.EscapeMarkup()}");
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        var isValid = false;
-
-        if (console.IsHumanReadable())
-        {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Validating...", ValidateClient);
-        }
-        else
-        {
-            await ValidateClient(null);
-        }
-
-        return isValid ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task ValidateClient(StatusContext? ctx)
+        await using (var activity = console.StartActivity("Validating..."))
         {
             console.Log("Initialized");
-            console.Log($"Reading file [blue]{operationsFile.FullName.EscapeMarkup()}[/]");
+            console.Log($"Reading file [blue]{operationsFilePath.EscapeMarkup()}[/]");
 
-            var stream = FileHelpers.CreateFileStream(operationsFile);
-
-            var input = new ValidateClientInput
-            {
-                ClientId = clientId,
-                Stage = stage,
-                Operations = new Upload(stream, "operations.graphql"),
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
+            await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
             console.Log("Create validation request");
 
-            var requestId = await ValidateAsync(console, client, input, ct);
+            var validationRequest = await client.StartClientValidationAsync(
+                clientId,
+                stage,
+                stream,
+                source,
+                ct);
+
+            console.PrintMutationErrorsAndExit(validationRequest.Errors);
+            if (validationRequest.Id is not { } requestId)
+            {
+                throw new ExitException("Could not create validation request!");
+            }
 
             console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.OnClientVersionValidationUpdated
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
+            await foreach (var update in client.SubscribeToClientValidationAsync(requestId, ct))
             {
-                console.EnsureNoErrors(x);
-
-                switch (x.Data?.OnClientVersionValidationUpdate)
+                switch (update)
                 {
-                    case IClientVersionValidationFailed { Errors: var schemaErrors }:
+                    case IClientVersionValidationFailed { Errors: var errors }:
                         console.WriteLine("The client is invalid:");
-                        console.PrintErrorsAndExit(schemaErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
+                        console.PrintMutationErrors(errors);
+                        return ExitCodes.Error;
 
                     case IClientVersionValidationSuccess:
-                        isValid = true;
-                        stopSignal.OnNext(Unit.Default);
                         console.Success("Client validation succeeded");
-                        break;
+                        return ExitCodes.Success;
 
                     case IOperationInProgress:
                     case IValidationInProgress:
-                        ctx?.Status("The validation is in progress.");
+                        activity.Update("The validation is in progress.");
                         break;
 
                     default:
-                        ctx?.Status(
+                        activity.Update(
                             "This is an unknown response, upgrade Nitro CLI to the latest version.");
                         break;
                 }
             }
         }
-    }
 
-    private static async Task<string> ValidateAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        ValidateClientInput input,
-        CancellationToken ct)
-    {
-        var result =
-            await client.ValidateClientVersion.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.ValidateClient.Errors);
-
-        if (data.ValidateClient.Id is null)
-        {
-            throw new ExitException("Could not create validation request!");
-        }
-
-        return data.ValidateClient.Id;
+        return ExitCodes.Error;
     }
 }

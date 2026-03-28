@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;
 
@@ -445,7 +446,9 @@ public sealed class FusionComposeCommandTests : IDisposable
     {
         var rootCommand = new Command("nitro");
         rootCommand.AddNitroCloudCommands();
-        return new CommandLineBuilder(rootCommand).UseDefaults();
+        return new CommandLineBuilder(rootCommand)
+            .AddService<IFileSystem, FileSystem>()
+            .UseDefaults();
     }
 
     private static async Task<string> ReadSchemaAsync(GatewayConfiguration config)

@@ -7,5 +7,6 @@ internal class DownstreamUrlOption : Option<string>
         Description = "The URL of the downstream service";
         IsRequired = true;
         this.DefaultFromEnvironmentValue("DOWNSTREAM_URL");
+        this.NonEmptyStringsOnly();
     }
 }

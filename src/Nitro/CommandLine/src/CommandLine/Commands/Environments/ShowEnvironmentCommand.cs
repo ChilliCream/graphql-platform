@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -21,7 +22,7 @@ internal sealed class ShowEnvironmentCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IEnvironmentsClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -29,15 +30,13 @@ internal sealed class ShowEnvironmentCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IEnvironmentsClient client,
         string id,
         CancellationToken cancellationToken)
     {
-        var result = await client.ShowEnvironmentCommandQuery.ExecuteAsync(id, cancellationToken);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
+        var data = await client.ShowEnvironmentAsync(id, cancellationToken);
 
-        if (data.Node is IEnvironmentDetailPrompt_Environment node)
+        if (data is IShowEnvironmentCommandQuery_Node_Environment node)
         {
             context.SetResult(EnvironmentDetailPrompt.From(node).ToObject());
         }

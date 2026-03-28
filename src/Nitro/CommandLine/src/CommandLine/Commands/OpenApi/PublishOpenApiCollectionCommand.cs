@@ -1,11 +1,8 @@
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
@@ -25,7 +22,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
         this.SetHandler(async context =>
         {
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-            var client = context.BindingContext.GetRequiredService<IApiClient>();
+            var client = context.BindingContext.GetRequiredService<IOpenApiClient>();
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
             var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
             var openApiCollectionId = context.ParseResult.GetValueForOption(Opt<OpenApiCollectionIdOption>.Instance)!;
@@ -48,7 +45,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
+        IOpenApiClient client,
         string tag,
         string stage,
         string openApiCollectionId,
@@ -57,131 +54,83 @@ internal sealed class PublishOpenApiCollectionCommand : Command
         string? sourceMetadataJson,
         CancellationToken ct)
     {
-        console.Title(
-            $"Publish OpenAPI collection with tag {tag.EscapeMarkup()} to {stage.EscapeMarkup()}");
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        var committed = false;
-
-        if (console.IsHumanReadable())
+        await using (var activity = console.StartActivity("Publishing..."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Publishing...", PublishOpenApiCollection);
-        }
-        else
-        {
-            await PublishOpenApiCollection(null);
-        }
-
-        return committed ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task PublishOpenApiCollection(StatusContext? ctx)
-        {
-            var input = new PublishOpenApiCollectionInput
-            {
-                OpenApiCollectionId = openApiCollectionId,
-                Stage = stage,
-                Tag = tag,
-                WaitForApproval = waitForApproval,
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
-
             if (force)
             {
-                input = input with { Force = true };
                 console.Log("[yellow]Force push is enabled[/]");
             }
 
             console.Log("Create publish request");
 
-            var requestId = await PublishOpenApiCollectionAsync(console, client, input, ct);
+            var publishRequest = await client.StartOpenApiCollectionPublishAsync(
+                openApiCollectionId,
+                stage,
+                tag,
+                force,
+                waitForApproval,
+                source,
+                ct);
+
+            console.PrintMutationErrorsAndExit(publishRequest.Errors);
+            if (publishRequest.Id is not { } requestId)
+            {
+                throw new ExitException("Could not create publish request!");
+            }
 
             console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.PublishOpenApiCollectionCommandSubscription
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
+            await foreach (var update in client.SubscribeToOpenApiCollectionPublishAsync(requestId, ct))
             {
-                console.EnsureNoErrors(x);
-
-                switch (x.Data?.OnOpenApiCollectionVersionPublishingUpdate)
+                switch (update)
                 {
                     case IProcessingTaskIsQueued v:
-                        ctx?.Status(
+                        activity.Update(
                             $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
                         break;
 
-                    case IOpenApiCollectionVersionPublishFailed { Errors: var openApiCollectionErrors }:
+                    case IOpenApiCollectionVersionPublishFailed { Errors: var errors }:
                         console.WriteLine("OpenAPI collection publish failed");
-                        console.PrintErrorsAndExit(openApiCollectionErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
+                        console.PrintMutationErrors(errors);
+                        return ExitCodes.Error;
 
                     case IOpenApiCollectionVersionPublishSuccess:
-                        committed = true;
-                        stopSignal.OnNext(Unit.Default);
-
                         console.Success("Successfully published OpenAPI collection!");
-                        break;
+                        return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
                         console.Success("Your request is ready for processing.");
                         break;
 
                     case IOperationInProgress:
-                        ctx?.Status("Your request is in progress.");
+                        activity.Update("Your request is in progress.");
                         break;
 
-                    case IWaitForApproval e:
-                        if (e.Deployment is
-                            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_OpenApiCollectionDeployment
-                            deployment)
+                    case IWaitForApproval waitForApprovalEvent:
+                        if (waitForApprovalEvent.Deployment is
+                            IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_OpenApiCollectionDeployment deployment)
                         {
-                            console.PrintErrors(deployment.Errors);
+                            console.PrintMutationErrors(deployment.Errors);
                         }
 
-                        ctx?.Status(
+                        activity.Update(
                             "The processing of your request is waiting for approval. Check Nitro to approve the request.");
                         break;
 
                     case IProcessingTaskApproved:
-                        ctx?.Status("The processing of your request is approved.");
-
+                        activity.Update("The processing of your request is approved.");
                         break;
 
                     default:
-                        ctx?.Status(
+                        activity.Update(
                             "This is an unknown response, upgrade Nitro CLI to the latest version.");
                         break;
                 }
             }
         }
-    }
 
-    private static async Task<string> PublishOpenApiCollectionAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        PublishOpenApiCollectionInput input,
-        CancellationToken ct)
-    {
-        var result =
-            await client.PublishOpenApiCollectionCommandMutation.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.PublishOpenApiCollection.Errors);
-
-        if (data.PublishOpenApiCollection.Id is null)
-        {
-            throw new ExitException("Could not create publish request!");
-        }
-
-        return data.PublishOpenApiCollection.Id;
+        return ExitCodes.Error;
     }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using HotChocolate.Fusion;
@@ -17,28 +18,22 @@ internal sealed class FusionSettingsSetCommand : Command
     {
         Description = "Sets a Fusion composition setting in a Fusion archive.";
 
-        var settingNameArgument = new Argument<string>("SETTING_NAME")
-            .FromAmong(SettingNames.All);
+        AddArgument(Opt<FusionSettingsNameArgument>.Instance);
+        AddArgument(Opt<FusionSettingsValueArgument>.Instance);
 
-        var settingValueArgument = new Argument<string>("SETTING_VALUE");
-
-        AddArgument(settingNameArgument);
-        AddArgument(settingValueArgument);
-
-        var fusionArchiveOption = new FusionArchiveFileOption(true);
-
-        AddOption(fusionArchiveOption);
+        AddOption(Opt<FusionArchiveFileOption>.Instance);
 
         AddOption(Opt<FusionEnvironmentOption>.Instance);
 
         this.SetHandler(async context =>
         {
-            var settingName = context.ParseResult.GetValueForArgument(settingNameArgument);
-            var settingValue = context.ParseResult.GetValueForArgument(settingValueArgument);
-            var archiveFile = context.ParseResult.GetValueForOption(fusionArchiveOption);
+            var settingName = context.ParseResult.GetValueForArgument(Opt<FusionSettingsNameArgument>.Instance);
+            var settingValue = context.ParseResult.GetValueForArgument(Opt<FusionSettingsValueArgument>.Instance);
+            var archiveFile = context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance);
             var environment = context.ParseResult.GetValueForOption(Opt<FusionEnvironmentOption>.Instance);
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
 
             context.ExitCode = await ExecuteAsync(
                 settingName,
@@ -46,6 +41,7 @@ internal sealed class FusionSettingsSetCommand : Command
                 archiveFile!,
                 environment,
                 console,
+                fileSystem,
                 context.GetCancellationToken());
         });
     }
@@ -56,9 +52,10 @@ internal sealed class FusionSettingsSetCommand : Command
         string archiveFile,
         string? environment,
         IAnsiConsole console,
+        IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
-        if (!File.Exists(archiveFile))
+        if (!fileSystem.FileExists(archiveFile))
         {
             console.ErrorLine($"File '{archiveFile}' does not exist.");
             return ExitCodes.Error;
@@ -68,7 +65,7 @@ internal sealed class FusionSettingsSetCommand : Command
 
         switch (settingName)
         {
-            case SettingNames.CacheControlMergeBehavior:
+            case FusionSettingsNameArgument.CacheControlMergeBehavior:
                 if (!TryParseDirectiveMergeBehavior(settingValue, out var cacheControlMergeBehavior))
                 {
                     console.ErrorLine(
@@ -80,14 +77,14 @@ internal sealed class FusionSettingsSetCommand : Command
                 compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
                 break;
 
-            case SettingNames.ExcludeByTag:
+            case FusionSettingsNameArgument.ExcludeByTag:
                 var tags = settingValue
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
                 compositionSettings.Preprocessor.ExcludeByTag = tags.ToHashSet();
                 break;
 
-            case SettingNames.GlobalObjectIdentification:
+            case FusionSettingsNameArgument.GlobalObjectIdentification:
                 if (!bool.TryParse(settingValue, out var enableGlobalObjectIdentification))
                 {
                     console.ErrorLine($"Expected a boolean value for setting '{settingName}'.");
@@ -97,7 +94,7 @@ internal sealed class FusionSettingsSetCommand : Command
                 compositionSettings.Merger.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
                 break;
 
-            case SettingNames.TagMergeBehavior:
+            case FusionSettingsNameArgument.TagMergeBehavior:
                 if (!TryParseDirectiveMergeBehavior(settingValue, out var tagMergeBehavior))
                 {
                     console.ErrorLine(
@@ -141,22 +138,6 @@ internal sealed class FusionSettingsSetCommand : Command
         };
 
         return directiveMergeBehavior is not null;
-    }
-
-    private static class SettingNames
-    {
-        public const string CacheControlMergeBehavior = "cache-control-merge-behavior";
-        public const string ExcludeByTag = "exclude-by-tag";
-        public const string GlobalObjectIdentification = "global-object-identification";
-        public const string TagMergeBehavior = "tag-merge-behavior";
-
-        public static readonly string[] All =
-        [
-            CacheControlMergeBehavior,
-            ExcludeByTag,
-            GlobalObjectIdentification,
-            TagMergeBehavior
-        ];
     }
 
     private static class DirectiveMergeBehaviorNames

@@ -2,11 +2,35 @@ namespace ChilliCream.Nitro.CommandLine.Options;
 
 internal static class OptionExtensions
 {
-    public static Option<FileInfo> DefaultFileFromEnvironmentValue(
-        this Option<FileInfo> option,
+    public static Option<string> NonEmptyStringsOnly(
+        this Option<string> option)
+    {
+        option.AddValidator(result =>
+        {
+            var value = result.GetValueForOption(option);
+            if (value is null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                var optionName = option.Name.StartsWith("--", StringComparison.Ordinal)
+                    ? option.Name
+                    : $"--{option.Name}";
+
+                result.ErrorMessage = $"Expected a non-empty value for '{optionName}'.";
+            }
+        });
+
+        return option;
+    }
+
+    public static Option<string> DefaultFileFromEnvironmentValue(
+        this Option<string> option,
         string name)
     {
-        option.DefaultFromEnvironmentValue(name, path => new FileInfo(path));
+        option.DefaultFromEnvironmentValue(name);
         return option;
     }
 

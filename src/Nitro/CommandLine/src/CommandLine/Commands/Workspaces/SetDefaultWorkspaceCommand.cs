@@ -1,4 +1,5 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -17,7 +18,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         this.SetHandler(context => ExecuteAsync(
             true,
             context.BindingContext.GetRequiredService<IAnsiConsole>(),
-            context.BindingContext.GetRequiredService<IApiClient>(),
+            context.BindingContext.GetRequiredService<IWorkspacesClient>(),
             context.BindingContext.GetRequiredService<ISessionService>(),
             context.BindingContext.GetRequiredService<CancellationToken>()));
     }
@@ -25,16 +26,13 @@ internal sealed class SetDefaultWorkspaceCommand : Command
     public static async Task<int> ExecuteAsync(
         bool forceSelection,
         IAnsiConsole console,
-        IApiClient client,
+        IWorkspacesClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
         const string message = "Which workspace do you want to use as your default?";
 
-        var paginationContainer = PaginationContainer.Create(
-            client.SetDefaultWorkspaceCommand_SelectWorkspace_Query.ExecuteAsync,
-            p => p.Me?.Workspaces?.PageInfo,
-            p => p.Me?.Workspaces?.Edges);
+        var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
 
         var current = await paginationContainer.GetCurrentAsync(cancellationToken);
         if (current.Count == 0)
@@ -48,7 +46,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         if (current.Count == 1 && !forceSelection)
         {
-            var firstWorkspace = current[0].Node;
+            var firstWorkspace = current[0];
             workspace = new Workspace(firstWorkspace.Id, firstWorkspace.Name);
         }
         else
@@ -56,7 +54,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
             var selectedWorkspace = await PagedSelectionPrompt
                 .New(paginationContainer)
                 .Title(message.AsQuestion())
-                .UseConverter(x => x.Node.Name)
+                .UseConverter(x => x.Name)
                 .RenderAsync(console, cancellationToken);
 
             if (selectedWorkspace is null)
@@ -64,7 +62,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
                 throw Exit("No workspaces was selected as default");
             }
 
-            workspace = new Workspace(selectedWorkspace.Node.Id, selectedWorkspace.Node.Name);
+            workspace = new Workspace(selectedWorkspace.Id, selectedWorkspace.Name);
 
             wasPrompted = true;
         }

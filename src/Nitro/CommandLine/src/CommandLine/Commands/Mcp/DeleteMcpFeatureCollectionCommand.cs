@@ -1,6 +1,8 @@
 using System.CommandLine.Invocation;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -25,7 +27,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IMcpClient>(),
             Opt<OptionalIdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -33,7 +35,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IMcpClient client,
         string? mcpFeatureCollectionId,
         CancellationToken cancellationToken)
     {
@@ -54,7 +56,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             var workspaceId = context.RequireWorkspaceId();
 
             var selectedApi = await SelectApiPrompt
-                .New(client, workspaceId)
+                .New(context.BindingContext.GetRequiredService<IApisClient>(), workspaceId)
                 .Title(apiMessage)
                 .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
 
@@ -86,26 +88,18 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             return ExitCodes.Success;
         }
 
-        var input = new DeleteMcpFeatureCollectionByIdInput { McpFeatureCollectionId = mcpFeatureCollectionId };
-        var result =
-            await client.DeleteMcpFeatureCollectionByIdCommandMutation.ExecuteAsync(input, cancellationToken);
+        var deletedMcpFeatureCollection = await client.DeleteMcpFeatureCollectionAsync(
+            mcpFeatureCollectionId,
+            cancellationToken);
+        console.PrintMutationErrorsAndExit(deletedMcpFeatureCollection.Errors);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.DeleteMcpFeatureCollectionById.Errors);
-
-        var deletedMcpFeatureCollection = data.DeleteMcpFeatureCollectionById.McpFeatureCollection;
-        if (deletedMcpFeatureCollection is null)
+        if (deletedMcpFeatureCollection.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
         {
             throw Exit("Could not delete the MCP Feature Collection.");
         }
 
-        console.OkLine($"MCP Feature Collection {deletedMcpFeatureCollection.Name.AsHighlight()} was deleted.");
-
-        if (deletedMcpFeatureCollection is IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
-        {
-            context.SetResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject([]));
-        }
+        console.OkLine($"MCP Feature Collection {detail.Name.AsHighlight()} was deleted.");
+        context.SetResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject());
 
         return ExitCodes.Success;
     }

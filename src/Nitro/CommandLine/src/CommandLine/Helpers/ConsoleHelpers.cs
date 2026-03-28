@@ -1,44 +1,12 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
 using StrawberryShake;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class ConsoleHelpers
 {
-    public static void EnsureNoErrors<T>(
-        this IAnsiConsole console,
-        IOperationResult<T> result) where T : class
-    {
-        if (result.Errors is { Count: > 0 })
-        {
-            var firstError = result.Errors[0];
-            var errorMessage = firstError.Message;
-            if (!string.IsNullOrEmpty(firstError.Code))
-            {
-                errorMessage += $" ({firstError.Code})";
-            }
-
-            console.WriteLine(errorMessage);
-
-            throw new ExitException();
-        }
-    }
-
-    public static T EnsureData<T>(this IAnsiConsole console, IOperationResult<T> result)
-        where T : class
-    {
-        if (result.Data is null)
-        {
-            console.WriteLine($"{Errors.BA00001Message} ({Errors.BA00001})");
-
-            throw new ExitException();
-        }
-
-        return result.Data;
-    }
-
-    public static void PrintErrorsAndExit<T>(this IAnsiConsole console, IReadOnlyList<T>? errors)
+    public static void PrintMutationErrorsAndExit<T>(this IAnsiConsole console, IReadOnlyList<T>? errors)
         where T : class
     {
         if (errors?.Count > 0)
@@ -57,7 +25,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    public static void PrintErrors<T>(this IAnsiConsole console, IReadOnlyList<T>? errors)
+    public static void PrintMutationErrors<T>(this IAnsiConsole console, IReadOnlyList<T>? errors)
         where T : class
     {
         if (errors?.Count > 0)
@@ -74,7 +42,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintError(
+    private static void PrintMutationError(
         this IAnsiConsole console,
         ISchemaVersionChangeViolationError error)
     {
@@ -83,7 +51,7 @@ internal static class ConsoleHelpers
         console.Write(tree);
     }
 
-    private static void PrintError(
+    private static void PrintMutationError(
         this IAnsiConsole console,
         ISchemaChangeViolationError error)
     {
@@ -92,7 +60,7 @@ internal static class ConsoleHelpers
         console.Write(tree);
     }
 
-    private static void PrintError(
+    private static void PrintMutationError(
         this IAnsiConsole console,
         IStagesHavePublishedDependenciesError error)
     {
@@ -118,7 +86,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintError(this IAnsiConsole console, IPersistedQueryValidationError error)
+    private static void PrintMutationError(this IAnsiConsole console, IPersistedQueryValidationError error)
     {
         console.WarningLine(
             $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
@@ -150,7 +118,7 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
-    private static void PrintError(this IAnsiConsole console, IOpenApiCollectionValidationError error)
+    private static void PrintMutationError(this IAnsiConsole console, IOpenApiCollectionValidationError error)
     {
         foreach (var collectionError in error.Collections)
         {
@@ -203,7 +171,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintError(this IAnsiConsole console, IMcpFeatureCollectionValidationError error)
+    private static void PrintMutationError(this IAnsiConsole console, IMcpFeatureCollectionValidationError error)
     {
         foreach (var collectionError in error.Collections)
         {
@@ -256,7 +224,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintError(
+    private static void PrintMutationError(
         this IAnsiConsole console,
         IInvalidGraphQLSchemaError error)
     {
@@ -315,7 +283,7 @@ internal static class ConsoleHelpers
                 break;
 
             case ISchemaVersionChangeViolationError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.PrintMutationError(err);
                 break;
 
             case ISchemaVersionSyntaxError err:
@@ -323,11 +291,11 @@ internal static class ConsoleHelpers
                 break;
 
             case IPersistedQueryValidationError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.PrintMutationError(err);
                 break;
 
             case IStagesHavePublishedDependenciesError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.PrintMutationError(err);
                 break;
 
             case IApiNotFoundError err:
@@ -351,11 +319,11 @@ internal static class ConsoleHelpers
                 break;
 
             case IInvalidGraphQLSchemaError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.PrintMutationError(err);
                 break;
 
             case ISchemaChangeViolationError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.PrintMutationError(err);
                 break;
 
             case IInvalidFusionSourceSchemaArchiveError err:
@@ -368,7 +336,7 @@ internal static class ConsoleHelpers
                 break;
 
             case IOpenApiCollectionValidationError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.PrintMutationError(err);
                 break;
 
             case IInvalidOpenApiCollectionArchiveError err:
@@ -380,7 +348,7 @@ internal static class ConsoleHelpers
                 break;
 
             case IMcpFeatureCollectionValidationError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.PrintMutationError(err);
                 break;
 
             case IInvalidMcpFeatureCollectionArchiveError err:
@@ -530,6 +498,31 @@ internal static class ConsoleHelpers
         return new InteractiveScope(console);
     }
 
+    public static ICommandLineActivity StartActivity(this IAnsiConsole console, string title)
+    {
+        if (console.IsHumanReadable())
+        {
+            var activity = new HumanReadableCommandLineActivity();
+            var spinnerTask = console
+                .Status()
+                .Spinner(Spinner.Known.BouncingBar)
+                .SpinnerStyle(Style.Parse("green bold"))
+                .StartAsync(
+                    title,
+                    async context =>
+                    {
+                        activity.SetContext(context);
+                        await activity.WaitForCompletionAsync();
+                    });
+
+            activity.SetSpinnerTask(spinnerTask);
+            return activity;
+        }
+
+        console.WriteLine(title);
+        return new CommandLineActivity(console);
+    }
+
     private sealed class InteractiveScope : IDisposable
     {
         private readonly IAnsiConsole _console;
@@ -553,5 +546,48 @@ internal static class ConsoleHelpers
                 customConsole.IsInteractive = _originalValue;
             }
         }
+    }
+}
+
+internal interface ICommandLineActivity : IAsyncDisposable
+{
+    void Update(string message);
+}
+
+internal sealed class HumanReadableCommandLineActivity : ICommandLineActivity
+{
+    private readonly TaskCompletionSource _completion =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private Task _spinnerTask = Task.CompletedTask;
+    private StatusContext? _context;
+
+    internal Task WaitForCompletionAsync() => _completion.Task;
+
+    internal void SetContext(StatusContext context) => _context = context;
+
+    internal void SetSpinnerTask(Task spinnerTask) => _spinnerTask = spinnerTask;
+
+    public void Update(string message)
+    {
+        _context?.Status(message);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _completion.TrySetResult();
+        await _spinnerTask;
+    }
+}
+
+internal sealed class CommandLineActivity(IAnsiConsole console) : ICommandLineActivity
+{
+    public void Update(string message)
+    {
+        console.WriteLine(message);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return default;
     }
 }

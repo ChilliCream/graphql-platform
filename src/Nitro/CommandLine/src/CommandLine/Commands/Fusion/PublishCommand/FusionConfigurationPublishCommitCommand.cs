@@ -1,8 +1,8 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -20,42 +20,34 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IFusionConfigurationClient>(),
             Bind.FromServiceProvider<ISessionService>(),
+            Bind.FromServiceProvider<IFileSystem>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IFusionConfigurationClient fusionConfigurationClient,
         ISessionService sessionService,
+        IFileSystem fileSystem,
         CancellationToken ct)
     {
         var requestId =
             context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
-            await FusionConfigurationPublishingState.GetRequestId(ct) ??
+            await FusionConfigurationPublishingState.GetRequestId(fileSystem, ct) ??
             throw new ExitException(
                 "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
         var archiveFile =
             context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
 
-        console.Title("Commit the composition of a Fusion configuration");
-
         var committed = false;
 
-        if (console.IsHumanReadable())
+        await using (var activity = console.StartActivity("Committing..."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Committing...", Commit);
-        }
-        else
-        {
-            await Commit(null);
+            await Commit(activity);
         }
 
         if (!committed)
@@ -67,15 +59,15 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         return ExitCodes.Success;
 
-        async Task Commit(StatusContext? ctx)
+        async Task Commit(ICommandLineActivity activity)
         {
-            var stream = FileHelpers.CreateFileStream(new FileInfo(archiveFile));
+            await using var stream = fileSystem.OpenReadStream(archiveFile);
             committed = await FusionPublishHelpers.UploadFusionArchiveAsync(
                 requestId,
                 stream,
-                ctx,
+                activity,
                 console,
-                client,
+                fusionConfigurationClient,
                 ct);
         }
     }

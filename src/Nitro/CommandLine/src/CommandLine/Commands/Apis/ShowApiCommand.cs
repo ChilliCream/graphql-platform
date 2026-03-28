@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -21,7 +22,7 @@ internal sealed class ShowApiCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IApisClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -29,15 +30,13 @@ internal sealed class ShowApiCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApisClient client,
         string id,
         CancellationToken cancellationToken)
     {
-        var result = await client.ShowApiCommandQuery.ExecuteAsync(id, cancellationToken);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
+        var data = await client.ShowApiAsync(id, cancellationToken);
 
-        if (data.Node is IApiDetailPrompt_Api node)
+        if (data is IShowApiCommandQuery_Node_Api node)
         {
             context.SetResult(ApiDetailPrompt.From(node).ToObject());
         }

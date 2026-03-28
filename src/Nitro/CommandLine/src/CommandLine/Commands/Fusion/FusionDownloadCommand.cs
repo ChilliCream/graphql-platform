@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -28,43 +29,51 @@ internal sealed class FusionDownloadCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IHttpClientFactory>(),
+            Bind.FromServiceProvider<IFusionConfigurationClient>(),
+            Bind.FromServiceProvider<IFileSystem>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IHttpClientFactory httpClientFactory,
+        IFusionConfigurationClient fusionConfigurationClient,
+        IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
         var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
         var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
         var outputFile =
             context.ParseResult.GetValueForOption(Opt<OptionalOutputFileOption>.Instance) ??
-            new FileInfo(Path.Combine(Environment.CurrentDirectory, "gateway.far"));
+            Path.Combine(Environment.CurrentDirectory, "gateway.far");
 
-        var isFgp = outputFile.Extension.Equals(".fgp", StringComparison.OrdinalIgnoreCase);
+        var isFgp = Path.GetExtension(outputFile).Equals(".fgp", StringComparison.OrdinalIgnoreCase);
 
-        console.Title($"Download the Fusion configuration {apiId}/{stageName}");
-
-        await using var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
-            apiId,
-            stageName,
-            isFgp,
-            httpClientFactory,
-            cancellationToken);
+        await using var stream = isFgp
+            ? await fusionConfigurationClient.DownloadLatestLegacyFusionArchiveAsync(
+                apiId,
+                stageName,
+                cancellationToken)
+            : await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
+                apiId,
+                stageName,
+                cancellationToken);
 
         if (stream is null)
         {
             throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
         }
 
-        await using var fileStream = outputFile.OpenWrite();
+        if (fileSystem.FileExists(outputFile))
+        {
+            fileSystem.DeleteFile(outputFile);
+        }
+
+        await using var fileStream = fileSystem.CreateFile(outputFile);
 
         await stream.CopyToAsync(fileStream, cancellationToken);
 
-        console.MarkupLine($"Downloaded Fusion configuration to: {outputFile.FullName}");
+        console.MarkupLine($"Downloaded Fusion configuration to: {outputFile}");
 
         return ExitCodes.Success;
     }

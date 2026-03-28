@@ -19,7 +19,6 @@ internal sealed class JsonResultFormatter(IAnsiConsole console) : IResultFormatt
     private void FormatObjectResult(ObjectResult objectResult)
     {
         var obj = objectResult.Value;
-
         var serializedObj = JsonSerializer.Serialize(obj, obj.GetType(), JsonSourceGenerationContext.Default);
 
         console.WriteLine(serializedObj);

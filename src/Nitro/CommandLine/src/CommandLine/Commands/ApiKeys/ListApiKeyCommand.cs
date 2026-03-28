@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -22,14 +23,14 @@ internal sealed class ListApiKeyCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IApiKeysClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApiKeysClient client,
         CancellationToken ct)
     {
         var workspaceId = context.RequireWorkspaceId();
@@ -39,33 +40,31 @@ internal sealed class ListApiKeyCommand : Command
             return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, workspaceId, ct);
+        return await RenderNonInteractiveAsync(context, client, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IApiKeysClient client,
         string workspaceId,
         CancellationToken ct)
     {
         var container = PaginationContainer
-            .Create((after, first, _) =>
-                    client.ListApiKeyCommandQuery.ExecuteAsync(workspaceId, after, first, ct),
-                static p => p.WorkspaceById?.ApiKeys?.PageInfo,
-                static p => p.WorkspaceById?.ApiKeys?.Edges)
+            .CreateConnectionData((after, first, token)
+                => client.ListApiKeysAsync(workspaceId, after, first, token))
             .PageSize(10);
 
-        var api = await PagedTable
+        var apiKey = await PagedTable
             .From(container)
             .Title("API Keys")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
             .RenderAsync(console, ct);
 
-        if (api?.Node is IApiKeyDetailPrompt_ApiKey node)
+        if (apiKey is not null)
         {
-            context.SetResult(ApiKeyDetailPrompt.From(node).ToObject());
+            context.SetResult(ApiKeyDetailPrompt.From(apiKey).ToObject());
         }
 
         return ExitCodes.Success;
@@ -73,25 +72,19 @@ internal sealed class ListApiKeyCommand : Command
 
     private static async Task<int> RenderNonInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        IApiKeysClient client,
         string workspaceId,
         CancellationToken ct)
     {
         var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListApiKeyCommandQuery
-            .ExecuteAsync(workspaceId, cursor, 10, ct);
+        var data = await client.ListApiKeysAsync(workspaceId, cursor, 10, ct);
 
-        console.EnsureNoErrors(result);
+        var items = data.Items
+            .Select(ApiKeyDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        var endCursor = result.Data?.WorkspaceById?.ApiKeys?.PageInfo.EndCursor;
-
-        var items = result.Data?.WorkspaceById?.ApiKeys?.Edges?.Select(x =>
-                ApiKeyDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<ApiKeyDetailPrompt.ApiKeyDetailPromptResult>(items, endCursor));
+        context.SetResult(new PaginatedListResult<ApiKeyDetailPrompt.ApiKeyDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

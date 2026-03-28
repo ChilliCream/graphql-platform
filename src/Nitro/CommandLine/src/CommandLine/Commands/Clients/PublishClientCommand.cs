@@ -1,10 +1,8 @@
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
+using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -24,7 +22,7 @@ internal sealed class PublishClientCommand : Command
         this.SetHandler(async context =>
         {
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-            var client = context.BindingContext.GetRequiredService<IApiClient>();
+            var client = context.BindingContext.GetRequiredService<IClientsClient>();
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
             var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
             var clientId = context.ParseResult.GetValueForOption(Opt<ClientIdOption>.Instance)!;
@@ -47,7 +45,7 @@ internal sealed class PublishClientCommand : Command
 
     private static async Task<int> ExecuteAsync(
         IAnsiConsole console,
-        IApiClient client,
+        IClientsClient client,
         string tag,
         string stage,
         string clientId,
@@ -56,133 +54,85 @@ internal sealed class PublishClientCommand : Command
         string? sourceMetadataJson,
         CancellationToken ct)
     {
-        console.Title(
-            $"Publish client with tag {tag.EscapeMarkup()} to {stage.EscapeMarkup()}");
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        var committed = false;
-
-        if (console.IsHumanReadable())
-        {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Publishing...", PublishClient);
-        }
-        else
-        {
-            await PublishClient(null);
-        }
-
-        return committed ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task PublishClient(StatusContext? ctx)
+        await using (var activity = console.StartActivity("Publishing..."))
         {
             console.Log("Initialized");
 
-            var input = new PublishClientInput
-            {
-                ClientId = clientId,
-                Stage = stage,
-                Tag = tag,
-                WaitForApproval = waitForApproval,
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
-
             if (force)
             {
-                input = input with { Force = true };
                 console.Log("[yellow]Force push is enabled[/]");
             }
 
             console.Log("Create publish request");
 
-            var requestId = await PublishClientAsync(console, client, input, ct);
+            var publishRequest = await client.StartClientPublishAsync(
+                clientId,
+                stage,
+                tag,
+                force,
+                waitForApproval,
+                source,
+                ct);
+
+            console.PrintMutationErrorsAndExit(publishRequest.Errors);
+            if (publishRequest.Id is not { } requestId)
+            {
+                throw new ExitException("Could not create publish request!");
+            }
 
             console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.OnClientVersionPublishUpdated
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
+            await foreach (var update in client.SubscribeToClientPublishAsync(requestId, ct))
             {
-                console.EnsureNoErrors(x);
-
-                switch (x.Data?.OnClientVersionPublishingUpdate)
+                switch (update)
                 {
                     case IProcessingTaskIsQueued v:
-                        ctx?.Status(
+                        activity.Update(
                             $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
                         break;
 
-                    case IClientVersionPublishFailed { Errors: var clientErrors }:
+                    case IClientVersionPublishFailed { Errors: var errors }:
                         console.WriteLine("Client publish failed");
-                        console.PrintErrorsAndExit(clientErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
+                        console.PrintMutationErrors(errors);
+                        return ExitCodes.Error;
 
                     case IClientVersionPublishSuccess:
-                        committed = true;
-                        stopSignal.OnNext(Unit.Default);
-
                         console.Success("Successfully published client!");
-                        break;
+                        return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
                         console.Success("Your request is ready for the committing.");
                         break;
 
                     case IOperationInProgress:
-                        ctx?.Status("The committing of your request is in progress.");
+                        activity.Update("The committing of your request is in progress.");
                         break;
 
-                    case IWaitForApproval e:
-                        if (e.Deployment is
-                            IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_ClientDeployment
-                            deployment)
+                    case IWaitForApproval waitForApprovalEvent:
+                        if (waitForApprovalEvent.Deployment is
+                            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_ClientDeployment deployment)
                         {
-                            console.PrintErrors(deployment.Errors);
+                            console.PrintMutationErrors(deployment.Errors);
                         }
 
-                        ctx?.Status(
+                        activity.Update(
                             "The committing of your request is waiting for approval. Check Nitro to approve the request.");
                         break;
 
                     case IProcessingTaskApproved:
-                        ctx?.Status("The committing of your request is approved.");
-
+                        activity.Update("The committing of your request is approved.");
                         break;
 
                     default:
-                        ctx?.Status(
+                        activity.Update(
                             "This is an unknown response, upgrade Nitro CLI to the latest version.");
                         break;
                 }
             }
         }
-    }
 
-    private static async Task<string> PublishClientAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        PublishClientInput input,
-        CancellationToken ct)
-    {
-        var result =
-            await client.PublishClientVersion.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.PublishClient.Errors);
-
-        if (data.PublishClient.Id is null)
-        {
-            throw new ExitException("Could not create publish request!");
-        }
-
-        return data.PublishClient.Id;
+        return ExitCodes.Error;
     }
 }

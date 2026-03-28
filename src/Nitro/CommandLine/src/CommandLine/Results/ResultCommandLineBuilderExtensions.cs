@@ -20,8 +20,9 @@ internal static class ResultCommandLineBuilderExtensions
     {
         var resultHolder = context.BindingContext.GetRequiredService<ResultHolder>();
         var formatters = context.BindingContext.GetServices<IResultFormatter>();
-        var format =
-            context.ParseResult.FindResultFor(Opt<OutputFormatOption>.Instance)?.GetValueOrDefault<OutputFormat>();
+        var outputFormatOption = context.ParseResult.FindResultFor(Opt<OutputFormatOption>.Instance);
+        var format = outputFormatOption?.GetValueOrDefault<OutputFormat>();
+        var outputFormatSpecified = outputFormatOption is not null;
         var isInteractive = format is null;
         var extendedConsole =
             context.BindingContext.GetRequiredService<IAnsiConsole>() as IExtendedConsole ??
@@ -50,6 +51,10 @@ internal static class ResultCommandLineBuilderExtensions
                     break;
                 }
             }
+        }
+        else if (outputFormatSpecified && format is OutputFormat.Json && context.ExitCode == 0)
+        {
+            context.BindingContext.GetRequiredService<IAnsiConsole>().WriteLine("{}");
         }
     }
 

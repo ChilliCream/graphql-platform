@@ -1,10 +1,10 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
@@ -26,18 +26,20 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IFusionConfigurationClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<IConfigurationService>(),
+            Bind.FromServiceProvider<IFileSystem>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IFusionConfigurationClient fusionConfigurationClient,
         ISessionService sessionService,
         IConfigurationService configurationService,
+        IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
         var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
@@ -51,26 +53,16 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
             context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson =
             context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-        var source = SourceMetadataHelper.Parse(sourceMetadataJson);
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        console.Title("Requesting a deployment slot");
-
-        if (console.IsHumanReadable())
+        await using (var activity = console.StartActivity("Requesting deployment slot ..."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Requesting deployment slot ...", RequestDeploymentSlotAsync);
-        }
-        else
-        {
-            await RequestDeploymentSlotAsync(null);
+            await RequestDeploymentSlotAsync(activity);
         }
 
         return ExitCodes.Success;
 
-        async Task RequestDeploymentSlotAsync(StatusContext? ctx)
+        async Task RequestDeploymentSlotAsync(ICommandLineActivity activity)
         {
             var requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
                 apiId,
@@ -81,13 +73,16 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 sourceSchemaVersions: null,
                 waitForApproval,
                 source,
-                ctx,
+                activity,
                 console,
-                client,
+                fusionConfigurationClient,
                 cancellationToken);
 
             context.SetResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId });
-            await FusionConfigurationPublishingState.SetRequestId(requestId, cancellationToken);
+            await FusionConfigurationPublishingState.SetRequestId(
+                fileSystem,
+                requestId,
+                cancellationToken);
         }
     }
 

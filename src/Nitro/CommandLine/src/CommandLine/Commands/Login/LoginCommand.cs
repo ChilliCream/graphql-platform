@@ -1,4 +1,5 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -22,7 +23,7 @@ internal sealed class LoginCommand : Command
             Opt<IdentityCloudUrlOption>.Instance,
             Opt<IdentityCloudUrlArgument>.Instance,
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IWorkspacesClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -31,17 +32,18 @@ internal sealed class LoginCommand : Command
         string cloudUrl,
         string? url,
         IAnsiConsole console,
-        IApiClient client,
+        IWorkspacesClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
         url ??= cloudUrl;
 
-        var session = await console
-            .DefaultStatus()
-            .StartAsync(
-                $"A web browser has been opened at [blue underline]{url}[/]. Please continue the login in the web browser.",
-                async _ => await sessionService.LoginAsync(url, cancellationToken));
+        Session? session = null;
+        await using (var _ = console.StartActivity(
+            $"A web browser has been opened at [blue underline]{url}[/]. Please continue the login in the web browser."))
+        {
+            session = await sessionService.LoginAsync(url, cancellationToken);
+        }
 
         if (session is null)
         {

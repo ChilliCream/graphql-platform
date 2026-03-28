@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
@@ -25,14 +26,14 @@ internal sealed class DeleteStageCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
+            Bind.FromServiceProvider<IStagesClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
+        IStagesClient client,
         CancellationToken cancellationToken)
     {
         const string apiMessage = "For which API do you want to force delete a stage?";
@@ -49,21 +50,15 @@ internal sealed class DeleteStageCommand : Command
             throw Exit("Stage was not deleted");
         }
 
-        var input = new ForceDeleteStageByApiIdInput { ApiId = apiId, StageName = stageName };
-        var result = await client.ForceDeleteStageByApiIdCommandMutation
-            .ExecuteAsync(input, cancellationToken);
+        var data = await client.ForceDeleteStageAsync(apiId, stageName, cancellationToken);
+        console.PrintMutationErrorsAndExit(data.Errors);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.ForceDeleteStageByApiId.Errors);
-
-        var api = data.ForceDeleteStageByApiId.Api;
-        if (api is null)
+        if (data.Api is null)
         {
             throw Exit("Could not delete the stage");
         }
 
-        var items = api.Stages
+        var items = data.Api.Stages
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray();
 

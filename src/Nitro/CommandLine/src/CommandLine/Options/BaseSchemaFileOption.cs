@@ -1,11 +1,12 @@
 namespace ChilliCream.Nitro.CommandLine.Options;
 
-internal class BaseSchemaFileOption : Option<FileInfo>
+internal class BaseSchemaFileOption : Option<string>
 {
     public BaseSchemaFileOption() : base("--schema")
     {
         Description = "The path to the graphql file with the schema";
         IsRequired = true;
         this.DefaultFileFromEnvironmentValue("SCHEMA_FILE");
+        this.LegalFilePathsOnly();
     }
 }

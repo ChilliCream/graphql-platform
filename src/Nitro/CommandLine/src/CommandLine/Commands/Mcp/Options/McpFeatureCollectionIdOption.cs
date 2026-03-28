@@ -9,5 +9,6 @@ internal sealed class McpFeatureCollectionIdOption : Option<string>
         Description = "The ID of the MCP Feature Collection";
         IsRequired = true;
         this.DefaultFromEnvironmentValue("MCP_FEATURE_COLLECTION_ID");
+        this.NonEmptyStringsOnly();
     }
 }
