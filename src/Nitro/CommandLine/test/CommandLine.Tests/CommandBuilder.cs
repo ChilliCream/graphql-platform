@@ -3,8 +3,20 @@ using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Environments;
+using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.Client.Mcp;
+using ChilliCream.Nitro.Client.Mocks;
+using ChilliCream.Nitro.Client.OpenApi;
+using ChilliCream.Nitro.Client.PersonalAccessTokens;
+using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Spectre.Console;
 using Spectre.Console.Testing;
@@ -73,7 +85,14 @@ internal sealed class CommandBuilder
         return this;
     }
 
-    public CommandBuilder AddArguments(params string[] arguments)
+    public ArgumentsBuilder Arguments => new(this);
+
+    public readonly struct ArgumentsBuilder(CommandBuilder builder)
+    {
+        public CommandBuilder Adds(params string[] arguments) => builder.SetArguments(arguments);
+    }
+
+    private CommandBuilder SetArguments(params string[] arguments)
     {
         ThrowIfConsumed();
 
@@ -94,7 +113,7 @@ internal sealed class CommandBuilder
     // TODO: This is legacy
     public async Task<int> InvokeAsync(params string[] args)
     {
-        var result = await AddArguments(args).ExecuteAsync();
+        var result = await Arguments.Adds(args).ExecuteAsync();
         return result.ExitCode;
     }
 
@@ -141,7 +160,7 @@ internal sealed class CommandBuilder
 
         if (_arguments is null)
         {
-            throw new InvalidOperationException("No arguments have been configured. Call AddArguments(...) first.");
+            throw new InvalidOperationException("No arguments have been configured. Call Arguments.Adds(...) first.");
         }
     }
 
@@ -178,34 +197,66 @@ internal sealed class CommandBuilder
 
     private Parser Build()
     {
-        var builder = new CommandLineBuilder(new NitroRootCommand())
-            .AddNitroCloudConfiguration();
+        var services = new ServiceCollection()
+            .AddSingleton<INitroConsole>(new NitroConsole(_testConsole, _cliConsole.Error))
+            .AddSingleton<IFileSystem, FileSystem>()
+            .AddSingleton<ISessionService, TestSessionService>()
+            .AddSingleton<IApisClient>(DefaultApisClient)
+            .AddSingleton<IApiKeysClient>(Mock.Of<IApiKeysClient>())
+            .AddSingleton<IClientsClient>(Mock.Of<IClientsClient>())
+            .AddSingleton<IEnvironmentsClient>(Mock.Of<IEnvironmentsClient>())
+            .AddSingleton<IFusionConfigurationClient>(Mock.Of<IFusionConfigurationClient>())
+            .AddSingleton<IMcpClient>(Mock.Of<IMcpClient>())
+            .AddSingleton<IMocksClient>(Mock.Of<IMocksClient>())
+            .AddSingleton<IOpenApiClient>(Mock.Of<IOpenApiClient>())
+            .AddSingleton<IPersonalAccessTokensClient>(Mock.Of<IPersonalAccessTokensClient>())
+            .AddSingleton<ISchemasClient>(Mock.Of<ISchemasClient>())
+            .AddSingleton<IStagesClient>(Mock.Of<IStagesClient>())
+            .AddSingleton<IWorkspacesClient>(Mock.Of<IWorkspacesClient>())
+            .AddNitroCommands();
 
-        builder.AddService<INitroConsole>(_ => new NitroConsole(_testConsole, _cliConsole.Error));
-
-        if (_serviceOverrides.TryGetValue(typeof(ISessionService), out var sessionService))
+        foreach (var (type, instance) in _serviceOverrides)
         {
-            builder.AddService<ISessionService>((ISessionService)sessionService);
+            services.AddSingleton(type, instance);
         }
 
-        if (!_serviceOverrides.ContainsKey(typeof(IApisClient)))
-        {
-            builder.AddService<IApisClient>(DefaultApisClient);
-        }
+        var serviceProvider = services.BuildServiceProvider();
+        var builder = new CommandLineBuilder(serviceProvider.GetRequiredService<NitroRootCommand>());
 
         builder.AddMiddleware(
             context =>
             {
-                foreach (var (type, instance) in _serviceOverrides)
+                var registered = new HashSet<Type>();
+
+                AddBindingService(typeof(INitroConsole));
+                AddBindingService(typeof(IFileSystem));
+                AddBindingService(typeof(ISessionService));
+                AddBindingService(typeof(IApisClient));
+                AddBindingService(typeof(IApiKeysClient));
+                AddBindingService(typeof(IClientsClient));
+                AddBindingService(typeof(IEnvironmentsClient));
+                AddBindingService(typeof(IFusionConfigurationClient));
+                AddBindingService(typeof(IMcpClient));
+                AddBindingService(typeof(IMocksClient));
+                AddBindingService(typeof(IOpenApiClient));
+                AddBindingService(typeof(IPersonalAccessTokensClient));
+                AddBindingService(typeof(ISchemasClient));
+                AddBindingService(typeof(IStagesClient));
+                AddBindingService(typeof(IWorkspacesClient));
+
+                foreach (var type in _serviceOverrides.Keys)
                 {
-                    if (type == typeof(INitroConsole)
-                        || type == typeof(ISessionService)
-                        || type == typeof(IApisClient))
+                    AddBindingService(type);
+                }
+
+                void AddBindingService(Type type)
+                {
+                    if (!registered.Add(type))
                     {
-                        continue;
+                        return;
                     }
 
-                    context.BindingContext.AddService(type, _ => instance);
+                    context.BindingContext.AddService(type, _ => serviceProvider.GetRequiredService(type));
                 }
             },
             MiddlewareOrder.Configuration);
@@ -229,7 +280,6 @@ internal sealed class CommandBuilder
             }
         });
 
-        builder.Command.AddNitroCloudCommands();
         return builder.Build();
     }
 

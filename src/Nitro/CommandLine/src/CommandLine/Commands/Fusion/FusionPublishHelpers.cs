@@ -1,11 +1,9 @@
-using System.CommandLine.IO;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -38,7 +36,7 @@ internal static class FusionPublishHelpers
             source,
             cancellationToken);
 
-        // console.PrintMutationErrorsAndExit(deploymentSlotRequest.Errors);
+        console.PrintMutationErrorsAndExit(deploymentSlotRequest.Errors);
 
         var requestId = deploymentSlotRequest.RequestId;
 
@@ -47,7 +45,7 @@ internal static class FusionPublishHelpers
             throw Exit("Failed to request deployment slot.");
         }
 
-        // console.MarkupLine($"Your request ID is [blue]{requestId}[/]");
+        console.MarkupLine($"Your request ID is [blue]{requestId}[/]");
 
         using var subscriptionCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -66,17 +64,17 @@ internal static class FusionPublishHelpers
 
                 case IFusionConfigurationPublishingFailed v:
                     await subscriptionCancellation.CancelAsync();
-                    // console.PrintMutationErrorsAndExit(v.Errors);
+                    console.PrintMutationErrorsAndExit(v.Errors);
                     throw Exit("Your request has failed.");
 
                 case IFusionConfigurationPublishingSuccess:
                     await subscriptionCancellation.CancelAsync();
-                    // console.WarningLine("Your request is already published.");
+                    console.WarningLine("Your request is already published.");
                     break;
 
                 case IProcessingTaskIsReady:
                     await subscriptionCancellation.CancelAsync();
-                    // console.Success("Your deployment slot is ready.");
+                    console.Success("Your deployment slot is ready.");
                     break;
 
                 case IFusionConfigurationValidationFailed:
@@ -86,7 +84,7 @@ internal static class FusionPublishHelpers
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
                     await subscriptionCancellation.CancelAsync();
-                    // console.Success("Your request is already processing.");
+                    console.Success("Your request is already processing.");
                     break;
 
                 default:
@@ -229,7 +227,7 @@ internal static class FusionPublishHelpers
 
         FusionComposeCommand.WriteCompositionLog(
             compositionLog,
-            new AnsiStreamWriter(Console.Out),
+            Console.Out,
             false);
 
         if (result.IsFailure)
@@ -243,16 +241,5 @@ internal static class FusionPublishHelpers
         }
 
         return true;
-    }
-
-    private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
-    {
-        public void Write(string? value)
-        {
-            if (!string.IsNullOrEmpty(value))
-            {
-                textWriter.Write(value);
-            }
-        }
     }
 }

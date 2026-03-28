@@ -4,6 +4,6 @@ internal sealed class OptionalClientIdOption : ClientIdOption
 {
     public OptionalClientIdOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

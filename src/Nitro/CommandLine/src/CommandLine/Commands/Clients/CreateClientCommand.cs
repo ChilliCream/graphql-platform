@@ -17,8 +17,8 @@ internal sealed class CreateClientCommand : Command
     {
         Description = "Creates a new client";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<ClientNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<ClientNameOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

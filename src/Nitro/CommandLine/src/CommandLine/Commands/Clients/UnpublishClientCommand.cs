@@ -13,9 +13,9 @@ internal sealed class UnpublishClientCommand : Command
     {
         Description = "Unpublish a client version from a stage";
 
-        AddOption(Opt<TagsOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ClientIdOption>.Instance);
+        Options.Add(Opt<TagsOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<ClientIdOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

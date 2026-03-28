@@ -12,10 +12,10 @@ internal sealed class ValidateClientCommand : Command
     {
         Description = "Validate a client version";
 
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ClientIdOption>.Instance);
-        AddOption(Opt<OperationsFileOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<ClientIdOption>.Instance);
+        Options.Add(Opt<OperationsFileOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(async context =>
         {

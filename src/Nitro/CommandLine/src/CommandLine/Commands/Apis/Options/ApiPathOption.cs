@@ -7,7 +7,7 @@ internal sealed class ApiPathOption : Option<string>
     public ApiPathOption() : base("--path")
     {
         Description = "The path to the API";
-        IsRequired = false;
+        Required = false;
         this.DefaultFromEnvironmentValue("API_PATH");
     }
 }

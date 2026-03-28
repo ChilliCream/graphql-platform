@@ -12,10 +12,10 @@ internal sealed class UploadClientCommand : Command
     {
         Description = "Upload a new client version";
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<OperationsFileOption>.Instance);
-        AddOption(Opt<ClientIdOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<OperationsFileOption>.Instance);
+        Options.Add(Opt<ClientIdOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(async context =>
         {

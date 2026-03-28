@@ -11,12 +11,12 @@ internal static class ConsoleHelpers
         if (errors?.Count > 0)
         {
             // TODO: This needs to write to stderr
-            // console.WriteLine();
-            //
-            // foreach (var error in errors)
-            // {
-            //     console.PrintMutationError(error);
-            // }
+            console.WriteLine();
+
+            foreach (var error in errors)
+            {
+                console.PrintMutationError(error);
+            }
 
             throw new ExitException();
         }
@@ -28,12 +28,12 @@ internal static class ConsoleHelpers
         if (errors?.Count > 0)
         {
             // TODO: Write to stderr
-            // console.WriteLine();
-            //
-            // foreach (var error in errors)
-            // {
-            //     console.PrintMutationError(error);
-            // }
+            console.WriteLine();
+
+            foreach (var error in errors)
+            {
+                console.PrintMutationError(error);
+            }
         }
     }
 

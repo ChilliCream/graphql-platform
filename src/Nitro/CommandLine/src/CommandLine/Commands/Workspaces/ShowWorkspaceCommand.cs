@@ -17,7 +17,7 @@ internal sealed class ShowWorkspaceCommand : Command
     {
         Description = "Shows details of a workspace";
 
-        AddArgument(Opt<IdArgument>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

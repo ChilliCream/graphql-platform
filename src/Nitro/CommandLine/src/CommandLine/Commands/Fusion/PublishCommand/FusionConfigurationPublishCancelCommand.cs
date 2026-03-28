@@ -12,7 +12,7 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
     public FusionConfigurationPublishCancelCommand() : base("cancel")
     {
         Description = "Cancels a Fusion configuration publish.";
-        AddOption(Opt<OptionalRequestIdOption>.Instance);
+        Options.Add(Opt<OptionalRequestIdOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

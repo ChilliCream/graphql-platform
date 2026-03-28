@@ -9,9 +9,11 @@ internal sealed class OutputFormatOption : Option<OutputFormat?>
         Description =
             "The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format";
 
-        IsRequired = false;
+        Required = true;
 
-        ArgumentHelpName = "json";
+        // TODO: Not sure if this is better
+        AcceptOnlyFromAmong("json");
+        // HelpName = "json";
 
         this.DefaultFromEnvironmentValue("OUTPUT_FORMAT");
     }

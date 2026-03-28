@@ -4,6 +4,6 @@ internal sealed class OptionalFusionArchiveFileOption : FusionArchiveFileOption
 {
     public OptionalFusionArchiveFileOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

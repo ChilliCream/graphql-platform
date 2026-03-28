@@ -13,10 +13,10 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
     {
         Description = "Validate an OpenAPI collection version";
 
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<OpenApiCollectionIdOption>.Instance);
-        AddOption(Opt<OpenApiCollectionFilePatternOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OpenApiCollectionIdOption>.Instance);
+        Options.Add(Opt<OpenApiCollectionFilePatternOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

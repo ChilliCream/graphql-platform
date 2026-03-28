@@ -7,7 +7,7 @@ internal sealed class ApiNameOption : Option<string>
     public ApiNameOption() : base("--name")
     {
         Description = "The name of the API";
-        IsRequired = false;
+        Required = false;
         this.DefaultFromEnvironmentValue("API_NAME");
     }
 }

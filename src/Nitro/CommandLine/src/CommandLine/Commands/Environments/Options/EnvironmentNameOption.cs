@@ -4,7 +4,7 @@ public sealed class EnvironmentNameOption : Option<string>
 {
     public EnvironmentNameOption() : base(["--name", "-n"])
     {
-        IsRequired = false;
+        Required = false;
         Description = "The name of the environment.";
     }
 }

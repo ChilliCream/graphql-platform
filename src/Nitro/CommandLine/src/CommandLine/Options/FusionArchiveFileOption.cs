@@ -7,7 +7,7 @@ internal class FusionArchiveFileOption : Option<string>
     public FusionArchiveFileOption() : base(OptionName)
     {
         Description = "The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version)";
-        IsRequired = true;
+        Required = true;
         AddAlias("-a");
         // This is only here to not break existing scripts
         AddAlias("--configuration");

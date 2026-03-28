@@ -26,8 +26,8 @@ public class FusionRunCommand : Command
             + Environment.NewLine
             + "This command only supports Fusion v2.";
 
-        AddArgument(Opt<FusionRunArchiveArgument>.Instance);
-        AddOption(Opt<FusionRunPortOption>.Instance);
+        Arguments.Add(Opt<FusionRunArchiveArgument>.Instance);
+        Options.Add(Opt<FusionRunPortOption>.Instance);
 
         this.SetHandler(async context =>
         {

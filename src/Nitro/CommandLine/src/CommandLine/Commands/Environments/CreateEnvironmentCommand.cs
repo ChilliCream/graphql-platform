@@ -17,8 +17,8 @@ internal sealed class CreateEnvironmentCommand : Command
     {
         Description = "Creates a new environment";
 
-        AddOption(Opt<EnvironmentNameOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<EnvironmentNameOption>.Instance);
+        Options.Add(Opt<WorkspaceIdOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

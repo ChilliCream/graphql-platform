@@ -12,12 +12,12 @@ internal sealed class PublishClientCommand : Command
     {
         Description = "Publish a client version to a stage";
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ClientIdOption>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
-        AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<ClientIdOption>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(async context =>
         {

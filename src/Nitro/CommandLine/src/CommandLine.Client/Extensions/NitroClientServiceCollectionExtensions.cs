@@ -20,6 +20,27 @@ public static class NitroClientServiceCollectionExtensions
 {
     private static readonly string s_userAgent = $"Nitro CLI/{Version}";
 
+    public static IServiceCollection AddNitroClients(
+        this IServiceCollection services,
+        Action<NitroApiClientOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        return services
+            .AddNitroApisClient(configure)
+            .AddNitroApiKeysClient()
+            .AddNitroClientsClient()
+            .AddNitroEnvironmentsClient()
+            .AddNitroMcpClient()
+            .AddNitroMocksClient()
+            .AddNitroOpenApiClient()
+            .AddNitroPersonalAccessTokensClient()
+            .AddNitroSchemasClient()
+            .AddNitroStagesClient()
+            .AddNitroWorkspacesClient()
+            .AddNitroFusionConfigurationClient();
+    }
+
     public static IServiceCollection AddNitroApisClient(
         this IServiceCollection services,
         Action<NitroApiClientOptions>? configure = null)

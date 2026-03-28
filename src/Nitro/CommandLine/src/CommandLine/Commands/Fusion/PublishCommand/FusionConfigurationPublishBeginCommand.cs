@@ -14,13 +14,13 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
     public FusionConfigurationPublishBeginCommand() : base("begin")
     {
         Description = "Begin a configuration publish. This command will request a deployment slot";
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<OptionalSubgraphIdOption>.Instance);
-        AddOption(Opt<OptionalSubgraphNameOption>.Instance);
-        AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<OptionalSubgraphIdOption>.Instance);
+        Options.Add(Opt<OptionalSubgraphNameOption>.Instance);
+        Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

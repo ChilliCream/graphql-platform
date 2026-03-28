@@ -16,7 +16,7 @@ internal sealed class ListStagesCommand : Command
     {
         Description = "Lists all stages of an API";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

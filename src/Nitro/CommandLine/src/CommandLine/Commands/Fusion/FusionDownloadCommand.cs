@@ -20,10 +20,10 @@ internal sealed class FusionDownloadCommand : Command
     {
         Description = "Downloads the most recent gateway configuration";
 
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<OptionalOutputFileOption>.Instance);
-        this.AddNitroCloudDefaultOptions();
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<OptionalOutputFileOption>.Instance);
+        this.AddGlobalNitroOptions();
 
         this.SetHandler(
             ExecuteAsync,

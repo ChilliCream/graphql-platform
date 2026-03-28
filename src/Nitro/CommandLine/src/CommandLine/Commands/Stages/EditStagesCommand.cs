@@ -25,8 +25,8 @@ internal sealed class EditStagesCommand : Command
     {
         Description = "Edit stages of an API.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<StageConfigurationOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<StageConfigurationOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

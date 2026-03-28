@@ -4,6 +4,6 @@ internal sealed class OptionalDownstreamUrlOption : DownstreamUrlOption
 {
     public OptionalDownstreamUrlOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

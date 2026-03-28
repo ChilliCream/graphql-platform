@@ -7,7 +7,7 @@ internal sealed class TagOption : Option<string>
     public TagOption() : base(OptionName)
     {
         Description = "The tag of the schema version to deploy";
-        IsRequired = true;
+        Required = true;
         this.DefaultFromEnvironmentValue("TAG");
         this.NonEmptyStringsOnly();
     }

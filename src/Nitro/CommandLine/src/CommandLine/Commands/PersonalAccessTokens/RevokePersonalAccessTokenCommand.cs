@@ -18,8 +18,8 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
     {
         Description = "Revokes a personal access token";
 
-        AddArgument(Opt<IdArgument>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

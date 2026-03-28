@@ -10,20 +10,30 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 #endif
 internal sealed class ClientCommand : Command
 {
-    public ClientCommand() : base("client")
+    public ClientCommand(
+        PublishClientCommand publishClientCommand,
+        UnpublishClientCommand unpublishClientCommand,
+        ValidateClientCommand validateClientCommand,
+        UploadClientCommand uploadClientCommand,
+        CreateClientCommand createClientCommand,
+        DeleteClientCommand deleteClientCommand,
+        ListClientCommand listClientCommand,
+        ShowClientCommand showClientCommand,
+        DownloadClientCommand downloadClientCommand)
+        : base("client")
     {
         Description = "Manage clients";
 
-        this.AddNitroCloudDefaultOptions();
+        this.AddGlobalNitroOptions();
 
-        AddCommand(new PublishClientCommand());
-        AddCommand(new UnpublishClientCommand());
-        AddCommand(new ValidateClientCommand());
-        AddCommand(new UploadClientCommand());
-        AddCommand(new CreateClientCommand());
-        AddCommand(new DeleteClientCommand());
-        AddCommand(new ListClientCommand());
-        AddCommand(new ShowClientCommand());
-        AddCommand(new DownloadClientCommand());
+        Subcommands.Add(publishClientCommand);
+        Subcommands.Add(unpublishClientCommand);
+        Subcommands.Add(validateClientCommand);
+        Subcommands.Add(uploadClientCommand);
+        Subcommands.Add(createClientCommand);
+        Subcommands.Add(deleteClientCommand);
+        Subcommands.Add(listClientCommand);
+        Subcommands.Add(showClientCommand);
+        Subcommands.Add(downloadClientCommand);
     }
 }

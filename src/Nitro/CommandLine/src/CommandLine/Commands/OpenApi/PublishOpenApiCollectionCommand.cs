@@ -12,12 +12,12 @@ internal sealed class PublishOpenApiCollectionCommand : Command
     {
         Description = "Publish an OpenAPI collection version to an stage";
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<OpenApiCollectionIdOption>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
-        AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OpenApiCollectionIdOption>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(async context =>
         {

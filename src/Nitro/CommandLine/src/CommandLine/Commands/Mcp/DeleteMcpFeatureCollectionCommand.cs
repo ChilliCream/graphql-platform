@@ -20,8 +20,8 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
     {
         Description = "Deletes an MCP Feature Collection";
 
-        AddOption(Opt<ForceOption>.Instance);
-        AddArgument(Opt<OptionalIdArgument>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
+        Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

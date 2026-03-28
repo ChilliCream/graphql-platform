@@ -5,7 +5,7 @@ internal sealed class OptionalOutputFileOption : Option<string>
     public OptionalOutputFileOption() : base("--output-file")
     {
         Description = "The output file";
-        IsRequired = false;
+        Required = false;
         this.DefaultFromEnvironmentValue("OUTPUT_FILE");
         this.LegalFilePathsOnly();
     }

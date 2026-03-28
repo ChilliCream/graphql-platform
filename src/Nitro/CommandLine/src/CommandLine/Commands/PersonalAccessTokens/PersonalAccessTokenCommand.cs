@@ -10,14 +10,18 @@ namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 #endif
 internal sealed class PersonalAccessTokenCommand : Command
 {
-    public PersonalAccessTokenCommand() : base("pat")
+    public PersonalAccessTokenCommand(
+        CreatePersonalAccessTokenCommand createPersonalAccessTokenCommand,
+        RevokePersonalAccessTokenCommand revokePersonalAccessTokenCommand,
+        ListPersonalAccessTokenCommand listPersonalAccessTokenCommand)
+        : base("pat")
     {
         Description = "Manage personal access tokens";
 
-        this.AddNitroCloudDefaultOptions();
+        this.AddGlobalNitroOptions();
 
-        AddCommand(new CreatePersonalAccessTokenCommand());
-        AddCommand(new RevokePersonalAccessTokenCommand());
-        AddCommand(new ListPersonalAccessTokenCommand());
+        Subcommands.Add(createPersonalAccessTokenCommand);
+        Subcommands.Add(revokePersonalAccessTokenCommand);
+        Subcommands.Add(listPersonalAccessTokenCommand);
     }
 }

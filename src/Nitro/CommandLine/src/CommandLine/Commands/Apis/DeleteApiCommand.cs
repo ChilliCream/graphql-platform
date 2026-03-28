@@ -18,8 +18,8 @@ internal sealed class DeleteApiCommand : Command
     {
         Description = "Deletes an API by ID";
 
-        AddArgument(Opt<IdArgument>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

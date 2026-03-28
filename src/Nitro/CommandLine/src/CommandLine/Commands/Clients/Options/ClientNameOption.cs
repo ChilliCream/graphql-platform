@@ -7,7 +7,7 @@ internal sealed class ClientNameOption : Option<string>
     public ClientNameOption() : base("--name")
     {
         Description = "The name of the API key (for later reference)";
-        IsRequired = false;
+        Required = false;
         this.DefaultFromEnvironmentValue("API_KEY_NAME");
     }
 }

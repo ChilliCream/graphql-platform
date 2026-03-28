@@ -1,11 +1,8 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -13,49 +10,43 @@ namespace ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 
 internal sealed class CreateApiKeyCommand : Command
 {
-    public CreateApiKeyCommand() : base("create")
+    public CreateApiKeyCommand(
+        INitroConsole console,
+        IApisClient apisClient,
+        IApiKeysClient apiKeysClient,
+        ISessionService sessionService) : base("create")
     {
         Description = "Creates a new API key";
 
-        AddOption(Opt<ApiKeyNameOption>.Instance);
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<OptionalWorkspaceIdOption>.Instance);
-        AddOption(Opt<OptionalApiKeyStageConditionOption>.Instance);
+        Options.Add(Opt<ApiKeyNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
+        Options.Add(Opt<OptionalApiKeyStageConditionOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IApisClient>(),
-            Bind.FromServiceProvider<IApiKeysClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, apisClient, apiKeysClient, sessionService, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IApisClient apisClient,
         IApiKeysClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
-        sessionService.AssertHasAuthentication(context);
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var name = await console
-            .PromptAsync(
-                "Name",
-                defaultValue: null,
-                context,
-                Opt<ApiKeyNameOption>.Instance,
-                cancellationToken);
+        var name = await console.PromptAsync(
+            "Name",
+            defaultValue: null,
+            parseResult,
+            Opt<ApiKeyNameOption>.Instance,
+            cancellationToken);
 
-        var stageConditionName = context.ParseResult
-            .GetValueForOption(Opt<OptionalApiKeyStageConditionOption>.Instance);
-
-        var workspaceId = context.ParseResult
-            .GetValueForOption(Opt<OptionalWorkspaceIdOption>.Instance);
-        var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
+        var stageConditionName = parseResult.GetValue(Opt<OptionalApiKeyStageConditionOption>.Instance);
+        var workspaceId = parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance);
+        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
 
         if (workspaceId is null && apiId is null)
         {
@@ -70,7 +61,7 @@ internal sealed class CreateApiKeyCommand : Command
                 ["Api", "Workspace"],
                 cancellationToken);
 
-            workspaceId = context.RequireWorkspaceId();
+            workspaceId = parseResult.GetWorkspaceId(sessionService);
 
             if (choice == "Api")
             {
@@ -82,7 +73,7 @@ internal sealed class CreateApiKeyCommand : Command
             }
         }
 
-        workspaceId ??= context.RequireWorkspaceId();
+        workspaceId ??= parseResult.GetWorkspaceId(sessionService);
 
         await using (var _ = console.StartActivity("Creating API key..."))
         {
@@ -104,11 +95,11 @@ internal sealed class CreateApiKeyCommand : Command
             console.OkLine(
                 $"Secret: {result.Secret.AsHighlight()} {"This secret will not be available later!".AsDescription()}");
 
-            context.SetResult(new CreateApiKeyResult
-            {
-                Secret = result.Secret,
-                Details = ApiKeyDetailPrompt.From(result.Key).ToObject()
-            });
+            // context.SetResult(new CreateApiKeyResult
+            // {
+            //     Secret = result.Secret,
+            //     Details = ApiKeyDetailPrompt.From(result.Key).ToObject()
+            // });
 
             return ExitCodes.Success;
         }

@@ -6,16 +6,10 @@ using static System.Environment.SpecialFolderOption;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Configuration;
 
-internal class ConfigurationService : IConfigurationService
+internal class ConfigurationService(IFileSystem fileSystem) : IConfigurationService
 {
     private static readonly string s_configFolder =
         Path.Combine(Environment.GetFolderPath(ApplicationData, Create), "nitro");
-    private readonly IFileSystem _fileSystem;
-
-    public ConfigurationService(IFileSystem fileSystem)
-    {
-        _fileSystem = fileSystem;
-    }
 
     public async Task<T?> GetAsync<T>(CancellationToken cancellationToken)
         where T : IConfigurationFile
@@ -27,11 +21,11 @@ internal class ConfigurationService : IConfigurationService
             var config = default(T);
 
             var configFile = Path.Combine(s_configFolder, T.FileName);
-            if (_fileSystem.FileExists(configFile))
+            if (fileSystem.FileExists(configFile))
             {
                 try
                 {
-                    await using var stream = _fileSystem.OpenReadStream(configFile);
+                    await using var stream = fileSystem.OpenReadStream(configFile);
 
                     config = await JsonSerializer
                         .DeserializeAsync(
@@ -74,8 +68,8 @@ internal class ConfigurationService : IConfigurationService
             await EnsureConfigFile<T>(cancellationToken);
 
             var configFile = Path.Combine(s_configFolder, T.FileName);
-            _fileSystem.DeleteFile(configFile);
-            await using var stream = _fileSystem.CreateFile(configFile);
+            fileSystem.DeleteFile(configFile);
+            await using var stream = fileSystem.CreateFile(configFile);
 
             await JsonSerializer.SerializeAsync(
                 stream,
@@ -93,9 +87,9 @@ internal class ConfigurationService : IConfigurationService
     public Task ResetAsync<T>(CancellationToken cancellationToken) where T : IConfigurationFile
     {
         var configFile = Path.Combine(s_configFolder, T.FileName);
-        if (_fileSystem.FileExists(configFile))
+        if (fileSystem.FileExists(configFile))
         {
-            _fileSystem.DeleteFile(configFile);
+            fileSystem.DeleteFile(configFile);
         }
 
         return Task.CompletedTask;
@@ -104,15 +98,15 @@ internal class ConfigurationService : IConfigurationService
     private async Task EnsureConfigFile<T>(CancellationToken cancellationToken)
         where T : IConfigurationFile
     {
-        if (!_fileSystem.DirectoryExists(s_configFolder))
+        if (!fileSystem.DirectoryExists(s_configFolder))
         {
-            _fileSystem.CreateDirectory(s_configFolder);
+            fileSystem.CreateDirectory(s_configFolder);
         }
 
         var configFile = Path.Combine(s_configFolder, T.FileName);
-        if (!_fileSystem.FileExists(configFile) && T.Default is not null)
+        if (!fileSystem.FileExists(configFile) && T.Default is not null)
         {
-            await using var stream = _fileSystem.CreateFile(configFile);
+            await using var stream = fileSystem.CreateFile(configFile);
             await JsonSerializer
                 .SerializeAsync(stream, T.Default, T.TypeInfo, cancellationToken: cancellationToken);
         }

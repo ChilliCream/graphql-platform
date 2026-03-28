@@ -1,8 +1,6 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-using System.CommandLine.Builder;
-using System.CommandLine.Parsing;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -14,12 +12,25 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        var builder = new CommandLineBuilder(new NitroRootCommand())
-            .AddNitroCloudConfiguration()
-            .UseDefaults()
-            .UseExceptionMiddleware();
+        using var cts = new CancellationTokenSource();
 
-        builder.Command.AddNitroCloudCommands();
-        return await builder.Build().InvokeAsync(args);
+        Console.CancelKeyPress += (sender, e) =>
+        {
+            e.Cancel = true;
+            cts.Cancel();
+        };
+
+        var services = new ServiceCollection();
+
+        services
+            .AddNitroServices()
+            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, Console.Error))
+            .AddNitroCommands();
+
+        await using var provider = services.BuildServiceProvider();
+
+        var rootCommand = provider.GetRequiredService<NitroRootCommand>();
+
+        return await rootCommand.ExecuteAsync(args, provider, cts.Token);
     }
 }

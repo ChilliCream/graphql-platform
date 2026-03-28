@@ -18,8 +18,8 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
     {
         Description = "Creates a new MCP Feature Collection";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<McpFeatureCollectionNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<McpFeatureCollectionNameOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

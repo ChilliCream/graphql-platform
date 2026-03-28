@@ -12,15 +12,18 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class ListClientCommand : Command
 {
-    public ListClientCommand() : base("list")
+    public ListClientCommand(
+        ListClientVersionsCommand listClientVersionsCommand,
+        ListClientPublishedVersionsCommand listClientPublishedVersionsCommand)
+        : base("list")
     {
         Description = "Lists all clients of an API";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<CursorOption>.Instance);
 
-        AddCommand(new ListClientVersionsCommand());
-        AddCommand(new ListClientPublishedVersionsCommand());
+        Subcommands.Add(listClientVersionsCommand);
+        Subcommands.Add(listClientPublishedVersionsCommand);
 
         this.SetHandler(
             ExecuteAsync,

@@ -4,6 +4,6 @@ internal sealed class OptionalApiIdOption : ApiIdOption
 {
     public OptionalApiIdOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

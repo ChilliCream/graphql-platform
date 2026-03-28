@@ -7,7 +7,7 @@ internal sealed class AllowBreakingSchemaChangesOption : Option<bool?>
     public AllowBreakingSchemaChangesOption() : base("--allow-breaking-schema-changes")
     {
         Description = "Allow breaking schema changes when no client breaks";
-        IsRequired = false;
+        Required = false;
         this.DefaultFromEnvironmentValue("ALLOW_BREAKING_SCHEMA_CHANGES");
     }
 }

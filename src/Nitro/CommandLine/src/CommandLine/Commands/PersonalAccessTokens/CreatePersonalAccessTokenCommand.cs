@@ -16,8 +16,8 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
     {
         Description = "Creates a new personal access token";
 
-        AddOption(Opt<OptionalDescriptionOption>.Instance);
-        AddOption(Opt<ExpiresOption>.Instance);
+        Options.Add(Opt<OptionalDescriptionOption>.Instance);
+        Options.Add(Opt<ExpiresOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

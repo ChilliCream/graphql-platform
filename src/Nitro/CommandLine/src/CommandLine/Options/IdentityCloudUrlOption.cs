@@ -7,7 +7,7 @@ internal sealed class IdentityCloudUrlOption : Option<string>
     public IdentityCloudUrlOption() : base("--cloud-url")
     {
         Description = "The URL of the API.";
-        IsRequired = false;
+        Required = false;
         IsHidden = false;
         this.DefaultFromEnvironmentValue(
             "CLOUD_URL",

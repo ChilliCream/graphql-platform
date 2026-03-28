@@ -15,7 +15,7 @@ internal sealed class ListWorkspaceCommand : Command
     {
         Description = "Lists all workspaces";
 
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<CursorOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

@@ -20,12 +20,12 @@ public sealed class FusionUploadCommand : Command
     {
         Description = "Upload a source schema for a later composition.";
 
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<SourceSchemaFileOption>.Instance);
-        AddOption(Opt<WorkingDirectoryOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
-        this.AddNitroCloudDefaultOptions();
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<SourceSchemaFileOption>.Instance);
+        Options.Add(Opt<WorkingDirectoryOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
+        this.AddGlobalNitroOptions();
 
         this.SetHandler(async context =>
         {

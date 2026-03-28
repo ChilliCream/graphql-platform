@@ -14,10 +14,10 @@ internal sealed class DownloadClientCommand : Command
     {
         Description = "Download the queries from a stage";
 
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<FileSystemOutputOptions>.Instance);
-        AddOption(Opt<ClientFormatOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<FileSystemOutputOptions>.Instance);
+        Options.Add(Opt<ClientFormatOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

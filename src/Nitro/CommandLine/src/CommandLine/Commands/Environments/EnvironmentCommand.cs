@@ -10,14 +10,18 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Environments;
 #endif
 internal sealed class EnvironmentCommand : Command
 {
-    public EnvironmentCommand() : base("environment")
+    public EnvironmentCommand(
+        CreateEnvironmentCommand createEnvironmentCommand,
+        ListEnvironmentCommand listEnvironmentCommand,
+        ShowEnvironmentCommand showEnvironmentCommand)
+        : base("environment")
     {
         Description = "Manage environments";
 
-        this.AddNitroCloudDefaultOptions();
+        this.AddGlobalNitroOptions();
 
-        AddCommand(new CreateEnvironmentCommand());
-        AddCommand(new ListEnvironmentCommand());
-        AddCommand(new ShowEnvironmentCommand());
+        Subcommands.Add(createEnvironmentCommand);
+        Subcommands.Add(listEnvironmentCommand);
+        Subcommands.Add(showEnvironmentCommand);
     }
 }

@@ -21,11 +21,11 @@ public sealed class UpdateMockCommand : Command
     {
         Description = "Updates a mock schema with a new schema and extension file.";
 
-        AddOption(Opt<OptionalExtensionFileOption>.Instance);
-        AddOption(Opt<OptionalBaseSchemaFileOption>.Instance);
-        AddOption(Opt<OptionalDownstreamUrlOption>.Instance);
-        AddOption(Opt<OptionalMockSchemaNameOption>.Instance);
-        AddArgument(Opt<OptionalIdArgument>.Instance);
+        Options.Add(Opt<OptionalExtensionFileOption>.Instance);
+        Options.Add(Opt<OptionalBaseSchemaFileOption>.Instance);
+        Options.Add(Opt<OptionalDownstreamUrlOption>.Instance);
+        Options.Add(Opt<OptionalMockSchemaNameOption>.Instance);
+        Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

@@ -16,8 +16,8 @@ internal sealed class ListApiKeyCommand : Command
     {
         Description = "Lists all API keys of a workspace";
 
-        AddOption(Opt<CursorOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<CursorOption>.Instance);
+        Options.Add(Opt<WorkspaceIdOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

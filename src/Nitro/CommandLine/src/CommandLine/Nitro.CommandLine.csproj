@@ -46,7 +46,7 @@
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="Spectre.Console.Json" />
-    <PackageReference Include="System.Commandline" VersionOverride="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="System.Linq.Async" />
     <PackageReference Include="System.Reactive" />

@@ -18,9 +18,9 @@ internal sealed class DeleteStageCommand : Command
     {
         Description = "Deletes a stage by name";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -23,11 +22,11 @@ internal static class NitroConsoleExtensions
         this INitroConsole console,
         string question,
         string? defaultValue,
-        InvocationContext context,
+        ParseResult parseResult,
         Option<string> option,
         CancellationToken cancellationToken)
     {
-        var value = context.ParseResult.GetValueForOption(option);
+        var value = parseResult.GetValue(option);
 
         if (value is not null)
         {
@@ -44,12 +43,12 @@ internal static class NitroConsoleExtensions
 
     public static async Task<bool> ConfirmAsync(
         this INitroConsole console,
-        InvocationContext context,
+        ParseResult parseResult,
         Option<bool?> option,
         string question,
         CancellationToken cancellationToken)
     {
-        var value = context.ParseResult.GetValueForOption(option);
+        var value = parseResult.GetValue(option);
 
         if (value is not null)
         {
@@ -67,20 +66,21 @@ internal static class NitroConsoleExtensions
     public static async Task<string> GetOrPromptForApiIdAsync(
         this INitroConsole console,
         string message,
-        InvocationContext context,
+        ParseResult parseResult,
+        IApisClient apisClient,
+        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
-        var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
+        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
 
         if (!string.IsNullOrEmpty(apiId))
         {
             return apiId;
         }
 
-        var client = context.BindingContext.GetRequiredService<IApisClient>();
-        var workspaceId = context.RequireWorkspaceId();
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
-        return await console.PromptForApiIdAsync(client, workspaceId, message, cancellationToken);
+        return await console.PromptForApiIdAsync(apisClient, workspaceId, message, cancellationToken);
     }
 
     public static async Task<string> PromptForApiIdAsync(

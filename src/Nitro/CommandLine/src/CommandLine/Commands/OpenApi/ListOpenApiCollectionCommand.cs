@@ -16,8 +16,8 @@ internal sealed class ListOpenApiCollectionCommand : Command
     {
         Description = "Lists all OpenAPI collections of an API";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<CursorOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

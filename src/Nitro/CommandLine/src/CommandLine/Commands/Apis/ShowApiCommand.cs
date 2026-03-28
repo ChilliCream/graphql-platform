@@ -16,7 +16,7 @@ internal sealed class ShowApiCommand : Command
     {
         Description = "Shows details of an API";
 
-        AddArgument(Opt<IdArgument>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

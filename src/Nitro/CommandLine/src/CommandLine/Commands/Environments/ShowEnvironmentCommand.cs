@@ -16,7 +16,7 @@ internal sealed class ShowEnvironmentCommand : Command
     {
         Description = "Shows details of an environment";
 
-        AddArgument(Opt<IdArgument>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

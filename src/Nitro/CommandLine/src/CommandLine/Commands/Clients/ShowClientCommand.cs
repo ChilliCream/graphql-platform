@@ -16,7 +16,7 @@ internal sealed class ShowClientCommand : Command
     {
         Description = "Shows details of a client";
 
-        AddArgument(Opt<IdArgument>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

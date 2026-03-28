@@ -6,7 +6,7 @@ internal class ApiIdOption : Option<string>
 
     public ApiIdOption() : base(OptionName, "The ID of the API")
     {
-        IsRequired = true;
+        Required = true;
         this.DefaultFromEnvironmentValue("API_ID");
         this.NonEmptyStringsOnly();
     }

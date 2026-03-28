@@ -71,7 +71,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         if (wasPrompted)
         {
-            // console.OkQuestion(message, workspace.Name);
+            console.OkQuestion(message, workspace.Name);
         }
 
         return ExitCodes.Success;

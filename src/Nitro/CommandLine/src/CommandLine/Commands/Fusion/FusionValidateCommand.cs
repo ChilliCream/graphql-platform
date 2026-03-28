@@ -23,11 +23,11 @@ internal sealed class FusionValidateCommand : Command
     {
         Description = "Validates the composed GraphQL schema of a Fusion configuration against a stage.";
 
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<OptionalFusionArchiveFileOption>.Instance);
-        AddOption(Opt<OptionalSourceSchemaFileListOption>.Instance);
-        this.AddNitroCloudDefaultOptions();
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
+        this.AddGlobalNitroOptions();
 
         AddValidator(result =>
         {

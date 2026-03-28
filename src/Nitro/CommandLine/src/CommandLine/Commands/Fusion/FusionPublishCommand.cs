@@ -22,7 +22,13 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionPublishCommand : Command
 {
-    public FusionPublishCommand() : base("publish")
+    public FusionPublishCommand(
+        FusionConfigurationPublishBeginCommand fusionConfigurationPublishBeginCommand,
+        FusionConfigurationPublishStartCommand fusionConfigurationPublishStartCommand,
+        FusionConfigurationPublishValidateCommand fusionConfigurationPublishValidateCommand,
+        FusionConfigurationPublishCancelCommand fusionConfigurationPublishCancelCommand,
+        FusionConfigurationPublishCommitCommand fusionConfigurationPublishCommitCommand)
+        : base("publish")
     {
         Description = "Publishes a Fusion archive to Nitro."
             + Environment.NewLine
@@ -34,21 +40,21 @@ internal sealed class FusionPublishCommand : Command
             + Environment.NewLine
             + "The orchestration sub-commands can be used for both Fusion v1 and v2.";
 
-        AddCommand(new FusionConfigurationPublishBeginCommand());
-        AddCommand(new FusionConfigurationPublishStartCommand());
-        AddCommand(new FusionConfigurationPublishValidateCommand());
-        AddCommand(new FusionConfigurationPublishCancelCommand());
-        AddCommand(new FusionConfigurationPublishCommitCommand());
+        Subcommands.Add(fusionConfigurationPublishBeginCommand);
+        Subcommands.Add(fusionConfigurationPublishStartCommand);
+        Subcommands.Add(fusionConfigurationPublishValidateCommand);
+        Subcommands.Add(fusionConfigurationPublishCancelCommand);
+        Subcommands.Add(fusionConfigurationPublishCommitCommand);
 
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
-        AddOption(Opt<OptionalSourceSchemaFileListOption>.Instance);
-        AddOption(Opt<OptionalFusionArchiveFileOption>.Instance);
-        AddOption(Opt<WorkingDirectoryOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
-        this.AddNitroCloudDefaultOptions();
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
+        Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
+        Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<WorkingDirectoryOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
+        this.AddGlobalNitroOptions();
 
         AddValidator(result =>
         {

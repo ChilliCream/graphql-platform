@@ -5,7 +5,7 @@ internal sealed class FileSystemOutputOptions : Option<string>
     public FileSystemOutputOptions() : base("--output")
     {
         Description = "The path where the client is stored";
-        IsRequired = true;
+        Required = true;
         this.LegalFilePathsOnly();
     }
 }

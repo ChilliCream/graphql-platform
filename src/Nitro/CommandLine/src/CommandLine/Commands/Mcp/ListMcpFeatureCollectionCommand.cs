@@ -16,8 +16,8 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
     {
         Description = "Lists all MCP Feature Collections of an API";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<CursorOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

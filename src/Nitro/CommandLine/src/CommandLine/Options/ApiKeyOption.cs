@@ -7,7 +7,7 @@ internal sealed class ApiKeyOption : Option<string>
     public ApiKeyOption() : base(OptionName)
     {
         Description = "The API key that is used for the authentication";
-        IsRequired = false;
+        Required = false;
         this.DefaultFromEnvironmentValue("API_KEY");
     }
 }

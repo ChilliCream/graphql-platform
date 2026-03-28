@@ -16,7 +16,7 @@ internal sealed class ListClientVersionsCommand : Command
     {
         Description = "Lists all versions of a client";
 
-        AddOption(Opt<OptionalClientIdOption>.Instance);
+        Options.Add(Opt<OptionalClientIdOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

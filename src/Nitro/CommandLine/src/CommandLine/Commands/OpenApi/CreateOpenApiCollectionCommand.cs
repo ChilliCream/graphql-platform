@@ -17,8 +17,8 @@ internal sealed class CreateOpenApiCollectionCommand : Command
     {
         Description = "Creates a new OpenAPI collection";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<OpenApiCollectionNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OpenApiCollectionNameOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

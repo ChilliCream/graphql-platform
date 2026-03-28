@@ -18,8 +18,8 @@ internal sealed class CreateWorkspaceCommand : Command
         Description =
             "Creates a new workspace";
 
-        AddOption(Opt<SetAsDefaultWorkspaceOption>.Instance);
-        AddOption(Opt<WorkspaceNameOption>.Instance);
+        Options.Add(Opt<SetAsDefaultWorkspaceOption>.Instance);
+        Options.Add(Opt<WorkspaceNameOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

@@ -11,8 +11,8 @@ internal sealed class FusionMigrateCommand : Command
     {
         Description = "Migrate Fusion configuration files";
 
-        AddArgument(Opt<FusionMigrateTargetArgument>.Instance);
-        AddOption(Opt<WorkingDirectoryOption>.Instance);
+        Arguments.Add(Opt<FusionMigrateTargetArgument>.Instance);
+        Options.Add(Opt<WorkingDirectoryOption>.Instance);
 
         this.SetHandler(async context =>
         {

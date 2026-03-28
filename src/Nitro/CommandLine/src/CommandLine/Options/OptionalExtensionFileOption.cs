@@ -4,6 +4,6 @@ internal sealed class OptionalExtensionFileOption : ExtensionFileOption
 {
     public OptionalExtensionFileOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

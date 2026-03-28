@@ -4,6 +4,6 @@ internal sealed class OptionalMockSchemaIdOption : MockSchemaIdOption
 {
     public OptionalMockSchemaIdOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

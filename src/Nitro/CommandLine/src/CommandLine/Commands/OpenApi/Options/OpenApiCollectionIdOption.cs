@@ -7,7 +7,7 @@ internal sealed class OpenApiCollectionIdOption : Option<string>
     public OpenApiCollectionIdOption() : base("--openapi-collection-id")
     {
         Description = "The ID of the OpenAPI collection";
-        IsRequired = true;
+        Required = true;
         this.DefaultFromEnvironmentValue("OPENAPI_COLLECTION_ID");
         this.NonEmptyStringsOnly();
     }

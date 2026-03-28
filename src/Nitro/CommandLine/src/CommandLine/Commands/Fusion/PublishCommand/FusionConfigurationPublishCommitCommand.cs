@@ -13,8 +13,8 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
     public FusionConfigurationPublishCommitCommand() : base("commit")
     {
         Description = "Commit a Fusion configuration publish.";
-        AddOption(Opt<OptionalRequestIdOption>.Instance);
-        AddOption(Opt<FusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalRequestIdOption>.Instance);
+        Options.Add(Opt<FusionArchiveFileOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

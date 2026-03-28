@@ -4,6 +4,6 @@ internal sealed class OptionalWorkspaceIdOption : WorkspaceIdOption
 {
     public OptionalWorkspaceIdOption()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

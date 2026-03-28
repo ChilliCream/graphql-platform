@@ -12,7 +12,7 @@ public sealed class CreateApiKeyCommandTests
     {
         // arrange & act
         var result = await new CommandBuilder()
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--help")
@@ -49,7 +49,7 @@ public sealed class CreateApiKeyCommandTests
         var result = await new CommandBuilder()
             .AddSession()
             .AddInteractionMode(mode)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--workspace-id",
@@ -75,7 +75,7 @@ public sealed class CreateApiKeyCommandTests
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create")
             .ExecuteAsync();
@@ -104,7 +104,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create")
             .StartAsync();
@@ -142,7 +142,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create")
             .StartAsync();
@@ -173,7 +173,7 @@ public sealed class CreateApiKeyCommandTests
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--name",
@@ -200,7 +200,7 @@ public sealed class CreateApiKeyCommandTests
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--name",
@@ -233,7 +233,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--workspace-id",
@@ -281,7 +281,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--workspace-id",
@@ -329,7 +329,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--api-id",
@@ -376,7 +376,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSession()
             .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--api-id",
@@ -425,7 +425,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSession()
             .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--api-id",
@@ -473,7 +473,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--api-id",
@@ -519,7 +519,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddSessionWithWorkspace()
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--name",
@@ -554,7 +554,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddSessionWithWorkspace()
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--name",
@@ -589,7 +589,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddSessionWithWorkspace()
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--name",
@@ -624,7 +624,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddSessionWithWorkspace()
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--name",
@@ -659,7 +659,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddSessionWithWorkspace()
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--name",
@@ -694,7 +694,7 @@ public sealed class CreateApiKeyCommandTests
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddSessionWithWorkspace()
-            .AddArguments(
+            .Arguments.Adds(
                 "api-key",
                 "create",
                 "--name",

@@ -5,7 +5,7 @@ internal sealed class OptionalRequestIdOption : Option<string>
     public OptionalRequestIdOption() : base("--request-id")
     {
         Description = "The ID of a request";
-        IsRequired = false;
+        Required = false;
         this.DefaultFromEnvironmentValue("REQUEST_ID");
     }
 }

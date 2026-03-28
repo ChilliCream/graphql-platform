@@ -27,7 +27,7 @@ internal sealed class LogoutCommand : Command
             await sessionService.LogoutAsync(cancellationToken);
         }
 
-        // console.OkLine("Logged you out of Nitro CLI. See you soon :waving_hand:");
+        console.OkLine("Logged you out of Nitro CLI. See you soon :waving_hand:");
 
         return ExitCodes.Success;
     }

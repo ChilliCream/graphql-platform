@@ -17,14 +17,14 @@ internal sealed class FusionComposeCommand : Command
     {
         Description = ComposeCommand_Description;
 
-        AddOption(Opt<OptionalSourceSchemaFileListOption>.Instance);
-        AddOption(Opt<OptionalFusionArchiveFileOption>.Instance);
-        AddOption(Opt<FusionEnvironmentOption>.Instance);
-        AddOption(Opt<EnableGlobalObjectIdentificationOption>.Instance);
-        AddOption(Opt<IncludeSatisfiabilityPathsOption>.Instance);
-        AddOption(Opt<WatchModeOption>.Instance);
-        AddOption(Opt<WorkingDirectoryOption>.Instance);
-        AddOption(Opt<OptionalExcludeTagListOption>.Instance);
+        Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
+        Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<FusionEnvironmentOption>.Instance);
+        Options.Add(Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        Options.Add(Opt<IncludeSatisfiabilityPathsOption>.Instance);
+        Options.Add(Opt<WatchModeOption>.Instance);
+        Options.Add(Opt<WorkingDirectoryOption>.Instance);
+        Options.Add(Opt<OptionalExcludeTagListOption>.Instance);
 
         this.SetHandler(async context =>
         {
@@ -462,7 +462,7 @@ internal sealed class FusionComposeCommand : Command
 
     public static void WriteCompositionLog(
         CompositionLog compositionLog,
-        IStandardStreamWriter writer,
+        TextWriter writer,
         bool writeAsGraphQLComments)
     {
         Console.OutputEncoding = Encoding.UTF8;

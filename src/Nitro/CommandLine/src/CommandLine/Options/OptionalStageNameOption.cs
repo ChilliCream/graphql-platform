@@ -5,7 +5,7 @@ internal sealed class OptionalStageNameOption : Option<string>
     public OptionalStageNameOption() : base("--stage")
     {
         Description = "The name of the stage";
-        IsRequired = true;
+        Required = true;
         this.DefaultFromEnvironmentValue("STAGE");
         this.NonEmptyStringsOnly();
     }

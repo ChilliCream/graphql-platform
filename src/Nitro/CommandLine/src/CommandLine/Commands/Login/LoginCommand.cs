@@ -15,8 +15,8 @@ internal sealed class LoginCommand : Command
         Description =
             "Log in interactively through your default browser";
 
-        AddOption(Opt<IdentityCloudUrlOption>.Instance);
-        AddArgument(Opt<IdentityCloudUrlArgument>.Instance);
+        Options.Add(Opt<IdentityCloudUrlOption>.Instance);
+        Arguments.Add(Opt<IdentityCloudUrlArgument>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

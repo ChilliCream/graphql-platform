@@ -10,16 +10,22 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
 #endif
 internal sealed class ApiCommand : Command
 {
-    public ApiCommand() : base("api")
+    public ApiCommand(
+        CreateApiCommand createApiCommand,
+        DeleteApiCommand deleteApiCommand,
+        ListApiCommand listApiCommand,
+        ShowApiCommand showApiCommand,
+        SetApiSettingsApiCommand setApiSettingsApiCommand)
+        : base("api")
     {
         Description = "Manage APIs";
 
-        this.AddNitroCloudDefaultOptions();
+        this.AddGlobalNitroOptions();
 
-        AddCommand(new CreateApiCommand());
-        AddCommand(new DeleteApiCommand());
-        AddCommand(new ListApiCommand());
-        AddCommand(new ShowApiCommand());
-        AddCommand(new SetApiSettingsApiCommand());
+        Subcommands.Add(createApiCommand);
+        Subcommands.Add(deleteApiCommand);
+        Subcommands.Add(listApiCommand);
+        Subcommands.Add(showApiCommand);
+        Subcommands.Add(setApiSettingsApiCommand);
     }
 }

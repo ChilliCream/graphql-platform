@@ -13,11 +13,11 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
     {
         Description = "Validate an MCP Feature Collection version";
 
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
-        AddOption(Opt<McpPromptFilePatternOption>.Instance);
-        AddOption(Opt<McpToolFilePatternOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
+        Options.Add(Opt<McpPromptFilePatternOption>.Instance);
+        Options.Add(Opt<McpToolFilePatternOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(async context =>
         {

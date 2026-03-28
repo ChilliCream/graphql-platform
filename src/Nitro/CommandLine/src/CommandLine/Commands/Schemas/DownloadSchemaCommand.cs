@@ -12,9 +12,9 @@ internal sealed class DownloadSchemaCommand : Command
     {
         Description = "Download a schema from a stage";
 
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<FileNameOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<FileNameOption>.Instance);
 
         this.SetHandler(async context =>
         {

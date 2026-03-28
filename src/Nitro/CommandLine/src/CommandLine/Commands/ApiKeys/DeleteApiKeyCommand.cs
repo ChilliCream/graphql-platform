@@ -18,8 +18,8 @@ internal sealed class DeleteApiKeyCommand : Command
     {
         Description = "Deletes an API key by ID";
 
-        AddArgument(Opt<IdArgument>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -47,15 +47,15 @@ internal sealed class DeleteApiKeyCommand : Command
         }
 
         var data = await client.DeleteApiKeyAsync(keyId, cancellationToken);
-        // console.PrintMutationErrorsAndExit(data.Errors);
+        console.PrintMutationErrorsAndExit(data.Errors);
 
         if (data.ApiKey is not { } key)
         {
             throw Exit("Could not delete API key");
         }
 
-        // console.OkLine(
-        //     $"API key {key.Name.AsHighlight()} [dim](ID: {key.Id})[/] was deleted");
+        console.OkLine(
+            $"API key {key.Name.AsHighlight()} [dim](ID: {key.Id})[/] was deleted");
 
         context.SetResult(ApiKeyDetailPrompt.From(key).ToObject());
 

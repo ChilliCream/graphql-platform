@@ -13,10 +13,10 @@ internal sealed class UploadSchemaCommand : Command
     {
         Description = "Upload a new schema version";
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<SchemaFileOption>.Instance);
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<SchemaFileOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(async context =>
         {

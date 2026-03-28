@@ -11,7 +11,7 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
     public FusionConfigurationPublishStartCommand() : base("start")
     {
         Description = "Start a Fusion configuration publish.";
-        AddOption(Opt<OptionalRequestIdOption>.Instance);
+        Options.Add(Opt<OptionalRequestIdOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

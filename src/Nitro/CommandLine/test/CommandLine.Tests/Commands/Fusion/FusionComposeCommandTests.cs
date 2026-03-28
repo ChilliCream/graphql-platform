@@ -2,9 +2,16 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using ChilliCream.Nitro.Client.ApiKeys;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.CommandLine.Tests;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
@@ -453,10 +460,28 @@ public sealed class FusionComposeCommandTests : IDisposable
 
     private static CommandLineBuilder GetCommandLineBuilder()
     {
-        var rootCommand = new Command("nitro");
-        rootCommand.AddNitroCloudCommands();
+        var services = new ServiceCollection()
+            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, Console.Error))
+            .AddSingleton<IFileSystem, FileSystem>()
+            .AddSingleton<ISessionService, TestSessionService>()
+            .AddSingleton<IApisClient>(Mock.Of<IApisClient>())
+            .AddSingleton<IApiKeysClient>(Mock.Of<IApiKeysClient>())
+            .AddNitroCommands();
+
+        var serviceProvider = services.BuildServiceProvider();
+        var rootCommand = serviceProvider.GetRequiredService<NitroRootCommand>();
+
         return new CommandLineBuilder(rootCommand)
-            .AddService<IFileSystem, FileSystem>()
+            .AddMiddleware(
+                context =>
+                {
+                    context.BindingContext.AddService(_ => serviceProvider.GetRequiredService<INitroConsole>());
+                    context.BindingContext.AddService(_ => serviceProvider.GetRequiredService<IFileSystem>());
+                    context.BindingContext.AddService(_ => serviceProvider.GetRequiredService<ISessionService>());
+                    context.BindingContext.AddService(_ => serviceProvider.GetRequiredService<IApisClient>());
+                    context.BindingContext.AddService(_ => serviceProvider.GetRequiredService<IApiKeysClient>());
+                },
+                MiddlewareOrder.Configuration)
             .UseDefaults();
     }
 

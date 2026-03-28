@@ -4,8 +4,6 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 
 internal sealed class JsonResultFormatter(INitroConsole console) : IResultFormatter
 {
-    public bool CanHandle(OutputFormat format) => format == OutputFormat.Json;
-
     public void Format(Result result)
     {
         switch (result)

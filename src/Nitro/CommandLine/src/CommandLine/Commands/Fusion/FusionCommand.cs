@@ -10,17 +10,26 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionCommand : Command
 {
-    public FusionCommand() : base("fusion")
+    public FusionCommand(
+        FusionComposeCommand fusionComposeCommand,
+        FusionDownloadCommand fusionDownloadCommand,
+        FusionMigrateCommand fusionMigrateCommand,
+        FusionPublishCommand fusionPublishCommand,
+        FusionRunCommand fusionRunCommand,
+        FusionSettingsCommand fusionSettingsCommand,
+        FusionValidateCommand fusionValidateCommand,
+        FusionUploadCommand fusionUploadCommand)
+        : base("fusion")
     {
         Description = "Manage Fusion configurations";
 
-        AddCommand(new FusionComposeCommand());
-        AddCommand(new FusionDownloadCommand());
-        AddCommand(new FusionMigrateCommand());
-        AddCommand(new FusionPublishCommand());
-        AddCommand(new FusionRunCommand());
-        AddCommand(new FusionSettingsCommand());
-        AddCommand(new FusionValidateCommand());
-        AddCommand(new FusionUploadCommand());
+        Subcommands.Add(fusionComposeCommand);
+        Subcommands.Add(fusionDownloadCommand);
+        Subcommands.Add(fusionMigrateCommand);
+        Subcommands.Add(fusionPublishCommand);
+        Subcommands.Add(fusionRunCommand);
+        Subcommands.Add(fusionSettingsCommand);
+        Subcommands.Add(fusionValidateCommand);
+        Subcommands.Add(fusionUploadCommand);
     }
 }

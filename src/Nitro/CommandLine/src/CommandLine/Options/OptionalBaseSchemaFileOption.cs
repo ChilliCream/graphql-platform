@@ -4,6 +4,6 @@ internal sealed class OptionalBaseSchemaFileOption : BaseSchemaFileOption
 {
     public OptionalBaseSchemaFileOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

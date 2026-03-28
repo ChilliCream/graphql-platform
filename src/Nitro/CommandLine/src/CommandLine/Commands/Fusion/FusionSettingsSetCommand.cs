@@ -18,12 +18,12 @@ internal sealed class FusionSettingsSetCommand : Command
     {
         Description = "Sets a Fusion composition setting in a Fusion archive.";
 
-        AddArgument(Opt<FusionSettingsNameArgument>.Instance);
-        AddArgument(Opt<FusionSettingsValueArgument>.Instance);
+        Arguments.Add(Opt<FusionSettingsNameArgument>.Instance);
+        Arguments.Add(Opt<FusionSettingsValueArgument>.Instance);
 
-        AddOption(Opt<FusionArchiveFileOption>.Instance);
+        Options.Add(Opt<FusionArchiveFileOption>.Instance);
 
-        AddOption(Opt<FusionEnvironmentOption>.Instance);
+        Options.Add(Opt<FusionEnvironmentOption>.Instance);
 
         this.SetHandler(async context =>
         {

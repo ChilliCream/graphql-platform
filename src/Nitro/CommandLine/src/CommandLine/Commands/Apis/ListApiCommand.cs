@@ -16,8 +16,8 @@ internal sealed class ListApiCommand : Command
     {
         Description = "Lists all APIs of a workspace";
 
-        AddOption(Opt<CursorOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<CursorOption>.Instance);
+        Options.Add(Opt<WorkspaceIdOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

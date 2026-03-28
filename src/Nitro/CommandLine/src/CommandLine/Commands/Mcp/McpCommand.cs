@@ -10,17 +10,24 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 #endif
 internal sealed class McpCommand : Command
 {
-    public McpCommand() : base("mcp")
+    public McpCommand(
+        CreateMcpFeatureCollectionCommand createMcpFeatureCollectionCommand,
+        DeleteMcpFeatureCollectionCommand deleteMcpFeatureCollectionCommand,
+        ListMcpFeatureCollectionCommand listMcpFeatureCollectionCommand,
+        UploadMcpFeatureCollectionCommand uploadMcpFeatureCollectionCommand,
+        PublishMcpFeatureCollectionCommand publishMcpFeatureCollectionCommand,
+        ValidateMcpFeatureCollectionCommand validateMcpFeatureCollectionCommand)
+        : base("mcp")
     {
         Description = "Manage MCP Feature Collections";
 
-        this.AddNitroCloudDefaultOptions();
+        this.AddGlobalNitroOptions();
 
-        AddCommand(new CreateMcpFeatureCollectionCommand());
-        AddCommand(new DeleteMcpFeatureCollectionCommand());
-        AddCommand(new ListMcpFeatureCollectionCommand());
-        AddCommand(new UploadMcpFeatureCollectionCommand());
-        AddCommand(new PublishMcpFeatureCollectionCommand());
-        AddCommand(new ValidateMcpFeatureCollectionCommand());
+        Subcommands.Add(createMcpFeatureCollectionCommand);
+        Subcommands.Add(deleteMcpFeatureCollectionCommand);
+        Subcommands.Add(listMcpFeatureCollectionCommand);
+        Subcommands.Add(uploadMcpFeatureCollectionCommand);
+        Subcommands.Add(publishMcpFeatureCollectionCommand);
+        Subcommands.Add(validateMcpFeatureCollectionCommand);
     }
 }

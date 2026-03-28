@@ -19,10 +19,10 @@ internal sealed class CreateApiCommand : Command
     {
         Description = "Creates a new API";
 
-        AddOption(Opt<ApiPathOption>.Instance);
-        AddOption(Opt<ApiNameOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
-        AddOption(Opt<ApiKindOption>.Instance);
+        Options.Add(Opt<ApiPathOption>.Instance);
+        Options.Add(Opt<ApiNameOption>.Instance);
+        Options.Add(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<ApiKindOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

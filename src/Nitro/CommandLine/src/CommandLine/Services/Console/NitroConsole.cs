@@ -1,11 +1,10 @@
-using System.CommandLine.IO;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class NitroConsole(
     IAnsiConsole console,
-    IStandardStreamWriter? errorWriter = null)
+    TextWriter? errorWriter = null)
     : INitroConsole
 {
     public bool IsInteractive => console.Profile.Capabilities.Interactive;

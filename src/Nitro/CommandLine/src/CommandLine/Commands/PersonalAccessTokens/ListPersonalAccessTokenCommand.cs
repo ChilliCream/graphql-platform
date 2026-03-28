@@ -15,7 +15,7 @@ internal sealed class ListPersonalAccessTokenCommand : Command
     {
         Description = "Lists all API keys of a workspace";
 
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<CursorOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

@@ -17,9 +17,9 @@ internal sealed class SetApiSettingsApiCommand : Command
     {
         Description = "Sets the settings of an API";
 
-        AddArgument(Opt<IdArgument>.Instance);
-        AddOption(Opt<TreatDangerousAsBreakingOption>.Instance);
-        AddOption(Opt<AllowBreakingSchemaChangesOption>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
+        Options.Add(Opt<TreatDangerousAsBreakingOption>.Instance);
+        Options.Add(Opt<AllowBreakingSchemaChangesOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -57,15 +57,15 @@ internal sealed class SetApiSettingsApiCommand : Command
             allowBreakingSchemaChanges,
             ct);
 
-        // console.PrintMutationErrorsAndExit(data.Errors);
+        console.PrintMutationErrorsAndExit(data.Errors);
 
         if (data.Api is not IApiDetailPrompt_Api api)
         {
             throw ThrowHelper.Exit("Could not update settings.");
         }
 
-        // console.OkLine(
-        //     $"Settings of [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} updated");
+        console.OkLine(
+            $"Settings of [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} updated");
 
         context.SetResult(ApiDetailPrompt.From(api).ToObject());
 

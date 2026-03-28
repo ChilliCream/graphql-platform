@@ -16,8 +16,8 @@ internal sealed class ListMockCommand : Command
     {
         Description = "List all mock schemas in an API.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<CursorOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

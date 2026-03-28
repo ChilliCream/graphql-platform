@@ -20,8 +20,8 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
     {
         Description = "Deletes an OpenAPI collection";
 
-        AddOption(Opt<ForceOption>.Instance);
-        AddArgument(Opt<OptionalIdArgument>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
+        Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
         this.SetHandler(
             ExecuteAsync,

@@ -17,11 +17,11 @@ public sealed class CreateMockCommand : Command
     {
         Description = "Create a new mock schema.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<ExtensionFileOption>.Instance);
-        AddOption(Opt<BaseSchemaFileOption>.Instance);
-        AddOption(Opt<DownstreamUrlOption>.Instance);
-        AddOption(Opt<MockSchemaNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<ExtensionFileOption>.Instance);
+        Options.Add(Opt<BaseSchemaFileOption>.Instance);
+        Options.Add(Opt<DownstreamUrlOption>.Instance);
+        Options.Add(Opt<MockSchemaNameOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
