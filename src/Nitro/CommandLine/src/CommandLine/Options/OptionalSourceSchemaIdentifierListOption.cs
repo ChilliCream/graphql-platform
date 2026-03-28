@@ -11,6 +11,6 @@ internal sealed class OptionalSourceSchemaIdentifierListOption : Option<List<str
             + TagOption.OptionName
             + "' option is taken as the source schema version.";
 
-        AddAlias("-s");
+        Aliases.Add("-s");
     }
 }

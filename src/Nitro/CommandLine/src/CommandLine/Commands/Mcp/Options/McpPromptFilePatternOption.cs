@@ -7,6 +7,6 @@ public class McpPromptFilePatternOption : Option<List<string>>
         Description = "One or more file patterns to locate MCP prompt definition files (*.json).";
         Required = false;
 
-        AddAlias("-p");
+        Aliases.Add("-p");
     }
 }

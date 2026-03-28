@@ -6,7 +6,7 @@ public sealed class SourceSchemaFileOption : Option<string>
     {
         Description = "The path to a source schema file (.graphqls) or directory containing a source schema file.";
         Required = true;
-        AddAlias("-f");
+        Aliases.Add("-f");
         this.LegalFilePathsOnly();
     }
 }

@@ -1,7 +1,6 @@
-using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 
@@ -9,7 +8,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class ValidateMcpFeatureCollectionCommand : Command
 {
-    public ValidateMcpFeatureCollectionCommand() : base("validate")
+    public ValidateMcpFeatureCollectionCommand(
+        INitroConsole console,
+        IMcpClient client,
+        IFileSystem fileSystem) : base("validate")
     {
         Description = "Validate an MCP Feature Collection version";
 
@@ -19,41 +21,23 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         Options.Add(Opt<McpToolFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var client = context.BindingContext.GetRequiredService<IMcpClient>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-            var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var mcpFeatureCollectionId = context.ParseResult.GetValueForOption(Opt<McpFeatureCollectionIdOption>.Instance)!;
-            var promptPatterns = context.ParseResult.GetValueForOption(Opt<McpPromptFilePatternOption>.Instance)!;
-            var toolPatterns = context.ParseResult.GetValueForOption(Opt<McpToolFilePatternOption>.Instance)!;
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-
-            context.ExitCode = await ExecuteAsync(
-                console,
-                client,
-                fileSystem,
-                stage,
-                mcpFeatureCollectionId,
-                promptPatterns,
-                toolPatterns,
-                sourceMetadataJson,
-                context.GetCancellationToken());
-        });
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, fileSystem, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IMcpClient client,
         IFileSystem fileSystem,
-        string stage,
-        string mcpFeatureCollectionId,
-        List<string> promptPatterns,
-        List<string> toolPatterns,
-        string? sourceMetadataJson,
         CancellationToken ct)
     {
+        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var mcpFeatureCollectionId = parseResult.GetValue(Opt<McpFeatureCollectionIdOption>.Instance)!;
+        var promptPatterns = parseResult.GetValue(Opt<McpPromptFilePatternOption>.Instance)!;
+        var toolPatterns = parseResult.GetValue(Opt<McpToolFilePatternOption>.Instance)!;
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var activity = console.StartActivity("Validating..."))

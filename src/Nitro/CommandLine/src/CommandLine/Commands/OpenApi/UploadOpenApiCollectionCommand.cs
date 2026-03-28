@@ -9,7 +9,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class UploadOpenApiCollectionCommand : Command
 {
-    public UploadOpenApiCollectionCommand() : base("upload")
+    public UploadOpenApiCollectionCommand(
+        INitroConsole console,
+        IOpenApiClient client,
+        IFileSystem fileSystem) : base("upload")
     {
         Description = "Upload a new OpenAPI collection version";
 
@@ -18,16 +21,16 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         Options.Add(Opt<OpenApiCollectionFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IOpenApiClient>(),
-            Bind.FromServiceProvider<IFileSystem>(),
-            Opt<TagOption>.Instance,
-            Opt<OpenApiCollectionFilePatternOption>.Instance,
-            Opt<OpenApiCollectionIdOption>.Instance,
-            Opt<OptionalSourceMetadataOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                console,
+                client,
+                fileSystem,
+                parseResult.GetValue(Opt<TagOption>.Instance)!,
+                parseResult.GetValue(Opt<OpenApiCollectionFilePatternOption>.Instance)!,
+                parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!,
+                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

@@ -1,6 +1,4 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using static ChilliCream.Nitro.CommandLine.Helpers.Placeholders;
@@ -9,7 +7,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class UnpublishClientCommand : Command
 {
-    public UnpublishClientCommand() : base("unpublish")
+    public UnpublishClientCommand(
+        INitroConsole console,
+        IClientsClient client) : base("unpublish")
     {
         Description = "Unpublish a client version from a stage";
 
@@ -17,23 +17,19 @@ internal sealed class UnpublishClientCommand : Command
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ClientIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IClientsClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
         CancellationToken cancellationToken)
     {
-        var tags = context.ParseResult.GetValueForOption(Opt<TagsOption>.Instance)?.ToArray()!;
-        var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-        var clientId = context.ParseResult.GetValueForOption(Opt<ClientIdOption>.Instance)!;
+        var tags = parseResult.GetValue(Opt<TagsOption>.Instance)?.ToArray()!;
+        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var clientId = parseResult.GetValue(Opt<ClientIdOption>.Instance)!;
 
         var title = tags.Length > 1
             ? $"Unpublish clients with tags {string.Join(", ", tags).EscapeMarkup()} from {stage.EscapeMarkup()}"

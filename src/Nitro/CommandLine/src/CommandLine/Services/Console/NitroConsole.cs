@@ -4,26 +4,15 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class NitroConsole(
     IAnsiConsole console,
-    TextWriter? errorWriter = null)
+    TextWriter outWriter,
+    TextWriter errorWriter)
     : INitroConsole
 {
     public bool IsInteractive => console.Profile.Capabilities.Interactive;
 
-    public void WriteErrorLine(string message)
-    {
-        if (string.IsNullOrEmpty(message))
-        {
-            return;
-        }
+    public TextWriter Out => outWriter;
 
-        if (errorWriter is not null)
-        {
-            errorWriter.Write(message + Environment.NewLine);
-            return;
-        }
-
-        console.MarkupLine(message);
-    }
+    public TextWriter Error => errorWriter;
 
     public void Clear(bool home)
     {

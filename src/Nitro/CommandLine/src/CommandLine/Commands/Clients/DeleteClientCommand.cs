@@ -1,11 +1,9 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -16,27 +14,29 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class DeleteClientCommand : Command
 {
-    public DeleteClientCommand() : base("delete")
+    public DeleteClientCommand(
+        INitroConsole console,
+        IClientsClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("delete")
     {
         Description = "Deletes a client";
 
         Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IClientsClient>(),
-            Opt<OptionalIdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
-        string? clientId,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         console.WriteLine();
@@ -46,6 +46,8 @@ internal sealed class DeleteClientCommand : Command
         const string apiMessage = "For which API do you want to delete a client?";
         const string clientMessage = "Which client do you want to delete?";
 
+        var clientId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
+
         if (clientId is null)
         {
             if (!console.IsInteractive)
@@ -53,10 +55,10 @@ internal sealed class DeleteClientCommand : Command
                 throw Exit("The client ID is required in non-interactive mode.");
             }
 
-            var workspaceId = context.RequireWorkspaceId();
+            var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
             var selectedApi = await SelectApiPrompt
-                .New(context.BindingContext.GetRequiredService<IApisClient>(), workspaceId)
+                .New(apisClient, workspaceId)
                 .Title(apiMessage)
                 .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
 
@@ -77,15 +79,20 @@ internal sealed class DeleteClientCommand : Command
             console.OkQuestion(clientMessage, clientId);
         }
 
-        var shouldDelete = await context.ConfirmWhenNotForced(
-            $"Do you want to delete the client with ID {clientId}?"
-                .EscapeMarkup(),
-            cancellationToken);
-
-        if (!shouldDelete)
+        // TODO: Fix this
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);// is not null;
+        if (!force)
         {
-            console.OkLine("Aborted.");
-            return ExitCodes.Success;
+            var confirmed = await console.ConfirmAsync(
+                $"Do you want to delete the client with ID {clientId}?"
+                    .EscapeMarkup(),
+                cancellationToken);
+
+            if (!confirmed)
+            {
+                console.OkLine("Aborted.");
+                return ExitCodes.Success;
+            }
         }
 
         var deletedClient = await client.DeleteClientAsync(clientId, cancellationToken);
@@ -98,7 +105,7 @@ internal sealed class DeleteClientCommand : Command
 
         console.OkLine($"Client {clientModel.Name.AsHighlight()} was deleted.");
 
-        context.SetResult(ClientDetailPrompt.From(clientModel).ToObject());
+        resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(clientModel).ToObject()));
 
         return ExitCodes.Success;
     }

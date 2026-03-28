@@ -1,4 +1,3 @@
-using System.CommandLine.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -13,7 +12,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal sealed class FusionComposeCommand : Command
 {
-    public FusionComposeCommand() : base("compose")
+    public FusionComposeCommand(
+        INitroConsole console,
+        IFileSystem fileSystem) : base("compose")
     {
         Description = ComposeCommand_Description;
 
@@ -26,22 +27,21 @@ internal sealed class FusionComposeCommand : Command
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
         Options.Add(Opt<OptionalExcludeTagListOption>.Instance);
 
-        this.SetHandler(async context =>
+        SetAction(async (parseResult, cancellationToken) =>
         {
-            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
-            var sourceSchemaFiles = context.ParseResult.GetValueForOption(Opt<OptionalSourceSchemaFileListOption>.Instance)!;
-            var archiveFile = context.ParseResult.GetValueForOption(Opt<OptionalFusionArchiveFileOption>.Instance)!;
-            var environment = context.ParseResult.GetValueForOption(Opt<FusionEnvironmentOption>.Instance);
-            var enableGlobalIds = context.ParseResult.GetValueForOption(
+            var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
+            var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance)!;
+            var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance)!;
+            var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
+            var enableGlobalIds = parseResult.GetValue(
                 Opt<EnableGlobalObjectIdentificationOption>.Instance);
-            var includeSatisfiabilityPaths = context.ParseResult.GetValueForOption(
+            var includeSatisfiabilityPaths = parseResult.GetValue(
                 Opt<IncludeSatisfiabilityPathsOption>.Instance);
-            var watchMode = context.ParseResult.GetValueForOption(Opt<WatchModeOption>.Instance);
-            var tagsToExclude = context.ParseResult.GetValueForOption(Opt<OptionalExcludeTagListOption>.Instance);
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
+            var watchMode = parseResult.GetValue(Opt<WatchModeOption>.Instance);
+            var tagsToExclude = parseResult.GetValue(Opt<OptionalExcludeTagListOption>.Instance);
 
-            context.ExitCode = await ExecuteAsync(
-                context.Console,
+            return await ExecuteAsync(
+                console,
                 fileSystem,
                 workingDirectory,
                 sourceSchemaFiles,
@@ -51,12 +51,12 @@ internal sealed class FusionComposeCommand : Command
                 includeSatisfiabilityPaths,
                 watchMode,
                 tagsToExclude,
-                context.GetCancellationToken());
+                cancellationToken);
         });
     }
 
     private static async Task<int> ExecuteAsync(
-        IConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         string workingDirectory,
         List<string> sourceSchemaFiles,
@@ -137,7 +137,7 @@ internal sealed class FusionComposeCommand : Command
     }
 
     private static async Task<int> WatchComposeAsync(
-        IConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         string workingDirectory,
         List<string> sourceSchemaFiles,
@@ -148,7 +148,7 @@ internal sealed class FusionComposeCommand : Command
         List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
-        console.Out.WriteLine("🔍 Starting watch mode...");
+        console.WriteLine("🔍 Starting watch mode...");
 
         // Initial composition
         await ComposeAsync(
@@ -226,8 +226,8 @@ internal sealed class FusionComposeCommand : Command
             }
         }
 
-        console.Out.WriteLine($"👀 Watching for changes in {workingDirectory}");
-        console.Out.WriteLine("Press Ctrl+C to stop watching...");
+        console.WriteLine($"👀 Watching for changes in {workingDirectory}");
+        console.WriteLine("Press Ctrl+C to stop watching...");
 
         try
         {
@@ -235,7 +235,7 @@ internal sealed class FusionComposeCommand : Command
         }
         catch (OperationCanceledException)
         {
-            console.Out.WriteLine("\n🛑 Watch mode stopped.");
+            console.WriteLine("\n🛑 Watch mode stopped.");
         }
         finally
         {
@@ -316,7 +316,7 @@ internal sealed class FusionComposeCommand : Command
 
     private static async Task ProcessCompositionRequestsAsync(
         ChannelReader<string> reader,
-        IConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         List<string> sourceSchemaFiles,
         string archiveFile,
@@ -344,7 +344,7 @@ internal sealed class FusionComposeCommand : Command
 
                 lastComposition = DateTime.UtcNow;
 
-                console.Out.WriteLine($"\n🔄 {reason}");
+                console.WriteLine($"\n🔄 {reason}");
 
                 // Add a small delay to ensure file operations are complete
                 await Task.Delay(200, cancellationToken);
@@ -378,7 +378,7 @@ internal sealed class FusionComposeCommand : Command
             }
             finally
             {
-                console.Out.WriteLine("👀 Watching for changes...");
+                console.WriteLine("👀 Watching for changes...");
             }
         }
     }
@@ -395,7 +395,7 @@ internal sealed class FusionComposeCommand : Command
     }
 
     private static async Task<int> ComposeAsync(
-        IConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         List<string> sourceSchemaFiles,
         string archiveFile,
@@ -426,6 +426,7 @@ internal sealed class FusionComposeCommand : Command
                 compositionSettings,
                 cancellationToken);
 
+            // TODO: How to deal with this...
             var writer = console.Out;
 
             WriteCompositionLog(
@@ -448,7 +449,7 @@ internal sealed class FusionComposeCommand : Command
                 return 1;
             }
 
-            console.Out.WriteLine(
+            console.WriteLine(
                 string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
 
             return 0;

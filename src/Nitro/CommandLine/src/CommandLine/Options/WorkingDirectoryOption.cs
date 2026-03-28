@@ -5,20 +5,20 @@ internal sealed class WorkingDirectoryOption : Option<string>
     public WorkingDirectoryOption() : base("--working-directory")
     {
         Description = CommandLineResources.ComposeCommand_WorkingDirectory_Description;
-        AddAlias("-w");
-        AddValidator(result =>
+        Aliases.Add("-w");
+        Validators.Add(result =>
         {
-            var workingDirectory = result.GetValueForOption(this);
+            var workingDirectory = result.GetValue(this);
 
             if (!Directory.Exists(workingDirectory))
             {
-                result.ErrorMessage =
+                result.AddError(
                     string.Format(
                         CommandLineResources.ComposeCommand_Error_WorkingDirectoryDoesNotExist,
-                        workingDirectory);
+                        workingDirectory));
             }
         });
-        SetDefaultValueFactory(Directory.GetCurrentDirectory);
+        DefaultValueFactory = _ => Directory.GetCurrentDirectory();
         this.LegalFilePathsOnly();
     }
 }

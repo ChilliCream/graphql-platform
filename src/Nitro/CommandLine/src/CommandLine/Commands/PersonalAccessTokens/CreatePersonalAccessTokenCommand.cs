@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
@@ -6,44 +5,46 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 
 internal sealed class CreatePersonalAccessTokenCommand : Command
 {
-    public CreatePersonalAccessTokenCommand() : base("create")
+    public CreatePersonalAccessTokenCommand(
+        INitroConsole console,
+        IPersonalAccessTokensClient client,
+        IResultHolder resultHolder) : base("create")
     {
         Description = "Creates a new personal access token";
 
         Options.Add(Opt<OptionalDescriptionOption>.Instance);
         Options.Add(Opt<ExpiresOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IPersonalAccessTokensClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IPersonalAccessTokensClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         console.WriteLine();
         console.WriteLine("Creating a pat key");
         console.WriteLine();
 
-        var description = await context
+        var description = await parseResult
             .OptionOrAskAsync(
                 "Description of the Personal Access Token",
                 Opt<OptionalDescriptionOption>.Instance,
+                console,
                 ct);
 
-        var expires = context.ParseResult.GetValueForOption(Opt<ExpiresOption>.Instance);
+        var expires = parseResult.GetValue(Opt<ExpiresOption>.Instance);
 
         var expiresAt = DateTimeOffset.UtcNow.AddDays(expires);
 
@@ -60,12 +61,12 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
             $"Secret: {result.Secret.AsHighlight()} {"This secret will not be available later!"
                 .AsDescription()}");
 
-        context.SetResult(
+        resultHolder.SetResult(new ObjectResult(
             new CreatePersonalAccessTokenCommandResult
             {
                 Secret = result.Secret,
                 Details = PersonalAccessTokenDetailPrompt.From(result.Token).ToObject()
-            });
+            }));
 
         return ExitCodes.Success;
     }

@@ -1,14 +1,17 @@
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services.Configuration;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class ValidateClientCommand : Command
 {
-    public ValidateClientCommand() : base("validate")
+    public ValidateClientCommand(
+        INitroConsole console,
+        IClientsClient client,
+        IFileSystem fileSystem) : base("validate")
     {
         Description = "Validate a client version";
 
@@ -17,26 +20,16 @@ internal sealed class ValidateClientCommand : Command
         Options.Add(Opt<OperationsFileOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var client = context.BindingContext.GetRequiredService<IClientsClient>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-            var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var clientId = context.ParseResult.GetValueForOption(Opt<ClientIdOption>.Instance)!;
-            var operationsFilePath = context.ParseResult.GetValueForOption(Opt<OperationsFileOption>.Instance)!;
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-
-            context.ExitCode = await ExecuteAsync(
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
                 console,
                 client,
                 fileSystem,
-                stage,
-                clientId,
-                operationsFilePath,
-                sourceMetadataJson,
-                context.GetCancellationToken());
-        });
+                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
+                parseResult.GetValue(Opt<ClientIdOption>.Instance)!,
+                parseResult.GetValue(Opt<OperationsFileOption>.Instance)!,
+                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

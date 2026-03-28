@@ -12,7 +12,7 @@ internal sealed class OutputFormatOption : Option<OutputFormat?>
         Required = true;
 
         // TODO: Not sure if this is better
-        AcceptOnlyFromAmong("json");
+       AcceptOnlyFromAmong("json");
         // HelpName = "json";
 
         this.DefaultFromEnvironmentValue("OUTPUT_FORMAT");

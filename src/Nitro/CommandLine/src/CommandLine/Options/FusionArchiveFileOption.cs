@@ -8,9 +8,9 @@ internal class FusionArchiveFileOption : Option<string>
     {
         Description = "The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version)";
         Required = true;
-        AddAlias("-a");
+        Aliases.Add("-a");
         // This is only here to not break existing scripts
-        AddAlias("--configuration");
+        Aliases.Add("--configuration");
         this.DefaultFromEnvironmentValue("FUSION_CONFIG_FILE");
         this.LegalFilePathsOnly();
     }

@@ -8,7 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
 internal sealed class PublishSchemaCommand : Command
 {
-    public PublishSchemaCommand() : base("publish")
+    public PublishSchemaCommand(
+        INitroConsole console,
+        ISchemasClient client) : base("publish")
     {
         Description = "Publish a schema version to a stage";
 
@@ -19,28 +21,17 @@ internal sealed class PublishSchemaCommand : Command
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var client = context.BindingContext.GetRequiredService<ISchemasClient>();
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-            var force = context.ParseResult.GetValueForOption(Opt<ForceOption>.Instance);
-            var waitForApproval = context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-
-            context.ExitCode = await ExecuteAsync(
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
                 console,
                 client,
-                tag,
-                stage,
-                apiId,
-                force,
-                waitForApproval,
-                sourceMetadataJson,
-                context.GetCancellationToken());
-        });
+                parseResult.GetValue(Opt<TagOption>.Instance)!,
+                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
+                parseResult.GetValue(Opt<ApiIdOption>.Instance)!,
+                parseResult.GetValue(Opt<ForceOption>.Instance),
+                parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance),
+                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

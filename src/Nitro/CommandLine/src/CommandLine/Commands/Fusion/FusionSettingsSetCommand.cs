@@ -14,7 +14,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionSettingsSetCommand : Command
 {
-    public FusionSettingsSetCommand() : base("set")
+    public FusionSettingsSetCommand(
+        INitroConsole console,
+        IFileSystem fileSystem) : base("set")
     {
         Description = "Sets a Fusion composition setting in a Fusion archive.";
 
@@ -25,24 +27,21 @@ internal sealed class FusionSettingsSetCommand : Command
 
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
 
-        this.SetHandler(async context =>
+        SetAction(async (parseResult, cancellationToken) =>
         {
-            var settingName = context.ParseResult.GetValueForArgument(Opt<FusionSettingsNameArgument>.Instance);
-            var settingValue = context.ParseResult.GetValueForArgument(Opt<FusionSettingsValueArgument>.Instance);
-            var archiveFile = context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance);
-            var environment = context.ParseResult.GetValueForOption(Opt<FusionEnvironmentOption>.Instance);
+            var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
+            var settingValue = parseResult.GetRequiredValue(Opt<FusionSettingsValueArgument>.Instance);
+            var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
+            var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
 
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-
-            context.ExitCode = await ExecuteAsync(
+            return await ExecuteAsync(
                 settingName,
                 settingValue,
                 archiveFile!,
                 environment,
                 console,
                 fileSystem,
-                context.GetCancellationToken());
+                cancellationToken);
         });
     }
 

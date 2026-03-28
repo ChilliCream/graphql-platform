@@ -1,5 +1,5 @@
-using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -8,7 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class PublishMcpFeatureCollectionCommand : Command
 {
-    public PublishMcpFeatureCollectionCommand() : base("publish")
+    public PublishMcpFeatureCollectionCommand(
+        INitroConsole console,
+        IMcpClient client) : base("publish")
     {
         Description = "Publish an MCP Feature Collection version to a stage";
 
@@ -19,41 +21,23 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var client = context.BindingContext.GetRequiredService<IMcpClient>();
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var mcpFeatureCollectionId = context.ParseResult.GetValueForOption(Opt<McpFeatureCollectionIdOption>.Instance)!;
-            var force = context.ParseResult.GetValueForOption(Opt<ForceOption>.Instance);
-            var waitForApproval = context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-
-            context.ExitCode = await ExecuteAsync(
-                console,
-                client,
-                tag,
-                stage,
-                mcpFeatureCollectionId,
-                force,
-                waitForApproval,
-                sourceMetadataJson,
-                context.GetCancellationToken());
-        });
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IMcpClient client,
-        string tag,
-        string stage,
-        string mcpFeatureCollectionId,
-        bool force,
-        bool waitForApproval,
-        string? sourceMetadataJson,
         CancellationToken ct)
     {
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var mcpFeatureCollectionId = parseResult.GetValue(Opt<McpFeatureCollectionIdOption>.Instance)!;
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var activity = console.StartActivity("Publishing..."))
@@ -109,8 +93,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                         break;
 
                     case IWaitForApproval waitForApprovalEvent:
-                        if (waitForApprovalEvent.Deployment is
-                            IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_McpFeatureCollectionDeployment deployment)
+                        if (waitForApprovalEvent.Deployment is IMcpFeatureCollectionDeployment deployment)
                         {
                             console.PrintMutationErrors(deployment.Errors);
                         }

@@ -7,6 +7,6 @@ public class McpToolFilePatternOption : Option<List<string>>
         Description = "One or more file patterns to locate MCP tool definition files (*.graphql).";
         Required = false;
 
-        AddAlias("-t");
+        Aliases.Add("-t");
     }
 }

@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Launch;
@@ -13,21 +12,19 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Launch;
 #endif
 internal sealed class LaunchCommand : Command
 {
-    public LaunchCommand() : base("launch")
+    public LaunchCommand(
+        INitroConsole console) : base("launch")
     {
         Description = "Launch Nitro in your default browser";
 
         this.AddGlobalNitroOptions();
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction((parseResult, cancellationToken)
+            => ExecuteAsync(console));
     }
 
     private static Task<int> ExecuteAsync(
-        INitroConsole console,
-        CancellationToken cancellationToken)
+        INitroConsole console)
     {
         SystemBrowser.Open(Constants.NitroWebUrl);
         console.OkLine($"[link={Constants.NitroWebUrl}]Nitro[/] is launched!");

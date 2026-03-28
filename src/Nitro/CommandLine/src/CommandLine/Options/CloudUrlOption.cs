@@ -8,7 +8,6 @@ internal sealed class CloudUrlOption : Option<string>
     {
         Description = "The URL of the API.";
         Required = false;
-        IsHidden = false;
         this.DefaultFromEnvironmentValue("CLOUD_URL", defaultValue: Constants.ApiUrl["https://".Length..]);
     }
 }

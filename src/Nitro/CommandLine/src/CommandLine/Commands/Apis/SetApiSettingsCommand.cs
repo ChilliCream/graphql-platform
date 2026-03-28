@@ -1,10 +1,8 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -13,7 +11,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
 
 internal sealed class SetApiSettingsApiCommand : Command
 {
-    public SetApiSettingsApiCommand() : base("set-settings")
+    public SetApiSettingsApiCommand(
+        INitroConsole console,
+        IApisClient client,
+        IResultHolder resultHolder) : base("set-settings")
     {
         Description = "Sets the settings of an API";
 
@@ -21,34 +22,33 @@ internal sealed class SetApiSettingsApiCommand : Command
         Options.Add(Opt<TreatDangerousAsBreakingOption>.Instance);
         Options.Add(Opt<AllowBreakingSchemaChangesOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IApisClient>(),
-            Opt<IdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IApisClient client,
-        string id,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
+        var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
+
         console.WriteLine($"Set settings for API {id.AsHighlight()}");
 
-        var treatDangerousChangesAsBreaking = await context
-            .OptionOrConfirmAsync(
-                "Treat dangerous changes as breaking?",
+        var treatDangerousChangesAsBreaking = await console
+            .ConfirmAsync(
+                parseResult,
                 Opt<TreatDangerousAsBreakingOption>.Instance,
+                "Treat dangerous changes as breaking?",
                 ct);
 
-        var allowBreakingSchemaChanges = await context
-            .OptionOrConfirmAsync(
-                "Allow breaking schema changes when no client breaks?",
+        var allowBreakingSchemaChanges = await console
+            .ConfirmAsync(
+                parseResult,
                 Opt<AllowBreakingSchemaChangesOption>.Instance,
+                "Allow breaking schema changes when no client breaks?",
                 ct);
 
         var data = await client.UpdateApiSettingsAsync(
@@ -67,7 +67,7 @@ internal sealed class SetApiSettingsApiCommand : Command
         console.OkLine(
             $"Settings of [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} updated");
 
-        context.SetResult(ApiDetailPrompt.From(api).ToObject());
+        resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(api).ToObject()));
 
         return ExitCodes.Success;
     }

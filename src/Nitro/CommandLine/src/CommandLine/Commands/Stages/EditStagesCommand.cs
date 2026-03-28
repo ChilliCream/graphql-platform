@@ -1,14 +1,13 @@
-using System.CommandLine.Invocation;
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Stages;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Stages;
@@ -20,7 +19,12 @@ internal sealed class EditStagesCommand : Command
         DisplayName: "Default",
         AfterStages: []);
 
-    public EditStagesCommand()
+    public EditStagesCommand(
+        INitroConsole console,
+        IStagesClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder)
         : base("edit")
     {
         Description = "Edit stages of an API.";
@@ -28,28 +32,38 @@ internal sealed class EditStagesCommand : Command
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<StageConfigurationOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IStagesClient>(),
-            Bind.FromServiceProvider<CancellationToken>()
-        );
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                parseResult,
+                console,
+                client,
+                apisClient,
+                sessionService,
+                resultHolder,
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IStagesClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         console.WriteOperationTitle();
 
         const string apiMessage = "For which API do you want to edit the stages?";
 
-        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
+        var apiId = await parseResult.GetOrPromptForApiIdAsync(
+            apiMessage,
+            console,
+            apisClient,
+            sessionService,
+            cancellationToken);
 
-        var stageConfiguration = context.ParseResult.GetValueForOption(
+        var stageConfiguration = parseResult.GetValue(
             Opt<StageConfigurationOption>.Instance
         );
 
@@ -76,23 +90,23 @@ internal sealed class EditStagesCommand : Command
                 throw Exit("Could not parse stage configuration");
             }
 
-            await client.UpdateStagesAsync(context, console, apiId, input, cancellationToken);
+            await client.UpdateStagesAsync(console, resultHolder, apiId, input, cancellationToken);
             return ExitCodes.Success;
         }
 
         return await EditStagesInteractivlyAsync(
-            context,
             console,
             client,
+            resultHolder,
             apiId,
             cancellationToken
         );
     }
 
     private static async Task<int> EditStagesInteractivlyAsync(
-        InvocationContext context,
         INitroConsole console,
         IStagesClient client,
+        IResultHolder resultHolder,
         string apiId,
         CancellationToken cancellationToken)
     {
@@ -135,8 +149,8 @@ internal sealed class EditStagesCommand : Command
                     when await console.ConfirmStageUpdate(updatedStages, cancellationToken):
 
                     await client.UpdateStagesAsync(
-                        context,
                         console,
+                        resultHolder,
                         apiId,
                         updatedStages,
                         cancellationToken
@@ -173,8 +187,8 @@ file static class ClientExtensions
 
     public static async Task UpdateStagesAsync(
         this IStagesClient client,
-        InvocationContext context,
         INitroConsole console,
+        IResultHolder resultHolder,
         string apiId,
         IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
@@ -186,7 +200,7 @@ file static class ClientExtensions
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray() ?? [];
 
-        context.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
+        resultHolder.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
 
         console.OkLine("Successfully updated stages");
     }

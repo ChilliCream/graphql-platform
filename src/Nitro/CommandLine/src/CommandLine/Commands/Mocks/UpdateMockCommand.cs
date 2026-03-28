@@ -1,11 +1,9 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -14,9 +12,15 @@ using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
-public sealed class UpdateMockCommand : Command
+internal sealed class UpdateMockCommand : Command
 {
-    public UpdateMockCommand()
+    public UpdateMockCommand(
+        INitroConsole console,
+        IApisClient apisClient,
+        IMocksClient client,
+        IFileSystem fileSystem,
+        ISessionService sessionService,
+        IResultHolder resultHolder)
         : base("update")
     {
         Description = "Updates a mock schema with a new schema and extension file.";
@@ -27,27 +31,25 @@ public sealed class UpdateMockCommand : Command
         Options.Add(Opt<OptionalMockSchemaNameOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IMocksClient>(),
-            Bind.FromServiceProvider<IFileSystem>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, apisClient, client, fileSystem, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
+        IApisClient apisClient,
         IMocksClient client,
         IFileSystem fileSystem,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        var extensionFile = context.ParseResult.GetValueForOption(Opt<OptionalExtensionFileOption>.Instance);
-        var baseSchemaFile = context.ParseResult.GetValueForOption(Opt<OptionalBaseSchemaFileOption>.Instance);
-        var downstreamUrl = context.ParseResult.GetValueForOption(Opt<OptionalDownstreamUrlOption>.Instance);
-        var mockSchemaName = context.ParseResult.GetValueForOption(Opt<OptionalMockSchemaNameOption>.Instance);
-        var mockSchemaId = context.ParseResult.GetValueForArgument(Opt<OptionalIdArgument>.Instance);
+        var extensionFile = parseResult.GetValue(Opt<OptionalExtensionFileOption>.Instance);
+        var baseSchemaFile = parseResult.GetValue(Opt<OptionalBaseSchemaFileOption>.Instance);
+        var downstreamUrl = parseResult.GetValue(Opt<OptionalDownstreamUrlOption>.Instance);
+        var mockSchemaName = parseResult.GetValue(Opt<OptionalMockSchemaNameOption>.Instance);
+        var mockSchemaId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
 
         if (string.IsNullOrWhiteSpace(mockSchemaId))
         {
@@ -56,10 +58,10 @@ public sealed class UpdateMockCommand : Command
                 throw Exit("The mock schema ID is required in non-interactive mode.");
             }
 
-            var workspaceId = context.RequireWorkspaceId();
+            var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
             var selectedApi = await SelectApiPrompt
-                .New(context.BindingContext.GetRequiredService<IApisClient>(), workspaceId)
+                .New(apisClient, workspaceId)
                 .RenderAsync(console, cancellationToken);
 
             if (selectedApi?.Id is null)
@@ -108,7 +110,7 @@ public sealed class UpdateMockCommand : Command
 
             console.Log("Mock schema created.");
 
-            context.SetResult(MockSchemaDetailPrompt.From(mockSchema).ToObject());
+            resultHolder.SetResult(new ObjectResult(MockSchemaDetailPrompt.From(mockSchema).ToObject()));
         }
     }
 }

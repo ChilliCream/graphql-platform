@@ -8,7 +8,6 @@ internal sealed class IdentityCloudUrlOption : Option<string>
     {
         Description = "The URL of the API.";
         Required = false;
-        IsHidden = false;
         this.DefaultFromEnvironmentValue(
             "CLOUD_URL",
             defaultValue: OidcConfiguration.IdentityUrl["https://".Length..]);

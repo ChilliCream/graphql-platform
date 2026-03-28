@@ -1,53 +1,74 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class ListClientVersionsCommand : Command
 {
-    public ListClientVersionsCommand() : base("versions")
+    public ListClientVersionsCommand(
+        INitroConsole console,
+        IClientsClient clientsClient,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("versions")
     {
         Description = "Lists all versions of a client";
 
         Options.Add(Opt<OptionalClientIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IClientsClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, clientsClient, apisClient, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, client, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var clientId = await context.GetOrSelectClientId(console, client, ct);
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
+        var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
+        if (clientId is null)
+        {
+            var apiId = await console.GetOrPromptForApiIdAsync(
+                "For which API do you want to list client versions?",
+                parseResult, apisClient, sessionService, ct);
+
+            var selectedClient = await SelectClientPrompt
+                .New(client, apiId)
+                .Title("Select a client from the list below.")
+                .RenderAsync(console, ct) ?? throw NoClientSelected();
+
+            clientId = selectedClient.Id;
+        }
+
+        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, cancellationToken) =>
@@ -72,31 +93,32 @@ internal sealed class ListClientVersionsCommand : Command
 
         if (selectedVersion is not null)
         {
-            context.SetResult(selectedVersion);
+            resultHolder.SetResult(new ObjectResult(selectedVersion));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         IClientsClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var clientId = context.ParseResult.GetValueForOption(Opt<OptionalClientIdOption>.Instance);
+        var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
         if (clientId is null)
         {
             throw Exit("The client ID is required in non-interactive mode.");
         }
 
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
         var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct);
 
         var items = page.Items
             .Select(ToResult)
             .ToArray();
 
-        context.SetResult(new PaginatedListResult<ClientVersionResult>(items, page.EndCursor));
+        resultHolder.SetResult(new ObjectResult(new PaginatedListResult<ClientVersionResult>(items, page.EndCursor)));
 
         return ExitCodes.Success;
     }

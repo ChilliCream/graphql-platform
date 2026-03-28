@@ -1,9 +1,7 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -15,7 +13,11 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
 
 internal sealed class CreateApiCommand : Command
 {
-    public CreateApiCommand() : base("create")
+    public CreateApiCommand(
+        INitroConsole console,
+        IApisClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("create")
     {
         Description = "Creates a new API";
 
@@ -24,35 +26,34 @@ internal sealed class CreateApiCommand : Command
         Options.Add(Opt<WorkspaceIdOption>.Instance);
         Options.Add(Opt<ApiKindOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IApisClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IApisClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var workspaceId = context.RequireWorkspaceId();
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         console.WriteLine("Creating an API");
 
-        var name = await context.OptionOrAskAsync("Name", Opt<ApiNameOption>.Instance, ct);
-        var pathResult = await context
-            .OptionOrAskAsync(
+        var name = await console.PromptAsync("Name", defaultValue: null, parseResult, Opt<ApiNameOption>.Instance, ct);
+        var pathResult = await console
+            .PromptAsync(
                 "Path [dim](e.g. /foo/bar)[/]",
-                Opt<ApiPathOption>.Instance,
                 defaultValue: "/",
+                parseResult,
+                Opt<ApiPathOption>.Instance,
                 ct);
 
         var path = pathResult.Split("/", TrimEntries | RemoveEmptyEntries);
 
-        var kind = context.GetApiKind();
+        var kind = GetApiKind(parseResult);
 
         var payload = await client.CreateApiAsync(workspaceId, path, name, kind, ct);
         // console.PrintMutationErrorsAndExit(payload.Errors);
@@ -78,19 +79,15 @@ internal sealed class CreateApiCommand : Command
 
         if (changeResult.Result is IApiDetailPrompt_Api detail)
         {
-            context.SetResult(ApiDetailPrompt.From(detail).ToObject());
+            resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(detail).ToObject()));
         }
 
         return ExitCodes.Success;
     }
-}
 
-file static class Extensions
-{
-    public static ApiKind? GetApiKind(
-        this InvocationContext context)
+    private static ApiKind? GetApiKind(ParseResult parseResult)
     {
-        var kind = context.ParseResult.GetValueForOption(Opt<ApiKindOption>.Instance);
+        var kind = parseResult.GetValue(Opt<ApiKindOption>.Instance);
 
         return kind switch
         {

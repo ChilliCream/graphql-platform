@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -6,15 +5,14 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Logout;
 
 internal sealed class LogoutCommand : Command
 {
-    public LogoutCommand() : base("logout")
+    public LogoutCommand(
+        INitroConsole console,
+        ISessionService sessionService) : base("logout")
     {
         Description = "Log out and remove session information";
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(console, sessionService, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

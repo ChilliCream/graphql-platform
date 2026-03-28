@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
@@ -14,31 +13,36 @@ namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 
 internal sealed class RevokePersonalAccessTokenCommand : Command
 {
-    public RevokePersonalAccessTokenCommand() : base("revoke")
+    public RevokePersonalAccessTokenCommand(
+        INitroConsole console,
+        IPersonalAccessTokensClient client,
+        IResultHolder resultHolder) : base("revoke")
     {
         Description = "Revokes a personal access token";
 
         Arguments.Add(Opt<IdArgument>.Instance);
         Options.Add(Opt<ForceOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IPersonalAccessTokensClient>(),
-            Opt<IdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                parseResult,
+                console,
+                client,
+                resultHolder,
+                parseResult.GetValue(Opt<IdArgument>.Instance)!,
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IPersonalAccessTokensClient client,
+        IResultHolder resultHolder,
         string patId,
         CancellationToken cancellationToken)
     {
         var confirmMessage = $"Do you really want to delete PAT with ID {patId}";
-        var force = await context.ConfirmWhenNotForced(confirmMessage, cancellationToken);
+        var force = await parseResult.ConfirmWhenNotForced(confirmMessage, console, cancellationToken);
         if (!force)
         {
             throw Exit("PAT was not deleted");
@@ -55,7 +59,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
         console.OkLine(
             $"PersonalAccessToken {token.Description.AsHighlight()} [dim](ID: {token.Id})[/] was deleted");
 
-        context.SetResult(PersonalAccessTokenDetailPrompt.From(token).ToObject());
+        resultHolder.SetResult(new ObjectResult(PersonalAccessTokenDetailPrompt.From(token).ToObject()));
 
         return ExitCodes.Success;
     }

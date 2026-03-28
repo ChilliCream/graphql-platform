@@ -7,31 +7,37 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal sealed class FusionMigrateCommand : Command
 {
-    public FusionMigrateCommand() : base("migrate")
+    public FusionMigrateCommand(
+        INitroConsole console,
+        IFileSystem fileSystem) : base("migrate")
     {
         Description = "Migrate Fusion configuration files";
 
         Arguments.Add(Opt<FusionMigrateTargetArgument>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var target = context.ParseResult.GetValueForArgument(
-                Opt<FusionMigrateTargetArgument>.Instance);
-            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, fileSystem, cancellationToken));
+    }
 
-            context.ExitCode = target switch
-            {
-                FusionMigrateTargetArgument.SubgraphConfig => await MigrateSubgraphConfigAsync(
-                    console,
-                    fileSystem,
-                    workingDirectory,
-                    context.GetCancellationToken()),
-                _ => throw new ArgumentOutOfRangeException(nameof(target))
-            };
-        });
+    private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
+        INitroConsole console,
+        IFileSystem fileSystem,
+        CancellationToken cancellationToken)
+    {
+        var target = parseResult.GetValue(Opt<FusionMigrateTargetArgument>.Instance);
+        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
+
+        return target switch
+        {
+            FusionMigrateTargetArgument.SubgraphConfig => await MigrateSubgraphConfigAsync(
+                console,
+                fileSystem,
+                workingDirectory,
+                cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(target))
+        };
     }
 
     private static async Task<int> MigrateSubgraphConfigAsync(

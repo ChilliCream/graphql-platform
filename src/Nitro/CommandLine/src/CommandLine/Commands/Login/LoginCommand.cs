@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -10,7 +9,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Login;
 
 internal sealed class LoginCommand : Command
 {
-    public LoginCommand() : base("login")
+    public LoginCommand(
+        INitroConsole console,
+        IWorkspacesClient workspacesClient,
+        ISessionService sessionService) : base("login")
     {
         Description =
             "Log in interactively through your default browser";
@@ -18,24 +20,20 @@ internal sealed class LoginCommand : Command
         Options.Add(Opt<IdentityCloudUrlOption>.Instance);
         Arguments.Add(Opt<IdentityCloudUrlArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Opt<IdentityCloudUrlOption>.Instance,
-            Opt<IdentityCloudUrlArgument>.Instance,
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IWorkspacesClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, workspacesClient, sessionService, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        string cloudUrl,
-        string? url,
+        ParseResult parseResult,
         INitroConsole console,
         IWorkspacesClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
+        var cloudUrl = parseResult.GetValue(Opt<IdentityCloudUrlOption>.Instance)!;
+        var url = parseResult.GetValue(Opt<IdentityCloudUrlArgument>.Instance);
+
         url ??= cloudUrl;
 
         Session? session = null;

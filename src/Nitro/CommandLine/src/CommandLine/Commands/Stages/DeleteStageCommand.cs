@@ -1,9 +1,6 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Stages;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -14,7 +11,12 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Stages;
 
 internal sealed class DeleteStageCommand : Command
 {
-    public DeleteStageCommand() : base("delete")
+    public DeleteStageCommand(
+        INitroConsole console,
+        IStagesClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("delete")
     {
         Description = "Deletes a stage by name";
 
@@ -22,27 +24,39 @@ internal sealed class DeleteStageCommand : Command
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ForceOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IStagesClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                parseResult,
+                console,
+                client,
+                apisClient,
+                sessionService,
+                resultHolder,
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IStagesClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         const string apiMessage = "For which API do you want to force delete a stage?";
-        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
+        var apiId = await parseResult.GetOrPromptForApiIdAsync(
+            apiMessage,
+            console,
+            apisClient,
+            sessionService,
+            cancellationToken);
 
-        var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
+        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
 
-        var shouldDelete = await context.ConfirmWhenNotForced(
+        var shouldDelete = await parseResult.ConfirmWhenNotForced(
             $"Do you really want to force delete stage {stageName.AsHighlight()}",
+            console,
             cancellationToken);
 
         if (!shouldDelete)
@@ -62,7 +76,7 @@ internal sealed class DeleteStageCommand : Command
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray();
 
-        context.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
+        resultHolder.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
 
         console.OkLine($"Stage {stageName.AsHighlight()} was force deleted");
 

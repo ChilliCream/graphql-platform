@@ -14,9 +14,12 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
 [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-public sealed class FusionUploadCommand : Command
+internal sealed class FusionUploadCommand : Command
 {
-    public FusionUploadCommand() : base("upload")
+    public FusionUploadCommand(
+        INitroConsole console,
+        IFusionConfigurationClient fusionConfigurationClient,
+        IFileSystem fileSystem) : base("upload")
     {
         Description = "Upload a source schema for a later composition.";
 
@@ -27,20 +30,15 @@ public sealed class FusionUploadCommand : Command
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        this.SetHandler(async context =>
+        SetAction(async (parseResult, cancellationToken) =>
         {
-            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
-            var sourceSchemaFile = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileOption>.Instance)!;
-            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
+            var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
+            var sourceSchemaFile = parseResult.GetValue(Opt<SourceSchemaFileOption>.Instance)!;
+            var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+            var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+            var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var fusionConfigurationClient =
-                context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-
-            context.ExitCode = await ExecuteAsync(
+            return await ExecuteAsync(
                 console,
                 fusionConfigurationClient,
                 workingDirectory,
@@ -49,7 +47,7 @@ public sealed class FusionUploadCommand : Command
                 apiId,
                 sourceMetadataJson,
                 fileSystem,
-                context.GetCancellationToken());
+                cancellationToken);
         });
     }
 

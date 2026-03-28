@@ -1,37 +1,40 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class CreateClientCommand : Command
 {
-    public CreateClientCommand() : base("create")
+    public CreateClientCommand(
+        INitroConsole console,
+        IClientsClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("create")
     {
         Description = "Creates a new client";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<ClientNameOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IClientsClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         console.WriteLine();
@@ -39,10 +42,10 @@ internal sealed class CreateClientCommand : Command
         console.WriteLine();
 
         const string apiMessage = "For which API do you want to create a client?";
-        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
+        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, cancellationToken);
 
-        var name = await context
-            .OptionOrAskAsync("Name", Opt<ClientNameOption>.Instance, cancellationToken);
+        var name = await console
+            .PromptAsync("Name", defaultValue: null, parseResult, Opt<ClientNameOption>.Instance, cancellationToken);
 
         var data = await client.CreateClientAsync(apiId, name, cancellationToken);
         console.PrintMutationErrorsAndExit(data.Errors);
@@ -54,7 +57,7 @@ internal sealed class CreateClientCommand : Command
 
         console.OkLine($"Client {createdClient.Name.AsHighlight()} created.");
 
-        context.SetResult(ClientDetailPrompt.From(createdClient).ToObject());
+        resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(createdClient).ToObject()));
 
         return ExitCodes.Success;
     }

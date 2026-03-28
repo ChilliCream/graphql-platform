@@ -1,11 +1,9 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -16,27 +14,29 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class DeleteMcpFeatureCollectionCommand : Command
 {
-    public DeleteMcpFeatureCollectionCommand() : base("delete")
+    public DeleteMcpFeatureCollectionCommand(
+        INitroConsole console,
+        IApisClient apisClient,
+        IMcpClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("delete")
     {
         Description = "Deletes an MCP Feature Collection";
 
         Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IMcpClient>(),
-            Opt<OptionalIdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
+        IApisClient apisClient,
         IMcpClient client,
-        string? mcpFeatureCollectionId,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         console.WriteLine();
@@ -46,6 +46,8 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         const string apiMessage = "For which API do you want to delete an MCP Feature Collection?";
         const string mcpFeatureCollectionMessage = "Which MCP Feature Collection do you want to delete?";
 
+        var mcpFeatureCollectionId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
+
         if (mcpFeatureCollectionId is null)
         {
             if (!console.IsInteractive)
@@ -53,10 +55,10 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
                 throw Exit("The MCP Feature Collection ID is required in non-interactive mode.");
             }
 
-            var workspaceId = context.RequireWorkspaceId();
+            var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
             var selectedApi = await SelectApiPrompt
-                .New(context.BindingContext.GetRequiredService<IApisClient>(), workspaceId)
+                .New(apisClient, workspaceId)
                 .Title(apiMessage)
                 .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
 
@@ -77,15 +79,20 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             console.OkQuestion(mcpFeatureCollectionMessage, mcpFeatureCollectionId);
         }
 
-        var shouldDelete = await context.ConfirmWhenNotForced(
-            $"Do you want to delete the MCP Feature Collection with the ID {mcpFeatureCollectionId}?"
-                .EscapeMarkup(),
-            cancellationToken);
-
-        if (!shouldDelete)
+        // TODO: Fix
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance); // is not null;
+        if (!force)
         {
-            console.OkLine("Aborted.");
-            return ExitCodes.Success;
+            var confirmed = await console.ConfirmAsync(
+                $"Do you want to delete the MCP Feature Collection with the ID {mcpFeatureCollectionId}?"
+                    .EscapeMarkup(),
+                cancellationToken);
+
+            if (!confirmed)
+            {
+                console.OkLine("Aborted.");
+                return ExitCodes.Success;
+            }
         }
 
         var deletedMcpFeatureCollection = await client.DeleteMcpFeatureCollectionAsync(
@@ -99,7 +106,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         }
 
         console.OkLine($"MCP Feature Collection {detail.Name.AsHighlight()} was deleted.");
-        context.SetResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject());
+        resultHolder.SetResult(new ObjectResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject()));
 
         return ExitCodes.Success;
     }

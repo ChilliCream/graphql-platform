@@ -10,17 +10,16 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 {
     public const string Command = "set-default";
 
-    public SetDefaultWorkspaceCommand() : base(Command)
+    public SetDefaultWorkspaceCommand(
+        INitroConsole console,
+        IWorkspacesClient client,
+        ISessionService sessionService) : base(Command)
     {
         Description =
             "Use this command to select a workspace and set it as your default workspace";
 
-        this.SetHandler(context => ExecuteAsync(
-            true,
-            context.BindingContext.GetRequiredService<INitroConsole>(),
-            context.BindingContext.GetRequiredService<IWorkspacesClient>(),
-            context.BindingContext.GetRequiredService<ISessionService>(),
-            context.BindingContext.GetRequiredService<CancellationToken>()));
+        SetAction((_, cancellationToken)
+            => ExecuteAsync(true, console, client, sessionService, cancellationToken));
     }
 
     public static async Task<int> ExecuteAsync(

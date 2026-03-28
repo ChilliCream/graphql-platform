@@ -6,7 +6,7 @@ internal sealed class FusionEnvironmentOption : Option<string?>
     {
         Description = "The name of the environment used for value substitution in the schema-settings.json files.";
 
-        AddAlias("--env");
-        AddAlias("-e");
+        Aliases.Add("--env");
+        Aliases.Add("-e");
     }
 }

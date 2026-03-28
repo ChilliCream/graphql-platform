@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -11,7 +10,12 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 
 internal sealed class FusionConfigurationPublishBeginCommand : Command
 {
-    public FusionConfigurationPublishBeginCommand() : base("begin")
+    public FusionConfigurationPublishBeginCommand(
+        INitroConsole console,
+        IFusionConfigurationClient fusionConfigurationClient,
+        IConfigurationService configurationService,
+        IFileSystem fileSystem,
+        IResultHolder resultHolder) : base("begin")
     {
         Description = "Begin a configuration publish. This command will request a deployment slot";
         Options.Add(Opt<TagOption>.Instance);
@@ -22,37 +26,37 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IFusionConfigurationClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<IConfigurationService>(),
-            Bind.FromServiceProvider<IFileSystem>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                parseResult,
+                console,
+                fusionConfigurationClient,
+                configurationService,
+                fileSystem,
+                resultHolder,
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
-        ISessionService sessionService,
         IConfigurationService configurationService,
         IFileSystem fileSystem,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-        var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-        var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
+        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
         var subgraphId =
-            context.ParseResult.GetValueForOption(Opt<OptionalSubgraphIdOption>.Instance)!;
+            parseResult.GetValue(Opt<OptionalSubgraphIdOption>.Instance)!;
         var subgraphName =
-            context.ParseResult.GetValueForOption(Opt<OptionalSubgraphNameOption>.Instance)!;
+            parseResult.GetValue(Opt<OptionalSubgraphNameOption>.Instance)!;
         var waitForApproval =
-            context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
+            parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson =
-            context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
+            parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var activity = console.StartActivity("Requesting deployment slot ..."))
@@ -78,7 +82,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 fusionConfigurationClient,
                 cancellationToken);
 
-            context.SetResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId });
+            resultHolder.SetResult(new ObjectResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId }));
 
             await FusionConfigurationPublishingState.SetRequestId(
                 fileSystem,

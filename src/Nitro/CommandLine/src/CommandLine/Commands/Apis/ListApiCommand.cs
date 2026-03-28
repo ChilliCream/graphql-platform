@@ -1,8 +1,6 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -12,45 +10,48 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
 
 internal sealed class ListApiCommand : Command
 {
-    public ListApiCommand() : base("list")
+    public ListApiCommand(
+        INitroConsole console,
+        IApisClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("list")
     {
         Description = "Lists all APIs of a workspace";
 
         Options.Add(Opt<CursorOption>.Instance);
         Options.Add(Opt<WorkspaceIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IApisClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IApisClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var workspaceId = context.RequireWorkspaceId();
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, resultHolder, workspaceId, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, client, workspaceId, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IApisClient client,
+        IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
         var container = PaginationContainer
             .CreateConnectionData((after, first, token)
                 => client.ListApisAsync(workspaceId, after ?? cursor, first, token))
@@ -66,19 +67,20 @@ internal sealed class ListApiCommand : Command
 
         if (api is not null)
         {
-            context.SetResult(ApiDetailPrompt.From(api).ToObject());
+            resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(api).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         IApisClient client,
+        IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
         var data = await client.ListApisAsync(workspaceId, cursor, 10, ct);
 
         var items = data.Items
@@ -86,7 +88,7 @@ internal sealed class ListApiCommand : Command
             .Select(x => x.ToObject())
             .ToArray();
 
-        context.SetResult(new PaginatedListResult<ApiDetailPrompt.ApiDetailPromptResult>(items, data.EndCursor));
+        resultHolder.SetResult(new PaginatedListResult<ApiDetailPrompt.ApiDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

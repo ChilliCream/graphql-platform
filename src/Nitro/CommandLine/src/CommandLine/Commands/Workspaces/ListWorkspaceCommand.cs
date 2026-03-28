@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
@@ -11,38 +10,38 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
 internal sealed class ListWorkspaceCommand : Command
 {
-    public ListWorkspaceCommand() : base("list")
+    public ListWorkspaceCommand(
+        INitroConsole console,
+        IWorkspacesClient client,
+        IResultHolder resultHolder) : base("list")
     {
         Description = "Lists all workspaces";
 
         Options.Add(Opt<CursorOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IWorkspacesClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IWorkspacesClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, ct);
+            return await RenderInteractiveAsync(console, client, resultHolder, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, client, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
         INitroConsole console,
         IWorkspacesClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         var container = PaginationContainer
@@ -59,18 +58,19 @@ internal sealed class ListWorkspaceCommand : Command
 
         if (workspace is not null)
         {
-            context.SetResult(WorkspaceDetailPrompt.From(workspace).ToObject());
+            resultHolder.SetResult(new ObjectResult(WorkspaceDetailPrompt.From(workspace).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         IWorkspacesClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
         var data = await client.ListWorkspacesAsync(cursor, 10, ct);
 
         var items = data.Items
@@ -78,7 +78,7 @@ internal sealed class ListWorkspaceCommand : Command
             .Select(x => x.ToObject())
             .ToArray();
 
-        context.SetResult(new PaginatedListResult<WorkspaceDetailPrompt.WorkspaceDetailPromptResult>(items, data.EndCursor));
+        resultHolder.SetResult(new PaginatedListResult<WorkspaceDetailPrompt.WorkspaceDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

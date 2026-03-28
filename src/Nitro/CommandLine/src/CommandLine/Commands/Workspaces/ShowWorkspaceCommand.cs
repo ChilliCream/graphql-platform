@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
@@ -13,33 +12,30 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
 internal sealed class ShowWorkspaceCommand : Command
 {
-    public ShowWorkspaceCommand() : base("show")
+    public ShowWorkspaceCommand(
+        IWorkspacesClient client,
+        IResultHolder resultHolder) : base("show")
     {
         Description = "Shows details of a workspace";
 
         Arguments.Add(Opt<IdArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IWorkspacesClient>(),
-            Opt<IdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction((parseResult, cancellationToken)
+            => ExecuteAsync(parseResult, client, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        INitroConsole console,
+        ParseResult parseResult,
         IWorkspacesClient client,
-        string id,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
         var data = await client.ShowWorkspaceAsync(id, cancellationToken);
 
         if (data is IShowWorkspaceCommandQuery_Node_Workspace node)
         {
-            context.SetResult(WorkspaceDetailPrompt.From(node).ToObject());
+            resultHolder.SetResult(new ObjectResult(WorkspaceDetailPrompt.From(node).ToObject()));
         }
         else
         {

@@ -408,44 +408,6 @@ internal static class ConsoleHelpers
             $"{Glyphs.QuestionMark.Space()}[bold]{question}[/]: [darkseagreen4]{result}[/]");
     }
 
-    public static async Task<string> OptionOrAskAsync(
-        this InvocationContext context,
-        string question,
-        Option<string> option,
-        string? defaultValue,
-        CancellationToken cancellationToken)
-    {
-        var value = context.ParseResult.GetValueForOption(option);
-
-        if (value is not null)
-        {
-            return value;
-        }
-
-        var console = context.BindingContext.GetRequiredService<INitroConsole>();
-
-        if (!console.IsInteractive)
-        {
-            throw new ExitException($"Missing required option '--{option.Name}'.");
-        }
-
-        var prompt = new TextPrompt<string>(question.AsQuestion());
-
-        if (defaultValue is not null)
-        {
-            prompt = prompt.DefaultValue(defaultValue);
-        }
-
-        return await prompt.ShowAsync(console, cancellationToken);
-    }
-
-    public static Task<string> OptionOrAskAsync(
-        this InvocationContext context,
-        string question,
-        Option<string> option,
-        CancellationToken cancellationToken)
-        => OptionOrAskAsync(context, question, option, defaultValue: null, cancellationToken);
-
     public static async Task<string> AskAsync(
         this INitroConsole console,
         string question,
@@ -463,25 +425,6 @@ internal static class ConsoleHelpers
         CancellationToken cancellationToken)
         => await new ConfirmationPrompt(question.AsQuestion())
             .ShowAsync(console, cancellationToken);
-
-    public static async Task<bool> OptionOrConfirmAsync(
-        this InvocationContext context,
-        string question,
-        Option<bool?> option,
-        CancellationToken cancellationToken)
-    {
-        var value = context.ParseResult.GetValueForOption(option);
-
-        if (value is not null)
-        {
-            return value.Value;
-        }
-
-        var console = context.BindingContext.GetRequiredService<INitroConsole>();
-
-        return await new ConfirmationPrompt(question.AsQuestion())
-            .ShowAsync(console, cancellationToken);
-    }
 
     public static void WarningLine(this INitroConsole console, string message)
     {

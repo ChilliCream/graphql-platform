@@ -7,7 +7,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
 internal sealed class DownloadSchemaCommand : Command
 {
-    public DownloadSchemaCommand()
+    public DownloadSchemaCommand(
+        INitroConsole console,
+        ISchemasClient client,
+        IFileSystem fileSystem)
         : base("download")
     {
         Description = "Download a schema from a stage";
@@ -16,24 +19,15 @@ internal sealed class DownloadSchemaCommand : Command
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<FileNameOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var client = context.BindingContext.GetRequiredService<ISchemasClient>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-            var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var schemaFilePath = context.ParseResult.GetValueForOption(Opt<FileNameOption>.Instance)!;
-
-            context.ExitCode = await ExecuteAsync(
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
                 console,
                 client,
                 fileSystem,
-                apiId,
-                stageName,
-                schemaFilePath,
-                context.GetCancellationToken());
-        });
+                parseResult.GetValue(Opt<ApiIdOption>.Instance)!,
+                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
+                parseResult.GetValue(Opt<FileNameOption>.Instance)!,
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

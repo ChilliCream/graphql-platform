@@ -17,6 +17,6 @@ internal sealed class FusionSettingsNameArgument : Argument<string>
 
     public FusionSettingsNameArgument() : base("SETTING_NAME")
     {
-        this.FromAmong(All);
+        this.AcceptOnlyFromAmong(All);
     }
 }

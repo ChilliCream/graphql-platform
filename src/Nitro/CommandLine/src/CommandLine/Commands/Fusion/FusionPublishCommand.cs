@@ -27,7 +27,10 @@ internal sealed class FusionPublishCommand : Command
         FusionConfigurationPublishStartCommand fusionConfigurationPublishStartCommand,
         FusionConfigurationPublishValidateCommand fusionConfigurationPublishValidateCommand,
         FusionConfigurationPublishCancelCommand fusionConfigurationPublishCancelCommand,
-        FusionConfigurationPublishCommitCommand fusionConfigurationPublishCommitCommand)
+        FusionConfigurationPublishCommitCommand fusionConfigurationPublishCommitCommand,
+        INitroConsole console,
+        IFusionConfigurationClient fusionConfigurationClient,
+        IFileSystem fileSystem)
         : base("publish")
     {
         Description = "Publishes a Fusion archive to Nitro."
@@ -56,50 +59,45 @@ internal sealed class FusionPublishCommand : Command
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        AddValidator(result =>
+        Validators.Add(result =>
         {
             var exclusiveOptionsCount = new[]
             {
-                result.FindResultFor(Opt<OptionalSourceSchemaFileListOption>.Instance) is not null,
-                result.FindResultFor(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) is not null,
-                result.FindResultFor(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
+                result.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) is not null,
+                result.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) is not null,
+                result.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
             }.Count(x => x);
 
             if (exclusiveOptionsCount > 1)
             {
-                result.ErrorMessage =
+                result.AddError(
                     $"You can only specify one of: '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
-                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.";
+                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.");
             }
             else if (exclusiveOptionsCount < 1)
             {
-                result.ErrorMessage =
+                result.AddError(
                     $"You need to specify one of: '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
-                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.";
+                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.");
             }
         });
 
-        this.SetHandler(async context =>
+        SetAction(async (parseResult, cancellationToken) =>
         {
-            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
+            var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
             var sourceSchemaFiles =
-                context.ParseResult.GetValueForOption(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+                parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
             var sourceSchemaIdentifiers =
-                context.ParseResult.GetValueForOption(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
+                parseResult.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
             var archiveFile =
-                context.ParseResult.GetValueForOption(Opt<OptionalFusionArchiveFileOption>.Instance);
-            var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
+                parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+            var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+            var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+            var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
             var sourceMetadataJson =
-                context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
+                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var fusionConfigurationClient =
-                context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-
-            context.ExitCode = await ExecuteAsync(
+            return await ExecuteAsync(
                 workingDirectory,
                 sourceSchemaFiles,
                 sourceSchemaIdentifiers,
@@ -111,7 +109,7 @@ internal sealed class FusionPublishCommand : Command
                 console,
                 fileSystem,
                 fusionConfigurationClient,
-                context.GetCancellationToken());
+                cancellationToken);
         });
     }
 

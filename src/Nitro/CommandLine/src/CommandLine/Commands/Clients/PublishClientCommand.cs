@@ -2,13 +2,14 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class PublishClientCommand : Command
 {
-    public PublishClientCommand() : base("publish")
+    public PublishClientCommand(
+        INitroConsole console,
+        IClientsClient client) : base("publish")
     {
         Description = "Publish a client version to a stage";
 
@@ -19,28 +20,17 @@ internal sealed class PublishClientCommand : Command
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var client = context.BindingContext.GetRequiredService<IClientsClient>();
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var clientId = context.ParseResult.GetValueForOption(Opt<ClientIdOption>.Instance)!;
-            var force = context.ParseResult.GetValueForOption(Opt<ForceOption>.Instance);
-            var waitForApproval = context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-
-            context.ExitCode = await ExecuteAsync(
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
                 console,
                 client,
-                tag,
-                stage,
-                clientId,
-                force,
-                waitForApproval,
-                sourceMetadataJson,
-                context.GetCancellationToken());
-        });
+                parseResult.GetValue(Opt<TagOption>.Instance)!,
+                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
+                parseResult.GetValue(Opt<ClientIdOption>.Instance)!,
+                parseResult.GetValue(Opt<ForceOption>.Instance),
+                parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance),
+                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

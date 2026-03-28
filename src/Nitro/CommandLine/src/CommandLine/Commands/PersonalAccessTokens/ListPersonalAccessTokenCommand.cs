@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
@@ -11,38 +10,38 @@ namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 
 internal sealed class ListPersonalAccessTokenCommand : Command
 {
-    public ListPersonalAccessTokenCommand() : base("list")
+    public ListPersonalAccessTokenCommand(
+        INitroConsole console,
+        IPersonalAccessTokensClient client,
+        IResultHolder resultHolder) : base("list")
     {
         Description = "Lists all API keys of a workspace";
 
         Options.Add(Opt<CursorOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IPersonalAccessTokensClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IPersonalAccessTokensClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, ct);
+            return await RenderInteractiveAsync(console, client, resultHolder, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, client, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
         INitroConsole console,
         IPersonalAccessTokensClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         var container = PaginationContainer
@@ -70,18 +69,19 @@ internal sealed class ListPersonalAccessTokenCommand : Command
 
         if (pat is not null)
         {
-            context.SetResult(PersonalAccessTokenDetailPrompt.From(pat).ToObject());
+            resultHolder.SetResult(new ObjectResult(PersonalAccessTokenDetailPrompt.From(pat).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         IPersonalAccessTokensClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
         var data = await client.ListPersonalAccessTokensAsync(cursor, 10, ct);
 
         var items = data.Items
@@ -89,10 +89,9 @@ internal sealed class ListPersonalAccessTokenCommand : Command
             .Select(x => x.ToObject())
             .ToArray();
 
-        context.SetResult(
-            new PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>(
+        resultHolder.SetResult(new PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>(
                 items,
-                data.EndCursor));
+            data.EndCursor));
 
         return ExitCodes.Success;
     }

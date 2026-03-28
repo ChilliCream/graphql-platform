@@ -1,15 +1,17 @@
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class UploadMcpFeatureCollectionCommand : Command
 {
-    public UploadMcpFeatureCollectionCommand() : base("upload")
+    public UploadMcpFeatureCollectionCommand(
+        INitroConsole console,
+        IMcpClient client,
+        IFileSystem fileSystem) : base("upload")
     {
         Description = "Upload a new MCP Feature Collection version";
 
@@ -19,41 +21,23 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
         Options.Add(Opt<McpToolFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var client = context.BindingContext.GetRequiredService<IMcpClient>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var promptPatterns = context.ParseResult.GetValueForOption(Opt<McpPromptFilePatternOption>.Instance)!;
-            var toolPatterns = context.ParseResult.GetValueForOption(Opt<McpToolFilePatternOption>.Instance)!;
-            var mcpFeatureCollectionId = context.ParseResult.GetValueForOption(Opt<McpFeatureCollectionIdOption>.Instance)!;
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-
-            context.ExitCode = await ExecuteAsync(
-                console,
-                client,
-                fileSystem,
-                tag,
-                promptPatterns,
-                toolPatterns,
-                mcpFeatureCollectionId,
-                sourceMetadataJson,
-                context.GetCancellationToken());
-        });
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, fileSystem, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IMcpClient client,
         IFileSystem fileSystem,
-        string tag,
-        List<string> promptPatterns,
-        List<string> toolPatterns,
-        string mcpFeatureCollectionId,
-        string? sourceMetadataJson,
         CancellationToken cancellationToken)
     {
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var promptPatterns = parseResult.GetValue(Opt<McpPromptFilePatternOption>.Instance)!;
+        var toolPatterns = parseResult.GetValue(Opt<McpToolFilePatternOption>.Instance)!;
+        var mcpFeatureCollectionId = parseResult.GetValue(Opt<McpFeatureCollectionIdOption>.Instance)!;
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var _ = console.StartActivity("Uploading new MCP Feature Collection version..."))

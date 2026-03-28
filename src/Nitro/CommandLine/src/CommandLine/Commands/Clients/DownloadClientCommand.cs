@@ -1,6 +1,5 @@
 using System.Text.Json;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
@@ -9,8 +8,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class DownloadClientCommand : Command
 {
-    public DownloadClientCommand()
-        : base("download")
+    public DownloadClientCommand(
+        INitroConsole console,
+        IClientsClient client,
+        IFileSystem fileSystem) : base("download")
     {
         Description = "Download the queries from a stage";
 
@@ -19,16 +20,16 @@ internal sealed class DownloadClientCommand : Command
         Options.Add(Opt<FileSystemOutputOptions>.Instance);
         Options.Add(Opt<ClientFormatOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IClientsClient>(),
-            Bind.FromServiceProvider<IFileSystem>(),
-            Opt<ApiIdOption>.Instance,
-            Opt<StageNameOption>.Instance,
-            Opt<FileSystemOutputOptions>.Instance,
-            Opt<ClientFormatOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                console,
+                client,
+                fileSystem,
+                parseResult.GetValue(Opt<ApiIdOption>.Instance)!,
+                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
+                parseResult.GetValue(Opt<FileSystemOutputOptions>.Instance)!,
+                parseResult.GetValue(Opt<ClientFormatOption>.Instance)!,
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

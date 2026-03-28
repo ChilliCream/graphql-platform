@@ -1,9 +1,7 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -13,35 +11,39 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Environments;
 
 internal sealed class CreateEnvironmentCommand : Command
 {
-    public CreateEnvironmentCommand() : base("create")
+    public CreateEnvironmentCommand(
+        INitroConsole console,
+        IEnvironmentsClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("create")
     {
         Description = "Creates a new environment";
 
         Options.Add(Opt<EnvironmentNameOption>.Instance);
         Options.Add(Opt<WorkspaceIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IEnvironmentsClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IEnvironmentsClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        var workspaceId = context.RequireWorkspaceId();
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         console.WriteLine();
         console.WriteLine("Creating a environment");
         console.WriteLine();
 
-        var name = await context.OptionOrAskAsync(
+        var name = await console.PromptAsync(
             "Name",
+            defaultValue: null,
+            parseResult,
             Opt<EnvironmentNameOption>.Instance,
             cancellationToken);
 
@@ -66,7 +68,7 @@ internal sealed class CreateEnvironmentCommand : Command
 
         console.OkLine($"Environment {detail.Name.AsHighlight()} created");
 
-        context.SetResult(EnvironmentDetailPrompt.From(detail).ToObject());
+        resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(detail).ToObject()));
 
         return ExitCodes.Success;
     }

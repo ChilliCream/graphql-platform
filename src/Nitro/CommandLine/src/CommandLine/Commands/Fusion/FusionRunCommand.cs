@@ -18,9 +18,11 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
 [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-public class FusionRunCommand : Command
+internal class FusionRunCommand : Command
 {
-    public FusionRunCommand() : base("run")
+    public FusionRunCommand(
+        INitroConsole console,
+        IFileSystem fileSystem) : base("run")
     {
         base.Description = "Starts a Fusion gateway with the specified archive."
             + Environment.NewLine
@@ -29,17 +31,14 @@ public class FusionRunCommand : Command
         Arguments.Add(Opt<FusionRunArchiveArgument>.Instance);
         Options.Add(Opt<FusionRunPortOption>.Instance);
 
-        this.SetHandler(async context =>
+        SetAction(async (parseResult, cancellationToken) =>
         {
-            var archiveFilePath = context.ParseResult.GetValueForArgument(
-                Opt<FusionRunArchiveArgument>.Instance)!;
+            var archiveFilePath = parseResult.GetValue(Opt<FusionRunArchiveArgument>.Instance)!;
+            var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);
 
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
+            await ExecuteAsync(archiveFilePath, console, fileSystem, port, cancellationToken);
 
-            var port = context.ParseResult.GetValueForOption(Opt<FusionRunPortOption>.Instance);
-
-            await ExecuteAsync(archiveFilePath, console, fileSystem, port, context.GetCancellationToken());
+            return ExitCodes.Success;
         });
     }
 

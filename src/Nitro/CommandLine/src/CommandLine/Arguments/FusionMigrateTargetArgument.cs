@@ -6,6 +6,6 @@ internal sealed class FusionMigrateTargetArgument : Argument<string>
 
     public FusionMigrateTargetArgument() : base("TARGET")
     {
-        this.FromAmong(SubgraphConfig);
+        this.AcceptOnlyFromAmong(SubgraphConfig);
     }
 }

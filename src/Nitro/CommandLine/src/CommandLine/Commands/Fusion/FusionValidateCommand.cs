@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using System.Net;
 using ChilliCream.Nitro.CommandLine.FusionCompatibility;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client;
@@ -19,7 +18,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionValidateCommand : Command
 {
-    public FusionValidateCommand() : base("validate")
+    public FusionValidateCommand(
+        INitroConsole console,
+        IFusionConfigurationClient fusionConfigurationClient,
+        IFileSystem fileSystem) : base("validate")
     {
         Description = "Validates the composed GraphQL schema of a Fusion configuration against a stage.";
 
@@ -29,40 +31,35 @@ internal sealed class FusionValidateCommand : Command
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        AddValidator(result =>
+        Validators.Add(result =>
         {
             var exclusiveOptionsCount = new[]
             {
-                result.FindResultFor(Opt<OptionalSourceSchemaFileListOption>.Instance) is not null,
-                result.FindResultFor(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
+                result.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) is not null,
+                result.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
             }.Count(x => x);
 
             if (exclusiveOptionsCount > 1)
             {
-                result.ErrorMessage =
-                    $"You can only specify one of: '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.";
+                result.AddError(
+                    $"You can only specify one of: '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.");
             }
             else if (exclusiveOptionsCount < 1)
             {
-                result.ErrorMessage =
-                    $"You need to specify one of: '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.";
+                result.AddError(
+                    $"You need to specify one of: '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.");
             }
         });
 
-        this.SetHandler(async context =>
+        SetAction(async (parseResult, cancellationToken) =>
         {
-            var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-            var archiveFile = context.ParseResult.GetValueForOption(Opt<OptionalFusionArchiveFileOption>.Instance);
+            var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+            var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+            var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
             var sourceSchemaFiles =
-                context.ParseResult.GetValueForOption(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+                parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
 
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var fusionConfigurationClient =
-                context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-
-            context.ExitCode = await ExecuteAsync(
+            return await ExecuteAsync(
                 stageName,
                 apiId,
                 archiveFile,
@@ -70,7 +67,7 @@ internal sealed class FusionValidateCommand : Command
                 console,
                 fusionConfigurationClient,
                 fileSystem,
-                context.GetCancellationToken());
+                cancellationToken);
         });
     }
 

@@ -1,47 +1,41 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 
 internal sealed class FusionConfigurationPublishCommitCommand : Command
 {
-    public FusionConfigurationPublishCommitCommand() : base("commit")
+    public FusionConfigurationPublishCommitCommand(
+        INitroConsole console,
+        IFusionConfigurationClient fusionConfigurationClient,
+        IFileSystem fileSystem) : base("commit")
     {
         Description = "Commit a Fusion configuration publish.";
         Options.Add(Opt<OptionalRequestIdOption>.Instance);
         Options.Add(Opt<FusionArchiveFileOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IFusionConfigurationClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<IFileSystem>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction((parseResult, cancellationToken)
+            => ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
-        ISessionService sessionService,
         IFileSystem fileSystem,
         CancellationToken ct)
     {
         var requestId =
-            context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
+            parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, ct) ??
             throw new ExitException(
                 "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
         var archiveFile =
-            context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
+            parseResult.GetValue(Opt<FusionArchiveFileOption>.Instance)!;
 
         var committed = false;
 

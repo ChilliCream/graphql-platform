@@ -4,5 +4,7 @@ internal interface INitroConsole : IAnsiConsole
 {
     bool IsInteractive { get; }
 
-    void WriteErrorLine(string message);
+    TextWriter Out { get; }
+
+    TextWriter Error { get; }
 }

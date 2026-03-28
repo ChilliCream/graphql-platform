@@ -1,45 +1,52 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 
 internal sealed class DeleteApiKeyCommand : Command
 {
-    public DeleteApiKeyCommand() : base("delete")
+    public DeleteApiKeyCommand(
+        INitroConsole console,
+        IApiKeysClient apiKeysClient,
+        IResultHolder resultHolder) : base("delete")
     {
         Description = "Deletes an API key by ID";
 
         Arguments.Add(Opt<IdArgument>.Instance);
         Options.Add(Opt<ForceOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IApiKeysClient>(),
-            Opt<IdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, apiKeysClient, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IApiKeysClient client,
-        string keyId,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        var choice = await context.ConfirmWhenNotForced(
-            $"Do you really want to delete API key with ID {keyId}",
-            cancellationToken);
+        var keyId = parseResult.GetValue(Opt<IdArgument>.Instance)!;
+
+        // TODO: Fix
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance); // is not null;
+        bool choice;
+        if (force)
+        {
+            choice = true;
+        }
+        else
+        {
+            choice = await console.ConfirmAsync(
+                $"Do you really want to delete API key with ID {keyId}",
+                cancellationToken);
+        }
 
         if (!choice)
         {
@@ -57,7 +64,7 @@ internal sealed class DeleteApiKeyCommand : Command
         console.OkLine(
             $"API key {key.Name.AsHighlight()} [dim](ID: {key.Id})[/] was deleted");
 
-        context.SetResult(ApiKeyDetailPrompt.From(key).ToObject());
+        resultHolder.SetResult(new ObjectResult(ApiKeyDetailPrompt.From(key).ToObject()));
 
         return ExitCodes.Success;
     }

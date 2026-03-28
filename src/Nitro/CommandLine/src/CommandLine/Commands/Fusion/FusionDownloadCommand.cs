@@ -1,9 +1,7 @@
-using System.CommandLine.Invocation;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client.FusionConfiguration;
@@ -16,7 +14,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionDownloadCommand : Command
 {
-    public FusionDownloadCommand() : base("download")
+    public FusionDownloadCommand(
+        INitroConsole console,
+        IFusionConfigurationClient fusionConfigurationClient,
+        IFileSystem fileSystem) : base("download")
     {
         Description = "Downloads the most recent gateway configuration";
 
@@ -25,26 +26,21 @@ internal sealed class FusionDownloadCommand : Command
         Options.Add(Opt<OptionalOutputFileOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IFusionConfigurationClient>(),
-            Bind.FromServiceProvider<IFileSystem>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
-        var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-        var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
+        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
         var outputFile =
-            context.ParseResult.GetValueForOption(Opt<OptionalOutputFileOption>.Instance) ??
+            parseResult.GetValue(Opt<OptionalOutputFileOption>.Instance) ??
             Path.Combine(Environment.CurrentDirectory, "gateway.far");
 
         var isFgp = Path.GetExtension(outputFile).Equals(".fgp", StringComparison.OrdinalIgnoreCase);

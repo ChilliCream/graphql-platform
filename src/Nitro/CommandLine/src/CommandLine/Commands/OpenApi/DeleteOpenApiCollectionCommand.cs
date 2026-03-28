@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client.Apis;
@@ -16,26 +15,37 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class DeleteOpenApiCollectionCommand : Command
 {
-    public DeleteOpenApiCollectionCommand() : base("delete")
+    public DeleteOpenApiCollectionCommand(
+        INitroConsole console,
+        IOpenApiClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("delete")
     {
         Description = "Deletes an OpenAPI collection";
 
         Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IOpenApiClient>(),
-            Opt<OptionalIdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                parseResult,
+                console,
+                client,
+                apisClient,
+                sessionService,
+                resultHolder,
+                parseResult.GetValue(Opt<OptionalIdArgument>.Instance),
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IOpenApiClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         string? openApiCollectionId,
         CancellationToken cancellationToken)
     {
@@ -53,10 +63,10 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
                 throw Exit("The OpenAPI collection ID is required in non-interactive mode.");
             }
 
-            var workspaceId = context.RequireWorkspaceId();
+            var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
             var selectedApi = await SelectApiPrompt
-                .New(context.BindingContext.GetRequiredService<IApisClient>(), workspaceId)
+                .New(apisClient, workspaceId)
                 .Title(apiMessage)
                 .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
 
@@ -77,9 +87,10 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
             console.OkQuestion(openApiCollectionMessage, openApiCollectionId);
         }
 
-        var shouldDelete = await context.ConfirmWhenNotForced(
+        var shouldDelete = await parseResult.ConfirmWhenNotForced(
             $"Do you want to delete the OpenAPI collection with the ID {openApiCollectionId}?"
                 .EscapeMarkup(),
+            console,
             cancellationToken);
 
         if (!shouldDelete)
@@ -99,7 +110,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
         }
 
         console.OkLine($"OpenAPI collection {detail.Name.AsHighlight()} was deleted.");
-        context.SetResult(OpenApiCollectionDetailPrompt.From(detail).ToObject());
+        resultHolder.SetResult(new ObjectResult(OpenApiCollectionDetailPrompt.From(detail).ToObject()));
 
         return ExitCodes.Success;
     }

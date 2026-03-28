@@ -1,4 +1,3 @@
-using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
@@ -13,7 +12,11 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
 internal sealed class CreateWorkspaceCommand : Command
 {
-    public CreateWorkspaceCommand() : base("create")
+    public CreateWorkspaceCommand(
+        INitroConsole console,
+        IWorkspacesClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("create")
     {
         Description =
             "Creates a new workspace";
@@ -21,36 +24,33 @@ internal sealed class CreateWorkspaceCommand : Command
         Options.Add(Opt<SetAsDefaultWorkspaceOption>.Instance);
         Options.Add(Opt<WorkspaceNameOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IWorkspacesClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 
     public static async Task<int> ExecuteAsync(
-        InvocationContext context,
+        ParseResult parseResult,
         INitroConsole console,
         IWorkspacesClient client,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         console.WriteLine();
         console.WriteLine("Creating a workspace");
         console.WriteLine();
 
-        var name = await context.OptionOrAskAsync("Name", Opt<WorkspaceNameOption>.Instance, ct);
+        var name = await parseResult.OptionOrAskAsync("Name", Opt<WorkspaceNameOption>.Instance, console, ct);
 
         var asDefault = false;
         var session = sessionService.Session;
 
         if (console.IsInteractive && session is not null)
         {
-            asDefault = await context.OptionOrConfirmAsync(
+            asDefault = await parseResult.OptionOrConfirmAsync(
                 "Set as default workspace",
                 Opt<SetAsDefaultWorkspaceOption>.Instance,
+                console,
                 ct);
         }
 
@@ -64,7 +64,7 @@ internal sealed class CreateWorkspaceCommand : Command
 
         console.OkLine($"Workspace {workspaceDetail.Name.AsHighlight()} created");
 
-        context.SetResult(WorkspaceDetailPrompt.From(workspaceDetail).ToObject());
+        resultHolder.SetResult(new ObjectResult(WorkspaceDetailPrompt.From(workspaceDetail).ToObject()));
 
         if (asDefault)
         {

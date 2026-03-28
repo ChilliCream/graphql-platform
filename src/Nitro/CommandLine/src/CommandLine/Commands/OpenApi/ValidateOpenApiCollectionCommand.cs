@@ -9,7 +9,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class ValidateOpenApiCollectionCommand : Command
 {
-    public ValidateOpenApiCollectionCommand() : base("validate")
+    public ValidateOpenApiCollectionCommand(
+        INitroConsole console,
+        IOpenApiClient client,
+        IFileSystem fileSystem) : base("validate")
     {
         Description = "Validate an OpenAPI collection version";
 
@@ -18,16 +21,16 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         Options.Add(Opt<OpenApiCollectionFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<INitroConsole>(),
-            Bind.FromServiceProvider<IOpenApiClient>(),
-            Bind.FromServiceProvider<IFileSystem>(),
-            Opt<StageNameOption>.Instance,
-            Opt<OpenApiCollectionIdOption>.Instance,
-            Opt<OpenApiCollectionFilePatternOption>.Instance,
-            Opt<OptionalSourceMetadataOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                console,
+                client,
+                fileSystem,
+                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
+                parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!,
+                parseResult.GetValue(Opt<OpenApiCollectionFilePatternOption>.Instance)!,
+                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

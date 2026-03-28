@@ -8,7 +8,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
 internal sealed class UploadSchemaCommand : Command
 {
-    public UploadSchemaCommand()
+    public UploadSchemaCommand(
+        INitroConsole console,
+        ISchemasClient client,
+        IFileSystem fileSystem)
         : base("upload")
     {
         Description = "Upload a new schema version";
@@ -18,26 +21,16 @@ internal sealed class UploadSchemaCommand : Command
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(async context =>
-        {
-            var console = context.BindingContext.GetRequiredService<INitroConsole>();
-            var client = context.BindingContext.GetRequiredService<ISchemasClient>();
-            var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var schemaFilePath = context.ParseResult.GetValueForOption(Opt<SchemaFileOption>.Instance)!;
-            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-
-            context.ExitCode = await ExecuteAsync(
+        SetAction(async (parseResult, cancellationToken)
+            => await ExecuteAsync(
                 console,
                 client,
                 fileSystem,
-                tag,
-                schemaFilePath,
-                apiId,
-                sourceMetadataJson,
-                context.GetCancellationToken());
-        });
+                parseResult.GetValue(Opt<TagOption>.Instance)!,
+                parseResult.GetValue(Opt<SchemaFileOption>.Instance)!,
+                parseResult.GetValue(Opt<ApiIdOption>.Instance)!,
+                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(

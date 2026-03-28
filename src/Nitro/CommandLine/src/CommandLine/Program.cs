@@ -24,7 +24,7 @@ public static class Program
 
         services
             .AddNitroServices()
-            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, Console.Error))
+            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, Console.Out, Console.Error))
             .AddNitroCommands();
 
         await using var provider = services.BuildServiceProvider();

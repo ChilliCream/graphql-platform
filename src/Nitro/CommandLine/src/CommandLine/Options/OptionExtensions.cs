@@ -5,9 +5,9 @@ internal static class OptionExtensions
     public static Option<string> NonEmptyStringsOnly(
         this Option<string> option)
     {
-        option.AddValidator(result =>
+        option.Validators.Add(result =>
         {
-            var value = result.GetValueForOption(option);
+            var value = result.GetValue(option);
             if (value is null)
             {
                 return;
@@ -19,7 +19,7 @@ internal static class OptionExtensions
                     ? option.Name
                     : $"--{option.Name}";
 
-                result.ErrorMessage = $"Expected a non-empty value for '{optionName}'.";
+                result.AddError($"Expected a non-empty value for '{optionName}'.");
             }
         });
 
@@ -40,7 +40,7 @@ internal static class OptionExtensions
     public static Option<T> DefaultFromEnvironmentValue<T>(
         this Option<T> option,
         string name,
-        Func<string, object>? transform = null,
+        Func<string, T>? transform = null,
         T? defaultValue = default)
     {
         var value = s_prefixes
@@ -49,12 +49,13 @@ internal static class OptionExtensions
 
         if (value is not null)
         {
-            transform ??= x => x;
-            option.SetDefaultValueFactory(() => transform(value) ?? defaultValue);
+            // TODO: How to fix this
+            // transform ??= x => x;
+            // option.DefaultValueFactory = result => transform(value) ?? defaultValue;
         }
         else if (defaultValue is not null)
         {
-            option.SetDefaultValue(defaultValue);
+            option.DefaultValueFactory = _ => defaultValue;
         }
 
         option.Description ??= "";
