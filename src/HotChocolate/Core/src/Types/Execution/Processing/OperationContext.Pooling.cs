@@ -88,9 +88,9 @@ internal sealed partial class OperationContext
         _batchDispatcher = batchDispatcher;
         _variableIndex = variableIndex;
 
-        _propagateNullValues = (_requestContext.Request.ErrorHandlingMode
-            ?? ((ISchemaDefinition)_schema).GetOptions().DefaultErrorHandlingMode)
-            is not Language.ErrorHandlingMode.Null;
+        var errorHandlingMode = _requestContext.Request.ErrorHandlingMode
+            ?? _schema.GetOptions().DefaultErrorHandlingMode;
+        _propagateNullValues = errorHandlingMode is Language.ErrorHandlingMode.Propagate;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
         DeferFlags = operation.CreateDeferFlags(variables);
