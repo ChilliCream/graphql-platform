@@ -2861,6 +2861,10 @@
             "title": "Handlers and Consumers"
           },
           {
+            "path": "handler-registration",
+            "title": "Handler Registration"
+          },
+          {
             "path": "routing-and-endpoints",
             "title": "Routing and Endpoints"
           },
