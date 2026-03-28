@@ -69,7 +69,7 @@ internal sealed class DynamicEndpointMiddleware(
 
             var requestBuilder = OperationRequestBuilder.New()
                 .SetDocument(endpointDescriptor.Document)
-                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .SetErrorHandlingMode(ErrorHandlingMode.Propagate)
                 .SetVariableValues(variables);
 
             await session.OnCreateAsync(context, requestBuilder, cancellationToken);

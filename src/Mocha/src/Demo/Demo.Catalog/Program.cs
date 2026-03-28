@@ -1,8 +1,6 @@
 using Demo.Catalog.Commands;
 using Demo.Catalog.Data;
-using Demo.Catalog.Handlers;
 using Demo.Catalog.Queries;
-using Demo.Catalog.Sagas;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
@@ -18,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Database
-builder.AddNpgsqlDbContext<CatalogDbContext>("catalog-db");
+builder.AddNpgsqlDbContext<CatalogDbContext>("catalog-db", x => x.DisableTracing = true);
 
 // RabbitMQ
 builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
@@ -26,23 +24,14 @@ builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
 // Mocha.Mediator
 builder.Services.AddMediator()
     .AddCatalog()
+    .AddInstrumentation()
     .UseEntityFrameworkTransactions<CatalogDbContext>();
 
 // MessageBus
 builder
     .Services.AddMessageBus()
     .AddInstrumentation()
-    // Event handlers
-    .AddEventHandler<PaymentCompletedEventHandler>()
-    .AddEventHandler<ShipmentCreatedEventHandler>()
-    // Request handlers
-    .AddRequestHandler<GetProductRequestHandler>()
-    .AddRequestHandler<ReserveInventoryCommandHandler>()
-    .AddRequestHandler<InspectReturnCommandHandler>()
-    .AddRequestHandler<RestockInventoryCommandHandler>()
-    // Sagas
-    .AddSaga<QuickRefundSaga>()
-    .AddSaga<ReturnProcessingSaga>()
+    .AddCatalog()
     .AddEntityFramework<CatalogDbContext>(p =>
     {
         p.AddPostgresSagas();

@@ -279,7 +279,7 @@ builder.Services
 
 `AddHandler<T>()` inspects the type for handler interfaces (`ICommandHandler`, `IQueryHandler`, `INotificationHandler`), builds the pipeline configuration, and registers the handler in DI. It throws `InvalidOperationException` if `T` does not implement a handler interface.
 
-You can mix source-generated and manual registration:
+You can mix source-generated and manual registration. If both register the same handler type, the configurations are composed:
 
 ```csharp
 builder.Services
@@ -287,6 +287,8 @@ builder.Services
     .AddCatalog()                              // source-generated handlers
     .AddHandler<ExternalPaymentHandler>();      // additional handler from another assembly
 ```
+
+> **Prefer the source generator.** The source-generated registration path uses pre-compiled terminal delegates with no reflection. The source-generated output is designed for long-term stability across versions. Manual registration is available for edge cases but its internal behavior may change between releases.
 
 ## Configure service lifetime
 

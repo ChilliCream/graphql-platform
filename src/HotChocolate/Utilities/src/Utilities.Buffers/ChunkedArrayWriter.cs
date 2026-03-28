@@ -19,7 +19,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     private const int BufferMask = BufferSize - 1;
     private const int BufferShift = 17; // log2(131072) = 17
     private const int DefaultScratchSize = 128;
-    private const int SimdThreshold = 32;
+    private const int SimdThreshold = 64;
 
     private readonly JsonMemoryKind _memoryKind;
     private byte[][] _chunks;
