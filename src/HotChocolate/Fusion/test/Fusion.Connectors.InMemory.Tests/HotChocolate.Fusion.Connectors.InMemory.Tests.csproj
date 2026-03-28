@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Connectors.InMemory\HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
