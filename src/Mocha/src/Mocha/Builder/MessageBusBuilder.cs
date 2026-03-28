@@ -78,7 +78,11 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             {
                 var inner = existing.Configure;
                 existing.Configure = inner is not null
-                    ? d => { inner(d); configure(d); }
+                    ? d =>
+                    {
+                        inner(d);
+                        configure(d);
+                    }
                     : configure;
             }
 
@@ -90,31 +94,47 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         if (typeof(IBatchEventHandler).IsAssignableFrom(typeof(THandler)) && THandler.EventType is not null)
         {
-            var consumerType = typeof(BatchConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
-            factory = c => (Consumer)Activator.CreateInstance(consumerType, c)!;
+            factory = static c =>
+            {
+                var consumerType = typeof(BatchConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else if (typeof(IConsumer).IsAssignableFrom(typeof(THandler)) && THandler.EventType is not null)
         {
-            var consumerType = typeof(ConsumerAdapter<,>).MakeGenericType(typeof(THandler), THandler.EventType);
-            factory = c => (Consumer)Activator.CreateInstance(consumerType, c)!;
+            factory = static c =>
+            {
+                var consumerType = typeof(ConsumerAdapter<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else if (THandler.RequestType is not null && THandler.ResponseType is not null)
         {
-            var consumerType = typeof(RequestConsumer<,,>).MakeGenericType(
-                typeof(THandler),
-                THandler.RequestType,
-                THandler.ResponseType);
-            factory = c => (Consumer)Activator.CreateInstance(consumerType, c)!;
+            factory = static c =>
+            {
+                var consumerType = typeof(RequestConsumer<,,>).MakeGenericType(
+                    typeof(THandler),
+                    THandler.RequestType,
+                    THandler.ResponseType);
+
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else if (THandler.RequestType is not null)
         {
-            var consumerType = typeof(SendConsumer<,>).MakeGenericType(typeof(THandler), THandler.RequestType);
-            factory = c => (Consumer)Activator.CreateInstance(consumerType, c)!;
+            factory = static c =>
+            {
+                var consumerType = typeof(SendConsumer<,>).MakeGenericType(typeof(THandler), THandler.RequestType);
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else if (THandler.EventType is not null)
         {
-            var consumerType = typeof(SubscribeConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
-            factory = c => (Consumer)Activator.CreateInstance(consumerType, c)!;
+            factory = static c =>
+            {
+                var consumerType = typeof(SubscribeConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else
         {
@@ -123,9 +143,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         _consumerRegistrations.Add(new ConsumerRegistration
         {
-            HandlerType = handlerType,
-            Configure = configure,
-            Factory = factory
+            HandlerType = handlerType, Configure = configure, Factory = factory
         });
 
         return this;
@@ -146,9 +164,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         _consumerRegistrations.Add(new ConsumerRegistration
         {
-            HandlerType = handlerType,
-            Configure = null,
-            Factory = configuration.Factory
+            HandlerType = handlerType, Configure = null, Factory = configuration.Factory
         });
 
         return this;
@@ -181,11 +197,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             return this;
         }
 
-        _sagaRegistrations.Add(new SagaRegistration
-        {
-            SagaType = sagaType,
-            Factory = static () => new TSaga()
-        });
+        _sagaRegistrations.Add(new SagaRegistration { SagaType = sagaType, Factory = static () => new TSaga() });
 
         return this;
     }
@@ -457,6 +469,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         // but no endpoint.
         foreach (var route in router.OutboundRoutes)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (route.Endpoint is null && route.Destination is not null)
             {
                 var endpoint = setupContext.Endpoints.GetOrCreate(setupContext, route.Destination);
