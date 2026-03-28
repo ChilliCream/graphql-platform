@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -6,6 +7,7 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using CookieCrumble;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Analyzers;
 
 namespace Mocha.Analyzers.Tests;
@@ -29,16 +31,16 @@ internal static class MessagingTestHelper
             .. Net100.References.All,
 #endif
             // Mocha.Abstractions (IEventHandler, IEventRequestHandler, IEventRequest, MessagingModuleAttribute)
-            MetadataReference.CreateFromFile(typeof(Mocha.IEventHandler).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IEventHandler).Assembly.Location),
 
             // Mocha (IConsumer, IBatchEventHandler, Saga, SagaStateBase)
-            MetadataReference.CreateFromFile(typeof(Mocha.IConsumer).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IConsumer).Assembly.Location),
 
             // Microsoft.Extensions.DependencyInjection.Abstractions
-            MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.DependencyInjection.IServiceCollection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
 
             // System.Runtime.CompilerServices.Unsafe
-            MetadataReference.CreateFromFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location),
 
             // System.Runtime from the actual runtime (needed for predefined type resolution
             // so that assembly-level attribute constructor arguments can be bound)

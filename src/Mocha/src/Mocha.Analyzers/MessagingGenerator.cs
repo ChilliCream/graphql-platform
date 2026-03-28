@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
@@ -180,10 +179,11 @@ public sealed class MessagingGenerator : IIncrementalGenerator
 
         foreach (var info in syntaxInfos)
         {
-            if (info is MessagingHandlerInfo handlerInfo
-                && handlerInfo.Diagnostics.Count == 0
-                && (handlerInfo.Kind == MessagingHandlerKind.Send
-                    || handlerInfo.Kind == MessagingHandlerKind.RequestResponse))
+            if (info is MessagingHandlerInfo
+                {
+                    Diagnostics.Count: 0,
+                    Kind: MessagingHandlerKind.Send or MessagingHandlerKind.RequestResponse
+                } handlerInfo)
             {
                 requestHandlers.Add(handlerInfo);
             }

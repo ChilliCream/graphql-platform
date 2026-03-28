@@ -84,8 +84,6 @@ public static class Errors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    // --- MessageBus diagnostics ---
-
     /// <summary>
     /// Gets the descriptor for MO0011: a request type has more than one handler.
     /// </summary>

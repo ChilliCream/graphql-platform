@@ -80,7 +80,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddMessageBus()
-    .AddMyApp() // source-generated — registers OrderPlacedHandler automatically
+    .AddMyApp() // source-generated - registers OrderPlacedHandler automatically
     .AddInMemory(); // or .AddRabbitMQ()
 
 var app = builder.Build();
@@ -179,7 +179,7 @@ The return value is sent back to the caller automatically. The return value must
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddMyApp() // source-generated — registers GetProductRequestHandler automatically
+    .AddMyApp() // source-generated - registers GetProductRequestHandler automatically
     .AddRabbitMQ();
 ```
 
@@ -260,7 +260,7 @@ public class ReserveInventoryCommandHandler(
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddMyApp() // source-generated — registers ReserveInventoryCommandHandler automatically
+    .AddMyApp() // source-generated - registers ReserveInventoryCommandHandler automatically
     .AddRabbitMQ();
 ```
 

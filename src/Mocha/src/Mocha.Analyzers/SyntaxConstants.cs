@@ -51,8 +51,6 @@ public static class SyntaxConstants
     /// </summary>
     public const string MediatorModuleAttribute = "Mocha.Mediator.MediatorModuleAttribute";
 
-    // --- MessageBus types ---
-
     /// <summary>
     /// Gets the metadata name for the <c>IEventHandler&lt;TEvent&gt;</c> interface.
     /// </summary>

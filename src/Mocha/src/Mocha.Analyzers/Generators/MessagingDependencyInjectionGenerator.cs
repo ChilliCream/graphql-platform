@@ -43,7 +43,6 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
         builder.WriteBeginClass();
         builder.WriteBeginRegistrationMethod();
 
-        // --- Batch Handlers ---
         var batchHandlers = handlers
             .Where(h => h.Kind == MessagingHandlerKind.Batch)
             .OrderBy(h => h.HandlerTypeName)
@@ -59,7 +58,6 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             }
         }
 
-        // --- Consumers ---
         var consumers = handlers
             .Where(h => h.Kind == MessagingHandlerKind.Consumer)
             .OrderBy(h => h.HandlerTypeName)
@@ -75,9 +73,8 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             }
         }
 
-        // --- Request Handlers ---
         var requestHandlers = handlers
-            .Where(h => h.Kind == MessagingHandlerKind.RequestResponse || h.Kind == MessagingHandlerKind.Send)
+            .Where(h => h.Kind is MessagingHandlerKind.RequestResponse or MessagingHandlerKind.Send)
             .OrderBy(h => h.HandlerTypeName)
             .ToList();
 
@@ -91,7 +88,6 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             }
         }
 
-        // --- Event Handlers ---
         var eventHandlers = handlers
             .Where(h => h.Kind == MessagingHandlerKind.Event)
             .OrderBy(h => h.HandlerTypeName)
@@ -107,7 +103,6 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             }
         }
 
-        // --- Sagas ---
         if (sagas.Count > 0)
         {
             builder.WriteSectionComment("Sagas");

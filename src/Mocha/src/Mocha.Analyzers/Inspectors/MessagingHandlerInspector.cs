@@ -25,11 +25,11 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
     // Priority cascade: first match wins (matches runtime MessageBusBuilder.AddHandler<T> logic)
     private static readonly MessagingHandlerKindDescriptor[] s_handlerKinds =
     [
-        new(static s => s.IBatchEventHandler, MessagingHandlerKind.Batch, HasResponse: false, MessageTypeArgIndex: 0),
-        new(static s => s.IConsumer, MessagingHandlerKind.Consumer, HasResponse: false, MessageTypeArgIndex: 0),
-        new(static s => s.IEventRequestHandlerResponse, MessagingHandlerKind.RequestResponse, HasResponse: true, MessageTypeArgIndex: 0),
-        new(static s => s.IEventRequestHandlerVoid, MessagingHandlerKind.Send, HasResponse: false, MessageTypeArgIndex: 0),
-        new(static s => s.IEventHandler, MessagingHandlerKind.Event, HasResponse: false, MessageTypeArgIndex: 0)
+        new(static s => s.IBatchEventHandler, MessagingHandlerKind.Batch, false, 0),
+        new(static s => s.IConsumer, MessagingHandlerKind.Consumer, false, 0),
+        new(static s => s.IEventRequestHandlerResponse, MessagingHandlerKind.RequestResponse, true, 0),
+        new(static s => s.IEventRequestHandlerVoid, MessagingHandlerKind.Send, false, 0),
+        new(static s => s.IEventHandler, MessagingHandlerKind.Event, false, 0)
     ];
 
     /// <inheritdoc />
@@ -51,15 +51,13 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
 
         var namedTypeSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration);
 
-        if (namedTypeSymbol is null
-            || namedTypeSymbol.IsAbstract
-            || namedTypeSymbol.TypeKind == TypeKind.Interface)
+        if (namedTypeSymbol is null || namedTypeSymbol.IsAbstract || namedTypeSymbol.TypeKind == TypeKind.Interface)
         {
             return false;
         }
 
         // Check for open generics (MO0012)
-        if (namedTypeSymbol.IsGenericType && namedTypeSymbol.TypeParameters.Length > 0)
+        if (namedTypeSymbol is { IsGenericType: true, TypeParameters.Length: > 0 })
         {
             if (ImplementsAnyMessagingInterface(knownSymbols, namedTypeSymbol))
             {
@@ -114,7 +112,8 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
         KnownTypeSymbols knownSymbols,
         INamedTypeSymbol namedTypeSymbol)
     {
-        return (knownSymbols.IBatchEventHandler is not null
+        return
+            (knownSymbols.IBatchEventHandler is not null
                 && namedTypeSymbol.FindImplementedInterface(knownSymbols.IBatchEventHandler) is not null)
             || (knownSymbols.IConsumer is not null
                 && namedTypeSymbol.FindImplementedInterface(knownSymbols.IConsumer) is not null)
