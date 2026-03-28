@@ -22,7 +22,7 @@ internal sealed class LoginCommand : Command
             ExecuteAsync,
             Opt<IdentityCloudUrlOption>.Instance,
             Opt<IdentityCloudUrlArgument>.Instance,
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IWorkspacesClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<CancellationToken>());
@@ -31,7 +31,7 @@ internal sealed class LoginCommand : Command
     private static async Task<int> ExecuteAsync(
         string cloudUrl,
         string? url,
-        IAnsiConsole console,
+        INitroConsole console,
         IWorkspacesClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)

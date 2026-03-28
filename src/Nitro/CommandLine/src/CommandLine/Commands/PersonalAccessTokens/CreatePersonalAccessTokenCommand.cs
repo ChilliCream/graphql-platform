@@ -22,14 +22,14 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IPersonalAccessTokensClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IPersonalAccessTokensClient client,
         CancellationToken ct)
     {

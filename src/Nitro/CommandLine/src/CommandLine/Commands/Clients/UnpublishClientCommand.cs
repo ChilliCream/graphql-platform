@@ -20,14 +20,14 @@ internal sealed class UnpublishClientCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IClientsClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         CancellationToken cancellationToken)
     {

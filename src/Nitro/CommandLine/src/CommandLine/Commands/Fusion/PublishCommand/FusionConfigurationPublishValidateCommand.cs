@@ -20,7 +20,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IFusionConfigurationClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<IFileSystem>(),
@@ -29,7 +29,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         ISessionService sessionService,
         IFileSystem fileSystem,
@@ -49,7 +49,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
             return await ValidateAsync(activity);
         }
 
-        async Task<int> ValidateAsync(ICommandLineActivity activity)
+        async Task<int> ValidateAsync(INitroConsoleActivity activity)
         {
             console.Log("Initialized");
 

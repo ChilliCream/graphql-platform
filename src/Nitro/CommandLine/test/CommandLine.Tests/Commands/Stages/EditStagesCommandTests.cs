@@ -27,13 +27,10 @@ public sealed class EditStagesCommandTests
 
         // assert
         Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            Update stages
-
-            You are not logged in. Run `nitro login` to sign in or specify the workspace ID with the --workspace-id option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or specify the workspace ID with the --workspace-id option (if available).
             """);
-        Assert.Empty(host.StdErr);
         stagesClient.VerifyNoOtherCalls();
         apisClient.VerifyNoOtherCalls();
     }
@@ -62,9 +59,11 @@ public sealed class EditStagesCommandTests
             Update stages
 
             ? For which API do you want to edit the stages?: api-1
+            """);
+        host.StdErr.Trim().MatchInlineSnapshot(
+            """
             Could not parse stage configuration
             """);
-        Assert.Empty(host.StdErr);
         stagesClient.VerifyNoOtherCalls();
         apisClient.VerifyNoOtherCalls();
     }
@@ -128,12 +127,12 @@ public sealed class EditStagesCommandTests
         apisClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IStagesClient> stagesClient,
         Mock<IApisClient> apisClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());

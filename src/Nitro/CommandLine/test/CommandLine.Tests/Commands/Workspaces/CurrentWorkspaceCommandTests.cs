@@ -40,9 +40,9 @@ public sealed class CurrentWorkspaceCommandTests
         Assert.Empty(host.StdErr);
     }
 
-    private static CommandTestHost CreateHost(TestSessionService session)
+    private static CommandBuilder CreateHost(TestSessionService session)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<ISessionService>(session);
 
         return host;

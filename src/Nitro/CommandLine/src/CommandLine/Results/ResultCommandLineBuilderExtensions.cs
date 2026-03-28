@@ -20,13 +20,13 @@ internal static class ResultCommandLineBuilderExtensions
     {
         var resultHolder = context.BindingContext.GetRequiredService<ResultHolder>();
         var formatters = context.BindingContext.GetServices<IResultFormatter>();
-        var outputFormatOption = context.ParseResult.FindResultFor(Opt<OutputFormatOption>.Instance);
-        var format = outputFormatOption?.GetValueOrDefault<OutputFormat>();
-        var outputFormatSpecified = outputFormatOption is not null;
-        var isInteractive = format is null;
         var extendedConsole =
             context.BindingContext.GetRequiredService<IAnsiConsole>() as IExtendedConsole ??
             context.BindingContext.GetRequiredService<ExtendedConsole>();
+        var outputFormatOption = context.ParseResult.FindResultFor(Opt<OutputFormatOption>.Instance);
+        var format = outputFormatOption?.GetValueOrDefault<OutputFormat>();
+        var outputFormatSpecified = outputFormatOption is not null;
+        var isInteractive = format is null && extendedConsole.IsInteractive;
 
         extendedConsole.IsInteractive = isInteractive;
 

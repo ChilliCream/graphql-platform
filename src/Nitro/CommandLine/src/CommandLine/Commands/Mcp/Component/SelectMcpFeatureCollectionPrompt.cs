@@ -4,7 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 
-public sealed class SelectMcpFeatureCollectionPrompt(IMcpClient client, string apiId)
+internal sealed class SelectMcpFeatureCollectionPrompt(IMcpClient client, string apiId)
 {
     private string _title = "Select an MCP Feature Collection from the list below.";
 
@@ -15,7 +15,7 @@ public sealed class SelectMcpFeatureCollectionPrompt(IMcpClient client, string a
     }
 
     public async Task<IListMcpFeatureCollectionCommandQuery_Node_McpFeatureCollections_Edges_Node?> RenderAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         var paginationContainer = PaginationContainer.CreateConnectionData(

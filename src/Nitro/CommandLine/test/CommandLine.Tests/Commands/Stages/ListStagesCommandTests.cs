@@ -24,12 +24,11 @@ public sealed class ListStagesCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
             The API ID is required in non-interactive mode.
             """);
-        Assert.Empty(host.StdErr);
         stagesClient.VerifyNoOtherCalls();
         apisClient.VerifyNoOtherCalls();
     }
@@ -106,12 +105,12 @@ public sealed class ListStagesCommandTests
         apisClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IStagesClient> stagesClient,
         Mock<IApisClient> apisClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());

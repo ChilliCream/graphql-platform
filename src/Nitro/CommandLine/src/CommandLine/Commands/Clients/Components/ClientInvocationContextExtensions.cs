@@ -10,7 +10,7 @@ internal static class ClientInvocationContextExtensions
 {
     public static async Task<string> GetOrSelectClientId(
         this InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         CancellationToken ct)
     {
@@ -18,7 +18,7 @@ internal static class ClientInvocationContextExtensions
 
         if (clientId is null)
         {
-            var apiId = await context.GetOrSelectApiId("For which API do you want to list client versions?");
+            var apiId = await context.GetOrPromptForApiIdAsync("For which API do you want to list client versions?");
 
             var selectedClient = await SelectClientPrompt
                 .New(client, apiId)

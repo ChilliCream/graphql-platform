@@ -17,14 +17,12 @@ public sealed class UploadOpenApiCollectionCommandTests
         var exitCode = await host.InvokeAsync("openapi", "upload");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
             Option '--tag' is required.
             Option '--openapi-collection-id' is required.
             Option '--pattern' is required.
-
-
             """);
         openApiClient.VerifyNoOtherCalls();
     }
@@ -54,11 +52,11 @@ public sealed class UploadOpenApiCollectionCommandTests
         openApiClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IOpenApiClient> openApiClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(openApiClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

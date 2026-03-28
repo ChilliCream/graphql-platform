@@ -24,7 +24,7 @@ internal sealed class DeleteApiCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IApisClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
@@ -32,7 +32,7 @@ internal sealed class DeleteApiCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IApisClient client,
         string apiId,
         CancellationToken cancellationToken)

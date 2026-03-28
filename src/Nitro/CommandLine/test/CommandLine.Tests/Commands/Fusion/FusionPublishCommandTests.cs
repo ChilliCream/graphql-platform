@@ -107,21 +107,20 @@ public sealed class FusionPublishCommandTests
             archivePath);
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
             Archive file '/tmp/nitro-fusion-missing.far' does not exist.
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IFusionConfigurationClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IFusionConfigurationClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

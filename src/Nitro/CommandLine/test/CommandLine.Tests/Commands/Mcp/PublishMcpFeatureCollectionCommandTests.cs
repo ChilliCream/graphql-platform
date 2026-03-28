@@ -66,7 +66,6 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         Assert.NotEqual(0, exitCode);
         host.Output.Trim().MatchInlineSnapshot(
             """
-            LOG: Initialized
             LOG: Create publish request
             LOG: Publish request created (ID: publish-1)
             ✕ MCP Feature Collection publish failed
@@ -115,11 +114,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         return update.Object;
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IMcpClient> mcpClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(mcpClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

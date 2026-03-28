@@ -28,7 +28,7 @@ internal sealed class FusionDownloadCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IFusionConfigurationClient>(),
             Bind.FromServiceProvider<IFileSystem>(),
             Bind.FromServiceProvider<CancellationToken>());
@@ -36,7 +36,7 @@ internal sealed class FusionDownloadCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
         CancellationToken cancellationToken)

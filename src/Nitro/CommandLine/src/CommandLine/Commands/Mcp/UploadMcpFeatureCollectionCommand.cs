@@ -21,7 +21,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         this.SetHandler(async context =>
         {
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var client = context.BindingContext.GetRequiredService<IMcpClient>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
@@ -44,7 +44,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         IMcpClient client,
         IFileSystem fileSystem,
         string tag,

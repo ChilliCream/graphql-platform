@@ -341,8 +341,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "--working-directory",
             "__resources__/invalid-example-1",
             "--archive",
-            archiveFileName,
-            "--print"
+            archiveFileName
         ];
         var testConsole = new TestConsole();
 
@@ -351,8 +350,18 @@ public sealed class FusionComposeCommandTests : IDisposable
 
         // assert
         Assert.Equal(0, exitCode);
-        testConsole.Out.ToString()!.ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(s_invalidExample1CompositeSchema);
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        var expectedSourceText = string.Join(
+                "\n",
+                s_invalidExample1CompositeSchema
+                    .ReplaceLineEndings("\n")
+                    .Split('\n')
+                    .Where(line => !line.StartsWith("# ⚠️", StringComparison.Ordinal)))
+            .TrimStart('\n');
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(expectedSourceText);
     }
 
     [Fact]

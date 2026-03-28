@@ -20,7 +20,7 @@ internal sealed class UploadSchemaCommand : Command
 
         this.SetHandler(async context =>
         {
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var client = context.BindingContext.GetRequiredService<ISchemasClient>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
@@ -41,7 +41,7 @@ internal sealed class UploadSchemaCommand : Command
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         ISchemasClient client,
         IFileSystem fileSystem,
         string tag,

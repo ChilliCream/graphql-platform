@@ -23,14 +23,14 @@ internal sealed class CreateClientCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IClientsClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         CancellationToken cancellationToken)
     {
@@ -39,7 +39,7 @@ internal sealed class CreateClientCommand : Command
         console.WriteLine();
 
         const string apiMessage = "For which API do you want to create a client?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
 
         var name = await context
             .OptionOrAskAsync("Name", Opt<ClientNameOption>.Instance, cancellationToken);

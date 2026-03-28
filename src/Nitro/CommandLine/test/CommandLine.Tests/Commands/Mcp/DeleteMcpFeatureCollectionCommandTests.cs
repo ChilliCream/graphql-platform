@@ -22,12 +22,11 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
             The MCP Feature Collection ID is required in non-interactive mode.
             """);
-        Assert.Empty(host.StdErr);
         mcpClient.VerifyNoOtherCalls();
     }
 
@@ -63,11 +62,11 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IMcpClient> mcpClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(mcpClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

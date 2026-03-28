@@ -32,7 +32,7 @@ internal sealed class FusionSettingsSetCommand : Command
             var archiveFile = context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance);
             var environment = context.ParseResult.GetValueForOption(Opt<FusionEnvironmentOption>.Instance);
 
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
 
             context.ExitCode = await ExecuteAsync(
@@ -51,7 +51,7 @@ internal sealed class FusionSettingsSetCommand : Command
         string settingValue,
         string archiveFile,
         string? environment,
-        IAnsiConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {

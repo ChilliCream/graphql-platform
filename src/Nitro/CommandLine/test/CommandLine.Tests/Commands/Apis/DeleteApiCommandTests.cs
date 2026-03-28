@@ -17,7 +17,7 @@ public sealed class DeleteApiCommandTests
         var exitCode = await host.InvokeAsync("api", "delete", "--force");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
             Required argument missing for command: 'delete'.
@@ -45,12 +45,11 @@ public sealed class DeleteApiCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            API with ID api-404 was not found
+            API with ID [bold blue]api-404[/] was not found
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyAll();
     }
 

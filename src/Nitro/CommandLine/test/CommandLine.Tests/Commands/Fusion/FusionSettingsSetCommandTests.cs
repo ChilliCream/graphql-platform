@@ -8,7 +8,7 @@ public sealed class FusionSettingsSetCommandTests
     public async Task SettingsSet_MissingArguments_ReturnsParseError()
     {
         // arrange
-        var host = new CommandTestHost();
+        var host = new CommandBuilder();
 
         // act
         var exitCode = await host.InvokeAsync("fusion", "settings", "set");
@@ -27,7 +27,7 @@ public sealed class FusionSettingsSetCommandTests
     public async Task SettingsSet_InvalidSettingName_ReturnsParseError()
     {
         // arrange
-        var host = new CommandTestHost();
+        var host = new CommandBuilder();
 
         // act
         var exitCode = await host.InvokeAsync(
@@ -55,7 +55,7 @@ public sealed class FusionSettingsSetCommandTests
     public async Task SettingsSet_MissingArchiveOption_ReturnsParseError()
     {
         // arrange
-        var host = new CommandTestHost();
+        var host = new CommandBuilder();
 
         // act
         var exitCode = await host.InvokeAsync(
@@ -155,9 +155,9 @@ public sealed class FusionSettingsSetCommandTests
         Assert.Empty(host.StdErr);
     }
 
-    private static CommandTestHost CreateHost(TestFileSystem? fileSystem = null)
+    private static CommandBuilder CreateHost(TestFileSystem? fileSystem = null)
     {
-        var host = new CommandTestHost();
+        var host = new CommandBuilder();
         if (fileSystem is not null)
         {
             host.AddService<IFileSystem>(fileSystem);

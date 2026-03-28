@@ -101,12 +101,12 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         CreateProcessingTaskIsReadyEvent()
         => Mock.Of<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsReady>();
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IFusionConfigurationClient> client,
         TestFileSystem fileSystem,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IFusionConfigurationClient>(client.Object)
             .AddService<IFileSystem>(fileSystem)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());

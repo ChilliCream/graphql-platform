@@ -35,7 +35,7 @@ public sealed class FusionUploadCommand : Command
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
             var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var fusionConfigurationClient =
                 context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
@@ -54,7 +54,7 @@ public sealed class FusionUploadCommand : Command
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         string workingDirectory,
         string sourceSchemaFilePath,

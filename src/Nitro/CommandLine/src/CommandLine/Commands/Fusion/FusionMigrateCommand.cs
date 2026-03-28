@@ -19,7 +19,7 @@ internal sealed class FusionMigrateCommand : Command
             var target = context.ParseResult.GetValueForArgument(
                 Opt<FusionMigrateTargetArgument>.Instance);
             var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
 
             context.ExitCode = target switch
@@ -35,7 +35,7 @@ internal sealed class FusionMigrateCommand : Command
     }
 
     private static async Task<int> MigrateSubgraphConfigAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         string workingDirectory,
         CancellationToken cancellationToken)

@@ -24,14 +24,14 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IMcpClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IMcpClient client,
         CancellationToken cancellationToken)
     {
@@ -40,7 +40,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         console.WriteLine();
 
         const string apiMessage = "For which API do you want to create an MCP Feature Collection?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
 
         var name = await context
             .OptionOrAskAsync("Name", Opt<McpFeatureCollectionNameOption>.Instance, cancellationToken);

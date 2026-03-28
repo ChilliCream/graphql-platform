@@ -2,7 +2,9 @@ namespace ChilliCream.Nitro.CommandLine.Options;
 
 internal sealed class ApiKeyOption : Option<string>
 {
-    public ApiKeyOption() : base("--api-key")
+    public const string OptionName = "--api-key";
+
+    public ApiKeyOption() : base(OptionName)
     {
         Description = "The API key that is used for the authentication";
         IsRequired = false;

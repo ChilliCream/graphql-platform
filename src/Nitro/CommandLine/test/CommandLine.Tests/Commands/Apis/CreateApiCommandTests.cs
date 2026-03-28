@@ -25,12 +25,11 @@ public sealed class CreateApiCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            You are not logged in. Run `nitro login` to sign in or specify the workspace ID with the --workspace-id option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or specify the workspace ID with the --workspace-id option (if available).
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyNoOtherCalls();
     }
 
@@ -55,7 +54,7 @@ public sealed class CreateApiCommandTests
             "invalid");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
             Argument 'invalid' not recognized. Must be one of:

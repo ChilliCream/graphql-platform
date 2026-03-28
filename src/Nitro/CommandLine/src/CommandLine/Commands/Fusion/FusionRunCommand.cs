@@ -34,7 +34,7 @@ public class FusionRunCommand : Command
             var archiveFilePath = context.ParseResult.GetValueForArgument(
                 Opt<FusionRunArchiveArgument>.Instance)!;
 
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
 
             var port = context.ParseResult.GetValueForOption(Opt<FusionRunPortOption>.Instance);
@@ -45,7 +45,7 @@ public class FusionRunCommand : Command
 
     private static async Task ExecuteAsync(
         string archiveFilePath,
-        IAnsiConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         int? port,
         CancellationToken cancellationToken)

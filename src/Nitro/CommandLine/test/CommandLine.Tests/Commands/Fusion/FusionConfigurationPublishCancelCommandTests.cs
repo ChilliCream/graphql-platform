@@ -20,13 +20,11 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var exitCode = await host.InvokeAsync("fusion", "publish", "cancel");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            No request ID was provided and no request ID was found in the cache. Please
-            provide a request ID.
+            No request ID was provided and no request ID was found in the cache. Please provide a request ID.
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyNoOtherCalls();
         Assert.Empty(fileSystem.Files);
     }
@@ -64,12 +62,12 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         return new TestFileSystem();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IFusionConfigurationClient> client,
         TestFileSystem fileSystem,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IFusionConfigurationClient>(client.Object)
             .AddService<IFileSystem>(fileSystem)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());

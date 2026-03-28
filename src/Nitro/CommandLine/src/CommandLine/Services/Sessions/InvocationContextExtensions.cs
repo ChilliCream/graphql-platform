@@ -6,6 +6,23 @@ namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 internal static class InvocationContextExtensions
 {
+    public static void AssertHasAuthentication(
+        this ISessionService sessionService,
+        InvocationContext context)
+    {
+        var apiKey = context.ParseResult.GetValueForOption(Opt<ApiKeyOption>.Instance);
+
+        if (sessionService.Session is not null || apiKey is not null)
+        {
+            return;
+        }
+
+        throw new ExitException(
+            "This command requires an authenticated user. "
+            + $"Either specify '{ApiKeyOption.OptionName}' or run 'nitro login'.");
+    }
+
+    // TODO: This should be explicit
     public static string RequireWorkspaceId(this InvocationContext context)
     {
         var service = context.BindingContext.GetRequiredService<ISessionService>();

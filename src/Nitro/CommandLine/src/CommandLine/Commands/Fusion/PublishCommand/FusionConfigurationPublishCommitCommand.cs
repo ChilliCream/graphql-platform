@@ -19,7 +19,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IFusionConfigurationClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<IFileSystem>(),
@@ -28,7 +28,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         ISessionService sessionService,
         IFileSystem fileSystem,
@@ -59,7 +59,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         return ExitCodes.Success;
 
-        async Task Commit(ICommandLineActivity activity)
+        async Task Commit(INitroConsoleActivity activity)
         {
             await using var stream = fileSystem.OpenReadStream(archiveFile);
             committed = await FusionPublishHelpers.UploadFusionArchiveAsync(

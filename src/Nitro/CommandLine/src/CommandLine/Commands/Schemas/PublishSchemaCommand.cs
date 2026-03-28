@@ -21,7 +21,7 @@ internal sealed class PublishSchemaCommand : Command
 
         this.SetHandler(async context =>
         {
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var client = context.BindingContext.GetRequiredService<ISchemasClient>();
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
             var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
@@ -44,7 +44,7 @@ internal sealed class PublishSchemaCommand : Command
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         ISchemasClient client,
         string tag,
         string stage,

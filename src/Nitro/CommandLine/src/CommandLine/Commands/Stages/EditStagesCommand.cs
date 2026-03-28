@@ -31,7 +31,7 @@ internal sealed class EditStagesCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IStagesClient>(),
             Bind.FromServiceProvider<CancellationToken>()
         );
@@ -39,7 +39,7 @@ internal sealed class EditStagesCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IStagesClient client,
         CancellationToken cancellationToken)
     {
@@ -47,7 +47,7 @@ internal sealed class EditStagesCommand : Command
 
         const string apiMessage = "For which API do you want to edit the stages?";
 
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
 
         var stageConfiguration = context.ParseResult.GetValueForOption(
             Opt<StageConfigurationOption>.Instance
@@ -91,7 +91,7 @@ internal sealed class EditStagesCommand : Command
 
     private static async Task<int> EditStagesInteractivlyAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IStagesClient client,
         string apiId,
         CancellationToken cancellationToken)
@@ -174,7 +174,7 @@ file static class ClientExtensions
     public static async Task UpdateStagesAsync(
         this IStagesClient client,
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         string apiId,
         IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
@@ -195,7 +195,7 @@ file static class ClientExtensions
 file static class Extensions
 {
     public static async Task<ActionResult?> ShowStages(
-        this IAnsiConsole console,
+        this INitroConsole console,
         string apiId,
         IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
@@ -227,7 +227,7 @@ file static class Extensions
     }
 
     public static async Task<StageUpdateModel> EditStage(
-        this IAnsiConsole console,
+        this INitroConsole console,
         IEnumerable<StageUpdateModel> updatedStages,
         StageUpdateModel selectedStage,
         CancellationToken cancellationToken)
@@ -269,7 +269,7 @@ file static class Extensions
     }
 
     public static async Task<bool> ConfirmStageUpdate(
-        this IAnsiConsole console,
+        this INitroConsole console,
         IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
     {
@@ -370,7 +370,7 @@ file static class SelectableTableExtensions
 
 file static class ConsoleExtensions
 {
-    public static void WriteOperationTitle(this IAnsiConsole console)
+    public static void WriteOperationTitle(this INitroConsole console)
     {
         console.WriteLine();
         console.WriteLine("Update stages");

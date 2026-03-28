@@ -17,14 +17,12 @@ public sealed class ValidateOpenApiCollectionCommandTests
         var exitCode = await host.InvokeAsync("openapi", "validate");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
             Option '--stage' is required.
             Option '--openapi-collection-id' is required.
             Option '--pattern' is required.
-
-
             """);
         openApiClient.VerifyNoOtherCalls();
     }
@@ -49,16 +47,16 @@ public sealed class ValidateOpenApiCollectionCommandTests
             pattern);
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         Assert.Empty(host.StdErr);
         openApiClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IOpenApiClient> openApiClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(openApiClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

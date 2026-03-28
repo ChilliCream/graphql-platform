@@ -26,15 +26,11 @@ public sealed class CreateOpenApiCollectionCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-
-            Creating an OpenAPI collection
-
-            You are not logged in. Run `nitro login` to sign in or specify the workspace ID with the --workspace-id option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or specify the workspace ID with the --workspace-id option (if available).
             """);
-        Assert.Empty(host.StdErr);
         openApiClient.VerifyNoOtherCalls();
         apisClient.VerifyNoOtherCalls();
     }
@@ -68,10 +64,6 @@ public sealed class CreateOpenApiCollectionCommandTests
         Assert.Equal(0, exitCode);
         host.Output.Trim().MatchInlineSnapshot(
             """
-            Creating an OpenAPI collection
-
-            ? For which API do you want to create an OpenAPI collection?: api-1
-            ✓ OpenAPI collection petstore created.
             {
               "id": "openapi-1",
               "name": "petstore"
@@ -82,12 +74,12 @@ public sealed class CreateOpenApiCollectionCommandTests
         apisClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IOpenApiClient> openApiClient,
         Mock<IApisClient> apisClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(openApiClient.Object)
             .AddService(apisClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());

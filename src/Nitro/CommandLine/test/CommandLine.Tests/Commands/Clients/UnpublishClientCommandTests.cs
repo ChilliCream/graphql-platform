@@ -98,11 +98,11 @@ public sealed class UnpublishClientCommandTests
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IClientsClient> client,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IClientsClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

@@ -22,8 +22,8 @@ internal static class FusionPublishHelpers
         SourceSchemaVersion[]? sourceSchemaVersions,
         bool waitForApproval,
         SourceMetadata? source,
-        ICommandLineActivity activity,
-        IAnsiConsole console,
+        INitroConsoleActivity activity,
+        INitroConsole console,
         IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
@@ -38,7 +38,7 @@ internal static class FusionPublishHelpers
             source,
             cancellationToken);
 
-        console.PrintMutationErrorsAndExit(deploymentSlotRequest.Errors);
+        // console.PrintMutationErrorsAndExit(deploymentSlotRequest.Errors);
 
         var requestId = deploymentSlotRequest.RequestId;
 
@@ -47,7 +47,7 @@ internal static class FusionPublishHelpers
             throw Exit("Failed to request deployment slot.");
         }
 
-        console.MarkupLine($"Your request ID is [blue]{requestId}[/]");
+        // console.MarkupLine($"Your request ID is [blue]{requestId}[/]");
 
         using var subscriptionCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -65,18 +65,18 @@ internal static class FusionPublishHelpers
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
-                    subscriptionCancellation.Cancel();
-                    console.PrintMutationErrorsAndExit(v.Errors);
+                    await subscriptionCancellation.CancelAsync();
+                    // console.PrintMutationErrorsAndExit(v.Errors);
                     throw Exit("Your request has failed.");
 
                 case IFusionConfigurationPublishingSuccess:
-                    subscriptionCancellation.Cancel();
-                    console.WarningLine("Your request is already published.");
+                    await subscriptionCancellation.CancelAsync();
+                    // console.WarningLine("Your request is already published.");
                     break;
 
                 case IProcessingTaskIsReady:
-                    subscriptionCancellation.Cancel();
-                    console.Success("Your deployment slot is ready.");
+                    await subscriptionCancellation.CancelAsync();
+                    // console.Success("Your deployment slot is ready.");
                     break;
 
                 case IFusionConfigurationValidationFailed:
@@ -85,8 +85,8 @@ internal static class FusionPublishHelpers
                 case IOperationInProgress:
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
-                    subscriptionCancellation.Cancel();
-                    console.Success("Your request is already processing.");
+                    await subscriptionCancellation.CancelAsync();
+                    // console.Success("Your request is already processing.");
                     break;
 
                 default:
@@ -100,8 +100,8 @@ internal static class FusionPublishHelpers
     public static async Task<bool> UploadFusionArchiveAsync(
         string requestId,
         Stream stream,
-        ICommandLineActivity activity,
-        IAnsiConsole console,
+        INitroConsoleActivity activity,
+        INitroConsole console,
         IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
@@ -174,7 +174,7 @@ internal static class FusionPublishHelpers
         string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         FusionArchive archive;
@@ -214,7 +214,7 @@ internal static class FusionPublishHelpers
         string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         var compositionLog = new CompositionLog();

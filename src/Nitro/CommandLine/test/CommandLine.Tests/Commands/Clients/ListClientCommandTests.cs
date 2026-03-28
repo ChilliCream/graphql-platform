@@ -22,12 +22,11 @@ public sealed class ListClientCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
             The API ID is required in non-interactive mode.
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyNoOtherCalls();
     }
 
@@ -83,7 +82,7 @@ public sealed class ListClientCommandTests
     }
 
     [Fact]
-    public async Task List_InteractivePath_WhenSelectionIsCancelled_ReturnsCancelledExitCode()
+    public async Task List_InteractivePath_WhenSelectionIsCancelled_ReturnsSuccessExitCode()
     {
         // arrange
         var page = new ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>(
@@ -110,16 +109,16 @@ public sealed class ListClientCommandTests
             "api-1");
 
         // assert
-        Assert.Equal(1, exitCode);
+        Assert.Equal(0, exitCode);
         Assert.Empty(host.StdErr);
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IClientsClient> client,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IClientsClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

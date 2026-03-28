@@ -4,7 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 
-public sealed class SelectMockSchemaPrompt(IMocksClient client, string apiId)
+internal sealed class SelectMockSchemaPrompt(IMocksClient client, string apiId)
 {
     private string _title = "Select the mock schema you want to use.";
 
@@ -15,7 +15,7 @@ public sealed class SelectMockSchemaPrompt(IMocksClient client, string apiId)
     }
 
     public async Task<IListMockCommandQuery_ApiById_MockSchemas_Edges_Node?> RenderAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         var paginationContainer = PaginationContainer.CreateConnectionData(

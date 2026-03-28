@@ -26,7 +26,7 @@ public sealed class CreateMockCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IMocksClient>(),
             Bind.FromServiceProvider<IFileSystem>(),
             Bind.FromServiceProvider<CancellationToken>());
@@ -34,7 +34,7 @@ public sealed class CreateMockCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IMocksClient client,
         IFileSystem fileSystem,
         CancellationToken cancellationToken)
@@ -49,7 +49,7 @@ public sealed class CreateMockCommand : Command
             context.ParseResult.GetValueForOption(Opt<MockSchemaNameOption>.Instance)!;
 
         const string apiMessage = "For which API do you want to create a mock schema?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
 
         await using (var _ = console.StartActivity("Create and initialize new mock..."))
         {

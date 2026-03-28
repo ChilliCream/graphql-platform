@@ -4,7 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 
-public sealed class SelectOpenApiCollectionPrompt(IOpenApiClient client, string apiId)
+internal sealed class SelectOpenApiCollectionPrompt(IOpenApiClient client, string apiId)
 {
     private string _title = "Select an OpenAPI collection from the list below.";
 
@@ -15,7 +15,7 @@ public sealed class SelectOpenApiCollectionPrompt(IOpenApiClient client, string 
     }
 
     public async Task<IListOpenApiCollectionCommandQuery_Node_OpenApiCollections_Edges_Node?> RenderAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         var paginationContainer = PaginationContainer.CreateConnectionData(

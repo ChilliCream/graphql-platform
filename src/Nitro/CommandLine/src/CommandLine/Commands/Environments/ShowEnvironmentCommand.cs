@@ -21,7 +21,7 @@ internal sealed class ShowEnvironmentCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IEnvironmentsClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
@@ -29,7 +29,7 @@ internal sealed class ShowEnvironmentCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IEnvironmentsClient client,
         string id,
         CancellationToken cancellationToken)

@@ -184,11 +184,11 @@ public sealed class SchemaPublishCommandTests
         return update.Object;
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<ISchemasClient> client,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<ISchemasClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

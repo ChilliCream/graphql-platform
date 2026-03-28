@@ -17,7 +17,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         this.SetHandler(context => ExecuteAsync(
             true,
-            context.BindingContext.GetRequiredService<IAnsiConsole>(),
+            context.BindingContext.GetRequiredService<INitroConsole>(),
             context.BindingContext.GetRequiredService<IWorkspacesClient>(),
             context.BindingContext.GetRequiredService<ISessionService>(),
             context.BindingContext.GetRequiredService<CancellationToken>()));
@@ -25,7 +25,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
     public static async Task<int> ExecuteAsync(
         bool forceSelection,
-        IAnsiConsole console,
+        INitroConsole console,
         IWorkspacesClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)
@@ -71,7 +71,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         if (wasPrompted)
         {
-            console.OkQuestion(message, workspace.Name);
+            // console.OkQuestion(message, workspace.Name);
         }
 
         return ExitCodes.Success;

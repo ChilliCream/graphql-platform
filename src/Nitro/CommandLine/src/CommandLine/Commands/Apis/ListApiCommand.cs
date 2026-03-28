@@ -22,20 +22,20 @@ internal sealed class ListApiCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IApisClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IApisClient client,
         CancellationToken ct)
     {
         var workspaceId = context.RequireWorkspaceId();
 
-        if (console.IsHumanReadable())
+        if (console.IsInteractive())
         {
             return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
         }
@@ -45,7 +45,7 @@ internal sealed class ListApiCommand : Command
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IApisClient client,
         string workspaceId,
         CancellationToken ct)

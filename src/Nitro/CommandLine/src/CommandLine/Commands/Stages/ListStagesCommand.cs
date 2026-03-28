@@ -21,18 +21,18 @@ internal sealed class ListStagesCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IStagesClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IStagesClient client,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        if (console.IsInteractive())
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }
@@ -42,12 +42,12 @@ internal sealed class ListStagesCommand : Command
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IStagesClient client,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to display the clients?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
 
         var stageData = await client.ListStagesAsync(apiId, ct);
         var stages = stageData.Stages;

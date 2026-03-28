@@ -12,13 +12,13 @@ internal sealed class LogoutCommand : Command
 
         this.SetHandler(
             ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
@@ -27,7 +27,7 @@ internal sealed class LogoutCommand : Command
             await sessionService.LogoutAsync(cancellationToken);
         }
 
-        console.OkLine("Logged you out of Nitro CLI. See you soon :waving_hand:");
+        // console.OkLine("Logged you out of Nitro CLI. See you soon :waving_hand:");
 
         return ExitCodes.Success;
     }

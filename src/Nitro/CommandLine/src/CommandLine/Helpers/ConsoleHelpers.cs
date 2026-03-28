@@ -429,6 +429,11 @@ internal static class ConsoleHelpers
 
         var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
 
+        if (!console.IsInteractive())
+        {
+            throw new ExitException($"Missing required option '--{option.Name}'.");
+        }
+
         var prompt = new TextPrompt<string>(question.AsQuestion());
 
         if (defaultValue is not null)
@@ -488,7 +493,7 @@ internal static class ConsoleHelpers
         console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
     }
 
-    public static bool IsHumanReadable(this IAnsiConsole console)
+    public static bool IsInteractive(this IAnsiConsole console)
     {
         return console is IExtendedConsole { IsInteractive: true };
     }
@@ -496,31 +501,6 @@ internal static class ConsoleHelpers
     public static IDisposable UseInteractive(this IAnsiConsole console)
     {
         return new InteractiveScope(console);
-    }
-
-    public static ICommandLineActivity StartActivity(this IAnsiConsole console, string title)
-    {
-        if (console.IsHumanReadable())
-        {
-            var activity = new HumanReadableCommandLineActivity();
-            var spinnerTask = console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync(
-                    title,
-                    async context =>
-                    {
-                        activity.SetContext(context);
-                        await activity.WaitForCompletionAsync();
-                    });
-
-            activity.SetSpinnerTask(spinnerTask);
-            return activity;
-        }
-
-        console.WriteLine(title);
-        return new CommandLineActivity(console);
     }
 
     private sealed class InteractiveScope : IDisposable
@@ -546,48 +526,5 @@ internal static class ConsoleHelpers
                 customConsole.IsInteractive = _originalValue;
             }
         }
-    }
-}
-
-internal interface ICommandLineActivity : IAsyncDisposable
-{
-    void Update(string message);
-}
-
-internal sealed class HumanReadableCommandLineActivity : ICommandLineActivity
-{
-    private readonly TaskCompletionSource _completion =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private Task _spinnerTask = Task.CompletedTask;
-    private StatusContext? _context;
-
-    internal Task WaitForCompletionAsync() => _completion.Task;
-
-    internal void SetContext(StatusContext context) => _context = context;
-
-    internal void SetSpinnerTask(Task spinnerTask) => _spinnerTask = spinnerTask;
-
-    public void Update(string message)
-    {
-        _context?.Status(message);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        _completion.TrySetResult();
-        await _spinnerTask;
-    }
-}
-
-internal sealed class CommandLineActivity(IAnsiConsole console) : ICommandLineActivity
-{
-    public void Update(string message)
-    {
-        console.WriteLine(message);
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return default;
     }
 }

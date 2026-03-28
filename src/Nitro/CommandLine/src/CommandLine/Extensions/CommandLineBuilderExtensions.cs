@@ -43,7 +43,8 @@ public static class CommandLineBuilderExtensions
     public static CommandLineBuilder UseExtendedConsole(this CommandLineBuilder builder)
     {
         return builder.AddMiddleware(ExtendedConsoleMiddleware, MiddlewareOrder.Configuration)
-            .AddService<IAnsiConsole>(sp => sp.GetRequiredService<ExtendedConsole>());
+            .AddService<IAnsiConsole>(sp => sp.GetRequiredService<ExtendedConsole>())
+            .AddService<INitroConsole>(sp => new NitroConsole(sp.GetRequiredService<IAnsiConsole>()));
     }
 
     private static async Task ExtendedConsoleMiddleware(
@@ -72,21 +73,12 @@ public static class CommandLineBuilderExtensions
         catch (ExitException exception)
         {
             context.ExitCode = ExitCodes.Error;
-
-            var message = exception.Message;
-            if (!string.IsNullOrEmpty(message))
-            {
-                context.BindingContext.GetRequiredService<IAnsiConsole>().MarkupLine(message);
-            }
+            WriteErrorLine(context, exception.Message);
         }
         catch (NitroClientException exception)
         {
             context.ExitCode = ExitCodes.Error;
-
-            if (!string.IsNullOrEmpty(exception.Message))
-            {
-                context.BindingContext.GetRequiredService<IAnsiConsole>().MarkupLine(exception.Message);
-            }
+            WriteErrorLine(context, exception.Message);
         }
         catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
         {
@@ -94,8 +86,26 @@ public static class CommandLineBuilderExtensions
         catch (Exception exception)
         {
             context.ExitCode = ExitCodes.Error;
-            context.BindingContext.GetRequiredService<IAnsiConsole>().WriteLine(exception.Message);
+            WriteErrorLine(context, exception.Message);
             throw;
+        }
+    }
+
+    private static void WriteErrorLine(InvocationContext context, string? message)
+    {
+        if (string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        try
+        {
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
+            console.WriteErrorLine(message);
+        }
+        catch
+        {
+            context.Console.Error.Write(message + Environment.NewLine);
         }
     }
 }

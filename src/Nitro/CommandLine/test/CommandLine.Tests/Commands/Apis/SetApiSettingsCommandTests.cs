@@ -17,7 +17,7 @@ public sealed class SetApiSettingsCommandTests
         var exitCode = await host.InvokeAsync("api", "set-settings");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
             Required argument missing for command: 'set-settings'.
@@ -107,14 +107,11 @@ public sealed class SetApiSettingsCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            Set settings for API api-1
-
             update failed
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyAll();
     }
 }

@@ -24,7 +24,7 @@ internal sealed class DeleteApiKeyCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IApiKeysClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
@@ -32,7 +32,7 @@ internal sealed class DeleteApiKeyCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IApiKeysClient client,
         string keyId,
         CancellationToken cancellationToken)
@@ -47,15 +47,15 @@ internal sealed class DeleteApiKeyCommand : Command
         }
 
         var data = await client.DeleteApiKeyAsync(keyId, cancellationToken);
-        console.PrintMutationErrorsAndExit(data.Errors);
+        // console.PrintMutationErrorsAndExit(data.Errors);
 
         if (data.ApiKey is not { } key)
         {
             throw Exit("Could not delete API key");
         }
 
-        console.OkLine(
-            $"API key {key.Name.AsHighlight()} [dim](ID: {key.Id})[/] was deleted");
+        // console.OkLine(
+        //     $"API key {key.Name.AsHighlight()} [dim](ID: {key.Id})[/] was deleted");
 
         context.SetResult(ApiKeyDetailPrompt.From(key).ToObject());
 

@@ -106,18 +106,20 @@ public sealed class FusionValidateCommandTests
             """
             LOG: Reading file /tmp/nitro-fusion-validate-missing.far
             Validating...
-             File /tmp/nitro-fusion-validate-missing.far was not found!
             """);
-        Assert.Empty(host.StdErr);
+        host.StdErr.Trim().MatchInlineSnapshot(
+            """
+            [red] File /tmp/nitro-fusion-validate-missing.far was not found![/]
+            """);
         client.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IFusionConfigurationClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IFusionConfigurationClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

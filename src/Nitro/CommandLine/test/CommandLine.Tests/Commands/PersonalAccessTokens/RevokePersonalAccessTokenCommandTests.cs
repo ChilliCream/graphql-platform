@@ -62,11 +62,11 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IPersonalAccessTokensClient> client,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

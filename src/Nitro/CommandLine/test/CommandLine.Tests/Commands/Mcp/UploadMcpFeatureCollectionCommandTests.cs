@@ -54,11 +54,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         mcpClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IMcpClient> mcpClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(mcpClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

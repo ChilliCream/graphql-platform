@@ -21,18 +21,18 @@ internal sealed class ListClientVersionsCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IClientsClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        if (console.IsInteractive())
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }
@@ -42,7 +42,7 @@ internal sealed class ListClientVersionsCommand : Command
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         CancellationToken ct)
     {

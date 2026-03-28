@@ -30,7 +30,7 @@ public sealed class UpdateMockCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IMocksClient>(),
             Bind.FromServiceProvider<IFileSystem>(),
             Bind.FromServiceProvider<CancellationToken>());
@@ -38,7 +38,7 @@ public sealed class UpdateMockCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IMocksClient client,
         IFileSystem fileSystem,
         CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ public sealed class UpdateMockCommand : Command
 
         if (string.IsNullOrWhiteSpace(mockSchemaId))
         {
-            if (!console.IsHumanReadable())
+            if (!console.IsInteractive())
             {
                 throw Exit("The mock schema ID is required in non-interactive mode.");
             }

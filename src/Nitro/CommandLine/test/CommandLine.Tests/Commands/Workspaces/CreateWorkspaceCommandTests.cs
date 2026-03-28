@@ -40,11 +40,11 @@ public sealed class CreateWorkspaceCommandTests
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IWorkspacesClient> client,
         TestSessionService session)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(client.Object)
             .AddService<ISessionService>(session);
 

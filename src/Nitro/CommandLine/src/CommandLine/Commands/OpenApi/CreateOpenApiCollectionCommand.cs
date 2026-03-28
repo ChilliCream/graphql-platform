@@ -23,14 +23,14 @@ internal sealed class CreateOpenApiCollectionCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IOpenApiClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IOpenApiClient client,
         CancellationToken cancellationToken)
     {
@@ -39,7 +39,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
         console.WriteLine();
 
         const string apiMessage = "For which API do you want to create an OpenAPI collection?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
 
         var name = await context
             .OptionOrAskAsync("Name", Opt<OpenApiCollectionNameOption>.Instance, cancellationToken);

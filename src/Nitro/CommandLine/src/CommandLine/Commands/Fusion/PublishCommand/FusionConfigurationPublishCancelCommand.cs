@@ -17,7 +17,7 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IFusionConfigurationClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<IFileSystem>(),
@@ -26,7 +26,7 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         ISessionService sessionService,
         IFileSystem fileSystem,

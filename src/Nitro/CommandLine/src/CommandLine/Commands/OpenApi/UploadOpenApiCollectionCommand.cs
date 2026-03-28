@@ -20,7 +20,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         this.SetHandler(
             ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IOpenApiClient>(),
             Bind.FromServiceProvider<IFileSystem>(),
             Opt<TagOption>.Instance,
@@ -31,7 +31,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         IOpenApiClient client,
         IFileSystem fileSystem,
         string tag,

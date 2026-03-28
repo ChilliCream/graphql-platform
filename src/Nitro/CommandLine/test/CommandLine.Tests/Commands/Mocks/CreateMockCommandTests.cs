@@ -26,8 +26,6 @@ public sealed class CreateMockCommandTests
             Option '--schema' is required.
             Option '--url' is required.
             Option '--name' is required.
-
-
             """);
         client.VerifyNoOtherCalls();
     }
@@ -105,12 +103,12 @@ public sealed class CreateMockCommandTests
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IMocksClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

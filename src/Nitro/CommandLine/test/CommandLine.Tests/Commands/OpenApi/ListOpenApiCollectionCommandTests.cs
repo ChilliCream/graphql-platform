@@ -24,13 +24,11 @@ public sealed class ListOpenApiCollectionCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
             The API ID is required in non-interactive mode.
-
             """);
-        Assert.Empty(host.StdErr);
         openApiClient.VerifyNoOtherCalls();
         apisClient.VerifyNoOtherCalls();
     }
@@ -118,12 +116,12 @@ public sealed class ListOpenApiCollectionCommandTests
         apisClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IOpenApiClient> openApiClient,
         Mock<IApisClient> apisClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(openApiClient.Object)
             .AddService(apisClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());

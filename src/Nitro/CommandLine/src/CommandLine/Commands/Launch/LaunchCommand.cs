@@ -21,12 +21,12 @@ internal sealed class LaunchCommand : Command
 
         this.SetHandler(
             ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         SystemBrowser.Open(Constants.NitroWebUrl);

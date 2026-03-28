@@ -130,22 +130,21 @@ public sealed class FusionDownloadCommandTests
             outputFile);
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
             The API with the given ID does not exist or does not have a download URL.
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyAll();
         Assert.False(fileSystem.Files.ContainsKey(Path.GetFullPath(outputFile)));
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IFusionConfigurationClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IFusionConfigurationClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

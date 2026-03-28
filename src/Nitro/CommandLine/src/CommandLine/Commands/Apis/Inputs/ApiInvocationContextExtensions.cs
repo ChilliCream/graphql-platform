@@ -10,17 +10,22 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
 
 public static class ApiInvocationContextExtensions
 {
+    public static Task<string> GetOrPromptForApiIdAsync(
+        this InvocationContext context,
+        string message)
+        => context.GetOrSelectApiId(message);
+
     public static async Task<string> GetOrSelectApiId(
         this InvocationContext context,
         string message)
     {
-        var ct = context.BindingContext.GetRequiredService<CancellationToken>();
-        var client = context.BindingContext.GetRequiredService<IApisClient>();
-        var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
         var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
+        var console = context.BindingContext.GetRequiredService<INitroConsole>();
 
         if (apiId is null)
         {
+            var ct = context.BindingContext.GetRequiredService<CancellationToken>();
+            var client = context.BindingContext.GetRequiredService<IApisClient>();
             var workspaceId = context.RequireWorkspaceId();
             var selectedApi = await SelectApiPrompt
                 .New(client, workspaceId)

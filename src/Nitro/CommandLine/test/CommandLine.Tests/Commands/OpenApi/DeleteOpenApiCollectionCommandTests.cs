@@ -22,15 +22,11 @@ public sealed class DeleteOpenApiCollectionCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-
-            Deleting an OpenAPI collection
-
             The OpenAPI collection ID is required in non-interactive mode.
             """);
-        Assert.Empty(host.StdErr);
         openApiClient.VerifyNoOtherCalls();
     }
 
@@ -57,10 +53,6 @@ public sealed class DeleteOpenApiCollectionCommandTests
         Assert.Equal(0, exitCode);
         host.Output.Trim().MatchInlineSnapshot(
             """
-            Deleting an OpenAPI collection
-
-            ? Which OpenAPI collection do you want to delete?: openapi-1
-            ✓ OpenAPI collection petstore was deleted.
             {
               "id": "openapi-1",
               "name": "petstore"
@@ -70,11 +62,11 @@ public sealed class DeleteOpenApiCollectionCommandTests
         openApiClient.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IOpenApiClient> openApiClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(openApiClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

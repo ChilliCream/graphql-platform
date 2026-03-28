@@ -57,7 +57,7 @@ internal sealed class FusionValidateCommand : Command
             var sourceSchemaFiles =
                 context.ParseResult.GetValueForOption(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
 
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var fusionConfigurationClient =
                 context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
@@ -79,7 +79,7 @@ internal sealed class FusionValidateCommand : Command
         string apiId,
         string? archiveFile,
         List<string> sourceSchemaFiles,
-        IAnsiConsole console,
+        INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
         CancellationToken ct)
@@ -100,7 +100,7 @@ internal sealed class FusionValidateCommand : Command
 
         return isValid ? ExitCodes.Success : ExitCodes.Error;
 
-        async Task ValidateWithSourceSchemaFiles(ICommandLineActivity activity)
+        async Task ValidateWithSourceSchemaFiles(INitroConsoleActivity activity)
         {
             var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
                 fileSystem,
@@ -147,7 +147,7 @@ internal sealed class FusionValidateCommand : Command
             await ValidateSchemaAsync(activity, schemaStream);
         }
 
-        async Task ValidateWithArchive(ICommandLineActivity activity)
+        async Task ValidateWithArchive(INitroConsoleActivity activity)
         {
             console.Log($"Reading file [blue]{archiveFile.EscapeMarkup()}[/]");
 
@@ -184,7 +184,7 @@ internal sealed class FusionValidateCommand : Command
             }
         }
 
-        async Task ValidateSchemaAsync(ICommandLineActivity activity, Stream schemaStream)
+        async Task ValidateSchemaAsync(INitroConsoleActivity activity, Stream schemaStream)
         {
             console.Log("Create validation request");
 
@@ -230,7 +230,7 @@ internal sealed class FusionValidateCommand : Command
     }
 
     private static async Task<string> ValidateAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         string apiId,
         string stageName,

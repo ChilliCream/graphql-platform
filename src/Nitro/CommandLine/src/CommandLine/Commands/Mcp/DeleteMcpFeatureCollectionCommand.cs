@@ -26,7 +26,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IMcpClient>(),
             Opt<OptionalIdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
@@ -34,7 +34,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IMcpClient client,
         string? mcpFeatureCollectionId,
         CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
         if (mcpFeatureCollectionId is null)
         {
-            if (!console.IsHumanReadable())
+            if (!console.IsInteractive())
             {
                 throw Exit("The MCP Feature Collection ID is required in non-interactive mode.");
             }

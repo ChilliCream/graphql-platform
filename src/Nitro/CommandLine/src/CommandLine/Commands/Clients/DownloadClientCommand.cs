@@ -21,7 +21,7 @@ internal sealed class DownloadClientCommand : Command
 
         this.SetHandler(
             ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IClientsClient>(),
             Bind.FromServiceProvider<IFileSystem>(),
             Opt<ApiIdOption>.Instance,
@@ -32,7 +32,7 @@ internal sealed class DownloadClientCommand : Command
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         IFileSystem fileSystem,
         string apiId,
@@ -107,7 +107,7 @@ internal sealed class DownloadClientCommand : Command
     }
 
     private static async Task WriteToFolder(
-        IAnsiConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         string outputPath,
         IAsyncEnumerable<PersistedQueryStreamResult?> queries)

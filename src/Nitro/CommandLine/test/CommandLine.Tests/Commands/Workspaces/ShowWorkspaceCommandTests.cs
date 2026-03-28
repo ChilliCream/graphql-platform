@@ -75,18 +75,17 @@ public sealed class ShowWorkspaceCommandTests
             "ws-missing");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            Could not find a workspace with ID ws-missing
+            Could not find a workspace with ID [bold blue]ws-missing[/]
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(Mock<IWorkspacesClient> client)
+    private static CommandBuilder CreateHost(Mock<IWorkspacesClient> client)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(client.Object)
             .AddService<ISessionService>(TestSessionService.WithWorkspace());
 

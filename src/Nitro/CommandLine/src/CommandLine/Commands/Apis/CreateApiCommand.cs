@@ -27,22 +27,20 @@ internal sealed class CreateApiCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IApisClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IApisClient client,
         CancellationToken ct)
     {
         var workspaceId = context.RequireWorkspaceId();
 
-        console.WriteLine();
         console.WriteLine("Creating an API");
-        console.WriteLine();
 
         var name = await context.OptionOrAskAsync("Name", Opt<ApiNameOption>.Instance, ct);
         var pathResult = await context
@@ -57,7 +55,7 @@ internal sealed class CreateApiCommand : Command
         var kind = context.GetApiKind();
 
         var payload = await client.CreateApiAsync(workspaceId, path, name, kind, ct);
-        console.PrintMutationErrorsAndExit(payload.Errors);
+        // console.PrintMutationErrorsAndExit(payload.Errors);
 
         var changeResult = payload.Changes?.SingleOrDefault();
         if (changeResult is null)
@@ -75,8 +73,8 @@ internal sealed class CreateApiCommand : Command
             throw Exit("Could not create API.");
         }
 
-        console.OkLine(
-            $"API [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} created");
+        // console.OkLine(
+        //     $"API [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} created");
 
         if (changeResult.Result is IApiDetailPrompt_Api detail)
         {

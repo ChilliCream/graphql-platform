@@ -22,18 +22,18 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IMcpClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IMcpClient client,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        if (console.IsInteractive())
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }
@@ -43,12 +43,12 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IMcpClient client,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to list the MCP Feature Collections?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
 
         var container = PaginationContainer
             .CreateConnectionData((after, first, token) =>

@@ -24,7 +24,7 @@ internal sealed class CreateWorkspaceCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IWorkspacesClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<CancellationToken>());
@@ -32,7 +32,7 @@ internal sealed class CreateWorkspaceCommand : Command
 
     public static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IWorkspacesClient client,
         ISessionService sessionService,
         CancellationToken ct)
@@ -46,7 +46,7 @@ internal sealed class CreateWorkspaceCommand : Command
         var asDefault = false;
         var session = sessionService.Session;
 
-        if (console.IsHumanReadable() && session is not null)
+        if (console.IsInteractive() && session is not null)
         {
             asDefault = await context.OptionOrConfirmAsync(
                 "Set as default workspace",

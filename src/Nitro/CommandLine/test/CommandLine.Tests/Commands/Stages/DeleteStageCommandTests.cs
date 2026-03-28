@@ -28,7 +28,7 @@ public sealed class DeleteStageCommandTests
         Assert.NotEqual(0, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
-            Required option missing for command: '--stage'.
+            Option '--stage' is required.
             """);
         stagesClient.VerifyNoOtherCalls();
         apisClient.VerifyNoOtherCalls();
@@ -83,12 +83,12 @@ public sealed class DeleteStageCommandTests
         apisClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IStagesClient> stagesClient,
         Mock<IApisClient> apisClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());

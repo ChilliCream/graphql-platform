@@ -109,17 +109,19 @@ public sealed class FusionUploadCommandTests
             LOG: Uploading source schema at
             '__resources__/valid-example-1/source-schema-1.graphqls'...
             Uploading source schema...
+            """);
+        host.StdErr.Trim().MatchInlineSnapshot(
+            """
             Upload of source schema failed!
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IFusionConfigurationClient> client,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IFusionConfigurationClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

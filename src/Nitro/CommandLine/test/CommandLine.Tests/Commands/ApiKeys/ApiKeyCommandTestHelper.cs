@@ -7,11 +7,11 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 
 internal static class ApiKeyCommandTestHelper
 {
-    public static CommandTestHost CreateHost(
+    public static CommandBuilder CreateHost(
         Mock<IApiKeysClient> client,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IApiKeysClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 
@@ -77,5 +77,13 @@ internal static class ApiKeyCommandTestHelper
         key.SetupGet(x => x.Workspace).Returns(workspace.Object);
 
         return key.Object;
+    }
+
+    public static ICreateApiKeyCommandMutation_CreateApiKey CreateApiKeyResultWithErrors(
+        params ICreateApiKeyCommandMutation_CreateApiKey_Errors[] errors)
+    {
+        var payload = new Mock<ICreateApiKeyCommandMutation_CreateApiKey>();
+        payload.SetupGet(x => x.Errors).Returns(errors);
+        return payload.Object;
     }
 }

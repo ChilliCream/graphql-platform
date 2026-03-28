@@ -29,12 +29,11 @@ public sealed class SetDefaultWorkspaceCommandTests
         var exitCode = await host.InvokeAsync("workspace", "set-default");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            You do not have any workspaces. Run `nitro launch` and create one.
+            You do not have any workspaces. Run `[bold blue]nitro launch[/]` and create one.
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyAll();
     }
 
@@ -55,12 +54,13 @@ public sealed class SetDefaultWorkspaceCommandTests
             .ReturnsAsync(page);
 
         var session = new TestSessionService();
-        var host = new CommandTestHost();
+        var host = new CommandBuilder();
+        var console = new NitroConsole(host.Console);
 
         // act
         var exitCode = await SetDefaultWorkspaceCommand.ExecuteAsync(
             forceSelection: false,
-            host.Console,
+            console,
             client.Object,
             session,
             CancellationToken.None);
@@ -74,11 +74,11 @@ public sealed class SetDefaultWorkspaceCommandTests
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IWorkspacesClient> client,
         TestSessionService session)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(client.Object)
             .AddService<ISessionService>(session);
 

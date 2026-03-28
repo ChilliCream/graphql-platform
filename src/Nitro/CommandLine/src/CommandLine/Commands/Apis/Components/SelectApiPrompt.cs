@@ -4,7 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 
-public sealed class SelectApiPrompt(IApisClient client, string workspaceId)
+internal sealed class SelectApiPrompt(IApisClient client, string workspaceId)
 {
     private string _title = "Select the API you want to use.";
 
@@ -15,7 +15,7 @@ public sealed class SelectApiPrompt(IApisClient client, string workspaceId)
     }
 
     public async Task<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node?> RenderAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         var paginationContainer = PaginationContainer.CreateConnectionData(

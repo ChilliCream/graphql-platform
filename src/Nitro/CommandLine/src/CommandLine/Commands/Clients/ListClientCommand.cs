@@ -25,18 +25,18 @@ internal sealed class ListClientCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IClientsClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        if (console.IsInteractive())
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }
@@ -46,12 +46,12 @@ internal sealed class ListClientCommand : Command
 
     private static async Task<int> RenderInteractiveAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to list the clients?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
         var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
 
         var container = PaginationContainer

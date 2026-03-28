@@ -104,20 +104,22 @@ public sealed class SchemaUploadCommandTests
                 LOG: Initialized
                 LOG: Reading file {missingSchemaPath}
                 Uploading schema...
-                 File {missingSchemaPath} was not found!
 
                 """.Trim(),
             host.Output.Trim());
-        Assert.Empty(host.StdErr);
+        host.StdErr.Trim().MatchInlineSnapshot(
+            $"""
+            [red] File {missingSchemaPath} was not found![/]
+            """);
         client.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<ISchemasClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<ISchemasClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

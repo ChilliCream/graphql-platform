@@ -124,7 +124,7 @@ public sealed class FusionMigrateCommandTests
             workingDirectory);
 
         // assert
-        Assert.Equal(-1, exitCode);
+        Assert.Equal(1, exitCode);
         Assert.Equal(
             $"Searching for 'subgraph-config.json' files in '{workingDirectory}'...\n✕ No subgraph-config.json files found.\n",
             host.Output.ReplaceLineEndings("\n"));
@@ -226,8 +226,8 @@ public sealed class FusionMigrateCommandTests
         Assert.True(fileSystem.FileExists(outputPath2));
     }
 
-    private static CommandTestHost CreateHost(TestFileSystem fileSystem)
-        => new CommandTestHost()
+    private static CommandBuilder CreateHost(TestFileSystem fileSystem)
+        => new CommandBuilder()
             .AddService<IFileSystem>(fileSystem)
             .AddService<ISessionService>(TestSessionService.WithWorkspace());
 

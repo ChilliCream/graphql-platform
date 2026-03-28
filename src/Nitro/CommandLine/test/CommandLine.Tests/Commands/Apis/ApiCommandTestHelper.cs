@@ -120,11 +120,11 @@ internal static class ApiCommandTestHelper
         return node.Object;
     }
 
-    public static CommandTestHost CreateHost(
+    public static CommandBuilder CreateHost(
         Mock<IApisClient> client,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IApisClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

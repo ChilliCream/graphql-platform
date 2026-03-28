@@ -96,19 +96,21 @@ public sealed class SchemaDownloadCommandTests
         host.Output.Trim().MatchInlineSnapshot(
             """
             Fetching Schema...
+            """);
+        host.StdErr.Trim().MatchInlineSnapshot(
+            """
             Could not find a published schema on stage prod
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyAll();
         Assert.False(fileSystem.Files.ContainsKey(Path.GetFullPath(outputPath)));
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<ISchemasClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<ISchemasClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

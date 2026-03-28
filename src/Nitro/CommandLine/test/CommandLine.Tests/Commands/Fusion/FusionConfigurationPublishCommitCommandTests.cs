@@ -47,12 +47,10 @@ public sealed class FusionConfigurationPublishCommitCommandTests
 
         // assert
         Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            No request ID was provided and no request ID was found in the cache. Please
-            provide a request ID.
+            No request ID was provided and no request ID was found in the cache. Please provide a request ID.
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyNoOtherCalls();
     }
 
@@ -80,9 +78,11 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         host.Output.Trim().MatchInlineSnapshot(
             """
             Committing...
-             File /tmp/nitro-fusion-publish-commit-missing.far was not found!
             """);
-        Assert.Empty(host.StdErr);
+        host.StdErr.Trim().MatchInlineSnapshot(
+            """
+            [red] File /tmp/nitro-fusion-publish-commit-missing.far was not found![/]
+            """);
         client.VerifyNoOtherCalls();
     }
 
@@ -147,12 +147,12 @@ public sealed class FusionConfigurationPublishCommitCommandTests
 
     private static TestFileSystem CreateFileSystemWithoutCachedRequestId() => new();
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IFusionConfigurationClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IFusionConfigurationClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

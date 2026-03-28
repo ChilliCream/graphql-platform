@@ -25,19 +25,19 @@ internal sealed class DeleteStageCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IStagesClient>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IStagesClient client,
         CancellationToken cancellationToken)
     {
         const string apiMessage = "For which API do you want to force delete a stage?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await context.GetOrPromptForApiIdAsync(apiMessage);
 
         var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
 

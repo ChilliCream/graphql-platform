@@ -16,7 +16,7 @@ public sealed class DeleteApiKeyCommandTests
         var exitCode = await host.InvokeAsync("api-key", "delete", "--force");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
             Required argument missing for command: 'delete'.

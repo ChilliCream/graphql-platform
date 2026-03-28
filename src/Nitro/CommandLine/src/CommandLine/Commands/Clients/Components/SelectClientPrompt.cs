@@ -4,7 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 
-public sealed class SelectClientPrompt(IClientsClient client, string apiId)
+internal sealed class SelectClientPrompt(IClientsClient client, string apiId)
 {
     private string _title = "Select a client from the list below.";
 
@@ -15,7 +15,7 @@ public sealed class SelectClientPrompt(IClientsClient client, string apiId)
     }
 
     public async Task<IListClientCommandQuery_Node_Clients_Edges_Node?> RenderAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         var paginationContainer = PaginationContainer.CreateConnectionData(

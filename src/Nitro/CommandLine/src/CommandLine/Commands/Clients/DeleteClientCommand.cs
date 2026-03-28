@@ -26,7 +26,7 @@ internal sealed class DeleteClientCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IClientsClient>(),
             Opt<OptionalIdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
@@ -34,7 +34,7 @@ internal sealed class DeleteClientCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IClientsClient client,
         string? clientId,
         CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ internal sealed class DeleteClientCommand : Command
 
         if (clientId is null)
         {
-            if (!console.IsHumanReadable())
+            if (!console.IsInteractive())
             {
                 throw Exit("The client ID is required in non-interactive mode.");
             }

@@ -12,13 +12,13 @@ internal sealed class CurrentWorkspaceCommand : Command
 
         this.SetHandler(
             ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
 
     private static Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {

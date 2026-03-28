@@ -24,7 +24,7 @@ internal sealed class SetApiSettingsApiCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IApisClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
@@ -32,14 +32,12 @@ internal sealed class SetApiSettingsApiCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IApisClient client,
         string id,
         CancellationToken ct)
     {
-        console.WriteLine();
         console.WriteLine($"Set settings for API {id.AsHighlight()}");
-        console.WriteLine();
 
         var treatDangerousChangesAsBreaking = await context
             .OptionOrConfirmAsync(
@@ -59,15 +57,15 @@ internal sealed class SetApiSettingsApiCommand : Command
             allowBreakingSchemaChanges,
             ct);
 
-        console.PrintMutationErrorsAndExit(data.Errors);
+        // console.PrintMutationErrorsAndExit(data.Errors);
 
         if (data.Api is not IApiDetailPrompt_Api api)
         {
             throw ThrowHelper.Exit("Could not update settings.");
         }
 
-        console.OkLine(
-            $"Settings of [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} updated");
+        // console.OkLine(
+        //     $"Settings of [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} updated");
 
         context.SetResult(ApiDetailPrompt.From(api).ToObject());
 

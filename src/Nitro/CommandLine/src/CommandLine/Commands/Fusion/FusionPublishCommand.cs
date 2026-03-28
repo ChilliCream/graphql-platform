@@ -88,7 +88,7 @@ internal sealed class FusionPublishCommand : Command
             var sourceMetadataJson =
                 context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var fusionConfigurationClient =
                 context.BindingContext.GetRequiredService<IFusionConfigurationClient>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
@@ -118,7 +118,7 @@ internal sealed class FusionPublishCommand : Command
         string stageName,
         string tag,
         string? sourceMetadataJson,
-        IAnsiConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         IFusionConfigurationClient client,
         CancellationToken cancellationToken)
@@ -235,7 +235,7 @@ internal sealed class FusionPublishCommand : Command
         string tag,
         string archiveFilePath,
         SourceMetadata? source,
-        IAnsiConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         IFusionConfigurationClient client,
         CancellationToken cancellationToken)
@@ -302,7 +302,7 @@ internal sealed class FusionPublishCommand : Command
         SourceSchemaVersion[] sourceSchemaVersions,
         CompositionSettings? compositionSettings,
         SourceMetadata? source,
-        IAnsiConsole console,
+        INitroConsole console,
         IFileSystem fileSystem,
         IFusionConfigurationClient client,
         CancellationToken cancellationToken)
@@ -384,7 +384,7 @@ internal sealed class FusionPublishCommand : Command
 
         return ExitCodes.Success;
 
-        Task<string> RequestDeploymentSlotAsync(ICommandLineActivity activity)
+        Task<string> RequestDeploymentSlotAsync(INitroConsoleActivity activity)
         {
             return FusionPublishHelpers.RequestDeploymentSlotAsync(
                 apiId,
@@ -438,7 +438,7 @@ internal sealed class FusionPublishCommand : Command
             return stream;
         }
 
-        async Task UploadConfigurationAsync(Stream stream, ICommandLineActivity activity)
+        async Task UploadConfigurationAsync(Stream stream, INitroConsoleActivity activity)
         {
             var success = await FusionPublishHelpers.UploadFusionArchiveAsync(
                 requestId,

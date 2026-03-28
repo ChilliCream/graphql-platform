@@ -19,7 +19,7 @@ internal sealed class ValidateSchemaCommand : Command
 
         this.SetHandler(async context =>
         {
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+            var console = context.BindingContext.GetRequiredService<INitroConsole>();
             var client = context.BindingContext.GetRequiredService<ISchemasClient>();
             var fileSystem = context.BindingContext.GetRequiredService<IFileSystem>();
             var stage = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
@@ -40,7 +40,7 @@ internal sealed class ValidateSchemaCommand : Command
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         ISchemasClient client,
         IFileSystem fileSystem,
         string stage,

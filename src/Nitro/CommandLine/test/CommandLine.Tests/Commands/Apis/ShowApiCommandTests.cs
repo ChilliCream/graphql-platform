@@ -17,7 +17,7 @@ public sealed class ShowApiCommandTests
         var exitCode = await host.InvokeAsync("api", "show");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
             Required argument missing for command: 'show'.

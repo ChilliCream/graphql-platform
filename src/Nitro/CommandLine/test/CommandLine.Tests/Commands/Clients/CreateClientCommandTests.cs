@@ -26,13 +26,11 @@ public sealed class CreateClientCommandTests
             "json");
 
         // assert
-        Assert.NotEqual(0, exitCode);
-        host.Output.Trim().MatchInlineSnapshot(
+        Assert.Equal(1, exitCode);
+        host.StdErr.Trim().MatchInlineSnapshot(
             """
-            You are not logged in. Run `nitro login` to sign in or specify the workspace ID
-            with the --workspace-id option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or specify the workspace ID with the --workspace-id option (if available).
             """);
-        Assert.Empty(host.StdErr);
         clientsClient.VerifyNoOtherCalls();
         apisClient.VerifyNoOtherCalls();
     }
@@ -79,12 +77,12 @@ public sealed class CreateClientCommandTests
         apisClient.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IClientsClient> clientsClient,
         Mock<IApisClient> apisClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IClientsClient>(clientsClient.Object)
             .AddService<IApisClient>(apisClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());

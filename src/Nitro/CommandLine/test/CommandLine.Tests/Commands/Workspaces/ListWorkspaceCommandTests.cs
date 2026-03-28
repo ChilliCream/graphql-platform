@@ -80,9 +80,9 @@ public sealed class ListWorkspaceCommandTests
         client.VerifyAll();
     }
 
-    private static CommandTestHost CreateHost(Mock<IWorkspacesClient> client)
+    private static CommandBuilder CreateHost(Mock<IWorkspacesClient> client)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(client.Object)
             .AddService<ISessionService>(TestSessionService.WithWorkspace());
 

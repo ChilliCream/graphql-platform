@@ -104,20 +104,22 @@ public sealed class UploadClientCommandTests
              LOG: Initialized
              LOG: Reading file {missingOperationsPath}
              Uploading operations...
-              File {missingOperationsPath} was not found!
              
              """.ReplaceLineEndings("\n"),
             host.Output.ReplaceLineEndings("\n"));
-        Assert.Empty(host.StdErr);
+        host.StdErr.Trim().MatchInlineSnapshot(
+            $"""
+            [red] File {missingOperationsPath} was not found![/]
+            """);
         client.VerifyNoOtherCalls();
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IClientsClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IClientsClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

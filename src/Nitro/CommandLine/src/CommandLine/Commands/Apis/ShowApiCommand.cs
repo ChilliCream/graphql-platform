@@ -21,7 +21,7 @@ internal sealed class ShowApiCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IApisClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
@@ -29,7 +29,7 @@ internal sealed class ShowApiCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IApisClient client,
         string id,
         CancellationToken cancellationToken)
@@ -42,8 +42,8 @@ internal sealed class ShowApiCommand : Command
         }
         else
         {
-            console.ErrorLine(
-                $"Could not find an API with ID {id.EscapeMarkup().AsHighlight()}");
+            console.WriteErrorLine(
+                $"Could not find an API with ID '{id}'.");
         }
 
         return ExitCodes.Success;

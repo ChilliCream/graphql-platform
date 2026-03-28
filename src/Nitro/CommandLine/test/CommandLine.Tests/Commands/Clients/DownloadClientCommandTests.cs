@@ -139,9 +139,11 @@ public sealed class DownloadClientCommandTests
         host.Output.Trim().MatchInlineSnapshot(
             """
             Fetching queries...
+            """);
+        host.StdErr.Trim().MatchInlineSnapshot(
+            """
             Could not find a published client on stage prod
             """);
-        Assert.Empty(host.StdErr);
         client.VerifyAll();
         Assert.False(fileSystem.Files.ContainsKey(Path.GetFullPath(outputFile)));
     }
@@ -167,12 +169,12 @@ public sealed class DownloadClientCommandTests
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IClientsClient> client,
         TestFileSystem? fileSystem = null,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService<IClientsClient>(client.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 

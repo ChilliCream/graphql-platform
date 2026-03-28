@@ -25,7 +25,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IFusionConfigurationClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<IConfigurationService>(),
@@ -35,7 +35,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         ISessionService sessionService,
         IConfigurationService configurationService,
@@ -62,7 +62,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 
         return ExitCodes.Success;
 
-        async Task RequestDeploymentSlotAsync(ICommandLineActivity activity)
+        async Task RequestDeploymentSlotAsync(INitroConsoleActivity activity)
         {
             var requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
                 apiId,
@@ -79,6 +79,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 cancellationToken);
 
             context.SetResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId });
+
             await FusionConfigurationPublishingState.SetRequestId(
                 fileSystem,
                 requestId,

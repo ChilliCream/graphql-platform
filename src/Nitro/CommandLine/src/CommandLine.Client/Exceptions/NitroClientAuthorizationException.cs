@@ -12,4 +12,8 @@ public sealed class NitroClientAuthorizationException : NitroClientException
     public NitroClientAuthorizationException(string message) : base(message)
     {
     }
+
+    public NitroClientAuthorizationException()
+    {
+    }
 }

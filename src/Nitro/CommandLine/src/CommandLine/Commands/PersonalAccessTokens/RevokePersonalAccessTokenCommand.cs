@@ -24,7 +24,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
+            Bind.FromServiceProvider<INitroConsole>(),
             Bind.FromServiceProvider<IPersonalAccessTokensClient>(),
             Opt<IdArgument>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
@@ -32,7 +32,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
-        IAnsiConsole console,
+        INitroConsole console,
         IPersonalAccessTokensClient client,
         string patId,
         CancellationToken cancellationToken)

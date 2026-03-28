@@ -18,14 +18,12 @@ public sealed class PublishOpenApiCollectionCommandTests
         var exitCode = await host.InvokeAsync("openapi", "publish");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.StdErr.Trim().MatchInlineSnapshot(
             """
             Option '--tag' is required.
             Option '--stage' is required.
             Option '--openapi-collection-id' is required.
-
-
             """);
         openApiClient.VerifyNoOtherCalls();
     }
@@ -65,10 +63,9 @@ public sealed class PublishOpenApiCollectionCommandTests
             "openapi-1");
 
         // assert
-        Assert.NotEqual(0, exitCode);
+        Assert.Equal(1, exitCode);
         host.Output.Trim().MatchInlineSnapshot(
             """
-            LOG: Initialized
             LOG: Create publish request
             LOG: Publish request created (ID: publish-1)
             OpenAPI collection publish failed
@@ -76,7 +73,6 @@ public sealed class PublishOpenApiCollectionCommandTests
             Publish failed
             Invalid document
             Publishing...
-
             """);
         Assert.Empty(host.StdErr);
         openApiClient.VerifyAll();
@@ -118,11 +114,11 @@ public sealed class PublishOpenApiCollectionCommandTests
         return update.Object;
     }
 
-    private static CommandTestHost CreateHost(
+    private static CommandBuilder CreateHost(
         Mock<IOpenApiClient> openApiClient,
         TestSessionService? session = null)
     {
-        var host = new CommandTestHost()
+        var host = new CommandBuilder()
             .AddService(openApiClient.Object)
             .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
 
