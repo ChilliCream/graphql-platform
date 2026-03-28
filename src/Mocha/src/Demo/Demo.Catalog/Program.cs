@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Database
-builder.AddNpgsqlDbContext<CatalogDbContext>("catalog-db");
+builder.AddNpgsqlDbContext<CatalogDbContext>("catalog-db", x => x.DisableTracing = true);
 
 // RabbitMQ
 builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
@@ -24,6 +24,7 @@ builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
 // Mocha.Mediator
 builder.Services.AddMediator()
     .AddCatalog()
+    .AddInstrumentation()
     .UseEntityFrameworkTransactions<CatalogDbContext>();
 
 // MessageBus

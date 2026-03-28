@@ -15,13 +15,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Database
-builder.AddNpgsqlDbContext<BillingDbContext>("billing-db");
+builder.AddNpgsqlDbContext<BillingDbContext>("billing-db", x => x.DisableTracing = true);
 
 // RabbitMQ
 builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
 
 // Mocha.Mediator
-builder.Services.AddMediator().AddBilling().UseEntityFrameworkTransactions<BillingDbContext>();
+builder.Services.AddMediator()
+    .AddBilling()
+    .AddInstrumentation()
+    .UseEntityFrameworkTransactions<BillingDbContext>();
 
 // MessageBus
 builder

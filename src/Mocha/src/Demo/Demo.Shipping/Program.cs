@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Database
-builder.AddNpgsqlDbContext<ShippingDbContext>("shipping-db");
+builder.AddNpgsqlDbContext<ShippingDbContext>("shipping-db", x => x.DisableTracing = true);
 
 // RabbitMQ
 builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
@@ -21,6 +21,7 @@ builder.AddRabbitMQClient("rabbitmq", x => x.DisableTracing = true);
 // Mocha.Mediator
 builder.Services.AddMediator()
     .AddShipping()
+    .AddInstrumentation()
     .UseEntityFrameworkTransactions<ShippingDbContext>();
 
 // MessageBus
