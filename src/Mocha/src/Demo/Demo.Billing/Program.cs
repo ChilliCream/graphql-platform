@@ -9,6 +9,7 @@ using Mocha.EntityFrameworkCore;
 using Mocha.Mediator;
 using Mocha.Inbox;
 using Mocha.Outbox;
+using Mocha.Scheduling;
 using Mocha.Transport.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +34,7 @@ builder
     // Event handlers
     .AddEventHandler<OrderPlacedEventHandler>()
     .AddEventHandler<ShipmentShippedEventHandler>()
+    .AddEventHandler<PaymentReminderEventHandler>()
     // Batch event handlers
     .AddBatchHandler<OrderPlacedBatchHandler>(opts =>
     {
@@ -54,6 +56,7 @@ builder
         p.UseResilience();
         p.UseTransaction();
         p.UsePostgresInbox();
+        p.UsePostgresScheduling();
     })
     .AddRabbitMQ();
 
