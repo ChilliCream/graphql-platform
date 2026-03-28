@@ -48,7 +48,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                 schema.ToSyntaxNode(),
                 new JsonDocumentOwner(JsonDocument.Parse("{ }"), new EmptyMemoryOwner()));
         var configProvider = new TestFusionConfigurationProvider(initialConfig);
-        var webAppBuilder = WebApplication.CreateBuilder();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
         webAppBuilder.WebHost.UseTestServer();
         webAppBuilder.Services
             .AddRouting()
@@ -132,7 +132,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                 new CompositionLog());
         var result = schemaComposer.Compose();
 
-        var webAppBuilder = WebApplication.CreateBuilder();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
         webAppBuilder.WebHost.UseTestServer();
         webAppBuilder.Services
             .AddHeaderPropagation(options => options.Headers.Add("Authorization"))
@@ -172,7 +172,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
 
     private static TestServer CreateSubgraph(ITypeDefinition[]? additionalTypes)
     {
-        var webAppBuilder = WebApplication.CreateBuilder();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
         webAppBuilder.WebHost.UseTestServer();
         webAppBuilder.Services
             .AddLogging()

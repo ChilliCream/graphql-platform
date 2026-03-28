@@ -128,7 +128,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         where TEntity : class
         where T : SortInputType<TEntity>
     {
-        var builder = WebApplication.CreateBuilder();
+        var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseTestServer();
         builder.Services.AddRouting();
         builder.Services.AddGraphQLServer()

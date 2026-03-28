@@ -18,7 +18,7 @@ public static class TestServerHelper
         {
             try
             {
-                var builder = WebApplication.CreateBuilder();
+                var builder = WebApplication.CreateSlimBuilder();
                 builder.WebHost.UseKestrel();
                 builder.WebHost.UseUrls($"http://localhost:{port}");
 

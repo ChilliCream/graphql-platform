@@ -30,7 +30,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
                 Utf8GraphQLParser.Parse(
                     await File.ReadAllTextAsync("__resources__/GetSingleField.graphql"))));
         var typeModule = new TestTypeModule();
-        var webAppBuilder = WebApplication.CreateBuilder();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
         webAppBuilder.WebHost.UseTestServer();
         webAppBuilder.Services
             .AddRouting()
@@ -100,7 +100,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null)
     {
-        var webAppBuilder = WebApplication.CreateBuilder();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
         webAppBuilder.WebHost.UseTestServer();
         webAppBuilder.Services
             .AddLogging()

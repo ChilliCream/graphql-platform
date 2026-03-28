@@ -15,7 +15,7 @@ internal sealed class TestServerSession : IDisposable
         Action<IServiceCollection> configureServices,
         Action<IApplicationBuilder> configureApplication)
     {
-        var builder = WebApplication.CreateBuilder();
+        var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseTestServer();
         configureServices(builder.Services);
 

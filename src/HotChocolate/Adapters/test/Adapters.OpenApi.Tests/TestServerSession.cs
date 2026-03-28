@@ -19,7 +19,7 @@ public sealed class TestServerSession : IDisposable
         {
             ApplicationName = typeof(TestServerSession).Assembly.GetName().Name!
         };
-        var builder = WebApplication.CreateBuilder(options);
+        var builder = WebApplication.CreateSlimBuilder(options);
         builder.WebHost.UseTestServer();
         configureServices(builder.Services);
 
