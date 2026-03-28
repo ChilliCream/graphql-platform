@@ -39,6 +39,7 @@ internal sealed partial class OperationContext
     private int _branchId;
     private int _variableIndex;
     private object? _rootValue;
+    private bool _propagateNullValues;
     private bool _isInitialized;
 
     public OperationContext(
@@ -87,6 +88,10 @@ internal sealed partial class OperationContext
         _batchDispatcher = batchDispatcher;
         _variableIndex = variableIndex;
 
+        _propagateNullValues = (_requestContext.Request.ErrorHandlingMode
+            ?? ((ISchemaDefinition)_schema).GetOptions().DefaultErrorHandlingMode)
+            is not Language.ErrorHandlingMode.Null;
+
         IncludeFlags = operation.CreateIncludeFlags(variables);
         DeferFlags = operation.CreateDeferFlags(variables);
         Result.Data = new ResultDocument(operation, IncludeFlags);
@@ -128,6 +133,7 @@ internal sealed partial class OperationContext
         _currentBranchTracker = context._currentBranchTracker;
         _currentWorkScheduler = context._currentWorkScheduler;
         _currentDeferExecutionCoordinator = context._currentDeferExecutionCoordinator;
+        _propagateNullValues = context._propagateNullValues;
         _branchId = executionBranchId;
         _isInitialized = true;
 
@@ -178,6 +184,7 @@ internal sealed partial class OperationContext
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
             _branchId = int.MinValue;
+            _propagateNullValues = default;
             _isInitialized = false;
             Result.Reset();
         }

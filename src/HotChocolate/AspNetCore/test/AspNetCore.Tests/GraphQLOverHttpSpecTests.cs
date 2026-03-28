@@ -540,6 +540,27 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(OK, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Unknown_OnError_Value_Returns_BadRequest()
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{"query":"{ __typename }","onError":"HALT"}""",
+            System.Text.Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("onError", body, StringComparison.OrdinalIgnoreCase);
+    }
+
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(

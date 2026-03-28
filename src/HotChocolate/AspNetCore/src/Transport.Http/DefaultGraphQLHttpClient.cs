@@ -599,7 +599,6 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             ErrorHandlingMode.Propagate => "PROPAGATE",
             ErrorHandlingMode.Null => "NULL",
-            ErrorHandlingMode.Halt => "HALT",
             _ => throw new ArgumentOutOfRangeException(nameof(mode))
         };
     }

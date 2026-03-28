@@ -1,6 +1,7 @@
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -189,6 +190,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
     public bool ApplySerializeAsToScalars { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultErrorHandlingMode"/>
+    public ErrorHandlingMode DefaultErrorHandlingMode { get; set; } = ErrorHandlingMode.Propagate;
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
@@ -230,6 +234,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
             ApplyShareableToConnections = options.ApplyShareableToConnections,
             ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
-            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
+            DefaultErrorHandlingMode = options.DefaultErrorHandlingMode
         };
 }

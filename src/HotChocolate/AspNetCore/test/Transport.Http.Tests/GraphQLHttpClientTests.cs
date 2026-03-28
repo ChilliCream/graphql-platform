@@ -442,7 +442,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         // act
         var response = await client.PostAsync(
-            new OperationRequest(query, onError: ErrorHandlingMode.Halt),
+            new OperationRequest(query, onError: ErrorHandlingMode.Null),
             cts.Token);
 
         // assert
@@ -451,7 +451,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             """
             {
               "data": {
-                "errorHandlingMode": "HALT"
+                "errorHandlingMode": "NULL"
               }
             }
             """);
@@ -766,7 +766,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         // act
         var response = await client.GetAsync(
-            new OperationRequest(query, onError: ErrorHandlingMode.Halt),
+            new OperationRequest(query, onError: ErrorHandlingMode.Null),
             cts.Token);
 
         // assert
@@ -775,7 +775,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             """
             {
               "data": {
-                "errorHandlingMode": "HALT"
+                "errorHandlingMode": "NULL"
               }
             }
             """);
