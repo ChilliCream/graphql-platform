@@ -17,7 +17,7 @@ internal sealed class ListWorkspaceCommand : Command
     {
         Description = "Lists all workspaces";
 
-        Options.Add(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -72,7 +72,7 @@ internal sealed class ListWorkspaceCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListWorkspacesAsync(cursor, 10, ct);
 
         var items = data.Items

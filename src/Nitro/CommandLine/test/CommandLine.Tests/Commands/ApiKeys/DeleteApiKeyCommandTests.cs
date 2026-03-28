@@ -1,0 +1,474 @@
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.ApiKeys;
+using ChilliCream.Nitro.Client.Exceptions;
+using Moq;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
+
+public sealed class DeleteApiKeyCommandTests
+{
+    [Fact]
+    public async Task Help_ReturnsResult()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddArguments(
+                "api-key",
+                "delete",
+                "--help")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Description:
+              Deletes an API key by ID
+
+            Usage:
+              testhost api-key delete <id> [options]
+
+            Arguments:
+              <id>  The ID
+
+            Options:
+              --force                  Will not ask for confirmation on deletes or overwrites.
+              --cloud-url <cloud-url>  The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>      The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>          The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help           Show help and usage information
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddApiKey()
+            .AddSession()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("Description:", result.StdOut);
+        Assert.Contains("Deletes an API key by ID", result.StdOut);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithApiKeyAndForce_ReturnsResult_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResult("key-1", "my-key", "Workspace"));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Deleting API key...
+            └── Successfully deleted API key!
+
+            {
+              "id": "key-1",
+              "name": "my-key",
+              "workspace": {
+                "name": "Workspace"
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(DeleteApiKeyMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+        IDeleteApiKeyCommandMutation_DeleteApiKey_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Deleting API key...
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(DeleteApiKeyMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+        IDeleteApiKeyCommandMutation_DeleteApiKey_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting API key...
+            └── Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(DeleteApiKeyMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
+        IDeleteApiKeyCommandMutation_DeleteApiKey_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_OutputJson()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("delete failed"));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("delete failed"));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting API key...
+            └── Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("delete failed"));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Deleting API key...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("delete failed"));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Deleting API key...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("delete failed"));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting API key...
+            └── Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_OutputJson()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("delete failed"));
+
+        var builder = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+
+        client.VerifyAll();
+    }
+
+    public static IEnumerable<object[]> DeleteApiKeyMutationErrorCases()
+    {
+        var apiKeyNotFound = new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);
+        apiKeyNotFound.SetupGet(x => x.ApiKeyId).Returns("key-1");
+        apiKeyNotFound.As<IApiKeyNotFoundError>().SetupGet(x => x.Message).Returns("API key not found");
+        apiKeyNotFound.As<IError>().SetupGet(x => x.Message).Returns("API key not found");
+
+        var unknownError = new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        unknownError.As<IError>().SetupGet(x => x.Message).Returns("Unauthorized");
+
+        return new[]
+        {
+            new object[] { apiKeyNotFound.Object, "API key not found" },
+            new object[] { unknownError.Object, "Unexpected mutation error: Unauthorized" }
+        };
+    }
+}

@@ -21,7 +21,7 @@ internal sealed class ListMockCommand : Command
         Description = "List all mock schemas in an API.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
-        Options.Add(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -90,7 +90,7 @@ internal sealed class ListMockCommand : Command
             throw Exit("The API ID is required in non-interactive mode.");
         }
 
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListMockSchemasAsync(apiId, cursor, 10, ct);
         var items = data.Items
             .Select(MockSchemaDetailPrompt.From)

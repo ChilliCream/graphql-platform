@@ -43,6 +43,7 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         _context = null;
     }
 
+    // TODO: This should be async
     private void Complete(string? message)
     {
         if (_completed)

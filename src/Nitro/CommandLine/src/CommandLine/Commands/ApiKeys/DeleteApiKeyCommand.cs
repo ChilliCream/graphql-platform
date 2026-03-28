@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
@@ -14,6 +15,7 @@ internal sealed class DeleteApiKeyCommand : Command
     public DeleteApiKeyCommand(
         INitroConsole console,
         IApiKeysClient apiKeysClient,
+        ISessionService sessionService,
         IResultHolder resultHolder) : base("delete")
     {
         Description = "Deletes an API key by ID";
@@ -24,49 +26,75 @@ internal sealed class DeleteApiKeyCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, apiKeysClient, resultHolder, cancellationToken));
+            => await ExecuteAsync(
+                parseResult,
+                console,
+                apiKeysClient,
+                sessionService,
+                resultHolder,
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
         ParseResult parseResult,
         INitroConsole console,
         IApiKeysClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        var keyId = parseResult.GetValue(Opt<IdArgument>.Instance);
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var keyId = parseResult.GetValue(Opt<IdArgument>.Instance) ?? throw Exit("An API key ID is required.");
         var force = parseResult.GetValue(Opt<ForceOption>.Instance);
 
-        bool choice;
-        if (force)
+        if (!force)
         {
-            choice = true;
-        }
-        else
-        {
-            choice = await console.ConfirmAsync(
-                $"Do you really want to delete API key with ID {keyId}",
+            var confirmed = await console.ConfirmAsync(
+                $"Do you really want to delete API key with ID '{keyId}'?",
                 cancellationToken);
+
+            if (!confirmed)
+            {
+                throw Exit("API key was not deleted.");
+            }
         }
 
-        if (!choice)
+        await using (var activity = console.StartActivity("Deleting API key..."))
         {
-            throw Exit("API key was not deleted");
+            var data = await client.DeleteApiKeyAsync(keyId, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IApiKeyNotFoundError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            if (data.ApiKey is not { } key)
+            {
+                activity.Fail();
+                throw Exit("Could not delete API key.");
+            }
+
+            activity.Success("Successfully deleted API key!");
+
+            console.WriteLine();
+
+            resultHolder.SetResult(new ObjectResult(ApiKeyDetailPrompt.From(key).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        var data = await client.DeleteApiKeyAsync(keyId, cancellationToken);
-        console.PrintMutationErrorsAndExit(data.Errors);
-
-        if (data.ApiKey is not { } key)
-        {
-            throw Exit("Could not delete API key");
-        }
-
-        console.OkLine(
-            $"API key {key.Name.AsHighlight()} [dim](ID: {key.Id})[/] was deleted");
-
-        resultHolder.SetResult(new ObjectResult(ApiKeyDetailPrompt.From(key).ToObject()));
-
-        return ExitCodes.Success;
     }
 }

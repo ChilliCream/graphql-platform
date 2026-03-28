@@ -1,8 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Options;
 
-internal sealed class CursorOption : Option<string?>
+internal sealed class OptionalCursorOption : Option<string?>
 {
-    public CursorOption() : base("--cursor")
+    public OptionalCursorOption() : base("--cursor")
     {
         Description = "The cursor to start the query (non interactive mode)";
         Required = false;

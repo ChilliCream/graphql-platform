@@ -99,7 +99,7 @@ parseResult.AssertHasAuthentication(sessionService);
 ## Error messages
 
 - **Option references**: Render option names as `'--option-name'` (single-quoted, kebab-case).
-- **Value references**: When including a runtime value in a message, wrap it in angle-bracket quotes: `'<value>'`.
+- **Value references**: When including a runtime value in a message, wrap it in angle-bracket quotes: `'value'`.
 - **Sentence format**: Messages must end with a period and be written in proper English.
 - **Use `throw Exit(...)`**: For guard-style errors inside `ExecuteAsync`, use `throw Exit("...")` (imported via `using static ChilliCream.Nitro.CommandLine.ThrowHelper`). `SetActionWithExceptionHandling` catches the `ExitException` and writes it to stderr automatically.
 

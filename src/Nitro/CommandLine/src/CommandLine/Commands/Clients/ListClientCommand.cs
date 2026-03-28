@@ -24,7 +24,7 @@ internal sealed class ListClientCommand : Command
         Description = "Lists all clients of an API";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
-        Options.Add(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -63,7 +63,7 @@ internal sealed class ListClientCommand : Command
     {
         const string apiMessage = "For which API do you want to list the clients?";
         var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
 
         var container = PaginationContainer
             .CreateConnectionData((after, first, cancellationToken) =>
@@ -97,7 +97,7 @@ internal sealed class ListClientCommand : Command
             throw Exit("The API ID is required in non-interactive mode.");
         }
 
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var page = await client.ListClientsAsync(apiId, cursor, 10, ct);
 
         var items = page.Items

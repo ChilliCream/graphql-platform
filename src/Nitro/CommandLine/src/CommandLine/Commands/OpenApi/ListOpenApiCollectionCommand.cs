@@ -22,7 +22,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
         Description = "Lists all OpenAPI collections of an API";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
-        Options.Add(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -98,7 +98,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
             throw Exit("The API ID is required in non-interactive mode.");
         }
 
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListOpenApiCollectionsAsync(apiId, cursor, 10, ct);
         var items = data.Items
             .Select(OpenApiCollectionDetailPrompt.From)

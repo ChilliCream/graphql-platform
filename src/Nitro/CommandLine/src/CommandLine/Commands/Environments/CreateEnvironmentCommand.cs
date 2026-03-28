@@ -20,7 +20,7 @@ internal sealed class CreateEnvironmentCommand : Command
         Description = "Creates a new environment";
 
         Options.Add(Opt<EnvironmentNameOption>.Instance);
-        Options.Add(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
 
         this.AddGlobalNitroOptions();
 

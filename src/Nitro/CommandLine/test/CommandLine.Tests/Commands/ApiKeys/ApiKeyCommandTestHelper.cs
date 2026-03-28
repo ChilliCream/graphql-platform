@@ -7,15 +7,25 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 
 internal static class ApiKeyCommandTestHelper
 {
-    public static CommandBuilder CreateHost(
-        Mock<IApiKeysClient> client,
-        TestSessionService? session = null)
+    public static ConnectionPage<IListApiKeyCommandQuery_WorkspaceById_ApiKeys_Edges_Node> CreateListApiKeysPage(
+        string? endCursor = null,
+        bool hasNextPage = false,
+        params (string Id, string Name, string WorkspaceName)[] apiKeys)
     {
-        var host = new CommandBuilder()
-            .AddService<IApiKeysClient>(client.Object)
-            .AddService<ISessionService>(session ?? TestSessionService.WithWorkspace());
+        var items = apiKeys
+            .Select(static key =>
+                (IListApiKeyCommandQuery_WorkspaceById_ApiKeys_Edges_Node)
+                new ListApiKeyCommandQuery_WorkspaceById_ApiKeys_Edges_Node_ApiKey(
+                    key.Id,
+                    key.Name,
+                    new ListApiKeyCommandQuery_WorkspaceById_ApiKeys_Edges_Node_Workspace_Workspace(
+                        key.WorkspaceName)))
+            .ToArray();
 
-        return host;
+        return new ConnectionPage<IListApiKeyCommandQuery_WorkspaceById_ApiKeys_Edges_Node>(
+            items,
+            endCursor,
+            hasNextPage);
     }
 
     public static ICreateApiKeyCommandMutation_CreateApiKey CreateApiKeyResult(
@@ -43,6 +53,14 @@ internal static class ApiKeyCommandTestHelper
         return payload.Object;
     }
 
+    public static ICreateApiKeyCommandMutation_CreateApiKey CreateApiKeyResultWithErrors(
+        params ICreateApiKeyCommandMutation_CreateApiKey_Errors[] errors)
+    {
+        var payload = new Mock<ICreateApiKeyCommandMutation_CreateApiKey>();
+        payload.SetupGet(x => x.Errors).Returns(errors);
+        return payload.Object;
+    }
+
     public static IDeleteApiKeyCommandMutation_DeleteApiKey CreateDeleteApiKeyResult(
         string keyId,
         string keyName,
@@ -58,31 +76,15 @@ internal static class ApiKeyCommandTestHelper
 
         var payload = new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey>();
         payload.SetupGet(x => x.ApiKey).Returns(key.Object);
-        payload.SetupGet(x => x.Errors).Returns([]);
-
+        payload.SetupGet(x => x.Errors).Returns(Array.Empty<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors>());
         return payload.Object;
     }
 
-    public static IListApiKeyCommandQuery_WorkspaceById_ApiKeys_Edges_Node_ApiKey CreateApiKeyNode(
-        string id,
-        string name,
-        string workspaceName)
+    public static IDeleteApiKeyCommandMutation_DeleteApiKey CreateDeleteApiKeyResultWithErrors(
+        params IDeleteApiKeyCommandMutation_DeleteApiKey_Errors[] errors)
     {
-        var workspace = new Mock<IListApiKeyCommandQuery_WorkspaceById_ApiKeys_Edges_Node_Workspace_Workspace>();
-        workspace.SetupGet(x => x.Name).Returns(workspaceName);
-
-        var key = new Mock<IListApiKeyCommandQuery_WorkspaceById_ApiKeys_Edges_Node_ApiKey>();
-        key.SetupGet(x => x.Id).Returns(id);
-        key.SetupGet(x => x.Name).Returns(name);
-        key.SetupGet(x => x.Workspace).Returns(workspace.Object);
-
-        return key.Object;
-    }
-
-    public static ICreateApiKeyCommandMutation_CreateApiKey CreateApiKeyResultWithErrors(
-        params ICreateApiKeyCommandMutation_CreateApiKey_Errors[] errors)
-    {
-        var payload = new Mock<ICreateApiKeyCommandMutation_CreateApiKey>();
+        var payload = new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey>();
+        payload.SetupGet(x => x.ApiKey).Returns((IDeleteApiKeyCommandMutation_DeleteApiKey_ApiKey?)null);
         payload.SetupGet(x => x.Errors).Returns(errors);
         return payload.Object;
     }

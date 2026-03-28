@@ -18,8 +18,8 @@ internal sealed class ListApiCommand : Command
     {
         Description = "Lists all APIs of a workspace";
 
-        Options.Add(Opt<CursorOption>.Instance);
-        Options.Add(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -53,7 +53,7 @@ internal sealed class ListApiCommand : Command
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
             .CreateConnectionData((after, first, token)
                 => client.ListApisAsync(workspaceId, after ?? cursor, first, token))
@@ -82,7 +82,7 @@ internal sealed class ListApiCommand : Command
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListApisAsync(workspaceId, cursor, 10, ct);
 
         var items = data.Items

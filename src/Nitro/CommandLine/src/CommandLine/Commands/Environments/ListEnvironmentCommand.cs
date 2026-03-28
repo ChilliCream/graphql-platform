@@ -18,8 +18,8 @@ internal sealed class ListEnvironmentCommand : Command
     {
         Description = "Lists all environments of a workspace";
 
-        Options.Add(Opt<CursorOption>.Instance);
-        Options.Add(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -79,7 +79,7 @@ internal sealed class ListEnvironmentCommand : Command
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListEnvironmentsAsync(workspaceId, cursor, 10, ct);
 
         var items = data.Items

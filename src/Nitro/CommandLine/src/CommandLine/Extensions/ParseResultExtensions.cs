@@ -31,7 +31,7 @@ internal static class ParseResultExtensions
         ISessionService sessionService)
     {
         return sessionService.Session?.Workspace?.Id
-            ?? parseResult.GetValue(Opt<WorkspaceIdOption>.Instance)
+            ?? parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance)
             ?? throw ThrowHelper.NoDefaultWorkspace();
     }
 

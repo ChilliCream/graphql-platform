@@ -68,7 +68,7 @@ internal sealed class CreateApiKeyCommand : Command
             if (!console.IsInteractive)
             {
                 throw Exit(
-                    $"The '{WorkspaceIdOption.OptionName}' or '{ApiIdOption.OptionName}' option is required in non-interactive mode.");
+                    $"The '{OptionalWorkspaceIdOption.OptionName}' or '{ApiIdOption.OptionName}' option is required in non-interactive mode.");
             }
 
             var choice = await console.PromptAsync(

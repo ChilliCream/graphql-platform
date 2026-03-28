@@ -43,6 +43,7 @@ Every command test suite must include all categories below.
   - Explicit options
   - Session fallback
   - Interactive prompts
+- If a list command exposes a `--cursor` option, add success-path tests for each interaction mode with the cursor explicitly specified.
 
 6. GraphQL operation exception handling
 
@@ -98,6 +99,8 @@ Note: If a behavior is unreachable in a mode by design, document that explicitly
 
 - Use strict mocks for GraphQL clients where practical.
 - Verify expected calls and verify no unexpected calls for negative paths.
+- Fully assert stdout and stderr for every test. Do not use partial assertions like `Assert.Contains` for command output when the full output can be asserted.
+- Prefer `MatchInlineSnapshot` over `Assert.Equal` for `StdOut` and `StdErr` assertions, for example: `result.StdOut.MatchInlineSnapshot("""...""")`.
 - For error paths, assert:
   - stderr text
   - exit code
@@ -130,6 +133,7 @@ Use a stable order to keep suites readable.
 - [ ] Parser-level required options test exists (single consolidated test)
 - [ ] All ExecuteAsync custom validation errors tested
 - [ ] All meaningful input combinations tested
+- [ ] Cursor option covered in all interaction modes for list commands that expose `--cursor`
 - [ ] NitroClientException tested in all three modes
 - [ ] NitroClientAuthorizationException tested in all three modes
 - [ ] All mutation typed error branches tested in all three modes (three distinct theories + shared MemberData factory)

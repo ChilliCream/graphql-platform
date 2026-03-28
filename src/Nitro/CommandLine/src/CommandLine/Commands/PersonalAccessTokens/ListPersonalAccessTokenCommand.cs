@@ -17,7 +17,7 @@ internal sealed class ListPersonalAccessTokenCommand : Command
     {
         Description = "Lists all API keys of a workspace";
 
-        Options.Add(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -83,7 +83,7 @@ internal sealed class ListPersonalAccessTokenCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListPersonalAccessTokensAsync(cursor, 10, ct);
 
         var items = data.Items

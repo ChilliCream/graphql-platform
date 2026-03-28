@@ -18,8 +18,8 @@ internal sealed class ListApiKeyCommand : Command
     {
         Description = "Lists all API keys of a workspace";
 
-        Options.Add(Opt<CursorOption>.Instance);
-        Options.Add(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -53,9 +53,10 @@ internal sealed class ListApiKeyCommand : Command
         string workspaceId,
         CancellationToken ct)
     {
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
             .CreateConnectionData((after, first, token)
-                => client.ListApiKeysAsync(workspaceId, after, first, token))
+                => client.ListApiKeysAsync(workspaceId, after ?? cursor, first, token))
             .PageSize(10);
 
         var apiKey = await PagedTable
@@ -80,7 +81,7 @@ internal sealed class ListApiKeyCommand : Command
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListApiKeysAsync(workspaceId, cursor, 10, ct);
 
         var items = data.Items
@@ -88,8 +89,8 @@ internal sealed class ListApiKeyCommand : Command
             .Select(x => x.ToObject())
             .ToArray();
 
-        resultHolder.SetResult(new ObjectResult(
-            new PaginatedListResult<ApiKeyDetailPrompt.ApiKeyDetailPromptResult>(items, data.EndCursor)));
+        resultHolder.SetResult(
+            new ObjectResult(new PaginatedListResult<ApiKeyDetailPrompt.ApiKeyDetailPromptResult>(items, data.EndCursor)));
 
         return ExitCodes.Success;
     }

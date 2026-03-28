@@ -11,7 +11,7 @@ internal static class ThrowHelper
     }
 
     public static ExitException NoDefaultWorkspace() => new(
-        $"You are not logged in. Run {"nitro login".AsCommand()} to sign in or manually specify the '{WorkspaceIdOption.OptionName}' option (if available).");
+        $"You are not logged in. Run {"nitro login".AsCommand()} to sign in or manually specify the '{OptionalWorkspaceIdOption.OptionName}' option (if available).");
 
     public static Exception NoPageInfoFound()
         => ThereWasAnIssueWithTheRequest("No page info found in the response.");

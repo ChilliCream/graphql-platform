@@ -70,7 +70,7 @@ internal sealed class ListClientVersionsCommand : Command
             clientId = selectedClient.Id;
         }
 
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, cancellationToken) =>
@@ -113,7 +113,7 @@ internal sealed class ListClientVersionsCommand : Command
             throw Exit("The client ID is required in non-interactive mode.");
         }
 
-        var cursor = parseResult.GetValue(Opt<CursorOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct);
 
         var items = page.Items
