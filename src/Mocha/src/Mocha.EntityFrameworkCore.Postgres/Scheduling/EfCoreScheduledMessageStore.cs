@@ -1,3 +1,4 @@
+using System.Data;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -55,7 +56,7 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
 
             var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
 
-            if (connection.State != System.Data.ConnectionState.Open)
+            if (connection.State != ConnectionState.Open)
             {
                 await connection.OpenAsync(cancellationToken);
             }

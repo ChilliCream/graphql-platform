@@ -12,7 +12,8 @@ namespace Mocha.Scheduling;
 /// <param name="dispatcher">The dispatcher that performs the scheduled message dispatch loop.</param>
 internal sealed class ScheduledMessageWorker(
     PostgresScheduledMessageOptions options,
-    ScheduledMessageDispatcher dispatcher) : IHostedService
+    ScheduledMessageDispatcher dispatcher)
+    : IHostedService
 {
     private NpgsqlDataSource? _dataSource;
     private ContinuousTask? _task;

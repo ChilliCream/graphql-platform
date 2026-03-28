@@ -35,9 +35,9 @@ public sealed class ScheduledMessage(Guid id, JsonDocument envelope)
     public int MaxAttempts { get; private set; } = 10;
 
     /// <summary>
-    /// Gets the last error encountered during dispatch, stored as a JSON string.
+    /// Gets the last error encountered during dispatch, stored as a JSON document.
     /// </summary>
-    public string? LastError { get; private set; }
+    public JsonDocument? LastError { get; private set; }
 
     /// <summary>
     /// Gets the UTC timestamp when this scheduled message was created.

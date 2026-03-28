@@ -283,7 +283,9 @@ public sealed class PostgresOutboxProcessor
                     "outbox send",
                     ActivityKind.Client,
                     parentContext);
-                activity?.SetTag("messaging.message_id", envelope.MessageId);
+
+                activity?.SetMessageId(envelope.MessageId);
+
                 activity?.Start();
             }
         }

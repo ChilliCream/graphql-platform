@@ -56,18 +56,21 @@ internal sealed class ScheduledMessageQueries
 
             ProcessMessage = $"""
                 UPDATE {t.QualifiedTableName}
-                SET "{t.TimesSent}" = "{t.TimesSent}" + 1
+                SET "{t.TimesSent}" = "{t.TimesSent}" + 1,
+                    "{t.ScheduledTime}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
                     WHERE "{t.TimesSent}" < "{t.MaxAttempts}"
-                      AND "{t.ScheduledTime}" + INTERVAL '1 second' * POWER(2, "{t.TimesSent}") <= NOW()
+                      AND "{t.ScheduledTime}" <= NOW()
                     ORDER BY "{t.ScheduledTime}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1
                 )
                 RETURNING
                     "{t.Id}",
-                    "{t.Envelope}";
+                    "{t.Envelope}",
+                    "{t.TimesSent}",
+                    "{t.MaxAttempts}";
                 """,
 
             DeleteMessage = $"""

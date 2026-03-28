@@ -100,13 +100,6 @@ public sealed class ScheduledMessageDispatcher
             {
                 // Normal shutdown.
             }
-            catch (Exception ex)
-            {
-                _logger.UnexpectedErrorWhileProcessingScheduledMessage(ex);
-
-                // Back off briefly to avoid a tight failure loop.
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            }
         }
     }
 
@@ -150,6 +143,8 @@ public sealed class ScheduledMessageDispatcher
                 {
                     var id = reader.GetGuid(0);
                     var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
+                    var timesSent = reader.GetInt32(2);
+                    var maxAttempts = reader.GetInt32(3);
                     var messageType = GetMessageType(envelope?.MessageType);
                     var isReply = envelope?.Headers?.IsReply() ?? false;
                     var endpoint = isReply
@@ -183,6 +178,11 @@ public sealed class ScheduledMessageDispatcher
                         await reader.CloseAsync();
 
                         await UpdateLastErrorAsync(connection, id, ex, transaction, cancellationToken);
+
+                        if (timesSent >= maxAttempts)
+                        {
+                            _logger.ScheduledMessageExhausted(id, maxAttempts);
+                        }
                     }
 
                     return true;
@@ -288,7 +288,9 @@ public sealed class ScheduledMessageDispatcher
                     "scheduler send",
                     ActivityKind.Client,
                     parentContext);
-                activity?.SetTag("messaging.message_id", envelope.MessageId);
+
+                activity?.SetMessageId(envelope.MessageId);
+
                 activity?.Start();
             }
         }
@@ -374,6 +376,10 @@ internal static partial class SchedulerLogs
 
     [LoggerMessage(4, LogLevel.Warning, "Failed to dispatch scheduled message {Id}. Error recorded for retry.")]
     public static partial void ScheduledMessageDispatchFailed(this ILogger logger, Guid id, Exception exception);
+
+    [LoggerMessage(5, LogLevel.Warning,
+        "Scheduled message {Id} exhausted all {MaxAttempts} retry attempts and will not be retried.")]
+    public static partial void ScheduledMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
 }
 
 file static class Serializer

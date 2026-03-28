@@ -7,7 +7,11 @@ namespace Mocha.EntityFrameworkCore;
 /// Intercepts Entity Framework Core save changes events to signal the scheduler
 /// that messages are ready for dispatch.
 /// </summary>
-internal sealed class SchedulingSaveChangesInterceptor(ISchedulerSignal signal, TimeProvider timeProvider) : SaveChangesInterceptor, ISingletonInterceptor
+internal sealed class SchedulingSaveChangesInterceptor(
+    ISchedulerSignal signal,
+    TimeProvider timeProvider)
+    : SaveChangesInterceptor
+    , ISingletonInterceptor
 {
     /// <inheritdoc />
     public override ValueTask<int> SavedChangesAsync(
