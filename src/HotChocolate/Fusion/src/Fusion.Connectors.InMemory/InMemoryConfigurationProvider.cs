@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
@@ -137,23 +138,26 @@ public sealed class InMemoryConfigurationProvider : IFusionConfigurationProvider
                     sourceSchemas[i] = new SourceSchemaText(_schemaNames[i], sdl);
                 }
 
+                var compositionLog = new CompositionLog();
                 var result = new SchemaComposer(
                     sourceSchemas,
                     new SchemaComposerOptions(),
-                    new CompositionLog()).Compose();
+                    compositionLog).Compose();
 
                 if (result.IsFailure)
                 {
-                    continue;
+                    NotifyError(new SchemaCompositionException(compositionLog));
+                    return;
                 }
 
                 var documentNode = result.Value.ToSyntaxNode();
                 var settings = new JsonDocumentOwner(defaultSettings, EmptyMemoryOwner.Instance);
                 NotifyObservers(new FusionConfiguration(documentNode, settings));
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore and wait for next update
+                NotifyError(ex);
+                return;
             }
         }
     }
@@ -176,6 +180,21 @@ public sealed class InMemoryConfigurationProvider : IFusionConfigurationProvider
         foreach (var session in sessions)
         {
             session.Notify(configuration);
+        }
+    }
+
+    private void NotifyError(Exception exception)
+    {
+        ImmutableArray<ObserverSession> sessions;
+
+        lock (_syncRoot)
+        {
+            sessions = _sessions;
+        }
+
+        foreach (var session in sessions)
+        {
+            session.Error(exception);
         }
     }
 
@@ -217,29 +236,13 @@ public sealed class InMemoryConfigurationProvider : IFusionConfigurationProvider
         : IDisposable
     {
         public void Notify(FusionConfiguration schemaDocument)
-        {
-            try
-            {
-                observer.OnNext(schemaDocument);
-            }
-            catch (Exception ex)
-            {
-                observer.OnError(ex);
-            }
-        }
+            => observer.OnNext(schemaDocument);
+
+        public void Error(Exception exception)
+            => observer.OnError(exception);
 
         public void Complete()
-        {
-            try
-            {
-                observer.OnCompleted();
-            }
-            catch
-            {
-                // We do not want to throw an exception if the observer
-                // throws an exception on completion.
-            }
-        }
+            => observer.OnCompleted();
 
         public void Dispose()
             => provider.Unsubscribe(this);
