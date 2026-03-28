@@ -32,7 +32,7 @@ internal sealed class ListStagesCommand : Command
         IStagesClient client,
         CancellationToken ct)
     {
-        if (console.IsInteractive())
+        if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }

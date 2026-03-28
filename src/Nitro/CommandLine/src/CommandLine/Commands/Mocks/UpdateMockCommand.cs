@@ -51,7 +51,7 @@ public sealed class UpdateMockCommand : Command
 
         if (string.IsNullOrWhiteSpace(mockSchemaId))
         {
-            if (!console.IsInteractive())
+            if (!console.IsInteractive)
             {
                 throw Exit("The mock schema ID is required in non-interactive mode.");
             }

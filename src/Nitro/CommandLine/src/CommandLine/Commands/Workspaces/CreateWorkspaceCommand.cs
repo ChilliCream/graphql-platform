@@ -46,7 +46,7 @@ internal sealed class CreateWorkspaceCommand : Command
         var asDefault = false;
         var session = sessionService.Session;
 
-        if (console.IsInteractive() && session is not null)
+        if (console.IsInteractive && session is not null)
         {
             asDefault = await context.OptionOrConfirmAsync(
                 "Set as default workspace",

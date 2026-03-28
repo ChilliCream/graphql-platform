@@ -1,49 +1,44 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client;
-using StrawberryShake;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class ConsoleHelpers
 {
-    public static void PrintMutationErrorsAndExit<T>(this IAnsiConsole console, IReadOnlyList<T>? errors)
+    public static void PrintMutationErrorsAndExit<T>(this INitroConsole console, IReadOnlyList<T>? errors)
         where T : class
     {
         if (errors?.Count > 0)
         {
-            // we need to enable interactive mode to print errors
-            using var _ = console.UseInteractive();
-
-            console.WriteLine();
-
-            foreach (var error in errors)
-            {
-                console.PrintMutationError(error);
-            }
+            // TODO: This needs to write to stderr
+            // console.WriteLine();
+            //
+            // foreach (var error in errors)
+            // {
+            //     console.PrintMutationError(error);
+            // }
 
             throw new ExitException();
         }
     }
 
-    public static void PrintMutationErrors<T>(this IAnsiConsole console, IReadOnlyList<T>? errors)
+    public static void PrintMutationErrors<T>(this INitroConsole console, IReadOnlyList<T>? errors)
         where T : class
     {
         if (errors?.Count > 0)
         {
-            // we need to enable interactive mode to print errors
-            using var _ = console.UseInteractive();
-
-            console.WriteLine();
-
-            foreach (var error in errors)
-            {
-                console.PrintMutationError(error);
-            }
+            // TODO: Write to stderr
+            // console.WriteLine();
+            //
+            // foreach (var error in errors)
+            // {
+            //     console.PrintMutationError(error);
+            // }
         }
     }
 
     private static void PrintMutationError(
-        this IAnsiConsole console,
+        this INitroConsole console,
         ISchemaVersionChangeViolationError error)
     {
         var tree = new Tree("");
@@ -52,7 +47,7 @@ internal static class ConsoleHelpers
     }
 
     private static void PrintMutationError(
-        this IAnsiConsole console,
+        this INitroConsole console,
         ISchemaChangeViolationError error)
     {
         var tree = new Tree("");
@@ -61,7 +56,7 @@ internal static class ConsoleHelpers
     }
 
     private static void PrintMutationError(
-        this IAnsiConsole console,
+        this INitroConsole console,
         IStagesHavePublishedDependenciesError error)
     {
         console.WriteLine(error.Message);
@@ -86,7 +81,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintMutationError(this IAnsiConsole console, IPersistedQueryValidationError error)
+    private static void PrintMutationError(this INitroConsole console, IPersistedQueryValidationError error)
     {
         console.WarningLine(
             $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
@@ -118,7 +113,7 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
-    private static void PrintMutationError(this IAnsiConsole console, IOpenApiCollectionValidationError error)
+    private static void PrintMutationError(this INitroConsole console, IOpenApiCollectionValidationError error)
     {
         foreach (var collectionError in error.Collections)
         {
@@ -171,7 +166,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintMutationError(this IAnsiConsole console, IMcpFeatureCollectionValidationError error)
+    private static void PrintMutationError(this INitroConsole console, IMcpFeatureCollectionValidationError error)
     {
         foreach (var collectionError in error.Collections)
         {
@@ -225,7 +220,7 @@ internal static class ConsoleHelpers
     }
 
     private static void PrintMutationError(
-        this IAnsiConsole console,
+        this INitroConsole console,
         IInvalidGraphQLSchemaError error)
     {
         console.WriteLine(
@@ -242,7 +237,7 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
-    private static void PrintInvalidOpenApiCollectionArchiveError(this IAnsiConsole console, string message)
+    private static void PrintInvalidOpenApiCollectionArchiveError(this INitroConsole console, string message)
     {
         console.WriteLine(
             "The server received an invalid archive. "
@@ -252,7 +247,7 @@ internal static class ConsoleHelpers
             + message);
     }
 
-    private static void PrintInvalidMcpFeatureCollectionArchiveError(this IAnsiConsole console, string message)
+    private static void PrintInvalidMcpFeatureCollectionArchiveError(this INitroConsole console, string message)
     {
         console.WriteLine(
             "The server received an invalid archive. "
@@ -262,72 +257,72 @@ internal static class ConsoleHelpers
             + message);
     }
 
-    private static void PrintMutationError(this IAnsiConsole ansiConsole, object error)
+    private static void PrintMutationError(this INitroConsole console, object error)
     {
         switch (error)
         {
             case IOperationsAreNotAllowedError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case IConcurrentOperationError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case IUnexpectedProcessingError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case IProcessingTimeoutError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case ISchemaVersionChangeViolationError err:
-                ansiConsole.PrintMutationError(err);
+                console.PrintMutationError(err);
                 break;
 
             case ISchemaVersionSyntaxError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case IPersistedQueryValidationError err:
-                ansiConsole.PrintMutationError(err);
+                console.PrintMutationError(err);
                 break;
 
             case IStagesHavePublishedDependenciesError err:
-                ansiConsole.PrintMutationError(err);
+                console.PrintMutationError(err);
                 break;
 
             case IApiNotFoundError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case IMockSchemaNonUniqueNameError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case IMockSchemaNotFoundError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case IStageNotFoundError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case ISubgraphInvalidError err:
-                ansiConsole.WriteLine(err.Message);
+                console.WriteLine(err.Message);
                 break;
 
             case IInvalidGraphQLSchemaError err:
-                ansiConsole.PrintMutationError(err);
+                console.PrintMutationError(err);
                 break;
 
             case ISchemaChangeViolationError err:
-                ansiConsole.PrintMutationError(err);
+                console.PrintMutationError(err);
                 break;
 
             case IInvalidFusionSourceSchemaArchiveError err:
-                ansiConsole.WriteLine(
+                console.WriteLine(
                     "The server received an invalid archive. "
                     + "This indicates a bug in the tooling. "
                     + "Please notify ChilliCream."
@@ -336,68 +331,68 @@ internal static class ConsoleHelpers
                 break;
 
             case IOpenApiCollectionValidationError err:
-                ansiConsole.PrintMutationError(err);
+                console.PrintMutationError(err);
                 break;
 
             case IInvalidOpenApiCollectionArchiveError err:
-                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
+                console.PrintInvalidOpenApiCollectionArchiveError(err.Message);
                 break;
 
             case IOpenApiCollectionValidationArchiveError err:
-                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
+                console.PrintInvalidOpenApiCollectionArchiveError(err.Message);
                 break;
 
             case IMcpFeatureCollectionValidationError err:
-                ansiConsole.PrintMutationError(err);
+                console.PrintMutationError(err);
                 break;
 
             case IInvalidMcpFeatureCollectionArchiveError err:
-                ansiConsole.PrintInvalidMcpFeatureCollectionArchiveError(err.Message);
+                console.PrintInvalidMcpFeatureCollectionArchiveError(err.Message);
                 break;
 
             case IMcpFeatureCollectionValidationArchiveError err:
-                ansiConsole.PrintInvalidMcpFeatureCollectionArchiveError(err.Message);
+                console.PrintInvalidMcpFeatureCollectionArchiveError(err.Message);
                 break;
 
             case IError err:
-                ansiConsole.WriteLine("Unexpected mutation error: " + err.Message);
+                console.WriteLine("Unexpected mutation error: " + err.Message);
                 break;
 
             default:
-                ansiConsole.WriteLine("Unexpected mutation error");
+                console.WriteLine("Unexpected mutation error");
                 break;
         }
     }
 
-    public static void Log(this IAnsiConsole console, string str)
+    public static void Log(this INitroConsole console, string str)
     {
         console.MarkupLine("[grey]LOG: [/]" + str);
     }
 
-    public static Status DefaultStatus(this IAnsiConsole console)
+    public static Status DefaultStatus(this INitroConsole console)
     {
         return console.Status()
             .Spinner(Spinner.Known.BouncingBar)
             .SpinnerStyle(Style.Parse("green bold"));
     }
 
-    public static void Title(this IAnsiConsole console, string str)
+    public static void Title(this INitroConsole console, string str)
     {
         console.MarkupLineInterpolated($"[white bold]{str}:[/]");
         console.WriteLine();
     }
 
-    public static void Success(this IAnsiConsole console, string message)
+    public static void Success(this INitroConsole console, string message)
     {
         console.MarkupLine($"[green bold]{message}[/]");
     }
 
-    public static void OkLine(this IAnsiConsole console, string message)
+    public static void OkLine(this INitroConsole console, string message)
     {
         console.MarkupLine(Glyphs.Check.Space() + message);
     }
 
-    public static void ErrorLine(this IAnsiConsole console, string message)
+    public static void ErrorLine(this INitroConsole console, string message)
     {
         console.MarkupLine(Glyphs.Cross.Space() + message);
     }
@@ -407,7 +402,7 @@ internal static class ConsoleHelpers
         textWriter.WriteLine("❌ " + message);
     }
 
-    public static void OkQuestion(this IAnsiConsole console, string question, string result)
+    public static void OkQuestion(this INitroConsole console, string question, string result)
     {
         console.MarkupLine(
             $"{Glyphs.QuestionMark.Space()}[bold]{question}[/]: [darkseagreen4]{result}[/]");
@@ -427,9 +422,9 @@ internal static class ConsoleHelpers
             return value;
         }
 
-        var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+        var console = context.BindingContext.GetRequiredService<INitroConsole>();
 
-        if (!console.IsInteractive())
+        if (!console.IsInteractive)
         {
             throw new ExitException($"Missing required option '--{option.Name}'.");
         }
@@ -452,7 +447,7 @@ internal static class ConsoleHelpers
         => OptionOrAskAsync(context, question, option, defaultValue: null, cancellationToken);
 
     public static async Task<string> AskAsync(
-        this IAnsiConsole console,
+        this INitroConsole console,
         string question,
         string defaultValue,
         CancellationToken cancellationToken)
@@ -463,7 +458,7 @@ internal static class ConsoleHelpers
     }
 
     public static async Task<bool> ConfirmAsync(
-        this IAnsiConsole console,
+        this INitroConsole console,
         string question,
         CancellationToken cancellationToken)
         => await new ConfirmationPrompt(question.AsQuestion())
@@ -482,49 +477,14 @@ internal static class ConsoleHelpers
             return value.Value;
         }
 
-        var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+        var console = context.BindingContext.GetRequiredService<INitroConsole>();
 
         return await new ConfirmationPrompt(question.AsQuestion())
             .ShowAsync(console, cancellationToken);
     }
 
-    public static void WarningLine(this IAnsiConsole console, string message)
+    public static void WarningLine(this INitroConsole console, string message)
     {
         console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
-    }
-
-    public static bool IsInteractive(this IAnsiConsole console)
-    {
-        return console is IExtendedConsole { IsInteractive: true };
-    }
-
-    public static IDisposable UseInteractive(this IAnsiConsole console)
-    {
-        return new InteractiveScope(console);
-    }
-
-    private sealed class InteractiveScope : IDisposable
-    {
-        private readonly IAnsiConsole _console;
-        private readonly bool _originalValue;
-
-        public InteractiveScope(IAnsiConsole console)
-        {
-            _console = console;
-
-            if (_console is IExtendedConsole customConsole)
-            {
-                _originalValue = customConsole.IsInteractive;
-                customConsole.IsInteractive = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            if (_console is IExtendedConsole customConsole)
-            {
-                customConsole.IsInteractive = _originalValue;
-            }
-        }
     }
 }

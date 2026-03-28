@@ -20,29 +20,17 @@ internal static class ResultCommandLineBuilderExtensions
     {
         var resultHolder = context.BindingContext.GetRequiredService<ResultHolder>();
         var formatters = context.BindingContext.GetServices<IResultFormatter>();
-        var extendedConsole =
-            context.BindingContext.GetRequiredService<IAnsiConsole>() as IExtendedConsole ??
-            context.BindingContext.GetRequiredService<ExtendedConsole>();
+        var console = context.BindingContext.GetRequiredService<INitroConsole>();
         var outputFormatOption = context.ParseResult.FindResultFor(Opt<OutputFormatOption>.Instance);
         var format = outputFormatOption?.GetValueOrDefault<OutputFormat>();
-        var outputFormatSpecified = outputFormatOption is not null;
-        var isInteractive = format is null && extendedConsole.IsInteractive;
 
-        extendedConsole.IsInteractive = isInteractive;
-
-        format ??= OutputFormat.Json;
-
-        try
-        {
-            await next(context);
-        }
-        finally
-        {
-            extendedConsole.IsInteractive = true;
-        }
+        // TODO: Maybe we have to wrap this as non-interactive
+        await next(context);
 
         if (resultHolder.Result is { } result)
         {
+            format ??= OutputFormat.Json;
+
             foreach (var formatter in formatters)
             {
                 if (formatter.CanHandle(format.Value))
@@ -52,9 +40,9 @@ internal static class ResultCommandLineBuilderExtensions
                 }
             }
         }
-        else if (outputFormatSpecified && format is OutputFormat.Json && context.ExitCode == 0)
+        else if (format is OutputFormat.Json && context.ExitCode == 0)
         {
-            context.BindingContext.GetRequiredService<IAnsiConsole>().WriteLine("{}");
+            console.WriteLine("{}");
         }
     }
 
@@ -68,7 +56,7 @@ internal static class ResultCommandLineBuilderExtensions
         this CommandLineBuilder builder)
     {
         return builder.AddService<IEnumerable<IResultFormatter>>(
-            x => [new JsonResultFormatter(x.GetRequiredService<IAnsiConsole>())]);
+            x => [new JsonResultFormatter(x.GetRequiredService<INitroConsole>())]);
     }
 
     private sealed class ResultHolder

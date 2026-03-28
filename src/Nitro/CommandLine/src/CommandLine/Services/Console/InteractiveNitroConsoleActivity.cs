@@ -1,10 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine;
 
-internal interface INitroConsoleActivity : IAsyncDisposable
-{
-    void Update(string message);
-}
-
+// TODO: Guard against double dispose
 internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
 {
     private readonly TaskCompletionSource _completion =
@@ -33,7 +29,7 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
 
     private void SetSpinnerTask(Task spinnerTask) => _spinnerTask = spinnerTask;
 
-    public static INitroConsoleActivity Start(string title, IAnsiConsole console)
+    public static INitroConsoleActivity Start(INitroConsole console, string title)
     {
         var activity = new InteractiveNitroConsoleActivity();
 

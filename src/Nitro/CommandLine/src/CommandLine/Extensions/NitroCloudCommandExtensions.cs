@@ -35,6 +35,7 @@ public static class NitroCloudCommandExtensions
     public static CommandLineBuilder AddNitroCloudConfiguration(this CommandLineBuilder builder)
     {
         builder.AddService<IFileSystem, FileSystem>()
+            .AddNitroConsole()
             .AddService<IConfigurationService>(sp =>
                 new ConfigurationService(sp.GetRequiredService<IFileSystem>()))
             .AddSession()

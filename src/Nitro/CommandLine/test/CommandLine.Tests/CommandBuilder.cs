@@ -2,12 +2,11 @@ using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
-using System.Threading.Channels;
-using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Spectre.Console;
-using Spectre.Console.Rendering;
 using Spectre.Console.Testing;
 using CliTestConsole = System.CommandLine.IO.TestConsole;
 using SpectreTestConsole = Spectre.Console.Testing.TestConsole;
@@ -20,7 +19,6 @@ internal sealed class CommandBuilder
     private readonly Dictionary<string, string?> _defaultOptions = new(StringComparer.Ordinal);
     private readonly SpectreTestConsole _testConsole = new();
     private readonly CliTestConsole _cliConsole = new();
-    private IAnsiConsole _commandConsole;
     private bool _isInteractive = true;
     private InteractionMode? _interactionMode;
     private string[]? _arguments;
@@ -28,7 +26,7 @@ internal sealed class CommandBuilder
 
     public CommandBuilder()
     {
-        _commandConsole = _testConsole;
+        _testConsole.Profile.Capabilities.Interactive = true;
     }
 
     public string Output => _testConsole.Output;
@@ -61,15 +59,17 @@ internal sealed class CommandBuilder
         return this;
     }
 
-    public CommandBuilder AddSession(string? workspaceId = null)
+    public CommandBuilder AddSession()
     {
         ThrowIfConsumed();
+        _serviceOverrides[typeof(ISessionService)] = new TestSessionService();
+        return this;
+    }
 
-        var session = workspaceId is null
-            ? new TestSessionService()
-            : TestSessionService.WithWorkspace(workspaceId);
-
-        _serviceOverrides[typeof(ISessionService)] = session;
+    public CommandBuilder AddSessionWithWorkspace(string workspaceId = "workspace-from-session")
+    {
+        ThrowIfConsumed();
+        _serviceOverrides[typeof(ISessionService)] = TestSessionService.WithWorkspace(workspaceId);
         return this;
     }
 
@@ -91,6 +91,7 @@ internal sealed class CommandBuilder
         return this;
     }
 
+    // TODO: This is legacy
     public async Task<int> InvokeAsync(params string[] args)
     {
         var result = await AddArguments(args).ExecuteAsync();
@@ -112,7 +113,7 @@ internal sealed class CommandBuilder
         return CommandExecutionResult.From(this, exitCode);
     }
 
-    public async Task<InteractiveCommandExecution> StartAsync(
+    public Task<InteractiveCommandExecution> StartAsync(
         CancellationToken cancellationToken = default)
     {
         EnsureCanRun();
@@ -120,21 +121,14 @@ internal sealed class CommandBuilder
 
         ApplyInteractionMode();
 
-        if (IsInteractiveMode())
-        {
-            _isInteractive = true;
-            var console = new BlockingNitroConsole(_testConsole);
-            _serviceOverrides[typeof(INitroConsole)] = console;
+        var invocationTask = Build()
+            .InvokeAsync(ApplyDefaultOptions(_arguments!), _cliConsole);
 
-            var invocationTask = Build()
-                .InvokeAsync(ApplyDefaultOptions(_arguments!), _cliConsole);
-
-            var invocation = new InteractiveCommandInvocation(console, invocationTask);
-            return InteractiveCommandExecution.CreateInteractive(this, invocation);
-        }
-
-        var run = Build().InvokeAsync(ApplyDefaultOptions(_arguments!), _cliConsole);
-        return InteractiveCommandExecution.CreateNonInteractive(this, run);
+        return Task.FromResult(
+            InteractiveCommandExecution.Create(
+                this,
+                invocationTask,
+                supportsInteraction: IsInteractiveMode()));
     }
 
     private void EnsureCanRun()
@@ -185,30 +179,55 @@ internal sealed class CommandBuilder
     private Parser Build()
     {
         var builder = new CommandLineBuilder(new NitroRootCommand())
-            .AddNitroCloudConfiguration()
-            .AddService(_ =>
+            .AddNitroCloudConfiguration();
+
+        builder.AddService<INitroConsole>(_ => new NitroConsole(_testConsole, _cliConsole.Error));
+
+        if (_serviceOverrides.TryGetValue(typeof(ISessionService), out var sessionService))
+        {
+            builder.AddService<ISessionService>((ISessionService)sessionService);
+        }
+
+        if (!_serviceOverrides.ContainsKey(typeof(IApisClient)))
+        {
+            builder.AddService<IApisClient>(DefaultApisClient);
+        }
+
+        builder.AddMiddleware(
+            context =>
             {
-                var console = ExtendedConsole.Create(_commandConsole);
-                console.IsInteractive = _isInteractive;
-                return console;
-            })
-            .AddService<IAnsiConsole>(sp => sp.GetRequiredService<ExtendedConsole>())
-            .AddService<INitroConsole>(sp => new NitroConsole(sp.GetRequiredService<IAnsiConsole>()))
+                foreach (var (type, instance) in _serviceOverrides)
+                {
+                    if (type == typeof(INitroConsole)
+                        || type == typeof(ISessionService)
+                        || type == typeof(IApisClient))
+                    {
+                        continue;
+                    }
+
+                    context.BindingContext.AddService(type, _ => instance);
+                }
+            },
+            MiddlewareOrder.Configuration);
+
+        builder
             .UseDefaults()
             .UseExceptionMiddleware();
 
-        if (_serviceOverrides.Count > 0)
+        builder.AddMiddleware(async (context, next) =>
         {
-            builder.AddMiddleware(
-                context =>
-                {
-                    foreach (var (type, instance) in _serviceOverrides)
-                    {
-                        context.BindingContext.AddService(type, _ => instance);
-                    }
-                },
-                MiddlewareOrder.Configuration);
-        }
+            _testConsole.Profile.Capabilities.Interactive = _isInteractive;
+
+            try
+            {
+                await next(context);
+            }
+            finally
+            {
+                // Let result formatters render JSON even after non-interactive command execution.
+                _testConsole.Profile.Capabilities.Interactive = true;
+            }
+        });
 
         builder.Command.AddNitroCloudCommands();
         return builder.Build();
@@ -259,56 +278,62 @@ internal sealed class CommandBuilder
 
         return false;
     }
+
+    private static IApisClient CreateDefaultApisClient()
+    {
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        var apiNode = new Mock<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(MockBehavior.Strict);
+        apiNode.SetupGet(x => x.Id).Returns("api-1");
+        apiNode.SetupGet(x => x.Name).Returns("api-1");
+
+        var page = new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
+            [apiNode.Object],
+            EndCursor: null,
+            HasNextPage: false);
+
+        client.Setup(x => x.SelectApisAsync(
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<int?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(page);
+
+        return client.Object;
+    }
+
+    private static readonly IApisClient DefaultApisClient = CreateDefaultApisClient();
 }
 
 internal sealed class InteractiveCommandExecution
 {
     private readonly CommandBuilder _host;
     private readonly Task<int> _invocation;
-    private readonly InteractiveCommandInvocation? _interactiveInvocation;
     private readonly bool _supportsInteraction;
     private Task<CommandExecutionResult>? _completion;
 
     private InteractiveCommandExecution(
         CommandBuilder host,
         Task<int> invocation,
-        InteractiveCommandInvocation? interactiveInvocation,
         bool supportsInteraction)
     {
         _host = host;
         _invocation = invocation;
-        _interactiveInvocation = interactiveInvocation;
         _supportsInteraction = supportsInteraction;
     }
 
-    public static InteractiveCommandExecution CreateInteractive(
+    public static InteractiveCommandExecution Create(
         CommandBuilder host,
-        InteractiveCommandInvocation invocation)
-    {
-        return new InteractiveCommandExecution(
-            host,
-            invocation.RunToCompletionAsync(),
-            invocation,
-            supportsInteraction: true);
-    }
-
-    public static InteractiveCommandExecution CreateNonInteractive(
-        CommandBuilder host,
-        Task<int> invocation)
-    {
-        return new InteractiveCommandExecution(
-            host,
-            invocation,
-            interactiveInvocation: null,
-            supportsInteraction: false);
-    }
+        Task<int> invocation,
+        bool supportsInteraction)
+        => new(host, invocation, supportsInteraction);
 
     public Task InputAsync(
         string input,
         CancellationToken cancellationToken = default)
     {
         EnsureSupportsInteraction(nameof(InputAsync));
-        return _interactiveInvocation!.InputAsync(input).WaitAsync(cancellationToken);
+        _host.Console.Input.PushTextWithEnter(input);
+        return Task.CompletedTask;
     }
 
     public Task SelectOptionAsync(
@@ -316,7 +341,14 @@ internal sealed class InteractiveCommandExecution
         CancellationToken cancellationToken = default)
     {
         EnsureSupportsInteraction(nameof(SelectOptionAsync));
-        return _interactiveInvocation!.SelectOptionAsync(option).WaitAsync(cancellationToken);
+
+        if (string.Equals(option, "workspace", StringComparison.OrdinalIgnoreCase))
+        {
+            _host.Console.Input.PushKey(ConsoleKey.DownArrow);
+        }
+
+        _host.Console.Input.PushKey(ConsoleKey.Enter);
+        return Task.CompletedTask;
     }
 
     public Task ConfirmAsync(
@@ -324,7 +356,8 @@ internal sealed class InteractiveCommandExecution
         CancellationToken cancellationToken = default)
     {
         EnsureSupportsInteraction(nameof(ConfirmAsync));
-        return _interactiveInvocation!.ConfirmAsync(value).WaitAsync(cancellationToken);
+        _host.Console.Input.PushTextWithEnter(value ? "y" : "n");
+        return Task.CompletedTask;
     }
 
     public Task<CommandExecutionResult> RunToCompletionAsync(
@@ -358,15 +391,18 @@ internal sealed class CommandExecutionResult
 {
     private readonly string _stdOut;
     private readonly string _stdErr;
+    private readonly string _output;
 
     private CommandExecutionResult(
         int exitCode,
         string stdOut,
-        string stdErr)
+        string stdErr,
+        string output)
     {
         ExitCode = exitCode;
         _stdOut = stdOut;
         _stdErr = stdErr;
+        _output = output;
     }
 
     public int ExitCode { get; }
@@ -374,6 +410,8 @@ internal sealed class CommandExecutionResult
     public string StdOut => _stdOut.TrimEnd();
 
     public string StdErr => _stdErr.TrimEnd();
+
+    public string Output => _output.TrimEnd();
 
     internal static CommandExecutionResult From(CommandBuilder host, int exitCode)
     {
@@ -387,177 +425,7 @@ internal sealed class CommandExecutionResult
         return new CommandExecutionResult(
             exitCode,
             stdOut,
-            host.StdErr);
-    }
-}
-
-internal sealed class InteractiveCommandInvocation
-{
-    private readonly BlockingNitroConsole _console;
-    private readonly Task<int> _invocation;
-
-    public InteractiveCommandInvocation(
-        BlockingNitroConsole console,
-        Task<int> invocation)
-    {
-        _console = console;
-        _invocation = invocation;
-    }
-
-    public Task InputAsync(string input)
-        => _console.EnqueueInputAsync(input).AsTask();
-
-    public Task SelectOptionAsync(string option)
-        => _console.EnqueueSelectionAsync(option).AsTask();
-
-    public Task ConfirmAsync(bool value)
-        => _console.EnqueueConfirmationAsync(value).AsTask();
-
-    public Task<int> RunToCompletionAsync()
-        => _invocation;
-}
-
-internal sealed class BlockingNitroConsole(IAnsiConsole console) : INitroConsole
-{
-    private readonly Channel<PromptResponse> _responses = Channel.CreateUnbounded<PromptResponse>();
-
-    public Profile Profile => console.Profile;
-
-    public IExclusivityMode ExclusivityMode => console.ExclusivityMode;
-
-    public IAnsiConsoleInput Input => console.Input;
-
-    public RenderPipeline Pipeline => console.Pipeline;
-
-    public IAnsiConsoleCursor Cursor => console.Cursor;
-
-    public bool IsInteractive => true;
-
-    public void Clear(bool home)
-        => console.Clear(home);
-
-    public void Write(IRenderable renderable)
-        => console.Write(renderable);
-
-    public ValueTask EnqueueInputAsync(string input)
-        => _responses.Writer.WriteAsync(PromptResponse.FromInput(input));
-
-    public ValueTask EnqueueSelectionAsync(string option)
-        => _responses.Writer.WriteAsync(PromptResponse.FromSelection(option));
-
-    public ValueTask EnqueueConfirmationAsync(bool value)
-        => _responses.Writer.WriteAsync(PromptResponse.FromConfirmation(value));
-
-    public INitroConsoleActivity StartActivity(string title)
-    {
-        console.WriteLine(title);
-        return new NitroConsoleActivity(console);
-    }
-
-    public void WriteLine(string message)
-        => console.WriteLine(message);
-
-    public void WriteErrorLine(string message)
-        => console.WriteLine(message);
-
-    public async Task<string> PromptAsync(
-        string question,
-        string? defaultValue,
-        CancellationToken cancellationToken)
-    {
-        console.MarkupLine(question.AsQuestion());
-
-        var response = await _responses.Reader.ReadAsync(cancellationToken);
-        return string.IsNullOrEmpty(response.Text)
-            ? defaultValue ?? string.Empty
-            : response.Text!;
-    }
-
-    public async Task<T> PromptAsync<T>(string question, T[] items, CancellationToken cancellationToken)
-        where T : notnull
-    {
-        console.MarkupLine(question.AsQuestion());
-
-        var response = await _responses.Reader.ReadAsync(cancellationToken);
-        var selected = response.Text;
-
-        if (string.IsNullOrWhiteSpace(selected))
-        {
-            throw new ExitException("No option selected.");
-        }
-
-        if (TryResolveSelection(items, selected!, out var resolved))
-        {
-            return resolved;
-        }
-
-        throw new ExitException(
-            $"Invalid option '{selected}'. Available options: {string.Join(", ", items)}");
-    }
-
-    public async Task<bool> ConfirmAsync(string question, CancellationToken cancellationToken)
-    {
-        console.MarkupLine(question.AsQuestion());
-
-        var response = await _responses.Reader.ReadAsync(cancellationToken);
-
-        if (response.Confirmation is { } confirmation)
-        {
-            return confirmation;
-        }
-
-        if (bool.TryParse(response.Text, out var parsed))
-        {
-            return parsed;
-        }
-
-        return string.Equals(response.Text, "y", StringComparison.OrdinalIgnoreCase)
-            ||
-            string.Equals(response.Text, "yes", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool TryResolveSelection<T>(
-        T[] items,
-        string value,
-        out T resolved)
-    {
-        if (int.TryParse(value, out var index) && index is >= 1 and <= int.MaxValue)
-        {
-            var zeroBased = index - 1;
-            if (zeroBased < items.Length)
-            {
-                resolved = items[zeroBased];
-                return true;
-            }
-        }
-
-        foreach (var item in items)
-        {
-            if (item is string s)
-            {
-                if (string.Equals(s, value, StringComparison.OrdinalIgnoreCase))
-                {
-                    resolved = item;
-                    return true;
-                }
-            }
-            else if (string.Equals(item?.ToString(), value, StringComparison.Ordinal))
-            {
-                resolved = item;
-                return true;
-            }
-        }
-
-        resolved = default!;
-        return false;
-    }
-
-    private readonly record struct PromptResponse(string? Text, bool? Confirmation)
-    {
-        public static PromptResponse FromInput(string text) => new(text, Confirmation: null);
-
-        public static PromptResponse FromSelection(string text) => new(text, Confirmation: null);
-
-        public static PromptResponse FromConfirmation(bool value) => new(Text: null, Confirmation: value);
+            host.StdErr,
+            host.Output);
     }
 }

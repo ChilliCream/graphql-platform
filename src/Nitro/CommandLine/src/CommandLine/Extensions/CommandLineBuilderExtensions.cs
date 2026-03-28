@@ -2,11 +2,18 @@ using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 
 namespace ChilliCream.Nitro.CommandLine;
 
 public static class CommandLineBuilderExtensions
 {
+    public static CommandLineBuilder AddNitroConsole(this CommandLineBuilder builder)
+    {
+        return builder.AddMiddleware(AddNitroConsoleMiddleware, MiddlewareOrder.Configuration);
+    }
+
     public static CommandLineBuilder AddService<T, TImpl>(this CommandLineBuilder builder)
         where TImpl : T, new()
     {
@@ -40,24 +47,14 @@ public static class CommandLineBuilderExtensions
         return builder.AddMiddleware(ExceptionMiddleware, MiddlewareOrder.ExceptionHandler);
     }
 
-    public static CommandLineBuilder UseExtendedConsole(this CommandLineBuilder builder)
-    {
-        return builder.AddMiddleware(ExtendedConsoleMiddleware, MiddlewareOrder.Configuration)
-            .AddService<IAnsiConsole>(sp => sp.GetRequiredService<ExtendedConsole>())
-            .AddService<INitroConsole>(sp => new NitroConsole(sp.GetRequiredService<IAnsiConsole>()));
-    }
-
-    private static async Task ExtendedConsoleMiddleware(
+    private static async Task AddNitroConsoleMiddleware(
         InvocationContext context,
         Func<InvocationContext, Task> next)
     {
-        if (context.Console is not IAnsiConsole ansiConsole)
-        {
-            ansiConsole = AnsiConsole.Console;
-        }
+        var ansiConsole = AnsiConsole.Console;
+        var console = new NitroConsole(ansiConsole, context.Console.Error);
 
-        var customConsole = ExtendedConsole.Create(ansiConsole);
-        context.BindingContext.AddService(_ => customConsole);
+        context.BindingContext.AddService(_ => (INitroConsole)console);
 
         await next(context);
     }

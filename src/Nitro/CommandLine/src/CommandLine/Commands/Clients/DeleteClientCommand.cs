@@ -48,7 +48,7 @@ internal sealed class DeleteClientCommand : Command
 
         if (clientId is null)
         {
-            if (!console.IsInteractive())
+            if (!console.IsInteractive)
             {
                 throw Exit("The client ID is required in non-interactive mode.");
             }

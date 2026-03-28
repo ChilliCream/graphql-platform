@@ -17,8 +17,7 @@ public static class Program
         var builder = new CommandLineBuilder(new NitroRootCommand())
             .AddNitroCloudConfiguration()
             .UseDefaults()
-            .UseExceptionMiddleware()
-            .UseExtendedConsole();
+            .UseExceptionMiddleware();
 
         builder.Command.AddNitroCloudCommands();
         return await builder.Build().InvokeAsync(args);

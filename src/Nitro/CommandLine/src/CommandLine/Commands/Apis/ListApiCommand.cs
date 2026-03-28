@@ -35,7 +35,7 @@ internal sealed class ListApiCommand : Command
     {
         var workspaceId = context.RequireWorkspaceId();
 
-        if (console.IsInteractive())
+        if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
         }

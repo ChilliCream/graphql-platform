@@ -1,23 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine;
 
-internal interface INitroConsole
+internal interface INitroConsole : IAnsiConsole
 {
     bool IsInteractive { get; }
 
-    void WriteLine(string? message = null);
-
-    void WriteErrorLine(string? message = null);
-
-    Task<string> PromptAsync(
-        string question,
-        string? defaultValue,
-        CancellationToken cancellationToken);
-
-    Task<T> PromptAsync<T>(
-        string question,
-        T[] items,
-        CancellationToken cancellationToken)
-        where T : notnull;
-
-    Task<bool> ConfirmAsync(string question, CancellationToken cancellationToken);
+    void WriteErrorLine(string message);
 }

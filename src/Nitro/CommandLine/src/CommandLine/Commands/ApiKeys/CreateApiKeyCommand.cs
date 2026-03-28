@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.Client.ApiKeys;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -25,6 +26,7 @@ internal sealed class CreateApiKeyCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<INitroConsole>(),
+            Bind.FromServiceProvider<IApisClient>(),
             Bind.FromServiceProvider<IApiKeysClient>(),
             Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<CancellationToken>());
@@ -33,6 +35,7 @@ internal sealed class CreateApiKeyCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         INitroConsole console,
+        IApisClient apisClient,
         IApiKeysClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)
@@ -67,15 +70,15 @@ internal sealed class CreateApiKeyCommand : Command
                 ["Api", "Workspace"],
                 cancellationToken);
 
+            workspaceId = context.RequireWorkspaceId();
+
             if (choice == "Api")
             {
-                apiId = await console.PromptForApiAsync(
+                apiId = await console.PromptForApiIdAsync(
+                    apisClient,
+                    workspaceId,
                     "For which API do you want to create an API key?",
                     cancellationToken);
-            }
-            else
-            {
-                workspaceId = context.RequireWorkspaceId();
             }
         }
 
@@ -90,7 +93,7 @@ internal sealed class CreateApiKeyCommand : Command
                 stageConditionName,
                 cancellationToken);
 
-            // console.PrintMutationErrorsAndExit(data.Errors);
+            console.PrintMutationErrorsAndExit(data.Errors);
 
             var result = data.Result;
             if (result is null)
@@ -98,8 +101,8 @@ internal sealed class CreateApiKeyCommand : Command
                 throw Exit("Could not create API key.");
             }
 
-            // console.OkLine(
-            //     $"Secret: {result.Secret.AsHighlight()} {"This secret will not be available later!".AsDescription()}");
+            console.OkLine(
+                $"Secret: {result.Secret.AsHighlight()} {"This secret will not be available later!".AsDescription()}");
 
             context.SetResult(new CreateApiKeyResult
             {

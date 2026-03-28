@@ -22,7 +22,6 @@ internal static class InvocationContextExtensions
             + $"Either specify '{ApiKeyOption.OptionName}' or run 'nitro login'.");
     }
 
-    // TODO: This should be explicit
     public static string RequireWorkspaceId(this InvocationContext context)
     {
         var service = context.BindingContext.GetRequiredService<ISessionService>();
@@ -43,7 +42,7 @@ internal static class InvocationContextExtensions
             return true;
         }
 
-        var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+        var console = context.BindingContext.GetRequiredService<INitroConsole>();
 
         return await console.ConfirmAsync(message, cancellationToken);
     }

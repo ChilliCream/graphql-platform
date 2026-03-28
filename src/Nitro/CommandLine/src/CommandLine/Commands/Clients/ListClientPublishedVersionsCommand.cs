@@ -32,7 +32,7 @@ internal sealed class ListClientPublishedVersionsCommand : Command
         IClientsClient client,
         CancellationToken ct)
     {
-        if (console.IsInteractive())
+        if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }

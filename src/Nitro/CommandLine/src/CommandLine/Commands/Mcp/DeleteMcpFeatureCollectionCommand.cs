@@ -48,7 +48,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
         if (mcpFeatureCollectionId is null)
         {
-            if (!console.IsInteractive())
+            if (!console.IsInteractive)
             {
                 throw Exit("The MCP Feature Collection ID is required in non-interactive mode.");
             }

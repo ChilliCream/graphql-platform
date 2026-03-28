@@ -33,7 +33,7 @@ internal sealed class ListMockCommand : Command
         IMocksClient client,
         CancellationToken ct)
     {
-        if (console.IsInteractive())
+        if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }

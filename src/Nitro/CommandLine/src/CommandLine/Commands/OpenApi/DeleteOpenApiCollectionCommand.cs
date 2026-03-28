@@ -48,7 +48,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
         if (openApiCollectionId is null)
         {
-            if (!console.IsInteractive())
+            if (!console.IsInteractive)
             {
                 throw Exit("The OpenAPI collection ID is required in non-interactive mode.");
             }

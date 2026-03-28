@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
 
-internal sealed class JsonResultFormatter(IAnsiConsole console) : IResultFormatter
+internal sealed class JsonResultFormatter(INitroConsole console) : IResultFormatter
 {
     public bool CanHandle(OutputFormat format) => format == OutputFormat.Json;
 

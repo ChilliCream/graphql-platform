@@ -1,5 +1,9 @@
 using System.CommandLine.Invocation;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -7,7 +11,12 @@ internal static class NitroConsoleExtensions
 {
     public static INitroConsoleActivity StartActivity(this INitroConsole console, string title)
     {
-        return new InteractiveNitroConsoleActivity();
+        if (!console.IsInteractive)
+        {
+            return NitroConsoleActivity.Start(console, title);
+        }
+
+        return InteractiveNitroConsoleActivity.Start(console, title);
     }
 
     public static async Task<string> PromptAsync(
@@ -55,36 +64,95 @@ internal static class NitroConsoleExtensions
         return await console.ConfirmAsync(question, cancellationToken);
     }
 
-    public static async Task<string> PromptForApiAsync(
+    public static async Task<string> GetOrPromptForApiIdAsync(
         this INitroConsole console,
+        string message,
+        InvocationContext context,
+        CancellationToken cancellationToken)
+    {
+        var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
+
+        if (!string.IsNullOrEmpty(apiId))
+        {
+            return apiId;
+        }
+
+        var client = context.BindingContext.GetRequiredService<IApisClient>();
+        var workspaceId = context.RequireWorkspaceId();
+
+        return await console.PromptForApiIdAsync(client, workspaceId, message, cancellationToken);
+    }
+
+    public static async Task<string> PromptForApiIdAsync(
+        this INitroConsole console,
+        IApisClient apisClient,
+        string workspaceId,
         string message,
         CancellationToken cancellationToken)
     {
-        return await console.PromptAsync(message, defaultValue: null, cancellationToken);
+        var selectedApi = await SelectApiPrompt
+                .New(apisClient, workspaceId)
+                .Title(message)
+                .RenderAsync(console, cancellationToken) ??
+            throw ThrowHelper.NoApiSelected();
+
+        return selectedApi.Id;
     }
 
-    // TODO: Properly implement
-    // public static async Task<string> GetOrPromptForApiIdAsync(
-    //     this INitroConsole console,
-    //     string message,
-    //     InvocationContext context,
-    //     CancellationToken cancellationToken)
-    // {
-    //     var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
-    //
-    //     if (!string.IsNullOrEmpty(apiId))
-    //     {
-    //         return apiId;
-    //     }
-    //
-    //     //     var client = context.BindingContext.GetRequiredService<IApisClient>();
-    //     //     var workspaceId = context.RequireWorkspaceId();
-    //     //     var selectedApi = await SelectApiPrompt
-    //     //         .New(client, workspaceId)
-    //     //         .Title(message)
-    //     //         .RenderAsync(console, ct) ?? throw ThrowHelper.NoApiSelected();
-    //     //     apiId = selectedApi.Id;
-    //
-    //     return null;
-    // }
+    public static async Task<string> PromptAsync(
+        this INitroConsole console,
+        string question,
+        string? defaultValue,
+        CancellationToken cancellationToken)
+    {
+        if (!console.IsInteractive)
+        {
+            throw new ExitException(
+                "Attempted to prompt the user for input, but the console is running in non-interactive mode.");
+        }
+
+        var prompt = new TextPrompt<string>(question.AsQuestion());
+
+        if (defaultValue is not null)
+        {
+            prompt = prompt.DefaultValue(defaultValue);
+        }
+
+        return await prompt.ShowAsync(console, cancellationToken);
+    }
+
+    public static async Task<T> PromptAsync<T>(
+        this INitroConsole console,
+        string question,
+        T[] items,
+        CancellationToken cancellationToken)
+        where T : notnull
+    {
+        if (!console.IsInteractive)
+        {
+            throw new ExitException(
+                "Attempted to prompt the user for a selection, but the console is running in non-interactive mode.");
+        }
+
+        var prompt = new SelectionPrompt<T>()
+            .Title(question.AsQuestion())
+            .AddChoices(items);
+
+        return await prompt.ShowAsync(console, cancellationToken);
+    }
+
+    public static async Task<bool> ConfirmAsync(
+        this INitroConsole console,
+        string question,
+        CancellationToken cancellationToken)
+    {
+        if (!console.IsInteractive)
+        {
+            throw new ExitException(
+                "Attempted to prompt the user for confirmation, but the console is running in non-interactive mode.");
+        }
+
+        return await new ConfirmationPrompt(question.AsQuestion())
+            .ShowAsync(console, cancellationToken);
+    }
 }

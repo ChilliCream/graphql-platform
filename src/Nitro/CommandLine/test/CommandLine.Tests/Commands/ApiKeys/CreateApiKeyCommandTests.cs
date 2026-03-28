@@ -10,22 +10,16 @@ public sealed class CreateApiKeyCommandTests
     [Fact]
     public async Task Help_ReturnsResult()
     {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        var builder = new CommandBuilder()
-            .AddService(client.Object)
+        // arrange & act
+        var result = await new CommandBuilder()
             .AddArguments(
                 "api-key",
                 "create",
-                "--help");
-
-        // act
-        var result = await builder.ExecuteAsync();
+                "--help")
+            .ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Description:
               Creates a new API key
@@ -43,7 +37,6 @@ public sealed class CreateApiKeyCommandTests
               --output <json>                      The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                       Show help and usage information
             """);
-        client.VerifyNoOtherCalls();
     }
 
     [Theory]
@@ -52,10 +45,8 @@ public sealed class CreateApiKeyCommandTests
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        var builder = new CommandBuilder()
-            .AddService(client.Object)
+        // arrange & act
+        var result = await new CommandBuilder()
             .AddSession()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -64,19 +55,14 @@ public sealed class CreateApiKeyCommandTests
                 "--workspace-id",
                 "ws-1",
                 "--name",
-                "key-1");
-
-        // act
-        var result = await builder.ExecuteAsync();
+                "key-1")
+            .ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
-        client.VerifyNoOtherCalls();
     }
 
     [Theory]
@@ -84,28 +70,21 @@ public sealed class CreateApiKeyCommandTests
     [InlineData(InteractionMode.JsonOutput)]
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        var builder = new CommandBuilder()
-            .AddService(client.Object)
+        // arrange & act
+        var result = await new CommandBuilder()
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
-                "create");
-
-        // act
-        var result = await builder.ExecuteAsync();
+                "create")
+            .ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Missing required option '--name'.
             """);
-        client.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -123,7 +102,7 @@ public sealed class CreateApiKeyCommandTests
 
         var command = await new CommandBuilder()
             .AddService(client.Object)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "api-key",
@@ -138,8 +117,10 @@ public sealed class CreateApiKeyCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
+        result.AssertSuccess(
+            """
+
+            """);
         client.VerifyAll();
     }
 
@@ -159,7 +140,7 @@ public sealed class CreateApiKeyCommandTests
 
         var command = await new CommandBuilder()
             .AddService(client.Object)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "api-key",
@@ -173,8 +154,10 @@ public sealed class CreateApiKeyCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
+        result.AssertSuccess(
+            """
+
+            """);
         client.VerifyAll();
     }
 
@@ -200,9 +183,7 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The '--workspace-id' or '--api-id' option is required in non-interactive mode.
             """);
@@ -214,10 +195,8 @@ public sealed class CreateApiKeyCommandTests
     [InlineData(InteractionMode.JsonOutput)]
     public async Task WithApiId_NoWorkspaceIdOption_NoWorkspaceInSession_ReturnsError(InteractionMode mode)
     {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        var builder = new CommandBuilder()
-            .AddService(client.Object)
+        // arrange & act
+        var result = await new CommandBuilder()
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
@@ -227,19 +206,14 @@ public sealed class CreateApiKeyCommandTests
                 "--name",
                 "key-1",
                 "--api-id",
-                "api-1");
-
-        // act
-        var result = await builder.ExecuteAsync();
+                "api-1")
+            .ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The '--workspace-id' or '--api-id' option is required in non-interactive mode.
             """);
-        client.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -273,9 +247,7 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "secret": "secret-123",
@@ -323,9 +295,7 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "secret": "secret-123",
@@ -357,7 +327,7 @@ public sealed class CreateApiKeyCommandTests
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "api-key",
@@ -371,9 +341,7 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "secret": "secret-xyz",
@@ -386,6 +354,7 @@ public sealed class CreateApiKeyCommandTests
               }
             }
             """);
+
         client.VerifyAll();
     }
 
@@ -421,9 +390,7 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "secret": "secret-xyz",
@@ -436,6 +403,7 @@ public sealed class CreateApiKeyCommandTests
               }
             }
             """);
+
         client.VerifyAll();
     }
 
@@ -471,9 +439,7 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "secret": "secret-xyz",
@@ -486,6 +452,7 @@ public sealed class CreateApiKeyCommandTests
               }
             }
             """);
+
         client.VerifyAll();
     }
 
@@ -504,7 +471,7 @@ public sealed class CreateApiKeyCommandTests
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "api-key",
@@ -518,9 +485,7 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "secret": "secret-xyz",
@@ -533,6 +498,7 @@ public sealed class CreateApiKeyCommandTests
               }
             }
             """);
+
         client.VerifyAll();
     }
 
@@ -552,7 +518,7 @@ public sealed class CreateApiKeyCommandTests
         var builder = new CommandBuilder()
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
                 "create",
@@ -563,12 +529,11 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             create failed
             """);
+
         client.VerifyAll();
     }
 
@@ -588,7 +553,7 @@ public sealed class CreateApiKeyCommandTests
         var builder = new CommandBuilder()
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
                 "create",
@@ -599,12 +564,11 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             create failed
             """);
+
         client.VerifyAll();
     }
 
@@ -624,7 +588,7 @@ public sealed class CreateApiKeyCommandTests
         var builder = new CommandBuilder()
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
                 "create",
@@ -635,12 +599,11 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             create failed
             """);
+
         client.VerifyAll();
     }
 
@@ -660,7 +623,7 @@ public sealed class CreateApiKeyCommandTests
         var builder = new CommandBuilder()
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
                 "create",
@@ -671,12 +634,11 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             create failed
             """);
+
         client.VerifyAll();
     }
 
@@ -696,7 +658,7 @@ public sealed class CreateApiKeyCommandTests
         var builder = new CommandBuilder()
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
                 "create",
@@ -707,12 +669,11 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             create failed
             """);
+
         client.VerifyAll();
     }
 
@@ -732,7 +693,7 @@ public sealed class CreateApiKeyCommandTests
         var builder = new CommandBuilder()
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
-            .AddSession("workspace-from-session")
+            .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
                 "create",
@@ -743,12 +704,11 @@ public sealed class CreateApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             create failed
             """);
+
         client.VerifyAll();
     }
 }

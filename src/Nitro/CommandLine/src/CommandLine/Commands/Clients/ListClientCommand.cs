@@ -36,7 +36,7 @@ internal sealed class ListClientCommand : Command
         IClientsClient client,
         CancellationToken ct)
     {
-        if (console.IsInteractive())
+        if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }
