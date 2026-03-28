@@ -1,13 +1,16 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -18,6 +21,13 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 {
     private static readonly Uri s_uri = new("inmemory://localhost");
+    private static readonly byte[] s_fileMarkerPrefix = "$.file("u8.ToArray();
+
+    private static readonly JsonWriterOptions s_jsonWriterOptions = new()
+    {
+        Indented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
 
     private readonly RequestExecutorProxy _executor;
     private readonly JsonResultFormatter _formatter;
@@ -58,7 +68,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         ChunkedArrayWriter? buffer = null;
-        var operationRequest = BuildOperationRequest(request, ref buffer);
+        var operationRequest = BuildOperationRequest(context, request, ref buffer);
 
         try
         {
@@ -93,7 +103,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         {
             for (var i = 0; i < requests.Length; i++)
             {
-                operationRequests[i] = BuildOperationRequest(requests[i], ref buffer);
+                operationRequests[i] = BuildOperationRequest(context, requests[i], ref buffer);
             }
         }
         catch
@@ -209,35 +219,46 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
     }
 
     private static IOperationRequest BuildOperationRequest(
+        OperationPlanContext context,
         SourceSchemaClientRequest request,
         ref ChunkedArrayWriter? buffer)
     {
+        IFeatureCollection? features = null;
+
+        if (request.RequiresFileUpload)
+        {
+            features = new FeatureCollection();
+            features.Set(context.RequestContext.Features.GetRequired<IFileLookup>());
+        }
+
         if (request.Variables.Length == 0)
         {
-            return OperationRequest.FromSourceText(request.OperationSourceText);
+            return OperationRequest.FromSourceText(
+                request.OperationSourceText,
+                features: features);
         }
 
         if (request.Variables.Length == 1)
         {
-            if (request.Variables[0].IsEmpty)
+            var sequence = request.Variables[0].Values.AsSequence();
+
+            if (!request.RequiresFileUpload)
             {
-                return OperationRequest.FromSourceText(request.OperationSourceText);
+                return OperationRequest.FromSourceText(
+                    request.OperationSourceText,
+                    variableValues: JsonDocument.Parse(sequence));
             }
 
-            var sequence = request.Variables[0].Values.AsSequence();
+            buffer ??= new ChunkedArrayWriter();
+            var cleanedJson = StripFileMarkers(buffer, sequence);
             return OperationRequest.FromSourceText(
                 request.OperationSourceText,
-                variableValues: JsonDocument.Parse(sequence));
+                variableValues: JsonDocument.Parse(cleanedJson.AsSequence()),
+                features: features);
         }
 
         buffer ??= new ChunkedArrayWriter();
-        var writer = new JsonWriter(
-            buffer,
-            new JsonWriterOptions
-            {
-                Indented = true,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            });
+        var writer = new JsonWriter(buffer, s_jsonWriterOptions);
 
         writer.WriteStartArray();
 
@@ -250,35 +271,97 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 
         var variables = JsonSegment.Create(buffer, 0, buffer.Length);
 
-        return OperationRequestBuilder.New()
-            .SetDocument(request.OperationSourceText)
-            .SetVariableValues(JsonDocument.Parse(variables.AsSequence()))
-            .Build();
+        var variableSequence = request.RequiresFileUpload
+            ? StripFileMarkers(buffer, variables.AsSequence()).AsSequence()
+            : variables.AsSequence();
+
+        return VariableBatchRequest.FromSourceText(
+            request.OperationSourceText,
+            variableValues: JsonDocument.Parse(variableSequence),
+            features: features);
+    }
+
+    /// <summary>
+    /// Scans JSON for <c>$.file(key)</c> string markers and replaces them with just <c>key</c>.
+    /// </summary>
+    private static JsonSegment StripFileMarkers(
+        ChunkedArrayWriter buffer,
+        ReadOnlySequence<byte> json)
+    {
+        var reader = new Utf8JsonReader(json, isFinalBlock: true, default);
+        var startPosition = buffer.Position;
+        var writer = new JsonWriter(buffer, s_jsonWriterOptions);
+
+        while (reader.Read())
+        {
+            switch (reader.TokenType)
+            {
+                case JsonTokenType.StartObject:
+                    writer.WriteStartObject();
+                    break;
+
+                case JsonTokenType.EndObject:
+                    writer.WriteEndObject();
+                    break;
+
+                case JsonTokenType.StartArray:
+                    writer.WriteStartArray();
+                    break;
+
+                case JsonTokenType.EndArray:
+                    writer.WriteEndArray();
+                    break;
+
+                case JsonTokenType.PropertyName:
+                    writer.WritePropertyName(reader.ValueSpan);
+                    break;
+
+                case JsonTokenType.String:
+                    var span = reader.ValueSpan;
+                    if (span.Length > s_fileMarkerPrefix.Length + 1
+                        && span.StartsWith(s_fileMarkerPrefix)
+                        && span[^1] == (byte)')')
+                    {
+                        // $.file(key) → key
+                        span = span.Slice(s_fileMarkerPrefix.Length, span.Length - s_fileMarkerPrefix.Length - 1);
+                        writer.WriteStringValue(span, skipEscaping: true);
+                    }
+                    else
+                    {
+                        writer.WriteStringValue(span, skipEscaping: true);
+                    }
+                    break;
+
+                case JsonTokenType.Number:
+                    writer.WriteNumberValue(reader.ValueSpan);
+                    break;
+
+                case JsonTokenType.True:
+                    writer.WriteBooleanValue(true);
+                    break;
+
+                case JsonTokenType.False:
+                    writer.WriteBooleanValue(false);
+                    break;
+
+                case JsonTokenType.Null:
+                    writer.WriteNullValue();
+                    break;
+            }
+        }
+
+        return JsonSegment.Create(buffer, startPosition, buffer.Position - startPosition);
     }
 
     private static int ResolveRequestIndex(
         ImmutableArray<SourceSchemaClientRequest> requests,
         OperationResult result)
-    {
-        if (requests.Length == 1)
-        {
-            return 0;
-        }
-
-        return result.RequestIndex ?? -1;
-    }
+        => requests.Length == 1 ? 0 : result.RequestIndex ?? -1;
 
     private static int ResolveVariableIndex(
         SourceSchemaClientRequest request,
         OperationResult result)
-    {
-        if (request.Variables.Length <= 1)
-        {
-            return 0;
-        }
-
-        return result.VariableIndex ?? -1;
-    }
+        => request.Variables.Length <= 1 ? 0 : result.VariableIndex ?? -1;
 
     private static bool TryGetResultPath(
         SourceSchemaClientRequest request,

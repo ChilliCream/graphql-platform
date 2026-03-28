@@ -3,6 +3,7 @@ using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -261,26 +262,28 @@ public sealed class FileUploadTests : IDisposable
         body.MatchMarkdownSnapshot();
     }
 
-    private static async Task<TestServer> CreateServerAsync()
+    private static Task<TestServer> CreateServerAsync()
     {
-        var builder = WebApplication.CreateBuilder();
+        var builder = new WebHostBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddRouting();
 
-        builder.Services.AddGraphQL("uploads")
-            .AddQueryType<UploadSchema.Query>()
-            .AddUploadType()
-            .AddSourceSchemaDefaults();
+                services.AddGraphQLServer("uploads")
+                    .AddQueryType<UploadSchema.Query>()
+                    .AddUploadType()
+                    .AddSourceSchemaDefaults();
 
-        builder.Services.AddGraphQLGatewayServer()
-            .AddInMemorySchema("uploads");
+                services.AddGraphQLGatewayServer()
+                    .AddInMemorySchema("uploads");
+            })
+            .Configure(app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQL());
+            });
 
-        builder.WebHost.UseTestServer();
-
-        var app = builder.Build();
-        app.MapGraphQL();
-
-        await app.StartAsync();
-
-        return app.GetTestServer();
+        return Task.FromResult(new TestServer(builder));
     }
 
     public void Dispose()
