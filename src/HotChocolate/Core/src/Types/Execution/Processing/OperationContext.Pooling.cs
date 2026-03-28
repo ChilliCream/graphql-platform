@@ -184,7 +184,7 @@ internal sealed partial class OperationContext
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
             _branchId = int.MinValue;
-            _propagateNullValues = default;
+            _propagateNullValues = false;
             _isInitialized = false;
             Result.Reset();
         }
