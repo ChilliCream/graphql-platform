@@ -672,7 +672,57 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
     }
 
-    private static ServiceProvider CreateServer(string connectionString)
+    [Fact]
+    public async Task MaxPageSize_Should_Be_Enforced_On_Connection_Without_UseConnection()
+    {
+        // BrandQueries.GetBrandsAsync returns CatalogConnection<Brand> WITHOUT
+        // an explicit [UseConnection] attribute. The source generator should
+        // auto-inject UseConnectionAttribute, which adds the validation middleware
+        // that enforces MaxPageSize.
+        var db = "db_" + Guid.NewGuid().ToString("N");
+        var connectionString = resource.GetConnectionString(db);
+        await using var services = CreateServer(connectionString, maxPageSize: 2);
+        await using var scope = services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
+        var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
+        await context.Database.EnsureCreatedAsync();
+        await seeder.SeedAsync(context);
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                brands(first: 5) {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum allowed items per page were exceeded.",
+                  "path": [
+                    "brands"
+                  ],
+                  "extensions": {
+                    "code": "HC0051",
+                    "coordinate": "Query.brands",
+                    "requestedItems": 5,
+                    "maxAllowedItems": 2
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    private static ServiceProvider CreateServer(string connectionString, int? maxPageSize = null)
     {
         var services = new ServiceCollection();
 
@@ -697,7 +747,15 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             .AddSorting()
             .AddNodeIdValueSerializerFrom<BrandKey>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .ModifyPagingOptions(o => o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors"));
+            .ModifyPagingOptions(o =>
+            {
+                o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors");
+
+                if (maxPageSize.HasValue)
+                {
+                    o.MaxPageSize = maxPageSize.Value;
+                }
+            });
 
         services.AddSingleton<IDbSeeder<CatalogContext>, CatalogContextSeed>();
 
