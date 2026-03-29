@@ -263,8 +263,13 @@ internal static class SemanticConventions
     /// <param name="activity">The activity to enrich.</param>
     /// <param name="value">The message identifier to record.</param>
     /// <returns>The same <see cref="Activity"/> instance for fluent chaining.</returns>
-    public static Activity SetMessageId(this Activity activity, string value)
+    public static Activity SetMessageId(this Activity activity, string? value)
     {
+        if (value is null)
+        {
+            return activity;
+        }
+
         activity.SetTag(MessagingMessageId, value);
         return activity;
     }

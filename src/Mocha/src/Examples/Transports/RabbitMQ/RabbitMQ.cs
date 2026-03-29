@@ -46,7 +46,7 @@ builder.Services
             .Handler<OrderPlacedHandler>();
 
         // Declare a quorum queue explicitly with durable flag.
-        // Quorum queues require durable=true — non-durable quorum queues are not supported.
+        // Quorum queues require durable=true - non-durable quorum queues are not supported.
         transport.DeclareQueue("orders.processing")
             .Durable()
             .AutoProvision()

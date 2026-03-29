@@ -8,6 +8,7 @@ using Mocha.EntityFrameworkCore;
 using Mocha.Inbox;
 using Mocha.Mediator;
 using Mocha.Outbox;
+using Mocha.Scheduling;
 using Mocha.Transport.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,6 +49,7 @@ builder
         p.UseResilience();
         p.UseTransaction();
         p.UsePostgresInbox();
+        p.UsePostgresScheduling();
     })
     .AddRabbitMQ();
 
