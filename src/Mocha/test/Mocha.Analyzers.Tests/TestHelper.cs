@@ -8,7 +8,6 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using CookieCrumble;
-using Mocha.Analyzers;
 
 namespace Mocha.Analyzers.Tests;
 
@@ -31,13 +30,13 @@ internal static class TestHelper
             .. Net100.References.All,
 #endif
             // Mocha.Mediator
-            MetadataReference.CreateFromFile(typeof(Mocha.Mediator.IMediator).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Mediator.IMediator).Assembly.Location),
 
             // Microsoft.Extensions.DependencyInjection.Abstractions
             MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.DependencyInjection.IServiceCollection).Assembly.Location),
 
             // System.Runtime.CompilerServices.Unsafe
-            MetadataReference.CreateFromFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location),
 
             // System.Runtime from the actual runtime (needed for predefined type resolution
             // so that assembly-level attribute constructor arguments can be bound)

@@ -13,7 +13,7 @@ public static class FusionSetupUtilities
     /// </summary>
     public static Version Version { get; } = new(2, 0, 0, 0);
 
-    internal static IFusionGatewayBuilder Configure(
+    public static IFusionGatewayBuilder Configure(
         IFusionGatewayBuilder builder,
         Action<FusionGatewaySetup> configure)
     {

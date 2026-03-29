@@ -71,7 +71,7 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
                 if (ActivityContext.TryParse(traceparent, traceState, out var parentContext))
                 {
                     activity = OpenTelemetry.Source.CreateActivity(
-                        $"receive {context.Endpoint.Address}",
+                        $"{context.Endpoint.Address} receive",
                         ActivityKind.Client,
                         parentContext);
 
@@ -79,7 +79,7 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
                 }
             }
 
-            activity ??= OpenTelemetry.Source.StartActivity($"receive {context.Endpoint.Address}", ActivityKind.Client);
+            activity ??= OpenTelemetry.Source.StartActivity($"{context.Endpoint.Address} receive", ActivityKind.Client);
             _activity = activity;
         }
 
@@ -112,7 +112,7 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
             // TODO this can be done better!
             var currentConsumer = context.Features.Get<ReceiveConsumerFeature>()?.CurrentConsumer?.Name ?? "unknown";
 
-            _activity = OpenTelemetry.Source.StartActivity($"consumer {currentConsumer}", ActivityKind.Consumer);
+            _activity = OpenTelemetry.Source.StartActivity($"{currentConsumer} consume", ActivityKind.Consumer);
         }
 
         public void Dispose()
@@ -150,7 +150,7 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
 
             // Start activity early but don't enrich with state yet
             // State will be captured in Dispose() after all middlewares have run
-            var operationName = $"{_operationType} {context.DestinationAddress}";
+            var operationName = $"{context.DestinationAddress} {_operationType}";
             _activity = OpenTelemetry
                 .Source.StartActivity(operationName, ActivityKind.Producer)
                 ?.SetOperationName(operationName)
@@ -161,7 +161,7 @@ public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
         public void Dispose()
         {
             var destination = _context.DestinationAddress;
-            var operationName = $"{_operationType} {destination}";
+            var operationName = $"{destination} {_operationType}";
             var transportName = _context.Transport.Name;
 
             // Enrich activity with context state after all middlewares have run

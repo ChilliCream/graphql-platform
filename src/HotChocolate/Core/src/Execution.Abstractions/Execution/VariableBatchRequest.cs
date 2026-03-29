@@ -205,4 +205,65 @@ public sealed class VariableBatchRequest : IOperationRequest
             features,
             Services,
             Flags);
+
+    /// <summary>
+    /// Creates a new <see cref="VariableBatchRequest"/> from a GraphQL source text
+    /// and a JSON array of variable sets.
+    /// </summary>
+    /// <param name="sourceText">
+    /// The GraphQL operation source text.
+    /// </param>
+    /// <param name="variableValues">
+    /// A JSON document whose root element is an array of variable objects.
+    /// </param>
+    /// <param name="documentHash">
+    /// A GraphQL request document hash.
+    /// </param>
+    /// <param name="operationName">
+    /// A name of an operation in the GraphQL request document that shall be executed.
+    /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
+    /// </param>
+    /// <param name="extensions">
+    /// The GraphQL request extension data.
+    /// </param>
+    /// <param name="contextData">
+    /// The initial global request state.
+    /// </param>
+    /// <param name="features">
+    /// The features that shall be used while executing the GraphQL request.
+    /// </param>
+    /// <param name="services">
+    /// The services that shall be used while executing the GraphQL request.
+    /// </param>
+    /// <param name="flags">
+    /// The GraphQL request flags can be used to limit the execution engine capabilities.
+    /// </param>
+    /// <returns>
+    /// Returns a new variable batch request.
+    /// </returns>
+    public static VariableBatchRequest FromSourceText(
+        string sourceText,
+        JsonDocument variableValues,
+        OperationDocumentHash? documentHash = null,
+        string? operationName = null,
+        ErrorHandlingMode? errorHandlingMode = null,
+        JsonDocument? extensions = null,
+        IReadOnlyDictionary<string, object?>? contextData = null,
+        IFeatureCollection? features = null,
+        IServiceProvider? services = null,
+        RequestFlags flags = RequestFlags.AllowAll)
+        => new(
+            new OperationDocumentSourceText(sourceText),
+            null,
+            documentHash,
+            operationName,
+            errorHandlingMode,
+            new JsonDocumentOwner(variableValues),
+            extensions is null ? null : new(extensions),
+            contextData,
+            features,
+            services,
+            flags);
 }

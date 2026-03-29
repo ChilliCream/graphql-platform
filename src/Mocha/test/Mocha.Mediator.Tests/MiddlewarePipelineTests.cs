@@ -99,7 +99,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync<string>(new PipelineTestCommand("order-test"));
+        var result = await mediator.SendAsync(new PipelineTestCommand("order-test"));
 
         // Assert
         Assert.Equal("handled:order-test", result);
@@ -141,7 +141,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var command = new PipelineTestCommand("context-check");
 
         // Act
-        await mediator.SendAsync<string>(command, cts.Token);
+        await mediator.SendAsync(command, cts.Token);
 
         // Assert
         Assert.Same(command, capturedMessage);
@@ -185,7 +185,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        var result = await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.Equal("handled:test-modified", result);
@@ -225,7 +225,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.SendAsync<string>(new PipelineTestCommand("boom")).AsTask());
+            () => mediator.SendAsync(new PipelineTestCommand("boom")).AsTask());
 
         Assert.True(middlewareSawException);
     }
@@ -239,7 +239,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<PipelineTrackingHandler>(
+        services.AddScoped(
             _ => new PipelineTrackingHandler(() => handlerInvoked = true));
 
         builder.Use(new MediatorMiddlewareConfiguration(
@@ -255,7 +255,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<ApplicationException>(
-            () => mediator.SendAsync<string>(new PipelineTestCommand("never-handled")).AsTask());
+            () => mediator.SendAsync(new PipelineTestCommand("never-handled")).AsTask());
 
         Assert.Equal("middleware failure", ex.Message);
         Assert.False(handlerInvoked);
@@ -270,7 +270,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<PipelineTrackingHandler>(
+        services.AddScoped(
             _ => new PipelineTrackingHandler(() => handlerInvoked = true));
 
         builder.Use(new MediatorMiddlewareConfiguration(
@@ -288,7 +288,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync<string>(new PipelineTestCommand("ignored"));
+        var result = await mediator.SendAsync(new PipelineTestCommand("ignored"));
 
         // Assert
         Assert.Equal("short-circuited", result);

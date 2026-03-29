@@ -1,4 +1,3 @@
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
