@@ -18,6 +18,7 @@
     <Project Path="src/Mocha.Mediator.Abstractions/Mocha.Mediator.Abstractions.csproj" />
     <Project Path="src/Mocha.Mediator/Mocha.Mediator.csproj" />
     <Project Path="src/Mocha.Outbox/Mocha.Outbox.csproj" />
+    <Project Path="src/Mocha.Scheduling/Mocha.Scheduling.csproj" />
     <Project Path="src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="src/Mocha.Mediator/Mocha.Mediator.csproj" />
     <Project Path="src/Mocha.Analyzers/Mocha.Analyzers.csproj" />

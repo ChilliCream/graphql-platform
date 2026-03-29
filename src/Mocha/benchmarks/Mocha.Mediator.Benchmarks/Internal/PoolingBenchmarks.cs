@@ -73,7 +73,7 @@ public class PoolingBenchmarks
         obj.Message = s_message;
         obj.MessageType = s_type;
         var result = obj.Message;
-        // No return — GC collects it
+        // No return - GC collects it
         return result;
     }
 

@@ -22,16 +22,13 @@ public static class SagaLifeCycleDescriptorExtensions
         where TMessage : notnull
         where TState : SagaStateBase
     {
-        // var options = new SagaPublishOptions
-        // {
-        //     ConfigureOptions = (_, _) => new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow.Add(delay) }
-        // };
+        var options = new SagaPublishOptions
+        {
+            ConfigureOptions = (ctx, _) =>
+                new PublishOptions { ScheduledTime = ctx.Services.GetTimeProvider().GetUtcNow().Add(delay) }
+        };
 
-        // return descriptor.Publish((_, state) => factory(state), options);
-
-        // TODO for this we need scheduling
-        throw new NotImplementedException(
-            "Scheduled publish is not yet implemented. This requires support for delayed message dispatching in the underlying messaging system.");
+        return descriptor.Publish((_, state) => factory(state), options);
     }
 
     /// <summary>
@@ -50,15 +47,13 @@ public static class SagaLifeCycleDescriptorExtensions
         where TMessage : notnull
         where TState : SagaStateBase
     {
-        // var options = new SagaSendOptions
-        // {
-        //     ConfigureOptions = (_, _) => new SendOptions { ScheduledTime = DateTimeOffset.UtcNow.Add(delay) }
-        // };
+        var options = new SagaSendOptions
+        {
+            ConfigureOptions = (ctx, _) =>
+                new SendOptions { ScheduledTime = ctx.Services.GetTimeProvider().GetUtcNow().Add(delay) }
+        };
 
-        // return descriptor.Send((_, state) => factory(state), options);
-        // TODO for this we need scheduling
-        throw new NotImplementedException(
-            "Scheduled send is not yet implemented. This requires support for delayed message dispatching in the underlying messaging system.");
+        return descriptor.Send((_, state) => factory(state), options);
     }
 
     /// <summary>
