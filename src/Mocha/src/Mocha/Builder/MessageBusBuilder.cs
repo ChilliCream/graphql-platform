@@ -83,7 +83,9 @@ public partial class MessageBusBuilder : IMessageBusBuilder
                         inner(d);
                         configure(d);
                     }
+#pragma warning disable format
                     : configure;
+#pragma warning restore format
             }
 
             return this;
@@ -143,7 +145,9 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         _consumerRegistrations.Add(new ConsumerRegistration
         {
-            HandlerType = handlerType, Configure = configure, Factory = factory
+            HandlerType = handlerType,
+            Configure = configure,
+            Factory = factory
         });
 
         return this;
@@ -164,7 +168,9 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         _consumerRegistrations.Add(new ConsumerRegistration
         {
-            HandlerType = handlerType, Configure = null, Factory = configuration.Factory
+            HandlerType = handlerType,
+            Configure = null,
+            Factory = configuration.Factory
         });
 
         return this;
@@ -361,10 +367,11 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         var responseManager = applicationServices.GetRequiredService<DeferredResponseManager>();
 
         // Materialize consumers from registrations
-        var consumerList = new List<Consumer>();
-
-        // Infrastructure consumer
-        consumerList.Add(new ReplyConsumer(responseManager));
+        var consumerList = new List<Consumer>
+        {
+            // Infrastructure consumer
+            new ReplyConsumer(responseManager)
+        };
 
         // Handler consumers from registrations
         foreach (var reg in _consumerRegistrations)
