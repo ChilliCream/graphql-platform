@@ -55,8 +55,12 @@ dotnet test src/HotChocolate/Fusion
 
 ### Testing
 
-- Filter tests during iteration — never run the full suite unnecessarily
+- Prefer snapshot tests over manual `Assert` calls — use **CookieCrumble** for snapshots
+- CookieCrumble has native snapshot support for `IExecutionResult`, `GraphQLHttpResponse`, and other core types
+- For smaller snapshots, prefer **inline snapshots** (`MatchInlineSnapshot`) over snapshot files
+- For tests with multiple assertions, use **Markdown snapshots** (`MatchMarkdownSnapshot`)
 - Snapshot tests: update from `__mismatch__/` directory, understand ordering issues before updating
+- Filter tests during iteration — never run the full suite unnecessarily
 - Real databases in integration tests, not mocks (unless explicitly instructed otherwise)
 
 ## Performance

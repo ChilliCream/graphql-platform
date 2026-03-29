@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Composition.ApolloFederation</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.ApolloFederation</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.ApolloFederation.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+  </ItemGroup>
+
+</Project>
