@@ -103,7 +103,8 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString));
+        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
+                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
@@ -179,7 +180,8 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString));
+        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
+                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
