@@ -90,6 +90,24 @@ public interface IMessagingTransportDescriptor
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
         string? after = null);
+
+    /// <summary>
+    /// Claims a handler for this transport and returns a configurator for its receive endpoint.
+    /// The handler will be bound to a convention-named endpoint on this transport during initialization.
+    /// </summary>
+    /// <typeparam name="THandler">The handler type implementing <see cref="IHandler"/>.</typeparam>
+    /// <returns>A configurator that allows configuring the handler's receive endpoint.</returns>
+    IHandlerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>> Handler<THandler>()
+        where THandler : class, IHandler;
+
+    /// <summary>
+    /// Claims a consumer for this transport and returns a configurator for its receive endpoint.
+    /// The consumer will be bound to a convention-named endpoint on this transport during initialization.
+    /// </summary>
+    /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
+    /// <returns>A configurator that allows configuring the consumer's receive endpoint.</returns>
+    IConsumerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer;
 }
 
 /// <summary>
@@ -102,6 +120,14 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     : MessagingDescriptorBase<T>(context)
     , IMessagingTransportDescriptor where T : MessagingTransportConfiguration
 {
+    private readonly List<HandlerClaim> _handlerClaims = [];
+
+    /// <summary>
+    /// Gets the handler claims registered on this transport descriptor, for use by
+    /// transport-specific subclasses during configuration materialization.
+    /// </summary>
+    private protected List<HandlerClaim> HandlerClaims => _handlerClaims;
+
     /// <inheritdoc />
     public IMessagingTransportDescriptor ModifyOptions(Action<TransportOptions> configure)
     {
@@ -207,6 +233,26 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
         }
 
         return this;
+    }
+
+    /// <inheritdoc />
+    public IHandlerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>
+        Handler<THandler>() where THandler : class, IHandler
+    {
+        var claim = new HandlerClaim { HandlerType = typeof(THandler) };
+        _handlerClaims.Add(claim);
+        return new HandlerConfigurator<
+            IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>(claim);
+    }
+
+    /// <inheritdoc />
+    public IConsumerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>
+        Consumer<TConsumer>() where TConsumer : class, IConsumer
+    {
+        var claim = new HandlerClaim { HandlerType = typeof(TConsumer) };
+        _handlerClaims.Add(claim);
+        return new ConsumerConfigurator<
+            IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>(claim);
     }
 
     /// <summary>

@@ -9,6 +9,9 @@ public interface IPostgresReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Handler{THandler}"/>
     new IPostgresReceiveEndpointDescriptor Handler<THandler>() where THandler : class, IHandler;
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Handler(Type)"/>
+    new IPostgresReceiveEndpointDescriptor Handler(Type handlerType);
+
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Consumer{TConsumer}"/>
     new IPostgresReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 

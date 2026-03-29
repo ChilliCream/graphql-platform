@@ -109,6 +109,24 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IHandlerConfigurator<IPostgresReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler
+    {
+        var claim = new HandlerClaim { HandlerType = typeof(THandler) };
+        HandlerClaims.Add(claim);
+        return new HandlerConfigurator<IPostgresReceiveEndpointDescriptor>(claim);
+    }
+
+    /// <inheritdoc />
+    public new IConsumerConfigurator<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer
+    {
+        var claim = new HandlerClaim { HandlerType = typeof(TConsumer) };
+        HandlerClaims.Add(claim);
+        return new ConsumerConfigurator<IPostgresReceiveEndpointDescriptor>(claim);
+    }
+
+    /// <inheritdoc />
     public IPostgresMessagingTransportDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;
@@ -210,6 +228,15 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <returns>The fully populated transport configuration ready for runtime initialization.</returns>
     public PostgresTransportConfiguration CreateConfiguration()
     {
+        foreach (var claim in HandlerClaims)
+        {
+            var name = Context.Naming.GetReceiveEndpointName(
+                claim.HandlerType, ReceiveEndpointKind.Default);
+            var endpoint = Endpoint(name);
+            endpoint.Handler(claim.HandlerType);
+            claim.ConfigureEndpoint?.Invoke(endpoint);
+        }
+
         Configuration.ReceiveEndpoints = _receiveEndpoints
             .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();

@@ -101,4 +101,12 @@ public interface IRabbitMQMessagingTransportDescriptor
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
         string? after = null);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.Handler{THandler}" />
+    new IHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler;
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.Consumer{TConsumer}" />
+    new IConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer;
 }

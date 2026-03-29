@@ -103,6 +103,24 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler
+    {
+        var claim = new HandlerClaim { HandlerType = typeof(THandler) };
+        HandlerClaims.Add(claim);
+        return new HandlerConfigurator<IRabbitMQReceiveEndpointDescriptor>(claim);
+    }
+
+    /// <inheritdoc />
+    public new IConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer
+    {
+        var claim = new HandlerClaim { HandlerType = typeof(TConsumer) };
+        HandlerClaims.Add(claim);
+        return new ConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor>(claim);
+    }
+
+    /// <inheritdoc />
     public IRabbitMQMessagingTransportDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;
@@ -202,6 +220,15 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <returns>A fully populated <see cref="RabbitMQTransportConfiguration"/> ready for transport initialization.</returns>
     public RabbitMQTransportConfiguration CreateConfiguration()
     {
+        foreach (var claim in HandlerClaims)
+        {
+            var name = Context.Naming.GetReceiveEndpointName(
+                claim.HandlerType, ReceiveEndpointKind.Default);
+            var endpoint = Endpoint(name);
+            endpoint.Handler(claim.HandlerType);
+            claim.ConfigureEndpoint?.Invoke(endpoint);
+        }
+
         Configuration.ReceiveEndpoints = _receiveEndpoints
             .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();

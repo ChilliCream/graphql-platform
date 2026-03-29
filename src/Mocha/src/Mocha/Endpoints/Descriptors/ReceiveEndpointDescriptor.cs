@@ -22,6 +22,17 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
+    /// <summary>
+    /// Binds a handler to this receive endpoint by its runtime type.
+    /// </summary>
+    /// <param name="handlerType">The handler type to bind.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    public IReceiveEndpointDescriptor<T> Handler(Type handlerType)
+    {
+        Configuration.ConsumerIdentities.Add(handlerType);
+        return this;
+    }
+
     public IReceiveEndpointDescriptor<T> Kind(ReceiveEndpointKind kind)
     {
         Configuration.Kind = kind;

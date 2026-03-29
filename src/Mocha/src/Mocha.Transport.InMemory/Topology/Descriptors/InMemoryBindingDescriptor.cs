@@ -17,7 +17,7 @@ internal sealed class InMemoryBindingDescriptor
     }
 
     /// <inheritdoc />
-    protected override InMemoryBindingConfiguration Configuration { get; set; }
+    protected internal override InMemoryBindingConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
     public IInMemoryBindingDescriptor Source(string topicName)

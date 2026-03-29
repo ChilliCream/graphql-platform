@@ -28,7 +28,7 @@ public sealed class InMemoryMessagingTransportDescriptor
         Configuration = new InMemoryTransportConfiguration();
     }
 
-    protected override InMemoryTransportConfiguration Configuration { get; set; }
+    protected internal override InMemoryTransportConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
     public new IInMemoryMessagingTransportDescriptor ModifyOptions(Action<TransportOptions> configure)
@@ -109,6 +109,24 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IHandlerConfigurator<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler
+    {
+        var claim = new HandlerClaim { HandlerType = typeof(THandler) };
+        HandlerClaims.Add(claim);
+        return new HandlerConfigurator<IInMemoryReceiveEndpointDescriptor>(claim);
+    }
+
+    /// <inheritdoc />
+    public new IConsumerConfigurator<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer
+    {
+        var claim = new HandlerClaim { HandlerType = typeof(TConsumer) };
+        HandlerClaims.Add(claim);
+        return new ConsumerConfigurator<IInMemoryReceiveEndpointDescriptor>(claim);
+    }
+
+    /// <inheritdoc />
     public IInMemoryReceiveEndpointDescriptor Endpoint(string name)
     {
         var endpoint = _receiveEndpoints.FirstOrDefault(e =>
@@ -184,6 +202,15 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <returns>The fully populated transport configuration ready for runtime initialization.</returns>
     public InMemoryTransportConfiguration CreateConfiguration()
     {
+        foreach (var claim in HandlerClaims)
+        {
+            var name = Context.Naming.GetReceiveEndpointName(
+                claim.HandlerType, ReceiveEndpointKind.Default);
+            var endpoint = (InMemoryReceiveEndpointDescriptor)Endpoint(name);
+            endpoint.Handler(claim.HandlerType);
+            claim.ConfigureEndpoint?.Invoke(endpoint);
+        }
+
         Configuration.ReceiveEndpoints = _receiveEndpoints
             .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
