@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
+using HotChocolate.Language;
 #if FUSION
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
@@ -236,6 +237,19 @@ public sealed class GraphQLHttpRequest
     /// Specifies that the request URI represents a persisted document URI.
     /// </summary>
     public bool PersistedDocumentUri { get; set; }
+
+    /// <summary>
+    /// The <see cref="HttpRequestMessage.Options"/> key used to propagate the
+    /// <see cref="OperationKind"/> hint to message handlers.
+    /// </summary>
+    public static readonly HttpRequestOptionsKey<OperationType> OperationKindOptionsKey = new("GraphQL-OperationKind");
+
+    /// <summary>
+    /// Gets or sets the GraphQL operation type hint.
+    /// When set, this value is propagated to <see cref="HttpRequestMessage.Options"/>
+    /// so that message handlers can make decisions without parsing the request body.
+    /// </summary>
+    public OperationType? OperationKind { get; set; }
 
     /// <summary>
     /// Allows to specify some custom request state, that will be passed into the request hooks.

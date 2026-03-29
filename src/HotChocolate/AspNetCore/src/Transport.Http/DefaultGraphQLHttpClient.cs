@@ -213,6 +213,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             throw new NotSupportedException($"The HTTP method `{method}` is not supported.");
         }
 
+        if (request.OperationKind.HasValue)
+        {
+            message.Options.Set(
+                GraphQLHttpRequest.OperationKindOptionsKey,
+                request.OperationKind.Value);
+        }
+
         return message;
     }
 
