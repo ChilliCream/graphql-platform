@@ -1,0 +1,17 @@
+type Product @key(fields: "id") {
+  id: Int!
+  name: String!
+  price: Float!
+}
+
+type Query {
+  product(id: Int!): Product
+  topProducts: [Product!]!
+  productById(id: Int!): Product @internal @lookup
+  userByEmail(email: String!): User @internal @lookup
+}
+
+type User @key(fields: "email") {
+  email: String!
+  name: String!
+}

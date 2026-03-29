@@ -1,3 +1,5 @@
+using System.IO.Hashing;
+using System.Text;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -7,6 +9,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
     private readonly ExecutionNodeCondition[] _conditions;
+    private readonly ulong _operationHash;
     private IOperationPlanNode[] _dependents = [];
     private IOperationPlanNode[] _dependencies = [];
     private int _dependentCount;
@@ -25,6 +28,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     {
         Id = id;
         Operation = operation;
+        _operationHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(operation.SourceText));
         SchemaName = schemaName;
         Source = source;
         _requirements = requirements;
@@ -44,6 +48,12 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// definition represents.
     /// </summary>
     public OperationSourceText Operation { get; }
+
+    /// <summary>
+    /// Gets the xxhash64 of the operation source text. Precomputed during
+    /// construction for use as a cache key by connectors.
+    /// </summary>
+    public ulong OperationHash => _operationHash;
 
     /// <summary>
     /// Gets the name of the source schema that this operation targets,

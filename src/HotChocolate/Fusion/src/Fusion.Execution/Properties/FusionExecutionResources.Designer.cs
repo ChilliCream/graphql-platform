@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Fusion.Properties {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FusionExecutionResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal FusionExecutionResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Fusion.Properties {
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,43 +44,43 @@ namespace HotChocolate.Fusion.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string CompositeResultElement_GetBoolean_JsonElementHasWrongType {
             get {
                 return ResourceManager.GetString("CompositeResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
             }
         }
-        
+
         internal static string SourceResultElement_GetBoolean_JsonElementHasWrongType {
             get {
                 return ResourceManager.GetString("SourceResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
             }
         }
-        
+
         internal static string Rethrowable {
             get {
                 return ResourceManager.GetString("Rethrowable", resourceCulture);
             }
         }
-        
+
         internal static string JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8 {
             get {
                 return ResourceManager.GetString("JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8", resourceCulture);
             }
         }
-        
+
         internal static string ThrowHelper_ReadInvalidUTF16 {
             get {
                 return ResourceManager.GetString("ThrowHelper_ReadInvalidUTF16", resourceCulture);
             }
         }
-        
+
         internal static string ThrowHelper_ReadIncompleteUTF16 {
             get {
                 return ResourceManager.GetString("ThrowHelper_ReadIncompleteUTF16", resourceCulture);
             }
         }
-        
+
         internal static string FixedSizeArrayPool_Return_InvalidArraySize {
             get {
                 return ResourceManager.GetString("FixedSizeArrayPool_Return_InvalidArraySize", resourceCulture);
@@ -150,12 +150,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SourceSchemaRequestDispatcher_OperationAborted {
             get {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_OperationAborted", resourceCulture);
-            }
-        }
-
-        internal static string SourceSchemaRequestDispatcher_BatchResponseCountMismatch {
-            get {
-                return ResourceManager.GetString("SourceSchemaRequestDispatcher_BatchResponseCountMismatch", resourceCulture);
             }
         }
 
