@@ -134,6 +134,62 @@ public class InMemoryHandlerClaimTests
         Assert.Contains("order-created-handler-2", endpointNames);
     }
 
+    [Fact]
+    public void Handler_Should_BindToNonDefaultTransport_When_ClaimedByInMemory()
+    {
+        // arrange & act
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddEventHandler<OrderCreatedHandler2>()
+            // Default transport — unclaimed handlers bind here automatically.
+            .AddInMemory(t =>
+            {
+                t.Name("default");
+                t.IsDefaultTransport();
+            })
+            // Non-default transport — only explicitly claimed handlers bind here.
+            .AddInMemory(t =>
+            {
+                t.Name("inmemory");
+                t.BindHandlersExplicitly();
+                t.Handler<OrderCreatedHandler>();
+            })
+            .BuildRuntime();
+
+        var defaultTransport = runtime.Transports
+            .OfType<InMemoryMessagingTransport>()
+            .Single(t => t.Name == "default");
+
+        var nonDefaultTransport = runtime.Transports
+            .OfType<InMemoryMessagingTransport>()
+            .Single(t => t.Name == "inmemory");
+
+        // assert — claimed handler is on the non-default transport
+        var claimedEndpoint = nonDefaultTransport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .SingleOrDefault(e => e.Name == "order-created");
+
+        Assert.NotNull(claimedEndpoint);
+        Assert.Contains(typeof(OrderCreatedHandler), claimedEndpoint.Configuration.ConsumerIdentities);
+
+        // assert — unclaimed handler fell through to the default transport
+        var unclaimedEndpoint = defaultTransport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .SingleOrDefault(e => e.Name.EndsWith("order-created-handler-2"));
+
+        Assert.NotNull(unclaimedEndpoint);
+
+        // assert — neither transport has the other's handler endpoint
+        Assert.DoesNotContain(
+            nonDefaultTransport.ReceiveEndpoints.OfType<InMemoryReceiveEndpoint>(),
+            e => e.Name.EndsWith("order-created-handler-2"));
+
+        Assert.DoesNotContain(
+            defaultTransport.ReceiveEndpoints.OfType<InMemoryReceiveEndpoint>(),
+            e => e.Name == "order-created");
+    }
+
     public sealed class TestOrderConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
