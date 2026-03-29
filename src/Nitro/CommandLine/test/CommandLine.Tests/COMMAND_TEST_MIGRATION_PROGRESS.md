@@ -17,6 +17,7 @@ This document tracks migration of Nitro command tests to the guideline in `COMMA
   - `api-key delete`
   - `api-key list`
 - API command migration wave completed (`api create|delete|list|show|set-settings`).
+- Schema command implementations were aligned to `COMMAND_IMPLEMENTATION_GUIDELINES.md` (typed mutation errors, auth assertions, activity fail/success semantics) and are ready for test-suite migration.
 
 ## Command Inventory
 

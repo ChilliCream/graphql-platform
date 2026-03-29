@@ -2,10 +2,13 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Text;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using HotChocolate.Fusion.SourceSchema.Packaging;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 using ArchiveMetadata = HotChocolate.Fusion.SourceSchema.Packaging.ArchiveMetadata;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -19,7 +22,8 @@ internal sealed class FusionUploadCommand : Command
     public FusionUploadCommand(
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem) : base("upload")
+        IFileSystem fileSystem,
+        ISessionService sessionService) : base("upload")
     {
         Description = "Upload a source schema for a later composition.";
 
@@ -30,60 +34,46 @@ internal sealed class FusionUploadCommand : Command
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
-        {
-            var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
-            var sourceSchemaFile = parseResult.GetValue(Opt<SourceSchemaFileOption>.Instance)!;
-            var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-            var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
-            var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
-
-            return await ExecuteAsync(
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
+            => await ExecuteAsync(
+                parseResult,
                 console,
                 fusionConfigurationClient,
-                workingDirectory,
-                sourceSchemaFile,
-                tag,
-                apiId,
-                sourceMetadataJson,
                 fileSystem,
-                cancellationToken);
-        });
+                sessionService,
+                cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
-        string workingDirectory,
-        string sourceSchemaFilePath,
-        string tag,
-        string apiId,
-        string? sourceMetadataJson,
         IFileSystem fileSystem,
+        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
+        var sourceSchemaFile = parseResult.GetValue(Opt<SourceSchemaFileOption>.Instance)!;
+        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var _ = console.StartActivity("Uploading source schema..."))
+        if (!Path.IsPathRooted(sourceSchemaFile))
         {
-            await UploadSourceSchemaFile();
+            sourceSchemaFile = Path.Combine(workingDirectory, sourceSchemaFile);
         }
 
-        return ExitCodes.Success;
+        var (_, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
+            fileSystem,
+            sourceSchemaFile,
+            cancellationToken);
 
-        async Task UploadSourceSchemaFile()
+        await using (var activity = console.StartActivity("Uploading source schema..."))
         {
-            if (!Path.IsPathRooted(sourceSchemaFilePath))
-            {
-                sourceSchemaFilePath = Path.Combine(workingDirectory, sourceSchemaFilePath);
-            }
-
-            var (_, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
-                fileSystem,
-                sourceSchemaFilePath,
-                cancellationToken);
-
-            console.Log($"Uploading source schema at '{sourceSchemaFilePath}'...");
+            console.Log($"Uploading source schema at '{sourceSchemaFile}'...");
 
             await using var archiveStream = new MemoryStream();
             var archive = FusionSourceSchemaArchive.Create(archiveStream, leaveOpen: true);
@@ -105,14 +95,37 @@ internal sealed class FusionUploadCommand : Command
                 archiveStream,
                 source,
                 cancellationToken);
-            console.PrintMutationErrorsAndExit(result.Errors);
+
+            if (result.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in result.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IDuplicatedTagError err => err.Message,
+                        IConcurrentOperationError err => err.Message,
+                        IInvalidFusionSourceSchemaArchiveError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
 
             if (string.IsNullOrWhiteSpace(result.FusionSubgraphVersion?.Id))
             {
-                throw new ExitException("Upload of source schema failed!");
+                throw Exit("Upload of source schema failed.");
             }
 
-            console.Success("Successfully uploaded source schema!");
+            activity.Success("Successfully uploaded source schema!");
+
+            return ExitCodes.Success;
         }
     }
 }

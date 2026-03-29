@@ -21,6 +21,9 @@ mutation UpdateMockSchema(
     errors {
       ...MockSchemaNotFoundError
       ...MockSchemaNonUniqueNameError
+      ...UnauthorizedOperation
+      ...ValidationError
+      ...Error
     }
   }
 }

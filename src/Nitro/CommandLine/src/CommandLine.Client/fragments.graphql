@@ -607,6 +607,7 @@ fragment ApiKeyNotFoundError on ApiKeyNotFoundError {
   __typename
   message
   apiKeyId
+  ...Error
 }
 
 fragment WorkspaceNotFound on WorkspaceNotFound {
@@ -635,6 +636,12 @@ fragment RoleNotFoundError on RoleNotFoundError {
   __typename
   message
   roleId
+  ...Error
+}
+
+fragment StageValidationError on StageValidationError {
+  __typename
+  message
   ...Error
 }
 

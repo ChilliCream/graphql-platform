@@ -38,6 +38,8 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(parseResult, console, apisClient, client, sessionService, resultHolder, ct);

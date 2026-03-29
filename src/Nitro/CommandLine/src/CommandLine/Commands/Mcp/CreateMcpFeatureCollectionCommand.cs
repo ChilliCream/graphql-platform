@@ -40,9 +40,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        console.WriteLine();
-        console.WriteLine("Creating an MCP Feature Collection");
-        console.WriteLine();
+        parseResult.AssertHasAuthentication(sessionService);
 
         const string apiMessage = "For which API do you want to create an MCP Feature Collection?";
         var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, cancellationToken);
@@ -50,20 +48,46 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<McpFeatureCollectionNameOption>.Instance, cancellationToken);
 
-        var createdMcpFeatureCollection = await client.CreateMcpFeatureCollectionAsync(
-            apiId,
-            name,
-            cancellationToken);
-        console.PrintMutationErrorsAndExit(createdMcpFeatureCollection.Errors);
-
-        if (createdMcpFeatureCollection.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
+        await using (var activity = console.StartActivity("Creating MCP Feature Collection..."))
         {
-            throw Exit("Could not create MCP Feature Collection.");
+            var data = await client.CreateMcpFeatureCollectionAsync(
+                apiId,
+                name,
+                cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IApiNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create MCP Feature Collection.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully created MCP Feature Collection!");
+
+            console.WriteLine();
+
+            resultHolder.SetResult(new ObjectResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine($"MCP Feature Collection {detail.Name.AsHighlight()} created.");
-        resultHolder.SetResult(new ObjectResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject()));
-
-        return ExitCodes.Success;
     }
 }

@@ -36,7 +36,28 @@ internal static class FusionPublishHelpers
             source,
             cancellationToken);
 
-        console.PrintMutationErrorsAndExit(deploymentSlotRequest.Errors);
+        if (deploymentSlotRequest.Errors?.Count > 0)
+        {
+            activity.Fail();
+
+            foreach (var error in deploymentSlotRequest.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IApiNotFoundError err => err.Message,
+                    IStageNotFoundError err => err.Message,
+                    ISubgraphInvalidError err => err.Message,
+                    IInvalidProcessingStateTransitionError err => err.Message,
+                    IError err => "Unexpected mutation error: " + err.Message,
+                    _ => "Unexpected mutation error."
+                };
+
+                await console.Error.WriteLineAsync(errorMessage);
+            }
+
+            throw Exit("Failed to request deployment slot.");
+        }
 
         var requestId = deploymentSlotRequest.RequestId;
 
@@ -64,7 +85,23 @@ internal static class FusionPublishHelpers
 
                 case IFusionConfigurationPublishingFailed v:
                     await subscriptionCancellation.CancelAsync();
-                    console.PrintMutationErrorsAndExit(v.Errors);
+                    activity.Fail();
+
+                    foreach (var error in v.Errors)
+                    {
+                        switch (error)
+                        {
+                            case IInvalidGraphQLSchemaError e:
+                                console.PrintGraphQLSchemaErrors(e);
+                                break;
+
+                            default:
+                                await console.Error.WriteLineAsync(error.Message);
+                                break;
+                        }
+                    }
+
+                    await console.Error.WriteLineAsync("Your request has failed.");
                     throw Exit("Your request has failed.");
 
                 case IFusionConfigurationPublishingSuccess:
@@ -104,7 +141,27 @@ internal static class FusionPublishHelpers
         CancellationToken cancellationToken)
     {
         var commitResult = await client.CommitFusionArchiveAsync(requestId, stream, cancellationToken);
-        console.PrintMutationErrorsAndExit(commitResult.Errors);
+
+        if (commitResult.Errors?.Count > 0)
+        {
+            activity.Fail();
+
+            foreach (var error in commitResult.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IInvalidProcessingStateTransitionError err => err.Message,
+                    IError err => "Unexpected mutation error: " + err.Message,
+                    _ => "Unexpected mutation error."
+                };
+
+                await console.Error.WriteLineAsync(errorMessage);
+            }
+
+            throw Exit("Failed to commit Fusion archive.");
+        }
 
         var committed = false;
 
@@ -119,7 +176,23 @@ internal static class FusionPublishHelpers
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
-                    console.PrintMutationErrors(v.Errors);
+                    activity.Fail();
+
+                    foreach (var error in v.Errors)
+                    {
+                        switch (error)
+                        {
+                            case IInvalidGraphQLSchemaError e:
+                                console.PrintGraphQLSchemaErrors(e);
+                                break;
+
+                            default:
+                                await console.Error.WriteLineAsync(error.Message);
+                                break;
+                        }
+                    }
+
+                    await console.Error.WriteLineAsync("The commit has failed.");
                     throw Exit("The commit has failed.");
 
                 case IFusionConfigurationPublishingSuccess:

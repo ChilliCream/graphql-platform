@@ -41,12 +41,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        console.WriteLine();
-        console.WriteLine("Deleting an MCP Feature Collection");
-        console.WriteLine();
-
-        const string apiMessage = "For which API do you want to delete an MCP Feature Collection?";
-        const string mcpFeatureCollectionMessage = "Which MCP Feature Collection do you want to delete?";
+        parseResult.AssertHasAuthentication(sessionService);
 
         var mcpFeatureCollectionId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
 
@@ -56,6 +51,9 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             {
                 throw MissingRequiredOption("id");
             }
+
+            const string apiMessage = "For which API do you want to delete an MCP Feature Collection?";
+            const string mcpFeatureCollectionMessage = "Which MCP Feature Collection do you want to delete?";
 
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
@@ -71,18 +69,10 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
                 .Title(mcpFeatureCollectionMessage)
                 .RenderAsync(console, cancellationToken) ?? throw NoMcpFeatureCollectionSelected();
 
-            console.WriteLine("Selected MCP Feature Collection: " + selectedMcpFeatureCollection.Name);
-
             mcpFeatureCollectionId = selectedMcpFeatureCollection.Id;
-            console.OkQuestion(mcpFeatureCollectionMessage, mcpFeatureCollectionId);
-        }
-        else
-        {
-            console.OkQuestion(mcpFeatureCollectionMessage, mcpFeatureCollectionId);
         }
 
-        // TODO: Fix
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance); // is not null;
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
@@ -92,24 +82,49 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
             if (!confirmed)
             {
-                console.OkLine("Aborted.");
-                return ExitCodes.Success;
+                throw Exit("The MCP Feature Collection was not deleted.");
             }
         }
 
-        var deletedMcpFeatureCollection = await client.DeleteMcpFeatureCollectionAsync(
-            mcpFeatureCollectionId,
-            cancellationToken);
-        console.PrintMutationErrorsAndExit(deletedMcpFeatureCollection.Errors);
-
-        if (deletedMcpFeatureCollection.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
+        await using (var activity = console.StartActivity("Deleting MCP Feature Collection..."))
         {
-            throw Exit("Could not delete the MCP Feature Collection.");
+            var data = await client.DeleteMcpFeatureCollectionAsync(
+                mcpFeatureCollectionId,
+                cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IMcpFeatureCollectionNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not delete the MCP Feature Collection.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully deleted MCP Feature Collection!");
+
+            console.WriteLine();
+
+            resultHolder.SetResult(new ObjectResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine($"MCP Feature Collection {detail.Name.AsHighlight()} was deleted.");
-        resultHolder.SetResult(new ObjectResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject()));
-
-        return ExitCodes.Success;
     }
 }

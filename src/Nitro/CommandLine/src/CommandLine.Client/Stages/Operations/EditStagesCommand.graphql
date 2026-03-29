@@ -9,10 +9,8 @@ mutation updateStages($input: UpdateStagesInput!) {
       ...ApiNotFoundError
       ...StageNotFoundError
       ...StagesHavePublishedDependenciesError
-      ... on Error {
-        message
-        __typename
-      }
+      ...StageValidationError
+      ...Error
     }
   }
 }

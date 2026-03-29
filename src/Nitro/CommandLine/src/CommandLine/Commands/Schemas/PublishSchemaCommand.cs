@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
@@ -10,7 +11,8 @@ internal sealed class PublishSchemaCommand : Command
 {
     public PublishSchemaCommand(
         INitroConsole console,
-        ISchemasClient client) : base("publish")
+        ISchemasClient client,
+        ISessionService sessionService) : base("publish")
     {
         Description = "Publish a schema version to a stage";
 
@@ -25,28 +27,29 @@ internal sealed class PublishSchemaCommand : Command
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
+                parseResult,
                 console,
                 client,
-                parseResult.GetValue(Opt<TagOption>.Instance)!,
-                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
-                parseResult.GetValue(Opt<ApiIdOption>.Instance)!,
-                parseResult.GetValue(Opt<ForceOption>.Instance),
-                parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance),
-                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
+                sessionService,
                 cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         ISchemasClient client,
-        string tag,
-        string stage,
-        string apiId,
-        bool force,
-        bool waitForApproval,
-        string? sourceMetadataJson,
+        ISessionService sessionService,
         CancellationToken ct)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var activity = console.StartActivity("Publishing..."))
@@ -69,10 +72,32 @@ internal sealed class PublishSchemaCommand : Command
                 source,
                 ct);
 
-            console.PrintMutationErrorsAndExit(publishRequest.Errors);
+            if (publishRequest.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in publishRequest.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IPublishSchemaVersion_PublishSchema_Errors_UnauthorizedOperation err => err.Message,
+                        IPublishSchemaVersion_PublishSchema_Errors_ApiNotFoundError err => err.Message,
+                        IPublishSchemaVersion_PublishSchema_Errors_StageNotFoundError err => err.Message,
+                        IPublishSchemaVersion_PublishSchema_Errors_SchemaNotFoundError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
             if (publishRequest.Id is not { } requestId)
             {
-                throw new ExitException("Could not create publish request!");
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create publish request.");
+                return ExitCodes.Error;
             }
 
             console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
@@ -87,12 +112,13 @@ internal sealed class PublishSchemaCommand : Command
                         break;
 
                     case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
+                        activity.Fail();
                         console.WriteLine("Schema publish failed");
                         console.PrintMutationErrors(schemaErrors);
                         return ExitCodes.Error;
 
                     case ISchemaVersionPublishSuccess:
-                        console.Success("Successfully published schema!");
+                        activity.Success("Successfully published schema!");
                         return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
@@ -124,6 +150,8 @@ internal sealed class PublishSchemaCommand : Command
                         break;
                 }
             }
+
+            activity.Fail();
         }
 
         return ExitCodes.Error;

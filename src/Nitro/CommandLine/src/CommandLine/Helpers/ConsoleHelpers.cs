@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class ConsoleHelpers
 {
-    // TODO: Remove these
+    [Obsolete("Use inline error switch instead")]
     public static void PrintMutationErrorsAndExit<T>(this INitroConsole console, IReadOnlyList<T>? errors)
         where T : class
     {
@@ -23,6 +23,7 @@ internal static class ConsoleHelpers
         }
     }
 
+    [Obsolete("Use inline error switch instead")]
     public static void PrintMutationErrors<T>(this INitroConsole console, IReadOnlyList<T>? errors)
         where T : class
     {
@@ -38,7 +39,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintMutationError(
+    private static void PrintSchemaVersionChangeViolations(
         this INitroConsole console,
         ISchemaVersionChangeViolationError error)
     {
@@ -47,7 +48,7 @@ internal static class ConsoleHelpers
         console.Write(tree);
     }
 
-    private static void PrintMutationError(
+    private static void PrintSchemaChangeViolations(
         this INitroConsole console,
         ISchemaChangeViolationError error)
     {
@@ -56,7 +57,7 @@ internal static class ConsoleHelpers
         console.Write(tree);
     }
 
-    private static void PrintMutationError(
+    private static void PrintStagePublishedDependencies(
         this INitroConsole console,
         IStagesHavePublishedDependenciesError error)
     {
@@ -82,7 +83,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintMutationError(this INitroConsole console, IPersistedQueryValidationError error)
+    private static void PrintPersistedQueryValidationErrors(this INitroConsole console, IPersistedQueryValidationError error)
     {
         console.WarningLine(
             $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
@@ -114,7 +115,7 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
-    private static void PrintMutationError(this INitroConsole console, IOpenApiCollectionValidationError error)
+    private static void PrintOpenApiCollectionValidationErrors(this INitroConsole console, IOpenApiCollectionValidationError error)
     {
         foreach (var collectionError in error.Collections)
         {
@@ -167,7 +168,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintMutationError(this INitroConsole console, IMcpFeatureCollectionValidationError error)
+    private static void PrintMcpFeatureCollectionValidationErrors(this INitroConsole console, IMcpFeatureCollectionValidationError error)
     {
         foreach (var collectionError in error.Collections)
         {
@@ -220,7 +221,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintMutationError(
+    internal static void PrintGraphQLSchemaErrors(
         this INitroConsole console,
         IInvalidGraphQLSchemaError error)
     {
@@ -238,6 +239,7 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
+    [Obsolete("Use inline error switch instead")]
     private static void PrintInvalidOpenApiCollectionArchiveError(this INitroConsole console, string message)
     {
         console.WriteLine(
@@ -248,6 +250,7 @@ internal static class ConsoleHelpers
             + message);
     }
 
+    [Obsolete("Use inline error switch instead")]
     private static void PrintInvalidMcpFeatureCollectionArchiveError(this INitroConsole console, string message)
     {
         console.WriteLine(
@@ -258,6 +261,7 @@ internal static class ConsoleHelpers
             + message);
     }
 
+    [Obsolete("Use inline error switch instead")]
     private static void PrintMutationError(this INitroConsole console, object error)
     {
         switch (error)
@@ -279,7 +283,7 @@ internal static class ConsoleHelpers
                 break;
 
             case ISchemaVersionChangeViolationError err:
-                console.PrintMutationError(err);
+                console.PrintSchemaVersionChangeViolations(err);
                 break;
 
             case ISchemaVersionSyntaxError err:
@@ -287,11 +291,11 @@ internal static class ConsoleHelpers
                 break;
 
             case IPersistedQueryValidationError err:
-                console.PrintMutationError(err);
+                console.PrintPersistedQueryValidationErrors(err);
                 break;
 
             case IStagesHavePublishedDependenciesError err:
-                console.PrintMutationError(err);
+                console.PrintStagePublishedDependencies(err);
                 break;
 
             case IApiNotFoundError err:
@@ -315,11 +319,11 @@ internal static class ConsoleHelpers
                 break;
 
             case IInvalidGraphQLSchemaError err:
-                console.PrintMutationError(err);
+                console.PrintGraphQLSchemaErrors(err);
                 break;
 
             case ISchemaChangeViolationError err:
-                console.PrintMutationError(err);
+                console.PrintSchemaChangeViolations(err);
                 break;
 
             case IInvalidFusionSourceSchemaArchiveError err:
@@ -332,7 +336,7 @@ internal static class ConsoleHelpers
                 break;
 
             case IOpenApiCollectionValidationError err:
-                console.PrintMutationError(err);
+                console.PrintOpenApiCollectionValidationErrors(err);
                 break;
 
             case IInvalidOpenApiCollectionArchiveError err:
@@ -344,7 +348,7 @@ internal static class ConsoleHelpers
                 break;
 
             case IMcpFeatureCollectionValidationError err:
-                console.PrintMutationError(err);
+                console.PrintMcpFeatureCollectionValidationErrors(err);
                 break;
 
             case IInvalidMcpFeatureCollectionArchiveError err:

@@ -38,6 +38,8 @@ internal sealed class ListClientPublishedVersionsCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, ct);

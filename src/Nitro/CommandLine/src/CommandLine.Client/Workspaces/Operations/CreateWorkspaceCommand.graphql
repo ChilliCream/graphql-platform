@@ -6,15 +6,9 @@ mutation CreateWorkspaceCommandMutation($input: CreateWorkspaceInput!) {
       ...WorkspaceDetailPrompt_Workspace
     }
     errors {
-      ... on UnauthorizedOperation {
-        message
-      }
-      ... on ValidationError {
-        message
-      }
-      ... on Error {
-        message
-      }
+      ...UnauthorizedOperation
+      ...ValidationError
+      ...Error
     }
   }
 }

@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
@@ -10,7 +11,8 @@ internal sealed class DownloadSchemaCommand : Command
     public DownloadSchemaCommand(
         INitroConsole console,
         ISchemasClient client,
-        IFileSystem fileSystem)
+        IFileSystem fileSystem,
+        ISessionService sessionService)
         : base("download")
     {
         Description = "Download a schema from a stage";
@@ -23,25 +25,29 @@ internal sealed class DownloadSchemaCommand : Command
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
+                parseResult,
                 console,
                 client,
                 fileSystem,
-                parseResult.GetValue(Opt<ApiIdOption>.Instance)!,
-                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
-                parseResult.GetValue(Opt<FileNameOption>.Instance)!,
+                sessionService,
                 cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         ISchemasClient client,
         IFileSystem fileSystem,
-        string apiId,
-        string stageName,
-        string schemaFilePath,
+        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
-        await using (var _ = console.StartActivity("Fetching Schema..."))
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var schemaFilePath = parseResult.GetValue(Opt<FileNameOption>.Instance)!;
+
+        await using (var activity = console.StartActivity("Fetching Schema..."))
         {
             await using var schemaStream = await client.DownloadLatestSchemaAsync(
                 apiId,
@@ -50,7 +56,7 @@ internal sealed class DownloadSchemaCommand : Command
 
             if (schemaStream is null)
             {
-                throw new ExitException($"Could not find a published schema on stage {stageName}");
+                throw new ExitException($"Could not find a published schema on stage '{stageName}'.");
             }
 
             if (fileSystem.FileExists(schemaFilePath))
@@ -60,9 +66,10 @@ internal sealed class DownloadSchemaCommand : Command
 
             await using var fileStream = fileSystem.CreateFile(schemaFilePath);
             await schemaStream.CopyToAsync(fileStream, cancellationToken);
-            console.Success($"Downloaded schema to {schemaFilePath}");
-        }
 
-        return ExitCodes.Success;
+            activity.Success($"Downloaded schema to '{schemaFilePath}'.");
+
+            return ExitCodes.Success;
+        }
     }
 }

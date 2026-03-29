@@ -1,0 +1,303 @@
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Exceptions;
+using ChilliCream.Nitro.Client.Stages;
+using Moq;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Stages;
+
+public sealed class ListStagesCommandTests
+{
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddArguments(
+                "stage",
+                "list",
+                "--help")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Lists all stages of an API
+
+            Usage:
+              nitro stage list [options]
+
+            Options:
+                            --api-id <api-id>        The ID of the API [env: NITRO_API_ID]
+                            --cloud-url <cloud-url>  The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+                            --api-key <api-key>      The API key that is used for the authentication [env: NITRO_API_KEY]
+                            --output <json>          The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+                            -?, -h, --help           Show help and usage information
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "stage",
+                "list")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingApiId_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
+
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(stagesClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "stage",
+                "list")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The '--api-id' option is required in non-interactive mode.
+            """);
+
+        apisClient.VerifyAll();
+        stagesClient.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
+        stagesClient.Setup(x => x.ListStagesAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListStagesResult(
+                ("stage-1", "production", new[] { "staging" }),
+                ("stage-2", "staging", Array.Empty<string>())));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(stagesClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "stage",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "id": "stage-1",
+                  "name": "production",
+                  "conditions": [
+                    {
+                      "kind": "AfterStage",
+                      "name": "staging"
+                    }
+                  ]
+                },
+                {
+                  "id": "stage-2",
+                  "name": "staging",
+                  "conditions": []
+                }
+              ],
+              "cursor": null
+            }
+            """);
+
+        apisClient.VerifyAll();
+        stagesClient.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithApiId_NoData_ReturnsSuccess(InteractionMode mode)
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
+        stagesClient.Setup(x => x.ListStagesAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListStagesResult());
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(stagesClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "stage",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [],
+              "cursor": null
+            }
+            """);
+
+        apisClient.VerifyAll();
+        stagesClient.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var stagesClient = CreateListExceptionClient(
+            new NitroClientException("list failed"), "api-1");
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(stagesClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "stage",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: list failed
+            """);
+
+        apisClient.VerifyAll();
+        stagesClient.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var stagesClient = CreateListExceptionClient(
+            new NitroClientAuthorizationException("forbidden"), "api-1");
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(stagesClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "stage",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+
+        apisClient.VerifyAll();
+        stagesClient.VerifyAll();
+    }
+
+    private static IListStagesQuery_Node_Api CreateListStagesResult(
+        params (string Id, string Name, string[] AfterStageNames)[] stages)
+    {
+        var stageItems = stages
+            .Select(static s => CreateStage(s.Id, s.Name, s.AfterStageNames))
+            .ToArray();
+
+        var result = new Mock<IListStagesQuery_Node_Api>(MockBehavior.Strict);
+        result.SetupGet(x => x.Stages).Returns(stageItems);
+
+        return result.Object;
+    }
+
+    private static IListStagesQuery_Node_Stages CreateStage(
+        string id,
+        string name,
+        string[] afterStageNames)
+    {
+        var conditions = afterStageNames
+            .Select(static afterName =>
+            {
+                var afterStage = new Mock<IForceDeleteStageByApiIdCommandMutation_ForceDeleteStageByApiId_Api_Stages_Conditions_AfterStage>(MockBehavior.Strict);
+                afterStage.SetupGet(x => x.Name).Returns(afterName);
+
+                var condition = new Mock<IListStagesQuery_Node_Stages_Conditions_AfterStageCondition>(MockBehavior.Strict);
+                condition.SetupGet(x => x.AfterStage).Returns(afterStage.Object);
+
+                return condition.As<IForceDeleteStageByApiIdCommandMutation_ForceDeleteStageByApiId_Api_Stages_Conditions>().Object;
+            })
+            .ToArray();
+
+        var stage = new Mock<IListStagesQuery_Node_Stages>(MockBehavior.Strict);
+        stage.SetupGet(x => x.Id).Returns(id);
+        stage.SetupGet(x => x.Name).Returns(name);
+        stage.SetupGet(x => x.DisplayName).Returns(name);
+        stage.SetupGet(x => x.Conditions).Returns(conditions);
+
+        return stage.Object;
+    }
+
+    private static Mock<IStagesClient> CreateListExceptionClient(
+        Exception ex,
+        string apiId)
+    {
+        var client = new Mock<IStagesClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListStagesAsync(
+                apiId,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(ex);
+        return client;
+    }
+}

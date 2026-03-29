@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -17,7 +18,8 @@ internal sealed class FusionDownloadCommand : Command
     public FusionDownloadCommand(
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem) : base("download")
+        IFileSystem fileSystem,
+        ISessionService sessionService) : base("download")
     {
         Description = "Downloads the most recent gateway configuration";
 
@@ -27,7 +29,7 @@ internal sealed class FusionDownloadCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken));
+            => await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, sessionService, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
@@ -35,8 +37,11 @@ internal sealed class FusionDownloadCommand : Command
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
+        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
         var outputFile =
