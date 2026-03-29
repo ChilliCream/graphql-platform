@@ -1,5 +1,4 @@
 using System.CommandLine;
-using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
@@ -18,7 +17,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Spectre.Console;
 using Spectre.Console.Testing;
-using SpectreTestConsole = Spectre.Console.Testing.TestConsole;
 
 namespace ChilliCream.Nitro.CommandLine.Tests;
 
@@ -197,14 +195,16 @@ internal sealed record CommandContext(
         return new CommandResult(
             exitCode,
             StdOut.ToString()?.TrimEnd() ?? string.Empty,
-            StdErr.ToString()?.TrimEnd() ?? string.Empty);
+            StdErr.ToString()?.TrimEnd() ?? string.Empty,
+            RootCommand.Name);
     }
 }
 
 internal sealed record CommandResult(
     int ExitCode,
     string StdOut,
-    string StdErr);
+    string StdErr,
+    string ExecutableName);
 
 internal sealed class InteractiveCommand(CommandContext context)
 {

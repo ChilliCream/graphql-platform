@@ -39,28 +39,55 @@ internal sealed class CreateClientCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        console.WriteLine();
-        console.WriteLine("Creating a client");
-        console.WriteLine();
+        parseResult.AssertHasAuthentication(sessionService);
 
-        const string apiMessage = "For which API do you want to create a client?";
-        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, cancellationToken);
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API do you want to create a client?",
+            parseResult,
+            apisClient,
+            sessionService,
+            cancellationToken);
 
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<ClientNameOption>.Instance, cancellationToken);
 
-        var data = await client.CreateClientAsync(apiId, name, cancellationToken);
-        console.PrintMutationErrorsAndExit(data.Errors);
-
-        if (data.Client is not IClientDetailPrompt_Client createdClient)
+        await using (var activity = console.StartActivity("Creating client..."))
         {
-            throw ThrowHelper.Exit("Could not create client.");
+            var data = await client.CreateClientAsync(apiId, name, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err => err.Message,
+                        ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            if (data.Client is not IClientDetailPrompt_Client createdClient)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create client.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully created client!");
+
+            console.WriteLine();
+
+            resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(createdClient).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine($"Client {createdClient.Name.AsHighlight()} created.");
-
-        resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(createdClient).ToObject()));
-
-        return ExitCodes.Success;
     }
 }

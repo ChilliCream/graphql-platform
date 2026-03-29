@@ -15,4 +15,11 @@ internal static class CommandExecutionResultExtensions
         result.StdOut.MatchInlineSnapshot(stdout);
         Assert.Equal(0, result.ExitCode);
     }
+
+    public static void AssertHelpOutput(this CommandResult result, string stdout)
+    {
+        Assert.Empty(result.StdErr);
+        result.StdOut.Replace(result.ExecutableName, "nitro").MatchInlineSnapshot(stdout);
+        Assert.Equal(0, result.ExitCode);
+    }
 }

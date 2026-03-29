@@ -18,13 +18,13 @@ public sealed class ListApiCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess(
+        result.AssertHelpOutput(
             """
             Description:
               Lists all APIs of a workspace
 
             Usage:
-              testhost api list [options]
+              nitro api list [options]
 
             Options:
                             --cursor <cursor>              The cursor to start the query (non interactive mode) [env: NITRO_CURSOR]
@@ -113,9 +113,47 @@ public sealed class ListApiCommandTests
 
         // assert
         Assert.Empty(result.StdErr);
-        Assert.Contains("APIs", result.StdOut);
-        Assert.Contains("api-1", result.StdOut);
-        Assert.Contains("api-2", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    │ api-2 │ catalog  │ catalog  │
+                                    └───────┴──────────┴──────────┘
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    │ api-2 │ catalog  │ catalog  │
+                                    └───────┴──────────┴──────────┘
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    │ api-2 │ catalog  │ catalog  │
+                                    └───────┴──────────┴──────────┘                         {
+              "id": "api-1",
+              "name": "products",
+              "path": "products",
+              "workspace": {
+                "name": "Workspace"
+              },
+              "apiDetailPromptSettings": {
+                "apiDetailPromptSchemaRegistry": {
+                  "treatDangerousAsBreaking": true,
+                  "allowBreakingSchemaChanges": false
+                }
+              }
+            }
+            """);
         Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
@@ -152,16 +190,56 @@ public sealed class ListApiCommandTests
 
         // assert
         Assert.Empty(result.StdErr);
-        Assert.Contains("APIs", result.StdOut);
-        Assert.Contains("api-1", result.StdOut);
-        Assert.Contains("api-2", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    │ api-2 │ catalog  │ catalog  │
+                                    └───────┴──────────┴──────────┘
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    │ api-2 │ catalog  │ catalog  │
+                                    └───────┴──────────┴──────────┘
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    │ api-2 │ catalog  │ catalog  │
+                                    └───────┴──────────┴──────────┘                         {
+              "id": "api-1",
+              "name": "products",
+              "path": "products",
+              "workspace": {
+                "name": "Workspace"
+              },
+              "apiDetailPromptSettings": {
+                "apiDetailPromptSchemaRegistry": {
+                  "treatDangerousAsBreaking": true,
+                  "allowBreakingSchemaChanges": false
+                }
+              }
+            }
+            """);
         Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithWorkspaceIdFromSession_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -180,50 +258,49 @@ public sealed class ListApiCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "list")
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_OutputJson()
-    {
-        // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
-                "cursor-2",
-                true,
-                ("api-1", "products", new[] { "products" }, "Workspace"),
-                ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "list")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "id": "api-1",
+                  "name": "products",
+                  "path": "products",
+                  "workspace": {
+                    "name": "Workspace"
+                  },
+                  "apiDetailPromptSettings": {
+                    "apiDetailPromptSchemaRegistry": {
+                      "treatDangerousAsBreaking": true,
+                      "allowBreakingSchemaChanges": false
+                    }
+                  }
+                },
+                {
+                  "id": "api-2",
+                  "name": "catalog",
+                  "path": "catalog",
+                  "workspace": {
+                    "name": "Workspace"
+                  },
+                  "apiDetailPromptSettings": {
+                    "apiDetailPromptSchemaRegistry": {
+                      "treatDangerousAsBreaking": true,
+                      "allowBreakingSchemaChanges": false
+                    }
+                  }
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
 
         client.VerifyAll();
     }
@@ -257,14 +334,25 @@ public sealed class ListApiCommandTests
 
         // assert
         Assert.Empty(result.StdErr);
-        Assert.Contains("There was no data found.", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+                      APIs
+
+            There was no data found.
+                      APIs
+
+            There was no data found.
+            """);
         Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithWorkspaceId_NoData_ReturnsSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithWorkspaceId_NoData_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -279,7 +367,7 @@ public sealed class ListApiCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "list",
@@ -288,41 +376,13 @@ public sealed class ListApiCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task WithWorkspaceId_NoData_ReturnsSuccess_OutputJson()
-    {
-        // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "ws-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage());
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            {
+              "values": [],
+              "cursor": null
+            }
+            """);
 
         client.VerifyAll();
     }
@@ -360,15 +420,53 @@ public sealed class ListApiCommandTests
 
         // assert
         Assert.Empty(result.StdErr);
-        Assert.Contains("APIs", result.StdOut);
-        Assert.Contains("api-1", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    └───────┴──────────┴──────────┘
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    └───────┴──────────┴──────────┘
+                                                  APIs
+
+                                    ┌───────┬──────────┬──────────┐
+                                    │ Id    │ Name     │ Path     │
+                                    ├───────┼──────────┼──────────┤
+                                    │ api-1 │ products │ products │
+                                    └───────┴──────────┴──────────┘                         {
+              "id": "api-1",
+              "name": "products",
+              "path": "products",
+              "workspace": {
+                "name": "Workspace"
+              },
+              "apiDetailPromptSettings": {
+                "apiDetailPromptSchemaRegistry": {
+                  "treatDangerousAsBreaking": true,
+                  "allowBreakingSchemaChanges": false
+                }
+              }
+            }
+            """);
         Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithCursor_ReturnsSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -387,7 +485,7 @@ public sealed class ListApiCommandTests
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "list",
@@ -396,51 +494,37 @@ public sealed class ListApiCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "id": "api-1",
+                  "name": "products",
+                  "path": "products",
+                  "workspace": {
+                    "name": "Workspace"
+                  },
+                  "apiDetailPromptSettings": {
+                    "apiDetailPromptSchemaRegistry": {
+                      "treatDangerousAsBreaking": true,
+                      "allowBreakingSchemaChanges": false
+                    }
+                  }
+                }
+              ],
+              "cursor": null
+            }
+            """);
 
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithCursor_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "workspace-from-session",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
-                null,
-                false,
-                ("api-1", "products", new[] { "products" }, "Workspace")));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "list",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateListExceptionClient(new NitroClientException("list failed"));
@@ -449,7 +533,7 @@ public sealed class ListApiCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments("api", "list")
             .ExecuteAsync();
 
@@ -462,54 +546,11 @@ public sealed class ListApiCommandTests
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientException("list failed"));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments("api", "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            There was an unexpected error executing your request: list failed
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientException("list failed"));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments("api", "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            There was an unexpected error executing your request: list failed
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"));
@@ -518,53 +559,7 @@ public sealed class ListApiCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments("api", "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments("api", "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments("api", "list")
             .ExecuteAsync();
 

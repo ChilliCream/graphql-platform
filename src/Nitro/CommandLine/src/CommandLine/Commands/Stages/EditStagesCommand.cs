@@ -202,7 +202,8 @@ file static class ClientExtensions
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray() ?? [];
 
-        resultHolder.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
+        resultHolder.SetResult(
+            new ObjectResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null)));
 
         console.OkLine("Successfully updated stages");
     }

@@ -1,11 +1,11 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
-namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Environments;
 
-public sealed class ShowApiCommandTests
+public sealed class ShowEnvironmentCommandTests
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
@@ -13,7 +13,7 @@ public sealed class ShowApiCommandTests
         // arrange & act
         var result = await new CommandBuilder()
             .AddArguments(
-                "api",
+                "environment",
                 "show",
                 "--help")
             .ExecuteAsync();
@@ -22,10 +22,10 @@ public sealed class ShowApiCommandTests
         result.AssertHelpOutput(
             """
             Description:
-              Shows details of an API
+              Shows details of an environment
 
             Usage:
-              nitro api show <id> [options]
+              nitro environment show <id> [options]
 
             Arguments:
               <id>  The ID
@@ -48,9 +48,9 @@ public sealed class ShowApiCommandTests
         var result = await new CommandBuilder()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "environment",
                 "show",
-                "api-1")
+                "environment-1")
             .ExecuteAsync();
 
         // assert
@@ -64,14 +64,14 @@ public sealed class ShowApiCommandTests
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task ApiNotFound_ReturnsError(InteractionMode mode)
+    public async Task EnvironmentNotFound_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowApiAsync(
-                "api-1",
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowEnvironmentAsync(
+                "environment-1",
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IShowApiCommandQuery_Node?)null);
+            .ReturnsAsync((IShowEnvironmentCommandQuery_Node?)null);
 
         // act
         var result = await new CommandBuilder()
@@ -79,15 +79,15 @@ public sealed class ShowApiCommandTests
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "environment",
                 "show",
-                "api-1")
+                "environment-1")
             .ExecuteAsync();
 
         // assert
         result.AssertError(
             """
-            The API with ID 'api-1' was not found.
+            The environment with ID 'environment-1' was not found.
             """);
 
         client.VerifyAll();
@@ -97,14 +97,14 @@ public sealed class ShowApiCommandTests
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
+    public async Task WithEnvironmentId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowApiAsync(
-                "api-1",
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowEnvironmentAsync(
+                "environment-1",
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateShowApiNode("api-1", "my-api", ["products"]));
+            .ReturnsAsync(CreateShowEnvironmentNode("environment-1", "production", "workspace-a"));
 
         // act
         var result = await new CommandBuilder()
@@ -112,26 +112,19 @@ public sealed class ShowApiCommandTests
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "environment",
                 "show",
-                "api-1")
+                "environment-1")
             .ExecuteAsync();
 
         // assert
         result.AssertSuccess(
             """
             {
-              "id": "api-1",
-              "name": "my-api",
-              "path": "products",
+              "id": "environment-1",
+              "name": "production",
               "workspace": {
-                "name": "Workspace"
-              },
-              "apiDetailPromptSettings": {
-                "apiDetailPromptSchemaRegistry": {
-                  "treatDangerousAsBreaking": true,
-                  "allowBreakingSchemaChanges": false
-                }
+                "name": "workspace-a"
               }
             }
             """);
@@ -154,9 +147,9 @@ public sealed class ShowApiCommandTests
             .AddSessionWithWorkspace()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "environment",
                 "show",
-                "api-1")
+                "environment-1")
             .ExecuteAsync();
 
         // assert
@@ -183,9 +176,9 @@ public sealed class ShowApiCommandTests
             .AddSessionWithWorkspace()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "environment",
                 "show",
-                "api-1")
+                "environment-1")
             .ExecuteAsync();
 
         // assert
@@ -197,11 +190,28 @@ public sealed class ShowApiCommandTests
         client.VerifyAll();
     }
 
-    private static Mock<IApisClient> CreateShowExceptionClient(Exception ex)
+    private static IShowEnvironmentCommandQuery_Node CreateShowEnvironmentNode(
+        string id,
+        string name,
+        string workspaceName)
     {
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowApiAsync(
-                "api-1",
+        var workspace = new Mock<IListEnvironmentCommandQuery_WorkspaceById_Environments_Edges_Node_Workspace>(
+            MockBehavior.Strict);
+        workspace.SetupGet(x => x.Name).Returns(workspaceName);
+
+        var node = new Mock<IShowEnvironmentCommandQuery_Node_Environment>(MockBehavior.Strict);
+        node.SetupGet(x => x.Id).Returns(id);
+        node.SetupGet(x => x.Name).Returns(name);
+        node.SetupGet(x => x.Workspace).Returns(workspace.Object);
+
+        return node.Object;
+    }
+
+    private static Mock<IEnvironmentsClient> CreateShowExceptionClient(Exception ex)
+    {
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowEnvironmentAsync(
+                "environment-1",
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);
         return client;

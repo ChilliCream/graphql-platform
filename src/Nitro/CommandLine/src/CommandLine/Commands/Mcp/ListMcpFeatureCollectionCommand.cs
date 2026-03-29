@@ -87,7 +87,7 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
         var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
         if (apiId is null)
         {
-            throw Exit("The API ID is required in non-interactive mode.");
+            throw MissingRequiredOption(ApiIdOption.OptionName);
         }
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
@@ -97,9 +97,8 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
             .Select(x => x.ToObject())
             .ToArray();
 
-        resultHolder.SetResult(new PaginatedListResult<McpFeatureCollectionDetailPrompt.McpFeatureCollectionDetailPromptResult>(
-                items,
-                data.EndCursor));
+        resultHolder.SetResult(
+            new ObjectResult(new PaginatedListResult<McpFeatureCollectionDetailPrompt.McpFeatureCollectionDetailPromptResult>(items, data.EndCursor)));
 
         return ExitCodes.Success;
     }

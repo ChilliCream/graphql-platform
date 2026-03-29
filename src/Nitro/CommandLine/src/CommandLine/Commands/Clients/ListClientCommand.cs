@@ -44,6 +44,8 @@ internal sealed class ListClientCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, ct);
@@ -94,7 +96,7 @@ internal sealed class ListClientCommand : Command
         var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
         if (apiId is null)
         {
-            throw Exit("The API ID is required in non-interactive mode.");
+            throw MissingRequiredOption(ApiIdOption.OptionName);
         }
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);

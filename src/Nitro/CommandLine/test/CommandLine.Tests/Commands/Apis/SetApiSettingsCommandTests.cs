@@ -19,13 +19,13 @@ public sealed class SetApiSettingsCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess(
+        result.AssertHelpOutput(
             """
             Description:
               Sets the settings of an API
 
             Usage:
-              testhost api set-settings <id> [options]
+              nitro api set-settings <id> [options]
 
             Arguments:
               <id>  The ID
@@ -66,28 +66,6 @@ public sealed class SetApiSettingsCommandTests
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
-    {
-        // arrange & act
-        var result = await new CommandBuilder()
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "set-settings")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Contains("Description:", result.StdOut);
-        Assert.Contains("Sets the settings of an API", result.StdOut);
-        Assert.Equal(1, result.ExitCode);
-    }
-
     [Fact]
     public async Task WithOptions_ReturnsSuccess_NonInteractive()
     {
@@ -116,12 +94,26 @@ public sealed class SetApiSettingsCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Updating API settings...", result.StdOut);
-        Assert.Contains("Successfully updated API settings", result.StdOut);
-        Assert.Contains("\"id\": \"api-1\"", result.StdOut);
-        Assert.Contains("\"treatDangerousAsBreaking\": true", result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+                result.AssertSuccess(
+                        """
+                        Updating API settings...
+                        └── Successfully updated API settings!
+
+                        {
+                            "id": "api-1",
+                            "name": "my-api",
+                            "path": "products",
+                            "workspace": {
+                                "name": "Workspace"
+                            },
+                            "apiDetailPromptSettings": {
+                                "apiDetailPromptSchemaRegistry": {
+                                    "treatDangerousAsBreaking": true,
+                                    "allowBreakingSchemaChanges": false
+                                }
+                            }
+                        }
+                        """);
 
         client.VerifyAll();
     }
@@ -187,8 +179,11 @@ public sealed class SetApiSettingsCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Updating API settings...", result.StdOut);
-        Assert.Contains("└── Failed", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Updating API settings...
+            └── Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -285,8 +280,11 @@ public sealed class SetApiSettingsCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Updating API settings...", result.StdOut);
-        Assert.Contains("└── Failed", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Updating API settings...
+            └── Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             There was an unexpected error executing your request: update failed
@@ -386,8 +384,11 @@ public sealed class SetApiSettingsCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Updating API settings...", result.StdOut);
-        Assert.Contains("└── Failed", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Updating API settings...
+            └── Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.

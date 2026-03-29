@@ -1,11 +1,11 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
-namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class ShowApiCommandTests
+public sealed class ShowClientCommandTests
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
@@ -13,7 +13,7 @@ public sealed class ShowApiCommandTests
         // arrange & act
         var result = await new CommandBuilder()
             .AddArguments(
-                "api",
+                "client",
                 "show",
                 "--help")
             .ExecuteAsync();
@@ -22,10 +22,10 @@ public sealed class ShowApiCommandTests
         result.AssertHelpOutput(
             """
             Description:
-              Shows details of an API
+              Shows details of a client
 
             Usage:
-              nitro api show <id> [options]
+              nitro client show <id> [options]
 
             Arguments:
               <id>  The ID
@@ -48,9 +48,9 @@ public sealed class ShowApiCommandTests
         var result = await new CommandBuilder()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "client",
                 "show",
-                "api-1")
+                "client-1")
             .ExecuteAsync();
 
         // assert
@@ -64,14 +64,14 @@ public sealed class ShowApiCommandTests
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task ApiNotFound_ReturnsError(InteractionMode mode)
+    public async Task ClientNotFound_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowApiAsync(
-                "api-1",
+        var client = new Mock<IClientsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowClientAsync(
+                "client-1",
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IShowApiCommandQuery_Node?)null);
+            .ReturnsAsync((IShowClientCommandQuery_Node?)null);
 
         // act
         var result = await new CommandBuilder()
@@ -79,15 +79,15 @@ public sealed class ShowApiCommandTests
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "client",
                 "show",
-                "api-1")
+                "client-1")
             .ExecuteAsync();
 
         // assert
         result.AssertError(
             """
-            The API with ID 'api-1' was not found.
+            The client with ID 'client-1' was not found.
             """);
 
         client.VerifyAll();
@@ -97,14 +97,14 @@ public sealed class ShowApiCommandTests
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
+    public async Task WithClientId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowApiAsync(
-                "api-1",
+        var client = new Mock<IClientsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowClientAsync(
+                "client-1",
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateShowApiNode("api-1", "my-api", ["products"]));
+            .ReturnsAsync(CreateShowClientNode("client-1", "web-client", "products"));
 
         // act
         var result = await new CommandBuilder()
@@ -112,26 +112,19 @@ public sealed class ShowApiCommandTests
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "client",
                 "show",
-                "api-1")
+                "client-1")
             .ExecuteAsync();
 
         // assert
         result.AssertSuccess(
             """
             {
-              "id": "api-1",
-              "name": "my-api",
-              "path": "products",
-              "workspace": {
-                "name": "Workspace"
-              },
-              "apiDetailPromptSettings": {
-                "apiDetailPromptSchemaRegistry": {
-                  "treatDangerousAsBreaking": true,
-                  "allowBreakingSchemaChanges": false
-                }
+              "id": "client-1",
+              "name": "web-client",
+              "api": {
+                "name": "products"
               }
             }
             """);
@@ -154,9 +147,9 @@ public sealed class ShowApiCommandTests
             .AddSessionWithWorkspace()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "client",
                 "show",
-                "api-1")
+                "client-1")
             .ExecuteAsync();
 
         // assert
@@ -183,9 +176,9 @@ public sealed class ShowApiCommandTests
             .AddSessionWithWorkspace()
             .AddInteractionMode(mode)
             .AddArguments(
-                "api",
+                "client",
                 "show",
-                "api-1")
+                "client-1")
             .ExecuteAsync();
 
         // assert
@@ -197,11 +190,29 @@ public sealed class ShowApiCommandTests
         client.VerifyAll();
     }
 
-    private static Mock<IApisClient> CreateShowExceptionClient(Exception ex)
+    private static IShowClientCommandQuery_Node CreateShowClientNode(
+        string id,
+        string name,
+        string apiName)
     {
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowApiAsync(
-                "api-1",
+        var api = new Mock<IShowClientCommandQuery_Node_Api_1>(MockBehavior.Strict);
+        api.SetupGet(x => x.Name).Returns(apiName);
+        api.SetupGet(x => x.Path).Returns(["products"]);
+
+        var clientNode = new Mock<IShowClientCommandQuery_Node_Client>(MockBehavior.Strict);
+        clientNode.SetupGet(x => x.Id).Returns(id);
+        clientNode.SetupGet(x => x.Name).Returns(name);
+        clientNode.SetupGet(x => x.Api).Returns(api.Object);
+        clientNode.SetupGet(x => x.Versions).Returns((IShowClientCommandQuery_Node_Versions?)null);
+
+        return clientNode.Object;
+    }
+
+    private static Mock<IClientsClient> CreateShowExceptionClient(Exception ex)
+    {
+        var client = new Mock<IClientsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowClientAsync(
+                "client-1",
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);
         return client;

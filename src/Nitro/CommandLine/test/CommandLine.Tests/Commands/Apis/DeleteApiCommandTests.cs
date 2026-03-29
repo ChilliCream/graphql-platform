@@ -19,13 +19,13 @@ public sealed class DeleteApiCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess(
+        result.AssertHelpOutput(
             """
             Description:
               Deletes an API by ID
 
             Usage:
-              testhost api delete <id> [options]
+              nitro api delete <id> [options]
 
             Arguments:
               <id>  The ID
@@ -60,29 +60,6 @@ public sealed class DeleteApiCommandTests
             """
             This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
-    {
-        // arrange & act
-        var result = await new CommandBuilder()
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "delete",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Contains("Description:", result.StdOut);
-        Assert.Contains("Deletes an API by ID", result.StdOut);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]

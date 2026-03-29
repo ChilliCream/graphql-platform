@@ -91,9 +91,8 @@ internal sealed class ListPersonalAccessTokenCommand : Command
             .Select(x => x.ToObject())
             .ToArray();
 
-        resultHolder.SetResult(new PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>(
-                items,
-            data.EndCursor));
+        resultHolder.SetResult(
+            new ObjectResult(new PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>(items, data.EndCursor)));
 
         return ExitCodes.Success;
     }

@@ -54,7 +54,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         {
             if (!console.IsInteractive)
             {
-                throw Exit("The MCP Feature Collection ID is required in non-interactive mode.");
+                throw MissingRequiredOption("id");
             }
 
             var workspaceId = parseResult.GetWorkspaceId(sessionService);

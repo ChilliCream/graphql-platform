@@ -19,13 +19,13 @@ public sealed class CreateApiCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess(
+        result.AssertHelpOutput(
             """
             Description:
               Creates a new API
 
             Usage:
-              testhost api create [options]
+              nitro api create [options]
 
             Options:
                             --path <path>                        The path to the API [env: NITRO_API_PATH]

@@ -20,13 +20,13 @@ public sealed class CreateApiKeyCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess(
+        result.AssertHelpOutput(
             """
             Description:
               Creates a new API key
 
             Usage:
-              ReSharperTestRunner api-key create [options]
+              nitro api-key create [options]
 
             Options:
               --name <name>                        The name of the API key (for later reference) [env: NITRO_API_KEY_NAME]

@@ -36,11 +36,9 @@ internal sealed class CreateEnvironmentCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        var workspaceId = parseResult.GetWorkspaceId(sessionService);
+        parseResult.AssertHasAuthentication(sessionService);
 
-        console.WriteLine();
-        console.WriteLine("Creating a environment");
-        console.WriteLine();
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var name = await console.PromptAsync(
             "Name",
@@ -49,29 +47,58 @@ internal sealed class CreateEnvironmentCommand : Command
             Opt<EnvironmentNameOption>.Instance,
             cancellationToken);
 
-        var environment = await client.CreateEnvironmentAsync(workspaceId, name, cancellationToken);
-        console.PrintMutationErrorsAndExit(environment.Errors);
-
-        var changeResult = environment.Changes?.SingleOrDefault();
-        if (changeResult is null)
+        await using (var activity = console.StartActivity("Creating environment..."))
         {
-            throw ThrowHelper.Exit("Could not create environment.");
+            var data = await client.CreateEnvironmentAsync(workspaceId, name, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_UnauthorizedOperation err => err.Message,
+                        ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_ChangeStructureInvalid err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            var changeResult = data.Changes?.SingleOrDefault();
+            if (changeResult is null)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create environment.");
+                return ExitCodes.Error;
+            }
+
+            if (changeResult.Error is IError changeError)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync(changeError.Message);
+                return ExitCodes.Error;
+            }
+
+            if (changeResult.Result is not IEnvironmentDetailPrompt_Environment detail)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create environment.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully created environment!");
+
+            console.WriteLine();
+
+            resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(detail).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        if (changeResult.Error is IError error)
-        {
-            throw ThrowHelper.Exit(error.Message);
-        }
-
-        if (changeResult.Result is not IEnvironmentDetailPrompt_Environment detail)
-        {
-            throw ThrowHelper.Exit("Could not create environment.");
-        }
-
-        console.OkLine($"Environment {detail.Name.AsHighlight()} created");
-
-        resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(detail).ToObject()));
-
-        return ExitCodes.Success;
     }
 }

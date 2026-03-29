@@ -110,7 +110,7 @@ internal sealed class ListClientVersionsCommand : Command
         var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
         if (clientId is null)
         {
-            throw Exit("The client ID is required in non-interactive mode.");
+            throw MissingRequiredOption("--client-id");
         }
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);

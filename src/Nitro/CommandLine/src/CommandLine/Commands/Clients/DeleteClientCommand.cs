@@ -41,11 +41,8 @@ internal sealed class DeleteClientCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
-        console.WriteLine();
-        console.WriteLine("Delete a client");
-        console.WriteLine();
+        parseResult.AssertHasAuthentication(sessionService);
 
-        const string apiMessage = "For which API do you want to delete a client?";
         const string clientMessage = "Which client do you want to delete?";
 
         var clientId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
@@ -54,14 +51,14 @@ internal sealed class DeleteClientCommand : Command
         {
             if (!console.IsInteractive)
             {
-                throw Exit("The client ID is required in non-interactive mode.");
+                throw MissingRequiredOption("id");
             }
 
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
             var selectedApi = await SelectApiPrompt
                 .New(apisClient, workspaceId)
-                .Title(apiMessage)
+                .Title("For which API do you want to delete a client?")
                 .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
 
             var apiId = selectedApi.Id;
@@ -81,13 +78,11 @@ internal sealed class DeleteClientCommand : Command
             console.OkQuestion(clientMessage, clientId);
         }
 
-        // TODO: Fix this
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance);// is not null;
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you want to delete the client with ID {clientId}?"
-                    .EscapeMarkup(),
+                $"Do you want to delete the client with ID {clientId}?".EscapeMarkup(),
                 cancellationToken);
 
             if (!confirmed)
@@ -97,18 +92,43 @@ internal sealed class DeleteClientCommand : Command
             }
         }
 
-        var deletedClient = await client.DeleteClientAsync(clientId, cancellationToken);
-        console.PrintMutationErrorsAndExit(deletedClient.Errors);
-
-        if (deletedClient.Client is not IClientDetailPrompt_Client clientModel)
+        await using (var activity = console.StartActivity("Deleting client..."))
         {
-            throw Exit("Could not delete the client.");
+            var deletedClient = await client.DeleteClientAsync(clientId, cancellationToken);
+
+            if (deletedClient.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in deletedClient.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IDeleteClientByIdCommandMutation_DeleteClientById_Errors_ClientNotFoundError err => err.Message,
+                        IDeleteClientByIdCommandMutation_DeleteClientById_Errors_UnauthorizedOperation err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            if (deletedClient.Client is not IClientDetailPrompt_Client clientModel)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not delete the client.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully deleted client!");
+
+            console.WriteLine();
+
+            resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(clientModel).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine($"Client {clientModel.Name.AsHighlight()} was deleted.");
-
-        resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(clientModel).ToObject()));
-
-        return ExitCodes.Success;
     }
 }

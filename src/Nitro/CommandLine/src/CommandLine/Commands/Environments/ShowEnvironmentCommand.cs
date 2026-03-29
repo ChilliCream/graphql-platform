@@ -5,6 +5,8 @@ using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Environments;
 
@@ -13,6 +15,7 @@ internal sealed class ShowEnvironmentCommand : Command
     public ShowEnvironmentCommand(
         INitroConsole console,
         IEnvironmentsClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder) : base("show")
     {
         Description = "Shows details of an environment";
@@ -22,30 +25,28 @@ internal sealed class ShowEnvironmentCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
+            => await ExecuteAsync(parseResult, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
         ParseResult parseResult,
-        INitroConsole console,
         IEnvironmentsClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
 
-        var data = await client.ShowEnvironmentAsync(id, cancellationToken);
+        var model = await client.ShowEnvironmentAsync(id, cancellationToken);
 
-        if (data is IShowEnvironmentCommandQuery_Node_Environment node)
+        if (model is IShowEnvironmentCommandQuery_Node_Environment environmentModel)
         {
-            resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(node).ToObject()));
-        }
-        else
-        {
-            console.ErrorLine(
-                $"Could not find an environment with ID {id.EscapeMarkup().AsHighlight()}");
+            resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(environmentModel).ToObject()));
+            return ExitCodes.Success;
         }
 
-        return ExitCodes.Success;
+        throw Exit($"The environment with ID '{id}' was not found.");
     }
 }

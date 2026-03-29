@@ -15,7 +15,9 @@ Every command test suite must include all categories below.
 1. Help output
 
 - Add one test that executes command help (for example: `--help`).
-- Snapshot the help output text.
+- Assert help output with `result.AssertHelpOutput(...)`.
+- Do not use `result.AssertSuccess(...)` for help output assertions.
+- `AssertHelpOutput` normalizes the executable name (`testhost`/runner-specific name) to `nitro`, which keeps snapshots stable across runners.
 
 2. Interaction mode coverage
 
@@ -130,6 +132,13 @@ Mode suffix rules:
   - `_JsonOutput`
 - Do not mix mode naming variants in the same suite (for example, avoid `_OutputJson` when `_JsonOutput` is used elsewhere).
 
+Theory vs dedicated mode tests:
+
+- Use a single `[Theory]` over interaction modes only when the assert section is identical across modes.
+- If assertions would need mode branching (for example different stdout shape/activity output between Interactive, Non-interactive, and JSON), do not use a theory.
+- In those cases, use dedicated mode-specific tests with explicit suffixes, e.g. `_Interactive`, `_NonInteractive`, `_JsonOutput`.
+- Avoid `if (mode == ...)` assertion branching inside a theory unless there is a compelling reason and no cleaner split is possible.
+
 Mutation and exception naming:
 
 - Mutation branch errors:
@@ -159,7 +168,13 @@ General naming rules:
 - If a test combines steps (for example help tests), `// arrange & act` is allowed.
 - Use strict mocks for GraphQL clients where practical.
 - Verify expected calls and verify no unexpected calls for negative paths.
+- Every test must assert all three result dimensions: `exit code`, `stdout`, and `stderr`.
 - Fully assert stdout and stderr for every test. Do not use partial assertions like `Assert.Contains` for command output when the full output can be asserted.
+- If only `stderr` should be written, use `result.AssertError(...)` (it asserts empty stdout and exit code `1`).
+- If only `stdout` should be written, use `result.AssertSuccess(...)` (it asserts empty stderr and exit code `0`).
+- If both streams are intentionally written (or mode-specific), assert both snapshots explicitly and assert the exit code explicitly.
+- Do not use `Assert.Contains` for command output assertions (`result.StdOut` / `result.StdErr`). Replace these with `MatchInlineSnapshot` assertions. If appropriate use `result.AssertSuccess(...)` or `result.AssertError(...)`.
+- For help tests specifically, prefer `result.AssertHelpOutput(...)` over `result.AssertSuccess(...)`.
 - Prefer `MatchInlineSnapshot` over `Assert.Equal` for `StdOut` and `StdErr` assertions, for example: `result.StdOut.MatchInlineSnapshot("""...""")`.
 - For error paths, assert:
   - stderr text

@@ -7,7 +7,8 @@ internal class ObjectResult(object value) : Result
     public object Value { get; } = value;
 }
 
-internal sealed class PaginatedListResult<TItem>(TItem[] values, string? cursor) : Result
+// TODO: Turn this into result again
+internal sealed class PaginatedListResult<TItem>(TItem[] values, string? cursor)
 {
     public TItem[] Values { get; } = values;
 

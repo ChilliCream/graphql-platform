@@ -98,7 +98,7 @@ internal sealed class ListStagesCommand : Command
         var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
         if (apiId is null)
         {
-            throw ThrowHelper.Exit("The API ID is required in non-interactive mode.");
+            throw ThrowHelper.MissingRequiredOption(ApiIdOption.OptionName);
         }
 
         var data = await client.ListStagesAsync(apiId, ct);
@@ -106,7 +106,8 @@ internal sealed class ListStagesCommand : Command
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray();
 
-        resultHolder.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
+        resultHolder.SetResult(
+            new ObjectResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null)));
 
         return ExitCodes.Success;
     }

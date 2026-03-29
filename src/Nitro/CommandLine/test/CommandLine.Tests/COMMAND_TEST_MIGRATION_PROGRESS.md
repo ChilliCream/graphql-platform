@@ -33,21 +33,21 @@ This document tracks migration of Nitro command tests to the guideline in `COMMA
 | api show                       | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/ShowApiCommand.cs                                             | done        | Wave 1         |
 | api set-settings               | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/SetApiSettingsCommand.cs                                      | done        | Wave 1         |
 | client (group)                 | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ClientCommand.cs                                           | n/a         | Group command  |
-| client create                  | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/CreateClientCommand.cs                                     | not-started |                |
-| client delete                  | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/DeleteClientCommand.cs                                     | not-started |                |
+| client create                  | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/CreateClientCommand.cs                                     | done        | Wave 4         |
+| client delete                  | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/DeleteClientCommand.cs                                     | done        | Wave 4         |
 | client download                | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/DownloadClientCommand.cs                                   | not-started |                |
-| client list                    | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ListClientCommand.cs                                       | not-started |                |
+| client list                    | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ListClientCommand.cs                                       | done        | Wave 2         |
 | client list-published-versions | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ListClientPublishedVersionsCommand.cs                      | not-started |                |
 | client list-versions           | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ListClientVersionsCommand.cs                               | not-started |                |
 | client publish                 | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/PublishClientCommand.cs                                    | not-started |                |
-| client show                    | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ShowClientCommand.cs                                       | not-started |                |
+| client show                    | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ShowClientCommand.cs                                       | done        | Wave 2         |
 | client unpublish               | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/UnpublishClientCommand.cs                                  | not-started |                |
 | client upload                  | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/UploadClientCommand.cs                                     | not-started |                |
 | client validate                | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ValidateClientCommand.cs                                   | not-started |                |
 | environment (group)            | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/EnvironmentCommand.cs                                 | n/a         | Group command  |
-| environment create             | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/CreateEnvironmentCommand.cs                           | not-started |                |
-| environment list               | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/ListEnvironmentCommand.cs                             | not-started |                |
-| environment show               | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/ShowEnvironmentCommand.cs                             | not-started |                |
+| environment create             | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/CreateEnvironmentCommand.cs                           | done        | Wave 3         |
+| environment list               | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/ListEnvironmentCommand.cs                             | done        | Wave 3         |
+| environment show               | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/ShowEnvironmentCommand.cs                             | done        | Wave 3         |
 | fusion (group)                 | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionCommand.cs                                            | n/a         | Group command  |
 | fusion compose                 | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionComposeCommand.cs                                     | not-started |                |
 | fusion download                | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionDownloadCommand.cs                                    | not-started |                |
@@ -110,7 +110,7 @@ When marking a command as `done`, validate all items from `COMMAND_TESTING_GUIDE
 
 - Before adding or migrating tests, update the command implementation to follow the conventions in `src/Nitro/CommandLine/src/CommandLine/Commands/COMMAND_IMPLEMENTATION_GUIDELINES.md`.
 - Test names follow the naming conventions from `COMMAND_TESTING_GUIDELINES.md`
-  - `<ConditionOrInput>_Returns<Outcome>[_<Mode>]`
+  - `<ConditionOrInput>_Return<Outcome>[_<Mode>]`
   - Mode suffixes use `_Interactive`, `_NonInteractive`, `_JsonOutput`
   - Exception tests use `ClientThrowsException_ReturnsError_<Mode>` and `ClientThrowsAuthorizationException_ReturnsError_<Mode>`
   - Mutation branch errors use `MutationReturns<BranchName>Error_ReturnsError_<Mode>`

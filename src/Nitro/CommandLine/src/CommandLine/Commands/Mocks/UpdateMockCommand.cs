@@ -57,7 +57,7 @@ internal sealed class UpdateMockCommand : Command
         {
             if (!console.IsInteractive)
             {
-                throw Exit("The mock schema ID is required in non-interactive mode.");
+                throw MissingRequiredOption("id");
             }
 
             var workspaceId = parseResult.GetWorkspaceId(sessionService);

@@ -78,7 +78,8 @@ internal sealed class DeleteStageCommand : Command
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray();
 
-        resultHolder.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
+        resultHolder.SetResult(
+            new ObjectResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null)));
 
         console.OkLine($"Stage {stageName.AsHighlight()} was force deleted");
 

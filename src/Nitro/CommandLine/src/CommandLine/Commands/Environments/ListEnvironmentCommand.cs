@@ -35,26 +35,30 @@ internal sealed class ListEnvironmentCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(console, client, resultHolder, workspaceId, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, resultHolder, workspaceId, ct);
         }
 
         return await RenderNonInteractiveAsync(parseResult, client, resultHolder, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IEnvironmentsClient client,
         IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
             .CreateConnectionData((after, first, token)
-                => client.ListEnvironmentsAsync(workspaceId, after, first, token))
+                => client.ListEnvironmentsAsync(workspaceId, after ?? cursor, first, token))
             .PageSize(10);
 
         var environment = await PagedTable

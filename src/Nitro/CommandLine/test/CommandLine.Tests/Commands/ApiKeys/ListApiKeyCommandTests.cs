@@ -18,13 +18,13 @@ public sealed class ListApiKeyCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess(
+        result.AssertHelpOutput(
             """
             Description:
               Lists all API keys of a workspace
 
             Usage:
-              testhost api-key list [options]
+              nitro api-key list [options]
 
             Options:
                             --cursor <cursor>              The cursor to start the query (non interactive mode) [env: NITRO_CURSOR]
@@ -89,13 +89,40 @@ public sealed class ListApiKeyCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        Assert.Contains("API Keys", result.StdOut);
-        Assert.Contains("key-1", result.StdOut);
-        Assert.Contains("key-2", result.StdOut);
-        Assert.Contains("\"id\": \"key-1\"", result.StdOut);
-        Assert.Contains("\"name\": \"tenant-key\"", result.StdOut);
+        result.AssertSuccess(
+            """
+
+                                                API Keys
+
+                                      ┌───────┬─────────────────┐
+                                      │ Id    │ Name            │
+                                      ├───────┼─────────────────┤
+                                      │ key-1 │ tenant-key      │
+                                      │ key-2 │ integration-key │
+                                      └───────┴─────────────────┘
+                                                API Keys
+
+                                      ┌───────┬─────────────────┐
+                                      │ Id    │ Name            │
+                                      ├───────┼─────────────────┤
+                                      │ key-1 │ tenant-key      │
+                                      │ key-2 │ integration-key │
+                                      └───────┴─────────────────┘
+                                                API Keys
+
+                                      ┌───────┬─────────────────┐
+                                      │ Id    │ Name            │
+                                      ├───────┼─────────────────┤
+                                      │ key-1 │ tenant-key      │
+                                      │ key-2 │ integration-key │
+                                      └───────┴─────────────────┘                           {
+              "id": "key-1",
+              "name": "tenant-key",
+              "workspace": {
+                "name": "Workspace"
+              }
+            }
+            """);
 
         client.VerifyAll();
     }
@@ -133,13 +160,40 @@ public sealed class ListApiKeyCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        Assert.Contains("API Keys", result.StdOut);
-        Assert.Contains("key-1", result.StdOut);
-        Assert.Contains("key-2", result.StdOut);
-        Assert.Contains("\"id\": \"key-1\"", result.StdOut);
-        Assert.Contains("\"name\": \"tenant-key\"", result.StdOut);
+        result.AssertSuccess(
+            """
+
+                                                API Keys
+
+                                      ┌───────┬─────────────────┐
+                                      │ Id    │ Name            │
+                                      ├───────┼─────────────────┤
+                                      │ key-1 │ tenant-key      │
+                                      │ key-2 │ integration-key │
+                                      └───────┴─────────────────┘
+                                                API Keys
+
+                                      ┌───────┬─────────────────┐
+                                      │ Id    │ Name            │
+                                      ├───────┼─────────────────┤
+                                      │ key-1 │ tenant-key      │
+                                      │ key-2 │ integration-key │
+                                      └───────┴─────────────────┘
+                                                API Keys
+
+                                      ┌───────┬─────────────────┐
+                                      │ Id    │ Name            │
+                                      ├───────┼─────────────────┤
+                                      │ key-1 │ tenant-key      │
+                                      │ key-2 │ integration-key │
+                                      └───────┴─────────────────┘                           {
+              "id": "key-1",
+              "name": "tenant-key",
+              "workspace": {
+                "name": "Workspace"
+              }
+            }
+            """);
 
         client.VerifyAll();
     }
