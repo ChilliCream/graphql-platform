@@ -48,8 +48,6 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
         async Task<int> ValidateAsync(INitroConsoleActivity activity)
         {
-            console.Log("Initialized");
-
             await using var stream = fileSystem.OpenReadStream(archiveFile);
 
             var result = await fusionConfigurationClient.ValidateFusionConfigurationPublishAsync(

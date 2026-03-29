@@ -59,10 +59,11 @@ internal sealed class ListMockCommand : Command
     {
         const string apiMessage = "For which API do you want to list the mock schemas?";
         var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
 
         var container = PaginationContainer
             .CreateConnectionData((after, first, token) =>
-                client.ListMockSchemasAsync(apiId, after, first, token))
+                client.ListMockSchemasAsync(apiId, after ?? cursor, first, token))
             .PageSize(10);
 
         var api = await PagedTable

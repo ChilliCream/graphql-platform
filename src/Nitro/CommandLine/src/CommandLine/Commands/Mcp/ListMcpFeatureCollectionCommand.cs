@@ -59,10 +59,11 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
     {
         const string apiMessage = "For which API do you want to list the MCP Feature Collections?";
         var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
 
         var container = PaginationContainer
             .CreateConnectionData((after, first, token) =>
-                client.ListMcpFeatureCollectionsAsync(apiId, after, first, token))
+                client.ListMcpFeatureCollectionsAsync(apiId, after ?? cursor, first, token))
             .PageSize(10);
 
         var api = await PagedTable

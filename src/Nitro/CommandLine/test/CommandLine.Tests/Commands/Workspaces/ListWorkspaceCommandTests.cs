@@ -69,30 +69,30 @@ public sealed class ListWorkspaceCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-                                           Workspaces
+                                   Workspaces
 
-                              ┌──────┬──────────────────────┬────────────┐
-                              │ Id   │ Name                 │ IsPersonal │
-                              ├──────┼──────────────────────┼────────────┤
-                              │ ws-1 │ my-workspace         │ ✕          │
-                              │ ws-2 │ personal-workspace   │ ✓          │
-                              └──────┴──────────────────────┴────────────┘
-                                           Workspaces
+                   ┌──────┬────────────────────┬────────────┐
+                   │ Id   │ Name               │ IsPersonal │
+                   ├──────┼────────────────────┼────────────┤
+                   │ ws-1 │ my-workspace       │ ✕          │
+                   │ ws-2 │ personal-workspace │ ✓          │
+                   └──────┴────────────────────┴────────────┘
+                                   Workspaces
 
-                              ┌──────┬──────────────────────┬────────────┐
-                              │ Id   │ Name                 │ IsPersonal │
-                              ├──────┼──────────────────────┼────────────┤
-                              │ ws-1 │ my-workspace         │ ✕          │
-                              │ ws-2 │ personal-workspace   │ ✓          │
-                              └──────┴──────────────────────┴────────────┘
-                                           Workspaces
+                   ┌──────┬────────────────────┬────────────┐
+                   │ Id   │ Name               │ IsPersonal │
+                   ├──────┼────────────────────┼────────────┤
+                   │ ws-1 │ my-workspace       │ ✕          │
+                   │ ws-2 │ personal-workspace │ ✓          │
+                   └──────┴────────────────────┴────────────┘
+                                   Workspaces
 
-                              ┌──────┬──────────────────────┬────────────┐
-                              │ Id   │ Name                 │ IsPersonal │
-                              ├──────┼──────────────────────┼────────────┤
-                              │ ws-1 │ my-workspace         │ ✕          │
-                              │ ws-2 │ personal-workspace   │ ✓          │
-                              └──────┴──────────────────────┴────────────┘                      {
+                   ┌──────┬────────────────────┬────────────┐
+                   │ Id   │ Name               │ IsPersonal │
+                   ├──────┼────────────────────┼────────────┤
+                   │ ws-1 │ my-workspace       │ ✕          │
+                   │ ws-2 │ personal-workspace │ ✓          │
+                   └──────┴────────────────────┴────────────┘                   {
               "id": "ws-1",
               "name": "my-workspace",
               "personal": false
@@ -263,27 +263,27 @@ public sealed class ListWorkspaceCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-                                              Workspaces
+                                   Workspaces
 
-                                   ┌──────┬──────────────┬────────────┐
-                                   │ Id   │ Name         │ IsPersonal │
-                                   ├──────┼──────────────┼────────────┤
-                                   │ ws-1 │ my-workspace │ ✕          │
-                                   └──────┴──────────────┴────────────┘
-                                              Workspaces
+                      ┌──────┬──────────────┬────────────┐
+                      │ Id   │ Name         │ IsPersonal │
+                      ├──────┼──────────────┼────────────┤
+                      │ ws-1 │ my-workspace │ ✕          │
+                      └──────┴──────────────┴────────────┘
+                                   Workspaces
 
-                                   ┌──────┬──────────────┬────────────┐
-                                   │ Id   │ Name         │ IsPersonal │
-                                   ├──────┼──────────────┼────────────┤
-                                   │ ws-1 │ my-workspace │ ✕          │
-                                   └──────┴──────────────┴────────────┘
-                                              Workspaces
+                      ┌──────┬──────────────┬────────────┐
+                      │ Id   │ Name         │ IsPersonal │
+                      ├──────┼──────────────┼────────────┤
+                      │ ws-1 │ my-workspace │ ✕          │
+                      └──────┴──────────────┴────────────┘
+                                   Workspaces
 
-                                   ┌──────┬──────────────┬────────────┐
-                                   │ Id   │ Name         │ IsPersonal │
-                                   ├──────┼──────────────┼────────────┤
-                                   │ ws-1 │ my-workspace │ ✕          │
-                                   └──────┴──────────────┴────────────┘                         {
+                      ┌──────┬──────────────┬────────────┐
+                      │ Id   │ Name         │ IsPersonal │
+                      ├──────┼──────────────┼────────────┤
+                      │ ws-1 │ my-workspace │ ✕          │
+                      └──────┴──────────────┴────────────┘                      {
               "id": "ws-1",
               "name": "my-workspace",
               "personal": false

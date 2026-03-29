@@ -56,8 +56,6 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                 console.Log("[yellow]Force push is enabled[/]");
             }
 
-            console.Log("Create publish request");
-
             var publishRequest = await client.StartOpenApiCollectionPublishAsync(
                 openApiCollectionId,
                 stage,
@@ -73,7 +71,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                 throw new ExitException("Could not create publish request!");
             }
 
-            console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            // console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
             await foreach (var update in client.SubscribeToOpenApiCollectionPublishAsync(requestId, ct))
             {
@@ -102,8 +100,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                         break;
 
                     case IWaitForApproval waitForApprovalEvent:
-                        if (waitForApprovalEvent.Deployment is
-                            IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_OpenApiCollectionDeployment deployment)
+                        if (waitForApprovalEvent.Deployment is IOpenApiCollectionDeployment deployment)
                         {
                             console.PrintMutationErrors(deployment.Errors);
                         }

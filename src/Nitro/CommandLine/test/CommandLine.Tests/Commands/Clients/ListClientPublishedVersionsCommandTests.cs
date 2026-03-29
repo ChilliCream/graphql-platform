@@ -30,11 +30,12 @@ public sealed class ListClientPublishedVersionsCommandTests
               nitro client list published-versions [options]
 
             Options:
-                            --client-id <client-id>  The ID of the client [env: NITRO_CLIENT_ID]
-                            --cloud-url <cloud-url>  The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-                            --api-key <api-key>      The API key that is used for the authentication [env: NITRO_API_KEY]
-                            --output <json>          The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
-                            -?, -h, --help           Show help and usage information
+              --client-id <client-id>  The ID of the client [env: NITRO_CLIENT_ID]
+              --cursor <cursor>        The cursor to start the query (non interactive mode) [env: NITRO_CURSOR]
+              --cloud-url <cloud-url>  The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>      The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>          The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help           Show help and usage information
             """);
     }
 
@@ -152,6 +153,82 @@ public sealed class ListClientPublishedVersionsCommandTests
         clientsClient.VerifyAll();
     }
 
+    [Fact]
+    public async Task WithClientId_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.ListClientVersionsAsync(
+                "client-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListClientVersionsPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" }),
+                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", "production" })));
+
+        var command = new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "list",
+                "published-versions",
+                "--client-id",
+                "client-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+                                   Published Versions
+
+                  ┌─────┬──────────────────────┬─────────────────────┐
+                  │ Tag │ Created              │ Stages              │
+                  ├─────┼──────────────────────┼─────────────────────┤
+                  │ v1  │ 2025-01-15 10:00:00Z │ production          │
+                  │ v2  │ 2025-01-16 10:00:00Z │ staging, production │
+                  └─────┴──────────────────────┴─────────────────────┘
+                                   Published Versions
+
+                  ┌─────┬──────────────────────┬─────────────────────┐
+                  │ Tag │ Created              │ Stages              │
+                  ├─────┼──────────────────────┼─────────────────────┤
+                  │ v1  │ 2025-01-15 10:00:00Z │ production          │
+                  │ v2  │ 2025-01-16 10:00:00Z │ staging, production │
+                  └─────┴──────────────────────┴─────────────────────┘
+                                   Published Versions
+
+                  ┌─────┬──────────────────────┬─────────────────────┐
+                  │ Tag │ Created              │ Stages              │
+                  ├─────┼──────────────────────┼─────────────────────┤
+                  │ v1  │ 2025-01-15 10:00:00Z │ production          │
+                  │ v2  │ 2025-01-16 10:00:00Z │ staging, production │
+                  └─────┴──────────────────────┴─────────────────────┘              {
+              "tag": "v1",
+              "createdAt": "2025-01-15T10:00:00+00:00",
+              "stages": [
+                "production"
+              ]
+            }
+            """);
+        Assert.Equal(0, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
     [Theory]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
@@ -240,6 +317,183 @@ public sealed class ListClientPublishedVersionsCommandTests
             """
             {
               "values": [],
+              "cursor": null
+            }
+            """);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithClientId_NoData_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.ListClientVersionsAsync(
+                "client-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListClientVersionsPage());
+
+        var command = new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "list",
+                "published-versions",
+                "--client-id",
+                "client-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+                                   Published Versions
+
+                                There was no data found.
+                                   Published Versions
+
+                                There was no data found.
+            """);
+        Assert.Equal(0, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.ListClientVersionsAsync(
+                "client-1",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListClientVersionsPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" })));
+
+        var command = new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "list",
+                "published-versions",
+                "--client-id",
+                "client-1",
+                "--cursor",
+                "cursor-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+                                   Published Versions
+
+                      ┌─────┬──────────────────────┬────────────┐
+                      │ Tag │ Created              │ Stages     │
+                      ├─────┼──────────────────────┼────────────┤
+                      │ v1  │ 2025-01-15 10:00:00Z │ production │
+                      └─────┴──────────────────────┴────────────┘
+                                   Published Versions
+
+                      ┌─────┬──────────────────────┬────────────┐
+                      │ Tag │ Created              │ Stages     │
+                      ├─────┼──────────────────────┼────────────┤
+                      │ v1  │ 2025-01-15 10:00:00Z │ production │
+                      └─────┴──────────────────────┴────────────┘
+                                   Published Versions
+
+                      ┌─────┬──────────────────────┬────────────┐
+                      │ Tag │ Created              │ Stages     │
+                      ├─────┼──────────────────────┼────────────┤
+                      │ v1  │ 2025-01-15 10:00:00Z │ production │
+                      └─────┴──────────────────────┴────────────┘                   {
+              "tag": "v1",
+              "createdAt": "2025-01-15T10:00:00+00:00",
+              "stages": [
+                "production"
+              ]
+            }
+            """);
+        Assert.Equal(0, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.ListClientVersionsAsync(
+                "client-1",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListClientVersionsPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" })));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "client",
+                "list",
+                "published-versions",
+                "--client-id",
+                "client-1",
+                "--cursor",
+                "cursor-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "tag": "v1",
+                  "createdAt": "2025-01-15T10:00:00+00:00",
+                  "stages": [
+                    "production"
+                  ]
+                }
+              ],
               "cursor": null
             }
             """);

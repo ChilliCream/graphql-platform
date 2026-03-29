@@ -15,7 +15,7 @@ internal sealed class ListPersonalAccessTokenCommand : Command
         IPersonalAccessTokensClient client,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all API keys of a workspace";
+        Description = "Lists all personal access tokens";
 
         Options.Add(Opt<OptionalCursorOption>.Instance);
 
@@ -34,20 +34,23 @@ internal sealed class ListPersonalAccessTokenCommand : Command
     {
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(console, client, resultHolder, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, resultHolder, ct);
         }
 
         return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IPersonalAccessTokensClient client,
         IResultHolder resultHolder,
         CancellationToken ct)
     {
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
-            .CreateConnectionData(client.ListPersonalAccessTokensAsync)
+            .CreateConnectionData((after, first, token)
+                => client.ListPersonalAccessTokensAsync(after ?? cursor, first, token))
             .PageSize(10);
 
         var pat = await PagedTable

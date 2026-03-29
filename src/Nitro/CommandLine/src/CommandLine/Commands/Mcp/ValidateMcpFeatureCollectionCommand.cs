@@ -44,17 +44,17 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
         await using (var activity = console.StartActivity("Validating..."))
         {
-            console.Log("Searching for MCP prompt definition files with the following patterns:");
-            foreach (var promptPattern in promptPatterns)
-            {
-                console.Log($"- {promptPattern}");
-            }
-
-            console.Log("Searching for MCP tool definition files with the following patterns:");
-            foreach (var toolPattern in toolPatterns)
-            {
-                console.Log($"- {toolPattern}");
-            }
+            // console.Log("Searching for MCP prompt definition files with the following patterns:");
+            // foreach (var promptPattern in promptPatterns)
+            // {
+            //     console.Log($"- {promptPattern}");
+            // }
+            //
+            // console.Log("Searching for MCP tool definition files with the following patterns:");
+            // foreach (var toolPattern in toolPatterns)
+            // {
+            //     console.Log($"- {toolPattern}");
+            // }
 
             var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
             var toolFiles = fileSystem.GlobMatch(toolPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
@@ -65,8 +65,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                 return ExitCodes.Error;
             }
 
-            console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
-            console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
+            // console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
+            // console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
 
             var archiveStream =
                 await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
@@ -88,7 +88,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                 throw new ExitException("Could not create validation request!");
             }
 
-            console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            // console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
             await foreach (var update in client.SubscribeToMcpFeatureCollectionValidationAsync(requestId, ct))
             {

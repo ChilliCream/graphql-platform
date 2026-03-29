@@ -51,8 +51,6 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                 console.Log("[yellow]Force push is enabled[/]");
             }
 
-            console.Log("Create publish request");
-
             var publishRequest = await client.StartMcpFeatureCollectionPublishAsync(
                 mcpFeatureCollectionId,
                 stage,
@@ -68,7 +66,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                 throw new ExitException("Could not create publish request!");
             }
 
-            console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            // console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
             await foreach (var update in client.SubscribeToMcpFeatureCollectionPublishAsync(requestId, ct))
             {

@@ -47,23 +47,23 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
     {
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Validating..."))
+        await using (var activity = console.StartActivity("Validating OpenAPI collection..."))
         {
-            console.Log("Searching for OpenAPI documents with the following patterns:");
-            foreach (var pattern in patterns)
-            {
-                console.Log($"- {pattern}");
-            }
+            // console.Log("Searching for OpenAPI documents with the following patterns:");
+            // foreach (var pattern in patterns)
+            // {
+            //     console.Log($"- {pattern}");
+            // }
 
             var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();
 
             if (files.Length < 1)
             {
-                console.WriteLine("Could not find any OpenAPI documents with the provided pattern.");
-                return ExitCodes.Error;
+                activity.Fail();
+                throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
             }
 
-            console.Log($"Found {files.Length} OpenAPI document(s).");
+            // console.Log($"Found {files.Length} OpenAPI document(s).");
 
             var archiveStream =
                 await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(
@@ -84,7 +84,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                 throw new ExitException("Could not create validation request!");
             }
 
-            console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            // console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
             await foreach (var update in client.SubscribeToOpenApiCollectionValidationAsync(requestId, ct))
             {

@@ -20,8 +20,11 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, (_, cancellationToken)
-            => ExecuteAsync(true, console, client, sessionService, cancellationToken));
+        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
+        {
+            parseResult.AssertHasAuthentication(sessionService);
+            return await ExecuteAsync(true, console, client, sessionService, cancellationToken);
+        });
     }
 
     public static async Task<int> ExecuteAsync(
@@ -60,7 +63,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
             if (selectedWorkspace is null)
             {
-                throw Exit("No workspaces was selected as default");
+                throw Exit("No workspace was selected as default.");
             }
 
             workspace = new Workspace(selectedWorkspace.Id, selectedWorkspace.Name);

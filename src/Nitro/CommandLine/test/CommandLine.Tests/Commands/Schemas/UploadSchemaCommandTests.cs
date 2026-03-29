@@ -288,14 +288,14 @@ public sealed class UploadSchemaCommandTests
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError_NonInteractive()
+    [Theory]
+    [MemberData(nameof(UploadMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+        IUploadSchema_UploadSchema_Errors mutationError,
+        string expectedStdErr)
     {
         // arrange
-        var error = new Mock<IUploadSchema_UploadSchema_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-        error.SetupGet(x => x.Message).Returns("Not authorized to upload.");
-
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(error.Object));
+        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
         var result = await new CommandBuilder()
@@ -320,23 +320,20 @@ public sealed class UploadSchemaCommandTests
             Uploading schema...
             └── Failed!
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Not authorized to upload.
-            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError_Interactive()
+    [Theory]
+    [MemberData(nameof(UploadMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+        IUploadSchema_UploadSchema_Errors mutationError,
+        string expectedStdErr)
     {
         // arrange
-        var error = new Mock<IUploadSchema_UploadSchema_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-        error.SetupGet(x => x.Message).Returns("Not authorized to upload.");
-
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(error.Object));
+        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
         var result = await new CommandBuilder()
@@ -361,23 +358,20 @@ public sealed class UploadSchemaCommandTests
 
             [    ] Uploading schema...
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Not authorized to upload.
-            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError_JsonOutput()
+    [Theory]
+    [MemberData(nameof(UploadMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
+        IUploadSchema_UploadSchema_Errors mutationError,
+        string expectedStdErr)
     {
         // arrange
-        var error = new Mock<IUploadSchema_UploadSchema_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-        error.SetupGet(x => x.Message).Returns("Not authorized to upload.");
-
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(error.Object));
+        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
         var result = await new CommandBuilder()
@@ -397,174 +391,7 @@ public sealed class UploadSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
-            """
-            Not authorized to upload.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsDuplicatedTagError_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var error = new Mock<IUploadSchema_UploadSchema_Errors_DuplicatedTagError>(MockBehavior.Strict);
-        error.SetupGet(x => x.Message).Returns("Tag 'v1' already exists.");
-
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(error.Object));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading schema...
-            └── Failed!
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Tag 'v1' already exists.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsConcurrentOperationError_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var error = new Mock<IUploadSchema_UploadSchema_Errors_ConcurrentOperationError>(MockBehavior.Strict);
-        error.SetupGet(x => x.Message).Returns("A concurrent operation is in progress.");
-
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(error.Object));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading schema...
-            └── Failed!
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            A concurrent operation is in progress.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsApiNotFoundError_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var error = new Mock<IUploadSchema_UploadSchema_Errors_ApiNotFoundError>(MockBehavior.Strict);
-        error.SetupGet(x => x.Message).Returns("API not found.");
-
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(error.Object));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading schema...
-            └── Failed!
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            API not found.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsUnknownError_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var error = new Mock<IUploadSchema_UploadSchema_Errors>(MockBehavior.Strict);
-        error.As<IError>().SetupGet(x => x.Message).Returns("Something went wrong.");
-
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(error.Object));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading schema...
-            └── Failed!
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Unexpected mutation error: Something went wrong.
-            """);
-        Assert.Equal(1, result.ExitCode);
+        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -856,5 +683,63 @@ public sealed class UploadSchemaCommandTests
             .Returns((IUploadSchema_UploadSchema_SchemaVersion?)null);
 
         return payload.Object;
+    }
+
+    public static IEnumerable<object[]> UploadMutationErrorCases()
+    {
+        yield return
+        [
+            new UploadSchema_UploadSchema_Errors_UnauthorizedOperation(
+                "UnauthorizedOperation",
+                "Not authorized to upload."),
+            """
+            Not authorized to upload.
+            """
+        ];
+
+        yield return
+        [
+            new UploadSchema_UploadSchema_Errors_DuplicatedTagError(
+                "DuplicatedTagError",
+                "Tag 'v1' already exists."),
+            """
+            Tag 'v1' already exists.
+            """
+        ];
+
+        yield return
+        [
+            new UploadSchema_UploadSchema_Errors_ConcurrentOperationError(
+                "ConcurrentOperationError",
+                "A concurrent operation is in progress."),
+            """
+            A concurrent operation is in progress.
+            """
+        ];
+
+        yield return
+        [
+            new UploadSchema_UploadSchema_Errors_ApiNotFoundError(
+                "ApiNotFoundError",
+                "API not found.",
+                "api-1"),
+            """
+            API not found.
+            """
+        ];
+
+        var unexpectedError = new Mock<IUploadSchema_UploadSchema_Errors>();
+        unexpectedError
+            .As<IError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong.");
+
+        yield return
+        [
+            unexpectedError.Object,
+            """
+            Unexpected mutation error: Something went wrong.
+            """
+        ];
     }
 }

@@ -54,14 +54,10 @@ internal sealed class PublishSchemaCommand : Command
 
         await using (var activity = console.StartActivity("Publishing..."))
         {
-            console.Log("Initialized");
-
             if (force)
             {
                 console.Log("[yellow]Force push is enabled[/]");
             }
-
-            console.Log("Create publish request");
 
             var publishRequest = await client.StartSchemaPublishAsync(
                 apiId,
@@ -100,7 +96,7 @@ internal sealed class PublishSchemaCommand : Command
                 return ExitCodes.Error;
             }
 
-            console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            // console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
             await foreach (var update in client.SubscribeToSchemaPublishAsync(requestId, ct))
             {

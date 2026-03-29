@@ -71,10 +71,8 @@ internal sealed class FusionUploadCommand : Command
             sourceSchemaFile,
             cancellationToken);
 
-        await using (var activity = console.StartActivity("Uploading source schema..."))
+        await using (var activity = console.StartActivity($"Uploading source schema '{sourceSchemaFile}'..."))
         {
-            console.Log($"Uploading source schema at '{sourceSchemaFile}'...");
-
             await using var archiveStream = new MemoryStream();
             var archive = FusionSourceSchemaArchive.Create(archiveStream, leaveOpen: true);
 

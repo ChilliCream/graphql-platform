@@ -87,8 +87,6 @@ internal sealed class UpdateMockCommand : Command
 
         async Task CreateNewMock()
         {
-            console.Log("Creating mock...");
-
             await using var baseSchemaStream = baseSchemaFile is null
                 ? null
                 : fileSystem.OpenReadStream(baseSchemaFile);
@@ -109,8 +107,6 @@ internal sealed class UpdateMockCommand : Command
             {
                 throw new ExitException("Could not update mock schema.");
             }
-
-            console.Log("Mock schema created.");
 
             resultHolder.SetResult(new ObjectResult(MockSchemaDetailPrompt.From(mockSchema).ToObject()));
         }

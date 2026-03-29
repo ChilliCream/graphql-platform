@@ -5,7 +5,7 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
 
-public sealed class ShowWorkspaceCommandTests
+public sealed class SetDefaultWorkspaceCommandTests
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
@@ -14,7 +14,7 @@ public sealed class ShowWorkspaceCommandTests
         var result = await new CommandBuilder()
             .AddArguments(
                 "workspace",
-                "show",
+                "set-default",
                 "--help")
             .ExecuteAsync();
 
@@ -22,13 +22,10 @@ public sealed class ShowWorkspaceCommandTests
         result.AssertHelpOutput(
             """
             Description:
-              Shows details of a workspace
+              Use this command to select a workspace and set it as your default workspace
 
             Usage:
-              nitro workspace show <id> [options]
-
-            Arguments:
-              <id>  The ID
+              nitro workspace set-default [options]
 
             Options:
               --cloud-url <cloud-url>  The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
@@ -49,8 +46,7 @@ public sealed class ShowWorkspaceCommandTests
             .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
-                "show",
-                "ws-1")
+                "set-default")
             .ExecuteAsync();
 
         // assert
@@ -64,14 +60,16 @@ public sealed class ShowWorkspaceCommandTests
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task WorkspaceNotFound_ReturnsError(InteractionMode mode)
+    public async Task NoWorkspaces_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowWorkspaceAsync(
-                "ws-1",
+        client.Setup(x => x.SelectWorkspacesAsync(
+                null,
+                5,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IShowWorkspaceCommandQuery_Node?)null);
+            .ReturnsAsync(new ConnectionPage<ISetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node>(
+                [], null, false));
 
         // act
         var result = await new CommandBuilder()
@@ -80,51 +78,13 @@ public sealed class ShowWorkspaceCommandTests
             .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
-                "show",
-                "ws-1")
+                "set-default")
             .ExecuteAsync();
 
         // assert
         result.AssertError(
             """
-            The workspace with ID 'ws-1' was not found.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithWorkspaceId_ReturnsSuccess(InteractionMode mode)
-    {
-        // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowWorkspaceAsync(
-                "ws-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ShowWorkspaceCommandQuery_Node_Workspace("ws-1", "my-workspace", false));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "show",
-                "ws-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "id": "ws-1",
-              "name": "my-workspace",
-              "personal": false
-            }
+            You do not have any workspaces. Run `[bold blue]nitro launch[/]` and create one.
             """);
 
         client.VerifyAll();
@@ -137,23 +97,22 @@ public sealed class ShowWorkspaceCommandTests
     public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+        var client = CreateSelectExceptionClient(new NitroClientException("select failed"));
 
         // act
         var result = await new CommandBuilder()
             .AddService(client.Object)
-            .AddSessionWithWorkspace()
+            .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
-                "show",
-                "ws-1")
+                "set-default")
             .ExecuteAsync();
 
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: show failed
+            There was an unexpected error executing your request: select failed
             """);
 
         client.VerifyAll();
@@ -166,17 +125,16 @@ public sealed class ShowWorkspaceCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException("forbidden"));
 
         // act
         var result = await new CommandBuilder()
             .AddService(client.Object)
-            .AddSessionWithWorkspace()
+            .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
-                "show",
-                "ws-1")
+                "set-default")
             .ExecuteAsync();
 
         // assert
@@ -188,13 +146,62 @@ public sealed class ShowWorkspaceCommandTests
         client.VerifyAll();
     }
 
-    private static Mock<IWorkspacesClient> CreateShowExceptionClient(Exception ex)
+    [Fact]
+    public async Task SelectsWorkspace_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.SelectWorkspacesAsync(
+                null,
+                5,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateWorkspacePage(
+                new SetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node_Workspace(
+                    "ws-1", "my-workspace", false)));
+
+        var command = new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "workspace",
+                "set-default")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            ? Which workspace do you want to use as your default?
+
+            > my-workspace                                       ? Which workspace do you want to use as your default?: my-workspace
+            """);
+
+        client.VerifyAll();
+    }
+
+    private static Mock<IWorkspacesClient> CreateSelectExceptionClient(Exception ex)
     {
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowWorkspaceAsync(
-                "ws-1",
+        client.Setup(x => x.SelectWorkspacesAsync(
+                null,
+                5,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);
         return client;
+    }
+
+    private static ConnectionPage<ISetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node>
+        CreateWorkspacePage(
+            params ISetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node[] items)
+    {
+        return new ConnectionPage<ISetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node>(
+            items, null, false);
     }
 }

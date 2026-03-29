@@ -65,6 +65,34 @@ public sealed class DownloadSchemaCommandTests
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "schema",
+                "download",
+                "--api-id",
+                "api-1",
+                "--stage",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        // Parser writes help text to stdout and error to stderr
+        Assert.NotEmpty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--file' is required.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     [Fact]
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
@@ -578,6 +606,12 @@ public sealed class DownloadSchemaCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Fetching Schema...
+            └── Downloaded schema to 'schema.graphql'.
+            """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
         fileSystem.Verify(x => x.DeleteFile("schema.graphql"), Times.Once);

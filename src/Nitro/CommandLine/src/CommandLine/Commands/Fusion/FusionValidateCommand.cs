@@ -146,8 +146,6 @@ internal sealed class FusionValidateCommand : Command
 
         async Task ValidateWithArchive(INitroConsoleActivity activity)
         {
-            console.Log($"Reading file [blue]{archiveFile.EscapeMarkup()}[/]");
-
             await using var stream = fileSystem.OpenReadStream(archiveFile);
 
             Stream schemaStream;
@@ -183,8 +181,6 @@ internal sealed class FusionValidateCommand : Command
 
         async Task ValidateSchemaAsync(INitroConsoleActivity activity, Stream schemaStream)
         {
-            console.Log("Create validation request");
-
             var requestId = await ValidateAsync(
                 console,
                 fusionConfigurationClient,
@@ -193,7 +189,7 @@ internal sealed class FusionValidateCommand : Command
                 schemaStream,
                 ct);
 
-            console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            // console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
             await foreach (var @event in fusionConfigurationClient
                 .SubscribeToSchemaVersionValidationUpdatedAsync(requestId, ct))

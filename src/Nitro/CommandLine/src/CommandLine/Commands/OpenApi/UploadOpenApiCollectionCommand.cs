@@ -56,18 +56,17 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         async Task UploadOpenApiCollection()
         {
-            console.Log("Searching for OpenAPI documents with the following patterns:");
-            foreach (var pattern in patterns)
-            {
-                console.Log($"- {pattern}");
-            }
+            // console.Log("Searching for OpenAPI documents with the following patterns:");
+            // foreach (var pattern in patterns)
+            // {
+            //     console.Log($"- {pattern}");
+            // }
 
             var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();
 
             if (files.Length < 1)
             {
-                console.WriteLine("Could not find any OpenAPI documents with the provided pattern.");
-                return;
+                throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
             }
 
             var archiveStream =
@@ -76,7 +75,6 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                     files,
                     cancellationToken);
 
-            console.Log("Uploading OpenAPI collection..");
             await client.UploadOpenApiCollectionVersionAsync(
                 openApiCollectionId,
                 tag,

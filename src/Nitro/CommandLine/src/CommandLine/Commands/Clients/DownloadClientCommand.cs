@@ -3,6 +3,8 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -11,7 +13,8 @@ internal sealed class DownloadClientCommand : Command
     public DownloadClientCommand(
         INitroConsole console,
         IClientsClient client,
-        IFileSystem fileSystem) : base("download")
+        IFileSystem fileSystem,
+        ISessionService sessionService) : base("download")
     {
         Description = "Download the queries from a stage";
 
@@ -24,33 +27,36 @@ internal sealed class DownloadClientCommand : Command
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
+                parseResult,
                 console,
                 client,
                 fileSystem,
-                parseResult.GetValue(Opt<ApiIdOption>.Instance)!,
-                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
-                parseResult.GetValue(Opt<FileSystemOutputOptions>.Instance)!,
-                parseResult.GetValue(Opt<ClientFormatOption>.Instance)!,
+                sessionService,
                 cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
         IFileSystem fileSystem,
-        string apiId,
-        string stageName,
-        string output,
-        string format,
+        ISessionService sessionService,
         CancellationToken ct)
     {
-        await using (var _ = console.StartActivity("Fetching queries..."))
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var output = parseResult.GetValue(Opt<FileSystemOutputOptions>.Instance)!;
+        var format = parseResult.GetValue(Opt<ClientFormatOption>.Instance)!;
+
+        await using (var activity = console.StartActivity("Fetching queries..."))
         {
             var stream = await client.DownloadPersistedQueriesAsync(apiId, stageName, ct);
 
             if (stream is null)
             {
-                throw new ExitException($"Could not find a published client on stage {stageName}");
+                throw Exit($"Could not find a published client on stage '{stageName}'.");
             }
 
             await using (stream)
@@ -63,7 +69,7 @@ internal sealed class DownloadClientCommand : Command
                 switch (format)
                 {
                     case ClientFormat.Folder:
-                        await WriteToFolder(console, fileSystem, output, queries);
+                        await WriteToFolder(fileSystem, output, queries);
                         break;
 
                     case ClientFormat.Relay:
@@ -74,9 +80,11 @@ internal sealed class DownloadClientCommand : Command
                         throw new ArgumentOutOfRangeException(nameof(format), format, null);
                 }
             }
-        }
 
-        return ExitCodes.Success;
+            activity.Success($"Downloaded client to '{output}'.");
+
+            return ExitCodes.Success;
+        }
     }
 
     private static async Task WriteToRelayJson(
@@ -110,7 +118,6 @@ internal sealed class DownloadClientCommand : Command
     }
 
     private static async Task WriteToFolder(
-        INitroConsole console,
         IFileSystem fileSystem,
         string outputPath,
         IAsyncEnumerable<PersistedQueryStreamResult?> queries)
@@ -140,8 +147,6 @@ internal sealed class DownloadClientCommand : Command
                 await writer.WriteAsync(query.Content);
             }
         }
-
-        console.Success($"Downloaded client to {outputPath}");
     }
 }
 

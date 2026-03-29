@@ -289,6 +289,48 @@ public sealed class ListMcpFeatureCollectionCommandTests
         mcpClient.VerifyAll();
     }
 
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
+                "api-1",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("mcp-1", "auth-tools")));
+
+        var command = new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mcp",
+                "list",
+                "--api-id",
+                "api-1",
+                "--cursor",
+                "cursor-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
     [Theory]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]

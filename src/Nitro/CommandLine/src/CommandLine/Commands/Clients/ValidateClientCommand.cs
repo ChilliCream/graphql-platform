@@ -48,12 +48,9 @@ internal sealed class ValidateClientCommand : Command
 
         await using (var activity = console.StartActivity("Validating..."))
         {
-            console.Log("Initialized");
-            console.Log($"Reading file [blue]{operationsFilePath.EscapeMarkup()}[/]");
+            // console.Log($"Reading file [blue]{operationsFilePath.EscapeMarkup()}[/]");
 
             await using var stream = fileSystem.OpenReadStream(operationsFilePath);
-
-            console.Log("Create validation request");
 
             var validationRequest = await client.StartClientValidationAsync(
                 clientId,
@@ -68,7 +65,7 @@ internal sealed class ValidateClientCommand : Command
                 throw new ExitException("Could not create validation request!");
             }
 
-            console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            // console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
             await foreach (var update in client.SubscribeToClientValidationAsync(requestId, ct))
             {

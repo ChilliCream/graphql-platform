@@ -59,6 +59,34 @@ public sealed class ListMockCommandTests
             """);
     }
 
+    [Fact]
+    public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError_Interactive()
+    {
+        // arrange & act
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddApiKey()
+            .AddSession()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mock",
+                "list")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            """);
+
+        apisClient.VerifyAll();
+        mocksClient.VerifyAll();
+    }
+
     [Theory]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
@@ -83,6 +111,51 @@ public sealed class ListMockCommandTests
             """
             The '--api-id' option is required in non-interactive mode.
             """);
+
+        apisClient.VerifyAll();
+        mocksClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiId_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        mocksClient.Setup(x => x.ListMockSchemasAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListMockSchemasPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("mock-1", "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
+                    "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
+                    "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero)),
+                ("mock-2", "Mock Two", "https://mock.example.com/2", new Uri("https://downstream.example.com/2"),
+                    "user3", new DateTimeOffset(2025, 2, 10, 10, 0, 0, TimeSpan.Zero),
+                    "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero))));
+
+        var command = new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mock",
+                "list",
+                "--api-id",
+                "api-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
 
         apisClient.VerifyAll();
         mocksClient.VerifyAll();
@@ -229,6 +302,43 @@ public sealed class ListMockCommandTests
         mocksClient.VerifyAll();
     }
 
+    [Fact]
+    public async Task WithApiId_NoData_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        mocksClient.Setup(x => x.ListMockSchemasAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListMockSchemasPage());
+
+        var command = new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mock",
+                "list",
+                "--api-id",
+                "api-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        apisClient.VerifyAll();
+        mocksClient.VerifyAll();
+    }
+
     [Theory]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
@@ -265,6 +375,50 @@ public sealed class ListMockCommandTests
               "cursor": null
             }
             """);
+
+        apisClient.VerifyAll();
+        mocksClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        mocksClient.Setup(x => x.ListMockSchemasAsync(
+                "api-1",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListMockSchemasPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("mock-1", "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
+                    "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
+                    "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))));
+
+        var command = new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mock",
+                "list",
+                "--api-id",
+                "api-1",
+                "--cursor",
+                "cursor-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
 
         apisClient.VerifyAll();
         mocksClient.VerifyAll();

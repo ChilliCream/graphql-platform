@@ -53,8 +53,12 @@ internal sealed class CreateMockCommand : Command
         var mockSchemaName =
             parseResult.GetValue(Opt<MockSchemaNameOption>.Instance)!;
 
-        const string apiMessage = "For which API do you want to create a mock schema?";
-        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, cancellationToken);
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API do you want to create a mock schema?",
+            parseResult,
+            apisClient,
+            sessionService,
+            cancellationToken);
 
         await using (var _ = console.StartActivity("Create and initialize new mock..."))
         {
@@ -65,12 +69,9 @@ internal sealed class CreateMockCommand : Command
 
         async Task CreateNewMock()
         {
-            console.Log("Creating mock...");
-
             await using var extensionFileStream = fileSystem.OpenReadStream(extensionFile);
             await using var schemaFileStream = fileSystem.OpenReadStream(baseSchemaFile);
 
-            console.Log("Uploading Schema..");
             var createdMock = await client.CreateMockSchemaAsync(
                 apiId,
                 schemaFileStream,

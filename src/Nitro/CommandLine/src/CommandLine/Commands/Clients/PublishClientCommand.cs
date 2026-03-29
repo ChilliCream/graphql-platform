@@ -48,16 +48,12 @@ internal sealed class PublishClientCommand : Command
     {
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Publishing..."))
+        await using (var activity = console.StartActivity("Publishing client..."))
         {
-            console.Log("Initialized");
-
             if (force)
             {
                 console.Log("[yellow]Force push is enabled[/]");
             }
-
-            console.Log("Create publish request");
 
             var publishRequest = await client.StartClientPublishAsync(
                 clientId,
@@ -74,7 +70,7 @@ internal sealed class PublishClientCommand : Command
                 throw new ExitException("Could not create publish request!");
             }
 
-            console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            // console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
             await foreach (var update in client.SubscribeToClientPublishAsync(requestId, ct))
             {

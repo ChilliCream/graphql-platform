@@ -34,20 +34,23 @@ internal sealed class ListWorkspaceCommand : Command
     {
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(console, client, resultHolder, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, resultHolder, ct);
         }
 
         return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IWorkspacesClient client,
         IResultHolder resultHolder,
         CancellationToken ct)
     {
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
-            .CreateConnectionData(client.ListWorkspacesAsync)
+            .CreateConnectionData((after, first, token)
+                => client.ListWorkspacesAsync(after ?? cursor, first, token))
             .PageSize(10);
 
         var workspace = await PagedTable

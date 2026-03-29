@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
@@ -56,7 +57,7 @@ internal sealed class DownloadSchemaCommand : Command
 
             if (schemaStream is null)
             {
-                throw new ExitException($"Could not find a published schema on stage '{stageName}'.");
+                throw Exit($"Could not find a published schema on stage '{stageName}'.");
             }
 
             if (fileSystem.FileExists(schemaFilePath))

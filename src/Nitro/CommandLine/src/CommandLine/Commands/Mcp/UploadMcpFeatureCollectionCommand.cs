@@ -51,29 +51,29 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         async Task UploadMcpFeatureCollection()
         {
-            console.Log("Searching for MCP prompt definition files with the following patterns:");
-            foreach (var promptPattern in promptPatterns)
-            {
-                console.Log($"- {promptPattern}");
-            }
-
-            console.Log("Searching for MCP tool definition files with the following patterns:");
-            foreach (var toolPattern in toolPatterns)
-            {
-                console.Log($"- {toolPattern}");
-            }
+            // console.Log("Searching for MCP prompt definition files with the following patterns:");
+            // foreach (var promptPattern in promptPatterns)
+            // {
+            //     console.Log($"- {promptPattern}");
+            // }
+            //
+            // console.Log("Searching for MCP tool definition files with the following patterns:");
+            // foreach (var toolPattern in toolPatterns)
+            // {
+            //     console.Log($"- {toolPattern}");
+            // }
 
             var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
             var toolFiles = fileSystem.GlobMatch(toolPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                console.WriteLine("Could not find any MCP prompt or tool definition files with the provided patterns.");
-                return;
+                throw new ExitException(
+                    "Could not find any MCP prompt or tool definition files with the provided patterns.");
             }
 
-            console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
-            console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
+            // console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
+            // console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
 
             var archiveStream =
                 await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
@@ -82,7 +82,6 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                     toolFiles,
                     cancellationToken);
 
-            console.Log("Uploading MCP Feature Collection..");
             await client.UploadMcpFeatureCollectionVersionAsync(
                 mcpFeatureCollectionId,
                 tag,

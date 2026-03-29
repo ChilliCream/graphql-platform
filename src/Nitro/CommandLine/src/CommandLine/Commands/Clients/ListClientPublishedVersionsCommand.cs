@@ -22,6 +22,7 @@ internal sealed class ListClientPublishedVersionsCommand : Command
         Description = "Lists all published versions of a client";
 
         Options.Add(Opt<OptionalClientIdOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
