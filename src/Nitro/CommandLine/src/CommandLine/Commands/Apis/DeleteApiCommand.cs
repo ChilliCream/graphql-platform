@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
@@ -14,6 +15,7 @@ internal sealed class DeleteApiCommand : Command
     public DeleteApiCommand(
         INitroConsole console,
         IApisClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder) : base("delete")
     {
         Description = "Deletes an API by ID";
@@ -24,26 +26,28 @@ internal sealed class DeleteApiCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
+            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
         ParseResult parseResult,
         INitroConsole console,
         IApisClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var apiId = parseResult.GetValue(Opt<IdArgument>.Instance)!;
 
         var apiResult = await client.GetApiForDeleteAsync(apiId, cancellationToken);
         if (apiResult is not IDeleteApiCommandQuery_Node_Api { Name: { } apiName })
         {
-            throw Exit($"API with ID {apiId.AsHighlight()} was not found");
+            throw Exit($"The API with ID '{apiId}' was not found.");
         }
 
-        // TODO: Fix
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance); // is not null;
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
@@ -52,20 +56,40 @@ internal sealed class DeleteApiCommand : Command
 
             if (!confirmed)
             {
-                throw Exit("API was not deleted");
+                throw Exit("The API was not deleted.");
             }
         }
 
+        await using var activity = console.StartActivity("Deleting API...");
+
         var data = await client.DeleteApiAsync(apiId, cancellationToken);
-        console.PrintMutationErrorsAndExit(data.Errors);
+        if (data.Errors?.Count > 0)
+        {
+            activity.Fail();
+
+            foreach (var mutationError in data.Errors)
+            {
+                var errorMessage = mutationError switch
+                {
+                    IError err => "Unexpected mutation error: " + err.Message,
+                    _ => "Unexpected mutation error."
+                };
+
+                await console.Error.WriteLineAsync(errorMessage);
+                return ExitCodes.Error;
+            }
+        }
 
         if (data.Api is not IApiDetailPrompt_Api api)
         {
-            throw Exit("Could not delete API");
+            activity.Fail();
+            await console.Error.WriteLineAsync("Could not delete API.");
+            return ExitCodes.Error;
         }
 
-        console.OkLine(
-            $"API {api.Name.AsHighlight()} [dim](ID: {api.Id})[/] was deleted");
+        activity.Success("Successfully deleted API!");
+
+        console.WriteLine();
 
         resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(api).ToObject()));
 

@@ -16,7 +16,7 @@ This document tracks migration of Nitro command tests to the guideline in `COMMA
   - `api-key create`
   - `api-key delete`
   - `api-key list`
-- Current migration wave: API commands (`api create|delete|list|show|set-settings`).
+- API command migration wave completed (`api create|delete|list|show|set-settings`).
 
 ## Command Inventory
 
@@ -27,11 +27,11 @@ This document tracks migration of Nitro command tests to the guideline in `COMMA
 | api-key delete                 | src/Nitro/CommandLine/src/CommandLine/Commands/ApiKeys/DeleteApiKeyCommand.cs                                     | done        | Existing suite |
 | api-key list                   | src/Nitro/CommandLine/src/CommandLine/Commands/ApiKeys/ListApiKeyCommand.cs                                       | done        | Existing suite |
 | api (group)                    | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/ApiCommand.cs                                                 | n/a         | Group command  |
-| api create                     | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/CreateApiCommand.cs                                           | in-progress | Wave 1         |
-| api delete                     | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/DeleteApiCommand.cs                                           | not-started | Wave 1         |
-| api list                       | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/ListApiCommand.cs                                             | not-started | Wave 1         |
-| api show                       | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/ShowApiCommand.cs                                             | not-started | Wave 1         |
-| api set-settings               | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/SetApiSettingsCommand.cs                                      | not-started | Wave 1         |
+| api create                     | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/CreateApiCommand.cs                                           | done        | Wave 1         |
+| api delete                     | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/DeleteApiCommand.cs                                           | done        | Wave 1         |
+| api list                       | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/ListApiCommand.cs                                             | done        | Wave 1         |
+| api show                       | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/ShowApiCommand.cs                                             | done        | Wave 1         |
+| api set-settings               | src/Nitro/CommandLine/src/CommandLine/Commands/Apis/SetApiSettingsCommand.cs                                      | done        | Wave 1         |
 | client (group)                 | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/ClientCommand.cs                                           | n/a         | Group command  |
 | client create                  | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/CreateClientCommand.cs                                     | not-started |                |
 | client delete                  | src/Nitro/CommandLine/src/CommandLine/Commands/Clients/DeleteClientCommand.cs                                     | not-started |                |

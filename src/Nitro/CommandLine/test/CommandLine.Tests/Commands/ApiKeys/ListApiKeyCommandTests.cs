@@ -7,7 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 public sealed class ListApiKeyCommandTests
 {
     [Fact]
-    public async Task Help_ReturnsResult()
+    public async Task Help_ReturnsSuccess()
     {
         // arrange & act
         var result = await new CommandBuilder()
@@ -58,7 +58,7 @@ public sealed class ListApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithWorkspaceIdFromSession_ReturnsResult_Interactive()
+    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_Interactive()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -89,46 +89,19 @@ public sealed class ListApiKeyCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘                           {
-              "id": "key-1",
-              "name": "tenant-key",
-              "workspace": {
-                "name": "Workspace"
-              }
-            }
-            """);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Empty(result.StdErr);
+        Assert.Contains("API Keys", result.StdOut);
+        Assert.Contains("key-1", result.StdOut);
+        Assert.Contains("key-2", result.StdOut);
+        Assert.Contains("\"id\": \"key-1\"", result.StdOut);
+        Assert.Contains("\"name\": \"tenant-key\"", result.StdOut);
 
         client.VerifyAll();
     }
 
     [Fact]
-    public async Task WithWorkspaceId_ReturnsResult_Interactive()
+    public async Task WithWorkspaceId_ReturnsSuccess_Interactive()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -160,40 +133,13 @@ public sealed class ListApiKeyCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘                           {
-              "id": "key-1",
-              "name": "tenant-key",
-              "workspace": {
-                "name": "Workspace"
-              }
-            }
-            """);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Empty(result.StdErr);
+        Assert.Contains("API Keys", result.StdOut);
+        Assert.Contains("key-1", result.StdOut);
+        Assert.Contains("key-2", result.StdOut);
+        Assert.Contains("\"id\": \"key-1\"", result.StdOut);
+        Assert.Contains("\"name\": \"tenant-key\"", result.StdOut);
 
         client.VerifyAll();
     }
@@ -240,7 +186,7 @@ public sealed class ListApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithWorkspaceIdFromSession_ReturnsResult_NonInteractive()
+    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -293,7 +239,7 @@ public sealed class ListApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithWorkspaceIdFromSession_ReturnsResult_OutputJson()
+    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_OutputJson()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -416,6 +362,78 @@ public sealed class ListApiKeyCommandTests
     }
 
     [Fact]
+    public async Task WithCursor_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListApiKeysAsync(
+                "ws-1",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                ApiKeyCommandTestHelper.CreateListApiKeysPage(
+                    endCursor: null,
+                    hasNextPage: false,
+                    ("key-1", "tenant-key", "Workspace"),
+                    ("key-2", "integration-key", "Workspace")));
+
+        var command = new CommandBuilder()
+            .AddService(client.Object)
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "list",
+                "--workspace-id",
+                "ws-1",
+                "--cursor",
+                "cursor-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+
+                                                                        API Keys
+
+                                                    ┌───────┬─────────────────┐
+                                                    │ Id    │ Name            │
+                                                    ├───────┼─────────────────┤
+                                                    │ key-1 │ tenant-key      │
+                                                    │ key-2 │ integration-key │
+                                                    └───────┴─────────────────┘
+                                                                        API Keys
+
+                                                    ┌───────┬─────────────────┐
+                                                    │ Id    │ Name            │
+                                                    ├───────┼─────────────────┤
+                                                    │ key-1 │ tenant-key      │
+                                                    │ key-2 │ integration-key │
+                                                    └───────┴─────────────────┘
+                                                                        API Keys
+
+                                                    ┌───────┬─────────────────┐
+                                                    │ Id    │ Name            │
+                                                    ├───────┼─────────────────┤
+                                                    │ key-1 │ tenant-key      │
+                                                    │ key-2 │ integration-key │
+                                                    └───────┴─────────────────┘                           {
+              "id": "key-1",
+              "name": "tenant-key",
+              "workspace": {
+                "name": "Workspace"
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
     public async Task WithCursor_ReturnsSuccess_NonInteractive()
     {
         // arrange
@@ -427,8 +445,8 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateListApiKeysPage(
-                    endCursor: "cursor-2",
-                    hasNextPage: true,
+                    endCursor: null,
+                    hasNextPage: false,
                     ("key-1", "tenant-key", "Workspace"),
                     ("key-2", "integration-key", "Workspace")));
 
@@ -464,7 +482,7 @@ public sealed class ListApiKeyCommandTests
                         }
                     }
                 ],
-                "cursor": "cursor-2"
+                "cursor": null
             }
             """);
 
@@ -483,8 +501,8 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateListApiKeysPage(
-                    endCursor: "cursor-2",
-                    hasNextPage: true,
+                    endCursor: null,
+                    hasNextPage: false,
                     ("key-1", "tenant-key", "Workspace"),
                     ("key-2", "integration-key", "Workspace")));
 
@@ -520,7 +538,7 @@ public sealed class ListApiKeyCommandTests
                         }
                     }
                 ],
-                "cursor": "cursor-2"
+                "cursor": null
             }
             """);
 

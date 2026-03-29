@@ -35,6 +35,8 @@ internal sealed class ListApiCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         if (console.IsInteractive)

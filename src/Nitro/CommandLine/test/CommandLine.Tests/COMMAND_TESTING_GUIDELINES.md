@@ -23,6 +23,7 @@ Every command test suite must include all categories below.
   - Interactive
   - Non-interactive
   - JSON output
+- The happy-path success case must always be covered in all three interaction types.
 - For success and error flows, validate mode-specific output behavior.
 
 3. Authentication and session prerequisites
@@ -44,6 +45,9 @@ Every command test suite must include all categories below.
   - Session fallback
   - Interactive prompts
 - If a list command exposes a `--cursor` option, add success-path tests for each interaction mode with the cursor explicitly specified.
+- For cursor list tests, mock data must represent a terminal page:
+  - `hasNextPage: false`
+  - `endCursor: null`
 
 6. GraphQL operation exception handling
 
@@ -112,11 +116,11 @@ Preferred base pattern:
 
 Examples:
 
-- `Help_ReturnsResult`
+- `Help_ReturnSuccess`
 - `NoSession_Or_ApiKey_ReturnsError`
 - `MissingRequiredOptions_ReturnsError`
-- `WithWorkspaceId_ReturnsResult_NonInteractive`
-- `WithWorkspaceId_ReturnsResult_JsonOutput`
+- `WithWorkspaceId_ReturnSuccess_NonInteractive`
+- `WithWorkspaceId_ReturnSuccess_JsonOutput`
 
 Mode suffix rules:
 
@@ -140,12 +144,12 @@ Mutation and exception naming:
 Interactive prompt-path naming:
 
 - Use explicit prompt-path wording when testing prompt branches:
-  - `MissingRequiredOptions_PromptsUser_<Branch>_ReturnsResult`
-  - Example: `MissingRequiredOptions_PromptsUser_SelectsApi_ReturnsResult`
+  - `MissingRequiredOptions_PromptsUser_<Branch>_ReturnSuccess`
+  - Example: `MissingRequiredOptions_PromptsUser_SelectsApi_ReturnSuccess`
 
 General naming rules:
 
-- Keep suffixes stable: use `ReturnsResult` for success and `ReturnsError` for failure.
+- Keep suffixes stable: use `ReturnSuccess` for success and `ReturnsError` for failure.
 - Prefer describing the trigger first (`NoSession`, `WithWorkspaceId`, `MutationReturns...`) and the outcome second.
 - If a behavior is intentionally mode-specific, encode that in the method name.
 

@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
 
@@ -14,6 +15,7 @@ internal sealed class SetApiSettingsApiCommand : Command
     public SetApiSettingsApiCommand(
         INitroConsole console,
         IApisClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder) : base("set-settings")
     {
         Description = "Sets the settings of an API";
@@ -25,19 +27,20 @@ internal sealed class SetApiSettingsApiCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
+            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
         ParseResult parseResult,
         INitroConsole console,
         IApisClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
+        parseResult.AssertHasAuthentication(sessionService);
 
-        console.WriteLine($"Set settings for API {id.AsHighlight()}");
+        var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
 
         var treatDangerousChangesAsBreaking = await console
             .ConfirmAsync(
@@ -53,21 +56,43 @@ internal sealed class SetApiSettingsApiCommand : Command
                 "Allow breaking schema changes when no client breaks?",
                 ct);
 
+        await using var activity = console.StartActivity("Updating API settings...");
+
         var data = await client.UpdateApiSettingsAsync(
             id,
             treatDangerousChangesAsBreaking,
             allowBreakingSchemaChanges,
             ct);
 
-        console.PrintMutationErrorsAndExit(data.Errors);
+        if (data.Errors?.Count > 0)
+        {
+            activity.Fail();
+
+            foreach (var mutationError in data.Errors)
+            {
+                var errorMessage = mutationError switch
+                {
+                    ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_ApiNotFoundError err => err.Message,
+                    ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_UnauthorizedOperation err => err.Message,
+                    IError err => "Unexpected mutation error: " + err.Message,
+                    _ => "Unexpected mutation error."
+                };
+
+                await console.Error.WriteLineAsync(errorMessage);
+                return ExitCodes.Error;
+            }
+        }
 
         if (data.Api is not IApiDetailPrompt_Api api)
         {
-            throw ThrowHelper.Exit("Could not update settings.");
+            activity.Fail();
+            await console.Error.WriteLineAsync("Could not update settings.");
+            return ExitCodes.Error;
         }
 
-        console.OkLine(
-            $"Settings of [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} updated");
+        activity.Success("Successfully updated API settings!");
+
+        console.WriteLine();
 
         resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(api).ToObject()));
 

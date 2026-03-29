@@ -9,7 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 public sealed class CreateApiKeyCommandTests
 {
     [Fact]
-    public async Task Help_ReturnsResult()
+    public async Task Help_ReturnsSuccess()
     {
         // arrange & act
         var result = await new CommandBuilder()
@@ -88,7 +88,7 @@ public sealed class CreateApiKeyCommandTests
     }
 
     [Fact]
-    public async Task MissingRequiredOptions_PromptsUser_SelectsApi_ReturnsResult()
+    public async Task MissingRequiredOptions_PromptsUser_SelectsApi_ReturnsSuccess()
     {
         // arrange
         //IApisClient.SelectApisAsync("workspace-from-session", null, 5, CancellationToken) invocation failed with mock behavior Strict.
@@ -117,7 +117,8 @@ public sealed class CreateApiKeyCommandTests
                 "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
+            .ReturnsAsync(
+                ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
         var command = new CommandBuilder()
             .AddService(apisClient.Object)
@@ -146,9 +147,9 @@ public sealed class CreateApiKeyCommandTests
               Workspace                                                                 For which API do you want to create an API key?
 
             > Api 1
+            [    ] Successfully created API key!
 
-            [    ] Creating API key...
-                                      {
+            {
               "secret": "secret-123",
               "details": {
                 "id": "key-1",
@@ -163,7 +164,7 @@ public sealed class CreateApiKeyCommandTests
     }
 
     [Fact]
-    public async Task MissingRequiredOptions_PromptsUser_SelectsWorkspace_ReturnsResult()
+    public async Task MissingRequiredOptions_PromptsUser_SelectsWorkspace_ReturnsSuccess()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -202,9 +203,9 @@ public sealed class CreateApiKeyCommandTests
 
               Api
             > Workspace
+            [    ] Successfully created API key!
 
-            [    ] Creating API key...
-                                      {
+            {
               "secret": "secret-123",
               "details": {
                 "id": "key-1",
@@ -273,7 +274,7 @@ public sealed class CreateApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithWorkspaceId_ReturnsResult_OutputJson()
+    public async Task WithWorkspaceId_ReturnsSuccess_OutputJson()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -283,7 +284,8 @@ public sealed class CreateApiKeyCommandTests
                 null,
                 "prod",
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
+            .ReturnsAsync(
+                ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -321,7 +323,7 @@ public sealed class CreateApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithWorkspaceId_ReturnsResult_NonInteractive()
+    public async Task WithWorkspaceId_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -331,7 +333,8 @@ public sealed class CreateApiKeyCommandTests
                 null,
                 "prod",
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
+            .ReturnsAsync(
+                ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -372,7 +375,7 @@ public sealed class CreateApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithApiId_WithWorkspaceIdFromSession_ReturnsResult_OutputJson()
+    public async Task WithApiId_WithWorkspaceIdFromSession_ReturnsSuccess_OutputJson()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -418,7 +421,7 @@ public sealed class CreateApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithApiId_WithWorkspaceId_ReturnsResult_OutputJson()
+    public async Task WithApiId_WithWorkspaceId_ReturnsSuccess_OutputJson()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -467,7 +470,7 @@ public sealed class CreateApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithApiId_WithWorkspaceId_ReturnsResult_NonInteractive()
+    public async Task WithApiId_WithWorkspaceId_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -519,7 +522,7 @@ public sealed class CreateApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithApiId_WithWorkspaceIdFromSession_ReturnsResult_NonInteractive()
+    public async Task WithApiId_WithWorkspaceIdFromSession_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);

@@ -1,0 +1,544 @@
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Exceptions;
+using Moq;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
+
+public sealed class DeleteApiCommandTests
+{
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddArguments(
+                "api",
+                "delete",
+                "--help")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Description:
+              Deletes an API by ID
+
+            Usage:
+              testhost api delete <id> [options]
+
+            Arguments:
+              <id>  The ID
+
+            Options:
+              --force                  Will not ask for confirmation on deletes or overwrites.
+              --cloud-url <cloud-url>  The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>      The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>          The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help           Show help and usage information
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddApiKey()
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "api",
+                "delete",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("Description:", result.StdOut);
+        Assert.Contains("Deletes an API by ID", result.StdOut);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetApiForDeleteAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IDeleteApiCommandQuery_Node?)null);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The API with ID 'api-1' was not found.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithoutForce_And_ConfirmationRejected_ReturnsError()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetApiForDeleteAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiNode("my-api"));
+
+        var command = new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1")
+            .Start();
+
+        // act
+        command.Confirm(false);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            ? Do you really want to delete API my-api [y/n] (y): n
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The API was not deleted.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithForce_ReturnsSuccess_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetApiForDeleteAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiNode("my-api"));
+        client.Setup(x => x.DeleteApiAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiPayload("api-1", "my-api", ["products"]));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Deleting API...
+            └── Successfully deleted API!
+
+            {
+              "id": "api-1",
+              "name": "my-api",
+              "path": "products",
+              "workspace": {
+                "name": "Workspace"
+              },
+              "apiDetailPromptSettings": {
+                "apiDetailPromptSchemaRegistry": {
+                  "treatDangerousAsBreaking": true,
+                  "allowBreakingSchemaChanges": false
+                }
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(DeleteApiMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+        IDeleteApiCommandMutation_DeleteApiById_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = CreateDeleteMutationErrorClient(mutationError);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Deleting API...
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(DeleteApiMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+        IDeleteApiCommandMutation_DeleteApiById_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = CreateDeleteMutationErrorClient(mutationError);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting API...
+            └── Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(DeleteApiMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
+        IDeleteApiCommandMutation_DeleteApiById_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = CreateDeleteMutationErrorClient(mutationError);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreateDeleteExceptionClient(new NitroClientException("delete failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Deleting API...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreateDeleteExceptionClient(new NitroClientException("delete failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting API...
+            └── Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateDeleteExceptionClient(new NitroClientException("delete failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Deleting API...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting API...
+            └── Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    public static TheoryData<IDeleteApiCommandMutation_DeleteApiById_Errors, string> DeleteApiMutationErrorCases =>
+        new()
+        {
+            {
+                new DeleteApiCommandMutation_DeleteApiById_Errors_ApiNotFoundError("API not found"),
+                """
+                Unexpected mutation error: API not found
+                """
+            },
+            {
+                new DeleteApiCommandMutation_DeleteApiById_Errors_UnauthorizedOperation("Not authorized"),
+                """
+                Unexpected mutation error: Not authorized
+                """
+            },
+            {
+                new DeleteApiCommandMutation_DeleteApiById_Errors_ApiDeletionFailedError("Deletion failed"),
+                """
+                Unexpected mutation error: Deletion failed
+                """
+            }
+        };
+
+    private static Mock<IApisClient> CreateDeleteMutationErrorClient(
+        IDeleteApiCommandMutation_DeleteApiById_Errors mutationError)
+    {
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetApiForDeleteAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiNode("my-api"));
+        client.Setup(x => x.DeleteApiAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiPayloadWithErrors(mutationError));
+        return client;
+    }
+
+    private static Mock<IApisClient> CreateDeleteExceptionClient(Exception ex)
+    {
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetApiForDeleteAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiNode("my-api"));
+        client.Setup(x => x.DeleteApiAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(ex);
+        return client;
+    }
+}

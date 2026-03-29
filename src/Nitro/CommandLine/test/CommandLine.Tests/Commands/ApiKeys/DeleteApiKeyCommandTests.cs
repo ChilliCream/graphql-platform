@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 public sealed class DeleteApiKeyCommandTests
 {
     [Fact]
-    public async Task Help_ReturnsResult()
+    public async Task Help_ReturnsSuccess()
     {
         // arrange & act
         var result = await new CommandBuilder()
@@ -86,7 +86,7 @@ public sealed class DeleteApiKeyCommandTests
     }
 
     [Fact]
-    public async Task WithApiKeyAndForce_ReturnsResult_NonInteractive()
+    public async Task WithApiKeyAndForce_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -457,12 +457,14 @@ public sealed class DeleteApiKeyCommandTests
 
     public static IEnumerable<object[]> DeleteApiKeyMutationErrorCases()
     {
-        var apiKeyNotFound = new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);
+        var apiKeyNotFound =
+            new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);
         apiKeyNotFound.SetupGet(x => x.ApiKeyId).Returns("key-1");
         apiKeyNotFound.As<IApiKeyNotFoundError>().SetupGet(x => x.Message).Returns("API key not found");
         apiKeyNotFound.As<IError>().SetupGet(x => x.Message).Returns("API key not found");
 
-        var unknownError = new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        var unknownError =
+            new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_UnauthorizedOperation>(MockBehavior.Strict);
         unknownError.As<IError>().SetupGet(x => x.Message).Returns("Unauthorized");
 
         return new[]

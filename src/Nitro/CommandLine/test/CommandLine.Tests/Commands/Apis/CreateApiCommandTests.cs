@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 public sealed class CreateApiCommandTests
 {
     [Fact]
-    public async Task Help_ReturnsResult()
+    public async Task Help_ReturnsSuccess()
     {
         // arrange & act
         var result = await new CommandBuilder()
@@ -116,7 +116,7 @@ public sealed class CreateApiCommandTests
     }
 
     [Fact]
-    public async Task WithOptions_ReturnsResult_NonInteractive()
+    public async Task WithOptions_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -172,7 +172,7 @@ public sealed class CreateApiCommandTests
     }
 
     [Fact]
-    public async Task WithOptions_ReturnsResult_OutputJson()
+    public async Task WithOptions_ReturnsSuccess_OutputJson()
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -225,7 +225,7 @@ public sealed class CreateApiCommandTests
     }
 
     [Fact]
-    public async Task MissingRequiredOptions_PromptsUser_ReturnsResult()
+    public async Task MissingRequiredOptions_PromptsUser_ReturnsSuccess()
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);

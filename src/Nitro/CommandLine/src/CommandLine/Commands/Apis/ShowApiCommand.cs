@@ -5,6 +5,8 @@ using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
 
@@ -13,6 +15,7 @@ internal sealed class ShowApiCommand : Command
     public ShowApiCommand(
         INitroConsole console,
         IApisClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder) : base("show")
     {
         Description = "Shows details of an API";
@@ -22,16 +25,18 @@ internal sealed class ShowApiCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
+            => await ExecuteAsync(parseResult, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
         ParseResult parseResult,
-        INitroConsole console,
         IApisClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
 
         var data = await client.ShowApiAsync(id, cancellationToken);
@@ -39,12 +44,9 @@ internal sealed class ShowApiCommand : Command
         if (data is IShowApiCommandQuery_Node_Api node)
         {
             resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(node).ToObject()));
-        }
-        else
-        {
-            console.ErrorLine($"Could not find an API with ID '{id}'.");
+            return ExitCodes.Success;
         }
 
-        return ExitCodes.Success;
+        throw Exit($"The API with ID '{id}' was not found.");
     }
 }
