@@ -532,6 +532,14 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 Writer.WriteIndentedLine("configuration.Member,");
 
                 var first = true;
+
+                if (needsUseConnection)
+                {
+                    Writer.WriteIndent();
+                    Writer.Write("new global::HotChocolate.Types.UseConnectionAttribute()");
+                    first = false;
+                }
+
                 foreach (var attribute in resolver.DescriptorAttributes)
                 {
                     if (!first)
@@ -542,17 +550,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     Writer.WriteIndent();
                     Writer.Write(GenerateAttributeInstantiation(attribute));
                     first = false;
-                }
-
-                if (needsUseConnection)
-                {
-                    if (!first)
-                    {
-                        Writer.WriteLine(',');
-                    }
-
-                    Writer.WriteIndent();
-                    Writer.Write("new global::HotChocolate.Types.UseConnectionAttribute()");
                 }
 
                 Writer.WriteLine([')', ';']);
