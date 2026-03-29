@@ -119,9 +119,48 @@ builder.Services
 
 Explicit binding is useful when you need multiple handlers on the same queue, custom queue names, or fine-grained control over endpoint topology.
 
+# Claim handlers for a transport
+
+When you need to configure a handler's endpoint without switching to fully explicit binding, use `transport.Handler<T>()`. This claims the handler for the transport and returns a descriptor that lets you configure the endpoint through `ConfigureEndpoint()`:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.Handler<OrderPlacedEventHandler>()
+            .ConfigureEndpoint(e => e.MaxPrefetch(50).MaxConcurrency(10));
+    });
+```
+
+The handler still gets a convention-named endpoint - `Handler<T>()` does not change the name. It gives you a handle to configure that endpoint without needing `BindHandlersExplicitly()` or knowing the endpoint name.
+
+For raw `IConsumer` types, the equivalent is `transport.Consumer<T>()`:
+
+```csharp
+transport.Consumer<OrderAuditConsumer>()
+    .ConfigureEndpoint(e => e.MaxConcurrency(3));
+```
+
+`Handler<T>()` and `Consumer<T>()` are the primary tool for multi-transport routing. When a handler is claimed by a transport, it is bound to that transport regardless of which transport is marked as the default.
+
 # Use multiple transports
 
-You can register multiple transports and route specific handlers to specific transports. The first transport registered is the default. Use the transport configuration callback to assign handlers:
+You can register multiple transports and route specific handlers to specific transports. Mark one transport as the default with `.IsDefaultTransport()`. Any handler not explicitly claimed by another transport is bound to the default:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddEventHandler<AuditHandler>()
+    .AddRabbitMQ(r => r.IsDefaultTransport())       // default for unclaimed handlers
+    .AddInMemory(m => m.Handler<AuditHandler>());   // AuditHandler claimed by InMemory
+// OrderPlacedEventHandler → RabbitMQ (default, implicit)
+// AuditHandler → InMemory (claimed)
+```
+
+You can also use the older `Endpoint("name").Handler<T>()` pattern with explicit binding:
 
 ```csharp
 builder.Services
@@ -133,6 +172,8 @@ builder.Services
     // High-throughput transport for click-stream data
     .AddInMemory(transport =>
     {
+        transport.BindHandlersExplicitly();
+
         transport.Endpoint("click-stream")
             .Handler<ClickStreamHandler>();
     });
