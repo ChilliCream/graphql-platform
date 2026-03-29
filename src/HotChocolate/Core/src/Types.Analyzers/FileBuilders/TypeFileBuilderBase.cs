@@ -462,7 +462,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        if (resolver.DescriptorAttributes.Length > 0 || resolver.IsNodeResolver)
+        if (resolver.DescriptorAttributes.Length > 0
+            || resolver.IsNodeResolver
+            || resolver.Kind is ResolverKind.ConnectionResolver)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
@@ -510,7 +512,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        if (resolver.DescriptorAttributes.Length > 0)
+        var needsUseConnection = resolver.Kind is ResolverKind.ConnectionResolver
+            && !resolver.DescriptorAttributes.Any(a =>
+                a.AttributeClass?.ToDisplayString() == WellKnownAttributes.UseConnectionAttribute);
+
+        if (resolver.DescriptorAttributes.Length > 0 || needsUseConnection)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine(
@@ -536,6 +542,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     Writer.WriteIndent();
                     Writer.Write(GenerateAttributeInstantiation(attribute));
                     first = false;
+                }
+
+                if (needsUseConnection)
+                {
+                    if (!first)
+                    {
+                        Writer.WriteLine(',');
+                    }
+
+                    Writer.WriteIndent();
+                    Writer.Write("new global::HotChocolate.Types.UseConnectionAttribute()");
                 }
 
                 Writer.WriteLine([')', ';']);
