@@ -1,7 +1,11 @@
 using System.Net;
 using System.Net.Http.Headers;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// Holds a buffered snapshot of an HTTP response so that multiple callers

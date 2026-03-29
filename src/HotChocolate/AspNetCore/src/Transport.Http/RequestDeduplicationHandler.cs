@@ -4,7 +4,11 @@ using System.IO.Hashing;
 using System.Text;
 using HotChocolate.Language;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// A <see cref="DelegatingHandler"/> that deduplicates identical in-flight HTTP requests.

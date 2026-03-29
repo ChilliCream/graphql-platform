@@ -1,4 +1,8 @@
+#if FUSION
+using HotChocolate.Fusion.Transport.Http;
+#else
 using HotChocolate.Transport.Http;
+#endif
 
 namespace Microsoft.Extensions.DependencyInjection;
 
