@@ -344,6 +344,23 @@ builder.Services
 
 Use `transport.Endpoint("name")` when you need to control the endpoint name or bind multiple handlers to the same endpoint. Use `transport.Handler<T>()` when you want the convention-derived name and are configuring a single handler's endpoint.
 
+## Multi-transport handler routing
+
+In a multi-transport setup, `Handler<T>()` also determines which transport owns the handler. Mark one transport as the default with `.IsDefaultTransport()`, then claim specific handlers on other transports:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEventHandler<AuditHandler>()
+    .AddRabbitMQ(r => r.IsDefaultTransport())       // default for unclaimed handlers
+    .AddInMemory(m => m.Handler<AuditHandler>());   // AuditHandler claimed by InMemory
+// OrderPlacedHandler → RabbitMQ (default, implicit)
+// AuditHandler → InMemory (claimed)
+```
+
+A claimed handler is bound to the claiming transport regardless of which transport is the default. Unclaimed handlers fall through to the default transport. This is the recommended pattern for multi-transport routing — it avoids `BindHandlersExplicitly()` and keeps the configuration minimal.
+
 For outbound endpoints:
 
 ```csharp
