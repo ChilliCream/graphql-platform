@@ -1,4 +1,4 @@
-using static HotChocolate.Caching.Properties.CacheControlResources;
+using static HotChocolate.Caching.Properties.CacheControlCoreResources;
 
 namespace HotChocolate.Caching;
 

@@ -27,7 +27,7 @@ public interface ICacheControlOptions
     /// <summary>
     /// Denotes whether the <see cref="DefaultMaxAge"/> and <see cref="DefaultScope"/>
     /// should be applied to all fields that do not already specify a
-    /// <see cref="CacheControlDirective"/>, are fields on the Query root type
+    /// <c>@cacheControl</c> directive, are fields on the Query root type
     /// or are responsible for fetching data.
     /// </summary>
     bool ApplyDefaults { get; }
