@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 #if FUSION
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 #endif
 

@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 
 namespace Mocha.Mediator;
 

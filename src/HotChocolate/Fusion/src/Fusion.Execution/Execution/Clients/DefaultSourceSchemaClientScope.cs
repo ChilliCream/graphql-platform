@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using HotChocolate.Features;
-using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -14,18 +13,18 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     private readonly object _sync = new();
 #endif
     private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ISourceSchemaClientFactory[] _clientFactories;
     private readonly SourceSchemaClientConfigurations _configurations;
     private bool _disposed;
 
     public DefaultSourceSchemaClientScope(
         FusionSchemaDefinition schemaDefinition,
-        IHttpClientFactory httpClientFactory)
+        ISourceSchemaClientFactory[] clientFactories)
     {
         ArgumentNullException.ThrowIfNull(schemaDefinition);
-        ArgumentNullException.ThrowIfNull(httpClientFactory);
+        ArgumentNullException.ThrowIfNull(clientFactories);
 
-        _httpClientFactory = httpClientFactory;
+        _clientFactories = clientFactories;
         _configurations = schemaDefinition.Features.GetRequired<SourceSchemaClientConfigurations>();
     }
 
@@ -47,28 +46,52 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
                             $"No client configuration found for schema '{name}' and operation type {operationType}.");
                     }
 
-                    switch (config)
-                    {
-                        case SourceSchemaHttpClientConfiguration httpClientConfig:
-                            var httpClient = _httpClientFactory.CreateClient(httpClientConfig.HttpClientName);
-                            httpClient.BaseAddress = httpClientConfig.BaseAddress;
-
-                            sourceSchemaClient = new SourceSchemaHttpClient(
-                                GraphQLHttpClient.Create(httpClient, disposeHttpClient: true),
-                                httpClientConfig);
-
-                            _clients.TryAdd(key, sourceSchemaClient);
-                            break;
-
-                        default:
-                            throw new NotSupportedException(
-                                $"Unsupported client configuration type: {config.GetType().Name}.");
-                    }
+                    sourceSchemaClient = CreateClient(config);
+                    _clients.TryAdd(key, sourceSchemaClient);
                 }
             }
         }
 
         return sourceSchemaClient;
+    }
+
+    private ISourceSchemaClient CreateClient(ISourceSchemaClientConfiguration configuration)
+    {
+        var factories = _clientFactories;
+
+        if (factories.Length > 0 && factories[0].CanHandle(configuration))
+        {
+            return factories[0].CreateClient(configuration);
+        }
+
+        if (factories.Length > 1 && factories[1].CanHandle(configuration))
+        {
+            return factories[1].CreateClient(configuration);
+        }
+
+        if (factories.Length > 2 && factories[2].CanHandle(configuration))
+        {
+            return factories[2].CreateClient(configuration);
+        }
+
+        if (factories.Length > 3 && factories[3].CanHandle(configuration))
+        {
+            return factories[3].CreateClient(configuration);
+        }
+
+        if (factories.Length > 4)
+        {
+            for (var i = 4; i < factories.Length; i++)
+            {
+                if (factories[i].CanHandle(configuration))
+                {
+                    return factories[i].CreateClient(configuration);
+                }
+            }
+        }
+
+        throw new NotSupportedException(
+            $"No client factory found for configuration type: {configuration.GetType().Name}.");
     }
 
     public async ValueTask DisposeAsync()

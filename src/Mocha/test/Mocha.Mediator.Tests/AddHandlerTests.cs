@@ -102,7 +102,7 @@ public class AddHandlerTests
         // Act & Assert - validation is deferred to Build() time, which happens
         // when MediatorRuntime is first resolved (triggered by IMediator resolution).
         Assert.Throws<InvalidOperationException>(
-            () => sp.GetRequiredService<IMediator>());
+            sp.GetRequiredService<IMediator>);
     }
 
     [Fact]
