@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
@@ -46,6 +47,8 @@ internal sealed class DeleteStageCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         const string apiMessage = "For which API do you want to force delete a stage?";
         var apiId = await parseResult.GetOrPromptForApiIdAsync(
             apiMessage,
@@ -63,26 +66,53 @@ internal sealed class DeleteStageCommand : Command
 
         if (!shouldDelete)
         {
-            throw Exit("Stage was not deleted");
+            throw Exit("Stage was not deleted.");
         }
 
-        var data = await client.ForceDeleteStageAsync(apiId, stageName, cancellationToken);
-        console.PrintMutationErrorsAndExit(data.Errors);
-
-        if (data.Api is null)
+        await using (var activity = console.StartActivity("Deleting stage..."))
         {
-            throw Exit("Could not delete the stage");
+            var data = await client.ForceDeleteStageAsync(apiId, stageName, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IApiNotFoundError err => err.Message,
+                        IStageNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (data.Api is null)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not delete the stage.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success($"Stage {stageName} was force deleted!");
+
+            console.WriteLine();
+
+            var items = data.Api.Stages
+                .Select(x => StageDetailPrompt.From(x).ToObject())
+                .ToArray();
+
+            resultHolder.SetResult(
+                new ObjectResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null)));
+
+            return ExitCodes.Success;
         }
-
-        var items = data.Api.Stages
-            .Select(x => StageDetailPrompt.From(x).ToObject())
-            .ToArray();
-
-        resultHolder.SetResult(
-            new ObjectResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null)));
-
-        console.OkLine($"Stage {stageName.AsHighlight()} was force deleted");
-
-        return ExitCodes.Success;
     }
 }

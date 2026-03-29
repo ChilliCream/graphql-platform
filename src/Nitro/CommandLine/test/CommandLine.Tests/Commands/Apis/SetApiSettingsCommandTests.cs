@@ -97,7 +97,7 @@ public sealed class SetApiSettingsCommandTests
                 result.AssertSuccess(
                         """
                         Updating API settings...
-                        └── Successfully updated API settings!
+                        └── ✓ Successfully updated API settings!
 
                         {
                             "id": "api-1",
@@ -182,7 +182,7 @@ public sealed class SetApiSettingsCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Updating API settings...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -281,7 +281,7 @@ public sealed class SetApiSettingsCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Updating API settings...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -383,7 +383,7 @@ public sealed class SetApiSettingsCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Updating API settings...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """

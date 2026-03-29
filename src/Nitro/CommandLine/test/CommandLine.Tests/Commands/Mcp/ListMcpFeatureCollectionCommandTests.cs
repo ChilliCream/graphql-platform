@@ -192,6 +192,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -279,6 +280,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null
@@ -367,6 +369,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -417,6 +420,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {

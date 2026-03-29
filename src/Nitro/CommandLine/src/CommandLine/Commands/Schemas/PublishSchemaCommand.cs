@@ -85,8 +85,9 @@ internal sealed class PublishSchemaCommand : Command
                     };
 
                     await console.Error.WriteLineAsync(errorMessage);
-                    return ExitCodes.Error;
                 }
+
+                return ExitCodes.Error;
             }
 
             if (publishRequest.Id is not { } requestId)
@@ -109,8 +110,51 @@ internal sealed class PublishSchemaCommand : Command
 
                     case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
                         activity.Fail();
-                        console.WriteLine("Schema publish failed");
-                        console.PrintMutationErrors(schemaErrors);
+
+                        foreach (var error in schemaErrors)
+                        {
+                            switch (error)
+                            {
+                                case ISchemaVersionChangeViolationError e:
+                                    console.PrintSchemaVersionChangeViolations(e);
+                                    break;
+                                case ISchemaChangeViolationError e:
+                                    console.PrintSchemaChangeViolations(e);
+                                    break;
+                                case IInvalidGraphQLSchemaError e:
+                                    console.PrintGraphQLSchemaErrors(e);
+                                    break;
+                                case IPersistedQueryValidationError e:
+                                    console.PrintPersistedQueryValidationErrors(e);
+                                    break;
+                                case IOpenApiCollectionValidationError e:
+                                    console.PrintOpenApiCollectionValidationErrors(e);
+                                    break;
+                                case IMcpFeatureCollectionValidationError e:
+                                    console.PrintMcpFeatureCollectionValidationErrors(e);
+                                    break;
+                                case IConcurrentOperationError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IOperationsAreNotAllowedError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case ISchemaVersionSyntaxError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IUnexpectedProcessingError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IError e:
+                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    break;
+                            }
+                        }
+
+                        await console.Error.WriteLineAsync("Schema publish failed.");
                         return ExitCodes.Error;
 
                     case ISchemaVersionPublishSuccess:
@@ -129,7 +173,36 @@ internal sealed class PublishSchemaCommand : Command
                         if (waitForApprovalEvent.Deployment is
                             IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_SchemaDeployment deployment)
                         {
-                            console.PrintMutationErrors(deployment.Errors);
+                            foreach (var error in deployment.Errors)
+                            {
+                                switch (error)
+                                {
+                                    case ISchemaChangeViolationError e:
+                                        console.PrintSchemaChangeViolations(e);
+                                        break;
+                                    case IInvalidGraphQLSchemaError e:
+                                        console.PrintGraphQLSchemaErrors(e);
+                                        break;
+                                    case IPersistedQueryValidationError e:
+                                        console.PrintPersistedQueryValidationErrors(e);
+                                        break;
+                                    case IOpenApiCollectionValidationError e:
+                                        console.PrintOpenApiCollectionValidationErrors(e);
+                                        break;
+                                    case IMcpFeatureCollectionValidationError e:
+                                        console.PrintMcpFeatureCollectionValidationErrors(e);
+                                        break;
+                                    case IOperationsAreNotAllowedError e:
+                                        await console.Error.WriteLineAsync(e.Message);
+                                        break;
+                                    case ISchemaVersionSyntaxError e:
+                                        await console.Error.WriteLineAsync(e.Message);
+                                        break;
+                                    case IError e:
+                                        await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                        break;
+                                }
+                            }
                         }
 
                         activity.Update(
@@ -142,7 +215,7 @@ internal sealed class PublishSchemaCommand : Command
 
                     default:
                         activity.Update(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
+                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
                         break;
                 }
             }

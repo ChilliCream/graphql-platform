@@ -119,7 +119,7 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching Schema...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -224,7 +224,7 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching Schema...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -334,7 +334,7 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching Schema...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -463,7 +463,7 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching Schema...
-            └── Downloaded schema to 'schema.graphql'.
+            └── ✓ Downloaded schema to 'schema.graphql'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -609,7 +609,7 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching Schema...
-            └── Downloaded schema to 'schema.graphql'.
+            └── ✓ Downloaded schema to 'schema.graphql'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

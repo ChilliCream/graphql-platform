@@ -139,7 +139,8 @@ public sealed class ListApiCommandTests
                                     ├───────┼──────────┼──────────┤
                                     │ api-1 │ products │ products │
                                     │ api-2 │ catalog  │ catalog  │
-                                    └───────┴──────────┴──────────┘                         {
+                                    └───────┴──────────┴──────────┘
+            {
               "id": "api-1",
               "name": "products",
               "path": "products",
@@ -216,7 +217,8 @@ public sealed class ListApiCommandTests
                                     ├───────┼──────────┼──────────┤
                                     │ api-1 │ products │ products │
                                     │ api-2 │ catalog  │ catalog  │
-                                    └───────┴──────────┴──────────┘                         {
+                                    └───────┴──────────┴──────────┘
+            {
               "id": "api-1",
               "name": "products",
               "path": "products",
@@ -267,6 +269,7 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -378,6 +381,7 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null
@@ -443,7 +447,8 @@ public sealed class ListApiCommandTests
                                     │ Id    │ Name     │ Path     │
                                     ├───────┼──────────┼──────────┤
                                     │ api-1 │ products │ products │
-                                    └───────┴──────────┴──────────┘                         {
+                                    └───────┴──────────┴──────────┘
+            {
               "id": "api-1",
               "name": "products",
               "path": "products",
@@ -496,6 +501,7 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {

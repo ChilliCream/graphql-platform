@@ -1,9 +1,9 @@
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using Command = System.CommandLine.Command;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
@@ -12,7 +12,8 @@ internal sealed class UploadOpenApiCollectionCommand : Command
     public UploadOpenApiCollectionCommand(
         INitroConsole console,
         IOpenApiClient client,
-        IFileSystem fileSystem) : base("upload")
+        IFileSystem fileSystem,
+        ISessionService sessionService) : base("upload")
     {
         Description = "Upload a new OpenAPI collection version";
 
@@ -24,65 +25,81 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
-                console,
-                client,
-                fileSystem,
-                parseResult.GetValue(Opt<TagOption>.Instance)!,
-                parseResult.GetValue(Opt<OpenApiCollectionFilePatternOption>.Instance)!,
-                parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!,
-                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
-                cancellationToken));
+            => await ExecuteAsync(parseResult, console, client, fileSystem, sessionService, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IOpenApiClient client,
         IFileSystem fileSystem,
-        string tag,
-        List<string> patterns,
-        string openApiCollectionId,
-        string? sourceMetadataJson,
+        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var patterns = parseResult.GetValue(Opt<OpenApiCollectionFilePatternOption>.Instance)!;
+        var openApiCollectionId = parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!;
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var _ = console.StartActivity("Uploading new OpenAPI collection version..."))
+        var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();
+
+        if (files.Length < 1)
         {
-            await UploadOpenApiCollection();
+            throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
         }
 
-        return ExitCodes.Success;
+        var archiveStream =
+            await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(
+                fileSystem,
+                files,
+                cancellationToken);
 
-        async Task UploadOpenApiCollection()
+        await using (var activity = console.StartActivity("Uploading new OpenAPI collection version..."))
         {
-            // console.Log("Searching for OpenAPI documents with the following patterns:");
-            // foreach (var pattern in patterns)
-            // {
-            //     console.Log($"- {pattern}");
-            // }
-
-            var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();
-
-            if (files.Length < 1)
-            {
-                throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
-            }
-
-            var archiveStream =
-                await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(
-                    fileSystem,
-                    files,
-                    cancellationToken);
-
-            await client.UploadOpenApiCollectionVersionAsync(
+            var data = await client.UploadOpenApiCollectionVersionAsync(
                 openApiCollectionId,
                 tag,
                 archiveStream,
                 source,
                 cancellationToken);
 
-            console.Success("Successfully uploaded new OpenAPI collection version!");
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IOpenApiCollectionNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IDuplicatedTagError err => err.Message,
+                        IConcurrentOperationError err => err.Message,
+                        IInvalidOpenApiCollectionArchiveError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (data.OpenApiCollectionVersion is null)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not upload OpenAPI collection version.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully uploaded new OpenAPI collection version!");
+
+            return ExitCodes.Success;
         }
     }
 }

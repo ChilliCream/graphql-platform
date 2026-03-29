@@ -89,7 +89,7 @@ public sealed class DeleteApiKeyCommandTests
         result.AssertSuccess(
             """
             Deleting API key...
-            └── Successfully deleted API key!
+            └── ✓ Successfully deleted API key!
 
             {
               "id": "key-1",
@@ -173,7 +173,7 @@ public sealed class DeleteApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Deleting API key...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -273,7 +273,7 @@ public sealed class DeleteApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Deleting API key...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -387,7 +387,7 @@ public sealed class DeleteApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Deleting API key...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """

@@ -1,0 +1,445 @@
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Exceptions;
+using ChilliCream.Nitro.Client.PersonalAccessTokens;
+using Moq;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.PersonalAccessTokens;
+
+public sealed class CreatePersonalAccessTokenCommandTests
+{
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddArguments(
+                "pat",
+                "create",
+                "--help")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Creates a new personal access token
+
+            Usage:
+              nitro pat create [options]
+
+            Options:
+              --description <description>  The description of the pat [env: NITRO_DESCRIPTION]
+              --expires <expires>          The expiration time of the pat in days [env: NITRO_EXPIRES] [default: 180]
+              --cloud-url <cloud-url>      The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>          The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>              The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help               Show help and usage information
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingRequiredDescription_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "pat",
+                "create")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Missing required option '--description'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithOptions_ReturnsSuccess_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreatePersonalAccessTokenAsync(
+                "my-token",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePatPayload("pat-1", "my-token", "secret-123"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating personal access token...
+            └── ✓ Successfully created personal access token!
+
+            {
+              "secret": "secret-123",
+              "details": {
+                "id": "pat-1",
+                "description": "my-token",
+                "createdAt": "2025-01-01T00:00:00+00:00",
+                "expiresAt": "2025-06-01T00:00:00+00:00"
+              }
+            }
+            """);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithOptions_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreatePersonalAccessTokenAsync(
+                "my-token",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePatPayload("pat-1", "my-token", "secret-123"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+
+            {
+              "secret": "secret-123",
+              "details": {
+                "id": "pat-1",
+                "description": "my-token",
+                "createdAt": "2025-01-01T00:00:00+00:00",
+                "expiresAt": "2025-06-01T00:00:00+00:00"
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullResult_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreatePersonalAccessTokenAsync(
+                "my-token",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePatPayloadWithNullResult());
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating personal access token...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create personal access token.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(CreateMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+        ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreatePersonalAccessTokenAsync(
+                "my-token",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePatPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating personal access token...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(CreateMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+        ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreatePersonalAccessTokenAsync(
+                "my-token",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePatPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Creating personal access token...
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(CreateMutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
+        ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreatePersonalAccessTokenAsync(
+                "my-token",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePatPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(expectedStdErr);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreatePersonalAccessTokenAsync(
+                "my-token",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("create failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreatePersonalAccessTokenAsync(
+                "my-token",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "pat",
+                "create",
+                "--description",
+                "my-token")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    public static TheoryData<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors, string> CreateMutationErrorCases =>
+        new()
+        {
+            {
+                new CreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation", "Not authorized"),
+                """
+                Not authorized
+                """
+            },
+            {
+                new CreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors_ValidationError(
+                    "Validation failed"),
+                """
+                Unexpected mutation error: Validation failed
+                """
+            }
+        };
+
+    private static ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken CreatePatPayload(
+        string id, string description, string secret)
+    {
+        var token = new CreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Result_Token_PersonalAccessToken(
+            id,
+            description,
+            new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero));
+
+        var resultObj = new CreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Result_PersonalAccessTokenWithSecret(
+            token, secret);
+
+        var payload = new Mock<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Result).Returns(resultObj);
+        payload.SetupGet(x => x.Errors)
+            .Returns(Array.Empty<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors>());
+        return payload.Object;
+    }
+
+    private static ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken CreatePatPayloadWithNullResult()
+    {
+        var payload = new Mock<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Result)
+            .Returns((ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Result?)null);
+        payload.SetupGet(x => x.Errors)
+            .Returns(Array.Empty<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors>());
+        return payload.Object;
+    }
+
+    private static ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken CreatePatPayloadWithErrors(
+        params ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors[] errors)
+    {
+        var payload = new Mock<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Result)
+            .Returns((ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Result?)null);
+        payload.SetupGet(x => x.Errors).Returns(errors);
+        return payload.Object;
+    }
+}

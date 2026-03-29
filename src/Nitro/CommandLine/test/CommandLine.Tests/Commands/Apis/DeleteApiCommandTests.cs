@@ -161,7 +161,7 @@ public sealed class DeleteApiCommandTests
         result.AssertSuccess(
             """
             Deleting API...
-            └── Successfully deleted API!
+            └── ✓ Successfully deleted API!
 
             {
               "id": "api-1",
@@ -240,7 +240,7 @@ public sealed class DeleteApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Deleting API...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -330,7 +330,7 @@ public sealed class DeleteApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Deleting API...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -423,7 +423,7 @@ public sealed class DeleteApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Deleting API...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """

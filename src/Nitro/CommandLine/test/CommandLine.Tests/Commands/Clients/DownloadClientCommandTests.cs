@@ -158,7 +158,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching queries...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -263,7 +263,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching queries...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -378,7 +378,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching queries...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -526,7 +526,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching queries...
-            └── Downloaded client to 'queries.json'.
+            └── ✓ Downloaded client to 'queries.json'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -638,7 +638,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching queries...
-            └── Downloaded client to 'queries.json'.
+            └── ✓ Downloaded client to 'queries.json'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -748,7 +748,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching queries...
-            └── Downloaded client to 'output-dir'.
+            └── ✓ Downloaded client to 'output-dir'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -856,7 +856,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching queries...
-            └── Downloaded client to 'output-dir'.
+            └── ✓ Downloaded client to 'output-dir'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -912,7 +912,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Fetching queries...
-            └── Downloaded client to 'output-dir'.
+            └── ✓ Downloaded client to 'output-dir'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

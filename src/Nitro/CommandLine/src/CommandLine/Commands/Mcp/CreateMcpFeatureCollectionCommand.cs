@@ -83,8 +83,6 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
 
             activity.Success("Successfully created MCP Feature Collection!");
 
-            console.WriteLine();
-
             resultHolder.SetResult(new ObjectResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject()));
 
             return ExitCodes.Success;

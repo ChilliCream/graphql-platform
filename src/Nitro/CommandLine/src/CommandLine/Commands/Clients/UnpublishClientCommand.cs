@@ -1,6 +1,8 @@
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.Helpers.Placeholders;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -9,7 +11,8 @@ internal sealed class UnpublishClientCommand : Command
 {
     public UnpublishClientCommand(
         INitroConsole console,
-        IClientsClient client) : base("unpublish")
+        IClientsClient client,
+        ISessionService sessionService) : base("unpublish")
     {
         Description = "Unpublish a client version from a stage";
 
@@ -20,22 +23,21 @@ internal sealed class UnpublishClientCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, cancellationToken));
+            => await ExecuteAsync(parseResult, console, client, sessionService, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
         ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
+        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var tags = parseResult.GetValue(Opt<TagsOption>.Instance)?.ToArray()!;
         var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var clientId = parseResult.GetValue(Opt<ClientIdOption>.Instance)!;
-
-        var title = tags.Length > 1
-            ? $"Unpublish clients with tags {string.Join(", ", tags).EscapeMarkup()} from {stage.EscapeMarkup()}"
-            : $"Unpublish client with tag {tags[0].EscapeMarkup()} from {stage.EscapeMarkup()}";
 
         await using (var activity = console.StartActivity("Unpublishing..."))
         {
@@ -49,13 +51,36 @@ internal sealed class UnpublishClientCommand : Command
                     tag,
                     cancellationToken);
 
-                console.PrintMutationErrorsAndExit(result.Errors);
+                if (result.Errors?.Count > 0)
+                {
+                    activity.Fail();
+
+                    foreach (var error in result.Errors)
+                    {
+                        var errorMessage = error switch
+                        {
+                            IConcurrentOperationError err => err.Message,
+                            IStageNotFoundError err => err.Message,
+                            IClientVersionNotFoundError err => err.Message,
+                            IUnauthorizedOperation err => err.Message,
+                            IClientNotFoundError err => err.Message,
+                            IError err => "Unexpected mutation error: " + err.Message,
+                            _ => "Unexpected mutation error."
+                        };
+
+                        await console.Error.WriteLineAsync(errorMessage);
+                    }
+
+                    return ExitCodes.Error;
+                }
 
                 var clientName = result.ClientVersion?.Client?.Name ?? NotFound;
 
                 console.Success(
                     $"Unpublished [bold]{clientName.EscapeMarkup()}:{tag.EscapeMarkup()}[/] from {stage.EscapeMarkup()} ");
             }
+
+            activity.Success("Unpublishing complete!");
         }
 
         return ExitCodes.Success;

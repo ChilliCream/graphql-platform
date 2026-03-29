@@ -44,6 +44,8 @@ internal sealed class CreateMockCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var extensionFile =
             parseResult.GetValue(Opt<ExtensionFileOption>.Instance)!;
         var baseSchemaFile =
@@ -60,14 +62,7 @@ internal sealed class CreateMockCommand : Command
             sessionService,
             cancellationToken);
 
-        await using (var _ = console.StartActivity("Create and initialize new mock..."))
-        {
-            await CreateNewMock();
-        }
-
-        return ExitCodes.Success;
-
-        async Task CreateNewMock()
+        await using (var activity = console.StartActivity("Creating mock schema..."))
         {
             await using var extensionFileStream = fileSystem.OpenReadStream(extensionFile);
             await using var schemaFileStream = fileSystem.OpenReadStream(baseSchemaFile);
@@ -79,16 +74,41 @@ internal sealed class CreateMockCommand : Command
                 extensionFileStream,
                 mockSchemaName,
                 cancellationToken);
-            console.PrintMutationErrorsAndExit(createdMock.Errors);
+
+            if (createdMock.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in createdMock.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IApiNotFoundError err => err.Message,
+                        IMockSchemaNonUniqueNameError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IValidationError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
 
             if (createdMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
-                throw new ExitException("Could not create mock schema.");
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create mock schema.");
+                return ExitCodes.Error;
             }
 
-            console.Success("Successfully uploaded schema!");
+            activity.Success("Successfully created mock schema!");
 
             resultHolder.SetResult(new ObjectResult(MockSchemaDetailPrompt.From(mockSchema).ToObject()));
+
+            return ExitCodes.Success;
         }
     }
 }

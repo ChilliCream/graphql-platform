@@ -154,7 +154,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         result.AssertSuccess(
             """
             Deleting MCP Feature Collection...
-            └── Successfully deleted MCP Feature Collection!
+            └── ✓ Successfully deleted MCP Feature Collection!
 
             {
               "id": "mcp-1",
@@ -193,6 +193,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "id": "mcp-1",
               "name": "my-mcp"
@@ -265,7 +266,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Deleting MCP Feature Collection...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -308,7 +309,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Deleting MCP Feature Collection...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);

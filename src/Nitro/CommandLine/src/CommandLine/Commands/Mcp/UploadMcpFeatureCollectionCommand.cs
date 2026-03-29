@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -11,7 +12,8 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
     public UploadMcpFeatureCollectionCommand(
         INitroConsole console,
         IMcpClient client,
-        IFileSystem fileSystem) : base("upload")
+        IFileSystem fileSystem,
+        ISessionService sessionService) : base("upload")
     {
         Description = "Upload a new MCP Feature Collection version";
 
@@ -24,7 +26,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, fileSystem, cancellationToken));
+            => await ExecuteAsync(parseResult, console, client, fileSystem, sessionService, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
@@ -32,8 +34,11 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
         INitroConsole console,
         IMcpClient client,
         IFileSystem fileSystem,
+        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
         var promptPatterns = parseResult.GetValue(Opt<McpPromptFilePatternOption>.Instance)!;
         var toolPatterns = parseResult.GetValue(Opt<McpToolFilePatternOption>.Instance)!;
@@ -42,54 +47,64 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var _ = console.StartActivity("Uploading new MCP Feature Collection version..."))
+        var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
+        var toolFiles = fileSystem.GlobMatch(toolPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
+
+        if (promptFiles.Length < 1 && toolFiles.Length < 1)
         {
-            await UploadMcpFeatureCollection();
+            throw new ExitException(
+                "Could not find any MCP prompt or tool definition files with the provided patterns.");
         }
 
-        return ExitCodes.Success;
+        var archiveStream =
+            await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
+                fileSystem,
+                promptFiles,
+                toolFiles,
+                cancellationToken);
 
-        async Task UploadMcpFeatureCollection()
+        await using (var activity = console.StartActivity("Uploading new MCP Feature Collection version..."))
         {
-            // console.Log("Searching for MCP prompt definition files with the following patterns:");
-            // foreach (var promptPattern in promptPatterns)
-            // {
-            //     console.Log($"- {promptPattern}");
-            // }
-            //
-            // console.Log("Searching for MCP tool definition files with the following patterns:");
-            // foreach (var toolPattern in toolPatterns)
-            // {
-            //     console.Log($"- {toolPattern}");
-            // }
-
-            var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
-            var toolFiles = fileSystem.GlobMatch(toolPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
-
-            if (promptFiles.Length < 1 && toolFiles.Length < 1)
-            {
-                throw new ExitException(
-                    "Could not find any MCP prompt or tool definition files with the provided patterns.");
-            }
-
-            // console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
-            // console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
-
-            var archiveStream =
-                await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
-                    fileSystem,
-                    promptFiles,
-                    toolFiles,
-                    cancellationToken);
-
-            await client.UploadMcpFeatureCollectionVersionAsync(
+            var data = await client.UploadMcpFeatureCollectionVersionAsync(
                 mcpFeatureCollectionId,
                 tag,
                 archiveStream,
                 source,
                 cancellationToken);
 
-            console.Success("Successfully uploaded new MCP Feature Collection version!");
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IMcpFeatureCollectionNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IDuplicatedTagError err => err.Message,
+                        IConcurrentOperationError err => err.Message,
+                        IInvalidMcpFeatureCollectionArchiveError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (data.McpFeatureCollectionVersion is null)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not upload MCP Feature Collection version.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully uploaded new MCP Feature Collection version!");
+
+            return ExitCodes.Success;
         }
     }
 }

@@ -307,6 +307,7 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "secret": "secret-123",
               "details": {
@@ -357,7 +358,7 @@ public sealed class CreateApiKeyCommandTests
         result.AssertSuccess(
             """
             Creating API key...
-            └── Successfully created API key!
+            └── ✓ Successfully created API key!
 
             {
               "secret": "secret-123",
@@ -405,6 +406,7 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "secret": "secret-xyz",
               "details": {
@@ -454,6 +456,7 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "secret": "secret-xyz",
               "details": {
@@ -504,7 +507,7 @@ public sealed class CreateApiKeyCommandTests
         result.AssertSuccess(
             """
             Creating API key...
-            └── Successfully created API key!
+            └── ✓ Successfully created API key!
 
             {
               "secret": "secret-xyz",
@@ -553,7 +556,7 @@ public sealed class CreateApiKeyCommandTests
         result.AssertSuccess(
             """
             Creating API key...
-            └── Successfully created API key!
+            └── ✓ Successfully created API key!
 
             {
               "secret": "secret-xyz",
@@ -652,7 +655,7 @@ public sealed class CreateApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating API key...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -768,7 +771,7 @@ public sealed class CreateApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating API key...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -891,7 +894,7 @@ public sealed class CreateApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating API key...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """

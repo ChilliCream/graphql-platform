@@ -467,7 +467,8 @@ Every command migration follows the same template. The agent fixes the implement
 4. Wrap mutation in activity (`console.StartActivity`)
 5. Add `activity.Fail()` before error output
 6. **`return ExitCodes.Error` must be AFTER the foreach loop** — print ALL errors before returning, not just the first
-7. Add `activity.Success("...")` on success path
+7. **Do NOT call `console.WriteLine()` before `resultHolder.SetResult(...)`** — the blank line is added automatically by the result formatting infrastructure in `RootCommandExtensions.cs`
+8. Add `activity.Success("...")` on success path
 8. Use `ExitCodes.Success` / `ExitCodes.Error` (no raw integers)
 9. Verify: `dotnet build`
 

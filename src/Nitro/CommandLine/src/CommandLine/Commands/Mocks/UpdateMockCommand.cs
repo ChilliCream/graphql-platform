@@ -47,6 +47,8 @@ internal sealed class UpdateMockCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var extensionFile = parseResult.GetValue(Opt<OptionalExtensionFileOption>.Instance);
         var baseSchemaFile = parseResult.GetValue(Opt<OptionalBaseSchemaFileOption>.Instance);
         var downstreamUrl = parseResult.GetValue(Opt<OptionalDownstreamUrlOption>.Instance);
@@ -78,14 +80,7 @@ internal sealed class UpdateMockCommand : Command
             mockSchemaId = selectedMock?.Id ?? throw new ExitException("No mock schema selected.");
         }
 
-        await using (var _ = console.StartActivity("Create and initialize new mock..."))
-        {
-            await CreateNewMock();
-        }
-
-        return ExitCodes.Success;
-
-        async Task CreateNewMock()
+        await using (var activity = console.StartActivity("Updating mock schema..."))
         {
             await using var baseSchemaStream = baseSchemaFile is null
                 ? null
@@ -101,14 +96,41 @@ internal sealed class UpdateMockCommand : Command
                 extensionStream,
                 mockSchemaName,
                 cancellationToken);
-            console.PrintMutationErrorsAndExit(updatedMock.Errors);
+
+            if (updatedMock.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in updatedMock.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IMockSchemaNotFoundError err => err.Message,
+                        IMockSchemaNonUniqueNameError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IValidationError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
 
             if (updatedMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
-                throw new ExitException("Could not update mock schema.");
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not update mock schema.");
+                return ExitCodes.Error;
             }
 
+            activity.Success("Successfully updated mock schema!");
+
             resultHolder.SetResult(new ObjectResult(MockSchemaDetailPrompt.From(mockSchema).ToObject()));
+
+            return ExitCodes.Success;
         }
     }
 }

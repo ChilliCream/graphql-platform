@@ -92,7 +92,8 @@ public sealed class ListWorkspaceCommandTests
                    ├──────┼────────────────────┼────────────┤
                    │ ws-1 │ my-workspace       │ ✕          │
                    │ ws-2 │ personal-workspace │ ✓          │
-                   └──────┴────────────────────┴────────────┘                   {
+                   └──────┴────────────────────┴────────────┘
+            {
               "id": "ws-1",
               "name": "my-workspace",
               "personal": false
@@ -133,6 +134,7 @@ public sealed class ListWorkspaceCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -220,6 +222,7 @@ public sealed class ListWorkspaceCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null
@@ -283,7 +286,8 @@ public sealed class ListWorkspaceCommandTests
                       │ Id   │ Name         │ IsPersonal │
                       ├──────┼──────────────┼────────────┤
                       │ ws-1 │ my-workspace │ ✕          │
-                      └──────┴──────────────┴────────────┘                      {
+                      └──────┴──────────────┴────────────┘
+            {
               "id": "ws-1",
               "name": "my-workspace",
               "personal": false
@@ -325,6 +329,7 @@ public sealed class ListWorkspaceCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {

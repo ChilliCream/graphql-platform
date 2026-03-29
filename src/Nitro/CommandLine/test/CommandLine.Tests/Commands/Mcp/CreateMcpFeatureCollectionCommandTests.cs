@@ -157,7 +157,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         result.AssertSuccess(
             """
             Creating MCP Feature Collection...
-            └── Successfully created MCP Feature Collection!
+            └── ✓ Successfully created MCP Feature Collection!
 
             {
               "id": "mcp-1",
@@ -199,6 +199,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "id": "mcp-1",
               "name": "my-mcp"
@@ -240,7 +241,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating MCP Feature Collection...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -286,7 +287,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating MCP Feature Collection...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);

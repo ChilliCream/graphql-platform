@@ -120,8 +120,6 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
             activity.Success("Successfully deleted MCP Feature Collection!");
 
-            console.WriteLine();
-
             resultHolder.SetResult(new ObjectResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject()));
 
             return ExitCodes.Success;

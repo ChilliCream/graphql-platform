@@ -104,8 +104,6 @@ internal sealed class CreateApiCommand : Command
 
             if (result is IApiDetailPrompt_Api detail)
             {
-                console.WriteLine();
-
                 resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(detail).ToObject()));
             }
 

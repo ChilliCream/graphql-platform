@@ -93,8 +93,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading operations...
-            └── Failed!
+            Uploading new version for client 'client-1'...
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -133,7 +133,7 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading operations...
+            [    ] Uploading new version for client 'client-1'...
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -205,8 +205,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading operations...
-            └── Failed!
+            Uploading new version for client 'client-1'...
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -246,7 +246,7 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading operations...
+            [    ] Uploading new version for client 'client-1'...
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -321,8 +321,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading operations...
-            └── Failed!
+            Uploading new version for client 'client-1'...
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -361,7 +361,7 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading operations...
+            [    ] Uploading new version for client 'client-1'...
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -434,8 +434,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading operations...
-            └── Failed!
+            Uploading new version for client 'client-1'...
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -479,7 +479,7 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading operations...
+            [    ] Uploading new version for client 'client-1'...
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -554,8 +554,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading operations...
-            └── Successfully uploaded operations!
+            Uploading new version for client 'client-1'...
+            └── ✓ Successfully uploaded operations!
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

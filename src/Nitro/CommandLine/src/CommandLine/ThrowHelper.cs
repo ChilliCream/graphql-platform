@@ -13,6 +13,9 @@ internal static class ThrowHelper
     public static ExitException MissingRequiredOption(string optionName)
         => Exit($"The '{optionName}' option is required in non-interactive mode.");
 
+    public static ExitException MissingRequiredArgument(string argumentName)
+        => Exit($"The '{argumentName}' argument is required.");
+
     public static ExitException NoDefaultWorkspace() => new(
         $"You are not logged in. Run {"nitro login".AsCommand()} to sign in or manually specify the '{OptionalWorkspaceIdOption.OptionName}' option (if available).");
 

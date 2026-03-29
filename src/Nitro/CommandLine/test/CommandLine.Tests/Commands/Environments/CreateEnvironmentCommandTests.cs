@@ -173,7 +173,7 @@ public sealed class CreateEnvironmentCommandTests
         result.AssertSuccess(
             """
             Creating environment...
-            └── Successfully created environment!
+            └── ✓ Successfully created environment!
 
             {
               "id": "env-1",
@@ -215,6 +215,7 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "id": "env-1",
               "name": "production",
@@ -256,7 +257,7 @@ public sealed class CreateEnvironmentCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating environment...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -267,11 +268,8 @@ public sealed class CreateEnvironmentCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsChangeError_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsChangeError_ReturnsError_Interactive()
     {
         // arrange
         var changeError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Changes_Error>(MockBehavior.Strict);
@@ -290,7 +288,97 @@ public sealed class CreateEnvironmentCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "environment",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Creating environment...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Create denied
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsChangeError_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var changeError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Changes_Error>(MockBehavior.Strict);
+        changeError.As<IError>().SetupGet(x => x.Message).Returns("Create denied");
+
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateEnvironmentAsync(
+                "ws-1",
+                "production",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePayload(
+                changes: [CreateChange(result: null, error: changeError.Object)],
+                errors: null));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "environment",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating environment...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Create denied
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsChangeError_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var changeError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Changes_Error>(MockBehavior.Strict);
+        changeError.As<IError>().SetupGet(x => x.Message).Returns("Create denied");
+
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateEnvironmentAsync(
+                "ws-1",
+                "production",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePayload(
+                changes: [CreateChange(result: null, error: changeError.Object)],
+                errors: null));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "environment",
                 "create",
@@ -309,11 +397,8 @@ public sealed class CreateEnvironmentCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsTypedError_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsTypedError_ReturnsError_Interactive()
     {
         // arrange
         var typedError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_ChangeStructureInvalid>(
@@ -331,7 +416,95 @@ public sealed class CreateEnvironmentCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "environment",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Creating environment...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Change structure invalid.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var typedError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_ChangeStructureInvalid>(
+            MockBehavior.Strict);
+        typedError.As<IError>().SetupGet(x => x.Message).Returns("Change structure invalid.");
+
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateEnvironmentAsync(
+                "ws-1",
+                "production",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePayload(changes: null, errors: [typedError.Object]));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "environment",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating environment...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Change structure invalid.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var typedError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_ChangeStructureInvalid>(
+            MockBehavior.Strict);
+        typedError.As<IError>().SetupGet(x => x.Message).Returns("Change structure invalid.");
+
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateEnvironmentAsync(
+                "ws-1",
+                "production",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreatePayload(changes: null, errors: [typedError.Object]));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "environment",
                 "create",
@@ -384,7 +557,7 @@ public sealed class CreateEnvironmentCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating environment...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -395,11 +568,8 @@ public sealed class CreateEnvironmentCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
         var client = CreateExceptionClient(new NitroClientException("create failed"));
@@ -408,7 +578,77 @@ public sealed class CreateEnvironmentCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "environment",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Creating environment...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreateExceptionClient(new NitroClientException("create failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "environment",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating environment...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateExceptionClient(new NitroClientException("create failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "environment",
                 "create",
@@ -427,11 +667,8 @@ public sealed class CreateEnvironmentCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
         var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
@@ -440,7 +677,77 @@ public sealed class CreateEnvironmentCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "environment",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Creating environment...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "environment",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "production")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating environment...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "environment",
                 "create",

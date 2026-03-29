@@ -120,6 +120,7 @@ public sealed class ShowWorkspaceCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "id": "ws-1",
               "name": "my-workspace",

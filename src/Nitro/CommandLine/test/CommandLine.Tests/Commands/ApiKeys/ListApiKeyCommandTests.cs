@@ -115,7 +115,8 @@ public sealed class ListApiKeyCommandTests
                                       ├───────┼─────────────────┤
                                       │ key-1 │ tenant-key      │
                                       │ key-2 │ integration-key │
-                                      └───────┴─────────────────┘                           {
+                                      └───────┴─────────────────┘
+            {
               "id": "key-1",
               "name": "tenant-key",
               "workspace": {
@@ -186,7 +187,8 @@ public sealed class ListApiKeyCommandTests
                                       ├───────┼─────────────────┤
                                       │ key-1 │ tenant-key      │
                                       │ key-2 │ integration-key │
-                                      └───────┴─────────────────┘                           {
+                                      └───────┴─────────────────┘
+            {
               "id": "key-1",
               "name": "tenant-key",
               "workspace": {
@@ -268,6 +270,7 @@ public sealed class ListApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
                 "values": [
                     {
@@ -372,6 +375,7 @@ public sealed class ListApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null
@@ -406,6 +410,7 @@ public sealed class ListApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
                 "values": [],
                 "cursor": null
@@ -475,7 +480,8 @@ public sealed class ListApiKeyCommandTests
                                                     ├───────┼─────────────────┤
                                                     │ key-1 │ tenant-key      │
                                                     │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘                           {
+                                                    └───────┴─────────────────┘
+            {
               "id": "key-1",
               "name": "tenant-key",
               "workspace": {
@@ -519,6 +525,7 @@ public sealed class ListApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
                 "values": [
                     {
@@ -575,6 +582,7 @@ public sealed class ListApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
                 "values": [
                     {

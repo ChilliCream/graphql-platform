@@ -124,8 +124,6 @@ internal sealed class DeleteClientCommand : Command
 
             activity.Success("Successfully deleted client!");
 
-            console.WriteLine();
-
             resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(clientModel).ToObject()));
 
             return ExitCodes.Success;

@@ -54,6 +54,8 @@ internal sealed class EditStagesCommand : Command
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         console.WriteOperationTitle();
 
         const string apiMessage = "For which API do you want to edit the stages?";
@@ -92,8 +94,7 @@ internal sealed class EditStagesCommand : Command
                 throw Exit("Could not parse stage configuration");
             }
 
-            await client.UpdateStagesAsync(console, resultHolder, apiId, input, cancellationToken);
-            return ExitCodes.Success;
+            return await client.UpdateStagesAsync(console, resultHolder, apiId, input, cancellationToken);
         }
 
         return await EditStagesInteractivlyAsync(
@@ -150,15 +151,13 @@ internal sealed class EditStagesCommand : Command
                 case ActionResult.Save
                     when await console.ConfirmStageUpdate(updatedStages, cancellationToken):
 
-                    await client.UpdateStagesAsync(
+                    return await client.UpdateStagesAsync(
                         console,
                         resultHolder,
                         apiId,
                         updatedStages,
                         cancellationToken
                     );
-
-                    return ExitCodes.Success;
             }
         }
 
@@ -187,7 +186,7 @@ file static class ClientExtensions
             .ToList();
     }
 
-    public static async Task UpdateStagesAsync(
+    public static async Task<int> UpdateStagesAsync(
         this IStagesClient client,
         INitroConsole console,
         IResultHolder resultHolder,
@@ -195,17 +194,43 @@ file static class ClientExtensions
         IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
     {
-        var stages = await client.UpdateStagesAsync(apiId, updatedStages, cancellationToken);
-        console.PrintMutationErrorsAndExit(stages.Errors);
+        await using (var activity = console.StartActivity("Updating stages..."))
+        {
+            var data = await client.UpdateStagesAsync(apiId, updatedStages, cancellationToken);
 
-        var items = stages.Api?.Stages
-            .Select(x => StageDetailPrompt.From(x).ToObject())
-            .ToArray() ?? [];
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
 
-        resultHolder.SetResult(
-            new ObjectResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null)));
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IApiNotFoundError err => err.Message,
+                        IStageNotFoundError err => err.Message,
+                        IStagesHavePublishedDependenciesError err => err.Message,
+                        IStageValidationError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
 
-        console.OkLine("Successfully updated stages");
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully updated stages!");
+
+            var items = data.Api?.Stages
+                .Select(x => StageDetailPrompt.From(x).ToObject())
+                .ToArray() ?? [];
+
+            resultHolder.SetResult(
+                new ObjectResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null)));
+
+            return ExitCodes.Success;
+        }
     }
 }
 

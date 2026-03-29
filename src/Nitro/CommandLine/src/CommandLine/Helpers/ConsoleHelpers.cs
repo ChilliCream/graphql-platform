@@ -39,7 +39,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintSchemaVersionChangeViolations(
+    internal static void PrintSchemaVersionChangeViolations(
         this INitroConsole console,
         ISchemaVersionChangeViolationError error)
     {
@@ -48,7 +48,7 @@ internal static class ConsoleHelpers
         console.Write(tree);
     }
 
-    private static void PrintSchemaChangeViolations(
+    internal static void PrintSchemaChangeViolations(
         this INitroConsole console,
         ISchemaChangeViolationError error)
     {
@@ -57,7 +57,7 @@ internal static class ConsoleHelpers
         console.Write(tree);
     }
 
-    private static void PrintStagePublishedDependencies(
+    internal static void PrintStagePublishedDependencies(
         this INitroConsole console,
         IStagesHavePublishedDependenciesError error)
     {
@@ -83,7 +83,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintPersistedQueryValidationErrors(this INitroConsole console, IPersistedQueryValidationError error)
+    internal static void PrintPersistedQueryValidationErrors(this INitroConsole console, IPersistedQueryValidationError error)
     {
         console.WarningLine(
             $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
@@ -115,7 +115,7 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
-    private static void PrintOpenApiCollectionValidationErrors(this INitroConsole console, IOpenApiCollectionValidationError error)
+    internal static void PrintOpenApiCollectionValidationErrors(this INitroConsole console, IOpenApiCollectionValidationError error)
     {
         foreach (var collectionError in error.Collections)
         {
@@ -168,7 +168,7 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintMcpFeatureCollectionValidationErrors(this INitroConsole console, IMcpFeatureCollectionValidationError error)
+    internal static void PrintMcpFeatureCollectionValidationErrors(this INitroConsole console, IMcpFeatureCollectionValidationError error)
     {
         foreach (var collectionError in error.Collections)
         {

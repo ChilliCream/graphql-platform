@@ -6,7 +6,6 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 
@@ -15,6 +14,7 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
     public CreatePersonalAccessTokenCommand(
         INitroConsole console,
         IPersonalAccessTokensClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder) : base("create")
     {
         Description = "Creates a new personal access token";
@@ -25,52 +25,73 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken));
+            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
         ParseResult parseResult,
         INitroConsole console,
         IPersonalAccessTokensClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        console.WriteLine();
-        console.WriteLine("Creating a pat key");
-        console.WriteLine();
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var description = await parseResult
-            .OptionOrAskAsync(
+        var description = await console
+            .PromptAsync(
                 "Description of the Personal Access Token",
+                defaultValue: null,
+                parseResult,
                 Opt<OptionalDescriptionOption>.Instance,
-                console,
                 ct);
 
         var expires = parseResult.GetValue(Opt<ExpiresOption>.Instance);
 
         var expiresAt = DateTimeOffset.UtcNow.AddDays(expires);
 
-        var data = await client.CreatePersonalAccessTokenAsync(description, expiresAt, ct);
-        console.PrintMutationErrorsAndExit(data.Errors);
-
-        var result = data.Result;
-        if (result is null)
+        await using (var activity = console.StartActivity("Creating personal access token..."))
         {
-            throw Exit("Could not create pat.");
-        }
+            var data = await client.CreatePersonalAccessTokenAsync(description, expiresAt, ct);
 
-        console.OkLine(
-            $"Secret: {result.Secret.AsHighlight()} {"This secret will not be available later!"
-                .AsDescription()}");
-
-        resultHolder.SetResult(new ObjectResult(
-            new CreatePersonalAccessTokenCommandResult
+            if (data.Errors?.Count > 0)
             {
-                Secret = result.Secret,
-                Details = PersonalAccessTokenDetailPrompt.From(result.Token).ToObject()
-            }));
+                activity.Fail();
 
-        return ExitCodes.Success;
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            var result = data.Result;
+            if (result is null)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create personal access token.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully created personal access token!");
+
+            resultHolder.SetResult(new ObjectResult(
+                new CreatePersonalAccessTokenCommandResult
+                {
+                    Secret = result.Secret,
+                    Details = PersonalAccessTokenDetailPrompt.From(result.Token).ToObject()
+                }));
+
+            return ExitCodes.Success;
+        }
     }
 
     public class CreatePersonalAccessTokenCommandResult

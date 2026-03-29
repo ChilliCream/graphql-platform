@@ -89,8 +89,6 @@ internal sealed class DeleteApiCommand : Command
 
         activity.Success("Successfully deleted API!");
 
-        console.WriteLine();
-
         resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(api).ToObject()));
 
         return ExitCodes.Success;

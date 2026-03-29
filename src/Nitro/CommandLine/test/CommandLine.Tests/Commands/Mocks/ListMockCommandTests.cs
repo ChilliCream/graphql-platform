@@ -200,6 +200,7 @@ public sealed class ListMockCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -277,6 +278,7 @@ public sealed class ListMockCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -370,6 +372,7 @@ public sealed class ListMockCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null

@@ -146,7 +146,8 @@ public sealed class ListEnvironmentCommandTests
                                          ├───────┼────────────┤
                                          │ env-1 │ production │
                                          │ env-2 │ staging    │
-                                         └───────┴────────────┘                             {
+                                         └───────┴────────────┘
+            {
               "id": "env-1",
               "name": "production",
               "workspace": {
@@ -190,6 +191,7 @@ public sealed class ListEnvironmentCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -265,7 +267,8 @@ public sealed class ListEnvironmentCommandTests
                                           │ Id    │ Name    │
                                           ├───────┼─────────┤
                                           │ env-2 │ staging │
-                                          └───────┴─────────┘                               {
+                                          └───────┴─────────┘
+            {
               "id": "env-2",
               "name": "staging",
               "workspace": {
@@ -311,6 +314,7 @@ public sealed class ListEnvironmentCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {

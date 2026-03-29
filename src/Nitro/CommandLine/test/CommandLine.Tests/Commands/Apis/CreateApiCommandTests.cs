@@ -150,7 +150,7 @@ public sealed class CreateApiCommandTests
         result.AssertSuccess(
             """
             Creating API...
-            └── Successfully created API!
+            └── ✓ Successfully created API!
 
             {
               "id": "api-1",
@@ -205,6 +205,7 @@ public sealed class CreateApiCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "id": "api-1",
               "name": "my-api",
@@ -312,7 +313,7 @@ public sealed class CreateApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating API...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -362,7 +363,7 @@ public sealed class CreateApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating API...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -506,7 +507,7 @@ public sealed class CreateApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating API...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -683,7 +684,7 @@ public sealed class CreateApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating API...
-            └── Failed!
+            └── ✕ Failed!
             """);
 
         result.StdErr.MatchInlineSnapshot(
@@ -804,7 +805,7 @@ public sealed class CreateApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating API...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """

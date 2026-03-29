@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -16,6 +15,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
     public RevokePersonalAccessTokenCommand(
         INitroConsole console,
         IPersonalAccessTokensClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder) : base("revoke")
     {
         Description = "Revokes a personal access token";
@@ -30,6 +30,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
                 parseResult,
                 console,
                 client,
+                sessionService,
                 resultHolder,
                 parseResult.GetValue(Opt<IdArgument>.Instance)!,
                 cancellationToken));
@@ -39,30 +40,61 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
         ParseResult parseResult,
         INitroConsole console,
         IPersonalAccessTokensClient client,
+        ISessionService sessionService,
         IResultHolder resultHolder,
         string patId,
         CancellationToken cancellationToken)
     {
-        var confirmMessage = $"Do you really want to delete PAT with ID {patId}";
-        var force = await parseResult.ConfirmWhenNotForced(confirmMessage, console, cancellationToken);
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
         if (!force)
         {
-            throw Exit("PAT was not deleted");
+            var confirmed = await console.ConfirmAsync(
+                $"Do you really want to delete PAT with ID {patId}",
+                cancellationToken);
+
+            if (!confirmed)
+            {
+                throw Exit("PAT was not deleted.");
+            }
         }
 
-        var data = await client.RevokePersonalAccessTokenAsync(patId, cancellationToken);
-        console.PrintMutationErrorsAndExit(data.Errors);
-
-        if (data.PersonalAccessToken is not IPersonalAccessTokenDetailPrompt_PersonalAccessToken token)
+        await using (var activity = console.StartActivity("Revoking personal access token..."))
         {
-            throw Exit("Could not delete PAT");
+            var data = await client.RevokePersonalAccessTokenAsync(patId, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IPersonalAccessTokenNotFoundError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (data.PersonalAccessToken is not IPersonalAccessTokenDetailPrompt_PersonalAccessToken token)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not revoke personal access token.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully revoked personal access token!");
+
+            resultHolder.SetResult(new ObjectResult(PersonalAccessTokenDetailPrompt.From(token).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine(
-            $"PersonalAccessToken {token.Description.AsHighlight()} [dim](ID: {token.Id})[/] was deleted");
-
-        resultHolder.SetResult(new ObjectResult(PersonalAccessTokenDetailPrompt.From(token).ToObject()));
-
-        return ExitCodes.Success;
     }
 }

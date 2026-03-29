@@ -14,6 +14,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IConfigurationService configurationService,
+        ISessionService sessionService,
         IFileSystem fileSystem,
         IResultHolder resultHolder) : base("begin")
     {
@@ -35,6 +36,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 console,
                 fusionConfigurationClient,
                 configurationService,
+                sessionService,
                 fileSystem,
                 resultHolder,
                 cancellationToken));
@@ -45,10 +47,13 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IConfigurationService configurationService,
+        ISessionService sessionService,
         IFileSystem fileSystem,
         IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
         var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
         var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;

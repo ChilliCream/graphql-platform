@@ -38,11 +38,12 @@ internal static class RootCommandExtensions
 
         if (resultHolder.Result is { } result)
         {
+            console.WriteLine();
             formatter.Format(result);
         }
         else if (format is OutputFormat.Json && exitCode == 0)
         {
-            console.WriteLine("{}");
+            console.WriteDirectly("{}");
         }
 
         return exitCode;

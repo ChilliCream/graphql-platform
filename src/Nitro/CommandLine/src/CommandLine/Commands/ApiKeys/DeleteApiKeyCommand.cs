@@ -90,8 +90,6 @@ internal sealed class DeleteApiKeyCommand : Command
 
             activity.Success("Successfully deleted API key!");
 
-            console.WriteLine();
-
             resultHolder.SetResult(new ObjectResult(ApiKeyDetailPrompt.From(key).ToObject()));
 
             return ExitCodes.Success;

@@ -130,8 +130,6 @@ internal sealed class CreateApiKeyCommand : Command
 
             activity.Success("Successfully created API key!");
 
-            console.WriteLine();
-
             resultHolder.SetResult(new ObjectResult(new CreateApiKeyResult
             {
                 Secret = result.Secret,

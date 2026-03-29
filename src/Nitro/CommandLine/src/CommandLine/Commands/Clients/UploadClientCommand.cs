@@ -52,7 +52,7 @@ internal sealed class UploadClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Uploading operations..."))
+        await using (var activity = console.StartActivity($"Uploading new version for client '{clientId}'..."))
         {
             await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 

@@ -189,6 +189,7 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -276,6 +277,7 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null
@@ -322,6 +324,7 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -372,6 +375,7 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {

@@ -120,6 +120,7 @@ public sealed class ShowEnvironmentCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "id": "environment-1",
               "name": "production",

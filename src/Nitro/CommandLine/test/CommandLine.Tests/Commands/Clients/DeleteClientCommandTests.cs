@@ -159,11 +159,8 @@ public sealed class DeleteClientCommandTests
         clientsClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsClientNotFoundError_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsClientNotFoundError_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -183,7 +180,87 @@ public sealed class DeleteClientCommandTests
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client not found.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsClientNotFoundError_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+
+        var notFound = new Mock<IDeleteClientByIdCommandMutation_DeleteClientById_Errors_ClientNotFoundError>(
+            MockBehavior.Strict);
+        notFound.As<IClientNotFoundError>().SetupGet(x => x.Message).Returns("Client not found.");
+
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.DeleteClientAsync(
+                "client-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateDeletePayload(client: null, errors: [notFound.Object]));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client not found.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsClientNotFoundError_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+
+        var notFound = new Mock<IDeleteClientByIdCommandMutation_DeleteClientById_Errors_ClientNotFoundError>(
+            MockBehavior.Strict);
+        notFound.As<IClientNotFoundError>().SetupGet(x => x.Message).Returns("Client not found.");
+
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.DeleteClientAsync(
+                "client-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateDeletePayload(client: null, errors: [notFound.Object]));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "client",
                 "delete",
@@ -201,11 +278,8 @@ public sealed class DeleteClientCommandTests
         clientsClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNoClient_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsNoClient_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -220,7 +294,77 @@ public sealed class DeleteClientCommandTests
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not delete the client.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNoClient_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.DeleteClientAsync(
+                "client-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateDeletePayload(client: null, errors: null));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not delete the client.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNoClient_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.DeleteClientAsync(
+                "client-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateDeletePayload(client: null, errors: null));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "client",
                 "delete",
@@ -238,11 +382,8 @@ public sealed class DeleteClientCommandTests
         clientsClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -253,7 +394,69 @@ public sealed class DeleteClientCommandTests
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = CreateDeleteExceptionClient(new NitroClientException("delete failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = CreateDeleteExceptionClient(new NitroClientException("delete failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "client",
                 "delete",
@@ -271,11 +474,8 @@ public sealed class DeleteClientCommandTests
         clientsClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -286,7 +486,69 @@ public sealed class DeleteClientCommandTests
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = CreateDeleteExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = CreateDeleteExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "client",
                 "delete",

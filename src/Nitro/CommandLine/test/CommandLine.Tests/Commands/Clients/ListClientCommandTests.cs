@@ -180,7 +180,8 @@ public sealed class ListClientCommandTests
                                       ├──────────┼───────────────┤
                                       │ client-1 │ web-client    │
                                       │ client-2 │ mobile-client │
-                                      └──────────┴───────────────┘                          {
+                                      └──────────┴───────────────┘
+            {
               "id": "client-1",
               "name": "web-client",
               "api": {
@@ -227,6 +228,7 @@ public sealed class ListClientCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -303,7 +305,8 @@ public sealed class ListClientCommandTests
                                        │ Id       │ Name       │
                                        ├──────────┼────────────┤
                                        │ client-1 │ web-client │
-                                       └──────────┴────────────┘                            {
+                                       └──────────┴────────────┘
+            {
               "id": "client-1",
               "name": "web-client",
               "api": {
@@ -352,6 +355,7 @@ public sealed class ListClientCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {

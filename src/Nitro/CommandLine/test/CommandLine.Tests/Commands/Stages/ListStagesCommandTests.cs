@@ -118,6 +118,7 @@ public sealed class ListStagesCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -173,6 +174,7 @@ public sealed class ListStagesCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null

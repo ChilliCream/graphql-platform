@@ -70,8 +70,9 @@ internal sealed class CreateClientCommand : Command
                     };
 
                     await console.Error.WriteLineAsync(errorMessage);
-                    return ExitCodes.Error;
                 }
+
+                return ExitCodes.Error;
             }
 
             if (data.Client is not IClientDetailPrompt_Client createdClient)
@@ -82,8 +83,6 @@ internal sealed class CreateClientCommand : Command
             }
 
             activity.Success("Successfully created client!");
-
-            console.WriteLine();
 
             resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(createdClient).ToObject()));
 

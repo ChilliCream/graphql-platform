@@ -127,6 +127,7 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -184,6 +185,7 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null
@@ -256,7 +258,8 @@ public sealed class ListClientVersionsCommandTests
                       ├─────┼──────────────────────┼────────────┤
                       │ v1  │ 2025-01-15 10:00:00Z │ production │
                       │ v2  │ 2025-01-16 10:00:00Z │ staging    │
-                      └─────┴──────────────────────┴────────────┘                   {
+                      └─────┴──────────────────────┴────────────┘
+            {
               "tag": "v1",
               "createdAt": "2025-01-15T10:00:00+00:00",
               "stages": [
@@ -378,7 +381,8 @@ public sealed class ListClientVersionsCommandTests
                       │ Tag │ Created              │ Stages     │
                       ├─────┼──────────────────────┼────────────┤
                       │ v1  │ 2025-01-15 10:00:00Z │ production │
-                      └─────┴──────────────────────┴────────────┘                   {
+                      └─────┴──────────────────────┴────────────┘
+            {
               "tag": "v1",
               "createdAt": "2025-01-15T10:00:00+00:00",
               "stages": [
@@ -429,6 +433,7 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {

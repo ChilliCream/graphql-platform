@@ -94,8 +94,6 @@ internal sealed class CreateEnvironmentCommand : Command
 
             activity.Success("Successfully created environment!");
 
-            console.WriteLine();
-
             resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(detail).ToObject()));
 
             return ExitCodes.Success;

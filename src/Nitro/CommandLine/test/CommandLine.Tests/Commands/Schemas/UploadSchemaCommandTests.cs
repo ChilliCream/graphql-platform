@@ -94,7 +94,7 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading schema...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -205,7 +205,7 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading schema...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -318,7 +318,7 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading schema...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -429,7 +429,7 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading schema...
-            └── Failed!
+            └── ✕ Failed!
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -549,7 +549,7 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading schema...
-            └── Successfully uploaded schema!
+            └── ✓ Successfully uploaded schema!
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

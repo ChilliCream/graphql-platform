@@ -2,7 +2,6 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -30,7 +29,7 @@ internal sealed class CreateWorkspaceCommand : Command
             => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
     }
 
-    public static async Task<int> ExecuteAsync(
+    private static async Task<int> ExecuteAsync(
         ParseResult parseResult,
         INitroConsole console,
         IWorkspacesClient client,
@@ -38,11 +37,10 @@ internal sealed class CreateWorkspaceCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        console.WriteLine();
-        console.WriteLine("Creating a workspace");
-        console.WriteLine();
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var name = await parseResult.OptionOrAskAsync("Name", Opt<WorkspaceNameOption>.Instance, console, ct);
+        var name = await console
+            .PromptAsync("Name", defaultValue: null, parseResult, Opt<WorkspaceNameOption>.Instance, ct);
 
         var asDefault = false;
         var session = sessionService.Session;
@@ -56,27 +54,51 @@ internal sealed class CreateWorkspaceCommand : Command
                 ct);
         }
 
-        var createdWorkspace = await client.CreateWorkspaceAsync(name, ct);
-        console.PrintMutationErrorsAndExit(createdWorkspace.Errors);
-
-        if (createdWorkspace.Workspace is not IWorkspaceDetailPrompt_Workspace workspaceDetail)
+        await using (var activity = console.StartActivity("Creating workspace..."))
         {
-            throw new ExitException("Could not create workspace.");
+            var createdWorkspace = await client.CreateWorkspaceAsync(name, ct);
+
+            if (createdWorkspace.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in createdWorkspace.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IValidationError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (createdWorkspace.Workspace is not IWorkspaceDetailPrompt_Workspace workspaceDetail)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create workspace.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully created workspace!");
+
+            resultHolder.SetResult(new ObjectResult(WorkspaceDetailPrompt.From(workspaceDetail).ToObject()));
+
+            if (asDefault)
+            {
+                var workspace = new Workspace(workspaceDetail.Id, workspaceDetail.Name);
+
+                await sessionService.SelectWorkspaceAsync(workspace, ct);
+
+                console.OkLine($"{workspaceDetail.Name.AsHighlight()} set as default workspace");
+            }
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine($"Workspace {workspaceDetail.Name.AsHighlight()} created");
-
-        resultHolder.SetResult(new ObjectResult(WorkspaceDetailPrompt.From(workspaceDetail).ToObject()));
-
-        if (asDefault)
-        {
-            var workspace = new Workspace(workspaceDetail.Id, workspaceDetail.Name);
-
-            await sessionService.SelectWorkspaceAsync(workspace, ct);
-
-            console.OkLine($"{workspaceDetail.Name.AsHighlight()} set as default workspace");
-        }
-
-        return ExitCodes.Success;
     }
 }

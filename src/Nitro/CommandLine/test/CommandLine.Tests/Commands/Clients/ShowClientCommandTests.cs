@@ -120,6 +120,7 @@ public sealed class ShowClientCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "id": "client-1",
               "name": "web-client",

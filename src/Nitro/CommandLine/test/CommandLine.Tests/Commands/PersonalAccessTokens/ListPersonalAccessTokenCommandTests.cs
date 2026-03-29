@@ -92,7 +92,8 @@ public sealed class ListPersonalAccessTokenCommandTests
                           ├───────┼─────────────┼────────────┤
                           │ pat-1 │ my-token    │ Expired    │
                           │ pat-2 │ ci-token    │ Expired    │
-                          └───────┴─────────────┴────────────┘                      {
+                          └───────┴─────────────┴────────────┘
+            {
               "id": "pat-1",
               "description": "my-token",
               "createdAt": "2025-01-01T00:00:00+00:00",
@@ -134,6 +135,7 @@ public sealed class ListPersonalAccessTokenCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {
@@ -223,6 +225,7 @@ public sealed class ListPersonalAccessTokenCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [],
               "cursor": null
@@ -286,7 +289,8 @@ public sealed class ListPersonalAccessTokenCommandTests
                           │ Id    │ Description │ Expires in │
                           ├───────┼─────────────┼────────────┤
                           │ pat-1 │ my-token    │ Expired    │
-                          └───────┴─────────────┴────────────┘                      {
+                          └───────┴─────────────┴────────────┘
+            {
               "id": "pat-1",
               "description": "my-token",
               "createdAt": "2025-01-01T00:00:00+00:00",
@@ -329,6 +333,7 @@ public sealed class ListPersonalAccessTokenCommandTests
         // assert
         result.AssertSuccess(
             """
+
             {
               "values": [
                 {

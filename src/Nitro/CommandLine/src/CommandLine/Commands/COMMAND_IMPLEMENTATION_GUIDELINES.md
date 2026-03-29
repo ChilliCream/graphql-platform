@@ -214,12 +214,10 @@ Rules:
 
 ## Result output
 
-After a successful operation, call `activity.Success("...")`, write a blank line, set the result on `resultHolder`, and return `ExitCodes.Success`. The blank line is required for readability whenever a result is being set.
+After a successful operation, call `activity.Success("...")`, set the result on `resultHolder`, and return `ExitCodes.Success`. The blank line before the result is handled automatically by the result formatting infrastructure in `RootCommandExtensions` — do **not** call `console.WriteLine()` before `resultHolder.SetResult(...)`.
 
 ```csharp
 activity.Success("Successfully created API key!");
-
-console.WriteLine();
 
 resultHolder.SetResult(new ObjectResult(new MyResult
 {

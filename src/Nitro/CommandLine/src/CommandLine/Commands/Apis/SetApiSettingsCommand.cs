@@ -92,8 +92,6 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         activity.Success("Successfully updated API settings!");
 
-        console.WriteLine();
-
         resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(api).ToObject()));
 
         return ExitCodes.Success;
