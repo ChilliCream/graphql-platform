@@ -434,13 +434,14 @@ RabbitMQ uses a `routing_key` field on every published message to decide which q
 
 **Direct exchanges** work the same way, but require an exact match instead of a pattern.
 
-**Fanout exchanges** ignore routing keys entirely — every bound queue gets every message.
+**Fanout exchanges** ignore routing keys entirely - every bound queue gets every message.
 
 Routing keys are useful when you need to split a single message stream across different consumers based on a property of the message itself:
 
-- **Multi-tenant routing** — route messages to tenant-specific queues (`tenant-a.orders`, `tenant-b.orders`)
-- **Region-based routing** — route to regional processors (`us.east`, `eu.west`)
-- **Priority routing** — separate high-priority and low-priority messages (`priority.high`, `priority.low`)
+- **Disconnecting producers from consumers** - publish messages without knowing which queues or services will consume them. Consumers can bind with patterns to receive only the messages they care about.
+- **Multi-tenant routing** - route messages to tenant-specific queues (`tenant-a.orders`, `tenant-b.orders`)
+- **Region-based routing** - route to regional processors (`us.east`, `eu.west`)
+- **Priority routing** - separate high-priority and low-priority messages (`priority.high`, `priority.low`)
 
 For a full treatment of topic exchange routing, see the [RabbitMQ Topics Tutorial](https://www.rabbitmq.com/tutorials/tutorial-five-dotnet).
 
@@ -546,7 +547,7 @@ When you publish a `RegionEvent` with `Region = "us.east"`, the routing key midd
 | --------- | ---------------------------- | ------------------------ |
 | `us.*`    | `us.east`, `us.west`         | `us.east.az1`, `eu.west` |
 | `eu.#`    | `eu.west`, `eu.west.az1`     | `us.east`                |
-| `#`       | Everything                   | —                        |
+| `#`       | Everything                   | -                        |
 | `*.*.az1` | `us.east.az1`, `eu.west.az1` | `us.east`                |
 
 `*` matches exactly one word. `#` matches zero or more words. Words are separated by dots.
@@ -583,12 +584,6 @@ builder.Services
 ```
 
 Messages with `Priority = "high"` reach the queue. Messages with any other priority are dropped by the exchange (unless another queue is bound with a matching routing key).
-
-## Outbox compatibility
-
-Routing keys survive outbox replay with no special configuration.
-
-When Mocha dispatches a message, the routing key middleware writes the extracted key into the message headers before serialization. The outbox stores the complete envelope — headers included. On replay, the message body is not deserialized, so the extractor does not run again. Instead, the dispatch endpoint reads the routing key directly from the stored headers. The routing key used during replay is always identical to the one from the original dispatch.
 
 # Next steps
 

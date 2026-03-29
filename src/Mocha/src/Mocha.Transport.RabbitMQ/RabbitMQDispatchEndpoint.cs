@@ -108,6 +108,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             if (Exchange is not null)
             {
                 exchangeName = Exchange.CachedName;
+
                 if (envelope.Headers is not null
                     && envelope.Headers.TryGet(RabbitMQMessageHeaders.RoutingKey, out var rk))
                 {
