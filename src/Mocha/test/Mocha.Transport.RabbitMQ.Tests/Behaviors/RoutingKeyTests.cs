@@ -114,8 +114,8 @@ public class RoutingKeyTests
 
         Assert.Equal(3, recorder.Messages.Count);
 
-        var payloads = recorder.Messages
-            .Cast<RegionEvent>()
+        var payloads = recorder
+            .Messages.Cast<RegionEvent>()
             .Select(e => e.Payload)
             .OrderBy(p => p, StringComparer.Ordinal)
             .ToList();
@@ -194,9 +194,7 @@ public class RoutingKeyTests
                             (_, next) =>
                                 context =>
                                 {
-                                    if (context.Headers.TryGet(
-                                            RabbitMQMessageHeaders.RoutingKey,
-                                            out string? routingKey))
+                                    if (context.Headers.TryGet(RabbitMQMessageHeaders.RoutingKey, out var routingKey))
                                     {
                                         tracker.CapturedKeys.Add(routingKey);
                                     }
@@ -223,18 +221,13 @@ public class RoutingKeyTests
         Assert.Equal("ap.southeast", capturedKey);
     }
 
-    // -- Message types --
-
     public sealed class RegionEvent
     {
         public required string Region { get; init; }
         public required string Payload { get; init; }
     }
 
-    // -- Consumers --
-
-    public sealed class UsRegionConsumer([FromKeyedServices("us")] MessageRecorder recorder)
-        : IConsumer<RegionEvent>
+    public sealed class UsRegionConsumer([FromKeyedServices("us")] MessageRecorder recorder) : IConsumer<RegionEvent>
     {
         public ValueTask ConsumeAsync(IConsumeContext<RegionEvent> context)
         {
@@ -243,8 +236,7 @@ public class RoutingKeyTests
         }
     }
 
-    public sealed class EuRegionConsumer([FromKeyedServices("eu")] MessageRecorder recorder)
-        : IConsumer<RegionEvent>
+    public sealed class EuRegionConsumer([FromKeyedServices("eu")] MessageRecorder recorder) : IConsumer<RegionEvent>
     {
         public ValueTask ConsumeAsync(IConsumeContext<RegionEvent> context)
         {
@@ -261,8 +253,6 @@ public class RoutingKeyTests
             return default;
         }
     }
-
-    // -- Helpers --
 
     public sealed class RoutingKeyTracker
     {

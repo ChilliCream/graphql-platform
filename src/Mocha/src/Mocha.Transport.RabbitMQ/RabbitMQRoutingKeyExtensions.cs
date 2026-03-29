@@ -16,8 +16,10 @@ public static class RabbitMQRoutingKeyExtensions
         this IMessageTypeDescriptor descriptor,
         Func<TMessage, string?> extractor)
     {
-        descriptor.Extend().Configuration.Features.Set(
-            new RabbitMQRoutingKeyExtractor(msg => extractor((TMessage)msg)));
+        var features = descriptor.Extend().Configuration.Features;
+
+        features.Set(RabbitMQRoutingKeyExtractor.Create(extractor));
+
         return descriptor;
     }
 }

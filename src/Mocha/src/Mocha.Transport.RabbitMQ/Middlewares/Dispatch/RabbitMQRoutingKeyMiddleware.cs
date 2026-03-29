@@ -37,7 +37,5 @@ internal sealed class RabbitMQRoutingKeyMiddleware
     /// </summary>
     /// <returns>A middleware configuration keyed as "RabbitMQRoutingKey".</returns>
     public static DispatchMiddlewareConfiguration Create()
-        => new(
-            static (_, next) => ctx => s_instance.InvokeAsync(ctx, next),
-            "RabbitMQRoutingKey");
+        => new(static (_, next) => ctx => s_instance.InvokeAsync(ctx, next), "RabbitMQRoutingKey");
 }

@@ -109,7 +109,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             {
                 exchangeName = Exchange.CachedName;
                 if (envelope.Headers is not null
-                    && envelope.Headers.TryGet(RabbitMQMessageHeaders.RoutingKey, out string? rk))
+                    && envelope.Headers.TryGet(RabbitMQMessageHeaders.RoutingKey, out var rk))
                 {
                     routingKey = new CachedString(rk);
                 }

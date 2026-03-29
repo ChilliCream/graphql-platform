@@ -12,4 +12,9 @@ internal sealed class RabbitMQRoutingKeyExtractor(Func<object, string?> extracto
     /// <param name="message">The message to extract the routing key from.</param>
     /// <returns>The routing key, or <c>null</c> if none could be determined.</returns>
     public string? Extract(object message) => extractor(message);
+
+    public static RabbitMQRoutingKeyExtractor Create<TMessage>(Func<TMessage, string?> extractor)
+    {
+        return new RabbitMQRoutingKeyExtractor(msg => extractor((TMessage)msg));
+    }
 }
