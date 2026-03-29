@@ -20,14 +20,12 @@ public static class NitroClientServiceCollectionExtensions
 {
     private static readonly string s_userAgent = $"Nitro CLI/{Version}";
 
-    public static IServiceCollection AddNitroClients(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroClients(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        return services
-            .AddNitroApisClient(configure)
+        services
+            .AddNitroApisClient()
             .AddNitroApiKeysClient()
             .AddNitroClientsClient()
             .AddNitroEnvironmentsClient()
@@ -39,208 +37,180 @@ public static class NitroClientServiceCollectionExtensions
             .AddNitroStagesClient()
             .AddNitroWorkspacesClient()
             .AddNitroFusionConfigurationClient();
+
+        return services;
     }
 
-    public static IServiceCollection AddNitroApisClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroApisClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IApisClient, ApisClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroApiKeysClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroApiKeysClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IApiKeysClient, ApiKeysClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroClientsClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroClientsClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IClientsClient, ClientsClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroEnvironmentsClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroEnvironmentsClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IEnvironmentsClient, EnvironmentsClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroMcpClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroMcpClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IMcpClient, McpClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroMocksClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroMocksClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IMocksClient, MocksClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroOpenApiClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroOpenApiClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IOpenApiClient, OpenApiClient>();
 
         return services;
     }
 
     public static IServiceCollection AddNitroPersonalAccessTokensClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+        this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IPersonalAccessTokensClient, PersonalAccessTokensClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroSchemasClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroSchemasClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<ISchemasClient, SchemasClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroStagesClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroStagesClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IStagesClient, StagesClient>();
 
         return services;
     }
 
-    public static IServiceCollection AddNitroWorkspacesClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+    public static IServiceCollection AddNitroWorkspacesClient(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IWorkspacesClient, WorkspacesClient>();
 
         return services;
     }
 
     public static IServiceCollection AddNitroFusionConfigurationClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure = null)
+        this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        TryAddNitroApiClient(services, configure);
+        TryAddNitroApiClient(services);
         services.TryAddSingleton<IFusionConfigurationClient, FusionConfigurationClient>();
 
         return services;
     }
 
-    internal static IServiceCollection TryAddNitroApiClient(
-        this IServiceCollection services,
-        Action<NitroApiClientOptions>? configure)
+    internal static void TryAddNitroApiClient(IServiceCollection services)
     {
-        var clientBuilder = services.AddHttpClient(
-            ApiClient.ClientName,
-            static (serviceProvider, client) => ConfigureApiHttpClient(serviceProvider, client));
+        if (services.Any(d => d.ServiceType == typeof(IApiClient)))
+        {
+            return;
+        }
 
+        services.AddHttpClient(ApiClient.ClientName, static (sp, client) => ConfigureApiHttpClient(sp, client));
         services.TryAddSingleton<IApiClient>(CreateApiClient);
-        services.AddSingleton<ApiClientRegistrationMarker>();
-
-        return services;
     }
 
-    private static void ConfigureApiHttpClient(IServiceProvider serviceProvider, HttpClient client)
+    private static void ConfigureApiHttpClient(IServiceProvider sp, HttpClient client)
     {
-        var options = serviceProvider.GetRequiredService<NitroApiClientOptions>();
-        var baseAddress = options.ResolveBaseAddress!(serviceProvider);
-        var authHeader = options.ResolveAuthHeader!(serviceProvider);
-
-        if (!baseAddress.IsAbsoluteUri)
-        {
-            throw new InvalidOperationException("The resolved base address must be an absolute URI.");
-        }
-
-        if (string.IsNullOrWhiteSpace(authHeader.Name))
-        {
-            throw new InvalidOperationException("The resolved auth header name cannot be empty.");
-        }
-
-        if (string.IsNullOrWhiteSpace(authHeader.Value))
-        {
-            throw new InvalidOperationException("The resolved auth header value cannot be empty.");
-        }
-
-        client.BaseAddress = baseAddress;
-
         client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
 
-        client.DefaultRequestHeaders.Remove(authHeader.Name);
-        client.DefaultRequestHeaders.Add(authHeader.Name, authHeader.Value);
+        client.DefaultRequestHeaders.Remove(NitroClientHeaders.GraphQLPreflight);
+        client.DefaultRequestHeaders.Add(NitroClientHeaders.GraphQLPreflight, "1");
 
-        client.DefaultRequestHeaders.Remove(NitroHeaders.GraphQLClientVersion);
-        client.DefaultRequestHeaders.Add(NitroHeaders.GraphQLClientVersion, Version);
+        client.DefaultRequestHeaders.Remove(NitroClientHeaders.GraphQLClientVersion);
+        client.DefaultRequestHeaders.Add(NitroClientHeaders.GraphQLClientVersion, Version);
 
-        client.DefaultRequestHeaders.Remove(NitroHeaders.CCCAgent);
-        client.DefaultRequestHeaders.Add(NitroHeaders.CCCAgent, s_userAgent);
-
-        client.DefaultRequestHeaders.Remove(NitroHeaders.GraphQLPreflight);
-        client.DefaultRequestHeaders.Add(NitroHeaders.GraphQLPreflight, "1");
+        client.DefaultRequestHeaders.Remove(NitroClientHeaders.CccAgent);
+        client.DefaultRequestHeaders.Add(NitroClientHeaders.CccAgent, s_userAgent);
 
         client.DefaultRequestVersion = new Version(2, 0);
         client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
 
-        options.ConfigureHttpClient?.Invoke(client);
+        var provider = sp.GetRequiredService<INitroClientContextProvider>();
+        client.BaseAddress = provider.Url;
+
+        switch (provider.Authorization)
+        {
+            case NitroClientApiKeyAuthorization apiKey:
+                client.DefaultRequestHeaders.Remove(NitroClientHeaders.ApiKey);
+                client.DefaultRequestHeaders.Add(NitroClientHeaders.ApiKey, apiKey.ApiKey);
+                break;
+
+            case NitroClientAccessTokenAuthorization accessToken:
+                client.DefaultRequestHeaders.Remove("Authorization");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken.AccessToken}");
+                break;
+
+            case null:
+                throw new InvalidOperationException(
+                    "You are not authenticated. Either specify --api-key or run 'nitro login'.");
+        }
     }
 
     private static IApiClient CreateApiClient(IServiceProvider serviceProvider)
@@ -260,13 +230,4 @@ public static class NitroClientServiceCollectionExtensions
             return new Version(version.Major, version.Minor, version.Build).ToString();
         }
     }
-
-    private static class NitroHeaders
-    {
-        public const string GraphQLClientVersion = "GraphQL-Client-Version";
-        public const string CCCAgent = "ccc-agent";
-        public const string GraphQLPreflight = "GraphQL-Preflight";
-    }
-
-    private sealed class ApiClientRegistrationMarker;
 }

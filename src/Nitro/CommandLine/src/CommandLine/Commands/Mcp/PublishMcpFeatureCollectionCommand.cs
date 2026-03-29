@@ -60,13 +60,34 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                 source,
                 ct);
 
-            console.PrintMutationErrorsAndExit(publishRequest.Errors);
-            if (publishRequest.Id is not { } requestId)
+            if (publishRequest.Errors?.Count > 0)
             {
-                throw new ExitException("Could not create publish request!");
+                activity.Fail();
+
+                foreach (var error in publishRequest.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_UnauthorizedOperation err => err.Message,
+                        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError err => err.Message,
+                        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError err => err.Message,
+                        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
             }
 
-            // console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            if (publishRequest.Id is not { } requestId)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create publish request.");
+                return ExitCodes.Error;
+            }
 
             await foreach (var update in client.SubscribeToMcpFeatureCollectionPublishAsync(requestId, ct))
             {
@@ -78,12 +99,35 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                         break;
 
                     case IMcpFeatureCollectionVersionPublishFailed { Errors: var errors }:
-                        console.ErrorLine("MCP Feature Collection publish failed");
-                        console.PrintMutationErrors(errors);
+                        activity.Fail();
+
+                        foreach (var error in errors)
+                        {
+                            switch (error)
+                            {
+                                case IUnexpectedProcessingError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IConcurrentOperationError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IMcpFeatureCollectionValidationError e:
+                                    console.PrintMcpFeatureCollectionValidationErrors(e);
+                                    break;
+                                case IError e:
+                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    break;
+                            }
+                        }
+
+                        await console.Error.WriteLineAsync("MCP Feature Collection publish failed.");
                         return ExitCodes.Error;
 
                     case IMcpFeatureCollectionVersionPublishSuccess:
-                        console.Success("Successfully published MCP Feature Collection!");
+                        activity.Success("Successfully published MCP Feature Collection!");
                         return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
@@ -97,7 +141,18 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                     case IWaitForApproval waitForApprovalEvent:
                         if (waitForApprovalEvent.Deployment is IMcpFeatureCollectionDeployment deployment)
                         {
-                            console.PrintMutationErrors(deployment.Errors);
+                            foreach (var error in deployment.Errors)
+                            {
+                                switch (error)
+                                {
+                                    case IMcpFeatureCollectionValidationError e:
+                                        console.PrintMcpFeatureCollectionValidationErrors(e);
+                                        break;
+                                    case IError e:
+                                        await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                        break;
+                                }
+                            }
                         }
 
                         activity.Update(
@@ -110,10 +165,12 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
 
                     default:
                         activity.Update(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
+                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
                         break;
                 }
             }
+
+            activity.Fail();
         }
 
         return ExitCodes.Error;

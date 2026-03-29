@@ -182,6 +182,7 @@ internal sealed class FusionValidateCommand : Command
         async Task ValidateSchemaAsync(INitroConsoleActivity activity, Stream schemaStream)
         {
             var requestId = await ValidateAsync(
+                activity,
                 console,
                 fusionConfigurationClient,
                 apiId,
@@ -197,15 +198,25 @@ internal sealed class FusionValidateCommand : Command
                 switch (@event)
                 {
                     case ISchemaVersionValidationFailed v:
-                        console.WriteLine("The schema is invalid:");
-                        console.PrintMutationErrors(v.Errors);
+                        activity.Fail();
 
+                        foreach (var error in v.Errors)
+                        {
+                            await console.Error.WriteLineAsync(error switch
+                            {
+                                IUnexpectedProcessingError e => e.Message,
+                                IError e => "Unexpected error: " + e.Message,
+                                _ => "Unexpected error."
+                            });
+                        }
+
+                        await console.Error.WriteLineAsync("Schema validation failed.");
                         isValid = false;
                         return;
 
                     case ISchemaVersionValidationSuccess:
                         isValid = true;
-                        console.Success("Schema validation succeeded.");
+                        activity.Success("Schema validation succeeded.");
                         return;
 
                     case IOperationInProgress:
@@ -223,6 +234,7 @@ internal sealed class FusionValidateCommand : Command
     }
 
     private static async Task<string> ValidateAsync(
+        INitroConsoleActivity activity,
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         string apiId,
@@ -235,7 +247,28 @@ internal sealed class FusionValidateCommand : Command
             stageName,
             schema,
             ct);
-        console.PrintMutationErrorsAndExit(result.Errors);
+
+        if (result.Errors?.Count > 0)
+        {
+            activity.Fail();
+
+            foreach (var error in result.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IValidateSchemaVersion_ValidateSchema_Errors_UnauthorizedOperation err => err.Message,
+                    IValidateSchemaVersion_ValidateSchema_Errors_ApiNotFoundError err => err.Message,
+                    IValidateSchemaVersion_ValidateSchema_Errors_StageNotFoundError err => err.Message,
+                    IValidateSchemaVersion_ValidateSchema_Errors_SchemaNotFoundError err => err.Message,
+                    IError err => "Unexpected mutation error: " + err.Message,
+                    _ => "Unexpected mutation error."
+                };
+
+                await console.Error.WriteLineAsync(errorMessage);
+            }
+
+            throw new ExitException();
+        }
 
         if (string.IsNullOrWhiteSpace(result.Id))
         {

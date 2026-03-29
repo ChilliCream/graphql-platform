@@ -61,12 +61,11 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                console.WriteLine("Could not find any MCP prompt or tool definition files with the provided patterns.");
+                activity.Fail();
+                await console.Error.WriteLineAsync(
+                    "Could not find any MCP prompt or tool definition files with the provided patterns.");
                 return ExitCodes.Error;
             }
-
-            // console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
-            // console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
 
             var archiveStream =
                 await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
@@ -82,25 +81,68 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                 source,
                 ct);
 
-            console.PrintMutationErrorsAndExit(validationRequest.Errors);
+            if (validationRequest.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in validationRequest.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_UnauthorizedOperation err => err.Message,
+                        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_StageNotFoundError err => err.Message,
+                        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
             if (validationRequest.Id is not { } requestId)
             {
                 throw new ExitException("Could not create validation request!");
             }
 
-            // console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()})");
 
             await foreach (var update in client.SubscribeToMcpFeatureCollectionValidationAsync(requestId, ct))
             {
                 switch (update)
                 {
                     case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
-                        console.ErrorLine("The MCP Feature Collection is invalid:");
-                        console.PrintMutationErrors(errors);
+                        activity.Fail();
+
+                        foreach (var error in errors)
+                        {
+                            switch (error)
+                            {
+                                case IUnexpectedProcessingError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IMcpFeatureCollectionValidationError e:
+                                    console.PrintMcpFeatureCollectionValidationErrors(e);
+                                    break;
+                                case IMcpFeatureCollectionValidationArchiveError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IError e:
+                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    break;
+                            }
+                        }
+
+                        await console.Error.WriteLineAsync("MCP Feature Collection validation failed.");
                         return ExitCodes.Error;
 
                     case IMcpFeatureCollectionVersionValidationSuccess:
-                        console.Success("MCP Feature Collection validation succeeded");
+                        activity.Success("MCP Feature Collection validation succeeded.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:
@@ -110,10 +152,12 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
                     default:
                         activity.Update(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
+                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
                         break;
                 }
             }
+
+            activity.Fail();
         }
 
         return ExitCodes.Error;

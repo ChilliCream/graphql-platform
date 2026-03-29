@@ -1,5 +1,8 @@
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -17,6 +20,7 @@ internal static class RootCommandExtensions
 
         // Parse command
         var parseResult = rootCommand.Parse(args);
+
         var format = parseResult.GetValue(Opt<OptionalOutputFormatOption>.Instance);
 
         if (format.HasValue)
@@ -28,6 +32,12 @@ internal static class RootCommandExtensions
         await services
             .GetRequiredService<ISessionService>()
             .LoadSessionAsync(cancellationToken);
+
+        var session = services.GetRequiredService<ISessionService>().Session;
+
+        // Configure Nitro client context
+        var context = services.GetRequiredService<NitroClientContext>();
+        ConfigureClientContext(context, parseResult, session);
 
         // Execute command
         var exitCode = await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
@@ -47,5 +57,44 @@ internal static class RootCommandExtensions
         }
 
         return exitCode;
+    }
+
+    private static void ConfigureClientContext(
+        NitroClientContext context,
+        ParseResult parseResult,
+        Session? session)
+    {
+        var cloudUrlResult = parseResult.GetResult(Opt<OptionalCloudUrlOption>.Instance);
+        var cloudUrl = parseResult.GetValue(Opt<OptionalCloudUrlOption>.Instance);
+        Uri url;
+        if (cloudUrlResult is { Implicit: false } && !string.IsNullOrWhiteSpace(cloudUrl))
+        {
+            url = new Uri($"https://{cloudUrl}/graphql");
+        }
+        else if (session?.ApiUrl is { } apiUrl)
+        {
+            url = new Uri($"https://{apiUrl}/graphql");
+        }
+        else
+        {
+            url = new Uri(Constants.ApiUrl + "/graphql");
+        }
+
+        var apiKey = parseResult.GetValue(Opt<OptionalApiKeyOption>.Instance);
+        INitroClientAuthorization? auth;
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            auth = new NitroClientApiKeyAuthorization(apiKey);
+        }
+        else if (session?.Tokens?.AccessToken is { } token)
+        {
+            auth = new NitroClientAccessTokenAuthorization(token);
+        }
+        else
+        {
+            auth = null;
+        }
+
+        context.Configure(url, auth);
     }
 }

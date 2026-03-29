@@ -120,7 +120,6 @@ public sealed class ShowApiCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "api-1",
               "name": "my-api",

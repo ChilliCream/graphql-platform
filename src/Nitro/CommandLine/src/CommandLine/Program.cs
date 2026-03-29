@@ -1,5 +1,6 @@
 
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.CommandLine.Services;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
@@ -24,9 +25,13 @@ public static class Program
 
         var services = new ServiceCollection();
 
+        services.AddNitroServices();
+
+        services.AddSingleton<NitroClientContext>();
+        services.AddSingleton<INitroClientContextProvider>(sp => sp.GetRequiredService<NitroClientContext>());
+        services.AddNitroClients();
+
         services
-            .AddNitroServices()
-            .AddNitroClients()
             .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, Console.Out, Console.Error))
             .AddNitroCommands();
 

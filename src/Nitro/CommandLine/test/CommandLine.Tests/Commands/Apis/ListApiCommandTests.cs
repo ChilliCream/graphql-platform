@@ -269,7 +269,6 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -381,7 +380,6 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [],
               "cursor": null
@@ -501,7 +499,6 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {

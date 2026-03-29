@@ -1,0 +1,1026 @@
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Exceptions;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using Moq;
+using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
+
+public sealed class PublishClientCommandTests
+{
+    private const string DefaultClientId = "client-1";
+    private const string DefaultStage = "production";
+    private const string DefaultTag = "v1.0";
+    private const string DefaultRequestId = "request-1";
+
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddArguments(
+                "client",
+                "publish",
+                "--help")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Publish a client version to a stage
+
+            Usage:
+              nitro client publish [options]
+
+            Options:
+              --tag <tag> (REQUIRED)              The tag of the schema version to deploy [env: NITRO_TAG]
+              --stage <stage> (REQUIRED)          The name of the stage [env: NITRO_STAGE]
+              --client-id <client-id> (REQUIRED)  The ID of the client [env: NITRO_CLIENT_ID]
+              --force                             Will not ask for confirmation on deletes or overwrites.
+              --wait-for-approval                 Wait for approval [env: NITRO_SUBGRAPH_NAME]
+              --cloud-url <cloud-url>             The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                 The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                     The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                      Show help and usage information
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientException("publish failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("publish failed", result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains(
+            "The server rejected your request as unauthorized.",
+            result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(MutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+        IPublishClientVersion_PublishClient_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = CreatePublishSetup(
+            CreatePublishPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(MutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+        IPublishClientVersion_PublishClient_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = CreatePublishSetup(
+            CreatePublishPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing client...
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(MutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
+        IPublishClientVersion_PublishClient_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var client = CreatePublishSetup(
+            CreatePublishPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(expectedStdErr);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var payload = new Mock<IPublishClientVersion_PublishClient>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IPublishClientVersion_PublishClient_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var client = CreatePublishSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("Could not create publish request.", result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_Success_ReturnsSuccess_NonInteractive()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreatePublishSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            ├── The committing of your request is in progress.
+            └── ✓ Successfully published client!
+            """);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_Success_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreatePublishSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Successfully published client!
+            """);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_Success_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreatePublishSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal("{}", result.StdOut);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during publish.");
+
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreatePublishFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            ├── The committing of your request is in progress.
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Something went wrong during publish.
+            Client publish failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError_Interactive()
+    {
+        // arrange
+        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during publish.");
+
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreatePublishFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] The committing of your request is in progress.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Something went wrong during publish.
+            Client publish failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during publish.");
+
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreatePublishFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Something went wrong during publish.
+            Client publish failed.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateOperationInProgress()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            ├── The committing of your request is in progress.
+            └── ✕ Failed!
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_QueuePosition_UpdatesActivity_NonInteractive()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateQueuedEvent(3),
+                CreateOperationInProgress(),
+                CreatePublishSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            ├── Your request is queued. The current position in the queue is 3.
+            ├── The committing of your request is in progress.
+            └── ✓ Successfully published client!
+            """);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_ReadyState_PrintsSuccess_NonInteractive()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateReadyEvent(),
+                CreateOperationInProgress(),
+                CreatePublishSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("Your request is ready for the committing.", result.StdOut);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_ApprovedState_UpdatesActivity_NonInteractive()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreateApprovedEvent(),
+                CreateOperationInProgress(),
+                CreatePublishSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            ├── The committing of your request is approved.
+            ├── The committing of your request is in progress.
+            └── ✓ Successfully published client!
+            """);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_WaitForApproval_UpdatesActivity_NonInteractive()
+    {
+        // arrange
+        var waitForApprovalEvent = new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_WaitForApproval(
+            "WaitForApproval",
+            ProcessingState.WaitingForApproval,
+            null);
+
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                waitForApprovalEvent,
+                CreateApprovedEvent(),
+                CreateOperationInProgress(),
+                CreatePublishSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("waiting for approval", result.StdOut);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_UnknownEvent_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var unknownEvent = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate>(
+            MockBehavior.Strict);
+        unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
+
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                unknownEvent.Object
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        // Falls through the loop with no terminal state, so activity.Fail() is called
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ForceOption_LogsForceEnabled_NonInteractive()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreatePublishSuccess()
+            },
+            force: true);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("Force push is enabled", result.StdOut);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    // --- Helpers ---
+
+    private static IPublishClientVersion_PublishClient CreateSuccessPayload()
+    {
+        var payload = new Mock<IPublishClientVersion_PublishClient>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IPublishClientVersion_PublishClient_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns(DefaultRequestId);
+        return payload.Object;
+    }
+
+    private static IPublishClientVersion_PublishClient CreatePublishPayloadWithErrors(
+        params IPublishClientVersion_PublishClient_Errors[] errors)
+    {
+        var payload = new Mock<IPublishClientVersion_PublishClient>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors).Returns(errors);
+        payload.SetupGet(x => x.Id).Returns((string?)null);
+        return payload.Object;
+    }
+
+    private static Mock<IClientsClient> CreatePublishSetup(
+        IPublishClientVersion_PublishClient payload,
+        bool force = false,
+        bool waitForApproval = false)
+    {
+        var client = new Mock<IClientsClient>(MockBehavior.Strict);
+        client.Setup(x => x.StartClientPublishAsync(
+                DefaultClientId,
+                DefaultStage,
+                DefaultTag,
+                force,
+                waitForApproval,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload);
+        return client;
+    }
+
+    private static Mock<IClientsClient> CreatePublishSetupWithSubscription(
+        IPublishClientVersion_PublishClient mutationPayload,
+        IEnumerable<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate> subscriptionEvents,
+        bool force = false,
+        bool waitForApproval = false)
+    {
+        var client = new Mock<IClientsClient>(MockBehavior.Strict);
+        client.Setup(x => x.StartClientPublishAsync(
+                DefaultClientId,
+                DefaultStage,
+                DefaultTag,
+                force,
+                waitForApproval,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mutationPayload);
+
+        client.Setup(x => x.SubscribeToClientPublishAsync(
+                DefaultRequestId,
+                It.IsAny<CancellationToken>()))
+            .Returns((string _, CancellationToken ct) =>
+                ToAsyncEnumerable(subscriptionEvents, ct));
+
+        return client;
+    }
+
+    private static Mock<IClientsClient> CreatePublishExceptionClient(Exception ex)
+    {
+        var client = new Mock<IClientsClient>(MockBehavior.Strict);
+        client.Setup(x => x.StartClientPublishAsync(
+                DefaultClientId,
+                DefaultStage,
+                DefaultTag,
+                false,
+                false,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(ex);
+        return client;
+    }
+
+    private static IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate CreateOperationInProgress()
+    {
+        return new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_OperationInProgress(
+            "OperationInProgress",
+            ProcessingState.Processing);
+    }
+
+    private static IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate CreatePublishSuccess()
+    {
+        return new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_ClientVersionPublishSuccess(
+            "ClientVersionPublishSuccess",
+            ProcessingState.Success);
+    }
+
+    private static IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate CreatePublishFailed(
+        params IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors[] errors)
+    {
+        return new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_ClientVersionPublishFailed(
+            "ClientVersionPublishFailed",
+            ProcessingState.Failed,
+            errors);
+    }
+
+    private static IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate CreateQueuedEvent(
+        int queuePosition)
+    {
+        return new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_ProcessingTaskIsQueued(
+            "ProcessingTaskIsQueued",
+            "ProcessingTaskIsQueued",
+            queuePosition);
+    }
+
+    private static IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate CreateReadyEvent()
+    {
+        return new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_ProcessingTaskIsReady(
+            "ProcessingTaskIsReady",
+            "ProcessingTaskIsReady");
+    }
+
+    private static IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate CreateApprovedEvent()
+    {
+        return new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_ProcessingTaskApproved(
+            "ProcessingTaskApproved",
+            ProcessingState.Approved);
+    }
+
+    public static IEnumerable<object[]> MutationErrorCases()
+    {
+        yield return
+        [
+            new PublishClientVersion_PublishClient_Errors_UnauthorizedOperation(
+                "UnauthorizedOperation",
+                "Not authorized to publish."),
+            """
+            Not authorized to publish.
+            """
+        ];
+
+        yield return
+        [
+            new PublishClientVersion_PublishClient_Errors_ClientNotFoundError(
+                "Client not found.",
+                DefaultClientId),
+            """
+            Client not found.
+            """
+        ];
+
+        yield return
+        [
+            new PublishClientVersion_PublishClient_Errors_StageNotFoundError(
+                "StageNotFoundError",
+                "Stage not found.",
+                DefaultStage),
+            """
+            Stage not found.
+            """
+        ];
+
+        yield return
+        [
+            new PublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError(
+                DefaultTag,
+                "Client version not found.",
+                DefaultClientId),
+            """
+            Client version not found.
+            """
+        ];
+
+        yield return
+        [
+            new PublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError(
+                "Invalid source metadata."),
+            """
+            Invalid source metadata.
+            """
+        ];
+
+        var unexpectedError = new Mock<IPublishClientVersion_PublishClient_Errors>();
+        unexpectedError
+            .As<IError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong.");
+
+        yield return
+        [
+            unexpectedError.Object,
+            """
+            Unexpected mutation error: Something went wrong.
+            """
+        ];
+    }
+}

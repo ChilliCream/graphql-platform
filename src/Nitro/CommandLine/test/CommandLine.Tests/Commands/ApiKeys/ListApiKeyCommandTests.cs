@@ -410,7 +410,6 @@ public sealed class ListApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
                 "values": [],
                 "cursor": null
@@ -582,7 +581,6 @@ public sealed class ListApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
                 "values": [
                     {

@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 
@@ -63,8 +62,6 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                 throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
             }
 
-            // console.Log($"Found {files.Length} OpenAPI document(s).");
-
             var archiveStream =
                 await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(
                     fileSystem,
@@ -78,25 +75,68 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                 source,
                 ct);
 
-            console.PrintMutationErrorsAndExit(validationRequest.Errors);
+            if (validationRequest.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in validationRequest.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_UnauthorizedOperation err => err.Message,
+                        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError err => err.Message,
+                        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
             if (validationRequest.Id is not { } requestId)
             {
                 throw new ExitException("Could not create validation request!");
             }
 
-            // console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()})");
 
             await foreach (var update in client.SubscribeToOpenApiCollectionValidationAsync(requestId, ct))
             {
                 switch (update)
                 {
                     case IOpenApiCollectionVersionValidationFailed { Errors: var errors }:
-                        console.WriteLine("The OpenAPI collection is invalid:");
-                        console.PrintMutationErrors(errors);
+                        activity.Fail();
+
+                        foreach (var error in errors)
+                        {
+                            switch (error)
+                            {
+                                case IUnexpectedProcessingError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IOpenApiCollectionValidationError e:
+                                    console.PrintOpenApiCollectionValidationErrors(e);
+                                    break;
+                                case IOpenApiCollectionValidationArchiveError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IError e:
+                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    break;
+                            }
+                        }
+
+                        await console.Error.WriteLineAsync("OpenAPI collection validation failed.");
                         return ExitCodes.Error;
 
                     case IOpenApiCollectionVersionValidationSuccess:
-                        console.Success("OpenAPI collection validation succeeded");
+                        activity.Success("OpenAPI collection validation succeeded.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:
@@ -106,10 +146,12 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
                     default:
                         activity.Update(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
+                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
                         break;
                 }
             }
+
+            activity.Fail();
         }
 
         return ExitCodes.Error;

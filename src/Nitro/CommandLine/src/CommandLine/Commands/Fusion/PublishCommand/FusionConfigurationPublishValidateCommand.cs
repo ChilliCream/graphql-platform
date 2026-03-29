@@ -54,7 +54,27 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                 requestId,
                 stream,
                 cancellationToken);
-            console.PrintMutationErrorsAndExit(result.Errors);
+
+            if (result.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in result.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation err => err.Message,
+                        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError err => err.Message,
+                        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
 
             await foreach (var @event in fusionConfigurationClient
                 .SubscribeToFusionConfigurationPublishingTaskChangedAsync(requestId, cancellationToken))
@@ -76,8 +96,19 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                             "Your request is ready for the composition. Run `fusion-configuration publish start`");
 
                     case IFusionConfigurationValidationFailed failed:
-                        console.WriteLine("The validation failed:");
-                        console.PrintMutationErrors(failed.Errors);
+                        activity.Fail();
+
+                        foreach (var error in failed.Errors)
+                        {
+                            await console.Error.WriteLineAsync(error switch
+                            {
+                                IUnexpectedProcessingError e => e.Message,
+                                IError e => "Unexpected error: " + e.Message,
+                                _ => "Unexpected error."
+                            });
+                        }
+
+                        await console.Error.WriteLineAsync("The validation failed.");
                         return ExitCodes.Error;
 
                     case IFusionConfigurationValidationSuccess:

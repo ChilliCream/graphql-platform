@@ -1,0 +1,846 @@
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Exceptions;
+using ChilliCream.Nitro.Client.Mcp;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using Moq;
+using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
+
+public sealed class ValidateMcpFeatureCollectionCommandTests
+{
+    private const string DefaultMcpFeatureCollectionId = "mcp-1";
+    private const string DefaultStage = "production";
+    private const string DefaultRequestId = "request-1";
+
+    [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--help")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Validate an MCP Feature Collection version
+
+            Usage:
+              nitro mcp validate [options]
+
+            Options:
+              --stage <stage> (REQUIRED)                                             The name of the stage [env: NITRO_STAGE]
+              --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)     The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
+              -p, --prompt-pattern <prompt-pattern>                                  One or more file patterns to locate MCP prompt definition files (*.json).
+              -t, --tool-pattern <tool-pattern>                                      One or more file patterns to locate MCP tool definition files (*.graphql).
+              --cloud-url <cloud-url>                                                The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                                                    The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                                                        The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                                         Show help and usage information
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithException(
+            new NitroClientException("validation request failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("validation request failed", result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithException(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains(
+            "The server rejected your request as unauthorized.",
+            result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(MutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetup(
+            CreateValidationPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(MutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetup(
+            CreateValidationPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [MemberData(nameof(MutationErrorCases))]
+    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
+        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors mutationError,
+        string expectedStdErr)
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetup(
+            CreateValidationPayloadWithErrors(mutationError));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(expectedStdErr);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        var payload = new Mock<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Contains("Could not create validation request!", result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_NonInteractive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationInProgress(),
+                CreateValidationSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            ├── Validation request created (ID: request-1)
+            ├── The validation is in progress.
+            ├── The validation is in progress.
+            └── ✓ MCP Feature Collection validation succeeded.
+            """);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationInProgress(),
+                CreateValidationSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] MCP Feature Collection validation succeeded.
+            """);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationInProgress(),
+                CreateValidationSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Empty(result.StdOut);
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var errorMock = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during validation.");
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            ├── Validation request created (ID: request-1)
+            ├── The validation is in progress.
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Something went wrong during validation.
+            MCP Feature Collection validation failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError_Interactive()
+    {
+        // arrange
+        var errorMock = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during validation.");
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] The validation is in progress.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Something went wrong during validation.
+            MCP Feature Collection validation failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var errorMock = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during validation.");
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Something went wrong during validation.
+            MCP Feature Collection validation failed.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress()
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            ├── Validation request created (ID: request-1)
+            ├── The validation is in progress.
+            └── ✕ Failed!
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_UnknownEvent_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var unknownEvent = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate>(
+            MockBehavior.Strict);
+        unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                unknownEvent.Object
+            });
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    // --- Helpers ---
+
+    private static Mock<IFileSystem> CreateMcpFileSystem()
+    {
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.GlobMatch(
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IEnumerable<string>?>()))
+            .Returns(["prompt.mcp-prompt.json"]);
+        fileSystem.Setup(x => x.OpenReadStream("prompt.mcp-prompt.json"))
+            .Returns(new MemoryStream("{}"u8.ToArray()));
+        return fileSystem;
+    }
+
+    private static IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection CreateSuccessPayload()
+    {
+        var payload = new Mock<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns(DefaultRequestId);
+        return payload.Object;
+    }
+
+    private static IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection CreateValidationPayloadWithErrors(
+        params IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors[] errors)
+    {
+        var payload = new Mock<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors).Returns(errors);
+        payload.SetupGet(x => x.Id).Returns((string?)null);
+        return payload.Object;
+    }
+
+    private static (Mock<IMcpClient> Client, Mock<IFileSystem> FileSystem) CreateValidationSetup(
+        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection payload)
+    {
+        var client = new Mock<IMcpClient>(MockBehavior.Strict);
+        client.Setup(x => x.StartMcpFeatureCollectionValidationAsync(
+                DefaultMcpFeatureCollectionId,
+                DefaultStage,
+                It.IsAny<Stream>(),
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload);
+
+        var fileSystem = CreateMcpFileSystem();
+
+        return (client, fileSystem);
+    }
+
+    private static (Mock<IMcpClient> Client, Mock<IFileSystem> FileSystem) CreateValidationSetupWithSubscription(
+        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection mutationPayload,
+        IEnumerable<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate> subscriptionEvents)
+    {
+        var client = new Mock<IMcpClient>(MockBehavior.Strict);
+        client.Setup(x => x.StartMcpFeatureCollectionValidationAsync(
+                DefaultMcpFeatureCollectionId,
+                DefaultStage,
+                It.IsAny<Stream>(),
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mutationPayload);
+
+        client.Setup(x => x.SubscribeToMcpFeatureCollectionValidationAsync(
+                DefaultRequestId,
+                It.IsAny<CancellationToken>()))
+            .Returns((string _, CancellationToken ct) =>
+                ToAsyncEnumerable(subscriptionEvents, ct));
+
+        var fileSystem = CreateMcpFileSystem();
+
+        return (client, fileSystem);
+    }
+
+    private static (Mock<IMcpClient> Client, Mock<IFileSystem> FileSystem) CreateValidationSetupWithException(
+        Exception ex)
+    {
+        var client = new Mock<IMcpClient>(MockBehavior.Strict);
+        client.Setup(x => x.StartMcpFeatureCollectionValidationAsync(
+                DefaultMcpFeatureCollectionId,
+                DefaultStage,
+                It.IsAny<Stream>(),
+                null,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(ex);
+
+        var fileSystem = CreateMcpFileSystem();
+
+        return (client, fileSystem);
+    }
+
+    private static IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate CreateOperationInProgress()
+    {
+        return new ValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_OperationInProgress(
+            "OperationInProgress",
+            ProcessingState.Processing);
+    }
+
+    private static IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate CreateValidationInProgress()
+    {
+        return new ValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_ValidationInProgress(
+            "ValidationInProgress",
+            ProcessingState.Processing);
+    }
+
+    private static IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate CreateValidationSuccess()
+    {
+        return new ValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_McpFeatureCollectionVersionValidationSuccess(
+            "McpFeatureCollectionVersionValidationSuccess",
+            ProcessingState.Success);
+    }
+
+    private static IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate CreateValidationFailed(
+        params IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors[] errors)
+    {
+        return new ValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_McpFeatureCollectionVersionValidationFailed(
+            "McpFeatureCollectionVersionValidationFailed",
+            ProcessingState.Failed,
+            errors);
+    }
+
+    public static IEnumerable<object[]> MutationErrorCases()
+    {
+        yield return
+        [
+            new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_UnauthorizedOperation(
+                "UnauthorizedOperation",
+                "Not authorized to validate."),
+            """
+            Not authorized to validate.
+            """
+        ];
+
+        yield return
+        [
+            new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_StageNotFoundError(
+                "StageNotFoundError",
+                "Stage not found.",
+                DefaultStage),
+            """
+            Stage not found.
+            """
+        ];
+
+        yield return
+        [
+            new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                DefaultMcpFeatureCollectionId,
+                "MCP Feature Collection not found."),
+            """
+            MCP Feature Collection not found.
+            """
+        ];
+
+        var unexpectedError = new Mock<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors>();
+        unexpectedError
+            .As<IError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong.");
+
+        yield return
+        [
+            unexpectedError.Object,
+            """
+            Unexpected mutation error: Something went wrong.
+            """
+        ];
+    }
+}

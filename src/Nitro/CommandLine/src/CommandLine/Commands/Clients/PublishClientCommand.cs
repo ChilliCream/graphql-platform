@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -9,7 +10,8 @@ internal sealed class PublishClientCommand : Command
 {
     public PublishClientCommand(
         INitroConsole console,
-        IClientsClient client) : base("publish")
+        IClientsClient client,
+        ISessionService sessionService) : base("publish")
     {
         Description = "Publish a client version to a stage";
 
@@ -24,28 +26,29 @@ internal sealed class PublishClientCommand : Command
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
             => await ExecuteAsync(
+                parseResult,
                 console,
                 client,
-                parseResult.GetValue(Opt<TagOption>.Instance)!,
-                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
-                parseResult.GetValue(Opt<ClientIdOption>.Instance)!,
-                parseResult.GetValue(Opt<ForceOption>.Instance),
-                parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance),
-                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
+                sessionService,
                 cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
+        ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
-        string tag,
-        string stage,
-        string clientId,
-        bool force,
-        bool waitForApproval,
-        string? sourceMetadataJson,
+        ISessionService sessionService,
         CancellationToken ct)
     {
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var clientId = parseResult.GetValue(Opt<ClientIdOption>.Instance)!;
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var activity = console.StartActivity("Publishing client..."))
@@ -64,13 +67,35 @@ internal sealed class PublishClientCommand : Command
                 source,
                 ct);
 
-            console.PrintMutationErrorsAndExit(publishRequest.Errors);
-            if (publishRequest.Id is not { } requestId)
+            if (publishRequest.Errors?.Count > 0)
             {
-                throw new ExitException("Could not create publish request!");
+                activity.Fail();
+
+                foreach (var error in publishRequest.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IPublishClientVersion_PublishClient_Errors_UnauthorizedOperation err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_ClientNotFoundError err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_StageNotFoundError err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError err => err.Message,
+                        IError err => "Unexpected mutation error: " + err.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                }
+
+                return ExitCodes.Error;
             }
 
-            // console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            if (publishRequest.Id is not { } requestId)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create publish request.");
+                return ExitCodes.Error;
+            }
 
             await foreach (var update in client.SubscribeToClientPublishAsync(requestId, ct))
             {
@@ -82,12 +107,35 @@ internal sealed class PublishClientCommand : Command
                         break;
 
                     case IClientVersionPublishFailed { Errors: var errors }:
-                        console.WriteLine("Client publish failed");
-                        console.PrintMutationErrors(errors);
+                        activity.Fail();
+
+                        foreach (var error in errors)
+                        {
+                            switch (error)
+                            {
+                                case IConcurrentOperationError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IPersistedQueryValidationError e:
+                                    console.PrintPersistedQueryValidationErrors(e);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IUnexpectedProcessingError e:
+                                    await console.Error.WriteLineAsync(e.Message);
+                                    break;
+                                case IError e:
+                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    break;
+                            }
+                        }
+
+                        await console.Error.WriteLineAsync("Client publish failed.");
                         return ExitCodes.Error;
 
                     case IClientVersionPublishSuccess:
-                        console.Success("Successfully published client!");
+                        activity.Success("Successfully published client!");
                         return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
@@ -102,7 +150,18 @@ internal sealed class PublishClientCommand : Command
                         if (waitForApprovalEvent.Deployment is
                             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_ClientDeployment deployment)
                         {
-                            console.PrintMutationErrors(deployment.Errors);
+                            foreach (var error in deployment.Errors)
+                            {
+                                switch (error)
+                                {
+                                    case IPersistedQueryValidationError e:
+                                        console.PrintPersistedQueryValidationErrors(e);
+                                        break;
+                                    case IError e:
+                                        await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                        break;
+                                }
+                            }
                         }
 
                         activity.Update(
@@ -115,10 +174,12 @@ internal sealed class PublishClientCommand : Command
 
                     default:
                         activity.Update(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
+                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
                         break;
                 }
             }
+
+            activity.Fail();
         }
 
         return ExitCodes.Error;
