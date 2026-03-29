@@ -4,7 +4,7 @@ namespace Mocha.Mediator;
 /// Extension methods for <see cref="MediatorMiddlewareFactoryContext"/> that allow middleware
 /// factories to inspect the pipeline being compiled and decide whether to participate.
 /// Returning <c>next</c> from a middleware factory when these checks fail eliminates the
-/// middleware from that pipeline entirely — zero runtime cost.
+/// middleware from that pipeline entirely - zero runtime cost.
 /// </summary>
 public static class MediatorMiddlewareFactoryContextExtensions
 {

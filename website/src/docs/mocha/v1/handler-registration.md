@@ -83,127 +83,6 @@ You can mix source-generated and manual registration freely. If both the source 
 
 > **Prefer the source generator.** Manual registration methods use runtime reflection to create handler consumers. The source generator produces direct, reflection-free factory calls. We guarantee backwards compatibility for the source-generated registration path; the manual registration API is stable at the surface level but its internal behavior may evolve.
 
-# Analyzer diagnostics
-
-The source generator reports compile-time diagnostics when it finds issues with your handlers. These appear as warnings or errors in your IDE and build output.
-
-| Code       | Severity | Message                                                        | Cause                                                                                                                                         |
-| ---------- | -------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **MO0010** | Warning  | Request type '{0}' has no registered handler                   | An `IEventRequest<TResponse>` type exists but no handler implements `IEventRequestHandler<TReq>` or `IEventRequestHandler<TReq, TRes>` for it |
-| **MO0011** | Error    | Request type '{0}' has multiple handlers: {1}                  | Two or more handlers implement `IEventRequestHandler` for the same request type. Request handlers must be unique per request type             |
-| **MO0012** | Info     | Handler '{0}' is an open generic and cannot be auto-registered | A handler like `GenericHandler<T> : IEventHandler<T>` has unbound type parameters. Register closed generic versions manually                  |
-| **MO0013** | Warning  | Handler '{0}' is abstract and will not be registered           | An abstract class implements a handler interface. Only concrete classes are registered. This is expected for base handler classes             |
-| **MO0014** | Error    | Saga '{0}' must have a public parameterless constructor        | A `Saga<TState>` subclass is missing a public parameterless constructor, which is required for saga state management                          |
-
-## MO0010: Missing request handler
-
-A request type implements `IEventRequest<TResponse>` but no handler in the assembly handles it:
-
-```csharp
-// This produces MO0010
-public record GetOrderStatusRequest(Guid OrderId) : IEventRequest<string>;
-
-// No class implements IEventRequestHandler<GetOrderStatusRequest, string>
-```
-
-**Fix:** Add a handler for the request type:
-
-```csharp
-public class GetOrderStatusHandler
-    : IEventRequestHandler<GetOrderStatusRequest, string>
-{
-    public ValueTask<string> HandleAsync(
-        GetOrderStatusRequest request,
-        CancellationToken ct)
-        => new("shipped");
-}
-```
-
-## MO0011: Duplicate request handler
-
-Request types can have only one handler. If two handlers register for the same request type, the build fails:
-
-```csharp
-// This produces MO0011
-public class GetOrderHandlerA : IEventRequestHandler<GetOrderRequest, string>
-{
-    public ValueTask<string> HandleAsync(
-      GetOrderRequest request,
-      CancellationToken ct)
-      => new("A");
-}
-
-public class GetOrderHandlerB : IEventRequestHandler<GetOrderRequest, string>
-{
-    public ValueTask<string> HandleAsync(
-      GetOrderRequest request,
-      CancellationToken ct)
-      => new("B");
-}
-```
-
-**Fix:** Remove one of the handlers, or change one to handle a different request type.
-
-## MO0012: Open generic handler
-
-Open generics cannot be auto-registered because the source generator needs concrete type arguments:
-
-```csharp
-// This produces MO0012
-public class GenericHandler<T> : IEventHandler<T>
-{
-    public ValueTask HandleAsync(T message, CancellationToken ct) => default;
-}
-```
-
-**Fix:** Create closed generic implementations for each message type:
-
-```csharp
-public class OrderPlacedHandler : GenericHandler<OrderPlaced> { }
-public class PaymentReceivedHandler : GenericHandler<PaymentReceived> { }
-```
-
-## MO0013: Abstract handler
-
-Abstract handlers are not registered - they cannot be instantiated by DI. This diagnostic is informational; it confirms the generator is intentionally skipping your base class.
-
-```csharp
-// This produces MO0013 - expected for base classes
-public abstract class BaseOrderHandler : IEventHandler<OrderPlaced>
-{
-    public abstract ValueTask HandleAsync(OrderPlaced message, CancellationToken ct);
-}
-
-// Concrete subclass is registered normally
-public class OrderPlacedHandler : BaseOrderHandler
-{
-    public override ValueTask HandleAsync(OrderPlaced message, CancellationToken ct) => default;
-}
-```
-
-## MO0014: Saga without parameterless constructor
-
-Sagas require a public parameterless constructor for state management:
-
-```csharp
-// This produces MO0014
-public class OrderSaga : Saga<OrderState>
-{
-    public OrderSaga(string name) { } // no parameterless constructor
-
-    protected override void Configure(ISagaDescriptor<OrderState> descriptor) { }
-}
-```
-
-**Fix:** Add a public parameterless constructor, or remove the constructor with parameters and let the compiler generate the default:
-
-```csharp
-public class OrderSaga : Saga<OrderState>
-{
-    protected override void Configure(ISagaDescriptor<OrderState> descriptor) { }
-}
-```
-
 # Troubleshooting
 
 ## The source-generated method does not appear
@@ -212,15 +91,15 @@ If IntelliSense does not show `Add{ModuleName}()`:
 
 - Confirm the `Mocha.Analyzers` package is referenced with `OutputItemType="Analyzer"` in your `.csproj`
 - Rebuild the project - source generators run during compilation
-- Check the build output for analyzer warnings prefixed with `MO`
+- Check the build output for [analyzer diagnostics](/docs/mocha/v1/diagnostics) prefixed with `MO`
 - Verify you have at least one concrete handler class in the assembly
 
 ## Handler is not being called
 
 If the source-generated method is available but a specific handler does not run:
 
-- Check for **MO0013** (abstract handler) - only concrete classes are registered
-- Check for **MO0012** (open generic) - close the generic type
+- Check for [**MO0013**](/docs/mocha/v1/diagnostics#mo0013) (abstract handler) - only concrete classes are registered
+- Check for [**MO0012**](/docs/mocha/v1/diagnostics#mo0012) (open generic) - close the generic type
 - Verify the handler implements the correct interface for the messaging pattern you are using
 - Ensure the handler is in the same project that references `Mocha.Analyzers`
 

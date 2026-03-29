@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +20,8 @@
     <ProjectReference Include="..\..\src\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Outbox\Mocha.Outbox.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Inbox\Mocha.Inbox.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Scheduling\Mocha.Scheduling.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.EntityFrameworkCore\Mocha.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
 

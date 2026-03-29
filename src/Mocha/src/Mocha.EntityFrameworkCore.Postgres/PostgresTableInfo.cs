@@ -20,4 +20,9 @@ public sealed class PostgresTableInfo
     /// Gets or sets the table and column metadata for the inbox messages table.
     /// </summary>
     public InboxTableInfo Inbox { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the table and column metadata for the scheduled messages table.
+    /// </summary>
+    public ScheduledMessageTableInfo ScheduledMessage { get; set; } = new();
 }
