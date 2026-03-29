@@ -377,7 +377,15 @@ internal sealed class BatchResolverTask : IResolverTask
 
             if (resultValue is { IsNullable: false, IsNullOrInvalidated: true })
             {
-                PropagateNullValues(resultValue);
+                if (_operationContext.PropagateNullValues)
+                {
+                    PropagateNullValues(resultValue);
+                }
+                else
+                {
+                    resultValue.SetNullValue();
+                }
+
                 _completionStatus = ExecutionTaskStatus.Faulted;
                 _operationContext.Result.AddNonNullViolation(context.Path);
                 _taskBuffer.Clear();

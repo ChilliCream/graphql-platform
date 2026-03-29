@@ -6,7 +6,6 @@ using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Fusion.Transport;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;

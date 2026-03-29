@@ -270,7 +270,7 @@ public sealed class PostgresOutboxProcessor
             if (ActivityContext.TryParse(traceparent, tracestate, out var parentContext))
             {
                 activity = OpenTelemetry.Source.CreateActivity(
-                    $"outbox send {envelope.MessageId}",
+                    "outbox send",
                     ActivityKind.Client,
                     parentContext);
 

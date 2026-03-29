@@ -28,7 +28,7 @@ public static class MediatorServiceCollectionExtensions
 
         if (name.Length == 0)
         {
-            services.TryAddSingleton<MediatorRuntime>(sp => BuildRuntime(sp, name));
+            services.TryAddSingleton(sp => BuildRuntime(sp, name));
 
             services.TryAddScoped<Mediator>();
             services.TryAddScoped<IMediator>(sp => sp.GetRequiredService<Mediator>());
@@ -37,9 +37,9 @@ public static class MediatorServiceCollectionExtensions
         }
         else
         {
-            services.TryAddKeyedSingleton<MediatorRuntime>(name, (sp, _) => BuildRuntime(sp, name));
+            services.TryAddKeyedSingleton(name, (sp, _) => BuildRuntime(sp, name));
 
-            services.TryAddKeyedScoped<Mediator>(name,
+            services.TryAddKeyedScoped(name,
                 static (sp, key) => new Mediator(
                     sp.GetRequiredKeyedService<MediatorRuntime>(key),
                     sp));

@@ -237,7 +237,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         var @event = context.GetMessage();
 
-        using var _ = OpenTelemetry.Source.StartActivity($"Processing {Name}: {@event!.GetType().Name}");
+        using var _ = OpenTelemetry.Source.StartActivity($"{Name} process {@event!.GetType().Name}");
 
         TState? state;
         if (context.TryGetSagaId(@event, out var correlationId))
@@ -272,7 +272,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             }
         }
 
-        using var __ = OpenTelemetry.Source.StartActivity("persist saga state");
+        using var __ = OpenTelemetry.Source.StartActivity($"{Name} persist");
 
         await context.GetSagaFeature().Store.SaveAsync(this, state, ct);
 
@@ -294,7 +294,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         var eventType = @event.GetType();
 
-        using var _ = OpenTelemetry.Source.StartActivity($"Creating Saga by event {eventType.Name}");
+        using var _ = OpenTelemetry.Source.StartActivity($"{Name} create {eventType.Name}");
 
         if (!_initialState.Transitions.TryGetValue(eventType, out var transition))
         {
@@ -345,7 +345,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         var currentState = GetCurrentState(state);
 
-        using var _ = OpenTelemetry.Source.StartActivity($"Handle {eventType.Name} in {currentState.State}");
+        using var _ = OpenTelemetry.Source.StartActivity($"{Name} transition {eventType.Name}");
 
         var firstEvent = eventType;
         SagaTransition? transition;
@@ -383,7 +383,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     /// <param name="context">The consume context providing runtime services and cancellation.</param>
     protected virtual async Task OnEnterStateAsync(TState state, SagaState nextState, IConsumeContext context)
     {
-        using var _ = OpenTelemetry.Source.StartActivity($"Enter {nextState.State}");
+        using var _ = OpenTelemetry.Source.StartActivity($"{Name} enter {nextState.State}");
 
         var ct = context.CancellationToken;
 
@@ -402,7 +402,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
                 && state.Metadata.TryGet(SagaContextData.CorrelationId, out var correlationId)
                 && Uri.TryCreate(replyTo, UriKind.Absolute, out var replyAddress))
             {
-                using var __ = OpenTelemetry.Source.StartActivity($"Reply to {replyTo}");
+                using var __ = OpenTelemetry.Source.StartActivity($"{Name} reply");
 
                 var response = nextState.Response.Factory(state);
 

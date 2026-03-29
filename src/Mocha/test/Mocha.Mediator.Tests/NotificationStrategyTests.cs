@@ -14,11 +14,11 @@ public sealed class NotificationStrategyTests
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<SequentialHandler1>(
+        services.AddScoped(
             _ => new SequentialHandler1(log));
-        services.AddScoped<SequentialHandler2>(
+        services.AddScoped(
             _ => new SequentialHandler2(log));
-        services.AddScoped<SequentialHandler3>(
+        services.AddScoped(
             _ => new SequentialHandler3(log));
 
         builder.ConfigureMediator(b =>
@@ -50,11 +50,11 @@ public sealed class NotificationStrategyTests
         var services = new ServiceCollection();
         var builder = services.AddMediator();
 
-        services.AddScoped<SequentialHandler1>(
+        services.AddScoped(
             _ => new SequentialHandler1(log));
-        services.AddScoped<StrategyThrowingHandler>(
+        services.AddScoped(
             _ => new StrategyThrowingHandler());
-        services.AddScoped<SequentialHandler3>(
+        services.AddScoped(
             _ => new SequentialHandler3(log));
 
         builder.ConfigureMediator(b =>
@@ -88,11 +88,11 @@ public sealed class NotificationStrategyTests
 
         builder.ConfigureOptions(o => o.NotificationPublishMode = NotificationPublishMode.Concurrent);
 
-        services.AddScoped<ConcurrentHandler1>(
+        services.AddScoped(
             _ => new ConcurrentHandler1(bag));
-        services.AddScoped<ConcurrentHandler2>(
+        services.AddScoped(
             _ => new ConcurrentHandler2(bag));
-        services.AddScoped<ConcurrentHandler3>(
+        services.AddScoped(
             _ => new ConcurrentHandler3(bag));
 
         builder.ConfigureMediator(b =>
@@ -128,9 +128,9 @@ public sealed class NotificationStrategyTests
 
         builder.ConfigureOptions(o => o.NotificationPublishMode = NotificationPublishMode.Concurrent);
 
-        services.AddScoped<ConcurrentHandler1>(
+        services.AddScoped(
             _ => new ConcurrentHandler1(bag));
-        services.AddScoped<StrategyThrowingHandler>(
+        services.AddScoped(
             _ => new StrategyThrowingHandler());
 
         builder.ConfigureMediator(b =>

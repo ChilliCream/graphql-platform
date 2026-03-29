@@ -138,6 +138,7 @@ OPTOUT
 overfetching
 OWIN
 pageable
+parameterless
 Partitioner
 pipefail
 PKCE

@@ -1,6 +1,7 @@
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -230,4 +231,9 @@ public interface IReadOnlySchemaOptions
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
+
+    /// <summary>
+    /// Gets the default error handling mode for null propagation.
+    /// </summary>
+    ErrorHandlingMode DefaultErrorHandlingMode { get; }
 }

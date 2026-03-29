@@ -24,22 +24,48 @@ internal sealed class EntityFrameworkTransactionMiddleware(
         }
 
         var dbContext = (DbContext)context.Services.GetRequiredService(dbContextType);
+        var strategy = dbContext.Database.CreateExecutionStrategy();
 
-        await using var transaction =
-            await dbContext.Database.BeginTransactionAsync(context.CancellationToken);
-
-        try
+        if (strategy.RetriesOnFailure)
         {
-            await next(context);
+            await strategy.ExecuteAsync(async ct =>
+            {
+                await using var transaction =
+                    await dbContext.Database.BeginTransactionAsync(ct);
 
-            await dbContext.SaveChangesAsync(context.CancellationToken);
-            await transaction.CommitAsync(context.CancellationToken);
+                try
+                {
+                    await next(context);
+
+                    await dbContext.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(ct);
+
+                    throw;
+                }
+            }, context.CancellationToken);
         }
-        catch
+        else
         {
-            await transaction.RollbackAsync(context.CancellationToken);
+            await using var transaction =
+                await dbContext.Database.BeginTransactionAsync(context.CancellationToken);
 
-            throw;
+            try
+            {
+                await next(context);
+
+                await dbContext.SaveChangesAsync(context.CancellationToken);
+                await transaction.CommitAsync(context.CancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(context.CancellationToken);
+
+                throw;
+            }
         }
     }
 
