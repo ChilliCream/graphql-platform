@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using GreenDonut;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Diagnostics;

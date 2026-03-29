@@ -49,5 +49,10 @@ public sealed class ClassWithMochaBaseListFilter : ISyntaxFilter
         => name.StartsWith("ICommand", StringComparison.Ordinal)
         || name.StartsWith("IQuery", StringComparison.Ordinal)
         || name.StartsWith("INotification", StringComparison.Ordinal)
-        || name.StartsWith("IStream", StringComparison.Ordinal);
+        || name.StartsWith("IStream", StringComparison.Ordinal)
+        || name.StartsWith("IEventHandler", StringComparison.Ordinal)
+        || name.StartsWith("IEventRequestHandler", StringComparison.Ordinal)
+        || name.StartsWith("IConsumer", StringComparison.Ordinal)
+        || name.StartsWith("IBatchEventHandler", StringComparison.Ordinal)
+        || name.StartsWith("Saga", StringComparison.Ordinal);
 }

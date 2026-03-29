@@ -28,7 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddMessageBus()
     .AddHealthCheck() // Registers the HealthRequestHandler
-    .AddEventHandler<OrderPlacedHandler>()
+    .AddMyApp()       // source-generated handler registration
     .AddRabbitMQ();
 ```
 

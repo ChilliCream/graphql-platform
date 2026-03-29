@@ -253,8 +253,7 @@ public ref struct Utf8GraphQLRequestParser
                     {
                         "PROPAGATE" => ErrorHandlingMode.Propagate,
                         "NULL" => ErrorHandlingMode.Null,
-                        "HALT" => ErrorHandlingMode.Halt,
-                        _ => null
+                        _ => throw ThrowHelper.UnknownOnErrorValue(mode)
                     };
                 }
                 else if (reader.TokenType == JsonTokenType.Null)

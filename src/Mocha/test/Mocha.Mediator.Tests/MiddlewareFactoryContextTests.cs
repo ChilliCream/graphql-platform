@@ -16,7 +16,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.Equal(typeof(PipelineTestCommand), capturedMessageType);
@@ -28,7 +28,7 @@ public sealed class MiddlewareFactoryContextTests
     {
         // Arrange
         Type? capturedMessageType = null;
-        Type? capturedResponseType = typeof(object); // sentinel to verify it's set to null
+        var capturedResponseType = typeof(object); // sentinel to verify it's set to null
 
         var mediator = BuildMediator(
             CaptureTypesMiddleware(t => capturedMessageType = t, t => capturedResponseType = t),
@@ -66,7 +66,7 @@ public sealed class MiddlewareFactoryContextTests
     {
         // Arrange
         Type? capturedMessageType = null;
-        Type? capturedResponseType = typeof(object);
+        var capturedResponseType = typeof(object);
 
         var mediator = BuildMediator(
             CaptureTypesMiddleware(t => capturedMessageType = t, t => capturedResponseType = t),
@@ -108,7 +108,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.True(result);
@@ -129,7 +129,7 @@ public sealed class MiddlewareFactoryContextTests
 
         // Act
         await mediator1.QueryAsync(new CtxTestQuery());
-        await mediator2.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator2.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.True(queryResult);
@@ -198,7 +198,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.False(result);
@@ -215,7 +215,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.True(result);
@@ -232,7 +232,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.False(result);
@@ -249,7 +249,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.True(result);
@@ -266,7 +266,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.True(result);
@@ -283,7 +283,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.False(result);
@@ -340,7 +340,9 @@ public sealed class MiddlewareFactoryContextTests
             (factoryCtx, next) =>
             {
                 if (!factoryCtx.IsCommand() || factoryCtx.IsCommandWithResponse())
+                {
                     return next; // Opt out at compile time
+                }
 
                 return ctx =>
                 {
@@ -361,7 +363,7 @@ public sealed class MiddlewareFactoryContextTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act - send command with response (should NOT trigger middleware)
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.False(middlewareExecuted);
@@ -390,7 +392,9 @@ public sealed class MiddlewareFactoryContextTests
             (factoryCtx, next) =>
             {
                 if (!factoryCtx.IsResponseAssignableTo<int>())
+                {
                     return next;
+                }
 
                 return ctx =>
                 {
@@ -411,7 +415,7 @@ public sealed class MiddlewareFactoryContextTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act - send command with string response (should NOT trigger)
-        await mediator.SendAsync<string>(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"));
 
         // Assert
         Assert.False(middlewareExecuted);
