@@ -85,7 +85,8 @@ internal sealed class FusionPublishCommand : Command
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
         {
-            var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
+            var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
+                ?? fileSystem.GetCurrentDirectory();
             var sourceSchemaFiles =
                 parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
             var sourceSchemaIdentifiers =

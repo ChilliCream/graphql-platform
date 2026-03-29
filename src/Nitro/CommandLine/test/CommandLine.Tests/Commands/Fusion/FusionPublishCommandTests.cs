@@ -45,7 +45,7 @@ public sealed class FusionPublishCommandTests
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
               -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
-              -w, --working-directory <working-directory>    Sets the working directory for the command. [default: /Users/tobiastengler/src/ai/platform-2/src/Nitro/CommandLine/test/CommandLine.Tests/bin/Debug/netX.0]
+              -w, --working-directory <working-directory>    Sets the working directory for the command.
               --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
               --output <json>                                The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
@@ -121,6 +121,8 @@ public sealed class FusionPublishCommandTests
     {
         // arrange
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.GetCurrentDirectory())
+            .Returns("/tmp");
         fileSystem.Setup(x => x.FileExists(DefaultArchiveFile))
             .Returns(false);
 
@@ -242,6 +244,8 @@ public sealed class FusionPublishCommandTests
             .ThrowsAsync(ex);
 
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.GetCurrentDirectory())
+            .Returns("/tmp");
         fileSystem.Setup(x => x.FileExists(DefaultArchiveFile))
             .Returns(true);
         fileSystem.Setup(x => x.OpenReadStream(DefaultArchiveFile))

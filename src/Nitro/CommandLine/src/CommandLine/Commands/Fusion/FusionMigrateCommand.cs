@@ -29,7 +29,8 @@ internal sealed class FusionMigrateCommand : Command
         CancellationToken cancellationToken)
     {
         var target = parseResult.GetValue(Opt<FusionMigrateTargetArgument>.Instance);
-        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
+        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
+            ?? fileSystem.GetCurrentDirectory();
 
         return target switch
         {

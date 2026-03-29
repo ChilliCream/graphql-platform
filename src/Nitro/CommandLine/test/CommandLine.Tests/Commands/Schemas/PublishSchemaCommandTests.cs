@@ -74,11 +74,8 @@ public sealed class PublishSchemaCommandTests
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -88,7 +85,7 @@ public sealed class PublishSchemaCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "schema",
                 "publish",
@@ -101,17 +98,92 @@ public sealed class PublishSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("publish failed", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientException("publish failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientException("publish failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -121,7 +193,7 @@ public sealed class PublishSchemaCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "schema",
                 "publish",
@@ -134,10 +206,86 @@ public sealed class PublishSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains(
-            "The server rejected your request as unauthorized.",
-            result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }

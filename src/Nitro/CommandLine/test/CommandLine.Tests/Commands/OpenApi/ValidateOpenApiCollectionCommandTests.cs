@@ -44,15 +44,12 @@ public sealed class ValidateOpenApiCollectionCommandTests
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task NoSession_Or_ApiKey_ReturnsError_NonInteractive()
     {
         // arrange & act
         var result = await new CommandBuilder()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "validate",
@@ -65,15 +62,74 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.NotEmpty(result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating OpenAPI collection...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not find any OpenAPI documents with the provided pattern.
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task NoSession_Or_ApiKey_ReturnsError_Interactive()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating OpenAPI collection...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not find any OpenAPI documents with the provided pattern.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task NoSession_Or_ApiKey_ReturnsError_JsonOutput()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Could not find any OpenAPI documents with the provided pattern.
+            """);
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
@@ -84,7 +140,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "validate",
@@ -97,17 +153,94 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("validation request failed", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating OpenAPI collection...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithException(
+            new NitroClientException("validation request failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating OpenAPI collection...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithException(
+            new NitroClientException("validation request failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
@@ -118,7 +251,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "validate",
@@ -131,10 +264,88 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains(
-            "The server rejected your request as unauthorized.",
-            result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating OpenAPI collection...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithException(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating OpenAPI collection...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateValidationSetupWithException(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }

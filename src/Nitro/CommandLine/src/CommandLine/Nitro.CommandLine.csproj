@@ -10,6 +10,7 @@
     <AssemblyName>nitro</AssemblyName>
     <PackageId>ChilliCream.Nitro.CommandLine</PackageId>
     <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

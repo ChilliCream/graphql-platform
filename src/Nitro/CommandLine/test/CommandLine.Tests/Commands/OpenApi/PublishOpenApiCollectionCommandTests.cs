@@ -47,15 +47,12 @@ public sealed class PublishOpenApiCollectionCommandTests
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task NoSession_Or_ApiKey_ReturnsError_NonInteractive()
     {
         // arrange & act
         var result = await new CommandBuilder()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -68,15 +65,74 @@ public sealed class PublishOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.NotEmpty(result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Object reference not set to an instance of an object.
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task NoSession_Or_ApiKey_ReturnsError_Interactive()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Object reference not set to an instance of an object.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task NoSession_Or_ApiKey_ReturnsError_JsonOutput()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Object reference not set to an instance of an object.
+            """);
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -86,7 +142,7 @@ public sealed class PublishOpenApiCollectionCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -99,17 +155,92 @@ public sealed class PublishOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("publish failed", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientException("publish failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientException("publish failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -119,7 +250,7 @@ public sealed class PublishOpenApiCollectionCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -132,10 +263,86 @@ public sealed class PublishOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains(
-            "The server rejected your request as unauthorized.",
-            result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }

@@ -38,7 +38,7 @@ public sealed class FusionUploadCommandTests
               --api-id <api-id> (REQUIRED)                              The ID of the API [env: NITRO_API_ID]
               --tag <tag> (REQUIRED)                                    The tag of the schema version to deploy [env: NITRO_TAG]
               -f, --source-schema-file <source-schema-file> (REQUIRED)  The path to a source schema file (.graphqls) or directory containing a source schema file.
-              -w, --working-directory <working-directory>               Sets the working directory for the command. [default: /Users/tobiastengler/src/ai/platform-2/src/Nitro/CommandLine/test/CommandLine.Tests/bin/Debug/netX.0]
+              -w, --working-directory <working-directory>               Sets the working directory for the command.
               --cloud-url <cloud-url>                                   The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                                       The API key that is used for the authentication [env: NITRO_API_KEY]
               --output <json>                                           The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
@@ -841,6 +841,9 @@ public sealed class FusionUploadCommandTests
     private static Mock<IFileSystem> CreateSchemaFileSystem()
     {
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+
+        fileSystem.Setup(x => x.GetCurrentDirectory())
+            .Returns("/tmp");
 
         // ReadSourceSchemaAsync: check if path is directory (no), then check if file (yes)
         fileSystem.Setup(x => x.DirectoryExists(SchemaFilePath))

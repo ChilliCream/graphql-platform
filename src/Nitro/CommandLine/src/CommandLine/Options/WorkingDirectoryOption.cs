@@ -10,7 +10,7 @@ internal sealed class WorkingDirectoryOption : Option<string>
         {
             var workingDirectory = result.GetValue(this);
 
-            if (!Directory.Exists(workingDirectory))
+            if (workingDirectory is not null && !Directory.Exists(workingDirectory))
             {
                 result.AddError(
                     string.Format(
@@ -18,7 +18,6 @@ internal sealed class WorkingDirectoryOption : Option<string>
                         workingDirectory));
             }
         });
-        DefaultValueFactory = _ => Directory.GetCurrentDirectory();
         this.LegalFilePathsOnly();
     }
 }

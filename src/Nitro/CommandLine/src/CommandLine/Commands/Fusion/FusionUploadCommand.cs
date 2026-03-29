@@ -54,7 +54,8 @@ internal sealed class FusionUploadCommand : Command
     {
         parseResult.AssertHasAuthentication(sessionService);
 
-        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)!;
+        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
+            ?? fileSystem.GetCurrentDirectory();
         var sourceSchemaFile = parseResult.GetValue(Opt<SourceSchemaFileOption>.Instance)!;
         var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
         var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
