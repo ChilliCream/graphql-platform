@@ -359,7 +359,7 @@ builder.Services
 // AuditHandler → InMemory (claimed)
 ```
 
-A claimed handler is bound to the claiming transport regardless of which transport is the default. Unclaimed handlers fall through to the default transport. This is the recommended pattern for multi-transport routing — it avoids `BindHandlersExplicitly()` and keeps the configuration minimal.
+A claimed handler is bound to the claiming transport regardless of which transport is the default. Unclaimed handlers fall through to the default transport. This is the recommended pattern for multi-transport routing - it avoids `BindHandlersExplicitly()` and keeps the configuration minimal.
 
 For outbound endpoints:
 
