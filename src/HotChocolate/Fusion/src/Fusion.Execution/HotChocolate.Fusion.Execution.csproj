@@ -138,6 +138,18 @@
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseReader.cs">
       <Link>Transport\Http\Sse\SseReader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\BufferedHttpResponse.cs">
+      <Link>Transport\Http\BufferedHttpResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\RequestDeduplicationHandler.cs">
+      <Link>Transport\Http\RequestDeduplicationHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\RequestDeduplicationOptions.cs">
+      <Link>Transport\Http\RequestDeduplicationOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\RequestDeduplicationHttpClientBuilderExtensions.cs">
+      <Link>Transport\Http\RequestDeduplicationHttpClientBuilderExtensions.cs</Link>
+    </Compile>
     <Compile Update="Text\Json\SourceResultElement.ObjectEnumerator.cs">
       <DependentUpon>SourceResultElement.cs</DependentUpon>
     </Compile>
