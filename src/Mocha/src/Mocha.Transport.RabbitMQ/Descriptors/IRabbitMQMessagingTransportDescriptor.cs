@@ -102,11 +102,11 @@ public interface IRabbitMQMessagingTransportDescriptor
         string? before = null,
         string? after = null);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.Handler{THandler}" />
-    new ITransportHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+    /// <summary>Claims a handler for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportHandlerDescriptor<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler;
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.Consumer{TConsumer}" />
-    new ITransportConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+    /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
 }

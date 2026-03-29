@@ -90,24 +90,6 @@ public interface IMessagingTransportDescriptor
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
         string? after = null);
-
-    /// <summary>
-    /// Claims a handler for this transport and returns a configurator for its receive endpoint.
-    /// The handler will be bound to a convention-named endpoint on this transport during initialization.
-    /// </summary>
-    /// <typeparam name="THandler">The handler type implementing <see cref="IHandler"/>.</typeparam>
-    /// <returns>A configurator that allows configuring the handler's receive endpoint.</returns>
-    ITransportHandlerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>> Handler<THandler>()
-        where THandler : class, IHandler;
-
-    /// <summary>
-    /// Claims a consumer for this transport and returns a configurator for its receive endpoint.
-    /// The consumer will be bound to a convention-named endpoint on this transport during initialization.
-    /// </summary>
-    /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
-    /// <returns>A configurator that allows configuring the consumer's receive endpoint.</returns>
-    ITransportConsumerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>> Consumer<TConsumer>()
-        where TConsumer : class, IConsumer;
 }
 
 /// <summary>
@@ -226,16 +208,6 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
 
         return this;
     }
-
-    /// <inheritdoc />
-    public virtual ITransportHandlerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>
-        Handler<THandler>() where THandler : class, IHandler
-        => throw new NotSupportedException("Use the transport-specific Handler<T>() method.");
-
-    /// <inheritdoc />
-    public virtual ITransportConsumerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>
-        Consumer<TConsumer>() where TConsumer : class, IConsumer
-        => throw new NotSupportedException("Use the transport-specific Consumer<T>() method.");
 
     /// <summary>
     /// Returns this descriptor as an extension point for the transport configuration, allowing additional

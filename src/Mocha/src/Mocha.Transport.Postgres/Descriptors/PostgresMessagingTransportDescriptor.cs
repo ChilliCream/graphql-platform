@@ -109,23 +109,23 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new ITransportHandlerConfigurator<IPostgresReceiveEndpointDescriptor> Handler<THandler>()
+    public IMessagingTransportHandlerDescriptor<IPostgresReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler
     {
         var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
         endpoint.Handler(typeof(THandler));
-        return new TransportHandlerConfigurator<IPostgresReceiveEndpointDescriptor>(endpoint);
+        return new MessagingTransportHandlerDescriptor<IPostgresReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />
-    public new ITransportConsumerConfigurator<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
+    public IMessagingTransportConsumerDescriptor<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer
     {
         var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
         endpoint.Consumer(typeof(TConsumer));
-        return new TransportConsumerConfigurator<IPostgresReceiveEndpointDescriptor>(endpoint);
+        return new MessagingTransportConsumerDescriptor<IPostgresReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />

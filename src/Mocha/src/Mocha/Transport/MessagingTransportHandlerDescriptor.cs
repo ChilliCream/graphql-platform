@@ -1,15 +1,15 @@
 namespace Mocha;
 
 /// <summary>
-/// Internal implementation of <see cref="ITransportHandlerConfigurator{TEndpointDescriptor}"/> that
+/// Internal implementation of <see cref="IMessagingTransportHandlerDescriptor{TEndpointDescriptor}"/> that
 /// passes endpoint configuration actions directly to the underlying endpoint descriptor.
 /// </summary>
 /// <typeparam name="TEndpointDescriptor">The endpoint descriptor type exposed by the transport.</typeparam>
-internal sealed class TransportHandlerConfigurator<TEndpointDescriptor>(TEndpointDescriptor endpoint)
-    : ITransportHandlerConfigurator<TEndpointDescriptor>
+internal sealed class MessagingTransportHandlerDescriptor<TEndpointDescriptor>(TEndpointDescriptor endpoint)
+    : IMessagingTransportHandlerDescriptor<TEndpointDescriptor>
 {
     /// <inheritdoc />
-    public ITransportHandlerConfigurator<TEndpointDescriptor> ConfigureEndpoint(
+    public IMessagingTransportHandlerDescriptor<TEndpointDescriptor> ConfigureEndpoint(
         Action<TEndpointDescriptor> configure)
     {
         configure(endpoint);

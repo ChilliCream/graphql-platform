@@ -102,11 +102,11 @@ public interface IPostgresMessagingTransportDescriptor
         string? before = null,
         string? after = null);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.Handler{THandler}"/>
-    new ITransportHandlerConfigurator<IPostgresReceiveEndpointDescriptor> Handler<THandler>()
+    /// <summary>Claims a handler for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportHandlerDescriptor<IPostgresReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler;
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.Consumer{TConsumer}"/>
-    new ITransportConsumerConfigurator<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
+    /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportConsumerDescriptor<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
 }

@@ -103,23 +103,23 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new ITransportHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+    public IMessagingTransportHandlerDescriptor<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler
     {
         var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
         endpoint.Handler(typeof(THandler));
-        return new TransportHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor>(endpoint);
+        return new MessagingTransportHandlerDescriptor<IRabbitMQReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />
-    public new ITransportConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+    public IMessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer
     {
         var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
         endpoint.Consumer(typeof(TConsumer));
-        return new TransportConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor>(endpoint);
+        return new MessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />

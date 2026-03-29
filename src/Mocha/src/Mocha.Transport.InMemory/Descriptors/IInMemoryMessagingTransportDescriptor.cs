@@ -81,7 +81,7 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// </summary>
     /// <typeparam name="THandler">The handler type implementing <see cref="IHandler"/>.</typeparam>
     /// <returns>A configurator that allows configuring the handler's receive endpoint.</returns>
-    new ITransportHandlerConfigurator<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
+    IMessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler;
 
     /// <summary>
@@ -90,6 +90,6 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// </summary>
     /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
     /// <returns>A configurator that allows configuring the consumer's receive endpoint.</returns>
-    new ITransportConsumerConfigurator<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
+    IMessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
 }

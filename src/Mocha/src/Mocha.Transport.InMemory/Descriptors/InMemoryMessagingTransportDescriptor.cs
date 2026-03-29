@@ -109,23 +109,23 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new ITransportHandlerConfigurator<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
+    public IMessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler
     {
         var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
         endpoint.Handler(typeof(THandler));
-        return new TransportHandlerConfigurator<IInMemoryReceiveEndpointDescriptor>(endpoint);
+        return new MessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />
-    public new ITransportConsumerConfigurator<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
+    public IMessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer
     {
         var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
         endpoint.Consumer(typeof(TConsumer));
-        return new TransportConsumerConfigurator<IInMemoryReceiveEndpointDescriptor>(endpoint);
+        return new MessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />
